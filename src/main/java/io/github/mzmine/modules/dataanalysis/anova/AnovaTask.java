@@ -16,8 +16,8 @@
 
 package io.github.mzmine.modules.dataanalysis.anova;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -140,7 +140,7 @@ public class AnovaTask extends AbstractTask {
 
     MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
-    // Find the parameter value of each features file
+    // Find the parameter value of each data file
     Map<RawDataFile, Object> paramMap = new HashMap<>();
     for (FeatureListRow row : featureListRows) {
       for (RawDataFile file : row.getRawDataFiles()) {

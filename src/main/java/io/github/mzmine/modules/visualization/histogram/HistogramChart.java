@@ -62,7 +62,7 @@ public class HistogramChart extends EChartViewer {
     super(ChartFactory.createHistogram("", // title
         "", // x-axis label
         "", // y-axis label
-        null, // features set
+        null, // data set
         PlotOrientation.VERTICAL, // orientation
         true, // create legend
         false, // generate tooltips

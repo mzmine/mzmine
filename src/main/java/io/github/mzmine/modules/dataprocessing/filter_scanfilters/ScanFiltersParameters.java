@@ -45,7 +45,7 @@ public class ScanFiltersParameters extends SimpleParameterSet {
       new StringParameter("Suffix", "This string is added to filename as suffix", "filtered");
 
   public static final ModuleComboParameter<ScanFilter> filter =
-      new ModuleComboParameter<ScanFilter>("Filter", "Raw features filter", rawDataFilters);
+      new ModuleComboParameter<ScanFilter>("Filter", "Raw data filter", rawDataFilters);
 
   public static final BooleanParameter autoRemove =
       new BooleanParameter("Remove source file after filtering",

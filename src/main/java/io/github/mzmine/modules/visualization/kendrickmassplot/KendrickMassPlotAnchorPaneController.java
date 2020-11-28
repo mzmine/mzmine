@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.util.logging.Logger;
@@ -690,7 +690,7 @@ public class KendrickMassPlotAnchorPaneController {
   }
 
   /*
-   * Method to calculate the features sets for a Kendrick mass plot
+   * Method to calculate the data sets for a Kendrick mass plot
    */
   private void kendrickVariableChanged(XYPlot plot) {
 

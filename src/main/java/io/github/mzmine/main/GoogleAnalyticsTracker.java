@@ -68,7 +68,7 @@ public class GoogleAnalyticsTracker implements Runnable {
 
   public void run() {
 
-    // Only send features if sendStatistics variable is not set to 0
+    // Only send data if sendStatistics variable is not set to 0
     Boolean sendStatistics = MZmineCore.getConfiguration().getSendStatistics();
 
     // Don't send statistics for developers version

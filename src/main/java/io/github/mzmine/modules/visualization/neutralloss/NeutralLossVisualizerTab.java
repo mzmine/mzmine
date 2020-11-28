@@ -20,7 +20,8 @@ package io.github.mzmine.modules.visualization.neutralloss;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -63,7 +64,7 @@ public class NeutralLossVisualizerTab extends MZmineTab {
   /**
    * Constructor.
    *
-   * @param dataFile   file containing the features of one sample
+   * @param dataFile   file containing the data of one sample
    * @param parameters plot parameters set by the user
    */
   public NeutralLossVisualizerTab(RawDataFile dataFile, ParameterSet parameters) {
@@ -195,7 +196,7 @@ public class NeutralLossVisualizerTab extends MZmineTab {
       return;
     }
 
-    // get first raw features file
+    // get first raw data file
     RawDataFile newFile = rawDataFiles.iterator().next();
     if (dataFile.equals(newFile)) {
       return;

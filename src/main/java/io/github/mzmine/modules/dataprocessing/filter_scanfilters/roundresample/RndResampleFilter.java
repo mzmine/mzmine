@@ -49,7 +49,7 @@ public class RndResampleFilter implements ScanFilter {
 
     DataPoint dps[] = inputScan.getDataPoints();
 
-    // Cleanup first: Remove zero intensity features points (if requested)
+    // Cleanup first: Remove zero intensity data points (if requested)
     // Reuse dps array
     int newNumOfDataPoints = 0;
     for (int i = 0; i < dps.length; ++i) {

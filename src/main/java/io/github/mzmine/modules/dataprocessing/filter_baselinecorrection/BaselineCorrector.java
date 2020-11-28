@@ -147,7 +147,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     // Is the specified MS-level present?
     if (!foundLevel) {
       throw new IllegalArgumentException(
-          "The features file doesn't contain features for MS-level " + msLevel + '.');
+          "The data file doesn't contain data for MS-level " + msLevel + '.');
     }
 
     // Which chromatogram type.
@@ -207,11 +207,11 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       // Get original scan.
       final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-      // Get features points (m/z and intensity pairs) of the original scan
+      // Get data points (m/z and intensity pairs) of the original scan
       final DataPoint[] origDataPoints = origScan.getDataPoints();
       final DataPoint[] newDataPoints = new DataPoint[origDataPoints.length];
 
-      // Copy original features points.
+      // Copy original data points.
       int i = 0;
       for (final DataPoint dp : origDataPoints) {
         newDataPoints[i++] = new SimpleDataPoint(dp);
@@ -229,7 +229,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
    * Correct the baselines (using base peak chromatograms).
    * 
    * @param origDataFile dataFile of concern.
-   * @param writer features file writer.
+   * @param writer data file writer.
    * @param level the MS level.
    * @param numBins number of m/z bins.
    * @param parameters parameters specific to the actual method for baseline computing.
@@ -267,7 +267,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       // Get original scan.
       final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-      // Get features points (m/z and intensity pairs) of the original scan
+      // Get data points (m/z and intensity pairs) of the original scan
       final DataPoint[] origDataPoints = origScan.getDataPoints();
 
       // Create and write new corrected scan.
@@ -283,7 +283,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
    * Correct the baselines (using TIC chromatograms).
    * 
    * @param origDataFile dataFile of concern.
-   * @param writer features file writer.
+   * @param writer data file writer.
    * @param level the MS level.
    * @param numBins number of m/z bins.
    * @param parameters parameters specific to the actual method for baseline computing.
@@ -330,7 +330,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       // Get original scan.
       final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-      // Get features points (m/z and intensity pairs) of the original scan
+      // Get data points (m/z and intensity pairs) of the original scan
       final DataPoint[] origDataPoints = origScan.getDataPoints();
 
       // Create and write new corrected scan.
@@ -369,7 +369,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       // Get original scan.
       final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-      // Process features points.
+      // Process data points.
       for (final DataPoint dataPoint : scan.getDataPoints()) {
 
         final int bin = RangeUtils.binNumber(mzRange, numBins, dataPoint.getMZ());
@@ -409,7 +409,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       // Get original scan.
       final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-      // Process features points.
+      // Process data points.
       for (final DataPoint dataPoint : scan.getDataPoints()) {
 
         chromatograms[RangeUtils.binNumber(mzRange, numBins, dataPoint.getMZ())][scanIndex] +=
@@ -425,23 +425,23 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
    * Perform baseline correction in bins (base peak).
    * 
    * @param origDataFile dataFile of concern.
-   * @param dataPoints input features points to correct.
+   * @param dataPoints input data points to correct.
    * @param baselines the baselines - one per m/z bin.
    * @param numBins the number of m/z bins.
-   * @param scanIndex the current scan index that these features points come from.
-   * @return the corrected features points.
+   * @param scanIndex the current scan index that these data points come from.
+   * @return the corrected data points.
    */
   private DataPoint[] subtractBasePeakBaselines(final RawDataFile origDataFile,
       final DataPoint[] dataPoints, final double[][] baselines, final int numBins,
       final int scanIndex) {
 
-    // Create an ArrayList for new features points.
+    // Create an ArrayList for new data points.
     final DataPoint[] newDataPoints = new DataPoint[dataPoints.length];
 
     // Determine MZ range.
     final Range<Double> mzRange = origDataFile.getDataMZRange();
 
-    // Loop through all original features points.
+    // Loop through all original data points.
     int i = 0;
     for (final DataPoint dp : dataPoints) {
 
@@ -453,7 +453,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
           : new SimpleDataPoint(mz, Math.max(0.0, dp.getIntensity() - baselineIntenstity));
     }
 
-    // Return the new features points.
+    // Return the new data points.
     return newDataPoints;
   }
 
@@ -461,23 +461,23 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
    * Perform baseline correction in bins (TIC).
    * 
    * @param origDataFile dataFile of concern.
-   * @param dataPoints input features points to correct.
+   * @param dataPoints input data points to correct.
    * @param baselines the baselines - one per m/z bin.
    * @param numBins the number of m/z bins.
-   * @param scanIndex the current scan index that these features points come from.
-   * @return the corrected features points.
+   * @param scanIndex the current scan index that these data points come from.
+   * @return the corrected data points.
    */
   private DataPoint[] subtractTICBaselines(final RawDataFile origDataFile,
       final DataPoint[] dataPoints, final double[][] baselines, final int numBins,
       final int scanIndex) {
 
-    // Create an ArrayList for new features points.
+    // Create an ArrayList for new data points.
     final DataPoint[] newDataPoints = new DataPoint[dataPoints.length];
 
     // Determine MZ range.
     final Range<Double> mzRange = origDataFile.getDataMZRange();
 
-    // Loop through all original features points.
+    // Loop through all original data points.
     int i = 0;
     for (final DataPoint dp : dataPoints) {
 
@@ -489,7 +489,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
           : new SimpleDataPoint(mz, Math.max(0.0, dp.getIntensity() * (1.0 - baselineIntenstity)));
     }
 
-    // Return the new features points.
+    // Return the new data points.
     return newDataPoints;
   }
 

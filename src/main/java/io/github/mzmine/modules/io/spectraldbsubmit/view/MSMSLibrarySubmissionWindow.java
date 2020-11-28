@@ -17,7 +17,7 @@
  */
 package io.github.mzmine.modules.io.spectraldbsubmit.view;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -92,7 +92,7 @@ import javafx.scene.control.Label;
 import net.miginfocom.swing.MigLayout;
 
 /**
- * Holds more charts for features reviewing
+ * Holds more charts for data reviewing
  *
  * @author Robin Schmid
  *
@@ -141,7 +141,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   //
   private boolean isFragmentScan = true;
-  // features either rows or list of entries with 1 or multiple scans
+  // data either rows or list of entries with 1 or multiple scans
   private FeatureListRow[] rows;
   private ObservableList<ObservableList<Scan>> scanList;
   private ResultsTextPane txtResults;
@@ -278,7 +278,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
   }
 
   /**
-   * Set features as single scan
+   * Set data as single scan
    *
    * @param scan
    */
@@ -289,7 +289,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
   }
 
   /**
-   * set features as set of scans of one entry
+   * set data as set of scans of one entry
    *
    * @param scans
    */
@@ -303,7 +303,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
   */
 
   /**
-   * Set features as set of entries with 1 or multiple scans
+   * Set data as set of entries with 1 or multiple scans
    *
    * @param scanList
    */

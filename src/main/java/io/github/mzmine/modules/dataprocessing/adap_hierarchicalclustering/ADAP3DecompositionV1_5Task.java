@@ -15,13 +15,13 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,6 +34,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import dulab.adap.common.algorithms.FeatureTools;
 import dulab.adap.datamodel.Component;
@@ -97,12 +98,12 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       logger.info("Started ADAP Peak Decomposition on " + originalPeakList);
 
-      // Check raw features files.
+      // Check raw data files.
       if (originalPeakList.getNumberOfRawDataFiles() > 1) {
 
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            "Peak Decomposition can only be performed on feature lists with a single raw features file");
+            "Peak Decomposition can only be performed on feature lists with a single raw data file");
 
       } else {
 

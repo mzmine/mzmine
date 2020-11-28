@@ -37,7 +37,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 
 /**
- * This class is responsible for drawing the actual features points. modified by Owen Myers 2017
+ * This class is responsible for drawing the actual data points. modified by Owen Myers 2017
  */
 class PointTwoDXYPlot extends BaseXYPlot {
   boolean datasetChanged = false;

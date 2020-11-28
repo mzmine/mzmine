@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
@@ -258,7 +258,7 @@ public class DuplicateFilterTask extends AbstractTask {
   }
 
   /**
-   * Has one feature within RT and mzTolerance in at least one raw features file
+   * Has one feature within RT and mzTolerance in at least one raw data file
    *
    * @param rawFiles
    * @param firstRow
@@ -269,7 +269,7 @@ public class DuplicateFilterTask extends AbstractTask {
    */
   private boolean checkSameSingleFeatureRTMZ(RawDataFile[] rawFiles, FeatureListRow firstRow,
       FeatureListRow secondRow, MZTolerance mzTolerance, RTTolerance rtTolerance) {
-    // at least one similar feature in one raw features file
+    // at least one similar feature in one raw data file
     for (RawDataFile raw : rawFiles) {
       Feature f1 = firstRow.getFeature(raw);
       Feature f2 = secondRow.getFeature(raw);

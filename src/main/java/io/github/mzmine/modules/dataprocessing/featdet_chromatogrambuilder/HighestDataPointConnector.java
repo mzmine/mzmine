@@ -39,7 +39,7 @@ public class HighestDataPointConnector {
   private final RawDataFile dataFile;
   private final int allScanNumbers[];
 
-  // Mapping of last features point m/z --> chromatogram
+  // Mapping of last data point m/z --> chromatogram
   private Set<Chromatogram> buildingChromatograms;
 
   public HighestDataPointConnector(RawDataFile dataFile, int allScanNumbers[],
@@ -70,7 +70,7 @@ public class HighestDataPointConnector {
     // TODO: these two nested cycles should be optimized for speed
     for (DataPoint mzPeak : mzValues) {
 
-      // Search for best chromatogram, which has highest last features point
+      // Search for best chromatogram, which has highest last data point
       Chromatogram bestChromatogram = null;
 
       for (Chromatogram testChrom : buildingChromatograms) {

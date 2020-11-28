@@ -56,7 +56,7 @@ public class ProjectManagerImpl implements ProjectManager {
     if (project == currentProject)
       return;
 
-    // Close previous features files
+    // Close previous data files
     if (currentProject != null) {
       RawDataFile prevDataFiles[] = currentProject.getDataFiles();
       for (RawDataFile prevDataFile : prevDataFiles) {

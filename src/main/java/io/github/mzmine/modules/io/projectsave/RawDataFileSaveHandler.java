@@ -61,12 +61,12 @@ class RawDataFileSaveHandler {
   }
 
   /**
-   * Copy the features points file of the raw features file from the temporary folder to the zip file.
-   * Create an XML file which contains the description of the same raw features file an copy it into the
+   * Copy the data points file of the raw data file from the temporary folder to the zip file.
+   * Create an XML file which contains the description of the same raw data file an copy it into the
    * same zip file.
    * 
-   * @param rawDataFile raw features file to be copied
-   * @param rawDataSavedName name of the raw features inside the zip file
+   * @param rawDataFile raw data file to be copied
+   * @param rawDataSavedName name of the raw data inside the zip file
    * @throws java.io.IOException
    * @throws TransformerConfigurationException
    * @throws SAXException
@@ -76,21 +76,21 @@ class RawDataFileSaveHandler {
 
     numOfScans = rawDataFile.getNumOfScans();
 
-    // Get the structure of the features points file
+    // Get the structure of the data points file
     dataPointsOffsets = rawDataFile.getDataPointsOffsets();
     dataPointsLengths = rawDataFile.getDataPointsLengths();
     consolidatedDataPointsOffsets = new TreeMap<Integer, Long>();
 
-    // step 1 - save features file
-    logger.info("Saving features points of: " + rawDataFile.getName());
+    // step 1 - save data file
+    logger.info("Saving data points of: " + rawDataFile.getName());
 
-    String rawDataSavedName = "Raw features file #" + number + " " + rawDataFile.getName();
+    String rawDataSavedName = "Raw data file #" + number + " " + rawDataFile.getName();
 
     zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
 
-    // We save only those features points that still have a reference in the
+    // We save only those data points that still have a reference in the
     // dataPointsOffset table. Some deleted mass lists may still be present
-    // in the features points file, we don't want to copy those.
+    // in the data points file, we don't want to copy those.
     long newOffset = 0;
     byte buffer[] = new byte[1 << 20];
     RandomAccessFile dataPointsFile = rawDataFile.getDataPointsFile();
@@ -116,8 +116,8 @@ class RawDataFileSaveHandler {
     if (canceled)
       return;
 
-    // step 2 - save raw features description
-    logger.info("Saving raw features description of: " + rawDataFile.getName());
+    // step 2 - save raw data description
+    logger.info("Saving raw data description of: " + rawDataFile.getName());
 
     zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".xml"));
     OutputStream finalStream = zipOutputStream;
@@ -137,7 +137,7 @@ class RawDataFileSaveHandler {
   }
 
   /**
-   * Function which creates an XML file with the descripcion of the raw features
+   * Function which creates an XML file with the descripcion of the raw data
    * 
    * @param rawDataFile
    * @param hd
@@ -317,7 +317,7 @@ class RawDataFileSaveHandler {
 
   /**
    * 
-   * @return the progress of these functions saving the raw features information to the zip file.
+   * @return the progress of these functions saving the raw data information to the zip file.
    */
   double getProgress() {
     return progress;

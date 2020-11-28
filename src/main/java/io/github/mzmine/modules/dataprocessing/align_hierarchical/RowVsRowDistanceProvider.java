@@ -18,10 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.List;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.dataprocessing.align_hierarchical.RowVsRowScoreGC;
 
 public class RowVsRowDistanceProvider {
 

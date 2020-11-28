@@ -22,7 +22,7 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.NOISE_AMPLITUDE;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.PEAK_DURATION;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -115,7 +115,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
           int currentPeakEnd = i;
 
-          // If the last features point is zero, ignore it.
+          // If the last data point is zero, ignore it.
           if (intensities[currentPeakEnd] == 0.0) {
 
             currentPeakEnd--;
@@ -158,7 +158,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
   /**
    * This method returns the noise threshold level. This level is calculated using the intensity
-   * with more features points.
+   * with more data points.
    * 
    * @param binsFrequency bins holding intensity frequencies.
    * @param maxIntensity maximum intensity.

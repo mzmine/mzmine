@@ -16,8 +16,8 @@
 
 package io.github.mzmine.modules.io.adapmgfexport;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -164,7 +164,7 @@ public class AdapMgfExportTask extends AbstractTask {
   }
 
   private void exportRow(FileWriter writer, FeatureListRow row, IsotopePattern ip) throws IOException {
-    // features points of this cluster
+    // data points of this cluster
     DataPoint[] dataPoints = ip.getDataPoints();
     if (!fractionalMZ)
       dataPoints = ScanUtils.integerDataPoints(dataPoints, roundMode);
@@ -178,7 +178,7 @@ public class AdapMgfExportTask extends AbstractTask {
     writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
     writer.write("SCANS=" + row.getID() + newLine);
 
-    // needs to be MSLEVEL=2 for GC-GNPS (even for GC-EI-MS features)
+    // needs to be MSLEVEL=2 for GC-GNPS (even for GC-EI-MS data)
     writer.write("MSLEVEL=2" + newLine);
     writer.write("CHARGE=1+" + newLine);
 

@@ -48,7 +48,7 @@ public class FXChartGestureDemo extends Application {
   }
 
   /**
-   * Creates a dataset, consisting of two series of monthly features.
+   * Creates a dataset, consisting of two series of monthly data.
    *
    * @return the dataset.
    */

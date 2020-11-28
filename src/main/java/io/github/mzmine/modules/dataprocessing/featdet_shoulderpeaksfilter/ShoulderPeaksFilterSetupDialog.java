@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
- * how the selected mass detector and his parameters works over the raw features file.
+ * how the selected mass detector and his parameters works over the raw data file.
  */
 public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
@@ -60,10 +60,10 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
   @Override
   protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
 
-    // Remove previous features sets
+    // Remove previous data sets
     spectrumPlot.removeAllDataSets();
 
-    // Add scan features set
+    // Add scan data set
     ScanDataSet scanDataSet = new ScanDataSet(previewScan);
     spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerTab.scanColor, false);
 
@@ -92,7 +92,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
     removedPeaks.removeAll(Arrays.asList(remainingMzValues));
     DataPoint removedMzValues[] = removedPeaks.toArray(new DataPoint[0]);
 
-    // Add mass list features sets
+    // Add mass list data sets
     DataPointsDataSet removedPeaksDataSet = new DataPointsDataSet("Removed peaks", removedMzValues);
     DataPointsDataSet remainingPeaksDataSet =
         new DataPointsDataSet("Remaining peaks", remainingMzValues);

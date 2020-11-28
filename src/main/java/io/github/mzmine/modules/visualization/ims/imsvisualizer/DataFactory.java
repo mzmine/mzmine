@@ -17,7 +17,7 @@
  */
 
 /*
-This module is going to prepare all the features sets required by ion-mobility and it's visualizations(ims)
+This module is going to prepare all the data sets required by ion-mobility and it's visualizations(ims)
 
 */
 package io.github.mzmine.modules.visualization.ims.imsvisualizer;
@@ -84,7 +84,7 @@ public class DataFactory {
             prepareDataAtSelectedRT();
         }
 
-        // prepare features's for the ims frame.( mz-mobility heatmap and intensity mobility)
+        // prepare data's for the ims frame.( mz-mobility heatmap and intensity mobility)
         updateFrameData(selectedRetentionTime);
 
         preparertMobility();
@@ -133,7 +133,7 @@ public class DataFactory {
 
     public void preparertMobility() {
 
-        // features for the retention time - heatMap plot.
+        // data for the retention time - heatMap plot.
         retentionTimeretentionTimeMobility = new double[scanSize];
         mobilityretentionTimeMobility = new double[scanSize];
         intensityretentionTimeMobility = new double[scanSize];

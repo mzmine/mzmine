@@ -30,8 +30,8 @@ import io.github.mzmine.util.StreamCopy;
 public class StreamCopy32to64 extends StreamCopy {
 
   /**
-   * Copy the features from inputStream to outputStream while converting float values to doubles. Used
-   * to open old MZmine projects that saved the features points using floats.
+   * Copy the data from inputStream to outputStream while converting float values to doubles. Used
+   * to open old MZmine projects that saved the data points using floats.
    *
    * @param input InputStream
    * @param output OutputStream

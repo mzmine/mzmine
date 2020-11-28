@@ -42,13 +42,13 @@ public class SpectralSimilarity {
   // similarity function name
   private String funcitonName;
 
-  // spectral features can be nullable to save memory
+  // spectral data can be nullable to save memory
   // library and query spectrum (may be filtered)
   private @Nullable DataPoint[] library;
   private @Nullable DataPoint[] query;
-  // aligned features points (found in both the library[0] and the query[1]
+  // aligned data points (found in both the library[0] and the query[1]
   // sepctrum)
-  // alinged[library, query][features points]
+  // alinged[library, query][data points]
   private @Nullable DataPoint[][] aligned;
 
   /**
@@ -56,7 +56,7 @@ public class SpectralSimilarity {
    * 
    * @param funcitonName Similarity function name
    * @param score similarity score
-   * @param overlap count of aligned features points in library and query spectrum
+   * @param overlap count of aligned data points in library and query spectrum
    */
   public SpectralSimilarity(String funcitonName, double score, int overlap) {
     this.funcitonName = funcitonName;
@@ -69,10 +69,10 @@ public class SpectralSimilarity {
    * 
    * @param funcitonName Similarity function name
    * @param score similarity score
-   * @param overlap count of aligned features points in library and query spectrum
+   * @param overlap count of aligned data points in library and query spectrum
    * @param librarySpec library spectrum (or other) which was matched to querySpec (may be filtered)
    * @param querySpec query spectrum which was matched to librarySpec (may be filtered)
-   * @param alignedDP aligned features points (alignedDP.get(features point index)[library/query spectrum])
+   * @param alignedDP aligned data points (alignedDP.get(data point index)[library/query spectrum])
    */
   public SpectralSimilarity(String funcitonName, double score, int overlap,
       @Nullable DataPoint[] librarySpec, @Nullable DataPoint[] querySpec,
@@ -143,7 +143,7 @@ public class SpectralSimilarity {
   }
 
   /**
-   * All aligned features points of library(0) and query(1) spectrum
+   * All aligned data points of library(0) and query(1) spectrum
    * 
    * @return DataPoint[library, query][datapoints]
    */

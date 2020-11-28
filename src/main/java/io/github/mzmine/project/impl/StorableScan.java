@@ -39,7 +39,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 
 
 /**
- * Implementation of the Scan interface which stores raw features points in a temporary file, accessed
+ * Implementation of the Scan interface which stores raw data points in a temporary file, accessed
  * by RawDataFileImpl.readFromFloatBufferFile()
  */
 public class StorableScan implements Scan {
@@ -70,7 +70,7 @@ public class StorableScan implements Scan {
   public StorableScan(Scan originalScan, RawDataFileImpl rawDataFile, int numberOfDataPoints,
       int storageID) {
 
-    // save scan features
+    // save scan data
     this.rawDataFile = rawDataFile;
     this.numberOfDataPoints = numberOfDataPoints;
     this.storageID = storageID;
@@ -124,7 +124,7 @@ public class StorableScan implements Scan {
       DataPoint result[] = rawDataFile.readDataPoints(storageID);
       return result;
     } catch (IOException e) {
-      logger.severe("Could not read features from temporary file " + e.toString());
+      logger.severe("Could not read data from temporary file " + e.toString());
       return new DataPoint[0];
     }
 
@@ -345,7 +345,7 @@ public class StorableScan implements Scan {
         int mlStorageID = rawDataFile.storeDataPoints(massListDataPoints);
         storedMassList = new StorableMassList(rawDataFile, mlStorageID, massList.getName(), this);
       } catch (IOException e) {
-        logger.severe("Could not write features to temporary file " + e.toString());
+        logger.severe("Could not write data to temporary file " + e.toString());
         return;
       }
     }

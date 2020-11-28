@@ -19,18 +19,18 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.AreaBarType;
-import io.github.mzmine.datamodel.features.types.AreaShareType;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
-import io.github.mzmine.datamodel.features.types.fx.ColumnID;
-import io.github.mzmine.datamodel.features.types.fx.ColumnType;
-import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.AreaBarType;
+import io.github.mzmine.datamodel.data.types.AreaShareType;
+import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.FeaturesType;
+import io.github.mzmine.datamodel.data.types.fx.ColumnID;
+import io.github.mzmine.datamodel.data.types.fx.ColumnType;
+import io.github.mzmine.datamodel.data.types.modifiers.ExpandableType;
+import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
@@ -166,7 +166,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
 
   /**
-   * add row features and columns of first row
+   * add row data and columns of first row
    *
    * @param flist
    */
@@ -190,13 +190,13 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
   }
 
   /**
-   * Add all columns of {@link FeatureListRow} features
+   * Add all columns of {@link FeatureListRow} data
    *
    * @param flist a summary RowData instance with all present {@link DataType}
    */
   public void addColumns(FeatureList flist) {
 //    logger.info("Adding columns to table");
-    // for all features columns available in "features"
+    // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
     ((ModularFeatureList) flist).getRowTypes().values().forEach(this::addColumn);
   }
@@ -237,7 +237,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
   private void setupExpandableColumn(DataType<?> dataType, TreeTableColumn<FeatureListRow, ?> col,
       ColumnType colType, RawDataFile dataFile) {
-    // Initialize buddy(expanded/hidden for hidden/expanded respectively) column and it's features type
+    // Initialize buddy(expanded/hidden for hidden/expanded respectively) column and it's data type
     TreeTableColumn<FeatureListRow, ?> buddyCol = null;
     DataType<?> buddyDataType = null;
     // Find column's buddy
@@ -357,7 +357,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
   }
 
   /**
-   * Sets visibility of all features type columns.
+   * Sets visibility of all data type columns.
    *
    * @param rowVisibilityMap Map containing row types names and their visibility values
    * @param featureVisibilityMap Map containing feature types names and their visibility values
@@ -397,10 +397,10 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
   }
 
   /**
-   * Sets visibility of features type column depending on the rowTypesParameter and featureTypesParameter
+   * Sets visibility of data type column depending on the rowTypesParameter and featureTypesParameter
    * values.
    *
-   * @param dataType The features type
+   * @param dataType The data type
    */
   private void applyColumnVisibility(DataType<?> dataType, ColumnType colType) {
     if (flist == null) {
@@ -412,7 +412,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
         return;
       }
 
-      // Set visibility of the features type column
+      // Set visibility of the data type column
       TreeTableColumn col = columnMap.get(new ColumnID(dataType, colType, null));
       if (col != null) {
         col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
@@ -422,7 +422,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
         return;
       }
 
-      // Set visibility of the features type column of every raw features file
+      // Set visibility of the data type column of every raw data file
       for(RawDataFile raw : flist.getRawDataFiles()) {
         TreeTableColumn col = columnMap.get(new ColumnID(dataType, colType, raw));
         if (col != null) {
@@ -438,7 +438,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
       TreeTableColumn<FeatureListRow, String> sampleCol =
           new TreeTableColumn<>();
 
-      // Add raw features file label
+      // Add raw data file label
       Label headerLabel = new Label(dataFile.getName());
       headerLabel.setTextFill(dataFile.getColor());
       headerLabel.setGraphic(new ImageView("icons/fileicon.png"));

@@ -22,7 +22,7 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselinePeakDetectorParameters.MIN_PEAK_HEIGHT;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselinePeakDetectorParameters.PEAK_DURATION;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -99,7 +99,7 @@ public class BaselinePeakDetector implements PeakResolver {
           currentRegionHeight = Math.max(currentRegionHeight, endPeak.getIntensity());
         }
 
-        // Subtract one index, so the end index points at the last features
+        // Subtract one index, so the end index points at the last data
         // point of current region.
         currentRegionEnd--;
 
@@ -113,7 +113,7 @@ public class BaselinePeakDetector implements PeakResolver {
               mzCenterFunction, msmsRange, rTRangeMSMS));
         }
 
-        // Find next peak region, starting from next features point.
+        // Find next peak region, starting from next data point.
         currentRegionStart = currentRegionEnd;
 
       }

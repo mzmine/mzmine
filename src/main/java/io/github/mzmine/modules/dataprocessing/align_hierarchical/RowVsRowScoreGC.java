@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.align_hierarchical.SimilarityMethodType;
 
 /**
  * This class represents a score between feature list row and aligned feature list row

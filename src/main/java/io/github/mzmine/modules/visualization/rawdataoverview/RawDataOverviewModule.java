@@ -28,14 +28,14 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 /*
- * Raw features overview module class
+ * Raw data overview module class
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
 public class RawDataOverviewModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Raw features overview";
-  private static final String MODULE_DESCRIPTION = "Raw features overview";
+  private static final String MODULE_NAME = "Raw data overview";
+  private static final String MODULE_DESCRIPTION = "Raw data overview";
 
   @Override
   public @Nonnull String getName() {

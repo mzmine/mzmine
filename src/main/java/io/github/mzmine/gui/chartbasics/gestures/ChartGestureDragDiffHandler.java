@@ -127,7 +127,7 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
           chartPanel.setMouseZoomable(wasMouseZoomable);
           last = null;
         } else if (event.checkEvent(Event.PRESSED)) {
-          // get features space coordinates
+          // get data space coordinates
           last = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
           first = last;
           startEvent = event;
@@ -138,7 +138,7 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
           }
         } else if (event.checkEvent(Event.DRAGGED)) {
           if (last != null) {
-            // get features space coordinates
+            // get data space coordinates
             Point2D released = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
             if (released != null) {
               double offset = 0;

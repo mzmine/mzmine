@@ -39,7 +39,7 @@ import javafx.application.Platform;
 import javafx.scene.paint.Color;
 
 /**
- * Sampling task which loads the raw features and feeds them to Fx3DDisplay
+ * Sampling task which loads the raw data and feeds them to Fx3DDisplay
  */
 class Fx3DSamplingTask extends AbstractTask {
 
@@ -109,7 +109,7 @@ class Fx3DSamplingTask extends AbstractTask {
 
       final double rtStep = (rtRange.upperEndpoint() - rtRange.lowerEndpoint()) / rtResolution;
 
-      // create an array for all features points
+      // create an array for all data points
       float[][] intensityValues = new float[1][mzResolution * rtResolution];
       boolean rtDataSet[] = new boolean[rtResolution];
 
@@ -168,7 +168,7 @@ class Fx3DSamplingTask extends AbstractTask {
       // Interpolate missing values on the RT-axis
       for (int rtIndex = 1; rtIndex < rtResolution - 1; rtIndex++) {
 
-        // If the features was set, go to next RT line
+        // If the data was set, go to next RT line
         if (rtDataSet[rtIndex])
           continue;
         int prevIndex, nextIndex;
@@ -181,7 +181,7 @@ class Fx3DSamplingTask extends AbstractTask {
             break;
         }
 
-        // If no neighboring features was found, give up
+        // If no neighboring data was found, give up
         if ((prevIndex < 0) || (nextIndex >= rtResolution))
           continue;
 
@@ -218,7 +218,7 @@ class Fx3DSamplingTask extends AbstractTask {
 
     } catch (Throwable e) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Error while sampling 3D features," + ExceptionUtils.exceptionToString(e));
+      setErrorMessage("Error while sampling 3D data," + ExceptionUtils.exceptionToString(e));
       return;
     }
 

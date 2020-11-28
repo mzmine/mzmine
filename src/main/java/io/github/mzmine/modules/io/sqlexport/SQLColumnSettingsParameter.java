@@ -37,7 +37,7 @@ public class SQLColumnSettingsParameter
 
   private static final String name = "Export columns";
   private static final String description =
-      "Please set the mapping of feature list features to your database columns";
+      "Please set the mapping of feature list data to your database columns";
 
   @Nullable
   private SQLColumnSettings value;
@@ -80,7 +80,7 @@ public class SQLColumnSettingsParameter
       }
 
       if (dataType == null) {
-        errorMessages.add("Please set the column features types properly");
+        errorMessages.add("Please set the column data types properly");
         return false;
       }
 

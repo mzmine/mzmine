@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.combinedmodule;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;

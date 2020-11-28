@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 
 /**
  * UniversalCalibrantsListExtractor for csv files
- * expects columns at fixed positions for storing needed features
+ * expects columns at fixed positions for storing needed data
  * first column is mz
  * second column is optional name
  * first row (column headers) is skipped
@@ -72,7 +72,7 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
   }
 
   /**
-   * Extracts standards list caching underlying list features
+   * Extracts standards list caching underlying list data
    *
    * @return new standards list object
    * @throws IOException thrown when issues extracting from the file occur

@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fragmentsearch;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -165,7 +165,7 @@ public class FragmentSearchTask extends AbstractTask {
     if (fragmentScan == null)
       return false;
 
-    // Get MS/MS features points in the tolerance range
+    // Get MS/MS data points in the tolerance range
     Range<Double> ms2mzRange = ms2mzTolerance.getToleranceRange(possibleFragment.getAverageMZ());
 
     DataPoint fragmentDataPoints[] = fragmentScan.getDataPointsByMass(ms2mzRange);

@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.ArrayList;
 import org.jfree.data.xy.AbstractXYDataset;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
@@ -27,7 +27,7 @@ import io.github.mzmine.util.SearchDefinition;
 
 /**
  *
- * This features set contains 2 series: first series (index 0) contains all feature list rows. Second
+ * This data set contains 2 series: first series (index 0) contains all feature list rows. Second
  * series (index 1) contains those feature list rows which conform to current search definition
  * (currentSearch).
  *
@@ -44,7 +44,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   private ScatterPlotAxisSelection axisX, axisY;
   private SearchDefinition currentSearch;
 
-  // We use this value for zero features points, because zero cannot be plotted in
+  // We use this value for zero data points, because zero cannot be plotted in
   // the log-scale scatter plot
   private double defaultValue;
 

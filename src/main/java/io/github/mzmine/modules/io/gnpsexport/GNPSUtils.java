@@ -119,7 +119,7 @@ public class GNPSUtils {
 
         // ######################################################
         // OPTIONAL
-        // email, meta features, additional edges
+        // email, meta data, additional edges
         entity.addPart("email", new StringBody(email));
         entity.addPart("username", new StringBody(username));
         entity.addPart("password", new StringBody(password));

@@ -107,7 +107,7 @@ class ScanFilteringTask extends AbstractTask {
 
     try {
 
-      // Create new raw features file
+      // Create new raw data file
 
       String newName = dataFile.getName() + " " + suffix;
       RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(newName);

@@ -5,9 +5,9 @@ import dulab.adap.datamodel.Chromatogram;
 import dulab.adap.datamodel.PeakInfo;
 import io.github.mzmine.datamodel.*;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;

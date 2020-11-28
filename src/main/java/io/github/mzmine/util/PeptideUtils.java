@@ -524,7 +524,7 @@ public class PeptideUtils {
   }
 
   /**
-   * Return the matched ions (MS/MS masses) between a calculated fragment ions and scan's features
+   * Return the matched ions (MS/MS masses) between a calculated fragment ions and scan's data
    * points
    * 
    * @param scanDataPoints

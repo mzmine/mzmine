@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.histogram;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -34,7 +34,7 @@ public class HistogramParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
   public static final MultiChoiceParameter<RawDataFile> dataFiles =
-      new MultiChoiceParameter<RawDataFile>("Raw features files", "Column of features to be plotted",
+      new MultiChoiceParameter<RawDataFile>("Raw data files", "Column of features to be plotted",
           new RawDataFile[0]);
 
   public static final HistogramRangeParameter dataRange = new HistogramRangeParameter();

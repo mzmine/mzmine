@@ -25,7 +25,7 @@ import javafx.collections.ObservableList;
 
 /**
  * This class stores all tasks (as WrappedTasks) in the queue of task controller and also provides
- * features for TaskProgressWindow (as TableModel).
+ * data for TaskProgressWindow (as TableModel).
  */
 public class TaskQueue {
 

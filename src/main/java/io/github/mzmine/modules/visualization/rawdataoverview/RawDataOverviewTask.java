@@ -28,7 +28,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
 
 /*
- * Raw features overview task class
+ * Raw data overview task class
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
@@ -51,7 +51,7 @@ public class RawDataOverviewTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Create raw features overview for " + rawDataFiles.length + " raw features files";
+    return "Create raw data overview for " + rawDataFiles.length + " raw data files";
   }
 
   @Override

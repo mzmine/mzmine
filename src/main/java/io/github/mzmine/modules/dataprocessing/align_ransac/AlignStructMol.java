@@ -17,7 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Comparator;
 
 import io.github.mzmine.datamodel.RawDataFile;

@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoParameters;
@@ -83,8 +83,8 @@ public class HistogramTab extends MZmineTab implements ActionListener {
    *
    * @wbp.parser.constructor
    */
-  //public HistogramTab(RawDataFile dataFile, String title, String xLabel, HistogramData features) {
-  //  this(dataFile, title, xLabel, features, 0);
+  //public HistogramTab(RawDataFile dataFile, String title, String xLabel, HistogramData data) {
+  //  this(dataFile, title, xLabel, data, 0);
   //}
 
   /**
@@ -155,7 +155,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
     scans = scanSelection.getMatchingScans(dataFile);
     totalScans = scans.length;
 
-    // histo features
+    // histo data
     DoubleArrayList data = new DoubleArrayList();
 
     for (Scan scan : scans) {
@@ -275,7 +275,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
   }
 
   /**
-   * Set zoom factor around peak at features point i
+   * Set zoom factor around peak at data point i
    *
    * @param i
    */
@@ -379,7 +379,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
       return;
     }
 
-    // get first raw features file
+    // get first raw data file
     RawDataFile newFile = rawDataFiles.iterator().next();
     if (dataFile.equals(newFile)) {
       return;

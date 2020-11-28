@@ -69,7 +69,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   public static final ComboParameter<FixedSize> fixedSize =
       new ComboParameter<FixedSize>("Fixed size for",
-          "Fixed size for the plot (the features space without axes and titles) or the whole chart.",
+          "Fixed size for the plot (the data space without axes and titles) or the whole chart.",
           FixedSize.values(), FixedSize.Chart);
 
   public static final DoubleParameter alpha = new DoubleParameter("Transparency",

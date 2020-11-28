@@ -60,7 +60,7 @@ public class AlignmentRansacPlot extends EChartViewer {
   // crosshair stroke
   private static final BasicStroke crossHairStroke =
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5, 3}, 0);
-  // features points shape
+  // data points shape
   private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5, 5);
   // titles
   private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);

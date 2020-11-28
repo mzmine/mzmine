@@ -225,15 +225,15 @@ public class SpectralMatchTask extends AbstractTask {
 
       // check if no match was found
       if (count == 0) {
-        logger.log(Level.WARNING, "No features base matches found");
-        setErrorMessage("No features base matches found. Spectral features base matching failed");
+        logger.log(Level.WARNING, "No data base matches found");
+        setErrorMessage("No data base matches found. Spectral data base matching failed");
         list = null;
         return;
       }
     } catch (Exception e) {
       setStatus(TaskStatus.ERROR);
-      logger.log(Level.SEVERE, "Spectral features base matching failed", e);
-      setErrorMessage("Spectral features base matching failed");
+      logger.log(Level.SEVERE, "Spectral data base matching failed", e);
+      setErrorMessage("Spectral data base matching failed");
       return;
     }
 
@@ -338,7 +338,7 @@ public class SpectralMatchTask extends AbstractTask {
   }
 
   /**
-   * Get features points of mass list
+   * Get data points of mass list
    *
    * @param scan
    * @return
@@ -360,7 +360,7 @@ public class SpectralMatchTask extends AbstractTask {
     for (SpectralDBFeatureIdentity match : matches) {
       try {
         // TODO put into separate method and add comments
-        // get features points of matching scans
+        // get data points of matching scans
         DataPoint[] spectraMassList = getDataPoints(currentScan);
         List<DataPoint[]> alignedDataPoints = ScanAlignment.align(mzToleranceSpectra,
             match.getEntry().getDataPoints(), spectraMassList);

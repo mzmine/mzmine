@@ -102,7 +102,7 @@ dependencies {
     implementation "org.openscience.cdk:cdk-sdg:$cdkVersion"
     implementation "org.openscience.cdk:cdk-renderbasic:$cdkVersion"
     implementation "org.openscience.cdk:cdk-renderawt:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-features:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-data:$cdkVersion"
     implementation "org.openscience.cdk:cdk-interfaces:$cdkVersion"
     implementation "org.openscience.cdk:cdk-smiles:$cdkVersion"
     implementation "uk.ac.ebi.jmzml:jmzml:1.7.11"

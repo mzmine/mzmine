@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
@@ -124,7 +124,7 @@ public class Candidates {
 
   /**
    * 
-   * @return total average rating of all features points in the detected pattern
+   * @return total average rating of all data points in the detected pattern
    */
   public double getAvgAccAvgRating() {
     if (pattern == null) // if we run a neutral loss scan this doesn't exist
@@ -171,7 +171,7 @@ public class Candidates {
   }
 
   /**
-   * sets isotope pattern, should not be used when there is a different number of features points in the
+   * sets isotope pattern, should not be used when there is a different number of data points in the
    * new pattern.
    * 
    * @param pattern
@@ -407,7 +407,7 @@ public class Candidates {
    * @param dp
    * @param mz
    * @param minHeight
-   * @return closest features point to given mz above minimum intensity in a given set of features points;
+   * @return closest data point to given mz above minimum intensity in a given set of data points;
    *         null if no DataPoint over given intensity
    */
   private DataPoint getClosestDataPoint(DataPoint[] dp, double mz, double minHeight) {
@@ -421,7 +421,7 @@ public class Candidates {
         n = p;
 
     if (n.getIntensity() == 0.0) {
-      // System.out.println("Info: Closest features point not above min
+      // System.out.println("Info: Closest data point not above min
       // intensity. m/z: " + mz);
       return null;
     }

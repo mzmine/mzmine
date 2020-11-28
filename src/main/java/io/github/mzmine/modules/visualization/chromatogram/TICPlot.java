@@ -92,7 +92,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   private int nextDataSetNum;
 
   /**
-   * Indicates whether we have a request to show spectra visualizer for selected features point. Since
+   * Indicates whether we have a request to show spectra visualizer for selected data point. Since
    * the selection (cross-hair) is updated with some delay after clicking with mouse, we cannot open
    * the new visualizer immediately. Therefore we place a request and open the visualizer later in
    * chartProgress()
@@ -108,7 +108,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     super(ChartFactory.createXYLineChart("", // title
         "Retention time", // x-axis label
         "Y", // y-axis label
-        null, // features set
+        null, // data set
         PlotOrientation.VERTICAL, // orientation
         true, // create legend?
         true, // generate tooltips?
@@ -225,7 +225,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     // RemoveFilePopupMenu.setEnabled(false);
 
     // GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values", this, "SHOW_ANNOTATIONS");
-    // GUIUtils.addMenuItem(popupMenu, "Toggle showing features points", this, "SHOW_DATA_POINTS");
+    // GUIUtils.addMenuItem(popupMenu, "Toggle showing data points", this, "SHOW_DATA_POINTS");
 
     // if(listener instanceof TICVisualizerWindow)
 
@@ -438,7 +438,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * Adds a features set with the color specified in the color associated with the raw features file. If a
+   * Adds a data set with the color specified in the color associated with the raw data file. If a
    * specific color needs to be added, use {@link TICPlot#addTICDataSet(TICDataSet, Color)} or
    * {@link TICPlot#addTICDataSet(TICDataSet, Color, Color)}
    *
@@ -479,7 +479,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * Adds multiple features sets at once. Only triggers {@link JFreeChart#fireChartChanged()} once to
+   * Adds multiple data sets at once. Only triggers {@link JFreeChart#fireChartChanged()} once to
    * save performance.
    *
    * @param dataSets
@@ -492,7 +492,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * Adds a {@link FeatureDataSet} with in the color linked to the feature's raw features file to the
+   * Adds a {@link FeatureDataSet} with in the color linked to the feature's raw data file to the
    * plot.
    *
    * @param dataSet
@@ -527,12 +527,12 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized void addLabelledPeakDataSet(final FeatureDataSet dataSet,
       final String label) {
-    // Add standard peak features set.
+    // Add standard peak data set.
     addFeatureDataSet(dataSet);
 
     // Do we have a label?
     if (label != null && label.length() > 0) {
-      // Add peak label renderer and features set.
+      // Add peak label renderer and data set.
       final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, false);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 2);
       renderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
@@ -557,8 +557,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * @param file   The raw features file
-   * @param notify If false, the plot is not redrawn. This is useful, if multiple features sets are
+   * @param file   The raw data file
+   * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
    *               added right after and the plot shall not be updated until then.
    */
   @Nullable
@@ -581,7 +581,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * @param file The raw features file and notifies the plot.
+   * @param file The raw data file and notifies the plot.
    */
   @Nullable
   public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file) {
@@ -589,9 +589,9 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * Removes all feature features sets.
+   * Removes all feature data sets.
    *
-   * @param notify If false, the plot is not redrawn. This is useful, if multiple features sets are
+   * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
    *               added right after and the plot shall not be updated until then.
    */
   @Nullable
@@ -611,7 +611,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * Removes all feature features sets and notifies the plot.
+   * Removes all feature data sets and notifies the plot.
    */
   @Nullable
   public synchronized void removeAllFeatureDataSets() {
@@ -619,9 +619,9 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * Removes all features sets.
+   * Removes all data sets.
    *
-   * @param notify If false, the plot is not redrawn. This is useful, if multiple features sets are
+   * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
    *               added right after and the plot shall not be updated until then.
    */
   public void removeAllDataSets(boolean notify) {
@@ -638,7 +638,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * Removes all features sets and notifies the plot.
+   * Removes all data sets and notifies the plot.
    */
   public void removeAllDataSets() {
     removeAllDataSets(true);
@@ -745,7 +745,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   /**
-   * Listens to clicks in the chromatogram plot and updates the selected raw features file accordingly.
+   * Listens to clicks in the chromatogram plot and updates the selected raw data file accordingly.
    */
   private void initializeChromatogramMouseListener() {
     getCanvas().addChartMouseListener(new ChartMouseListenerFX() {

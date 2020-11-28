@@ -34,12 +34,12 @@ import io.github.mzmine.parameters.ParameterSet;
 public class RANSAC {
 
   /**
-   * input: features - a set of observed features points n - the minimum number of features values required to
+   * input: data - a set of observed data points n - the minimum number of data values required to
    * fit the model k - the maximum number of iterations allowed in the algorithm t - a threshold
-   * value for determining when a features point fits a model d - the number of close features values
-   * required to assert that a model fits well to features
+   * value for determining when a data point fits a model d - the number of close data values
+   * required to assert that a model fits well to data
    *
-   * output: model which best fit the features
+   * output: model which best fit the data
    */
   private int n;
   private double d = 1;
@@ -76,7 +76,7 @@ public class RANSAC {
       }
 
       // Minimun number of points required to assert that a model fits
-      // well to features
+      // well to data
       if (data.size() < 10) {
         d = 3;
       } else {
@@ -97,7 +97,7 @@ public class RANSAC {
   /**
    * Calculate k (number of trials)
    * 
-   * @return number of trials "k" required to select a subset of n good features points.
+   * @return number of trials "k" required to select a subset of n good data points.
    */
   private double getK() {
     double w = numRatePoints;

@@ -82,7 +82,7 @@ public class CsvReadTask extends AbstractTask {
 
       dataSource = getFileName(scanner);
       if (dataSource == null) {
-        setErrorMessage("Could not open features file " + file.getAbsolutePath());
+        setErrorMessage("Could not open data file " + file.getAbsolutePath());
         setStatus(TaskStatus.ERROR);
         return;
       }

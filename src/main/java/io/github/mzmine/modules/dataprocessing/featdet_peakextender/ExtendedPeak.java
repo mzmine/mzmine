@@ -1,6 +1,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_peakextender;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.text.Format;
 import java.util.Arrays;
@@ -37,11 +37,11 @@ public class ExtendedPeak {
   // All MS2 fragment scans
   private int[] allMS2FragmentScanNumbers;
 
-  // Ranges of raw features points
+  // Ranges of raw data points
   private Range<Double> rawDataPointsMZRange;
   private Range<Float> rawDataPointsIntensityRange, rawDataPointsRTRange;
 
-  // Keep track of last added features point
+  // Keep track of last added data point
   private DataPoint lastMzPeak;
 
   // Isotope pattern. Null by default but can be set later by deisotoping
@@ -77,7 +77,7 @@ public class ExtendedPeak {
   }
 
   /**
-   * Returns m/z value of last added features point
+   * Returns m/z value of last added data point
    */
   public DataPoint getLastMzPeak() {
     return lastMzPeak;
@@ -178,7 +178,7 @@ public class ExtendedPeak {
     }
     mz = MathUtils.calcQuantile(allMzValues, 0.5f);
 
-    // Update raw features point ranges, height, rt and representative scan
+    // Update raw data point ranges, height, rt and representative scan
     height = Double.MIN_VALUE;
     for (int i = 0; i < allScanNumbers.length; i++) {
 
@@ -187,7 +187,7 @@ public class ExtendedPeak {
 
       // Replace the MzPeak instance with an instance of SimpleDataPoint,
       // to reduce the memory usage. After we finish this extended peak,
-      // we don't need the additional features provided by the MzPeak
+      // we don't need the additional data provided by the MzPeak
       SimpleDataPoint newDataPoint = new SimpleDataPoint(mzPeak);
       dataPointsMap.put(allScanNumbers[i], newDataPoint);
 

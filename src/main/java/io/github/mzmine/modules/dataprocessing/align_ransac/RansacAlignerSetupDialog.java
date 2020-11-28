@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -39,7 +39,7 @@ import javafx.scene.layout.GridPane;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
- * how the selected mass detector and his parameters works over the raw features file.
+ * how the selected mass detector and his parameters works over the raw data file.
  */
 public class RansacAlignerSetupDialog extends ParameterSetupDialog {
 

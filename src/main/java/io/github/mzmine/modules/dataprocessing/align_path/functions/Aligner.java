@@ -17,20 +17,20 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 
 public interface Aligner {
 
   /**
-   * Aligns all the sample files creating a new features set.
+   * Aligns all the sample files creating a new data set.
    *
-   * @return New features set as a result of the alignment
+   * @return New data set as a result of the alignment
    */
   public FeatureList align();
 
   /**
    * 
-   * @return Name of the final features set
+   * @return Name of the final data set
    */
   public String getName();
 

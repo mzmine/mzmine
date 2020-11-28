@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Hashtable;
 import java.util.List;
@@ -44,6 +44,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import javafx.application.Platform;
 
 public class JoinAlignerTask extends AbstractTask {
 
@@ -153,13 +154,13 @@ public class JoinAlignerTask extends AbstractTask {
       totalRows += list.getNumberOfRows() * 2;
     }
 
-    // Collect all features files
+    // Collect all data files
     Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
     for (FeatureList featureList : featureLists) {
 
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
 
-        // Each features file can only have one column in aligned feature
+        // Each data file can only have one column in aligned feature
         // list
         if (allDataFiles.contains(dataFile)) {
           setStatus(TaskStatus.ERROR);
@@ -232,7 +233,7 @@ public class JoinAlignerTask extends AbstractTask {
             DataPoint[] candidateDPs = null;
             SpectralSimilarity sim = null;
 
-            // get features points of mass list of the representative
+            // get data points of mass list of the representative
             // scans
             if (msLevel == 1) {
               rowDPs =
@@ -241,7 +242,7 @@ public class JoinAlignerTask extends AbstractTask {
                   .getDataPoints();
             }
 
-            // get features points of mass list of the best
+            // get data points of mass list of the best
             // fragmentation scans
             if (msLevel == 2) {
               if (row.getBestFragmentation() != null && candidate.getBestFragmentation() != null) {
@@ -252,7 +253,7 @@ public class JoinAlignerTask extends AbstractTask {
                 continue;
             }
 
-            // compare mass list features points of selected scans
+            // compare mass list data points of selected scans
             if (rowDPs != null && candidateDPs != null) {
 
               // calculate similarity using SimilarityFunction

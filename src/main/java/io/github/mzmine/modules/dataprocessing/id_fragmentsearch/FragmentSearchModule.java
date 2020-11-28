@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fragmentsearch;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;

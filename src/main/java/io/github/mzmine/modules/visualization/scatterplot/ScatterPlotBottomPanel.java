@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.text.NumberFormat;
 import java.util.regex.PatternSyntaxException;
 import com.google.common.collect.Range;

@@ -155,7 +155,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
   }
 
   /**
-   * Load all library entries from features base file
+   * Load all library entries from data base file
    *
    * @param dataBaseFile
    * @return

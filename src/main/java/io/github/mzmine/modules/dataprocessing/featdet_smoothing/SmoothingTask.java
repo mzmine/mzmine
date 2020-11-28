@@ -24,14 +24,14 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.RangeUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,9 +42,11 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import org.apache.xpath.operations.Mod;
 
 /**
  * Performs chromatographic smoothing of a peak-list.
@@ -155,13 +157,13 @@ public class SmoothingTask extends AbstractTask {
                 final double intensity = smoothed[i];
                 if (dataPoint != null && intensity > 0.0) {
 
-                  // Create a new features point.
+                  // Create a new data point.
                   final double mz = dataPoint.getMZ();
                   final double rt = dataFile.getScan(scanNumber).getRetentionTime();
                   final DataPoint newDataPoint = new SimpleDataPoint(mz, intensity);
                   newDataPoints[i] = newDataPoint;
 
-                  // Track maximum intensity features point.
+                  // Track maximum intensity data point.
                   if (intensity > maxIntensity) {
 
                     maxIntensity = (float) intensity;

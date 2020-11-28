@@ -16,7 +16,7 @@
 
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.RawDataFile;

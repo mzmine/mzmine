@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.util.List;
@@ -40,6 +40,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 

@@ -18,8 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
 import java.util.List;
 import java.util.Vector;
 import com.google.common.collect.Range;
@@ -157,7 +158,7 @@ class Gap {
           representativeScan = bestPeakDataPoints.get(i).getScanNumber();
         }
 
-        // Skip last features point
+        // Skip last data point
         if (i == bestPeakDataPoints.size() - 1) {
           break;
         }

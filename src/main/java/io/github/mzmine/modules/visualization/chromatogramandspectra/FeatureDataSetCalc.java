@@ -20,9 +20,9 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
@@ -42,7 +42,7 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 
 /**
- * Calculates The feature features sets in a new thread to safe perfomance and not make the gui freeze.
+ * Calculates The feature data sets in a new thread to safe perfomance and not make the gui freeze.
  * Nested class because it uses the {@link ChromatogramAndSpectraVisualizer#chromPlot} member.
  */
 public class FeatureDataSetCalc extends AbstractTask {
@@ -80,7 +80,7 @@ public class FeatureDataSetCalc extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    // + 1 because we count the generation of the features sets, too.
+    // + 1 because we count the generation of the data sets, too.
     return ((double) doneFiles / (rawDataFiles.size() + 1));
   }
 

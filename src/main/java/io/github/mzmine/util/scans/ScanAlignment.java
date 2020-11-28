@@ -14,7 +14,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
 /**
- * Scan or mass list alignment based on features points array
+ * Scan or mass list alignment based on data points array
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
@@ -28,11 +28,11 @@ public class ScanAlignment {
   private ScanAlignment() {}
 
   /**
-   * Aligned features points within mzTolerance. Sort by intensity and match every signal only once
+   * Aligned data points within mzTolerance. Sort by intensity and match every signal only once
    * 
    * @param a
    * @param b
-   * @return List of aligned features points
+   * @return List of aligned data points
    */
   public static List<DataPoint[]> align(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
     // sort by intensity
@@ -103,7 +103,7 @@ public class ScanAlignment {
   }
 
   /**
-   * Closed mz range of all features points
+   * Closed mz range of all data points
    * 
    * @param dps
    * @return
@@ -158,7 +158,7 @@ public class ScanAlignment {
   }
 
   /**
-   * Only keep entries with a features point for all aligned scans
+   * Only keep entries with a data point for all aligned scans
    * 
    * @param list
    * @return
@@ -174,7 +174,7 @@ public class ScanAlignment {
   }
 
   /**
-   * Only keep entries with a features point for all aligned scans
+   * Only keep entries with a data point for all aligned scans
    * 
    * @param list
    * @return
@@ -201,10 +201,10 @@ public class ScanAlignment {
   }
 
   /**
-   * Remove unaligned before. Missing features points are replaced by 0
+   * Remove unaligned before. Missing data points are replaced by 0
    * 
    * @param diffAligned
-   * @return array of [features points][intensity in scans]
+   * @return array of [data points][intensity in scans]
    */
   public static double[][] toIntensityArray(List<DataPoint[]> diffAligned) {
     double[][] data = new double[diffAligned.size()][];
@@ -220,14 +220,14 @@ public class ScanAlignment {
   }
 
   /**
-   * Might want to remove unaligned before. Missing features points are replaced by 0. <br>
+   * Might want to remove unaligned before. Missing data points are replaced by 0. <br>
    * weighted values = Intensity^weightI * m/z^weightMZ <br>
    * Calculation similar to MassBank / NIST
    * 
    * @param diffAligned
    * @param weightIntensity
    * @param weightMZ
-   * @return array of [features points][intensity in scans]
+   * @return array of [data points][intensity in scans]
    */
   public static double[][] toIntensityMatrixWeighted(List<DataPoint[]> diffAligned,
       double weightIntensity, double weightMZ) {

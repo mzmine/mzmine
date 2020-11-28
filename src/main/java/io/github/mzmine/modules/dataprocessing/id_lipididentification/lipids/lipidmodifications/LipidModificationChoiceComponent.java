@@ -109,7 +109,7 @@ public class LipidModificationChoiceComponent extends BorderPane {
         return;
       }
 
-      // Load adducts from CSV features into parent choices.
+      // Load adducts from CSV data into parent choices.
       for (final String line[] : csvLines) {
         try {
 

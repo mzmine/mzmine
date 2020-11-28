@@ -186,7 +186,7 @@ public class ComputeIsotopesModule {
    * @param pCharge  List of charge of parental mass
    * @param iCharge  List of charge for isotope corresponding to the parental mass
    * @param maxGrade Maximum possible grade to be assigned to each isotope
-   * @return isotable consolidated features for every isotope for the clique
+   * @return isotable consolidated data for every isotope for the clique
    */
   private IsoTable isoNetAttributes(List<Integer> pFeature, List<Integer> iFeature,
       List<Integer> pCharge, List<Integer> iCharge, int maxGrade) {
@@ -302,7 +302,7 @@ public class ComputeIsotopesModule {
   }
 
   /**
-   * Function to compute list of isotable (containing consolidated features for isotopes) for each
+   * Function to compute list of isotable (containing consolidated data for isotopes) for each
    * clique
    *
    * @param maxCharge      The maximum charge considered when two features are tested to see they
@@ -331,7 +331,7 @@ public class ComputeIsotopesModule {
       if (driverTask.isCanceled()) {
         return listIsoTable;
       }
-      List<Pair<Double, Pair<Double, Integer>>> inData = new ArrayList<>(); // contains following features -> intensity, mz value, nodeID
+      List<Pair<Double, Pair<Double, Integer>>> inData = new ArrayList<>(); // contains following data -> intensity, mz value, nodeID
       for (Integer cliquenodeID : this.anClique.cliques.get(cliqueID)) {
         PeakData pd = pdHash.get(cliquenodeID);
         Pair<Double, Integer> p = new Pair(pd.getMz(), pd.getNodeID());
@@ -435,7 +435,7 @@ public class ComputeIsotopesModule {
 
 
 /**
- * Class containing combined features for isotope in same clique. Dimension of every list in the class
+ * Class containing combined data for isotope in same clique. Dimension of every list in the class
  * is same, and corresponds to the feature no.,mcharge, grade and cluster of isotopes in a clique.
  */
 class IsoTable {

@@ -35,8 +35,8 @@ public class HistogramRangeParameter implements UserParameter<Range<Double>, His
   private Range<Double> value;
 
   public HistogramRangeParameter() {
-    this.name = "Plotted features";
-    this.description = "Plotted features type and range";
+    this.name = "Plotted data";
+    this.description = "Plotted data type and range";
   }
 
   /**

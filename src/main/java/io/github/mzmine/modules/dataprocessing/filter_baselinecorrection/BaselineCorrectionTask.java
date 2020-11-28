@@ -51,12 +51,12 @@ public class BaselineCorrectionTask extends AbstractTask {
   // Logger.
   private static final Logger logger = Logger.getLogger(BaselineCorrectionTask.class.getName());
 
-  // Original features file and newly created baseline corrected file.
+  // Original data file and newly created baseline corrected file.
   private final MZmineProject project;
   private final RawDataFile origDataFile;
   private RawDataFile correctedDataFile;
 
-  // Remove original features file.
+  // Remove original data file.
   private final boolean removeOriginal;
 
   // Baseline corrector processing step.
@@ -73,7 +73,7 @@ public class BaselineCorrectionTask extends AbstractTask {
   /**
    * Creates the task.
    * 
-   * @param dataFile raw features file on which to perform correction.
+   * @param dataFile raw data file on which to perform correction.
    * @param parameters correction parameters.
    */
   public BaselineCorrectionTask(MZmineProject project, final RawDataFile dataFile,
@@ -135,7 +135,7 @@ public class BaselineCorrectionTask extends AbstractTask {
         // Add the newly created file to the project
         this.project.addFile(this.correctedDataFile);
 
-        // Remove the original features file if requested.
+        // Remove the original data file if requested.
         if (removeOriginal) {
           project.removeFile(origDataFile);
         }

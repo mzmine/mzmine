@@ -70,7 +70,7 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
       new IsotopePatternScoreParameters());
 
   public static final OptionalModuleParameter msmsFilter =
-      new OptionalModuleParameter("MS/MS filter", "Check MS/MS features", new MSMSScoreParameters());
+      new OptionalModuleParameter("MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
 
   public FormulaPredictionFeatureListParameters() {
     super(new Parameter[] {charge, ionization, FEATURE_LISTS, sorting, mzTolerance,

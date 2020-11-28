@@ -61,14 +61,14 @@ public class SimpleScan implements Scan {
   }
 
   /**
-   * Constructor for creating scan with given features
+   * Constructor for creating scan with given data
    */
   public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,double mobility,
       double precursorMZ, int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
 
-    // save scan features
+    // save scan data
     this.dataFile = dataFile;
     this.scanNumber = scanNumber;
     this.msLevel = msLevel;

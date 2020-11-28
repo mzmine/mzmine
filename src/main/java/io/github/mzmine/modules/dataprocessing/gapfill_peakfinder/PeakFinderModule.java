@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -34,7 +34,7 @@ public class PeakFinderModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Peak finder";
   private static final String MODULE_DESCRIPTION =
-      "This method fills the missing peaks (gaps) in the feature list by searching for a peak in the raw features.";
+      "This method fills the missing peaks (gaps) in the feature list by searching for a peak in the raw data.";
 
   @Override
   public @Nonnull String getName() {

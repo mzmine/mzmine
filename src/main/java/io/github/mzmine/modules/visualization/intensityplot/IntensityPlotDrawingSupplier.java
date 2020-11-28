@@ -26,7 +26,7 @@ import java.awt.geom.AffineTransform;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 
 /**
- * Supplier for shapes and color for the intensity plot features series
+ * Supplier for shapes and color for the intensity plot data series
  *
  */
 class IntensityPlotDrawingSupplier extends DefaultDrawingSupplier {

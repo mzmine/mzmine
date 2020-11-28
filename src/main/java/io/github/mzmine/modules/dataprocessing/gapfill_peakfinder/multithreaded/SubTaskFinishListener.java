@@ -18,12 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 
 public class SubTaskFinishListener implements Consumer<FeatureList> {

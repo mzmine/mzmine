@@ -31,7 +31,7 @@ import io.github.mzmine.parameters.UserParameter;
 public class RawDataFilesParameter
     implements UserParameter<RawDataFilesSelection, RawDataFilesComponent> {
 
-  private String name = "Raw features files";
+  private String name = "Raw data files";
   private int minCount, maxCount;
 
   private RawDataFilesSelection value;
@@ -98,7 +98,7 @@ public class RawDataFilesParameter
 
   @Override
   public String getDescription() {
-    return "Raw features files that this module will take as its input.";
+    return "Raw data files that this module will take as its input.";
   }
 
   @Override
@@ -110,11 +110,11 @@ public class RawDataFilesParameter
       matchingFiles = value.getMatchingRawDataFiles();
 
     if (matchingFiles.length < minCount) {
-      errorMessages.add("At least " + minCount + " raw features files must be selected");
+      errorMessages.add("At least " + minCount + " raw data files must be selected");
       return false;
     }
     if (matchingFiles.length > maxCount) {
-      errorMessages.add("Maximum " + maxCount + " raw features files may be selected");
+      errorMessages.add("Maximum " + maxCount + " raw data files may be selected");
       return false;
     }
     return true;

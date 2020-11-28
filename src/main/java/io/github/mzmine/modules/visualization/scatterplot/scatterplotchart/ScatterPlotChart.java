@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.util.FeatureUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -37,7 +37,7 @@ import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleInsets;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -97,7 +97,7 @@ public class ScatterPlotChart extends EChartViewer {
     chart = ChartFactory.createXYLineChart("", // title
         "", // x-axis label
         "", // y-axis label
-        null, // features set
+        null, // data set
         PlotOrientation.VERTICAL, // orientation
         false, // create legend
         false, // generate tooltips
@@ -142,7 +142,7 @@ public class ScatterPlotChart extends EChartViewer {
     plot.setDomainCrosshairStroke(crossHairStroke);
     plot.setRangeCrosshairStroke(crossHairStroke);
 
-    // Create features sets;
+    // Create data sets;
     mainDataSet = new ScatterPlotDataSet(featureList);
     plot.setDataset(0, mainDataSet);
     diagonalLineDataset = new DiagonalLineDataset();
@@ -267,7 +267,7 @@ public class ScatterPlotChart extends EChartViewer {
     plot.getDomainAxis().setLabel(axisX.toString());
     plot.getRangeAxis().setLabel(axisY.toString());
 
-    // Update features sets
+    // Update data sets
     mainDataSet.setDisplayedAxes(axisX, axisY);
     diagonalLineDataset.updateDiagonalData(mainDataSet, fold);
 

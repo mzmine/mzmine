@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_peakextender;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;

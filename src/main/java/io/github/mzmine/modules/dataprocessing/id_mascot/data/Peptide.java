@@ -83,7 +83,7 @@ public class Peptide {
   }
 
   /**
-   * Returns the raw features mass of this peptide
+   * Returns the raw data mass of this peptide
    */
   public double getMass() {
     return mass;
@@ -211,7 +211,7 @@ public class Peptide {
   }
 
   /**
-   * Returns a description of how this features was generated (Mascot, etc.)
+   * Returns a description of how this data was generated (Mascot, etc.)
    * 
    * @return identificationMethod
    */

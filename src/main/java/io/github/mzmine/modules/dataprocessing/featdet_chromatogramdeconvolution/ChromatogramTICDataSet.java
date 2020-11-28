@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import org.jfree.data.xy.AbstractXYDataset;
 
 import io.github.mzmine.datamodel.DataPoint;

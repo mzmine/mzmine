@@ -142,7 +142,7 @@ public class LibrarySubmitTask extends AbstractTask {
       DataPoint[] dps = e.getValue();
 
       // final check
-      // at least 2 features points
+      // at least 2 data points
       if (dps != null && dps.length > 2) {
         // export / submit json?
         if (fileJson != null || submitGNPS) {

@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * This class holds annotation related features like list of features in a cliques and the corresponding
+ * This class holds annotation related data like list of features in a cliques and the corresponding
  * NUM_ANNO (default value 5) no. of annotations, annotatted masses, annotation scores for
  */
 public class OutputAn {

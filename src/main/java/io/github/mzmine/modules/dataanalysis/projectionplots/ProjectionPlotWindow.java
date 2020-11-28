@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotParameters;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;

@@ -29,7 +29,7 @@
 
 package io.github.mzmine.modules.io.gnpsexport.fbmn;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -92,7 +92,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
           "Directly submits a GNPS job", new GnpsFbmnSubmitParameters());
 
   public static final ComboParameter<RowFilter> FILTER = new ComboParameter<RowFilter>(
-      "Filter rows", "Limit the exported rows to those with MS/MS features or annotated rows",
+      "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
       RowFilter.values(), RowFilter.ONLY_WITH_MS2);
 
   // public static final BooleanParameter OPEN_GNPS = new

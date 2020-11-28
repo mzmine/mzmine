@@ -26,7 +26,7 @@ import java.util.List;
 import javafx.util.Pair;
 
 /**
- * AnClique Class keeps all features structures related to grouping, annotating isotopes and adducts
+ * AnClique Class keeps all data structures related to grouping, annotating isotopes and adducts
  * <p>
  * See the AnClique class https://github.com/osenan/cliqueMS/blob/master/R/allClasses.R for the R
  * class corresponding to this class

@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -129,7 +129,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   }
 
   /**
-   * Load all library entries from features base file
+   * Load all library entries from data base file
    *
    * @param dataBaseFile
    * @return

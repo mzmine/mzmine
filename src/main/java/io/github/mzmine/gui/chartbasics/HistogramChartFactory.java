@@ -58,7 +58,7 @@ public class HistogramChartFactory {
   /**
    * Performs Gaussian fit on XYSeries
    * 
-   * @param data the features
+   * @param data the data
    * @param gMin lower bound of Gaussian fit
    * @param gMax upper bound of Gaussian fit
    * @param sigDigits number of significant digits
@@ -86,7 +86,7 @@ public class HistogramChartFactory {
   /**
    * Performs Gaussian fit on XYSeries
    * 
-   * @param series the features
+   * @param series the data
    * @param gMin lower bound of Gaussian fit
    * @param gMax upper bound of Gaussian fit
    * @param sigDigits number of significant digits
@@ -109,7 +109,7 @@ public class HistogramChartFactory {
   /**
    * Performs Gaussian fit on XYSeries
    * 
-   * @param data the features
+   * @param data the data
    * @param series the series index
    * @param gMin lower bound of Gaussian fit
    * @param gMax upper bound of Gaussian fit
@@ -133,7 +133,7 @@ public class HistogramChartFactory {
    * Adds a Gaussian curve to the plot
    * 
    * @param plot
-   * @param series the features
+   * @param series the data
    * @param gMin lower bound of Gaussian fit
    * @param gMax upper bound of Gaussian fit
    * @param sigDigits number of significant digits
@@ -151,7 +151,7 @@ public class HistogramChartFactory {
    * Adds a Gaussian curve to the plot
    * 
    * @param plot
-   * @param data the features
+   * @param data the data
    * @param series the series index
    * @param gMin lower bound of Gaussian fit
    * @param gMax upper bound of Gaussian fit
@@ -281,7 +281,7 @@ public class HistogramChartFactory {
       // calc new barwidth if a transformation function is defined
       if (function != null) {
         int sum = Arrays.stream(bins).sum();
-        // see when 98% of the features is displayed
+        // see when 98% of the data is displayed
         int sum2 = 0;
         for (int i = 0; i < bins.length; i++) {
           if (bins[i] > 0) {
@@ -337,9 +337,9 @@ public class HistogramChartFactory {
    * 
    * @param data
    * @param binwidth
-   * @param min real minimum of features
-   * @param max real maximum of features
-   * @param function function to transform features axis
+   * @param min real minimum of data
+   * @param max real maximum of data
+   * @param function function to transform data axis
    * @return A histogram array with length = datawidth/binwidth +1 (datawidth = max-min)
    */
   public static XYSeries createHistoSeries(double[] data, double binwidth, double min, double max,
@@ -352,24 +352,24 @@ public class HistogramChartFactory {
     // if value>bin.upper put in next
     for (double v : data) {
       int i = (int) Math.ceil((v - min) / binwidth) - 1;
-      if (i < 0) // does only happen if min>than minimum value of features
+      if (i < 0) // does only happen if min>than minimum value of data
         i = 0;
       if (i >= bins.length)
         i = bins.length - 1;
       bins[i]++;
     }
 
-    // add zeros around features
+    // add zeros around data
     boolean peakStarted = false;
     XYSeries series = new XYSeries("histo", true, true);
     for (int i = 0; i < bins.length; i++) {
-      // start peak and add features if>0
+      // start peak and add data if>0
       if (bins[i] > 0) {
         // add previous zero once
         if (!peakStarted && i > 0)
           addDPToSeries(series, bins, i - 1, binwidth, min, max, function);
 
-        // add features
+        // add data
         addDPToSeries(series, bins, i, binwidth, min, max, function);
 
         peakStarted = true;
@@ -387,9 +387,9 @@ public class HistogramChartFactory {
    * 
    * @param data
    * @param binwidth
-   * @param min real minimum of features
-   * @param max real maximum of features
-   * @param function function to transform features axis
+   * @param min real minimum of data
+   * @param max real maximum of data
+   * @param function function to transform data axis
    * @return A histogram array with length = datawidth/binwidth +1 (datawidth = max-min)
    */
   public static XYSeries createHistoSeries(DoubleArrayList data, double binwidth, double min,
@@ -402,24 +402,24 @@ public class HistogramChartFactory {
     // if value>bin.upper put in next
     for (double v : data) {
       int i = (int) Math.ceil((v - min) / binwidth) - 1;
-      if (i < 0) // does only happen if min>than minimum value of features
+      if (i < 0) // does only happen if min>than minimum value of data
         i = 0;
       if (i >= bins.length)
         i = bins.length - 1;
       bins[i]++;
     }
 
-    // add zeros around features
+    // add zeros around data
     boolean peakStarted = false;
     XYSeries series = new XYSeries("histo", true, true);
     for (int i = 0; i < bins.length; i++) {
-      // start peak and add features if>0
+      // start peak and add data if>0
       if (bins[i] > 0) {
         // add previous zero once
         if (!peakStarted && i > 0)
           addDPToSeries(series, bins, i - 1, binwidth, min, max, function);
 
-        // add features
+        // add data
         addDPToSeries(series, bins, i, binwidth, min, max, function);
 
         peakStarted = true;
@@ -434,7 +434,7 @@ public class HistogramChartFactory {
 
   private static void addDPToSeries(XYSeries series, int[] bins, int i, double binwidth, double min,
       double max, DoubleFunction<Double> function) {
-    // adds a features point to the series
+    // adds a data point to the series
     double x = min + (binwidth / 2.0) + i * binwidth;
     if (function != null)
       x = function.apply(x);
@@ -446,9 +446,9 @@ public class HistogramChartFactory {
    * 
    * @param data
    * @param binwidth
-   * @param min real minimum of features
-   * @param max real maximum of features
-   * @param function function to transform features axis
+   * @param min real minimum of data
+   * @param max real maximum of data
+   * @param function function to transform data axis
    * @return A histogram array with length = datawidth/binwidth +1 (datawidth = max-min)
    */
   public static List<DataPoint> createHistoList(DoubleArrayList data, double binwidth, double min,
@@ -461,24 +461,24 @@ public class HistogramChartFactory {
     // if value>bin.upper put in next
     for (double v : data) {
       int i = (int) Math.ceil((v - min) / binwidth) - 1;
-      if (i < 0) // does only happen if min>than minimum value of features
+      if (i < 0) // does only happen if min>than minimum value of data
         i = 0;
       if (i >= bins.length)
         i = bins.length - 1;
       bins[i]++;
     }
 
-    // add zeros around features
+    // add zeros around data
     List<DataPoint> result = new ArrayList<>();
     boolean peakStarted = false;
     for (int i = 0; i < bins.length; i++) {
-      // start peak and add features if>0
+      // start peak and add data if>0
       if (bins[i] > 0) {
         // add previous zero once
         if (!peakStarted && i > 0)
           addDPToList(result, bins, i - 1, binwidth, min, max, function);
 
-        // add features
+        // add data
         addDPToList(result, bins, i, binwidth, min, max, function);
 
         peakStarted = true;
@@ -493,7 +493,7 @@ public class HistogramChartFactory {
 
   private static void addDPToList(List<DataPoint> list, int[] bins, int i, double binwidth,
       double min, double max, DoubleFunction<Double> function) {
-    // adds a features point to the series
+    // adds a data point to the series
     double x = min + (binwidth / 2.0) + i * binwidth;
     if (function != null)
       x = function.apply(x);
@@ -511,7 +511,7 @@ public class HistogramChartFactory {
    */
   public static void addValueToHistoArray(int[] bins, double value, double binwidth, double min) {
     int i = (int) Math.ceil((value - min) / binwidth) - 1;
-    if (i < 0) // does only happen if min>than minimum value of features
+    if (i < 0) // does only happen if min>than minimum value of data
       i = 0;
     if (i >= bins.length)
       i = bins.length - 1;
@@ -601,7 +601,7 @@ public class HistogramChartFactory {
    * @param data
    * @param yAxisLabel
    * @param width automatic width if parameter is <=0
-   * @param function transform the features axis after binning
+   * @param function transform the data axis after binning
    * @return
    */
   public static JFreeChart createHistogram(double[] data, String yAxisLabel, double width,

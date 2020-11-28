@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import io.github.mzmine.util.FeatureListRowSorter;
@@ -36,12 +36,12 @@ import io.github.mzmine.util.SortingProperty;
 
 public class IntensityPlotParameters extends SimpleParameterSet {
 
-  public static final String rawDataFilesOption = "Raw features file";
+  public static final String rawDataFilesOption = "Raw data file";
 
   public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
   public static final MultiChoiceParameter<RawDataFile> dataFiles =
-      new MultiChoiceParameter<RawDataFile>("Raw features files", "Raw features files to display",
+      new MultiChoiceParameter<RawDataFile>("Raw data files", "Raw data files to display",
           new RawDataFile[0]);
 
   public static final ComboParameter<Object> xAxisValueSource =

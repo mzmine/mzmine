@@ -32,7 +32,7 @@ import org.jfree.chart.plot.PlotRenderingInfo;
 import com.google.common.collect.Range;
 
 /**
- * This class is responsible for drawing the actual features points. Modified by Owen Myers 2017
+ * This class is responsible for drawing the actual data points. Modified by Owen Myers 2017
  */
 class TwoDXYPlot extends BaseXYPlot {
   boolean datasetChanged = false;

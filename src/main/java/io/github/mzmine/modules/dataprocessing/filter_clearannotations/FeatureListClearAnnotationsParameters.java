@@ -18,11 +18,19 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.text.DecimalFormat;
+
+import com.google.common.collect.Range;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 
 public class FeatureListClearAnnotationsParameters extends SimpleParameterSet {
 

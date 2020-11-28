@@ -207,10 +207,10 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
     return rtValuesInUserRange;
   }
 
-  // Sets the private list to contain the rt values for each features point scan
+  // Sets the private list to contain the rt values for each data point scan
   // of scans that fall in
   // the user
-  // range. returns an array of the features points but not the rt.
+  // range. returns an array of the data points but not the rt.
   ArrayList getCentroidedDataPointsInRTMZRange(Range<Float> rtRange, Range<Double> mzRange) {
     ArrayList<DataPoint> dataPointsInRanges = new ArrayList<DataPoint>();
     ArrayList rtInRange = new ArrayList();
@@ -236,12 +236,12 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
       startScanIndex = 0;
     }
 
-    // With this we can grab the features points from the scans we want using
+    // With this we can grab the data points from the scans we want using
     // dataPointMatrix
 
     for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length)
         && (searchRetentionTimes[scanIndex] <= rtRange.upperEndpoint())); scanIndex++) {
-      // get the list of features points
+      // get the list of data points
       DataPoint dataPoints[] = dataPointMatrix[scanIndex].get();
       // Binary search for the mz values in the range you want
 
@@ -312,7 +312,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
         if (startMZIndex == dataPoints.length - 1)
           return dataPoints[startMZIndex - 1].getIntensity();
 
-        // find which features point is closer
+        // find which data point is closer
         double diffNext = dataPoints[startMZIndex].getMZ() - mzRange.upperEndpoint();
         double diffPrev = mzRange.lowerEndpoint() - dataPoints[startMZIndex - 1].getMZ();
 

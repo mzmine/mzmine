@@ -100,7 +100,7 @@ public class MSPEntryGenerator {
         s.append(DBEntryField.RT.getNistMspID() + def + rt + br);
     }
 
-    // num peaks and features
+    // num peaks and data
     s.append(DBEntryField.NUM_PEAKS.getNistMspID() + def + dps.length + br);
 
     NumberFormat mzForm = new DecimalFormat("0.######");

@@ -34,7 +34,7 @@ import javafx.collections.FXCollections;
 public class TwoDVisualizerParameters extends SimpleParameterSet {
 
   public static final ComboParameter<PlotType> plotType =
-      new ComboParameter<>("Type of plot", "Resampled features -> fast. Raw features -> slow.",
+      new ComboParameter<>("Type of plot", "Resampled data -> fast. Raw data -> slow.",
           FXCollections.observableArrayList(PlotType.values()));
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);

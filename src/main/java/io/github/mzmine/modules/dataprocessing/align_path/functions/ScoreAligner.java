@@ -17,9 +17,9 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -260,7 +260,7 @@ public class ScoreAligner implements Aligner {
       for (AlignmentPath p : addedPaths) {
         // Convert alignments to original order of files and add them to
         // final
-        // Alignment features structure
+        // Alignment data structure
         FeatureListRow row = p.convertToAlignmentRow(ID++);
         alignment.addRow(row);
 

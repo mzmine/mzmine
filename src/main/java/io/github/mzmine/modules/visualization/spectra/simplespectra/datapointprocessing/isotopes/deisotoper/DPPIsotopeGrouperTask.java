@@ -100,7 +100,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     }
 
     if (getDataPoints().length == 0) {
-      logger.info("Data point/Spectra processing: 0 features points were passed to "
+      logger.info("Data point/Spectra processing: 0 data points were passed to "
           + getTaskDescription() + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
@@ -108,7 +108,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
     if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       logger.warning(
-          "Data point/Spectra processing: The features points passed to Isotope Grouper were not an instance of processed features points."
+          "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
               + " Make sure to run mass detection first.");
       setStatus(TaskStatus.CANCELED);
       return;

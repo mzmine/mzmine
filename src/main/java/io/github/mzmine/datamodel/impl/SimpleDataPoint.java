@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.main.MZmineCore;
 
 /**
- * This class represents one features point of a spectrum (m/z and intensity pair). Data point is
+ * This class represents one data point of a spectrum (m/z and intensity pair). Data point is
  * immutable once created, to make things simple.
  */
 public class SimpleDataPoint implements DataPoint {
@@ -32,7 +32,7 @@ public class SimpleDataPoint implements DataPoint {
   private double mz, intensity;
 
   /**
-   * Constructor which copies the features from another DataPoint
+   * Constructor which copies the data from another DataPoint
    */
   public SimpleDataPoint(DataPoint dp) {
     this.mz = dp.getMZ();

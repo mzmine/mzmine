@@ -18,7 +18,7 @@
 
 package io.github.mzmine.util.components;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -58,7 +58,7 @@ public class PeakXICComponent extends Canvas {
 
     this.peak = peak;
 
-    // find features boundaries
+    // find data boundaries
     RawDataFile dataFile = peak.getRawDataFile();
     this.rtRange = dataFile.getDataRTRange();
     this.maxIntensity = maxIntensity;
@@ -80,11 +80,11 @@ public class PeakXICComponent extends Canvas {
     // turn on antialiasing
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    // get scan numbers, one features point per each scan
+    // get scan numbers, one data point per each scan
     RawDataFile dataFile = peak.getRawDataFile();
     Integer scanNumbers[] = peak.getScanNumbers().toArray(new Integer[0]);
 
-    // If we have no features, just return
+    // If we have no data, just return
     if (scanNumbers.length == 0)
       return;
 
@@ -118,7 +118,7 @@ public class PeakXICComponent extends Canvas {
     GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
     path.moveTo(xValues[0], (int) getHeight() - 1);
 
-    // add features points to the path
+    // add data points to the path
     for (int i = 0; i < (xValues.length - 1); i++) {
       path.lineTo(xValues[i + 1], yValues[i + 1]);
     }

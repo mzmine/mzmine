@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -148,7 +148,7 @@ class MsMsPlot extends EChartViewer  {
     chartSubTitle.setMargin(5, 0, 0, 0);
     chart.addSubtitle(chartSubTitle);
 
-    // Add features sets;
+    // Add data sets;
     plot.setDataset(0, dataset);
 
     // set rendering order

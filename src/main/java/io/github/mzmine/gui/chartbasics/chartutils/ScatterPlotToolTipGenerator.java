@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.chartutils;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.NumberFormat;
 import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.chart.util.PublicCloneable;

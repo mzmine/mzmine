@@ -19,10 +19,10 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import java.util.Collection;
 import java.util.logging.Logger;
 
@@ -83,7 +83,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     processedPeakList = createResultsPeakList();
     progress = 0.5;
 
-    // split raw features files into groups for each thread (task)
+    // split raw data files into groups for each thread (task)
     // Obtain the settings of max concurrent threads
     // as this task uses one thread
     int maxRunningThreads = getMaxThreads();

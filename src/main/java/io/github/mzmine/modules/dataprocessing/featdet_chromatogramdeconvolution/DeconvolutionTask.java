@@ -24,19 +24,20 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.SUFFIX;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.mzRangeMSMS;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureConvertors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -68,7 +69,7 @@ public class DeconvolutionTask extends AbstractTask {
   private double msmsRange;
   private float RTRangeMSMS;
 
-  // function to find center mz of all feature features points
+  // function to find center mz of all feature data points
   private final CenterFunction mzCenterFunction;
 
   /**
@@ -112,12 +113,12 @@ public class DeconvolutionTask extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       logger.info("Started peak deconvolution on " + originalPeakList);
 
-      // Check raw features files.
+      // Check raw data files.
       if (originalPeakList.getNumberOfRawDataFiles() > 1) {
 
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            "Peak deconvolution can only be performed on feature lists with a single raw features file");
+            "Peak deconvolution can only be performed on feature lists with a single raw data file");
 
       } else {
 
@@ -212,7 +213,7 @@ public class DeconvolutionTask extends AbstractTask {
   private FeatureList resolvePeaks(final FeatureList peakList, RSessionWrapper rSession)
       throws RSessionWrapperException {
 
-    // Get features file information.
+    // Get data file information.
     final RawDataFile dataFile = peakList.getRawDataFile(0);
 
     // Peak resolver.

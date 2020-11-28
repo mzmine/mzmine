@@ -30,14 +30,14 @@ public interface RawDataFile {
   public RawDataFile clone() throws CloneNotSupportedException;
 
   /**
-   * Returns the name of this features file (can be a descriptive name, not necessarily the original
+   * Returns the name of this data file (can be a descriptive name, not necessarily the original
    * file name)
    */
   @Nonnull
   public String getName();
 
   /**
-   * Change the name of this features file
+   * Change the name of this data file
    */
   public void setName(@Nonnull String name);
 
@@ -79,7 +79,7 @@ public interface RawDataFile {
   public int[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
 
   /**
-   * Scan could be null if scanID is not contained in the raw features file
+   * Scan could be null if scanID is not contained in the raw data file
    *
    * @param scan Desired scan number
    * @return Desired scan
@@ -125,7 +125,7 @@ public interface RawDataFile {
   public double getDataMaxTotalIonCurrent(int msLevel);
 
   /**
-   * Returns a list of the different scan polarity types found in the raw features file.
+   * Returns a list of the different scan polarity types found in the raw data file.
    *
    * @return Scan polarity types.
    */

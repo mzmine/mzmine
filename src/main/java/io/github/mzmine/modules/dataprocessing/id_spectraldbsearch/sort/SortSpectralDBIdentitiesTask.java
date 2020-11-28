@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +70,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Sort spectral database identities of features base search in " + featureList;
+    return "Sort spectral database identities of data base search in " + featureList;
   }
 
   /**

@@ -75,7 +75,7 @@ public class MassBankJapanGateway implements DBGateway {
 
     Vector<String> results = new Vector<String>();
 
-    // Find IDs in the HTML features
+    // Find IDs in the HTML data
     Pattern pat = Pattern.compile("&nbsp;&nbsp;&nbsp;&nbsp;([A-Z0-9]{8})&nbsp;");
     Matcher matcher = pat.matcher(queryResult);
     while (matcher.find()) {
@@ -97,7 +97,7 @@ public class MassBankJapanGateway implements DBGateway {
 
     URL entryURL = new URL(massBankEntryAddress + ID);
 
-    // Retrieve features
+    // Retrieve data
     logger.finest("Querying URL " + entryURL);
     String massBankEntry = InetUtils.retrieveData(entryURL);
 

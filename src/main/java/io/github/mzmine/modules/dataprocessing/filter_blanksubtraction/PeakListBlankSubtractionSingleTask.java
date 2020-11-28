@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -103,7 +103,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
     ArrayList<FeatureListRow> rows = new ArrayList<>();
 
-    // get the rows that contain peaks from the current raw features file
+    // get the rows that contain peaks from the current raw data file
     for (FeatureListRow row : alignedFeatureRows) {
       for (RawDataFile raw : row.getRawDataFiles()) {
         if (raw.equals(thisRaw)) {
@@ -114,7 +114,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
     }
 
     if (rows.isEmpty()) {
-      logger.info("Raw features file " + thisRaw.getName() + " did not have any features in "
+      logger.info("Raw data file " + thisRaw.getName() + " did not have any features in "
           + alignedFeatureList.getName());
       finishedRows = 1;
       totalRows = 1;
@@ -167,8 +167,8 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
    * aligned feature list row.
    * 
    * @param row The aligned feature list row.
-   * @param thisRaw The raw features file of the sample.
-   * @param blankRaws The raw features file of blanks/control samples.
+   * @param thisRaw The raw data file of the sample.
+   * @param blankRaws The raw data file of blanks/control samples.
    * @return The intensity increase.
    */
   private double getIntensityIncrease(FeatureListRow row, RawDataFile thisRaw,

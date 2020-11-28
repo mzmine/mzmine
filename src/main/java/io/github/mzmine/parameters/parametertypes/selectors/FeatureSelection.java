@@ -18,7 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.NumberFormat;
 
 import javax.annotation.concurrent.Immutable;

@@ -35,8 +35,8 @@ public class MzTabImportParameters extends SimpleParameterSet {
       new FileNamesParameter("mzTab files", "mzTab files to import.", filters);
 
   public static final BooleanParameter importrawfiles = new BooleanParameter(
-      "Import raw features files?",
-      "If selected, raw features files will also be imported if they are available. If some raw features files cannot be found, empty files will be generated instead.");
+      "Import raw data files?",
+      "If selected, raw data files will also be imported if they are available. If some raw data files cannot be found, empty files will be generated instead.");
 
   public MzTabImportParameters() {
     super(new Parameter[] {file, importrawfiles});

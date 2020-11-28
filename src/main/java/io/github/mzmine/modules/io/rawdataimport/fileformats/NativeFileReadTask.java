@@ -47,7 +47,7 @@ import io.github.mzmine.util.TextUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
- * This module binds spawns a separate process that dumps the native format's features in a text+binary
+ * This module binds spawns a separate process that dumps the native format's data in a text+binary
  * form into its standard output. This class then reads the output of that process.
  */
 public class NativeFileReadTask extends AbstractTask {
@@ -131,7 +131,7 @@ public class NativeFileReadTask extends AbstractTask {
       InputStream dumpStream = dumper.getInputStream();
       BufferedInputStream bufStream = new BufferedInputStream(dumpStream);
 
-      // Read the dump features
+      // Read the dump data
       readRAWDump(bufStream);
 
       // Finish
@@ -180,7 +180,7 @@ public class NativeFileReadTask extends AbstractTask {
   }
 
   /**
-   * This method reads the dump of the RAW features file produced by RAWdump.exe utility (see
+   * This method reads the dump of the RAW data file produced by RAWdump.exe utility (see
    * RAWdump.cpp source for details).
    */
   private void readRAWDump(InputStream dumpStream) throws IOException {
@@ -333,7 +333,7 @@ public class NativeFileReadTask extends AbstractTask {
         }
 
         // INTENSITY VALUES was the last item of the scan, so now we can
-        // convert the features to DataPoint[] array and create a new scan
+        // convert the data to DataPoint[] array and create a new scan
 
         DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
         for (int i = 0; i < numOfDataPoints; i++) {

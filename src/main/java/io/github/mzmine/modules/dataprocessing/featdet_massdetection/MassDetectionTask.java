@@ -193,7 +193,7 @@ public class MassDetectionTask extends AbstractTask {
         dims.add(dim_totalIntensity);
         dims.add(dim_pointsInScans);
 
-        // make the variables that contain the actual features I think.
+        // make the variables that contain the actual data I think.
         Variable var_massValues =
             writer.addVariable(null, "mass_values", DataType.DOUBLE, "mass_values");
         Variable var_intensityValues =

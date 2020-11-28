@@ -22,7 +22,7 @@ package io.github.mzmine.gui;
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;

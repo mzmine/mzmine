@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.io.sqlexport;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.io.ByteArrayInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -97,7 +97,7 @@ class SQLExportTask extends AbstractTask {
     try {
       dbConnection.setAutoCommit(false);
 
-      // If select, an empty row with just the raw features file
+      // If select, an empty row with just the raw data file
       // information will be exported
       if (rows.length < 1 && emptyExport) {
         exportFeatureListRow(null);
@@ -129,7 +129,7 @@ class SQLExportTask extends AbstractTask {
       return;
     }
 
-    // Value for looping through raw features files
+    // Value for looping through raw data files
     boolean loopDataFiles = false;
 
     StringBuilder sql = new StringBuilder();
@@ -301,9 +301,9 @@ class SQLExportTask extends AbstractTask {
         }
         statement.executeUpdate();
 
-        // If no features file elements are selected then don't loop through
+        // If no data file elements are selected then don't loop through
         // all
-        // features files in feature list
+        // data files in feature list
         if (!loopDataFiles) {
           break;
         }

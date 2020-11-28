@@ -44,15 +44,15 @@ public class LocalMaxMassDetector implements MassDetector {
     // List of found mz peaks
     ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
 
-    // All features points of current m/z peak
+    // All data points of current m/z peak
 
-    // Top features point of current m/z peak
+    // Top data point of current m/z peak
     DataPoint currentMzPeakTop = null;
 
     // True if we haven't reached the current local maximum yet
     boolean ascending = true;
 
-    // Iterate through all features points
+    // Iterate through all data points
     for (int i = 0; i < dataPoints.length - 1; i++) {
 
       boolean nextIsBigger = dataPoints[i + 1].getIntensity() > dataPoints[i].getIntensity();

@@ -55,12 +55,12 @@ public class SpectraDataSetCalc extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Calculating scan features sets for " + rawDataFiles.size() + " raw features file(s).";
+    return "Calculating scan data sets for " + rawDataFiles.size() + " raw data file(s).";
   }
 
   @Override
   public double getFinishedPercentage() {
-    // + 1 because we count the generation of the features sets, too.
+    // + 1 because we count the generation of the data sets, too.
     return doneFiles / (rawDataFiles.size() + 1);
   }
 

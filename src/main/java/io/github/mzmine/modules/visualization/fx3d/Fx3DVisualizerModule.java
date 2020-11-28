@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

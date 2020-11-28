@@ -98,7 +98,7 @@ public class RSessionWrapper {
   public static final int NA_INTEGER = -2147483648;
   /**
    * NA boolean value as used in REXPLogical implementation. This differs from the value used in R
-   * since R uses int features type and we use byte. Unlike its real equivalent this one can be used in
+   * since R uses int data type and we use byte. Unlike its real equivalent this one can be used in
    * comparisons, although {@link #isNA(byte) } is provided for consistency.
    */
   public static final byte NA_loggerICAL = -128;
@@ -856,7 +856,7 @@ public class RSessionWrapper {
 
     Object object = null;
 
-    // MUST specify a type: "RCaller" requires to know what type of features to
+    // MUST specify a type: "RCaller" requires to know what type of data to
     // collect!
     if (this.rEngineType == REngineType.RCALLER) {
       String msg =

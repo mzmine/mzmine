@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 /**
  * StandardsListExtractor for xls and xlsx spreadsheets
  * uses sheet at specified index, first sheet available by default
- * expects columns at fixed positions for storing needed features
+ * expects columns at fixed positions for storing needed data
  * first column is retention time (min) and second column is ion formula
  * third column is optional name
  * first row (column headers) is skipped
@@ -68,7 +68,7 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
   }
 
   /**
-   * Extracts standards list caching underlying list features
+   * Extracts standards list caching underlying list data
    *
    * @return new standards list object
    * @throws IllegalArgumentException thrown when sheet index is out of range available

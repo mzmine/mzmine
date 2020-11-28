@@ -19,7 +19,7 @@
 package io.github.mzmine.util.dialogs;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;

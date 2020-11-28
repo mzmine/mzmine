@@ -42,7 +42,7 @@ public class SmoothingParameters extends SimpleParameterSet {
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   /**
-   * Raw features file suffix.
+   * Raw data file suffix.
    */
   public static final StringParameter SUFFIX = new StringParameter("Filename suffix",
       "Suffix to be appended to peak-list file name", "smoothed");
@@ -51,11 +51,11 @@ public class SmoothingParameters extends SimpleParameterSet {
    * Filter width.
    */
   public static final ComboParameter<Integer> FILTER_WIDTH = new ComboParameter<Integer>(
-      "Filter width", "Number of features point covered by the smoothing filter",
+      "Filter width", "Number of data point covered by the smoothing filter",
       new Integer[] {5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5);
 
   /**
-   * Remove original features file.
+   * Remove original data file.
    */
   public static final BooleanParameter REMOVE_ORIGINAL =
       new BooleanParameter("Remove original feature list",

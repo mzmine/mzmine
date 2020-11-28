@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import java.text.NumberFormat;
 import java.util.Map;
 

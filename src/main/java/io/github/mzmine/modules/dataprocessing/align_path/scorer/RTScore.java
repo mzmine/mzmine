@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.align_path.scorer;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.AlignmentPath;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.ScoreCalculator;

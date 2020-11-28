@@ -78,7 +78,7 @@ public class GnpsJsonParser extends SpectralDBParser {
           if (reader != null)
             reader.close();
         }
-        // to many errors? wrong features format?
+        // to many errors? wrong data format?
         if (error > 5 && correct < 5) {
           logger.log(Level.WARNING, "This file was no GNPS spectral json library");
           return false;
@@ -97,7 +97,7 @@ public class GnpsJsonParser extends SpectralDBParser {
     if (dps == null)
       return null;
 
-    // extract meta features
+    // extract meta data
     Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
     for (DBEntryField f : DBEntryField.values()) {
       String id = f.getGnpsJsonID();

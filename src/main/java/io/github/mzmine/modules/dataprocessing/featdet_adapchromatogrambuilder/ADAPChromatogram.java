@@ -21,7 +21,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -70,7 +70,7 @@ public class ADAPChromatogram {
   // All MS2 fragment scan numbers
   private int[] allMS2FragmentScanNumbers = new int[] {};
 
-  // Ranges of raw features points
+  // Ranges of raw data points
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange;
   private Range<Float> rawDataPointsRTRange;
 
@@ -79,7 +79,7 @@ public class ADAPChromatogram {
   // A full list of all the scan numbers as points get added
   private List<Integer> chromScanList;
 
-  // Keep track of last added features point
+  // Keep track of last added data point
   private DataPoint lastMzFeature;
 
   // Number of connected segments, which have been committed by
@@ -253,7 +253,7 @@ public class ADAPChromatogram {
   }
 
   /**
-   * Returns m/z value of last added features point
+   * Returns m/z value of last added data point
    */
   public DataPoint getLastMzFeature() {
     return lastMzFeature;
@@ -403,7 +403,7 @@ public class ADAPChromatogram {
 
     mz = highPointMZ;
 
-    // Update raw features point ranges, height, rt and representative scan
+    // Update raw data point ranges, height, rt and representative scan
     height = Double.MIN_VALUE;
     for (int i = 0; i < allScanNumbers.length; i++) {
 
@@ -411,7 +411,7 @@ public class ADAPChromatogram {
 
       // Replace the MzFeature instance with an instance of SimpleDataPoint,
       // to reduce the memory usage. After we finish this Chromatogram, we
-      // don't need the additional features provided by the MzFeature
+      // don't need the additional data provided by the MzFeature
 
       dataPointsMap.put(allScanNumbers[i], mzFeature);
 

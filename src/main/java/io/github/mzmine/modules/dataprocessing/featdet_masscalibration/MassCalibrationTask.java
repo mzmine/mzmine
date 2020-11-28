@@ -88,7 +88,7 @@ public class MassCalibrationTask extends AbstractTask {
   // error trend
   protected Trend2D errorTrend = null;
 
-  // mass calibrator and features passed between it
+  // mass calibrator and data passed between it
   protected MassCalibrator massCalibrator;
   protected ArrayList<MassPeakMatch> massPeakMatches = new ArrayList<>();
   protected ArrayList<Double> errors = new ArrayList<>();

@@ -17,11 +17,11 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.io.File;
 import java.io.FileReader;
@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -109,7 +110,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       processedPeakList.addRow(newRow);
     }
 
-    // Process all raw features files
+    // Process all raw data files
 
     // Canceled?
     if (isCanceled()) {
@@ -118,7 +119,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
     List<Gap> gaps = new ArrayList<Gap>();
 
-    // Fill each row of this raw features file column, create new empty
+    // Fill each row of this raw data file column, create new empty
     // gaps if necessary
     for (int row = 0; row < peaks.size(); row++) {
       FeatureListRow newRow = processedPeakList.getRow(row);
@@ -138,7 +139,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       processedScans += dataFile.getNumOfScans();
     }
 
-    // Get all scans of this features file
+    // Get all scans of this data file
     int scanNumbers[] = dataFile.getScanNumbers(msLevel);
     if (scanNumbers == null) {
       logger.log(Level.WARNING, "Could not read file with the MS level of " + msLevel);

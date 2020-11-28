@@ -22,7 +22,8 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.MIN_PEAK_HEIGHT;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.PEAK_DURATION;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.util.FeatureConvertors;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +44,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 /**
  * This class implements a peak builder using a match score to link MzPeaks in the axis of retention
  * time. Also uses Savitzky-Golay coefficients to calculate the first and second derivative
- * (smoothed) of raw features points (intensity) that conforms each peak. The first derivative is used
+ * (smoothed) of raw data points (intensity) that conforms each peak. The first derivative is used
  * to determine the peak's range, and the second derivative to determine the intensity of the peak.
  */
 public class SavitzkyGolayPeakDetector implements PeakResolver {
@@ -232,8 +233,8 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
         crossZero = 0;
       }
 
-      // If the peak starts in a region with no features points, move the
-      // start to the first available features point.
+      // If the peak starts in a region with no data points, move the
+      // start to the first available data point.
       while (currentPeakStart < scanNumbers.length - 1) {
 
         if (chromatogram.getDataPoint(scanNumbers[currentPeakStart]) == null) {
@@ -246,7 +247,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
         }
       }
 
-      // Scan the peak from the beginning and if we find a missing features
+      // Scan the peak from the beginning and if we find a missing data
       // point inside, we have to finish the
       // peak there.
       for (int newEnd = currentPeakStart; newEnd <= currentPeakEnd; newEnd++) {

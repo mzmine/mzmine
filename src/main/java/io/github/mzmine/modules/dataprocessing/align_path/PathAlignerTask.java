@@ -17,8 +17,8 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.MZmineProject;

@@ -38,7 +38,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
 
 /**
- * TIC visualizer features set. Sum of all TIC
+ * TIC visualizer data set. Sum of all TIC
  */
 public class TICSumDataSet extends AbstractXYZDataset implements Task {
 
@@ -53,7 +53,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   // Refresh interval (in milliseconds).
   private static final long REDRAW_INTERVAL = 100L;
 
-  // Last time the features set was redrawn.
+  // Last time the data set was redrawn.
   private static long lastRedrawTime = System.currentTimeMillis();
 
   private final RawDataFile[] dataFiles;
@@ -75,9 +75,9 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   private int processedScans;
 
   /**
-   * Create the features set.
+   * Create the data set.
    *
-   * @param file           features file to plot.
+   * @param file           data file to plot.
    * @param theScanNumbers scans to plot.
    * @param rangeMZ        range of m/z to plot.
    * @param window         visualizer window.
@@ -89,10 +89,10 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   }
 
   /**
-   * Create the features set + possibility to specify a plot type, even outside a "TICVisualizerWindow"
+   * Create the data set + possibility to specify a plot type, even outside a "TICVisualizerWindow"
    * context.
    *
-   * @param file           features file to plot.
+   * @param file           data file to plot.
    * @param theScanNumbers scans to plot.
    * @param rangeMZ        range of m/z to plot.
    * @param window         visualizer window.
@@ -163,12 +163,12 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
         // Always redraw when we add last value.
         refresh();
 
-        logger.info("TIC sum features calculated for " + rawFileString());
+        logger.info("TIC sum data calculated for " + rawFileString());
         status = TaskStatus.FINISHED;
       }
     } catch (Throwable t) {
 
-      logger.log(Level.SEVERE, "Problem calculating features set values for " + rawFileString(), t);
+      logger.log(Level.SEVERE, "Problem calculating data set values for " + rawFileString(), t);
       status = TaskStatus.ERROR;
       errorMessage = t.getMessage();
     }
@@ -222,7 +222,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
     // Determine plot type (now done from constructor).
     final TICPlotType plotType = this.plotType;
 
-    // all raw features files
+    // all raw data files
     for (int r = 0; r < dataFiles.length; r++) {
       RawDataFile raw = dataFiles[r];
       int[] scans = raw.getScanNumbers(1, rangeRT);
@@ -276,7 +276,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
             }
           }
         } else {
-          // add new features point
+          // add new data point
           data.add(new SummedTICDataPoint(rt, intensity, mzBasePeak, intensityBasePeak));
         }
 
@@ -309,7 +309,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   }
 
   /**
-   * Notify features set listener (on the EDT).
+   * Notify data set listener (on the EDT).
    */
   private void refresh() {
     Platform.runLater(() -> fireDatasetChanged());

@@ -41,23 +41,23 @@ public class DPPResultsLabelGenerator extends SpectraItemLabelGenerator {
    */
   public String generateLabel(XYDataset dataset, int series, int item) {
 
-    // X and Y values of current features point
+    // X and Y values of current data point
     double originalX = dataset.getX(series, item).doubleValue();
     double originalY = dataset.getY(series, item).doubleValue();
 
-    // Calculate features size of 1 screen pixel
+    // Calculate data size of 1 screen pixel
     double xLength = (double) plot.getXYPlot().getDomainAxis().getRange().getLength();
     double pixelX = xLength / plot.getWidth();
 
-    // Size of features set
+    // Size of data set
     int itemCount = dataset.getItemCount(series);
 
-    // Search for features points higher than this one in the interval
+    // Search for data points higher than this one in the interval
     // from limitLeft to limitRight
     double limitLeft = originalX - ((POINTS_RESERVE_X / 2) * pixelX);
     double limitRight = originalX + ((POINTS_RESERVE_X / 2) * pixelX);
 
-    // Iterate features points to the left and right
+    // Iterate data points to the left and right
     for (int i = 1; (item - i > 0) || (item + i < itemCount); i++) {
 
       // If we get out of the limit we can stop searching
@@ -69,7 +69,7 @@ public class DPPResultsLabelGenerator extends SpectraItemLabelGenerator {
           && ((item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft)))
         break;
 
-      // If we find higher features point, bail out
+      // If we find higher data point, bail out
       if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i)))
         return null;
 

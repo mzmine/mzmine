@@ -25,7 +25,7 @@ import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.Single
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.NEUTRAL_MASS;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -165,7 +165,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
         DBCompound compound = gateway.getCompound(compoundIDs[i], db.getParameterSet());
 
-        // In case we failed to retrieve features, skip this compound
+        // In case we failed to retrieve data, skip this compound
         if (compound == null)
           continue;
 

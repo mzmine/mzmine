@@ -19,8 +19,8 @@
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
@@ -261,7 +261,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private JFreeChart create3DVanKrevelenDiagram() {
     logger.info("Creating new 3D chart instance");
     appliedSteps++;
-    // load features set
+    // load data set
     VanKrevelenDiagramXYZDataset dataset3D =
         new VanKrevelenDiagramXYZDataset(zAxisLabel, filteredRows);
 

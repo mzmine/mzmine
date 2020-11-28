@@ -17,8 +17,8 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -56,7 +56,7 @@ import io.github.mzmine.util.SortingProperty;
 import javafx.scene.control.TextInputDialog;
 
 /**
- * Holds more charts for features reviewing
+ * Holds more charts for data reviewing
  *
  * @author Robin Schmid
  *
@@ -192,7 +192,7 @@ public class MultiMSMSWindow extends JFrame {
   }
 
   /**
-   * any row contains fragment scan in raw features file
+   * any row contains fragment scan in raw data file
    *
    * @param raw
    * @return
@@ -208,7 +208,7 @@ public class MultiMSMSWindow extends JFrame {
   }
 
   /**
-   * set raw features file and update
+   * set raw data file and update
    *
    * @param raw
    */

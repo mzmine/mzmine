@@ -198,7 +198,7 @@ public class BatchSetupComponent extends BorderPane implements LastFilesComponen
         final ParameterSet stepParams = methodParams.cloneParameterSet();
 
         // If this is not the first batch step, set the default for raw
-        // features file and feature list selection
+        // data file and feature list selection
         if (!batchQueue.isEmpty()) {
           for (Parameter<?> param : stepParams.getParameters()) {
             if (param instanceof RawDataFilesParameter) {

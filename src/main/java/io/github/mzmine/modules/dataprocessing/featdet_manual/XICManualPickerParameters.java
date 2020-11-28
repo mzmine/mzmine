@@ -33,7 +33,7 @@ public class XICManualPickerParameters extends SimpleParameterSet {
 
   public static final HiddenParameter<RawDataFilesParameter, RawDataFilesSelection> rawDataFiles =
       new HiddenParameter<RawDataFilesParameter, RawDataFilesSelection>(
-          new RawDataFilesParameter("Raw features file", 1, 100));
+          new RawDataFilesParameter("Raw data file", 1, 100));
 
   public static final HiddenParameter<DoubleRangeParameter, Range<Double>> rtRange =
       new HiddenParameter<DoubleRangeParameter, Range<Double>>(new DoubleRangeParameter(

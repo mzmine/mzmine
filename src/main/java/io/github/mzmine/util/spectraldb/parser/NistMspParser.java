@@ -48,12 +48,12 @@ public class NistMspParser extends SpectralDBParser {
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
     logger.info("Parsing NIST msp spectral library " + dataBaseFile.getAbsolutePath());
 
-    // metadata fields and features points
+    // metadata fields and data points
     Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
     List<DataPoint> dps = new ArrayList<>();
     // separation index (metadata is separated by ': '
     int sep = -1;
-    // currently loading features?
+    // currently loading data?
     boolean isData = false;
 
     // read DB file
@@ -65,12 +65,12 @@ public class NistMspParser extends SpectralDBParser {
         }
         try {
           if (l.length() > 1) {
-            // meta features?
+            // meta data?
             sep = isData ? -1 : l.indexOf(": ");
             if (sep != -1 && sep < l.length() - 2) {
               extractMetaData(fields, l, sep);
             } else {
-              // features?
+              // data?
               DataPoint dp = extractDataPoint(l);
               if (dp != null) {
                 dps.add(dp);
@@ -81,7 +81,7 @@ public class NistMspParser extends SpectralDBParser {
           } else {
             // empty row
             if (isData) {
-              // empty row after features
+              // empty row after data
               // add entry and reset
               SpectralDBEntry entry =
                   new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
@@ -108,7 +108,7 @@ public class NistMspParser extends SpectralDBParser {
   }
 
   /**
-   * Extract features point
+   * Extract data point
    * 
    * @param line
    * @return DataPoint or null
@@ -123,7 +123,7 @@ public class NistMspParser extends SpectralDBParser {
       try {
         return new SimpleDataPoint(Double.parseDouble(data[0]), Double.parseDouble(data[1]));
       } catch (Exception e) {
-        logger.log(Level.WARNING, "Cannot parse features point", e);
+        logger.log(Level.WARNING, "Cannot parse data point", e);
       }
     }
     return null;

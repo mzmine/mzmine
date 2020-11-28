@@ -18,7 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.datatype;
 
-import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -54,18 +54,18 @@ public class DataTypeCheckListParameter implements
   }
 
   /**
-   * Adds a features type to the list. The datatype is activated by default.
+   * Adds a data type to the list. The datatype is activated by default.
    *
-   * @param dt The features type
+   * @param dt The data type
    */
   public void addDataType(DataType dt) {
     addDataType(dt, true);
   }
 
   /**
-   * Adds a features type to the list.
+   * Adds a data type to the list.
    *
-   * @param dt The features type.
+   * @param dt The data type.
    * @param b  Selected or not.
    */
   public void addDataType(DataType dt, Boolean b) {
@@ -74,17 +74,17 @@ public class DataTypeCheckListParameter implements
 
   public void addDataType(String dt, Boolean b) {
     if (value.keySet().contains(dt)) {
-      logger.info("Already contains features type " + dt + ". Overwriting...");
+      logger.info("Already contains data type " + dt + ". Overwriting...");
     }
 
     value.put(dt, b);
   }
 
   /**
-   * Checks if the features type column has been displayed before. If the features type is not present yet,
+   * Checks if the data type column has been displayed before. If the data type is not present yet,
    * it is added to the list and shown by default.
    *
-   * @param dataType The features type.
+   * @param dataType The data type.
    * @return true/false
    */
   public Boolean isDataTypeVisible(DataType dataType) {
@@ -92,10 +92,10 @@ public class DataTypeCheckListParameter implements
   }
 
   /**
-   * Checks if the features type column has been displayed before. If the features type is not present yet,
+   * Checks if the data type column has been displayed before. If the data type is not present yet,
    * it is added to the list and shown by default.
    *
-   * @param dataType The features type.
+   * @param dataType The data type.
    * @return true/false
    */
   public Boolean isDataTypeVisible(String dataType) {
@@ -108,9 +108,9 @@ public class DataTypeCheckListParameter implements
   }
 
   /**
-   * Sets features type visibility value
+   * Sets data type visibility value
    *
-   * @param dataType The features type
+   * @param dataType The data type
    * @param val true/false
    */
   public void setDataTypeVisible(DataType dataType, Boolean val) {
@@ -118,9 +118,9 @@ public class DataTypeCheckListParameter implements
   }
 
   /**
-   * Sets features type visibility value
+   * Sets data type visibility value
    *
-   * @param dataType Name of the features type
+   * @param dataType Name of the data type
    * @param val true/false
    */
   public void setDataTypeVisible(String dataType, Boolean val) {
@@ -128,9 +128,9 @@ public class DataTypeCheckListParameter implements
   }
 
   /**
-   * Sets features types and their visibility values
+   * Sets data types and their visibility values
    *
-   * @param map Map containing new features types and their values
+   * @param map Map containing new data types and their values
    */
   public void setDataTypesAndVisibility(Map<String, Boolean> map) {
     value = new HashMap<>(map);

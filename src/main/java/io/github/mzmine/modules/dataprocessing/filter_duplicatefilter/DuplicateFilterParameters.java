@@ -45,7 +45,7 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
 
   public static final ComboParameter<FilterMode> filterMode = new ComboParameter<>("Filter mode",
       "Old average: Only keep the row with the maximum avg area.\n New average: Create consensus row from duplicates (DETECTED>ESTIMATED>UNKNOWN).\n "
-          + "Single feature: Marks rows as duplicates if they share at least one feature (in one raw features file) with the same RT and m/z. Creates a consensus row.",
+          + "Single feature: Marks rows as duplicates if they share at least one feature (in one raw data file) with the same RT and m/z. Creates a consensus row.",
       FilterMode.values(), FilterMode.NEW_AVERAGE);
 
   public static final MZToleranceParameter mzDifferenceMax =

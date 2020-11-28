@@ -34,7 +34,7 @@ public class FragmentSearchParameters extends SimpleParameterSet {
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
   public static final MZToleranceParameter ms2mzTolerance =
-      new MZToleranceParameter("m/z tolerance of MS2 features",
+      new MZToleranceParameter("m/z tolerance of MS2 data",
           "Tolerance value of the m/z difference between peaks in MS/MS scans");
 
   /*

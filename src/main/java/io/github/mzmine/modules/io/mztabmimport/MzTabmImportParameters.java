@@ -37,7 +37,7 @@ public class MzTabmImportParameters extends SimpleParameterSet {
 
   public static final BooleanParameter importRawFiles = new BooleanParameter(
       "Import raw files too?",
-      "If selected, raw features files will also be imported if they are available (in the msrun location in mzTab-m file or same folder as mzTab-m file in normal, or as zip or gz form). If some raw features files cannot be found, empty files will be generated instead."
+      "If selected, raw data files will also be imported if they are available (in the msrun location in mzTab-m file or same folder as mzTab-m file in normal, or as zip or gz form). If some raw data files cannot be found, empty files will be generated instead."
   );
 
   public MzTabmImportParameters() {

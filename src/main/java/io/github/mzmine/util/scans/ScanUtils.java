@@ -18,8 +18,8 @@
 
 package io.github.mzmine.util.scans;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -148,7 +148,7 @@ public class ScanUtils {
   }
 
   /**
-   * Selects features points within given m/z range
+   * Selects data points within given m/z range
    * 
    */
   public static DataPoint[] selectDataPointsByMass(DataPoint dataPoints[], Range<Double> mzRange) {
@@ -161,7 +161,7 @@ public class ScanUtils {
   }
 
   /**
-   * Selects features points with intensity >= given intensity
+   * Selects data points with intensity >= given intensity
    * 
    */
   public static DataPoint[] selectDataPointsOverIntensity(DataPoint dataPoints[],
@@ -185,8 +185,8 @@ public class ScanUtils {
    * This method bins values on x-axis. Each bin is assigned biggest y-value of all values in the
    * same bin.
    * 
-   * @param x            X-coordinates of the features
-   * @param y            Y-coordinates of the features
+   * @param x            X-coordinates of the data
+   * @param y            Y-coordinates of the data
    * @param binRange     x coordinates of the left and right edge of the first bin
    * @param numberOfBins Number of bins
    * @param interpolate  If true, then empty bins will be filled with interpolation using other bins
@@ -341,7 +341,7 @@ public class ScanUtils {
   }
 
   /**
-   * sort the features points by their m/z value. This method should be called before using other search
+   * sort the data points by their m/z value. This method should be called before using other search
    * methods to do binary search in logarithmic time.
    * 
    * @param dataPoints spectrum that should be sorted
@@ -455,9 +455,9 @@ public class ScanUtils {
   }
 
   /**
-   * Determines if the spectrum represented by given array of features points is centroided or
+   * Determines if the spectrum represented by given array of data points is centroided or
    * continuous (profile or thresholded). Profile spectra are easy to detect, because they contain
-   * zero-intensity features points. However, distinguishing centroided from thresholded spectra is not
+   * zero-intensity data points. However, distinguishing centroided from thresholded spectra is not
    * trivial. MZmine uses multiple checks for that purpose, as described in the code comments.
    */
   /*
@@ -470,14 +470,14 @@ public class ScanUtils {
     double[] intensityValues = new double[dataPoints.length];
     double[] mzValues = new double[dataPoints.length];
 
-    // If the spectrum has less than 5 features points, it should be centroided.
+    // If the spectrum has less than 5 data points, it should be centroided.
     if (dataPoints.length < 5)
       return MassSpectrumType.CENTROIDED;
 
     int basePeakIndex = 0;
     boolean hasZeroDataPoint = false;
 
-    // Go through the features points and find the highest one
+    // Go through the data points and find the highest one
     int size = dataPoints.length;
     for (int i = 0; i < size; i++) {
 
@@ -494,7 +494,7 @@ public class ScanUtils {
 
     final double scanMzSpan = mzValues[size - 1] - mzValues[0];
 
-    // Find the all features points around the base peak that have intensity
+    // Find the all data points around the base peak that have intensity
     // above half maximum
     final double halfIntensity = intensityValues[basePeakIndex] / 2.0;
     int leftIndex = basePeakIndex;
@@ -508,7 +508,7 @@ public class ScanUtils {
     final double mainFeatureMzSpan = mzValues[rightIndex] - mzValues[leftIndex];
     final int mainFeatureDataPointCount = rightIndex - leftIndex + 1;
 
-    // If the main feature has less than 3 features points above half intensity, it
+    // If the main feature has less than 3 data points above half intensity, it
     // indicates a centroid spectrum. Further, if the m/z span of the main
     // feature is more than 0.1% of the scan m/z range, it also indicates a
     // centroid spectrum. These criteria are empirical and probably not
@@ -596,7 +596,7 @@ public class ScanUtils {
   }
 
   /**
-   * Find the highest features point in array
+   * Find the highest data point in array
    * 
    */
   public static @Nonnull DataPoint findTopDataPoint(@Nonnull DataPoint dataPoints[]) {
@@ -613,8 +613,8 @@ public class ScanUtils {
   }
 
   /**
-   * Find the m/z range of the features points in the array. We assume there is at least one features point,
-   * and the features points are sorted by m/z.
+   * Find the m/z range of the data points in the array. We assume there is at least one data point,
+   * and the data points are sorted by m/z.
    */
   public static @Nonnull Range<Double> findMzRange(@Nonnull DataPoint dataPoints[]) {
 
@@ -682,7 +682,7 @@ public class ScanUtils {
     // each double is 8 bytes and we need one for m/z and one for intensity
     int dpCount = bytes.length / 2 / 8;
 
-    // make a features input stream
+    // make a data input stream
     ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
     DataInputStream featureStream = new DataInputStream(byteStream);
 
@@ -866,7 +866,7 @@ public class ScanUtils {
   }
 
   /**
-   * Sum of intensity of all features points >= noiseLevel
+   * Sum of intensity of all data points >= noiseLevel
    * 
    * @param data
    * @param noiseLevel
@@ -877,7 +877,7 @@ public class ScanUtils {
   }
 
   /**
-   * threshold: keep features points >= noiseLevel
+   * threshold: keep data points >= noiseLevel
    * 
    * @param data
    * @param noiseLevel
@@ -888,7 +888,7 @@ public class ScanUtils {
   }
 
   /**
-   * below threshold: keep features points < noiseLevel
+   * below threshold: keep data points < noiseLevel
    * 
    * @param data
    * @param noiseLevel

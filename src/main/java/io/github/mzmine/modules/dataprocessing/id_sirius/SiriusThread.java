@@ -30,7 +30,7 @@ import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.msdk.util.IonTypeUtil;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -130,7 +130,7 @@ public class SiriusThread implements Runnable {
       Scan ms1Scan = peakListRow.getBestFeature().getRepresentativeScan();
       Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
 
-      // Convert to MSDK features model
+      // Convert to MSDK data model
       ms1list.add(new MZmineToMSDKMsScan(ms1Scan));
       for (Scan s : top10ms2Scans) {
         ms2list.add(new MZmineToMSDKMsScan(s));

@@ -18,8 +18,8 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.controlsfx.control.CheckListView;
@@ -71,8 +71,8 @@ public class FeaturesComponent extends HBox {
       ComboParameter<FeatureList> featureListsParam =
           new ComboParameter<>("Feature list", "Feature list selection",
               MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
-      ComboParameter<RawDataFile> dataFilesParam = new ComboParameter<>("Raw features file",
-          "Raw features file selection", FXCollections.observableArrayList());
+      ComboParameter<RawDataFile> dataFilesParam = new ComboParameter<>("Raw data file",
+          "Raw data file selection", FXCollections.observableArrayList());
       MultiChoiceParameter<Feature> featuresParam =
           new MultiChoiceParameter<>("Features", "Feature selection", new Feature[0]);
       SimpleParameterSet paramSet = new SimpleParameterSet(

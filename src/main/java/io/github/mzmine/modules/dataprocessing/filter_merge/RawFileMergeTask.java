@@ -35,7 +35,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
- * Merge multiple raw features files into one. For example one positive, one negative and multiple with
+ * Merge multiple raw data files into one. For example one positive, one negative and multiple with
  * MS2
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
@@ -70,7 +70,7 @@ class RawFileMergeTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Merging raw features files";
+    return "Merging raw data files";
   }
 
   @Override

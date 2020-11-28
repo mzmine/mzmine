@@ -18,11 +18,12 @@
 
 package io.github.mzmine.project.impl;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicReference;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.UserParameter;
@@ -33,7 +34,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 /**
- * This class represents a MZmine project. That includes raw features files, feature lists and
+ * This class represents a MZmine project. That includes raw data files, feature lists and
  * parameters.
  */
 public class MZmineProjectImpl implements MZmineProject {
@@ -157,7 +158,7 @@ public class MZmineProjectImpl implements MZmineProject {
       rawDataFilesProperty.get().remove(file);
     });
 
-    // Close the features file, which also removed the temporary features
+    // Close the data file, which also removed the temporary data
     file.close();
 
   }

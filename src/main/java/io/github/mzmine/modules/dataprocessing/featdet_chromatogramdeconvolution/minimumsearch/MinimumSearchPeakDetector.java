@@ -25,7 +25,7 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.PEAK_DURATION;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.SEARCH_RT_RANGE;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -85,7 +85,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 
     final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>();
 
-    // First, remove all features points below chromatographic threshold.
+    // First, remove all data points below chromatographic threshold.
     final double chromatographicThresholdLevel = MathUtils.calcQuantile(intensities,
         parameters.getParameter(CHROMATOGRAPHIC_THRESHOLD_LEVEL).getValue());
     for (int i = 0; i < intensities.length; i++) {
@@ -99,7 +99,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
     startSearch: for (int currentRegionStart = 0; currentRegionStart < lastScan
         - 2; currentRegionStart++) {
 
-      // Find at least two consecutive non-zero features points
+      // Find at least two consecutive non-zero data points
       if (intensities[currentRegionStart] == 0.0 || intensities[currentRegionStart + 1] == 0.0)
         continue;
 
@@ -115,7 +115,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
         // have to stop here.
         if (currentRegionEnd == lastScan || intensities[currentRegionEnd + 1] == 0.0) {
 
-          // Find the intensity at the sides (lowest features points).
+          // Find the intensity at the sides (lowest data points).
           final double peakMinLeft = intensities[currentRegionStart];
           final double peakMinRight = intensities[currentRegionEnd];
 
@@ -144,7 +144,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
               Range.closed(retentionTimes[currentRegionEnd] - searchRTRange,
                   retentionTimes[currentRegionEnd] + searchRTRange);
 
-          // Search if there is lower features point on the left from
+          // Search if there is lower data point on the left from
           // current peak i.
           for (int i = currentRegionEnd - 1; i > 0; i--) {
 
@@ -169,7 +169,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
             }
           }
 
-          // Find the intensity at the sides (lowest features points).
+          // Find the intensity at the sides (lowest data points).
           final double peakMinLeft = intensities[currentRegionStart];
           final double peakMinRight = intensities[currentRegionEnd];
 

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.ArrayList;
 import org.jfree.data.xy.AbstractXYZDataset;
 

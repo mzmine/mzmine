@@ -162,7 +162,7 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
   }
 
   /**
-   * Transforms mouse coordinates to features space coordinates. Same as
+   * Transforms mouse coordinates to data space coordinates. Same as
    * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
    * 
    * @param e
@@ -173,7 +173,7 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
   }
 
   /**
-   * Transforms mouse coordinates to features space coordinates. Same as
+   * Transforms mouse coordinates to data space coordinates. Same as
    * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
    * 
    * @return
@@ -183,7 +183,7 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
   }
 
   /**
-   * Transforms mouse coordinates to features space coordinates. Same as
+   * Transforms mouse coordinates to data space coordinates. Same as
    * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
    * 
    * @return

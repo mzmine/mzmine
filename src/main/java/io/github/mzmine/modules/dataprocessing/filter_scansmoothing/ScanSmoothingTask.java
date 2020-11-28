@@ -229,7 +229,7 @@ public class ScanSmoothingTask extends AbstractTask {
             newDP = updatedDP;
           }
 
-          // Register new smoothing features
+          // Register new smoothing data
           if (scan != null && newDP != null) {
             newScan.setDataPoints(newDP);
             newRDFW.addScan(newScan);
@@ -246,7 +246,7 @@ public class ScanSmoothingTask extends AbstractTask {
         // Add the newly created file to the project
         project.addFile(newRDF);
 
-        // Remove the original features file if requested
+        // Remove the original data file if requested
         if (removeOriginal) {
           project.removeFile(dataFile);
         }

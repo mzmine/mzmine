@@ -31,7 +31,7 @@ public class IsotopePatternScoreParameters extends SimpleParameterSet {
       new MZToleranceParameter("Isotope m/z tolerance",
           "m/z tolerance which defines what isotopes would be considered same when "
               + "comparing two isotopic patterns. This tolerance needs to be "
-              + "higher than general m/z precision of the features, because some "
+              + "higher than general m/z precision of the data, because some "
               + "small isotopes may overlap with the sides of bigger isotopic " + "peaks.");
 
   public static final DoubleParameter isotopeNoiseLevel = new DoubleParameter(

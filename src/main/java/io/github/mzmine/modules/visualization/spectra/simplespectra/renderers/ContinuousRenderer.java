@@ -46,7 +46,7 @@ public class ContinuousRenderer extends XYLineAndShapeRenderer {
   public static final AlphaComposite alphaComp =
       AlphaComposite.getInstance(AlphaComposite.SRC_OVER, TRANSPARENCY);
 
-  // features points shape
+  // data points shape
   private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5, 5);
 
   private boolean isTransparent;

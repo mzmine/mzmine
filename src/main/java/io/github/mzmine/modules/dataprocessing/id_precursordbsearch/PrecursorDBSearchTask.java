@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.spectraldb.entry.PrecursorDBFeatureIdentity;
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -145,7 +147,7 @@ class PrecursorDBSearchTask extends AbstractTask {
   }
 
   /**
-   * Load all library entries from features base file
+   * Load all library entries from data base file
    * 
    * @param dataBaseFile
    * @return

@@ -15,9 +15,9 @@
  */
 package io.github.mzmine.util.adap;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;

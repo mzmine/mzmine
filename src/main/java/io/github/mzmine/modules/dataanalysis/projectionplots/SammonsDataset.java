@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Vector;
 import java.util.logging.Logger;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -82,7 +82,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
 
     datasetTitle = "Sammon's projection";
 
-    // Determine groups for selected raw features files
+    // Determine groups for selected raw data files
     groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
 
     if (coloringType.equals(ColoringType.NOCOLORING)) {
@@ -210,13 +210,13 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     }
     if (selectedRawDataFiles.length == 0) {
       this.status = TaskStatus.ERROR;
-      errorMessage = "No raw features files selected for Sammons plot";
+      errorMessage = "No raw data files selected for Sammons plot";
       return;
     }
 
     logger.info("Computing projection plot");
 
-    // Generate matrix of raw features (input to Sammon's projection)
+    // Generate matrix of raw data (input to Sammon's projection)
     boolean useArea = false;
     if (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
         .getValue() == FeatureMeasurementType.AREA)
@@ -241,7 +241,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     if (yAxisDimension > numComponents)
       numComponents = yAxisDimension;
 
-    // Scale features and do Sammon's mapping
+    // Scale data and do Sammon's mapping
     Preprocess.scaleToUnityVariance(rawData);
     Sammons sammonsProj = new Sammons(rawData);
 

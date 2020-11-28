@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.tools.sortfeaturelists;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;

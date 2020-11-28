@@ -41,7 +41,7 @@ public class DPPSumFormulaPredictionParameters extends SimpleParameterSet {
   public static final IntegerParameter charge = new IntegerParameter("Charge", "Charge");
 
   public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Minimum intensity of a features point to predict a sum formula for.");
+      "Minimum intensity of a data point to predict a sum formula for.");
 
   public static final ComboParameter<IonizationType> ionization =
       new ComboParameter<IonizationType>("Ionization type", "Ionization type",

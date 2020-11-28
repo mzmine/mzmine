@@ -124,7 +124,7 @@ public class SpectralMatchPanel extends JPanel {
 
     JPanel spectrumPanel = new JPanel(new BorderLayout());
 
-    // set meta features from identity
+    // set meta data from identity
     metaDataPanel = new JPanel();
     metaDataPanel.setLayout(new BoxLayout(metaDataPanel, BoxLayout.Y_AXIS));
 
@@ -162,7 +162,7 @@ public class SpectralMatchPanel extends JPanel {
     JPanel panelScore = new JPanel();
     panelScore.setLayout(new BoxLayout(panelScore, BoxLayout.Y_AXIS));
     JLabel score = new JLabel(COS_FORM.format(simScore));
-    score.setToolTipText("Cosine similarity of raw features scan (top, blue) and database scan: "
+    score.setToolTipText("Cosine similarity of raw data scan (top, blue) and database scan: "
         + COS_FORM.format(simScore));
     score.setFont(scoreFont);
     score.setForeground(Color.WHITE);

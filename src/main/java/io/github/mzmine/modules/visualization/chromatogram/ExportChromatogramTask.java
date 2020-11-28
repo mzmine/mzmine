@@ -53,7 +53,7 @@ public class ExportChromatogramTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param data features set to export.
+   * @param data data set to export.
    * @param file file to write to.
    */
   public ExportChromatogramTask(final TICDataSet data, final File file) {
@@ -112,12 +112,12 @@ public class ExportChromatogramTask extends AbstractTask {
       writer.write("RT,I");
       writer.newLine();
 
-      // Write the features points.
+      // Write the data points.
       final int itemCount = dataSet.getItemCount(0);
       progressMax = itemCount;
       for (int i = 0; i < itemCount; i++) {
 
-        // Write (x, y) features point row.
+        // Write (x, y) data point row.
         writer.write(dataSet.getX(0, i) + "," + dataSet.getY(0, i));
         writer.newLine();
 

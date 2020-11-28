@@ -114,7 +114,7 @@ public class FileAndPathUtil {
   }
 
   /**
-   * Returns the file if it is already a folder. Or the parent folder if the file is a features file
+   * Returns the file if it is already a folder. Or the parent folder if the file is a data file
    * 
    * @param file
    * @return
@@ -150,7 +150,7 @@ public class FileAndPathUtil {
   }
 
   /**
-   * Checks if a given File is a folder or a features file
+   * Checks if a given File is a folder or a data file
    */
   public static boolean isOnlyAFolder(File file) {
     return file.isDirectory();
@@ -338,7 +338,7 @@ public class FileAndPathUtil {
           img.add(subFiles[f]);
         }
       } else {
-        // search in subfolders for features
+        // search in subfolders for data
         // find all subfolders, sort them and do the same iterative
         File[] subDir =
             FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dirs[i]));

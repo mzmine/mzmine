@@ -187,7 +187,7 @@ public class ChartLogics {
    * Translates screen (pixel) values to plot values
    * 
    * @param myChart
-   * @return width in features space for x and y
+   * @return width in data space for x and y
    * @throws Exception
    */
   public static Point2D screenValueToPlotValue(ChartPanel myChart, int val) throws Exception {
@@ -201,7 +201,7 @@ public class ChartLogics {
    * Data width to pixel width on screen
    * 
    * @param myChart
-   * @param dataWidth width of features
+   * @param dataWidth width of data
    * @param axis for width calculation
    * @return
    */
@@ -323,7 +323,7 @@ public class ChartLogics {
    * 
    * @param myChart
    * @param copyToNewPanel
-   * @param dataWidth width of features
+   * @param dataWidth width of data
    * @param axis for width calculation
    * @return
    */
@@ -338,7 +338,7 @@ public class ChartLogics {
    * 
    * @param myChart
    * @param copyToNewPanel
-   * @param dataWidth width of features
+   * @param dataWidth width of data
    * @param axis for width calculation
    * @return
    */

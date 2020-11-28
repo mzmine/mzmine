@@ -26,7 +26,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 
 /**
- * Label generator for spectra visualizer. Only used to generate labels for the raw features
+ * Label generator for spectra visualizer. Only used to generate labels for the raw data
  * (ScanDataSet)
  */
 public class SpectraItemLabelGenerator implements XYItemLabelGenerator {

@@ -60,7 +60,7 @@ public class YMDBGateway implements DBGateway {
     // Organize the IDs as a TreeSet to keep them sorted
     TreeSet<String> results = new TreeSet<String>();
 
-    // Find IDs in the HTML features
+    // Find IDs in the HTML data
     Pattern pat = Pattern.compile("/compounds/(YMDB[0-9]{5})");
     Matcher matcher = pat.matcher(queryResult);
     while (matcher.find()) {

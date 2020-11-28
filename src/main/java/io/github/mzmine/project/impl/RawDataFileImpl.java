@@ -56,20 +56,20 @@ import java.util.EnumSet;
 import java.util.stream.Collectors;
 
 /**
- * RawDataFile implementation. It provides storage of features points for scans and mass lists using the
- * storeDataPoints() and readDataPoints() methods. The features points are stored in a temporary file
+ * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
+ * storeDataPoints() and readDataPoints() methods. The data points are stored in a temporary file
  * (dataPointsFile) and the structure of the file is stored in two TreeMaps. The dataPointsOffsets
  * maps storage ID to the offset in the dataPointsFile. The dataPointsLength maps the storage ID to
- * the number of features points stored under this ID. When stored features points are deleted using
+ * the number of data points stored under this ID. When stored data points are deleted using
  * removeStoredDataPoints(), the dataPointsFile is not modified, the storage ID is just deleted from
  * the two TreeMaps. When the project is saved, the contents of the dataPointsFile are consolidated
- * - only features points referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
+ * - only data points referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
  */
 public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  // Name of this raw features file - may be changed by the user
+  // Name of this raw data file - may be changed by the user
   private String dataFileName;
 
   private final Hashtable<Integer, Range<Double>> dataMZRange;
@@ -81,7 +81,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   private final TreeMap<Integer, Long> dataPointsOffsets;
   private final TreeMap<Integer, Integer> dataPointsLengths;
 
-  // Temporary file for scan features storage
+  // Temporary file for scan data storage
   private File dataPointsFileName;
   private RandomAccessFile dataPointsFile;
 
@@ -101,7 +101,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     this.dataFileName = dataFileName;
 
-    // Prepare the hashtables for scan numbers and features limits.
+    // Prepare the hashtables for scan numbers and data limits.
     scanNumbersCache = new Hashtable<Integer, int[]>();
     dataMZRange = new Hashtable<Integer, Range<Double>>();
     dataRTRange = new Hashtable<Integer, Range<Float>>();
@@ -121,14 +121,14 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * Create a new temporary features points file
+   * Create a new temporary data points file
    */
   public static File createNewDataPointsFile() throws IOException {
     return File.createTempFile("mzmine", ".scans");
   }
 
   /**
-   * Returns the (already opened) features points file. Warning: may return null in case no scans have
+   * Returns the (already opened) data points file. Warning: may return null in case no scans have
    * been added yet to this RawDataFileImpl instance
    */
   public RandomAccessFile getDataPointsFile() {
@@ -136,14 +136,14 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * Opens the given file as a features points file for this RawDataFileImpl instance. If the file is
+   * Opens the given file as a data points file for this RawDataFileImpl instance. If the file is
    * not empty, the TreeMaps supplied as parameters have to describe the mapping of storage IDs to
-   * features points in the file.
+   * data points in the file.
    */
   public synchronized void openDataPointsFile(File dataPointsFileName) throws IOException {
 
     if (this.dataPointsFile != null) {
-      throw new IOException("Cannot open another features points file, because one is already open");
+      throw new IOException("Cannot open another data points file, because one is already open");
     }
 
     this.dataPointsFileName = dataPointsFileName;
@@ -495,7 +495,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   @Override
   public synchronized void addScan(Scan newScan) throws IOException {
 
-    // When we are loading the project, scan features file is already prepare
+    // When we are loading the project, scan data file is already prepare
     // and we just need store the reference
     if (newScan instanceof StorableScan) {
       scans.put(newScan.getScanNumber(), (StorableScan) newScan);

@@ -48,7 +48,7 @@ public class CSVExportParameters extends SimpleParameterSet {
           "Selection of row's elements to export", ExportRowCommonElement.values());
 
   public static final MultiChoiceParameter<ExportRowDataFileElement> exportDataFileItems =
-      new MultiChoiceParameter<ExportRowDataFileElement>("Export features file elements",
+      new MultiChoiceParameter<ExportRowDataFileElement>("Export data file elements",
           "Selection of feature's elements to export", ExportRowDataFileElement.values());
 
   public static final BooleanParameter exportAllFeatureInfo =
@@ -59,7 +59,7 @@ public class CSVExportParameters extends SimpleParameterSet {
       "Character(s) used to separate identification results in the exported file", ";");
 
   public static final ComboParameter<RowFilter> filter = new ComboParameter<RowFilter>(
-      "Filter rows", "Limit the exported rows to those with MS/MS features (or annotated rows)",
+      "Filter rows", "Limit the exported rows to those with MS/MS data (or annotated rows)",
       RowFilter.values(), RowFilter.ALL);
 
   public CSVExportParameters() {

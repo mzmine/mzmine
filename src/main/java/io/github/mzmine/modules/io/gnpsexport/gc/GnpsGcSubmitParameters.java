@@ -64,14 +64,14 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
   }
 
   /**
-   * Optional: Select meta features file
+   * Optional: Select meta data file
    */
   public static final OptionalParameter<FileNameParameter> KOVATS_FILE =
       new OptionalParameter<>(new FileNameParameter("Kovats RI file",
           "File with Kovats retention indexes", "csv", FileSelectionType.OPEN), false);
 
   public static final ComboParameter<Preset> PRESETS = new ComboParameter<>("Presets",
-      "GNPS parameter presets for high or low resolution mass spectrometry features", Preset.values(),
+      "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),
       Preset.HIGHRES);
 
   public static final StringParameter JOB_TITLE = new StringParameter("Job title",
@@ -118,11 +118,11 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
    * @param pn
    */
   private void openKovatsDialog(FileNameComponent pn) {
-    // at least one raw features file in project
+    // at least one raw data file in project
     RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
     if (raw == null || raw.length <= 0) {
-      DialogLoggerUtil.showMessageDialogForTime("No RAW features files",
-          "Cannot use Kovats extraction without raw features files in this project", 3500);
+      DialogLoggerUtil.showMessageDialogForTime("No RAW data files",
+          "Cannot use Kovats extraction without raw data files in this project", 3500);
       return;
     }
 

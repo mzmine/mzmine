@@ -72,7 +72,7 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   // user and password
   public static final OptionalModuleParameter<GnpsLibrarySubmitParameters> SUBMIT_GNPS =
       new OptionalModuleParameter<>("Submit to GNPS (MS2)",
-          "Submit new entry to GNPS library (Only for fragmentation features of MS level >1)",
+          "Submit new entry to GNPS library (Only for fragmentation data of MS level >1)",
           new GnpsLibrarySubmitParameters(), true);
 
   public LibrarySubmitParameters() {

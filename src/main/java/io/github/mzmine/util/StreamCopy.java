@@ -32,7 +32,7 @@ public class StreamCopy {
   protected boolean canceled = false, finished = false;
 
   /**
-   * Copy the features from inputStream to outputStream using nio channels
+   * Copy the data from inputStream to outputStream using nio channels
    *
    * @param input InputStream
    * @param output OutputStream
@@ -42,7 +42,7 @@ public class StreamCopy {
   }
 
   /**
-   * Copy the features from inputStream to outputStream using nio channels
+   * Copy the data from inputStream to outputStream using nio channels
    *
    * @param input InputStream
    * @param output OutputStream
@@ -76,7 +76,7 @@ public class StreamCopy {
 
   /**
    *
-   * @return the progress of the "copy()" function copying the features from one stream to another
+   * @return the progress of the "copy()" function copying the data from one stream to another
    */
   public double getProgress() {
     if (finished)

@@ -19,8 +19,8 @@
 package io.github.mzmine.modules.visualization.scatterplot;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotDataSet;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;

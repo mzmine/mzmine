@@ -21,9 +21,9 @@ package io.github.mzmine.modules.io.mztabmexport;
 import de.isas.mztab2.io.MzTabValidatingWriter;
 import de.isas.mztab2.model.*;
 import io.github.mzmine.datamodel.*;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -210,7 +210,7 @@ public class MZTabmExportTask extends AbstractTask {
           mtd.addStudyVariableItem(studyVariable);
         }
 
-        //Write features rows
+        //Write data rows
         Map<Parameter, Database> databases = new LinkedHashMap<>();
 
         for (int i = 0; i < featureList.getRows().size(); ++i) {

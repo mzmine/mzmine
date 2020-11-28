@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureUtils;
 import java.math.BigDecimal;
@@ -657,7 +657,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
       if (sizeCounter == 0)
         throw new MSDKRuntimeException(
-            "Min pattern size excludes every calculated isotope pattern.\nPlease increase min pattern intensity for more features points or decrease the minimum pattern size.");
+            "Min pattern size excludes every calculated isotope pattern.\nPlease increase min pattern intensity for more data points or decrease the minimum pattern size.");
 
       logger.info("about to add " + sizeCounter + " patterns to the scan.");
       diff = new double[sizeCounter][];
@@ -860,7 +860,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         return false;
       }
       if (peakList.getNumberOfRawDataFiles() > 1) {
-        setErrorMessage("The number of raw features files of feature list \"" + peakList.getName()
+        setErrorMessage("The number of raw data files of feature list \"" + peakList.getName()
             + "\" is greater than 1. This is not supported by this module.");
         setStatus(TaskStatus.ERROR);
         return false;

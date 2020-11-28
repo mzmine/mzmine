@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -71,7 +71,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
         parameters.getParameter(TICVisualizerParameters.PEAKS).getValue();
 
     // Add the window to the desktop only if we actually have any raw
-    // features to show.
+    // data to show.
     boolean weHaveData = false;
     for (RawDataFile dataFile : dataFiles) {
       Scan selectedScans[] = scanSelection.getMatchingScans(dataFile);

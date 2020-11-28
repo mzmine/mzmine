@@ -38,7 +38,7 @@ import javafx.scene.layout.FlowPane;
 
 /**
  * This class extends ParameterSetupDialog class, including a TICPlot. This is used to preview how
- * the selected raw features filters work.
+ * the selected raw data filters work.
  *
  * Slightly modified to add the possibility of switching to TIC (versus Base Peak) preview.
  */
@@ -151,7 +151,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
   }
 
   /**
-   * Get the parameters related to the plot and call the function addRawDataFile() to add the features
+   * Get the parameters related to the plot and call the function addRawDataFile() to add the data
    * file to the plot
    *
    * @param dataFile

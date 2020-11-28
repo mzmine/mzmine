@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataanalysis.heatmaps;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -127,7 +127,7 @@ public class HeatMapTask extends AbstractTask {
 
     if (newFeatureList.length == 0 || newFeatureList[0].length == 0) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("The features for heat map is empty.");
+      setErrorMessage("The data for heat map is empty.");
       return;
     }
 
@@ -187,11 +187,11 @@ public class HeatMapTask extends AbstractTask {
 
       rSession.eval("dataset <- apply(dataset, 2, as.numeric)");
 
-      // Assign row names to the features set
+      // Assign row names to the data set
       rSession.assign("rowNames", rowNames);
       rSession.eval("rownames(dataset)<-rowNames");
 
-      // Assign column names to the features set
+      // Assign column names to the data set
       rSession.assign("colNames", colNames);
       rSession.eval("colnames(dataset)<-colNames");
 
@@ -301,12 +301,12 @@ public class HeatMapTask extends AbstractTask {
   private double[][] modifySimpleDataset(UserParameter<?, ?> selectedParameter,
       String referenceGroup) {
 
-    // Collect all features files
+    // Collect all data files
     Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
     allDataFiles.addAll(featureList.getRawDataFiles());
 
     // Determine the reference group and non reference group (the rest of
-    // the samples) for raw features files
+    // the samples) for raw data files
     List<RawDataFile> referenceDataFiles = new ArrayList<RawDataFile>();
     List<RawDataFile> nonReferenceDataFiles = new ArrayList<RawDataFile>();
 
@@ -403,7 +403,7 @@ public class HeatMapTask extends AbstractTask {
       }
     }
 
-    // Scale the features dividing the feature area/height by the standard
+    // Scale the data dividing the feature area/height by the standard
     // deviation of each column
     if (scale) {
       scale(dataMatrix);
@@ -456,14 +456,14 @@ public class HeatMapTask extends AbstractTask {
   }
 
   private double[][] groupingDataset(UserParameter<?, ?> selectedParameter, String referenceGroup) {
-    // Collect all features files
+    // Collect all data files
     Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
     DescriptiveStatistics meanControlStats = new DescriptiveStatistics();
     DescriptiveStatistics meanGroupStats = new DescriptiveStatistics();
     allDataFiles.addAll(featureList.getRawDataFiles());
 
     // Determine the reference group and non reference group (the rest of
-    // the samples) for raw features files
+    // the samples) for raw data files
     List<RawDataFile> referenceDataFiles = new ArrayList<RawDataFile>();
     List<RawDataFile> nonReferenceDataFiles = new ArrayList<RawDataFile>();
 
@@ -500,7 +500,7 @@ public class HeatMapTask extends AbstractTask {
     double[][] dataMatrix = new double[groups.size() - 1][numRows];
     pValueMatrix = new String[groups.size() - 1][numRows];
 
-    // features files that should be in the heat map
+    // data files that should be in the heat map
     List<RawDataFile> shownDataFiles = nonReferenceDataFiles;
 
     for (int row = 0, rowIndex = 0; row < featureList.getNumberOfRows(); row++) {
@@ -574,7 +574,7 @@ public class HeatMapTask extends AbstractTask {
       }
     }
 
-    // Scale the features dividing the feature area/height by the standard
+    // Scale the data dividing the feature area/height by the standard
     // deviation of each column
     if (scale) {
       scale(dataMatrix);

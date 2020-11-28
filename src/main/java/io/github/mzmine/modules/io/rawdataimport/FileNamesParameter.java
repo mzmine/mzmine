@@ -28,7 +28,7 @@ import org.w3c.dom.NodeList;
 import io.github.mzmine.parameters.Parameter;
 
 /**
- * This parameter stores filenames for raw features importer
+ * This parameter stores filenames for raw data importer
  */
 public class FileNamesParameter implements Parameter<File[]> {
 
@@ -36,7 +36,7 @@ public class FileNamesParameter implements Parameter<File[]> {
 
     @Override
     public String getName() {
-        return "Raw features file names";
+        return "Raw data file names";
     }
 
     public File[] getValue() {

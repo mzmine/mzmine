@@ -64,7 +64,7 @@ public class JdxParser extends SpectralDBParser {
         }
 
         try {
-          // meta features?
+          // meta data?
           sep = isData ? -1 : l.indexOf("=");
           if (sep != -1) {
             DBEntryField field = DBEntryField.forJdxID(l.substring(0, sep));
@@ -81,7 +81,7 @@ public class JdxParser extends SpectralDBParser {
               }
             }
           } else {
-            // features?
+            // data?
             String[] dataPairs = l.split(" ");
             for (String dataPair : dataPairs) {
               String[] data = dataPair.split(",");

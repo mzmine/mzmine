@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.RangeUtils;
@@ -93,7 +93,7 @@ class ManualPickerTask extends AbstractTask {
       totalScans += scanNumbers.length;
     }
 
-    // Find feature in each features file
+    // Find feature in each data file
     for (RawDataFile dataFile : dataFiles) {
 
       ManualFeature newFeature = new ManualFeature(dataFile);

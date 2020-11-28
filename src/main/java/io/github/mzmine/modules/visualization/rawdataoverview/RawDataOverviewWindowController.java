@@ -40,7 +40,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 
 /*
- * Raw features overview window controller class
+ * Raw data overview window controller class
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
@@ -76,8 +76,8 @@ public class RawDataOverviewWindowController {
   public void initialize() {
 
     // this.rawDataFile = rawDataFile;
-    // add meta features
-    rawDataLabel.setText("Overview of raw features file(s): ");
+    // add meta data
+    rawDataLabel.setText("Overview of raw data file(s): ");
 
     addChromatogramSelectedScanListener();
 
@@ -86,7 +86,7 @@ public class RawDataOverviewWindowController {
   }
 
   /**
-   * Sets the raw features files to be displayed. Already present files are not removed to optimise
+   * Sets the raw data files to be displayed. Already present files are not removed to optimise
    * performance. This should be called over
    * {@link RawDataOverviewWindowController#addRawDataFileTab} if possible.
    *
@@ -108,7 +108,7 @@ public class RawDataOverviewWindowController {
   }
 
   /**
-   * Adds a raw features file table to the tab.
+   * Adds a raw data file table to the tab.
    *
    * @param raw The raw dataFile
    */
@@ -145,13 +145,13 @@ public class RawDataOverviewWindowController {
 
       rawDataFileTab.selectedProperty().addListener((obs, o, n) -> {
         if (n == true) {
-          logger.fine("Populating table for raw features file " + raw.getName());
+          logger.fine("Populating table for raw data file " + raw.getName());
           con.populate(raw);
         }
       });
 
       rawDataFileTab.setOnClosed((e) -> {
-        logger.fine("Removing raw features file " + raw.getName());
+        logger.fine("Removing raw data file " + raw.getName());
         removeRawDataFile(raw);
       });
 
@@ -164,7 +164,7 @@ public class RawDataOverviewWindowController {
       logger.log(Level.SEVERE, "Could not load RawDataFileInfoPane.fxml", e);
     }
 
-    logger.fine("Added raw features file tab for " + raw.getName());
+    logger.fine("Added raw data file tab for " + raw.getName());
   }
 
   public void removeRawDataFile(RawDataFile raw) {
@@ -177,7 +177,7 @@ public class RawDataOverviewWindowController {
   // plot update methods
 
   /**
-   * Updates the selected row in the raw features table if the user clicks in the chromatogram plot.
+   * Updates the selected row in the raw data table if the user clicks in the chromatogram plot.
    */
   private void addChromatogramSelectedScanListener() {
 
@@ -186,7 +186,7 @@ public class RawDataOverviewWindowController {
 
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
       if (con == null || selectedRawDataFile == null) {
-        logger.info("Cannot find controller for raw features file " + selectedRawDataFile.getName());
+        logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
         return;
       }
 

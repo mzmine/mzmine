@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.view;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.awt.BorderLayout;
@@ -39,6 +39,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -58,6 +59,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+import io.github.mzmine.util.color.Colors;
+import io.github.mzmine.util.color.Vision;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
@@ -123,7 +126,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   // MS1 or MS2
   private boolean isFragmentScan = true;
 
-  // features either row or scans
+  // data either row or scans
   private FeatureListRow row;
   private ObservableList<Scan> scansEntry;
   private JLabel lblAdduct;
@@ -305,7 +308,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     pnData.revalidate();
     pnData.repaint();
 
-    // if features is from rows - get new list of scans
+    // if data is from rows - get new list of scans
     if (row != null) {
       createSortedScanList();
       setMZandChargeFromScan();
@@ -583,7 +586,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   /**
-   * Remaining features points after filtering
+   * Remaining data points after filtering
    *
    * @return
    */
@@ -599,7 +602,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   /**
-   * Removed features points
+   * Removed data points
    *
    * @return
    */

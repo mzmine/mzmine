@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
@@ -34,7 +34,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Iso
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 
 /**
- * Tooltip generator for raw features points
+ * Tooltip generator for raw data points
  */
 public class SpectraToolTipGenerator implements XYToolTipGenerator {
 

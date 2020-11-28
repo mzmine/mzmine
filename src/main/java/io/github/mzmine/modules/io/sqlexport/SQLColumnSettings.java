@@ -30,7 +30,7 @@ public class SQLColumnSettings {
       case 0:
         return "Table column";
       case 1:
-        return "Export features type";
+        return "Export data type";
       case 2:
         return "Export value";
     }

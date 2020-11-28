@@ -49,7 +49,7 @@ public class DistributionExtractor {
    *
    * @param items          distribution items to extract, eg: mass measurement errors
    * @param rangeMaxLength max length of the range
-   * @return distribution range object, with extracted items and range features
+   * @return distribution range object, with extracted items and range data
    */
   public static DistributionRange fixedLengthRange(List<Double> items, double rangeMaxLength) {
     if (items.isEmpty()) {

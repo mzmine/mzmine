@@ -195,7 +195,7 @@ public class SpectralMatchPanelFX extends GridPane {
     lblScore = new Label(COS_FORM.format(simScore));
     lblScore.getStyleClass().add("white-score-label");
     lblScore
-        .setTooltip(new Tooltip("Cosine similarity of raw features scan (top, blue) and database scan: "
+        .setTooltip(new Tooltip("Cosine similarity of raw data scan (top, blue) and database scan: "
             + COS_FORM.format(simScore)));
 
     pnTitle.add(lblHit, 0, 0);

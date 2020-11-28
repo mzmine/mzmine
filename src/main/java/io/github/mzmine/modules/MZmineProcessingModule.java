@@ -19,7 +19,7 @@
 package io.github.mzmine.modules;
 
 /**
- * Interface representing a features processing method that produces new features. Modules implementing this
+ * Interface representing a data processing method that produces new data. Modules implementing this
  * interface can be executed in a batch.
  */
 public interface MZmineProcessingModule extends MZmineRunnableModule {

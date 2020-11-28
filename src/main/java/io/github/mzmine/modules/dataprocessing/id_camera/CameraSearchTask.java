@@ -25,11 +25,11 @@
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +56,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -175,11 +176,11 @@ public class CameraSearchTask extends AbstractTask {
 
       setStatus(TaskStatus.PROCESSING);
 
-      // Check number of raw features files.
+      // Check number of raw data files.
       if (peakList.getNumberOfRawDataFiles() != 1) {
 
         throw new IllegalStateException(
-            "CAMERA can only process feature lists for a single raw features file, i.e. non-aligned feature lists.");
+            "CAMERA can only process feature lists for a single raw data file, i.e. non-aligned feature lists.");
       }
 
       // Run the search.
@@ -227,7 +228,7 @@ public class CameraSearchTask extends AbstractTask {
   /**
    * Perform CAMERA search.
    *
-   * @param rawFile raw features file of feature list to process.
+   * @param rawFile raw data file of feature list to process.
    */
   private void cameraSearch(final RawDataFile rawFile) {
 
@@ -258,10 +259,10 @@ public class CameraSearchTask extends AbstractTask {
       int dataPointCount = 0;
       for (final int scanNumber : rawFile.getScanNumbers(MS_LEVEL)) {
 
-        // Create a set to hold features points (sorted by m/z).
+        // Create a set to hold data points (sorted by m/z).
         final Set<DataPoint> dataPoints = new TreeSet<DataPoint>(ASCENDING_MASS_SORTER);
 
-        // Add a dummy features point.
+        // Add a dummy data point.
         dataPoints.add(new SimpleDataPoint(0.0, 0.0));
         dataPointCount++;
 
@@ -274,12 +275,12 @@ public class CameraSearchTask extends AbstractTask {
       double progressInc = 0.8 / peaks.length;
       for (final Feature peak : peaks) {
 
-        // Get peak features.
+        // Get peak data.
         Range<Float> rtRange = null;
         Range<Double> intRange = null;
         final double mz = peak.getMZ();
 
-        // Get the peak's features points per scan.
+        // Get the peak's data points per scan.
         for (final int scanNumber : peak.getScanNumbers()) {
 
           final Scan scan = rawFile.getScan(scanNumber);
@@ -289,7 +290,7 @@ public class CameraSearchTask extends AbstractTask {
                 "CAMERA can only process feature lists from MS-level " + MS_LEVEL);
           }
 
-          // Copy the features point.
+          // Copy the data point.
           final DataPoint dataPoint = peak.getDataPoint(scanNumber);
           if (dataPoint != null) {
 
@@ -404,7 +405,7 @@ public class CameraSearchTask extends AbstractTask {
         case CameraSearchParameters.GROUP_CORR_FIRST:
           // Split groups by correlating peak shape (need to set xraw to
           // raw
-          // features).
+          // data).
           this.rSession.eval("an <- groupCorr(an, calcIso=FALSE, xraw=xRaw, cor_eic_th="
               + corrThreshold + ", pval=" + corrPValue + ')');
           progress += progressInc;
@@ -428,7 +429,7 @@ public class CameraSearchTask extends AbstractTask {
 
           // Split groups by correlating peak shape (need to set xraw to
           // raw
-          // features).
+          // data).
           this.rSession.eval("an <- groupCorr(an, calcIso=" + String.valueOf(calcIso).toUpperCase()
               + ", xraw=xRaw, cor_eic_th=" + corrThreshold + ", pval=" + corrPValue + ')');
           progress += progressInc;

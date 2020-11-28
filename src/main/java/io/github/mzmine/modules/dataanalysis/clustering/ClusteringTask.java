@@ -17,9 +17,9 @@
  */
 package io.github.mzmine.modules.dataanalysis.clustering;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Logger;
@@ -95,7 +95,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
 
     datasetTitle = "Clustering";
 
-    // Determine groups for selected raw features files
+    // Determine groups for selected raw data files
     groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
     groupsForSelectedVariables = new int[selectedRows.length];
   }
@@ -320,7 +320,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
       }
 
       if (result.getVisualizationType() == VisualizationType.PCA) {
-        // Scale features and do PCA
+        // Scale data and do PCA
         Preprocess.scaleToUnityVariance(rawData);
         PCA pcaProj = new PCA(rawData, numComponents);
         projectionStatus = pcaProj.getProjectionStatus();
@@ -334,7 +334,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         component1Coords = pcaResult[xAxisDimension - 1];
         component2Coords = pcaResult[yAxisDimension - 1];
       } else if (result.getVisualizationType() == VisualizationType.SAMMONS) {
-        // Scale features and do Sammon's mapping
+        // Scale data and do Sammon's mapping
         Preprocess.scaleToUnityVariance(rawData);
         Sammons sammonsProj = new Sammons(rawData);
         projectionStatus = sammonsProj.getProjectionStatus();
@@ -368,7 +368,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
    * @return
    */
   private double[][] createMatrix(boolean isForSamples) {
-    // Generate matrix of raw features (input to CDA)
+    // Generate matrix of raw data (input to CDA)
     boolean useArea = true;
     if (parameters.getParameter(ClusteringParameters.featureMeasurementType)
         .getValue() == FeatureMeasurementType.AREA) {
@@ -417,10 +417,10 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   }
 
   /**
-   * Creates the weka features set for clustering of samples
+   * Creates the weka data set for clustering of samples
    *
-   * @param rawData Data extracted from selected Raw features files and rows.
-   * @return Weka library features set
+   * @param rawData Data extracted from selected Raw data files and rows.
+   * @return Weka library data set
    */
   private Instances createSampleWekaDataset(double[][] rawData) {
     FastVector attributes = new FastVector();
@@ -451,10 +451,10 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   }
 
   /**
-   * Creates the weka features set for clustering of variables (metabolites)
+   * Creates the weka data set for clustering of variables (metabolites)
    *
-   * @param rawData Data extracted from selected Raw features files and rows.
-   * @return Weka library features set
+   * @param rawData Data extracted from selected Raw data files and rows.
+   * @return Weka library data set
    */
   private Instances createVariableWekaDataset(double[][] rawData) {
     FastVector attributes = new FastVector();

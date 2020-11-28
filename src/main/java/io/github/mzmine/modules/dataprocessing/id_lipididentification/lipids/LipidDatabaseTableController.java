@@ -318,7 +318,7 @@ public class LipidDatabaseTableController {
     XYSeries possibleInterferenceSeries = new XYSeries("Possible interference");
     XYSeries interferenceSeries = new XYSeries("Isomeric interference");
 
-    // add features to all series
+    // add data to all series
     double yValue = 0;
     double xValue = 0;
 

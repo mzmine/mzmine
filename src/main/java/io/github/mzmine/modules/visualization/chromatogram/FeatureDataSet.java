@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
 import java.util.Objects;
@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
- * Integrated peak area features set. Separate features set is created for every peak shown in this
+ * Integrated peak area data set. Separate data set is created for every peak shown in this
  * visualizer window.
  */
 public class FeatureDataSet extends AbstractXYDataset {
@@ -46,7 +46,7 @@ public class FeatureDataSet extends AbstractXYDataset {
   private final int featureItem;
 
   /**
-   * Create the features set.
+   * Create the data set.
    *
    * @param p the feature.
    * @param id peak identity to use as a label.
@@ -60,7 +60,7 @@ public class FeatureDataSet extends AbstractXYDataset {
     final RawDataFile dataFile = feature.getRawDataFile();
     final int peakScanNumber = feature.getRepresentativeScanNumber();
 
-    // Copy peak features.
+    // Copy peak data.
     final int scanCount = scanNumbers.size();
     retentionTimes = new float[scanCount];
     intensities = new double[scanCount];
@@ -94,7 +94,7 @@ public class FeatureDataSet extends AbstractXYDataset {
   }
 
   /**
-   * Create the features set - no label.
+   * Create the data set - no label.
    *
    * @param p the peak.
    */

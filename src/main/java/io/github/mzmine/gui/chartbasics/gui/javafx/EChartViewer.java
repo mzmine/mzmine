@@ -72,7 +72,7 @@ import javafx.stage.Stage;
 
 /**
  * This is an extended version of the ChartViewer (JFreeChartFX). it Adds: ChartGestures (with a set
- * of standard chart gestures), ZoomHistory, AxesRangeChangeListener, features export, graphics export,
+ * of standard chart gestures), ZoomHistory, AxesRangeChangeListener, data export, graphics export,
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
@@ -92,9 +92,9 @@ public class EChartViewer extends ChartViewer {
   private Menu exportMenu;
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export<br>
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
    * stickyZeroForRangeAxis = false <br>
-   * Graphics and features export menu are added
+   * Graphics and data export menu are added
    *
    * @param chart
    */
@@ -103,9 +103,9 @@ public class EChartViewer extends ChartViewer {
   }
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export<br>
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
    * stickyZeroForRangeAxis = false <br>
-   * Graphics and features export menu are added
+   * Graphics and data export menu are added
    *
    * @param chart
    */
@@ -114,13 +114,13 @@ public class EChartViewer extends ChartViewer {
   }
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export<br>
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
    * stickyZeroForRangeAxis = false
    *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
    * @param standardGestures adds the standard ChartGestureHandlers
-   * @param dataExportMenu adds features export menu
+   * @param dataExportMenu adds data export menu
    */
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures) {
@@ -128,11 +128,11 @@ public class EChartViewer extends ChartViewer {
   }
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
    *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
-   * @param dataExportMenu adds features export menu
+   * @param dataExportMenu adds data export menu
    * @param standardGestures adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
@@ -142,11 +142,11 @@ public class EChartViewer extends ChartViewer {
   }
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
    *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
-   * @param dataExportMenu adds features export menu
+   * @param dataExportMenu adds data export menu
    * @param standardGestures adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
@@ -355,7 +355,7 @@ public class EChartViewer extends ChartViewer {
   }
 
   /**
-   * Adds the GraphicsExportDialog menu and the features export menu
+   * Adds the GraphicsExportDialog menu and the data export menu
    */
   protected void addExportMenu(boolean graphics, boolean data) {
     if (graphics) {
@@ -369,8 +369,8 @@ public class EChartViewer extends ChartViewer {
       });
     }
     if (data) {
-      // General features export
-      Menu export = new Menu("Export features ...");
+      // General data export
+      Menu export = new Menu("Export data ...");
       // Excel XY
       MenuExportToExcel exportXY =
           new MenuExportToExcel(new XSSFExcelWriterReader(), "to Excel", this);
@@ -416,7 +416,7 @@ public class EChartViewer extends ChartViewer {
               x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
               y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
               z[1] = "z-axis";
-              // write features
+              // write data
               for (int i = 0; i < xyz.getItemCount(s); i++) {
                 x[i + 2] = xyz.getX(s, i);
                 y[i + 2] = xyz.getY(s, i);
@@ -444,7 +444,7 @@ public class EChartViewer extends ChartViewer {
               y[0] = "";
               x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
               y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
-              // write features
+              // write data
               for (int i = 0; i < data.getItemCount(s); i++) {
                 x[i + 2] = data.getX(s, i);
                 y[i + 2] = data.getY(s, i);
@@ -461,7 +461,7 @@ public class EChartViewer extends ChartViewer {
 
         return modelList.toArray(new Object[modelList.size()][]);
       } catch (Exception ex) {
-        logger.log(Level.WARNING, "Cannot retrieve features for export", ex);
+        logger.log(Level.WARNING, "Cannot retrieve data for export", ex);
         return null;
       }
     }

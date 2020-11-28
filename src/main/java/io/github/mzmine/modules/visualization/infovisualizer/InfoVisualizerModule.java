@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.infovisualizer;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import javax.annotation.Nonnull;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;

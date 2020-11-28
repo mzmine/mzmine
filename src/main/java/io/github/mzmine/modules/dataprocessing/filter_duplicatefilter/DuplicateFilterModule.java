@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -37,7 +37,7 @@ import io.github.mzmine.util.ExitCode;
  * of all rows having same (optionally) identification and similar m/z and rt values (within
  * tolerances)
  * 
- * Idea is to run this filter before alignment on feature lists with peaks from a single raw features
+ * Idea is to run this filter before alignment on feature lists with peaks from a single raw data
  * file in each list, but it will work on aligned feature lists too.
  * 
  */

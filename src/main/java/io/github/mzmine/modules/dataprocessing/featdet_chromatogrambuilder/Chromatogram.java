@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -59,14 +59,14 @@ public class Chromatogram{
   // All MS2 fragment scan numbers
   private int[] allMS2FragmentScanNumbers = new int[] {};
 
-  // Ranges of raw features points
+  // Ranges of raw data points
   private Range<Double> rawDataPointsMZRange;
   private Range<Float> rawDataPointsRTRange, rawDataPointsIntensityRange;
 
   // A set of scan numbers of a segment which is currently being connected
   private Vector<Integer> buildingSegment;
 
-  // Keep track of last added features point
+  // Keep track of last added data point
   private DataPoint lastMzPeak;
 
   // Number of connected segments, which have been committed by
@@ -122,7 +122,7 @@ public class Chromatogram{
   }
 
   /**
-   * Returns m/z value of last added features point
+   * Returns m/z value of last added data point
    */
   public DataPoint getLastMzPeak() {
     return lastMzPeak;
@@ -213,7 +213,7 @@ public class Chromatogram{
     }
     mz = MathUtils.calcQuantile(allMzValues, 0.5f);
 
-    // Update raw features point ranges, height, rt and representative scan
+    // Update raw data point ranges, height, rt and representative scan
     height = Double.MIN_VALUE;
     for (int i = 0; i < allScanNumbers.length; i++) {
 
@@ -221,7 +221,7 @@ public class Chromatogram{
 
       // Replace the MzPeak instance with an instance of SimpleDataPoint,
       // to reduce the memory usage. After we finish this Chromatogram, we
-      // don't need the additional features provided by the MzPeak
+      // don't need the additional data provided by the MzPeak
 
       dataPointsMap.put(allScanNumbers[i], mzPeak);
 

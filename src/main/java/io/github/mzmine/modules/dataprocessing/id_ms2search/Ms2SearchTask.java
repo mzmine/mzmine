@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ms2search;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -209,7 +209,7 @@ class Ms2SearchTask extends AbstractTask {
       return null;
     }
 
-    // Fetch centroided features
+    // Fetch centroided data
     MassList massListA = scanMS2A.getMassList(massListName);
     MassList massListB = scanMS2B.getMassList(massListName);
 
@@ -238,8 +238,8 @@ class Ms2SearchTask extends AbstractTask {
     ionsB = massListB.getDataPoints();
 
     if (ionsA == null || ionsB == null || ionsA.length == 0 || ionsB.length == 0) {
-      // Fall back to profile features?
-      // Profile / raw features.
+      // Fall back to profile data?
+      // Profile / raw data.
       // ionsA = scanMS2A.getDataPointsOverIntensity(intensityThreshold);
       // ionsB = scanMS2B.getDataPointsOverIntensity(intensityThreshold);
       return null;

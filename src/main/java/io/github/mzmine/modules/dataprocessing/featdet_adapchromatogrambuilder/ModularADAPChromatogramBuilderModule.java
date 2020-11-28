@@ -34,7 +34,7 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
 
   private static final String MODULE_NAME = "Modular ADAP Chromatogram builder";
   private static final String MODULE_DESCRIPTION =
-      "This module connects features points from mass lists and builds chromatograms.";
+      "This module connects data points from mass lists and builds chromatograms.";
 
   @Override
   public @Nonnull String getName() {

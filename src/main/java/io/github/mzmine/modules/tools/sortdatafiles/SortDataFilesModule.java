@@ -33,12 +33,12 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * This is a very simple module which reorders features files alphabetically
+ * This is a very simple module which reorders data files alphabetically
  */
 public class SortDataFilesModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Sort raw features files";
-  private static final String MODULE_DESCRIPTION = "Sort selected raw features files alphabetically";
+  private static final String MODULE_NAME = "Sort raw data files";
+  private static final String MODULE_DESCRIPTION = "Sort selected raw data files alphabetically";
 
   @Override
   public @Nonnull String getName() {
@@ -65,11 +65,11 @@ public class SortDataFilesModule implements MZmineProcessingModule {
      * .getMainPanel().getRawDataTree(); model = (RawDataTreeModel) tree.getModel(); }
      * 
      * if (model == null) throw new MSDKRuntimeException(
-     * "Cannot find raw features file tree model for sorting. Different MZmine project impl?");
+     * "Cannot find raw data file tree model for sorting. Different MZmine project impl?");
      * 
      * final DefaultMutableTreeNode rootNode = model.getRoot();
      * 
-     * // Get all tree nodes that represent selected features files, and remove // them from final
+     * // Get all tree nodes that represent selected data files, and remove // them from final
      * ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
      * for (int row = 0; row < rootNode.getChildCount(); row++) { DefaultMutableTreeNode
      * selectedNode = (DefaultMutableTreeNode) rootNode .getChildAt(row); Object selectedObject =
@@ -81,7 +81,7 @@ public class SortDataFilesModule implements MZmineProcessingModule {
      * rootNode.getIndex(node); if (nodeIndex != -1) positions.add(nodeIndex); } if
      * (positions.isEmpty()) return ExitCode.ERROR; int insertPosition = Collections.min(positions);
      * 
-     * // Sort the features files by name Collections.sort(selectedNodes, new
+     * // Sort the data files by name Collections.sort(selectedNodes, new
      * Comparator<DefaultMutableTreeNode>() {
      * 
      * @Override public int compare(DefaultMutableTreeNode o1, DefaultMutableTreeNode o2) { return

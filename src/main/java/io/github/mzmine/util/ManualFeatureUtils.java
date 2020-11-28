@@ -32,7 +32,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 public class ManualFeatureUtils {
 
   /**
-   * @param dataFile The raw features file
+   * @param dataFile The raw data file
    * @param rtRange  The rt range of the feature
    * @param mzRange  The mz range of the feature
    * @return The manual feature or null of no features were found

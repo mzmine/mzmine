@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Vector;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
- * Picked peaks features set;
+ * Picked peaks data set;
  */
 public class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 

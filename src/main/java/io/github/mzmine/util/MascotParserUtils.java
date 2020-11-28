@@ -431,10 +431,10 @@ public class MascotParserUtils {
   }
 
   /**
-   * Parse the information of features points (MS/MS peaks) and generate a new PeptideScan
+   * Parse the information of data points (MS/MS peaks) and generate a new PeptideScan
    * 
    * @param queryNumber
-   * @param HashMap sectionMap with the features points info
+   * @param HashMap sectionMap with the data points info
    * @param pepDataFile
    * @return
    */

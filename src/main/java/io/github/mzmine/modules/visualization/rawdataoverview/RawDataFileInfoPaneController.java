@@ -240,7 +240,7 @@ public class RawDataFileInfoPaneController {
 
       int numberOfScans = rawDataFile.getNumOfScans();
 
-      // add raw features to table
+      // add raw data to table
       for (int i = 1; i < numberOfScans + 1; i++) {
         Scan scan = rawDataFile.getScan(i);
 

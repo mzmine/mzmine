@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FeatureUtils;
 import java.text.NumberFormat;
@@ -103,7 +103,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
     if (!checkBlankSelection(alignedFeatureList, blankRaws)) {
       setErrorMessage("Peak list " + alignedFeatureList.getName()
-          + " does no contain all selected blank raw features files.");
+          + " does no contain all selected blank raw data files.");
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -125,7 +125,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
       // these tasks will access the passed array and remove the features
       // that appear in their raw
-      // features file and the blanks from these rows
+      // data file and the blanks from these rows
       AbstractTask task = new PeakListBlankSubtractionSingleTask(parameters, raw, rows);
       MZmineCore.getTaskController().addTask(task);
       subTasks.add(task);
@@ -204,13 +204,13 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
       }
 
       if (contained == false) {
-        logger.info("Peak list " + aligned.getName() + " does not contain raw features files "
+        logger.info("Peak list " + aligned.getName() + " does not contain raw data files "
             + blankRaws[i].getName());
         return false;
       }
     }
 
-    logger.info("Peak list " + aligned.getName() + " contains all selected blank raw features files.");
+    logger.info("Peak list " + aligned.getName() + " contains all selected blank raw data files.");
     return true;
   }
 

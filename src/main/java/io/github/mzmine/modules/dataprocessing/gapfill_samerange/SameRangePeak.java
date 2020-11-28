@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import java.text.Format;
@@ -50,7 +50,7 @@ public class SameRangePeak{
   private Range<Double> mzRange;
   private Range<Float> rtRange, intensityRange;
 
-  // Map of scan number and features point
+  // Map of scan number and data point
   private TreeMap<Integer, DataPoint> mzPeakMap;
 
   // Number of most intense fragment scan
@@ -65,7 +65,7 @@ public class SameRangePeak{
   private int charge = 0;
 
   /**
-   * Initializes empty peak for adding features points
+   * Initializes empty peak for adding data points
    */
   SameRangePeak(RawDataFile dataFile) {
     this.dataFile = dataFile;
@@ -157,7 +157,7 @@ public class SameRangePeak{
   }
 
   /**
-   * Adds a new features point to this peak
+   * Adds a new data point to this peak
    *
    * @param scanNumber
    * @param dataPoints
@@ -183,7 +183,7 @@ public class SameRangePeak{
 
   void finalizePeak() {
 
-    // Trim the zero-intensity features points from the beginning and end
+    // Trim the zero-intensity data points from the beginning and end
     while (!mzPeakMap.isEmpty()) {
       int scanNumber = mzPeakMap.firstKey();
       if (mzPeakMap.get(scanNumber).getIntensity() > 0)
@@ -197,15 +197,15 @@ public class SameRangePeak{
       mzPeakMap.remove(scanNumber);
     }
 
-    // Check if we have any features points
+    // Check if we have any data points
     if (mzPeakMap.isEmpty()) {
-      throw (new IllegalStateException("Peak can not be finalized without any features points"));
+      throw (new IllegalStateException("Peak can not be finalized without any data points"));
     }
 
     // Get all scan numbers
     int allScanNumbers[] = Ints.toArray(mzPeakMap.keySet());
 
-    // Find the features point with top intensity and use its RT and height
+    // Find the data point with top intensity and use its RT and height
     for (int i = 0; i < allScanNumbers.length; i++) {
       DataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
       double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();

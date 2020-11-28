@@ -24,7 +24,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.util.ExitCode;
 
 /*
- * Raw features overview parameter class
+ * Raw data overview parameter class
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */

@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.productionfilter;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -195,7 +195,7 @@ public class ProductIonFilterVisualizerTab extends MZmineTab {
       return;
     }
 
-    // get first raw features file
+    // get first raw data file
     RawDataFile newFile = rawDataFiles.iterator().next();
     if (dataFile.equals(newFile)) {
       return;

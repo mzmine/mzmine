@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.io.File;
 import java.util.Hashtable;
 
@@ -134,7 +134,7 @@ public interface MZmineProject {
   public ListProperty<FeatureList> featureListsProperty();
 
   /**
-   * Returns all feature lists which contain given features file
+   * Returns all feature lists which contain given data file
    */
   public FeatureList[] getFeatureLists(RawDataFile file);
 

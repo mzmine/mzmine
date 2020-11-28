@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
@@ -103,7 +103,7 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
 
     if (scan == null) {
       MZmineCore.getDesktop().displayErrorMessage(
-          "Raw features file " + dataFile + " does not contain scan #" + scanNumber);
+          "Raw data file " + dataFile + " does not contain scan #" + scanNumber);
       return null;
     }
 
@@ -116,7 +116,7 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
       MassList massListObject = scan.getMassList(massList);
       if (massListObject == null) {
         MZmineCore.getDesktop().displayErrorMessage(
-          "Raw features file " + dataFile + " scan #" + scanNumber + " does not contain mass list " + massList);
+          "Raw data file " + dataFile + " scan #" + scanNumber + " does not contain mass list " + massList);
         return null;
       }
     }

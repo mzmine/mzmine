@@ -66,7 +66,7 @@ public class WaveletMassDetector implements MassDetector {
   }
 
   /**
-   * Perform the CWT over raw features points in the selected scale level
+   * Perform the CWT over raw data points in the selected scale level
    * 
    * @param dataPoints
    */
@@ -142,7 +142,7 @@ public class WaveletMassDetector implements MassDetector {
   }
 
   /**
-   * This function searches for maximums from wavelet features points
+   * This function searches for maximums from wavelet data points
    */
   private DataPoint[] getMzPeaks(double noiseLevel, DataPoint[] originalDataPoints,
       DataPoint[] waveletDataPoints) {
