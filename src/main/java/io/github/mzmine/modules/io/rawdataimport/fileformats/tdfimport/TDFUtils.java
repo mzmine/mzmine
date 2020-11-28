@@ -271,8 +271,10 @@ public class TDFUtils {
       int precursorCharge = 0;
       if (msLevel == 2 && framePrecursorTable != null) {
         FramePrecursorInfo fpi = framePrecursorTable.getPrecursorInfoAtScanNum(frameId, i);
-        precursorMz = fpi.getLargestPeakMz();
-        precursorCharge = fpi.getCharge();
+        if(fpi != null) {
+          precursorMz = fpi.getLargestPeakMz();
+          precursorCharge = fpi.getCharge();
+        }
       }
       Scan scan = new SimpleScan(null,
           Math.toIntExact(firstScanNum + i), msLevel,

@@ -220,21 +220,24 @@ public class TDFReaderTask extends AbstractTask {
           .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));
 
       if (!isMaldi) {
-        setDescription("Reading precursor info for " + tdf.getName());
-        precursorTable.executeQuery(connection);
+        if (frameTable.getScanModeColumn()
+            .contains(Integer.toUnsignedLong(BrukerScanMode.PASEF.getNum()))) {
+          setDescription("Reading precursor info for " + tdf.getName());
+          precursorTable.executeQuery(connection);
 //        precursorTable.print();
 
-        setDescription("Reading PASEF info for " + tdf.getName());
-        pasefFrameMsMsInfoTable.executeQuery(connection);
+          setDescription("Reading PASEF info for " + tdf.getName());
+          pasefFrameMsMsInfoTable.executeQuery(connection);
 //        pasefFrameMsMsInfoTable.print();
 
-        setDescription("Reading Frame MS/MS info for " + tdf.getName());
-        frameMsMsInfoTable.executeQuery(connection);
+          setDescription("Reading Frame MS/MS info for " + tdf.getName());
+          frameMsMsInfoTable.executeQuery(connection);
 //        frameMsMsInfoTable.print();
 
-        setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
-        framePrecursorTable.executeQuery(connection);
+          setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
+          framePrecursorTable.executeQuery(connection);
 //        framePrecursorTable.print();
+        }
       } else {
         setDescription("MALDI info for " + tdf.getName());
         maldiFrameInfoTable.executeQuery(connection);
