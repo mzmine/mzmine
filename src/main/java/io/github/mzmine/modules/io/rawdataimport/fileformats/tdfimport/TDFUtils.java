@@ -56,7 +56,7 @@ public class TDFUtils {
   public static final int SCAN_PACKAGE_SIZE = 50;
   public static final int BUFFER_SIZE_INCREMENT = 100000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
-  public static int BUFFER_SIZE = 300000; // start with 250 kb of buffer size
+  public static int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private static TDFLibrary tdfLib = null;
 
   /**
