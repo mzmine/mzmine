@@ -40,6 +40,7 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMetaDataTable;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -163,8 +164,9 @@ public class TDFUtils {
       final long end = Math.min((start + 50), scanEnd);
       final int numScans = (int) (end - start);
 
-      final byte[] buffer = new byte[200000];
-      final long buf_len = tdfLib
+      final int bufferSize = 5000000; // 5 mb
+      final byte[] buffer = new byte[bufferSize];
+      final long lastError = tdfLib
           .tims_read_scans_v2(handle, frameId, start, end, buffer, buffer.length);
       // we increment here in case we failed to read
       start = start + 50;
@@ -172,7 +174,7 @@ public class TDFUtils {
       final IntBuffer intBuffer = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN)
           .asIntBuffer();
 
-      if (buf_len == 0) {
+      if (!printLastError(lastError)) {
         logger.warning("Cannot read scans " + start + "-" + end + " for frame " + frameId);
         continue;
       }
@@ -356,7 +358,7 @@ public class TDFUtils {
 
     final ArrayList<Integer> subscanNumbers = new ArrayList<>(numScans);
     long firstScanNum = frameTable.getFirstScanNumForFrame(frameId);
-    for(long i = firstScanNum; i < firstScanNum + numScans; i++) {
+    for (long i = firstScanNum; i < firstScanNum + numScans; i++) {
       subscanNumbers.add(Math.toIntExact(i));
     }
 
@@ -503,4 +505,19 @@ public class TDFUtils {
 //                                    UTILITY FUNCTIONS
 // -----------------------------------------------------------------------------------------------
 
+  private static boolean printLastError(long errorCode) {
+    if (errorCode != 0) {
+      return true;
+    } else {
+      byte[] errorBuffer = new byte[64];
+      long len = tdfLib.tims_get_last_error_string(errorBuffer, errorBuffer.length);
+      try {
+        final String errorMessage = new String(errorBuffer, "UTF-8");
+        logger.warning(() -> "Last TDF import error: " + errorMessage + " length: " + len);
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+      }
+      return false;
+    }
+  }
 }
