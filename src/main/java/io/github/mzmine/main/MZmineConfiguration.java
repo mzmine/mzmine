@@ -31,7 +31,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.StringCrypter;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.color.Vision;
 
 /**
  * MZmine configuration interface
@@ -66,6 +65,8 @@ public interface MZmineConfiguration {
 
   public NumberFormat getRTFormat();
 
+  public NumberFormat getMobilityFormat();
+
   public NumberFormat getIntensityFormat();
 
   public NumberFormat getPPMFormat();
@@ -83,12 +84,12 @@ public interface MZmineConfiguration {
    * 
    * @return
    */
-//  public Vision getColorVision();
-  
+  // public Vision getColorVision();
+
   public SimpleColorPalette getDefaultColorPalette();
-  
+
   public ChartThemeParameters getDefaultChartThemeParameters();
-  
+
   public EStandardChartTheme getDefaultChartTheme();
 
   public StringCrypter getEncrypter();
