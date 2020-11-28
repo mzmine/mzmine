@@ -139,7 +139,7 @@ public class ScanSelectionParameter
 
     XMLUtils.appendRange(xmlElement, "scan_numbers", scanNumberRange);
     XMLUtils.appendRange(xmlElement, "retention_time", scanRetentionTimeRange);
-    XMLUtils.appendRange(xmlElement, "monbility", scanMobilityRange);
+    XMLUtils.appendRange(xmlElement, "mobility", scanMobilityRange);
 
     if (baseFilteringInteger != null) {
       Element newElement = parentDocument.createElement("baseFilteringInteger");
