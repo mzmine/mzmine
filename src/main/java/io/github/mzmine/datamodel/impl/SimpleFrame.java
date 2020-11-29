@@ -45,7 +45,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private Range<Double> mobilityRange;
 
   public SimpleFrame(RawDataFile dataFile, int scanNumber, int msLevel,
-      double retentionTime, double precursorMZ, int precursorCharge, int[] fragmentScans,
+      float retentionTime, double precursorMZ, int precursorCharge, int[] fragmentScans,
       DataPoint[] dataPoints,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,

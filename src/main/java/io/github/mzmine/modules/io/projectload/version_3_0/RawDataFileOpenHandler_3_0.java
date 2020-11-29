@@ -59,7 +59,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   private int numberOfFragments;
   private double precursorMZ;
   private int precursorCharge;
-  private double retentionTime;
+  private float retentionTime;
   private double mobility;
   private int dataPointsNumber;
   private int fragmentCount;
@@ -253,7 +253,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
 
     if (qName.equals(RawDataElementName_3_0.SCAN_MZ_RANGE.getElementName())) {
       final String text = getTextOfElement();
-      scanMZRange = RangeUtils.parseRange(text);
+      scanMZRange = RangeUtils.parseDoubleRange(text);
     }
 
     if (qName.equals(RawDataElementName_3_0.PRECURSOR_CHARGE.getElementName())) {
@@ -267,7 +267,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
     if (qName.equals(RawDataElementName_3_0.RETENTION_TIME.getElementName())) {
       // Before MZmine.6 retention time was saved in seconds, but now we
       // use minutes, so we need to divide by 60
-      retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
+      retentionTime = (float) (Double.parseDouble(getTextOfElement()) / 60d);
     }
 
     if (qName.equals(RawDataElementName_3_0.QUANTITY_DATAPOINTS.getElementName())) {

@@ -37,11 +37,11 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return List of frames with given ms mlevel in the specified rt window. May be empty.
    */
   @Nonnull
-  public List<Frame> getFrames(int msLevel, Range<Double> rtRange);
+  public List<Frame> getFrames(int msLevel, Range<Float> rtRange);
 
   /**
    * @return The number of frames in this raw data file. equivalent to {@link
-   * RawDataFile#getFrames()}.size()
+   * IMSRawDataFile#getFrames()}.size()
    */
   public int getNumberOfFrames();
 
@@ -64,7 +64,7 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return The frame numbers in the specified ms level and rt range. Might be empty.
    */
   @Nonnull
-  public List<Integer> getFrameNumbers(int msLevel, @Nonnull Range<Double> rtRange);
+  public List<Integer> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange);
 
   /**
    * @return The mobility range of this raw data file. Might be empty.

@@ -56,7 +56,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     dataMobilityRangeCache = new Hashtable<>();
     frameMsLevelCache = new Hashtable<>();
 
-    mobilityRange = Range.singleton(0d);
+    mobilityRange = null;
     mobilityType = MobilityType.NONE;
   }
 
@@ -83,6 +83,11 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
       frames.put(storedFrame.getFrameId(), storedFrame);
       return;
     } else {
+      if(mobilityRange == null) {
+        mobilityRange = Range.singleton(newScan.getMobility());
+      } else if(!mobilityRange.contains(newScan.getMobility())){
+        mobilityRange = mobilityRange.span(Range.singleton(newScan.getMobility()));
+      }
       super.addScan(newScan);
     }
   }
@@ -112,7 +117,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   @Override
   @Nonnull
-  public List<Frame> getFrames(int msLevel, Range<Double> rtRange) {
+  public List<Frame> getFrames(int msLevel, Range<Float> rtRange) {
     return frameMsLevelCache.get(msLevel).stream()
         .filter(frame -> rtRange.contains(frame.getRetentionTime())).collect(Collectors.toList());
   }
@@ -146,7 +151,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   @Nonnull
   @Override
-  public List<Integer> getFrameNumbers(int msLevel, @Nonnull Range<Double> rtRange) {
+  public List<Integer> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
 //     since {@link getFrameNumbers(int)} is prefiltered, this shouldn't lead to NPE
     return getFrameNumbers(msLevel).stream()
         .filter(frameNum -> rtRange.contains(getFrame(frameNum).getRetentionTime()))
@@ -186,7 +191,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     if (rt > getDataRTRange(msLevel).upperEndpoint()) {
       return null;
     }
-    Range<Double> range = Range.closed(rt - 2, rt + 2);
+    Range<Float> range = Range.closed((float) rt - 2, (float) rt + 2);
     List<Frame> eligibleFrames = getFrames(msLevel, range);
     double minDiff = 10E6;
 

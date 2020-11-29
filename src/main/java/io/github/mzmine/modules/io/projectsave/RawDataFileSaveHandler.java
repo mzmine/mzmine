@@ -301,7 +301,8 @@ class RawDataFileSaveHandler {
     hd.startElement("", "", RawDataElementName.RETENTION_TIME.getElementName(), atts);
     // In the project file, retention time is represented in seconds, for
     // historical reasons
-    double rt = scan.getRetentionTime() * 60d;
+    // TODO @tomas change to minutes here?
+    float rt = scan.getRetentionTime() * 60;
     hd.characters(String.valueOf(rt).toCharArray(), 0, String.valueOf(rt).length());
     hd.endElement("", "", RawDataElementName.RETENTION_TIME.getElementName());
 

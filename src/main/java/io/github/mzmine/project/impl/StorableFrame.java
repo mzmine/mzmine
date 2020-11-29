@@ -61,7 +61,7 @@ public class StorableFrame extends StorableScan implements Frame {
 
     frameId = originalFrame.getFrameId();
     mobilityScans = new TreeMap<>();
-    mobilityRange = Range.singleton(0.0);
+    mobilityRange = null;
 
     for (int scannum : originalFrame.getMobilityScanNumbers()) {
       Scan scan = rawDataFile.getScan(scannum);
@@ -72,7 +72,7 @@ public class StorableFrame extends StorableScan implements Frame {
   }
 
   public StorableFrame(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
-      int scanNumber, int msLevel, double retentionTime, double precursorMZ,
+      int scanNumber, int msLevel, float retentionTime, double precursorMZ,
       int precursorCharge, int[] fragmentScans,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
@@ -90,7 +90,7 @@ public class StorableFrame extends StorableScan implements Frame {
     mobilityScans = new TreeMap<>();
     for (int scannum : mobilityScanNumbers) {
       Scan scan = rawDataFile.getScan(scannum);
-      if(scan != null) {
+      if (scan != null) {
         addMobilityScan(scan);
       }
     }
@@ -114,7 +114,10 @@ public class StorableFrame extends StorableScan implements Frame {
   @Nonnull
   @Override
   public Range<Double> getMobilityRange() {
-    return mobilityRange;
+    if (mobilityRange != null) {
+      return mobilityRange;
+    }
+    return Range.singleton(0.0);
   }
 
   @Nonnull
@@ -131,7 +134,9 @@ public class StorableFrame extends StorableScan implements Frame {
   }
 
   protected final void addMobilityScan(Scan mobilityScan) {
-    if (!mobilityRange.contains(mobilityScan.getMobility())) {
+    if (mobilityRange == null) {
+      mobilityRange = Range.singleton(mobilityScan.getMobility());
+    } else if (!mobilityRange.contains(mobilityScan.getMobility())) {
       mobilityRange = mobilityRange.span(Range.singleton(mobilityScan.getMobility()));
     }
 
