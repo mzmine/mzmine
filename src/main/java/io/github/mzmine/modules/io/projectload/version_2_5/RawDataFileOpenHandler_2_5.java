@@ -53,7 +53,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
   private double precursorMZ;
   private int precursorCharge;
   private float retentionTime;
-  private double mobility;
   private int dataPointsNumber;
   private int fragmentCount;
   private int currentStorageID;
@@ -72,13 +71,20 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
    * Extract the scan file and copies it into the temporary folder. Create a new raw data file using
    * the information from the XML raw data description file
    *
-   * @param Name raw data file name
+   * @param is
+   * @param scansFile
+   * @param isIMSRawDataFile this parameter is ignored in project version 2.3
    * @throws SAXException
    * @throws ParserConfigurationException
    */
   @Override
-  public RawDataFile readRawDataFile(InputStream is, File scansFile)
-      throws IOException, ParserConfigurationException, SAXException {
+  public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile)
+      throws IOException, ParserConfigurationException, SAXException, UnsupportedOperationException {
+
+    if (isIMSRawDataFile) {
+      throw new UnsupportedOperationException(
+          "Ion mobility is not supported in projects created before MZmine 3.0");
+    }
 
     charBuffer = new StringBuffer();
     massLists = new ArrayList<StorableMassList>();
@@ -107,14 +113,15 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
   /**
    * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String,
-   *      java.lang.String, org.xml.sax.Attributes)
+   * java.lang.String, org.xml.sax.Attributes)
    */
   @Override
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // This will remove any remaining characters from previous elements
     getTextOfElement();
@@ -151,13 +158,14 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
   /**
    * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String, java.lang.String,
-   *      java.lang.String)
+   * java.lang.String)
    */
   @Override
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // <NAME>
     if (qName.equals(RawDataElementName_2_5.NAME.getElementName())) {
@@ -180,6 +188,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     if (qName.equals(RawDataElementName_2_5.STORED_DATA.getElementName())) {
       // need to multiply the offsets by 2 to account for the fact that the old projects used floats
       // but now we use doubles
+      // TODO is this still necessary? @tomas
       long offset = Long.parseLong(getTextOfElement()) * 2;
       dataPointsOffsets.put(storedDataID, offset);
       dataPointsLengths.put(storedDataID, storedDataNumDP);
@@ -225,9 +234,9 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       retentionTime = (float) (Double.parseDouble(getTextOfElement()) / 60d);
     }
 
-    if (qName.equals(RawDataElementName_2_5.ION_MOBILITY.getElementName())) {
-      mobility = Double.parseDouble(getTextOfElement());
-    }
+//    if (qName.equals(RawDataElementName_2_5.ION_MOBILITY.getElementName())) {
+//      mobility = Double.parseDouble(getTextOfElement());
+//    }
 
     if (qName.equals(RawDataElementName_2_5.QUANTITY_DATAPOINTS.getElementName())) {
       dataPointsNumber = Integer.parseInt(getTextOfElement());
@@ -240,8 +249,8 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
 
       StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
-          dataPointsNumber, scanNumber, msLevel, retentionTime, mobility, precursorMZ,
-          precursorCharge, fragmentScan, null, polarity, scanDescription, scanMZRange);
+          dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
+          fragmentScan, null, polarity, scanDescription, scanMZRange);
 
       try {
         newRawDataFile.addScan(storableScan);
@@ -261,7 +270,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       scanNumber = -1;
       msLevel = -1;
       retentionTime = -1;
-      mobility = -1;
       precursorMZ = -1;
       precursorCharge = -1;
       fragmentScan = null;

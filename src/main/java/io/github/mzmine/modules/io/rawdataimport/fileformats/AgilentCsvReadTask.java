@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -47,8 +47,10 @@ public class AgilentCsvReadTask extends AbstractTask {
 
   /**
    * Creates a new AgilentCSVReadTask
-   * 
-   * @param file A File instance containing the file to be read
+   *
+   * @param project
+   * @param fileToOpen    A File instance containing the file to be read
+   * @param newMZmineFile
    */
   public AgilentCsvReadTask(MZmineProject project, File fileToOpen,
       RawDataFileWriter newMZmineFile) {
@@ -103,7 +105,7 @@ public class AgilentCsvReadTask extends AbstractTask {
         for (int j = 0; j < spectrumSize; j++) {
           dataPoints[j] = new SimpleDataPoint(scanner.nextDouble(), scanner.nextDouble());
         }
-        newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1, msLevel, retentionTime, 0.0,0.0,
+        newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1, msLevel, retentionTime, 0.0,
             charge, null, dataPoints, ScanUtils.detectSpectrumType(dataPoints),
             PolarityType.UNKNOWN, "", null));
 
@@ -126,16 +128,17 @@ public class AgilentCsvReadTask extends AbstractTask {
   /**
    * Reads meta information on the file. This must be called with the keys in order, as it does not
    * reset the scanner position after reading.
-   * 
+   *
    * @param scanner The Scanner which is reading this AgilentCSV file.
-   * @param key The key for the metadata to return the value of.
+   * @param key     The key for the metadata to return the value of.
    */
   private String getMetaData(Scanner scanner, String key) {
     String line = "";
     while (!line.trim().startsWith(key) && scanner.hasNextLine()) {
       line = scanner.nextLine();
-      if (line.trim().startsWith(key))
+      if (line.trim().startsWith(key)) {
         return line.split(",", 2)[1].trim();
+      }
     }
     return null;
   }

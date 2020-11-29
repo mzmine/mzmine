@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.MobilityRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.collections.FXCollections;
@@ -48,6 +49,7 @@ public class ScanSelectionComponent extends FlowPane {
 
   private Range<Integer> scanNumberRange;
   private Integer baseFilteringInteger;
+  private Range<Double> scanMobilityRange;
   private Range<Float> scanRTRange;
   private Integer msLevel;
   private PolarityType polarity;
@@ -78,8 +80,14 @@ public class ScanSelectionComponent extends FlowPane {
           this.baseFilteringInteger, false);
       final RTRangeParameter rtParameter = new RTRangeParameter(false);
       // TODO: FloatRangeComponent
-      if (scanRTRange != null)
-        rtParameter.setValue(Range.closed(scanRTRange.lowerEndpoint().doubleValue(), scanRTRange.upperEndpoint().doubleValue()));
+      if (scanRTRange != null) {
+        rtParameter.setValue(Range.closed(scanRTRange.lowerEndpoint().doubleValue(),
+            scanRTRange.upperEndpoint().doubleValue()));
+      }
+      final MobilityRangeParameter mobilityParameter = new MobilityRangeParameter(false);
+      if (scanMobilityRange != null) {
+        mobilityParameter.setValue(scanMobilityRange);
+      }
       final IntegerParameter msLevelParameter =
           new IntegerParameter("MS level", "MS level", msLevel, false);
       final StringParameter scanDefinitionParameter = new StringParameter("Scan definition",
@@ -107,13 +115,14 @@ public class ScanSelectionComponent extends FlowPane {
         }
       }
 
-      paramSet = new SimpleParameterSet(
-          new Parameter[] {scanNumParameter, baseFilteringIntegerParameter, rtParameter,
-              msLevelParameter, scanDefinitionParameter, polarityParameter, spectrumTypeParameter});
+      paramSet = new SimpleParameterSet(new Parameter[] {scanNumParameter,
+          baseFilteringIntegerParameter, rtParameter, mobilityParameter, msLevelParameter,
+          scanDefinitionParameter, polarityParameter, spectrumTypeParameter});
       exitCode = paramSet.showSetupDialog(true);
       if (exitCode == ExitCode.OK) {
         scanNumberRange = paramSet.getParameter(scanNumParameter).getValue();
         this.baseFilteringInteger = paramSet.getParameter(baseFilteringIntegerParameter).getValue();
+        scanMobilityRange = paramSet.getParameter(mobilityParameter).getValue();
         // TODO: FloatRangeComponent
         scanRTRange = Range.closed(paramSet.getParameter(rtParameter).getValue().lowerEndpoint().floatValue(),
             paramSet.getParameter(rtParameter).getValue().upperEndpoint().floatValue());
@@ -160,6 +169,7 @@ public class ScanSelectionComponent extends FlowPane {
       scanNumberRange = null;
       baseFilteringInteger = null;
       scanRTRange = null;
+      scanMobilityRange = null;
       polarity = null;
       spectrumType = null;
       msLevel = null;
@@ -176,6 +186,7 @@ public class ScanSelectionComponent extends FlowPane {
     scanNumberRange = newValue.getScanNumberRange();
     baseFilteringInteger = newValue.getBaseFilteringInteger();
     scanRTRange = newValue.getScanRTRange();
+    scanMobilityRange = newValue.getScanMobilityRange();
     polarity = newValue.getPolarity();
     spectrumType = newValue.getSpectrumType();
     msLevel = newValue.getMsLevel();
@@ -185,8 +196,8 @@ public class ScanSelectionComponent extends FlowPane {
   }
 
   public ScanSelection getValue() {
-    return new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, polarity,
-        spectrumType, msLevel, scanDefinition);
+    return new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, scanMobilityRange,
+        polarity, spectrumType, msLevel, scanDefinition);
   }
 
 
@@ -218,6 +229,11 @@ public class ScanSelectionComponent extends FlowPane {
       NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
       newText.append("Retention time: " + rtFormat.format(scanRTRange.lowerEndpoint()) + " - "
           + rtFormat.format(scanRTRange.upperEndpoint()) + " min.\n");
+    }
+    if (scanMobilityRange != null) {
+      NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+      newText.append("Mobility: " + mobilityFormat.format(scanMobilityRange.lowerEndpoint()) + " - "
+          + mobilityFormat.format(scanMobilityRange.upperEndpoint()) + ".\n");
     }
     if (msLevel != null) {
       newText.append("MS level: " + msLevel + "\n");

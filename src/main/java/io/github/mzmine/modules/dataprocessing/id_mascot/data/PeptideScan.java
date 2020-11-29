@@ -418,4 +418,9 @@ public class PeptideScan implements Scan {
     return mobility;
   }
 
+  @Override
+  public MobilityType getMobilityType() {
+    return MobilityType.NONE;
+  }
+
 }

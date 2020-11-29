@@ -41,7 +41,6 @@ public class SimpleScan implements Scan {
   private double precursorMZ;
   private int precursorCharge;
   private float retentionTime;
-  private double mobility;
   private Range<Double> mzRange;
   private DataPoint basePeak;
   private double totalIonCurrent;
@@ -50,23 +49,38 @@ public class SimpleScan implements Scan {
   private String scanDefinition;
   private Range<Double> scanMZRange;
 
+  private double mobility;
+  private MobilityType mobilityType;
+
   /**
    * Clone constructor
    */
   public SimpleScan(Scan sc) {
-    this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMobility(),
+    this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
         sc.getPrecursorMZ(), sc.getPrecursorCharge(), sc.getFragmentScanNumbers(),
         sc.getDataPoints(), sc.getSpectrumType(), sc.getPolarity(), sc.getScanDefinition(),
-        sc.getScanningMZRange());
+        sc.getScanningMZRange(), sc.getMobility(), sc.getMobilityType());
   }
 
   /**
    * Constructor for creating scan with given data
    */
-  public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,double mobility,
+  public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
       double precursorMZ, int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
+
+    this(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, fragmentScans,
+        dataPoints, spectrumType, polarity, scanDefinition, scanMZRange, -1.d, MobilityType.NONE);
+  }
+
+  /**
+   * Constructor for creating scan with given data
+   */
+  public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
+      double precursorMZ, int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      Range<Double> scanMZRange, double mobility, MobilityType mobilityType) {
 
     // save scan data
     this.dataFile = dataFile;
@@ -81,32 +95,38 @@ public class SimpleScan implements Scan {
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
     this.mobility = mobility;
+    this.mobilityType = mobilityType;
 
-    if (dataPoints != null)
+    if (dataPoints != null) {
       setDataPoints(dataPoints);
+    }
   }
 
   /**
    * @return Returns scan datapoints
    */
-  public @Nonnull DataPoint[] getDataPoints() {
+  @Nonnull
+  public DataPoint[] getDataPoints() {
     return dataPoints;
   }
 
   /**
    * @return Returns scan datapoints within a given range
    */
-  public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
+  @Nonnull
+  public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
 
     int startIndex, endIndex;
     for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint())
+      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
         break;
+      }
     }
 
     for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint())
+      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
         break;
+      }
     }
 
     DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
@@ -120,24 +140,25 @@ public class SimpleScan implements Scan {
   /**
    * @return Returns scan datapoints over certain intensity
    */
-  public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity) {
+  @Nonnull
+  public DataPoint[] getDataPointsOverIntensity(double intensity) {
     int index;
     Vector<DataPoint> points = new Vector<DataPoint>();
 
     for (index = 0; index < dataPoints.length; index++) {
-      if (dataPoints[index].getIntensity() >= intensity)
+      if (dataPoints[index].getIntensity() >= intensity) {
         points.add(dataPoints[index]);
+      }
     }
 
     DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
 
     return pointsOverIntensity;
   }
-  /**
-   * @param mzValues m/z values to set
-   * @param intensityValues Intensity values to set
-   */
 
+  /**
+   * @param dataPoints
+   */
   public void setDataPoints(DataPoint[] dataPoints) {
 
     this.dataPoints = dataPoints;
@@ -153,8 +174,9 @@ public class SimpleScan implements Scan {
 
       for (DataPoint dp : dataPoints) {
 
-        if (dp.getIntensity() > basePeak.getIntensity())
+        if (dp.getIntensity() > basePeak.getIntensity()) {
           basePeak = dp;
+        }
 
         mzRange = mzRange.span(Range.singleton(dp.getMZ()));
         totalIonCurrent += dp.getIntensity();
@@ -243,26 +265,27 @@ public class SimpleScan implements Scan {
   }
 
   /**
+   * @return Mobility if measured, -1 otherwise
    */
   public double getMobility() {
     return mobility;
   }
 
-  /**
-   * @param mobility The mobility to set.
-   */
-  public void setMobility(double mobility) {
-    this.mobility = mobility;
+  @Override
+  public MobilityType getMobilityType() {
+    return mobilityType;
   }
+
   /**
    * @see io.github.mzmine.datamodel.Scan#
    */
-  public @Nonnull Range<Double> getDataPointMZRange() {
+  @Nonnull
+  public Range<Double> getDataPointMZRange() {
     return mzRange;
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Scan#getBasePeakMZ()
+   * @see Scan#getHighestDataPoint()
    */
   public DataPoint getHighestDataPoint() {
     return basePeak;
@@ -278,7 +301,6 @@ public class SimpleScan implements Scan {
   /**
    * @param fragmentScans The fragmentScans to set.
    */
-  
   public void setFragmentScanNumbers(int[] fragmentScans) {
     this.fragmentScans = fragmentScans;
   }
@@ -286,8 +308,9 @@ public class SimpleScan implements Scan {
   public void addFragmentScan(int fragmentScan) {
     TreeSet<Integer> fragmentsSet = new TreeSet<Integer>();
     if (fragmentScans != null) {
-      for (int frag : fragmentScans)
+      for (int frag : fragmentScans) {
         fragmentsSet.add(frag);
+      }
     }
     fragmentsSet.add(fragmentScan);
     fragmentScans = Ints.toArray(fragmentsSet);
@@ -312,7 +335,8 @@ public class SimpleScan implements Scan {
     return ScanUtils.scanToString(this, false);
   }
 
-  public @Nonnull RawDataFile getDataFile() {
+  @Nonnull
+  public RawDataFile getDataFile() {
     return dataFile;
   }
 
@@ -327,7 +351,8 @@ public class SimpleScan implements Scan {
   }
 
   @Override
-  public @Nonnull MassList[] getMassLists() {
+  @Nonnull
+  public MassList[] getMassLists() {
     throw new UnsupportedOperationException();
   }
 
@@ -337,21 +362,25 @@ public class SimpleScan implements Scan {
   }
 
   @Override
-  public @Nonnull PolarityType getPolarity() {
-    if (polarity == null)
+  @Nonnull
+  public PolarityType getPolarity() {
+    if (polarity == null) {
       polarity = PolarityType.UNKNOWN;
+    }
     return polarity;
   }
 
   @Override
   public String getScanDefinition() {
-    if (scanDefinition == null)
+    if (scanDefinition == null) {
       scanDefinition = "";
+    }
     return scanDefinition;
   }
 
   @Override
-  public @Nonnull Range<Double> getScanningMZRange() {
+  @Nonnull
+  public Range<Double> getScanningMZRange() {
     if (scanMZRange == null)
       scanMZRange = getDataPointMZRange();
     return scanMZRange;

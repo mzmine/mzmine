@@ -109,16 +109,10 @@ public interface RawDataFile {
   public Range<Float> getDataRTRange();
 
   @Nonnull
-  public Range<Double> getDataMobilityRange();
-
-  @Nonnull
   public Range<Double> getDataMZRange(int msLevel);
 
   @Nonnull
   public Range<Float> getDataRTRange(Integer msLevel);
-
-  @Nonnull
-  public Range<Double> getDataMobilityRange(int msLevel);
 
   public double getDataMaxBasePeakIntensity(int msLevel);
 

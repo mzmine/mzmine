@@ -18,9 +18,15 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.StorableFrame;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -64,9 +70,9 @@ class RawDataFileSaveHandler {
    * Copy the data points file of the raw data file from the temporary folder to the zip file.
    * Create an XML file which contains the description of the same raw data file an copy it into the
    * same zip file.
-   * 
+   *
    * @param rawDataFile raw data file to be copied
-   * @param rawDataSavedName name of the raw data inside the zip file
+   * @param number      number of the raw data file
    * @throws java.io.IOException
    * @throws TransformerConfigurationException
    * @throws SAXException
@@ -84,7 +90,14 @@ class RawDataFileSaveHandler {
     // step 1 - save data file
     logger.info("Saving data points of: " + rawDataFile.getName());
 
-    String rawDataSavedName = "Raw data file #" + number + " " + rawDataFile.getName();
+    String rawDataSavedName;
+    if (rawDataFile instanceof IMSRawDataFile) {
+      rawDataSavedName =
+          IMSRawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
+    } else {
+      rawDataSavedName =
+          RawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
+    }
 
     zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
 
@@ -96,8 +109,9 @@ class RawDataFileSaveHandler {
     RandomAccessFile dataPointsFile = rawDataFile.getDataPointsFile();
     for (Integer storageID : dataPointsOffsets.keySet()) {
 
-      if (canceled)
+      if (canceled) {
         return;
+      }
 
       final long offset = dataPointsOffsets.get(storageID);
       dataPointsFile.seek(offset);
@@ -113,8 +127,9 @@ class RawDataFileSaveHandler {
       progress = 0.9 * ((double) offset / dataPointsFile.length());
     }
 
-    if (canceled)
+    if (canceled) {
       return;
+    }
 
     // step 2 - save raw data description
     logger.info("Saving raw data description of: " + rawDataFile.getName());
@@ -138,7 +153,7 @@ class RawDataFileSaveHandler {
 
   /**
    * Function which creates an XML file with the descripcion of the raw data
-   * 
+   *
    * @param rawDataFile
    * @param hd
    * @throws SAXException
@@ -156,14 +171,21 @@ class RawDataFileSaveHandler {
     hd.characters(rawDataFile.getName().toCharArray(), 0, rawDataFile.getName().length());
     hd.endElement("", "", RawDataElementName.NAME.getElementName());
 
+    // COLOR
+    hd.startElement("", "", RawDataElementName.COLOR.getElementName(), atts);
+    hd.characters(rawDataFile.getColor().toString().toCharArray(), 0,
+        rawDataFile.getColor().toString().length());
+    hd.endElement("", "", RawDataElementName.COLOR.getElementName());
+
     // <STORED_DATAPOINTS>
     atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
         String.valueOf(dataPointsOffsets.size()));
     hd.startElement("", "", RawDataElementName.STORED_DATAPOINTS.getElementName(), atts);
     atts.clear();
     for (Integer storageID : dataPointsOffsets.keySet()) {
-      if (canceled)
+      if (canceled) {
         return;
+      }
       int length = dataPointsLengths.get(storageID);
       long offset = consolidatedDataPointsOffsets.get(storageID);
       atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
@@ -186,8 +208,9 @@ class RawDataFileSaveHandler {
     // <SCAN>
     for (int scanNumber : rawDataFile.getScanNumbers()) {
 
-      if (canceled)
+      if (canceled) {
         return;
+      }
 
       StorableScan scan = (StorableScan) rawDataFile.getScan(scanNumber);
       int storageID = scan.getStorageID();
@@ -198,7 +221,42 @@ class RawDataFileSaveHandler {
       hd.endElement("", "", RawDataElementName.SCAN.getElementName());
       atts.clear();
       completedScans++;
-      progress = 0.9 + (0.1 * ((double) completedScans / numOfScans));
+      progress = 0.8 + (0.1 * ((double) completedScans / numOfScans));
+    }
+
+    // for loading frames it is important, that scans have already been loaded! so save frames after scans
+    // <FRAME>
+    if (rawDataFile instanceof IMSRawDataFile) {
+
+      final IMSRawDataFile imsFile = (IMSRawDataFile) rawDataFile;
+      final int numOfFrames = imsFile.getNumberOfFrames();
+
+      // <QUANTITY>
+      hd.startElement("", "", RawDataElementName.QUANTITY_FRAMES.getElementName(), atts);
+      hd.characters(String.valueOf(numOfFrames).toCharArray(), 0,
+          String.valueOf(numOfFrames).length());
+      hd.endElement("", "", RawDataElementName.QUANTITY_FRAMES.getElementName());
+
+      int completedFrames = 0;
+      for (int frameNum : imsFile.getFrameNumbers()) {
+
+        if (canceled) {
+          return;
+        }
+
+        StorableFrame frame = (StorableFrame) imsFile.getFrame(frameNum);
+        int storageID = frame.getStorageID();
+        atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+            String.valueOf(storageID));
+        hd.startElement("", "", RawDataElementName.FRAME.getElementName(), atts);
+        fillScanElement(frame, hd);
+        fillFrameElement(frame, hd);
+        hd.endElement("", "", RawDataElementName.FRAME.getElementName());
+        atts.clear();
+
+        completedFrames++;
+        progress = 0.9 + (0.1 * ((double) completedFrames / numOfFrames));
+      }
     }
 
     hd.endElement("", "", RawDataElementName.RAWDATA.getElementName());
@@ -207,9 +265,9 @@ class RawDataFileSaveHandler {
 
   /**
    * Create the part of the XML document related to the scans
-   * 
+   *
    * @param scan
-   * @param element
+   * @param hd
    */
   private void fillScanElement(Scan scan, TransformerHandler hd) throws SAXException, IOException {
     // <SCAN_ID>
@@ -243,15 +301,10 @@ class RawDataFileSaveHandler {
     hd.startElement("", "", RawDataElementName.RETENTION_TIME.getElementName(), atts);
     // In the project file, retention time is represented in seconds, for
     // historical reasons
-    double rt = scan.getRetentionTime() * 60d;
+    // TODO @tomas change to minutes here?
+    float rt = scan.getRetentionTime() * 60;
     hd.characters(String.valueOf(rt).toCharArray(), 0, String.valueOf(rt).length());
     hd.endElement("", "", RawDataElementName.RETENTION_TIME.getElementName());
-
-    // <MOBILITY>
-    hd.startElement("","",RawDataElementName.MOBILITY.getElementName(), atts);
-    double mobility = scan.getMobility();
-    hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
-    hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
 
     // <CENTROIDED>
     hd.startElement("", "", RawDataElementName.CENTROIDED.getElementName(), atts);
@@ -313,10 +366,53 @@ class RawDataFileSaveHandler {
     hd.characters(mzRangeStr.toCharArray(), 0, mzRangeStr.length());
     hd.endElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName());
 
+    // <MOBILITY>
+    hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
+    double mobility = scan.getMobility();
+    hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
+    hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
+
+    // <MOBILITY_TYPE>
+    hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
+    MobilityType mobilityType = scan.getMobilityType();
+    hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
+    hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
+  }
+
+  private void fillFrameElement(Frame frame, TransformerHandler hd)
+      throws SAXException, IOException {
+    AttributesImpl atts = new AttributesImpl();
+
+    String frameId = String.valueOf(frame.getFrameId());
+    hd.startElement("", "", RawDataElementName.FRAME_ID.getElementName(), atts);
+    hd.characters(frameId.toCharArray(), 0, frameId.length());
+    hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
+
+    hd.startElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName(), atts);
+    hd.characters(frame.getMobilityRange().lowerEndpoint().toString().toCharArray(), 0,
+        frame.getMobilityRange().lowerEndpoint().toString().toCharArray().length);
+    hd.endElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName());
+
+    hd.startElement("", "", RawDataElementName.UPPER_MOBILITY_RANGE.getElementName(), atts);
+    hd.characters(frame.getMobilityRange().upperEndpoint().toString().toCharArray(), 0,
+        frame.getMobilityRange().upperEndpoint().toString().toCharArray().length);
+    hd.endElement("", "", RawDataElementName.UPPER_MOBILITY_RANGE.getElementName());
+
+    List<Integer> mobilityScanNumbers = frame.getMobilityScanNumbers();
+    atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
+        String.valueOf(mobilityScanNumbers.size()));
+    hd.startElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName(), atts);
+    atts.clear();
+    for (int i : mobilityScanNumbers) {
+      hd.startElement("", "", RawDataElementName.MOBILITY_SCANNUM.getElementName(), atts);
+      hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
+      hd.endElement("", "", RawDataElementName.MOBILITY_SCANNUM.getElementName());
+    }
+    hd.endElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName());
+
   }
 
   /**
-   * 
    * @return the progress of these functions saving the raw data information to the zip file.
    */
   double getProgress() {

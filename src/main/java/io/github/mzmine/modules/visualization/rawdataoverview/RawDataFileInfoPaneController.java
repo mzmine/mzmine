@@ -29,6 +29,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.StringToDoubleComparator;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -44,6 +45,8 @@ import javafx.scene.layout.GridPane;
 import javax.annotation.Nonnull;
 
 public class RawDataFileInfoPaneController {
+
+  private static Logger logger = Logger.getLogger(RawDataFileInfoPaneController.class.getName());
 
   private RawDataFile rawDataFile;
   private boolean populated = false;
@@ -238,11 +241,21 @@ public class RawDataFileInfoPaneController {
 
       tableData.clear();
 
-      int numberOfScans = rawDataFile.getNumOfScans();
+      final int[] scanNumbers = rawDataFile.getScanNumbers();
+      if (scanNumbers.length > 5E5) {
+        status = TaskStatus.FINISHED;
+        // it's not the computation that takes long, it's putting the data into the table.
+        // This bricks the MZmine window
+        logger.info(
+            "Number of entries >500 000 for raw data file " + rawDataFile.getName() + " ("
+                + rawDataFile.getNumOfScans() + ")");
+        logger.info("Will not compute table data.");
+        return;
+      }
 
       // add raw data to table
-      for (int i = 1; i < numberOfScans + 1; i++) {
-        Scan scan = rawDataFile.getScan(i);
+      for (int i = 1; i < scanNumbers.length; i++) {
+        Scan scan = rawDataFile.getScan(scanNumbers[i]);
 
         if (scan == null) {
           continue;
@@ -271,7 +284,7 @@ public class RawDataFileInfoPaneController {
           basePeakIntensity = itFormat.format(scan.getHighestDataPoint().getIntensity());
         }
 
-        tableData.add(new ScanDescription(Integer.toString(i), // scan number
+        tableData.add(new ScanDescription(Integer.toString(scan.getScanNumber()), // scan number
             rtFormat.format(scan.getRetentionTime()), // rt
             Integer.toString(scan.getMSLevel()), // MS level
             precursor, // precursor mz
@@ -284,8 +297,8 @@ public class RawDataFileInfoPaneController {
             basePeakIntensity) // base peak intensity
         );
 
-        perc = i / (numberOfScans + 1);
-        if (isCanceled == true) {
+        perc = i / (scanNumbers.length + 1);
+        if (isCanceled) {
           status = TaskStatus.CANCELED;
           return;
         }

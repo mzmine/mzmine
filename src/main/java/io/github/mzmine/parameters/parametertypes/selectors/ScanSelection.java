@@ -24,7 +24,6 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -36,6 +35,7 @@ public class ScanSelection {
 
   private final Range<Integer> scanNumberRange;
   private Integer baseFilteringInteger;
+  private final Range<Double> scanMobilityRange;
   private final Range<Float> scanRTRange;
   private final PolarityType polarity;
   private final MassSpectrumType spectrumType;
@@ -47,19 +47,20 @@ public class ScanSelection {
   }
 
   public ScanSelection(int msLevel) {
-    this(null, null, null, null, null, msLevel, null);
+    this(null, null, null, null, null, null, msLevel, null);
   }
 
   public ScanSelection(Range<Float> scanRTRange, int msLevel) {
-    this(null, null, scanRTRange, null, null, msLevel, null);
+    this(null, null, scanRTRange, null, null, null, msLevel, null);
   }
 
   public ScanSelection(Range<Integer> scanNumberRange, Integer baseFilteringInteger,
-      Range<Float> scanRTRange, PolarityType polarity, MassSpectrumType spectrumType,
-      Integer msLevel, String scanDefinition) {
+      Range<Float> scanRTRange, Range<Double> scanMobilityRange, PolarityType polarity,
+      MassSpectrumType spectrumType, Integer msLevel, String scanDefinition) {
     this.scanNumberRange = scanNumberRange;
     this.baseFilteringInteger = baseFilteringInteger;
     this.scanRTRange = scanRTRange;
+    this.scanMobilityRange = scanMobilityRange;
     this.polarity = polarity;
     this.spectrumType = spectrumType;
     this.msLevel = msLevel;
@@ -76,6 +77,10 @@ public class ScanSelection {
 
   public Range<Float> getScanRTRange() {
     return scanRTRange;
+  }
+
+  public Range<Double> getScanMobilityRange() {
+    return scanMobilityRange;
   }
 
   public PolarityType getPolarity() {
@@ -163,6 +168,9 @@ public class ScanSelection {
       return false;
 
     if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime())))
+      return false;
+
+    if ((scanMobilityRange != null) && (!scanMobilityRange.contains(scan.getMobility())))
       return false;
 
     if (!Strings.isNullOrEmpty(scanDefinition)) {
