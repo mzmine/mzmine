@@ -20,8 +20,14 @@ package io.github.mzmine.modules.io.projectload.version_3_0;
 
 enum UserParameterElementName_3_0 {
 
-  PARAMETERS("parameters"), COUNT("count"), PARAMETER("parameter"), NAME("name"), TYPE(
-      "type"), OPTION("option"), VALUE("value"), DATA_FILE("data_file");
+  PARAMETERS("parameters"), //
+  COUNT("count"), //
+  PARAMETER("parameter"), //
+  NAME("name"), //
+  TYPE("type"), //
+  OPTION("option"), //
+  VALUE("value"), //
+  DATA_FILE("data_file");
 
   private String elementName;
 
