@@ -101,12 +101,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Nonnull
   @Override
   public List<Frame> getFrames(int msLevel) {
-    if (frameMsLevelCache.get(msLevel) == null) {
-      List<Frame> framesInMsLevel = frames.values().stream()
-          .filter(frame -> frame.getMSLevel() == msLevel).collect(Collectors.toList());
-      frameMsLevelCache.put(msLevel, framesInMsLevel);
-    }
-    return frameMsLevelCache.get(msLevel);
+    return frameMsLevelCache.computeIfAbsent(msLevel, level -> frames.values().stream()
+          .filter(frame -> frame.getMSLevel() == msLevel).collect(Collectors.toList()));
   }
 
   @Nullable
