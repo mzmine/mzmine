@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
-import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotParameters;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
@@ -50,7 +50,7 @@ public class ProjectionPlotWindow extends Stage {
   private final ToolBar toolbar;
   private final ProjectionPlotPanel plot;
 
-  public ProjectionPlotWindow(PeakList peakList, ProjectionPlotDataset dataset,
+  public ProjectionPlotWindow(FeatureList featureList, ProjectionPlotDataset dataset,
       ParameterSet parameters) {
 
     mainPane = new BorderPane();
@@ -80,14 +80,14 @@ public class ProjectionPlotWindow extends Stage {
 
     labelsButton.setOnAction(e -> plot.cycleItemLabelMode());
 
-    String title = peakList.getName();
+    String title = featureList.getName();
     title = title.concat(" : ");
     title = title.concat(dataset.toString());
-    if (parameters.getParameter(ProjectionPlotParameters.peakMeasurementType)
-        .getValue() == PeakMeasurementType.HEIGHT)
-      title = title.concat(" (using peak heights)");
+    if (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
+        .getValue() == FeatureMeasurementType.HEIGHT)
+      title = title.concat(" (using feature heights)");
     else
-      title = title.concat(" (using peak areas)");
+      title = title.concat(" (using feature areas)");
 
     this.setTitle(title);
 

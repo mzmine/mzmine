@@ -18,19 +18,19 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Vector;
 import java.util.logging.Logger;
 import org.jfree.data.xy.AbstractXYDataset;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 import jmprojection.CDA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -45,12 +45,12 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
   private double[] component2Coords;
 
   private final ParameterSet parameters;
-  private final PeakList peakList;
+  private final FeatureList featureList;
 
   private ColoringType coloringType;
 
   private RawDataFile[] selectedRawDataFiles;
-  private PeakListRow[] selectedRows;
+  private FeatureListRow[] selectedRows;
 
   private int[] groupsForSelectedRawDataFiles;
   private Object[] parameterValuesForGroups;
@@ -67,8 +67,8 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
   public CDADataset(MZmineProject project, ParameterSet parameters) {
 
-    this.peakList = parameters.getParameter(ProjectionPlotParameters.peakLists).getValue()
-        .getMatchingPeakLists()[0];
+    this.featureList = parameters.getParameter(ProjectionPlotParameters.featureLists).getValue()
+        .getMatchingFeatureLists()[0];
     this.parameters = parameters;
 
     this.xAxisDimension =
@@ -79,7 +79,7 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
     coloringType = parameters.getParameter(ProjectionPlotParameters.coloringType).getValue();
     selectedRawDataFiles = parameters.getParameter(ProjectionPlotParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
-    selectedRows = peakList.getRows().toArray(PeakListRow[]::new);
+    selectedRows = featureList.getRows().toArray(FeatureListRow[]::new);
 
     datasetTitle = "Curvilinear distance analysis";
 
@@ -211,7 +211,7 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
     if (selectedRows.length == 0) {
       this.status = TaskStatus.ERROR;
-      errorMessage = "No peaks selected for CDA plot";
+      errorMessage = "No features selected for CDA plot";
       return;
     }
     if (selectedRawDataFiles.length == 0) {
@@ -224,16 +224,16 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
     // Generate matrix of raw data (input to CDA)
     boolean useArea = false;
-    if (parameters.getParameter(ProjectionPlotParameters.peakMeasurementType)
-        .getValue() == PeakMeasurementType.AREA)
+    if (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
+        .getValue() == FeatureMeasurementType.AREA)
       useArea = true;
 
     double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
     for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-      PeakListRow peakListRow = selectedRows[rowIndex];
+      FeatureListRow featureListRow = selectedRows[rowIndex];
       for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
         RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-        Feature p = peakListRow.getPeak(rawDataFile);
+        Feature p = featureListRow.getFeature(rawDataFile);
         if (p != null) {
           if (useArea)
             rawData[fileIndex][rowIndex] = p.getArea();
@@ -263,7 +263,7 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
     component1Coords = result[xAxisDimension - 1];
     component2Coords = result[yAxisDimension - 1];
 
-    ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList, this, parameters);
+    ProjectionPlotWindow newFrame = new ProjectionPlotWindow(featureList, this, parameters);
     newFrame.show();
 
     status = TaskStatus.FINISHED;

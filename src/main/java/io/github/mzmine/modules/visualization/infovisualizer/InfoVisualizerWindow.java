@@ -18,13 +18,12 @@
 
 package io.github.mzmine.modules.visualization.infovisualizer;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -44,12 +43,13 @@ class InfoVisualizerWindow extends Stage {
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  Range<Double> rtRange, mzRange;
+  Range<Double> mzRange;
+  Range<Float> rtRange;
   int numOfIdentities;
 
-  InfoVisualizerWindow(PeakList peakList) {
+  InfoVisualizerWindow(FeatureList featureList) {
 
-    setTitle(peakList.getName() + " information");
+    setTitle(featureList.getName() + " information");
 
     mainPane = new GridPane();
     mainScene = new Scene(mainPane);
@@ -65,11 +65,11 @@ class InfoVisualizerWindow extends Stage {
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
 
-    this.getInfoRange(peakList);
+    this.getInfoRange(featureList);
 
-    if (peakList.getNumberOfRows() == 0) {
+    if (featureList.getNumberOfRows() == 0) {
       mzRange = Range.singleton(0.0);
-      rtRange = Range.singleton(0.0);
+      rtRange = Range.singleton(0f);
     }
 
     int row = 0;
@@ -78,7 +78,7 @@ class InfoVisualizerWindow extends Stage {
     // Raw data file list
     label = new Label("List of raw data files");
     ListView<RawDataFile> rawDataFileList =
-        new ListView<RawDataFile>(FXCollections.observableArrayList(peakList.getRawDataFiles()));
+        new ListView<RawDataFile>(FXCollections.observableArrayList(featureList.getRawDataFiles()));
     // rawDataFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     // rawDataFileList.setLayoutOrientation(JList.VERTICAL);
     label.setLabelFor(rawDataFileList);
@@ -90,8 +90,8 @@ class InfoVisualizerWindow extends Stage {
     // rawPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
     // Applied methods list
-    ListView<PeakListAppliedMethod> appliedMethodList =
-        new ListView<>(FXCollections.observableArrayList(peakList.getAppliedMethods()));
+    ListView<FeatureListAppliedMethod> appliedMethodList =
+        new ListView<>(FXCollections.observableArrayList(featureList.getAppliedMethods()));
     // appliedMethodList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     // appliedMethodList.setLayoutOrientation(JList.VERTICAL);
 
@@ -106,20 +106,20 @@ class InfoVisualizerWindow extends Stage {
 
     // Panels
     label = new Label("Name:");
-    value = new Label(peakList.getName());
+    value = new Label(featureList.getName());
     row++;
     mainPane.add(label, 0, row);
     mainPane.add(value, 1, row);
 
 
     label = new Label("Created (yyyy/MM/dd HH:mm:ss):");
-    value = new Label(String.valueOf(((SimplePeakList) peakList).getDateCreated()));
+    value = new Label(String.valueOf((featureList).getDateCreated()));
     row++;
     mainPane.add(label, 0, row);
     mainPane.add(value, 1, row);
 
     label = new Label("Number of rows:");
-    value = new Label(String.valueOf(peakList.getNumberOfRows()));
+    value = new Label(String.valueOf(featureList.getNumberOfRows()));
     row++;
     mainPane.add(label, 0, row);
     mainPane.add(value, 1, row);
@@ -174,13 +174,13 @@ class InfoVisualizerWindow extends Stage {
    * else return null; }
    */
 
-  void getInfoRange(PeakList peakList) {
-    PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
+  void getInfoRange(FeatureList peakList) {
+    FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
 
     mzRange = peakList.getRowsMZRange();
     rtRange = peakList.getRowsRTRange();
-    for (PeakListRow row : rows) {
-      if (row.getPreferredPeakIdentity() != null)
+    for (FeatureListRow row : rows) {
+      if (row.getPreferredFeatureIdentity() != null)
         numOfIdentities++;
     }
 

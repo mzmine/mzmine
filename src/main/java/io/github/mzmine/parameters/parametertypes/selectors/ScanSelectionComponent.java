@@ -49,8 +49,8 @@ public class ScanSelectionComponent extends FlowPane {
 
   private Range<Integer> scanNumberRange;
   private Integer baseFilteringInteger;
-  private Range<Double> scanRTRange;
   private Range<Double> scanMobilityRange;
+  private Range<Float> scanRTRange;
   private Integer msLevel;
   private PolarityType polarity;
   private MassSpectrumType spectrumType;
@@ -79,11 +79,15 @@ public class ScanSelectionComponent extends FlowPane {
           "Enter an integer for which every multiple of that integer in the list will be filtered. (Every Nth element will be shown)",
           this.baseFilteringInteger, false);
       final RTRangeParameter rtParameter = new RTRangeParameter(false);
-      if (scanRTRange != null)
-        rtParameter.setValue(scanRTRange);
+      // TODO: FloatRangeComponent
+      if (scanRTRange != null) {
+        rtParameter.setValue(Range.closed(scanRTRange.lowerEndpoint().doubleValue(),
+            scanRTRange.upperEndpoint().doubleValue()));
+      }
       final MobilityRangeParameter mobilityParameter = new MobilityRangeParameter(false);
-      if (scanMobilityRange != null)
+      if (scanMobilityRange != null) {
         mobilityParameter.setValue(scanMobilityRange);
+      }
       final IntegerParameter msLevelParameter =
           new IntegerParameter("MS level", "MS level", msLevel, false);
       final StringParameter scanDefinitionParameter = new StringParameter("Scan definition",
@@ -118,8 +122,10 @@ public class ScanSelectionComponent extends FlowPane {
       if (exitCode == ExitCode.OK) {
         scanNumberRange = paramSet.getParameter(scanNumParameter).getValue();
         this.baseFilteringInteger = paramSet.getParameter(baseFilteringIntegerParameter).getValue();
-        scanRTRange = paramSet.getParameter(rtParameter).getValue();
         scanMobilityRange = paramSet.getParameter(mobilityParameter).getValue();
+        // TODO: FloatRangeComponent
+        scanRTRange = Range.closed(paramSet.getParameter(rtParameter).getValue().lowerEndpoint().floatValue(),
+            paramSet.getParameter(rtParameter).getValue().upperEndpoint().floatValue());
         msLevel = paramSet.getParameter(msLevelParameter).getValue();
         scanDefinition = paramSet.getParameter(scanDefinitionParameter).getValue();
         final int selectedPolarityIndex = Arrays.asList(polarityTypes)

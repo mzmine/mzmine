@@ -42,21 +42,22 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
   private RawDataFile rawDataFile;
 
-  private double retentionTimes[];
+  private float retentionTimes[];
   private double basePeaks[];
   private SoftReference<DataPoint[]> dataPointMatrix[];
 
-  private final Range<Double> totalRTRange, totalMZRange;
+  private final Range<Double> totalMZRange;
+  private final Range<Float> totalRTRange;
   private int totalScans, processedScans;
   private final Scan scans[];
 
   private TaskStatus status = TaskStatus.WAITING;
 
   public double curMaxIntensity;
-  private ArrayList<Double> rtValuesInUserRange;
+  private ArrayList<Float> rtValuesInUserRange;
 
   @SuppressWarnings("unchecked")
-  TwoDDataSet(RawDataFile rawDataFile, Scan scans[], Range<Double> rtRange, Range<Double> mzRange,
+  TwoDDataSet(RawDataFile rawDataFile, Scan scans[], Range<Float> rtRange, Range<Double> mzRange,
       TwoDVisualizerTab visualizer) {
 
     this.rawDataFile = rawDataFile;
@@ -69,7 +70,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
     totalScans = scans.length;
 
     dataPointMatrix = new SoftReference[totalScans];
-    retentionTimes = new double[totalScans];
+    retentionTimes = new float[totalScans];
     basePeaks = new double[totalScans];
 
     MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
@@ -148,13 +149,13 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
       return totalMZRange.upperEndpoint();
   }
 
-  double upperEndpointIntensity(Range<Double> rtRange, Range<Double> mzRange, PlotMode plotMode) {
+  double upperEndpointIntensity(Range<Float> rtRange, Range<Double> mzRange, PlotMode plotMode) {
 
     double maxIntensity = 0;
 
-    double searchRetentionTimes[] = retentionTimes;
+    float searchRetentionTimes[] = retentionTimes;
     if (processedScans < totalScans) {
-      searchRetentionTimes = new double[processedScans];
+      searchRetentionTimes = new float[processedScans];
       System.arraycopy(retentionTimes, 0, searchRetentionTimes, 0, searchRetentionTimes.length);
     }
 
@@ -210,16 +211,16 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
   // of scans that fall in
   // the user
   // range. returns an array of the data points but not the rt.
-  ArrayList getCentroidedDataPointsInRTMZRange(Range<Double> rtRange, Range<Double> mzRange) {
+  ArrayList getCentroidedDataPointsInRTMZRange(Range<Float> rtRange, Range<Double> mzRange) {
     ArrayList<DataPoint> dataPointsInRanges = new ArrayList<DataPoint>();
     ArrayList rtInRange = new ArrayList();
 
     curMaxIntensity = 0.0;
 
-    double searchRetentionTimes[] = retentionTimes;
+    float searchRetentionTimes[] = retentionTimes;
 
     if (processedScans < totalScans) {
-      searchRetentionTimes = new double[processedScans];
+      searchRetentionTimes = new float[processedScans];
       System.arraycopy(retentionTimes, 0, searchRetentionTimes, 0, searchRetentionTimes.length);
     }
 

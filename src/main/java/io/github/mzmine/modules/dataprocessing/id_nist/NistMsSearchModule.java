@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -67,8 +67,8 @@ public class NistMsSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    for (final PeakList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
-        .getValue().getMatchingPeakLists()) {
+    for (final FeatureList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
+        .getValue().getMatchingFeatureLists()) {
 
       tasks.add(new NistMsSearchTask(peakList, parameters));
     }
@@ -82,7 +82,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
    * @param peakList the peak-list.
    * @param row the peak-list row.
    */
-  public static void singleRowSearch(final PeakList peakList, final PeakListRow row) {
+  public static void singleRowSearch(final FeatureList peakList, final FeatureListRow row) {
 
     final ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(NistMsSearchModule.class);

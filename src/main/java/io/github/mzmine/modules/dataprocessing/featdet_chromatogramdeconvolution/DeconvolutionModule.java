@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Arrays;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -53,7 +53,7 @@ public class DeconvolutionModule implements MZmineProcessingModule {
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
 
-    return MZmineModuleCategory.PEAKLISTPICKING;
+    return MZmineModuleCategory.FEATURELISTDETECTION;
   }
 
   @Override
@@ -66,8 +66,8 @@ public class DeconvolutionModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
       @Nonnull final Collection<Task> tasks) {
-    PeakList[] peakLists = parameters.getParameter(DeconvolutionParameters.PEAK_LISTS).getValue()
-        .getMatchingPeakLists();
+    FeatureList[] peakLists = parameters.getParameter(DeconvolutionParameters.PEAK_LISTS).getValue()
+        .getMatchingFeatureLists();
 
     // function to calculate center mz
     CenterFunction mzCenterFunction =
@@ -78,7 +78,7 @@ public class DeconvolutionModule implements MZmineProcessingModule {
       // data point with lowest intensity
       // weight = logger(value) - logger(noise) (maxed to maxWeight)
       double noise =
-          Arrays.stream(peakLists).flatMap(pkl -> pkl.getRows().stream()).map(r -> r.getPeaks()[0])
+          Arrays.stream(peakLists).flatMap(pkl -> pkl.getRows().stream()).map(r -> r.getFeatures().get(0))
               .mapToDouble(peak -> peak.getRawDataPointsIntensityRange().lowerEndpoint())
               .filter(v -> v != 0).min().orElse(0);
 
@@ -95,7 +95,7 @@ public class DeconvolutionModule implements MZmineProcessingModule {
           new CenterFunction(CenterMeasure.AVG, Weighting.logger10, noise, maxWeight);
     }
 
-    for (final PeakList peakList : peakLists) {
+    for (final FeatureList peakList : peakLists) {
       tasks.add(new DeconvolutionTask(project, peakList, parameters, mzCenterFunction));
     }
 

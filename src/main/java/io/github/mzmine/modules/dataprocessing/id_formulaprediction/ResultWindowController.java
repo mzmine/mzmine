@@ -19,7 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import io.github.mzmine.datamodel.*;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
@@ -127,12 +129,12 @@ public class ResultWindowController {
     }
 
 
-    private  PeakListRow peakListRow;
+    private FeatureListRow peakListRow;
     private  Task searchTask;
     private  String title;
     private double searchedMass;
 
-    public void initValues(String title, PeakListRow peakListRow, double searchedMass, int charge,
+    public void initValues(String title, FeatureListRow peakListRow, double searchedMass, int charge,
                         Task searchTask) {
 
         this.title = title;
@@ -152,8 +154,8 @@ public class ResultWindowController {
             return;
         }
 
-        SimplePeakIdentity newIdentity = new SimplePeakIdentity(formula.getFormulaAsString());
-        peakListRow.addPeakIdentity(newIdentity, false);
+        SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(formula.getFormulaAsString());
+        peakListRow.addFeatureIdentity(newIdentity, false);
 
         dispose();
     }
@@ -219,9 +221,9 @@ public class ResultWindowController {
         if (predictedPattern == null)
             return;
 
-        Feature peak = peakListRow.getBestPeak();
+        Feature peak = peakListRow.getBestFeature();
 
-        RawDataFile dataFile = peak.getDataFile();
+        RawDataFile dataFile = peak.getRawDataFile();
         int scanNumber = peak.getRepresentativeScanNumber();
         SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null,
                 peak.getIsotopePattern(), predictedPattern);
@@ -252,9 +254,9 @@ public class ResultWindowController {
             return;
         }
 
-        Feature bestPeak = peakListRow.getBestPeak();
+        Feature bestPeak = peakListRow.getBestFeature();
 
-        RawDataFile dataFile = bestPeak.getDataFile();
+        RawDataFile dataFile = bestPeak.getRawDataFile();
         int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 
         if (msmsScanNumber < 1)

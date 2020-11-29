@@ -42,7 +42,7 @@ import io.github.mzmine.datamodel.DataPoint;
 class PointTwoDXYPlot extends BaseXYPlot {
   boolean datasetChanged = false;
 
-  PointTwoDXYPlot(TwoDDataSet dataset, Range<Double> rtRange, Range<Double> mzRange,
+  PointTwoDXYPlot(TwoDDataSet dataset, Range<Float> rtRange, Range<Double> mzRange,
       ValueAxis domainAxis, ValueAxis rangeAxis) {
 
     super(dataset, rtRange, mzRange, domainAxis, rangeAxis);
@@ -107,11 +107,11 @@ class PointTwoDXYPlot extends BaseXYPlot {
     // ArrayList<DataPoint> listOfDataPoints = new ArrayList<DataPoint>();
     // ArrayList<DataPoint> listOfRTValues = new ArrayList<DataPoint>();
     ArrayList<DataPoint> listOfDataPoints;
-    ArrayList<Double> listOfRTValues;
+    ArrayList<Float> listOfRTValues;
 
     // These two function must be run in this order
-    Range<Double> rtRangeIn = Range.closed(getDomainAxis().getRange().getLowerBound(),
-        getDomainAxis().getRange().getUpperBound());
+    Range<Float> rtRangeIn = Range.closed((float) getDomainAxis().getRange().getLowerBound(),
+        (float) getDomainAxis().getRange().getUpperBound());
     Range<Double> mzRangeIn = Range.closed(getRangeAxis().getRange().getLowerBound(),
         getRangeAxis().getRange().getUpperBound());
     listOfDataPoints = dataset.getCentroidedDataPointsInRTMZRange(rtRangeIn, mzRangeIn);

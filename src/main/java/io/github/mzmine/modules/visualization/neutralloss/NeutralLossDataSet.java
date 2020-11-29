@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.neutralloss;
 
+import io.github.mzmine.util.RangeUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -58,7 +59,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
   private static int PRECURSOR_LEVEL = 1;
   private static int NEUTRALLOSS_LEVEL = 2;
 
-  NeutralLossDataSet(RawDataFile rawDataFile, Object xAxisType, Range<Double> rtRange,
+  NeutralLossDataSet(RawDataFile rawDataFile, Object xAxisType, Range<Float> rtRange,
       Range<Double> mzRange, int numOfFragments, NeutralLossVisualizerTab visualizer) {
 
     this.rawDataFile = rawDataFile;
@@ -109,9 +110,9 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
         continue;
       }
 
-      // topPeaks will contain indexes to mzValues peaks of top intensity
-      int topPeaks[] = new int[numOfFragments];
-      Arrays.fill(topPeaks, -1);
+      // topFeatures will contain indexes to mzValues features of top intensity
+      int topFeatures[] = new int[numOfFragments];
+      Arrays.fill(topFeatures, -1);
 
       for (int i = 0; i < scanDataPoints.length; i++) {
 
@@ -121,15 +122,15 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
           if (status == TaskStatus.CANCELED)
             return;
 
-          if ((topPeaks[j] < 0)
-              || (scanDataPoints[i].getIntensity()) > scanDataPoints[topPeaks[j]].getIntensity()) {
+          if ((topFeatures[j] < 0)
+              || (scanDataPoints[i].getIntensity()) > scanDataPoints[topFeatures[j]].getIntensity()) {
 
-            // shift the top peaks array
+            // shift the top features array
             for (int k = numOfFragments - 1; k > j; k--)
-              topPeaks[k] = topPeaks[k - 1];
+              topFeatures[k] = topFeatures[k - 1];
 
-            // add the peak to the appropriate place
-            topPeaks[j] = i;
+            // add the feature to the appropriate place
+            topFeatures[j] = i;
 
             break fragmentsCycle;
           }
@@ -138,16 +139,16 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
       }
 
       // add the data points
-      for (int i = 0; i < topPeaks.length; i++) {
+      for (int i = 0; i < topFeatures.length; i++) {
 
-        int peakIndex = topPeaks[i];
+        int featureIndex = topFeatures[i];
 
-        // if we have a very few peaks, the array may not be full
-        if (peakIndex < 0)
+        // if we have a very few features, the array may not be full
+        if (featureIndex < 0)
           break;
 
         NeutralLossDataPoint newPoint =
-            new NeutralLossDataPoint(scanDataPoints[peakIndex].getMZ(), scan.getScanNumber(),
+            new NeutralLossDataPoint(scanDataPoints[featureIndex].getMZ(), scan.getScanNumber(),
                 scan.getPrecursorMZ(), scan.getPrecursorCharge(), scan.getRetentionTime());
 
         dataSeries.get(0).add(newPoint);

@@ -38,14 +38,15 @@ import java.util.zip.ZipFile;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import com.google.common.io.CountingInputStream;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_2_5.PeakListOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.RawDataFileOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.UserParameterOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
+/*
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
+ */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
@@ -450,7 +451,8 @@ public class ProjectOpeningTask extends AbstractTask {
 
   private void loadPeakList(InputStream is, String peakListName) throws IOException,
       ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
-
+    // TODO:
+    /*
     logger.info("Loading feature list " + peakListName);
 
     currentLoadedObjectName = peakListName;
@@ -461,6 +463,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
     // Add quality parameters to peaks
     QualityParameters.calculateQualityParameters(newPeakList);
+    */
   }
 
   private void loadUserParameters(InputStream is) throws IOException, ParserConfigurationException,

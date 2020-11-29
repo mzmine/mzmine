@@ -65,7 +65,7 @@ public class PeakListBlankSubtractionModule implements MZmineRunnableModule {
 
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTFILTERING;
+    return MZmineModuleCategory.FEATURELISTFILTERING;
   }
 
 }

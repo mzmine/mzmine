@@ -21,13 +21,13 @@ package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class GroupMS2Parameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter();
 

@@ -18,18 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_msms;
 
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -46,7 +44,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
   private double binSize, binTime;
   private final ScanSelection scanSelection;
 
-  private SimplePeakList newPeakList;
+  private ModularFeatureList newFeatureList;
 
   public MsMsPeakPickingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
     this.project = project;
@@ -55,7 +53,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
     binTime = parameters.getParameter(MsMsPeakPickerParameters.rtWindow).getValue();
 
     scanSelection = parameters.getParameter(MsMsPeakPickerParameters.scanSelection).getValue();
-    newPeakList = new SimplePeakList(dataFile.getName() + " MS/MS peaks", dataFile);
+    newFeatureList = new ModularFeatureList(dataFile.getName() + " MS/MS features", dataFile);
   }
 
   public RawDataFile getDataFile() {
@@ -71,7 +69,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Building MS/MS Peaklist based on MS/MS from " + dataFile;
+    return "Building MS/MS feature list based on MS/MS from " + dataFile;
   }
 
   @Override
@@ -81,14 +79,20 @@ public class MsMsPeakPickingTask extends AbstractTask {
 
     final Scan scans[] = scanSelection.getMatchingScans(dataFile);
     totalScans = scans.length;
+
+    // TODO: Is it correct?
+    if (totalScans == 0) {
+      throw new IllegalStateException("Unable to create MS/MS feature list because there are no MS/MS scans.");
+    }
+
     for (Scan scan : scans) {
       if (isCanceled())
         return;
 
       // Get the MS Scan
       Scan bestScan = null;
-      Range<Double> rtWindow = Range.closed(scan.getRetentionTime() - (binTime / 2.0),
-          scan.getRetentionTime() + (binTime / 2.0));
+      Range<Float> rtWindow = Range.closed(scan.getRetentionTime() - (float) (binTime / 2.0),
+          scan.getRetentionTime() + (float) (binTime / 2.0));
       Range<Double> mzWindow = Range.closed(scan.getPrecursorMZ() - (binSize / 2.0),
           scan.getPrecursorMZ() + (binSize / 2.0));
       DataPoint point;
@@ -120,27 +124,25 @@ public class MsMsPeakPickingTask extends AbstractTask {
 
       assert maxPoint != null;
 
-      SimpleFeature c = new SimpleFeature(dataFile, scan.getPrecursorMZ(),
-          bestScan.getRetentionTime(), maxPoint.getIntensity(), maxPoint.getIntensity(),
+      ModularFeature newFeature = new ModularFeature(newFeatureList, dataFile, scan.getPrecursorMZ(),
+          bestScan.getRetentionTime(), (float) maxPoint.getIntensity(), (float) maxPoint.getIntensity(),
           new int[] {bestScan.getScanNumber()}, new DataPoint[] {maxPoint}, FeatureStatus.DETECTED,
           bestScan.getScanNumber(), scan.getScanNumber(), new int[] {},
           Range.singleton(bestScan.getRetentionTime()), Range.singleton(scan.getPrecursorMZ()),
-          Range.singleton(maxPoint.getIntensity()));
+          Range.singleton((float) maxPoint.getIntensity()));
 
-      PeakListRow entry = new SimplePeakListRow(scan.getScanNumber());
-      entry.addPeak(dataFile, c);
+      ModularFeatureListRow newFeatureListRow =
+          new ModularFeatureListRow(newFeatureList, scan.getScanNumber(), dataFile, newFeature);
 
-      newPeakList.addRow(entry);
+      newFeatureList.addRow(newFeatureListRow);
       processedScans++;
     }
 
-    project.addPeakList(newPeakList);
-
-    // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(newPeakList);
+    // Add new feature list to the project
+    project.addFeatureList(newFeatureList);
 
     logger.info(
-        "Finished MS/MS peak builder on " + dataFile + ", " + processedScans + " scans processed");
+        "Finished MS/MS feature builder on " + dataFile + ", " + processedScans + " scans processed");
 
     setStatus(TaskStatus.FINISHED);
   }

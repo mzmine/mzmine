@@ -18,9 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import java.util.ArrayList;
-
-import io.github.mzmine.datamodel.PeakIdentity;
 
 /**
  * This class contains methods to build fatty acids for MS/MS identification of lipids
@@ -32,13 +31,13 @@ public class FattyAcidTools {
   /**
    * This method calculates all possible fatty acids formulas for a selected annotated lipid
    */
-  public ArrayList<String> calculateFattyAcidFormulas(PeakIdentity peakIdentity) {
+  public ArrayList<String> calculateFattyAcidFormulas(FeatureIdentity featureIdentity) {
     ArrayList<String> fattyAcidFormulas = new ArrayList<String>();
     LipidTools lipidTools = new LipidTools();
     int minFattyAcidLength = 1;
-    int maxFattyAcidLength = lipidTools.getNumberOfCAtoms(peakIdentity.getName());
+    int maxFattyAcidLength = lipidTools.getNumberOfCAtoms(featureIdentity.getName());
     int minNumberOfDoubleBonds = 0;
-    int maxNumberOfDoubleBonds = lipidTools.getNumberOfDB(peakIdentity.getName());
+    int maxNumberOfDoubleBonds = lipidTools.getNumberOfDB(featureIdentity.getName());
 
     for (int fattyAcidLength =
         minFattyAcidLength; fattyAcidLength <= maxFattyAcidLength; fattyAcidLength++) {
@@ -57,14 +56,14 @@ public class FattyAcidTools {
   /**
    * This method creates all possible fatty acid names for a selected annotated lipid
    */
-  public ArrayList<String> getFattyAcidNames(PeakIdentity peakIdentity) {
+  public ArrayList<String> getFattyAcidNames(FeatureIdentity featureIdentity) {
 
     ArrayList<String> fattyAcidNames = new ArrayList<String>();
     LipidTools lipidTools = new LipidTools();
     int minFattyAcidLength = 1;
-    int maxFattyAcidLength = lipidTools.getNumberOfCAtoms(peakIdentity.getName());
+    int maxFattyAcidLength = lipidTools.getNumberOfCAtoms(featureIdentity.getName());
     int minNumberOfDoubleBonds = 0;
-    int maxNumberOfDoubleBonds = lipidTools.getNumberOfDB(peakIdentity.getName());
+    int maxNumberOfDoubleBonds = lipidTools.getNumberOfDB(featureIdentity.getName());
 
     for (int fattyAcidLength =
         minFattyAcidLength; fattyAcidLength <= maxFattyAcidLength; fattyAcidLength++) {

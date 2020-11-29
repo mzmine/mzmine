@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
 
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AdductInfo;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
@@ -53,7 +53,7 @@ public class CliqueMSTask extends AbstractTask {
 
 
   // Feature list to process.
-  private final PeakList peakList;
+  private final FeatureList peakList;
 
   // Task progress
   private final MutableDouble progress = new MutableDouble(0.0);
@@ -63,7 +63,7 @@ public class CliqueMSTask extends AbstractTask {
   private final ParameterSet parameters;
 
   public CliqueMSTask(final ParameterSet parameters,
-      final PeakList list) {
+      final FeatureList list) {
     this.parameters = parameters;
     peakList = list;
   }
@@ -193,11 +193,11 @@ public class CliqueMSTask extends AbstractTask {
         cqID= "NA";
       }
       CliqueMSTabularPeakIdentity annotation = new CliqueMSTabularPeakIdentity("CliqueID "+cqID);
-      annotation.addSingularProperty(PeakIdentity.PROPERTY_METHOD,"CliqueMS Algorithm");
+      annotation.addSingularProperty(FeatureIdentity.PROPERTY_METHOD,"CliqueMS Algorithm");
       annotation.addSingularProperty("Isotope Annotation",pd.getIsotopeAnnotation());
       pdIdentityHash.put(pd,annotation);
       if (this.peakList.findRowByID(pd.getPeakListRowID()) != null) {
-        this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(annotation, true);
+        this.peakList.findRowByID(pd.getPeakListRowID()).addFeatureIdentity(annotation, true);
       }
     }
     HashMap<Integer, PeakData> pdHash = new HashMap<>();

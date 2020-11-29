@@ -45,7 +45,7 @@ public class PeptideScan implements Scan {
   private DataPoint dataPoints[];
   private double precursorMZ;
   private int precursorCharge;
-  private double retentionTime;
+  private float retentionTime;
   private Range<Double> mzRange;
   private DataPoint basePeak;
   private double totalIonCurrent;
@@ -220,14 +220,14 @@ public class PeptideScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getScanAcquisitionTime()
    */
-  public double getRetentionTime() {
+  public float getRetentionTime() {
     return retentionTime;
   }
 
   /**
    * @param retentionTime The retentionTime to set.
    */
-  public void setRetentionTime(double retentionTime) {
+  public void setRetentionTime(float retentionTime) {
     this.retentionTime = retentionTime;
   }
 

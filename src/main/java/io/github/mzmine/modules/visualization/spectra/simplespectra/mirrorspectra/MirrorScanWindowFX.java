@@ -20,28 +20,14 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspect
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.util.MirrorChartFactory;
-import io.github.mzmine.util.color.SimpleColorPalette;
-import java.awt.Color;
-import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import org.jfree.chart.LegendItem;
-import org.jfree.chart.LegendItemCollection;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.ui.RectangleEdge;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 
 /**
  * Creates a window with a mirror chart to compare to scans
@@ -105,7 +91,7 @@ public class MirrorScanWindowFX extends Stage {
    *
    * @param db
    */
-  public void setScans(SpectralDBPeakIdentity db) {
+  public void setScans(SpectralDBFeatureIdentity db) {
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(db);
     contentPane.setCenter(mirrorSpecrumPlot);
   }

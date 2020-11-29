@@ -18,9 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import javafx.application.Platform;
 import java.util.Map;
-import java.util.concurrent.FutureTask;
 import java.util.logging.Logger;
 
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
@@ -33,11 +34,9 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -54,7 +53,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
-import java.util.concurrent.CountDownLatch;
 
 public class SingleRowPredictionTask extends AbstractTask {
 
@@ -68,7 +66,7 @@ public class SingleRowPredictionTask extends AbstractTask {
   private IonizationType ionType;
   private double searchedMass;
   private int charge;
-  private PeakListRow peakListRow;
+  private FeatureListRow peakListRow;
   private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
   private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters;
   ResultWindowFX resultWindowFX;
@@ -79,7 +77,7 @@ public class SingleRowPredictionTask extends AbstractTask {
    * @param parameters
    * @param peakListRow
 =   */
-  SingleRowPredictionTask(ParameterSet parameters, PeakListRow peakListRow) {
+  SingleRowPredictionTask(ParameterSet parameters, FeatureListRow peakListRow) {
 
     searchedMass = parameters.getParameter(FormulaPredictionParameters.neutralMass).getValue();
     charge = parameters.getParameter(FormulaPredictionParameters.neutralMass).getCharge();
@@ -241,8 +239,8 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     // MS/MS evaluation is slowest, so let's do it last
     Double msmsScore = null;
-    Feature bestPeak = peakListRow.getBestPeak();
-    RawDataFile dataFile = bestPeak.getDataFile();
+    Feature bestPeak = peakListRow.getBestFeature();
+    RawDataFile dataFile = bestPeak.getRawDataFile();
     Map<DataPoint, String> msmsAnnotations = null;
     int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 

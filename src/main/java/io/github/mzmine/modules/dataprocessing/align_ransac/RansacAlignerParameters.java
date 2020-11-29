@@ -25,14 +25,14 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 
 public class RansacAlignerParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final StringParameter peakListName =
       new StringParameter("Feature list name", "Feature list name", "Aligned feature list");

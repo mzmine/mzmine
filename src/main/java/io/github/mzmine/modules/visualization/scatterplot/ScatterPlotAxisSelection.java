@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Vector;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 /**
  * This class represents axis selected in the scatter plot visualizer. This can be either a
  * RawDataFile, or a project parameter value representing several RawDataFiles. In the second case,
- * the average peak area is calculated.
+ * the average feature area is calculated.
  *
  */
 public class ScatterPlotAxisSelection {
@@ -55,13 +55,13 @@ public class ScatterPlotAxisSelection {
     return parameter.getName() + ": " + parameterValue;
   }
 
-  public double getValue(PeakListRow row) {
+  public double getValue(FeatureListRow row) {
     if (file != null) {
-      Feature peak = row.getPeak(file);
-      if (peak == null)
+      Feature feature = row.getFeature(file);
+      if (feature == null)
         return 0;
       else
-        return peak.getArea();
+        return feature.getArea();
     }
 
     double totalArea = 0;
@@ -72,9 +72,9 @@ public class ScatterPlotAxisSelection {
       if (fileValue == null)
         continue;
       if (fileValue.toString().equals(parameterValue.toString())) {
-        Feature peak = row.getPeak(dataFile);
-        if ((peak != null) && (peak.getArea() > 0)) {
-          totalArea += peak.getArea();
+        Feature feature = row.getFeature(dataFile);
+        if ((feature != null) && (feature.getArea() > 0)) {
+          totalArea += feature.getArea();
           numOfFiles++;
         }
       }
@@ -86,11 +86,11 @@ public class ScatterPlotAxisSelection {
 
   }
 
-  static ScatterPlotAxisSelection[] generateOptionsForPeakList(PeakList peakList) {
+  static ScatterPlotAxisSelection[] generateOptionsForFeatureList(FeatureList featureList) {
 
     Vector<ScatterPlotAxisSelection> options = new Vector<ScatterPlotAxisSelection>();
 
-    for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+    for (RawDataFile dataFile : featureList.getRawDataFiles()) {
       ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(dataFile);
       options.add(newOption);
     }

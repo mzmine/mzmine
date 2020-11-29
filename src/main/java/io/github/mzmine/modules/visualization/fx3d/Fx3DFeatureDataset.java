@@ -17,9 +17,9 @@
  */
 package io.github.mzmine.modules.visualization.fx3d;
 
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -33,16 +33,16 @@ public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
   private static final int SIZE = 500;
   private static float AMPLIFI = 130;
   private final Feature feature;
-  private Range<Double> featureRtRange;
+  private Range<Float> featureRtRange;
   private Range<Double> featureMzRange;
   private Box featureBox;
-  private Range<Double> plotRtRange;
+  private Range<Float> plotRtRange;
   private Range<Double> plotMzRange;
   private double maxIntensityValue;
   private static final Logger logger = Logger.getLogger(Fx3DFeatureDataset.class.getName());
 
   public Fx3DFeatureDataset(Feature feature, int rtResolution, int mzResolution,
-      Range<Double> rtRange, Range<Double> mzRange, double maxOfAllBinnedIntensity,
+      Range<Float> rtRange, Range<Double> mzRange, double maxOfAllBinnedIntensity,
       Color featureColor) {
     super(null, feature.toString(), featureColor);
     this.feature = feature;

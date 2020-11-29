@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.Font;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
@@ -47,7 +47,7 @@ class SpectraBottomPanel extends BorderPane {
 
   private FlowPane topPanel, bottomPanel;
   private ComboBox<String> msmsSelector;
-  private ComboBox<PeakList> peakListSelector;
+  private ComboBox<FeatureList> peakListSelector;
   private CheckBox processingCbx;
   private Button processingParametersBtn;
 
@@ -84,7 +84,7 @@ class SpectraBottomPanel extends BorderPane {
 
     Label featureListLabel = new Label("Feature list: ");
 
-    peakListSelector = new ComboBox<PeakList>(
+    peakListSelector = new ComboBox<FeatureList>(
         MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
     // peakListSelector.setBackground(Color.white);
     // peakListSelector.setFont(smallFont);
@@ -161,8 +161,8 @@ class SpectraBottomPanel extends BorderPane {
   /**
    * Returns selected feature list
    */
-  PeakList getSelectedPeakList() {
-    PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
+  FeatureList getSelectedPeakList() {
+    FeatureList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
     return selectedPeakList;
   }
 

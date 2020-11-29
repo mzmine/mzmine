@@ -18,15 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import java.util.Collection;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
 import io.github.mzmine.main.MZmineCore;
@@ -49,7 +49,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
   private final MZmineProject project;
   private ParameterSet parameters;
-  private PeakList peakList, processedPeakList;
+  private FeatureList peakList, processedPeakList;
   private String suffix;
   private boolean removeOriginal;
 
@@ -63,7 +63,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
    * @param parameters
    * @param batchTasks all sub tasks are registered to the batchtasks list
    */
-  public MultiThreadPeakFinderMainTask(MZmineProject project, PeakList peakList,
+  public MultiThreadPeakFinderMainTask(MZmineProject project, FeatureList peakList,
       ParameterSet parameters, Collection<Task> batchTasks) {
     this.project = project;
     this.peakList = peakList;
@@ -135,20 +135,20 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private PeakList createResultsPeakList() {
-    SimplePeakList processedPeakList =
-        new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
+  private FeatureList createResultsPeakList() {
+    ModularFeatureList processedPeakList =
+        new ModularFeatureList(peakList + " " + suffix, peakList.getRawDataFiles());
 
     // Fill new feature list with empty rows
     for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-      PeakListRow sourceRow = peakList.getRow(row);
-      PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
+      FeatureListRow sourceRow = peakList.getRow(row);
+      FeatureListRow newRow = new ModularFeatureListRow(processedPeakList, sourceRow.getID());
       newRow.setComment(sourceRow.getComment());
-      for (PeakIdentity ident : sourceRow.getPeakIdentities()) {
-        newRow.addPeakIdentity(ident, false);
+      for (FeatureIdentity ident : sourceRow.getPeakIdentities()) {
+        newRow.addFeatureIdentity(ident, false);
       }
-      if (sourceRow.getPreferredPeakIdentity() != null) {
-        newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
+      if (sourceRow.getPreferredFeatureIdentity() != null) {
+        newRow.setPreferredFeatureIdentity(sourceRow.getPreferredFeatureIdentity());
       }
       processedPeakList.addRow(newRow);
     }
@@ -215,7 +215,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     return "Main task: Gap filling " + peakList;
   }
 
-  PeakList getPeakList() {
+  FeatureList getPeakList() {
     return peakList;
   }
 

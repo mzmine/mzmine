@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -38,8 +38,8 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
       Logger.getLogger(FeatureListClearAnnotationsTask.class.getName());
   // Feature lists.
   private final MZmineProject project;
-  private final PeakList origPeakList;
-  private PeakList filteredPeakList;
+  private final FeatureList origPeakList;
+  private FeatureList filteredPeakList;
   // Processed rows counter
   private int processedRows, totalRows;
   // Parameters.
@@ -51,7 +51,7 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
    * @param list feature list to process.
    * @param parameterSet task parameters.
    */
-  public FeatureListClearAnnotationsTask(final MZmineProject project, final PeakList list,
+  public FeatureListClearAnnotationsTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
 
     // Initialize.
@@ -84,12 +84,12 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
 
       totalRows = origPeakList.getRows().size();
       // Filter the feature list.
-      for (PeakListRow row : origPeakList.getRows()) {
+      for (FeatureListRow row : origPeakList.getRows()) {
 
         if (parameters.getParameter(FeatureListClearAnnotationsParameters.CLEAR_IDENTITY)
             .getValue()) {
-          for (PeakIdentity identity : row.getPeakIdentities())
-            row.removePeakIdentity(identity);
+          for (FeatureIdentity identity : row.getPeakIdentities())
+            row.removeFeatureIdentity(identity);
         }
 
         if (parameters.getParameter(FeatureListClearAnnotationsParameters.CLEAR_COMMENT)
@@ -107,7 +107,7 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
         return;
 
       // Add new peaklist to the project
-      project.addPeakList(filteredPeakList);
+      project.addFeatureList(filteredPeakList);
 
       // Remove the original peaklist if requested
       /*

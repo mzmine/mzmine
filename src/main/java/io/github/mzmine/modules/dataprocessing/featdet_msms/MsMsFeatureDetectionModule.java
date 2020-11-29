@@ -32,9 +32,9 @@ import io.github.mzmine.util.ExitCode;
 
 public class MsMsFeatureDetectionModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "MS/MS peaklist builder";
+  private static final String MODULE_NAME = "MS/MS feature list builder";
   private static final String MODULE_DESCRIPTION =
-      "This module looks through the whole raw data for MS2 scans and makes a list of chromatographic peaks using the precursor mass.";
+      "This module looks through the whole raw data for MS2 scans and makes a list of chromatographic features using the precursor mass.";
 
   @Override
   public @Nonnull String getName() {
@@ -65,7 +65,7 @@ public class MsMsFeatureDetectionModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKPICKING;
+    return MZmineModuleCategory.FEATUREDETECTION;
   }
 
   @Override

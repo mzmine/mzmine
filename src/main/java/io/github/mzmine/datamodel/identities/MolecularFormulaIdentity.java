@@ -18,17 +18,17 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.util.FormulaUtils;
 
-public class MolecularFormulaIdentity extends SimplePeakIdentity {
+public class MolecularFormulaIdentity extends SimpleFeatureIdentity {
 
   private final @Nonnull IMolecularFormula cdkFormula;
   private Double rdbe;

@@ -25,16 +25,16 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 
 public class MetaboAnalystExportParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). "
+          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
           + "If the file already exists, it will be overwritten.",
       "csv", FileSelectionType.SAVE);
 
@@ -44,7 +44,7 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
           new UserParameter[0]);
 
   public MetaboAnalystExportParameters() {
-    super(new Parameter[] {peakLists, filename, groupParameter});
+    super(new Parameter[] {featureLists, filename, groupParameter});
   }
 
   @Override

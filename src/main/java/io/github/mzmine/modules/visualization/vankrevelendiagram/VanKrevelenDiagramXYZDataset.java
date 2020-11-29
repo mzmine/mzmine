@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import org.jfree.data.xy.AbstractXYZDataset;
-import io.github.mzmine.datamodel.PeakListRow;
 
 /*
  * XYZDataset for Van Krevelen diagram
@@ -31,13 +31,13 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
 
   private static final long serialVersionUID = 1L;
 
-  private PeakListRow filteredRows[];
+  private FeatureListRow filteredRows[];
   private int numberOfDatapoints = 0;
   private double[] xValues;
   private double[] yValues;
   private double[] zValues;
 
-  public VanKrevelenDiagramXYZDataset(String zAxisLabel, PeakListRow[] filteredRows) {
+  public VanKrevelenDiagramXYZDataset(String zAxisLabel, FeatureListRow[] filteredRows) {
 
     this.filteredRows = filteredRows;
 
@@ -59,19 +59,19 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
         numberOfHAtoms.add(atomsH);
         // plot selected feature characteristic as z Axis
         if (zAxisLabel.equals("Retention time")) {
-          zValuesList.add(filteredRows[i].getAverageRT());
+          zValuesList.add((double) filteredRows[i].getAverageRT());
         } else if (zAxisLabel.equals("Intensity")) {
           zValuesList.add(filteredRows[i].getAverageHeight());
         } else if (zAxisLabel.equals("Area")) {
           zValuesList.add(filteredRows[i].getAverageArea());
         } else if (zAxisLabel.equals("Tailing factor")) {
-          zValuesList.add(filteredRows[i].getBestPeak().getTailingFactor());
+          zValuesList.add((double) filteredRows[i].getBestFeature().getTailingFactor());
         } else if (zAxisLabel.equals("Asymmetry factor")) {
-          zValuesList.add(filteredRows[i].getBestPeak().getAsymmetryFactor());
+          zValuesList.add((double) filteredRows[i].getBestFeature().getAsymmetryFactor());
         } else if (zAxisLabel.equals("FWHM")) {
-          zValuesList.add(filteredRows[i].getBestPeak().getFWHM());
+          zValuesList.add((double) filteredRows[i].getBestFeature().getFWHM());
         } else if (zAxisLabel.equals("m/z")) {
-          zValuesList.add(filteredRows[i].getBestPeak().getMZ());
+          zValuesList.add(filteredRows[i].getBestFeature().getMZ());
         }
 
       }
@@ -95,10 +95,10 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
     }
   }
 
-  private int getNumberOfCAtoms(PeakListRow row) {
+  private int getNumberOfCAtoms(FeatureListRow row) {
     int numberOfCAtoms = 0;
-    if (row.getPreferredPeakIdentity() != null) {
-      String rowName = row.getPreferredPeakIdentity().getPropertyValue("Molecular formula");
+    if (row.getPreferredFeatureIdentity() != null) {
+      String rowName = row.getPreferredFeatureIdentity().getPropertyValue("Molecular formula");
       int indexC = 0;
       int indexNextAtom = 0;
       int nextAtomCounter = 0;
@@ -141,10 +141,10 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
     return numberOfCAtoms;
   }
 
-  private int getNumberOfOAtoms(PeakListRow row) {
+  private int getNumberOfOAtoms(FeatureListRow row) {
     int numberOfOAtoms = 0;
-    if (row.getPreferredPeakIdentity() != null) {
-      String rowName = row.getPreferredPeakIdentity().getPropertyValue("Molecular formula");
+    if (row.getPreferredFeatureIdentity() != null) {
+      String rowName = row.getPreferredFeatureIdentity().getPropertyValue("Molecular formula");
       int indexO = 0;
       int indexNextAtom = 0;
       int nextAtomCounter = 0;
@@ -187,10 +187,10 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
     return numberOfOAtoms;
   }
 
-  private int getNumberOfHAtoms(PeakListRow row) {
+  private int getNumberOfHAtoms(FeatureListRow row) {
     int numberOfHAtoms = 0;
-    if (row.getPreferredPeakIdentity() != null) {
-      String rowName = row.getPreferredPeakIdentity().getPropertyValue("Molecular formula");
+    if (row.getPreferredFeatureIdentity() != null) {
+      String rowName = row.getPreferredFeatureIdentity().getPropertyValue("Molecular formula");
       int indexH = 0;
       int indexNextAtom = 0;
       int nextAtomCounter = 0;

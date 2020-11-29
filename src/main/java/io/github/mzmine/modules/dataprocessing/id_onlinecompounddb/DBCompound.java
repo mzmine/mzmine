@@ -23,9 +23,9 @@ import java.net.URL;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 
-public class DBCompound extends SimplePeakIdentity {
+public class DBCompound extends SimpleFeatureIdentity {
 
   private final URL compoundUrl;
   private final URL structure2dUrl;

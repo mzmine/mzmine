@@ -35,8 +35,8 @@ public class ScanSelection {
 
   private final Range<Integer> scanNumberRange;
   private Integer baseFilteringInteger;
-  private final Range<Double> scanRTRange;
   private final Range<Double> scanMobilityRange;
+  private final Range<Float> scanRTRange;
   private final PolarityType polarity;
   private final MassSpectrumType spectrumType;
   private final Integer msLevel;
@@ -50,12 +50,12 @@ public class ScanSelection {
     this(null, null, null, null, null, null, msLevel, null);
   }
 
-  public ScanSelection(Range<Double> scanRTRange, int msLevel) {
+  public ScanSelection(Range<Float> scanRTRange, int msLevel) {
     this(null, null, scanRTRange, null, null, null, msLevel, null);
   }
 
   public ScanSelection(Range<Integer> scanNumberRange, Integer baseFilteringInteger,
-      Range<Double> scanRTRange, Range<Double> scanMobilityRange, PolarityType polarity,
+      Range<Float> scanRTRange, Range<Double> scanMobilityRange, PolarityType polarity,
       MassSpectrumType spectrumType, Integer msLevel, String scanDefinition) {
     this.scanNumberRange = scanNumberRange;
     this.baseFilteringInteger = baseFilteringInteger;
@@ -75,7 +75,7 @@ public class ScanSelection {
     return baseFilteringInteger;
   }
 
-  public Range<Double> getScanRTRange() {
+  public Range<Float> getScanRTRange() {
     return scanRTRange;
   }
 

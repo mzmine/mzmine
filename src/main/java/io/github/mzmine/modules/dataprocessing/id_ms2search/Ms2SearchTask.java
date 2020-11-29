@@ -18,17 +18,17 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ms2search;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -84,8 +84,8 @@ class Ms2SearchTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private int finishedRows, totalRows;
-  private PeakList peakList1;
-  private PeakList peakList2;
+  private FeatureList peakList1;
+  private FeatureList peakList2;
 
   private MZTolerance mzTolerance;
   private ParameterSet parameters;
@@ -98,7 +98,7 @@ class Ms2SearchTask extends AbstractTask {
    * @param parameters
    * @param peakList
    */
-  public Ms2SearchTask(ParameterSet parameters, PeakList peakList1, PeakList peakList2) {
+  public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2) {
 
     this.peakList1 = peakList1;
     this.peakList2 = peakList2;
@@ -146,8 +146,8 @@ class Ms2SearchTask extends AbstractTask {
         + " with mz tolerance:" + mzTolerance.getPpmTolerance());
 
     Ms2SearchResult searchResult;
-    PeakListRow rows1[] = peakList1.getRows().toArray(PeakListRow[]::new);
-    PeakListRow rows2[] = peakList2.getRows().toArray(PeakListRow[]::new);
+    FeatureListRow rows1[] = peakList1.getRows().toArray(FeatureListRow[]::new);
+    FeatureListRow rows2[] = peakList2.getRows().toArray(FeatureListRow[]::new);
 
     int rows1Length = rows1.length;
     int rows2Length = rows2.length;
@@ -156,8 +156,8 @@ class Ms2SearchTask extends AbstractTask {
 
     for (int i = 0; i < rows1Length; i++) {
       for (int j = 0; j < rows2Length; j++) {
-        Feature featureA = rows1[i].getBestPeak();
-        Feature featureB = rows2[j].getBestPeak();
+        Feature featureA = rows1[i].getBestFeature();
+        Feature featureB = rows2[j].getBestFeature();
         // Complication. The "best" peak, may not have the "best"
         // fragmentation
         Scan scanA = rows1[i].getBestFragmentation();
@@ -180,8 +180,8 @@ class Ms2SearchTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    ((SimplePeakList) peakList1).addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Identification of similar MS2s", parameters));
+    ((ModularFeatureList) peakList1).addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Identification of similar MS2s", parameters));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -284,9 +284,9 @@ class Ms2SearchTask extends AbstractTask {
    * @param mainRow
    * @param fragmentRow
    */
-  private void addMS2Identity(PeakListRow row1, Feature featureA, Feature featureB,
+  private void addMS2Identity(FeatureListRow row1, Feature featureA, Feature featureB,
       Ms2SearchResult searchResult) {
     Ms2Identity newIdentity = new Ms2Identity(featureA, featureB, searchResult);
-    row1.addPeakIdentity(newIdentity, false);
+    row1.addFeatureIdentity(newIdentity, false);
   }
 }

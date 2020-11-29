@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_mascot;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.logging.Logger;
 
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
@@ -30,7 +30,7 @@ public class MascotSearchTask extends AbstractTask {
 
   private int finishedRows, totalRows;
 
-  private PeakList pp;
+  private FeatureList pp;
 
   /**
    * private static int MIN_MSMS_LEVEL = 2; private MascotParameters parameters; private String
@@ -187,7 +187,7 @@ public class MascotSearchTask extends AbstractTask {
      * for (int i = 1; i <= numberOfQueries; i++) { PeptideHit pepHit =
      * queryPeptideMap.getPeptideHitOfOneQuery(i); if (pepHit != null){ Query q = mdf.getQuery(i);
      * String title = q.getTitle(); String[] tokens = title.split(" "); int rowId =
-     * Integer.parseInt(tokens[1]); MascotPeakIdentity mpid = new MascotPeakIdentity(pepHit);
+     * Integer.parseInt(tokens[1]); MascotFeatureIdentity mpid = new MascotFeatureIdentity(pepHit);
      * pp.getRows()[rowId].addPeakIdentity(mpid, true); } }
      * 
      * 

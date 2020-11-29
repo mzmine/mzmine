@@ -18,16 +18,17 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.FeatureListRowSorter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -38,7 +39,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -57,12 +57,12 @@ public class PeakListIdentificationTask extends AbstractTask {
   private final MZmineProcessingStep<OnlineDatabases> db;
   private final MZTolerance mzTolerance;
   private final int numOfResults;
-  private final PeakList peakList;
+  private final FeatureList peakList;
   private final boolean isotopeFilter;
   private final ParameterSet isotopeFilterParameters;
   private final IonizationType ionType;
   private DBGateway gateway;
-  private PeakListRow currentRow;
+  private FeatureListRow currentRow;
 
   /**
    * Create the identification task.
@@ -70,7 +70,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param list feature list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
+  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list) {
 
     peakList = list;
     numItems = 0;
@@ -118,8 +118,8 @@ public class PeakListIdentificationTask extends AbstractTask {
 
         // Identify the feature list rows starting from the biggest
         // peaks.
-        final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
-        Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+        final FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
+        Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 
         // Initialize counters.
         numItems = rows.length;
@@ -150,12 +150,12 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param row the feature list row.
    * @throws IOException if there are i/o problems.
    */
-  private void retrieveIdentification(final PeakListRow row) throws IOException {
+  private void retrieveIdentification(final FeatureListRow row) throws IOException {
 
     currentRow = row;
 
     // Determine peak charge.
-    final Feature bestPeak = row.getBestPeak();
+    final Feature bestPeak = row.getBestFeature();
     int charge = bestPeak.getCharge();
     if (charge <= 0) {
       charge = 1;
@@ -180,7 +180,7 @@ public class PeakListIdentificationTask extends AbstractTask {
       if (compound == null)
         continue;
 
-      final String formula = compound.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+      final String formula = compound.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
 
       // If required, check isotope score.
       if (isotopeFilter && rowIsotopePattern != null && formula != null) {
@@ -204,7 +204,7 @@ public class PeakListIdentificationTask extends AbstractTask {
       }
 
       // Add the retrieved identity to the feature list row
-      row.addPeakIdentity(compound, false);
+      row.addFeatureIdentity(compound, false);
 
     }
   }

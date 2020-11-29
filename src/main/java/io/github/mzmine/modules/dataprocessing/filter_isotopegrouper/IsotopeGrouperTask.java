@@ -18,30 +18,32 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureSorter;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
+//import io.github.mzmine.datamodel.PeakList;
+//import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakSorter;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -62,7 +64,7 @@ class IsotopeGrouperTask extends AbstractTask {
   private static final double isotopeDistance = 1.0033;
 
   private final MZmineProject project;
-  private PeakList peakList, deisotopedPeakList;
+  private FeatureList featureList, deisotopedFeatureList;
 
   // peaks counter
   private int processedPeaks, totalPeaks;
@@ -76,13 +78,14 @@ class IsotopeGrouperTask extends AbstractTask {
   private ParameterSet parameters;
 
   /**
-   * @param rawDataFile
+   * @param project
+   * @param featureList
    * @param parameters
    */
-  IsotopeGrouperTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+  IsotopeGrouperTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
 
     this.project = project;
-    this.peakList = peakList;
+    this.featureList = featureList;
     this.parameters = parameters;
 
     // Get parameter values for easier use
@@ -102,7 +105,7 @@ class IsotopeGrouperTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Isotopic peaks grouper on " + peakList;
+    return "Isotopic peaks grouper on " + featureList;
   }
 
   /**
@@ -122,13 +125,13 @@ class IsotopeGrouperTask extends AbstractTask {
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Running isotopic peak grouper on " + peakList);
+    logger.info("Running isotopic peak grouper on " + featureList);
 
     // We assume source peakList contains one datafile
-    RawDataFile dataFile = peakList.getRawDataFile(0);
+    RawDataFile dataFile = featureList.getRawDataFile(0);
 
     // Create a new deisotoped peakList
-    deisotopedPeakList = new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
+    deisotopedFeatureList = new ModularFeatureList(featureList + " " + suffix, featureList.getRawDataFiles());
 
     // Collect all selected charge states
     int charges[] = new int[maximumCharge];
@@ -136,8 +139,8 @@ class IsotopeGrouperTask extends AbstractTask {
       charges[i] = i + 1;
 
     // Sort peaks by descending height
-    Feature[] sortedPeaks = peakList.getPeaks(dataFile).toArray(Feature[]::new);
-    Arrays.sort(sortedPeaks, new PeakSorter(SortingProperty.Height, SortingDirection.Descending));
+    Feature[] sortedPeaks = featureList.getFeatures(dataFile).toArray(Feature[]::new);
+    Arrays.sort(sortedPeaks, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
 
     // Loop through all peaks
     totalPeaks = sortedPeaks.length;
@@ -174,23 +177,23 @@ class IsotopeGrouperTask extends AbstractTask {
 
       }
 
-      PeakListRow oldRow = peakList.getPeakRow(aPeak);
+      FeatureListRow oldRow = featureList.getFeatureRow(aPeak);
 
       assert bestFitPeaks != null;
 
       // Verify the number of detected isotopes. If there is only one
       // isotope, we skip this left the original peak in the feature list.
       if (bestFitPeaks.size() == 1) {
-        deisotopedPeakList.addRow(oldRow);
+        deisotopedFeatureList.addRow(oldRow);
         processedPeaks++;
         continue;
       }
 
       // Convert the peak pattern to array
-      Feature originalPeaks[] = bestFitPeaks.toArray(new Feature[0]);
+      Feature[] originalPeaks = bestFitPeaks.toArray(new Feature[0]);
 
       // Create a new SimpleIsotopePattern
-      DataPoint isotopes[] = new DataPoint[bestFitPeaks.size()];
+      DataPoint[] isotopes = new DataPoint[bestFitPeaks.size()];
       for (int i = 0; i < isotopes.length; i++) {
         Feature p = originalPeaks[i];
         isotopes[i] = new SimpleDataPoint(p.getMZ(), p.getHeight());
@@ -203,21 +206,19 @@ class IsotopeGrouperTask extends AbstractTask {
       // the lowest m/z peak
       if (chooseMostIntense) {
         Arrays.sort(originalPeaks,
-            new PeakSorter(SortingProperty.Height, SortingDirection.Descending));
+            new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
       } else {
-        Arrays.sort(originalPeaks, new PeakSorter(SortingProperty.MZ, SortingDirection.Ascending));
+        Arrays.sort(originalPeaks, new FeatureSorter(SortingProperty.MZ, SortingDirection.Ascending));
       }
 
-      Feature newPeak = new SimpleFeature(originalPeaks[0]);
+      Feature newPeak = new ModularFeature((ModularFeatureList) deisotopedFeatureList, originalPeaks[0]);
       newPeak.setIsotopePattern(newPattern);
       newPeak.setCharge(bestFitCharge);
 
-      // Keep old ID
-      int oldID = oldRow.getID();
-      SimplePeakListRow newRow = new SimplePeakListRow(oldID);
-      PeakUtils.copyPeakListRowProperties(oldRow, newRow);
-      newRow.addPeak(dataFile, newPeak);
-      deisotopedPeakList.addRow(newRow);
+      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) deisotopedFeatureList, oldRow.getID(), newPeak);
+      FeatureUtils.copyFeatureListRowProperties(oldRow, newRow);
+      newRow.addFeature(dataFile, newPeak);
+      deisotopedFeatureList.addRow(newRow);
 
       // Remove all peaks already assigned to isotope pattern
       for (int i = 0; i < sortedPeaks.length; i++) {
@@ -227,26 +228,26 @@ class IsotopeGrouperTask extends AbstractTask {
 
       // Update completion rate
       processedPeaks++;
-
     }
 
-    // Add new peakList to the project
-    project.addPeakList(deisotopedPeakList);
+    // Add new feature list to the project
+    project.addFeatureList(deisotopedFeatureList);
 
     // Load previous applied methods
-    for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
-      deisotopedPeakList.addDescriptionOfAppliedTask(proc);
+    for (FeatureListAppliedMethod proc : featureList.getAppliedMethods()) {
+      deisotopedFeatureList.addDescriptionOfAppliedTask(proc);
     }
 
     // Add task description to peakList
-    deisotopedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Isotopic peaks grouper", parameters));
+    deisotopedFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Isotopic peaks grouper", parameters));
 
+    // TODO: !
     // Remove the original peakList if requested
-    if (removeOriginal)
-      project.removePeakList(peakList);
+    //if (removeOriginal)
+    //  project.removePeakList(featureList);
 
-    logger.info("Finished isotopic peak grouper on " + peakList);
+    logger.info("Finished isotopic peak grouper on " + featureList);
     setStatus(TaskStatus.FINISHED);
 
   }
@@ -288,7 +289,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
     // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
     double mainMZ = p.getMZ();
-    double mainRT = p.getRT();
+    float mainRT = p.getRT();
 
     // Variable n is the number of peak we are currently searching. 1=first
     // peak before/after start peak, 2=peak before/after previous, 3=...
@@ -312,7 +313,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
         // Get properties of the candidate peak
         double candidatePeakMZ = candidatePeak.getMZ();
-        double candidatePeakRT = candidatePeak.getRT();
+        float candidatePeakRT = candidatePeak.getRT();
 
         // Does this peak fill all requirements of a candidate?
         // - within tolerances from the expected location (M/Z and RT)

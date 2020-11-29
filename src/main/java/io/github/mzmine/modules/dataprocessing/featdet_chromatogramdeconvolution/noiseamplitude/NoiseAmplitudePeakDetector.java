@@ -22,6 +22,7 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.NOISE_AMPLITUDE;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.PEAK_DURATION;
 
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -29,7 +30,6 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
@@ -55,13 +55,13 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
   @Override
   public ResolvedPeak[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
-      double rTRangeMSMS) {
+      float rTRangeMSMS) {
 
-    int scanNumbers[] = chromatogram.getScanNumbers();
+    int scanNumbers[] = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
     final int scanCount = scanNumbers.length;
     double retentionTimes[] = new double[scanCount];
     double intensities[] = new double[scanCount];
-    RawDataFile dataFile = chromatogram.getDataFile();
+    RawDataFile dataFile = chromatogram.getRawDataFile();
     for (int i = 0; i < scanCount; i++) {
       final int scanNum = scanNumbers[i];
       retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
@@ -125,7 +125,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
             final ResolvedPeak peak = new ResolvedPeak(chromatogram, currentPeakStart,
                 currentPeakEnd, mzCenterFunction, msmsRange, rTRangeMSMS);
-            if (peakDuration.contains(RangeUtils.rangeLength(peak.getRawDataPointsRTRange()))
+            if (peakDuration.contains(RangeUtils.rangeLength(peak.getRawDataPointsRTRange()).doubleValue())
                 && peak.getHeight() >= minimumPeakHeight) {
 
               resolvedPeaks.add(peak);

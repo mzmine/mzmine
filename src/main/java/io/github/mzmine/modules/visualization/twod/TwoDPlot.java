@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -28,7 +29,6 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.title.TextTitle;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
@@ -50,13 +50,14 @@ class TwoDPlot extends EChartViewer {
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5, 3}, 0);
 
   private RawDataFile rawDataFile;
-  private Range<Double> rtRange, mzRange;
+  private Range<Double> mzRange;
+  private Range<Float> rtRange;
 
   private JFreeChart chart;
 
   private BaseXYPlot plot;
 
-  private PeakDataRenderer peakDataRenderer;
+  private FeatureDataRenderer featureDataRenderer;
 
   // title font
   private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
@@ -69,7 +70,7 @@ class TwoDPlot extends EChartViewer {
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
   TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerTab visualizer, TwoDDataSet dataset,
-      Range<Double> rtRange, Range<Double> mzRange, String whichPlotTypeStr) {
+      Range<Float> rtRange, Range<Double> mzRange, String whichPlotTypeStr) {
 
     super(null);
 
@@ -133,7 +134,7 @@ class TwoDPlot extends EChartViewer {
     // set rendering order
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-    peakDataRenderer = new PeakDataRenderer();
+    featureDataRenderer = new FeatureDataRenderer();
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -152,12 +153,12 @@ class TwoDPlot extends EChartViewer {
 
   void switchDataPointsVisible() {
 
-    boolean dataPointsVisible = peakDataRenderer.getDefaultShapesVisible();
-    peakDataRenderer.setDefaultShapesVisible(!dataPointsVisible);
+    boolean dataPointsVisible = featureDataRenderer.getDefaultShapesVisible();
+    featureDataRenderer.setDefaultShapesVisible(!dataPointsVisible);
 
   }
 
-  void setPeaksNotVisible() {
+  void setFeaturesNotVisible() {
 
     if (plot.getDataset(1) == null)
       return;
@@ -172,14 +173,14 @@ class TwoDPlot extends EChartViewer {
     plot.setPlotMode(plotMode);
   }
 
-  void loadPeakList(PeakList peakList) {
+  void loadFeatureList(FeatureList featureList) {
 
-    logger.finest("Loading peaklist " + peakList);
+    logger.finest("Loading featurelist " + featureList);
 
-    PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList, rtRange, mzRange);
+    FeatureDataSet peaksDataSet = new FeatureDataSet(rawDataFile, featureList, rtRange, mzRange);
 
     plot.setDataset(1, peaksDataSet);
-    plot.setRenderer(1, peakDataRenderer);
+    plot.setRenderer(1, featureDataRenderer);
   }
 
 
@@ -200,12 +201,12 @@ class TwoDPlot extends EChartViewer {
    * }
    */
 
-  public void showPeaksTooltips(boolean mode) {
+  public void showFeaturesTooltips(boolean mode) {
     if (mode) {
-      PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
-      this.peakDataRenderer.setDefaultToolTipGenerator(toolTipGenerator);
+      FeatureToolTipGenerator toolTipGenerator = new FeatureToolTipGenerator();
+      this.featureDataRenderer.setDefaultToolTipGenerator(toolTipGenerator);
     } else {
-      this.peakDataRenderer.setDefaultToolTipGenerator(null);
+      this.featureDataRenderer.setDefaultToolTipGenerator(null);
     }
   }
 

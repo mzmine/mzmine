@@ -22,11 +22,11 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 public class PeakListIdentificationParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final ComboParameter<IonizationType> ionizationType =
       new ComboParameter<IonizationType>("Ionization type", "Ionization type",

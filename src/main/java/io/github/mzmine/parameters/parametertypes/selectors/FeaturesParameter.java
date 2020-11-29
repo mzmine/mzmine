@@ -18,6 +18,9 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,9 +29,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
@@ -69,7 +69,8 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   @Override
   public void loadValueFromXML(Element xmlElement) {
 
-    PeakList[] allPeakLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+    FeatureList[] allPeakLists = MZmineCore.getProjectManager().getCurrentProject()
+        .getFeatureLists().toArray(FeatureList[]::new);
 
     List<Feature> newValues = new ArrayList<>();
 
@@ -78,19 +79,19 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
       Node doc = items.item(i);
       if (doc instanceof Element) {
         Element docElement = (Element) doc;
-        for (PeakList peakList : allPeakLists) {
-          PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
+        for (FeatureList peakList : allPeakLists) {
+          FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
           RawDataFile[] dataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
           if (peakList.getName()
               .equals(docElement.getElementsByTagName("peaklist_name").item(0).getNodeValue())) {
             int rownum = 0;
-            for (PeakListRow row : rows) {
+            for (FeatureListRow row : rows) {
               if (row.toString().equals(
                   docElement.getElementsByTagName("peaklist_row_id").item(0).getNodeValue())) {
                 for (RawDataFile dataFile : dataFiles) {
                   if (dataFile.getName().equals(
                       docElement.getElementsByTagName("rawdatafile_name").item(0).getNodeValue())) {
-                    Feature feature = peakList.getPeak(rownum, dataFile);
+                    Feature feature = peakList.getFeature(rownum, dataFile);
                     if (feature != null)
                       newValues.add(feature);
                   }
@@ -119,11 +120,11 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
       Element featureElement = parentDocument.createElement("feature");
 
       Element peakListElement = parentDocument.createElement("peaklist_name");
-      if (item.getPeakList() != null) {
-        peakListElement.setNodeValue(item.getPeakList().getName());
+      if (item.getFeatureList() != null) {
+        peakListElement.setNodeValue(item.getFeatureList().getName());
         featureElement.appendChild(peakListElement);
 
-        PeakListRow row = item.getPeakList().getPeakRow(item);
+        FeatureListRow row = item.getFeatureList().getFeatureRow(item);
         Element peakListRowElement = parentDocument.createElement("peaklist_row_id");
         if (row != null) {
           peakListRowElement.setNodeValue(row.toString());
@@ -132,8 +133,8 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
       }
 
       Element rawDataFileElement = parentDocument.createElement("rawdatafile_name");
-      if (item.getDataFile() != null) {
-        rawDataFileElement.setNodeValue(item.getDataFile().getName());
+      if (item.getRawDataFile() != null) {
+        rawDataFileElement.setNodeValue(item.getRawDataFile().getName());
       }
       featureElement.appendChild(rawDataFileElement);
 

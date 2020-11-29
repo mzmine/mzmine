@@ -46,7 +46,7 @@ public class MZDistributionHistoParameters extends SimpleParameterSet {
       new OptionalParameter<>(new RTRangeParameter(false));
 
   public static final DoubleParameter binWidth = new DoubleParameter("m/z bin width",
-      "Binning of m/z values for peak picking ", MZmineCore.getConfiguration().getMZFormat());
+      "Binning of m/z values for feature picking ", MZmineCore.getConfiguration().getMZFormat());
 
   public MZDistributionHistoParameters() {
     super(new Parameter[] {dataFiles, scanSelection, massList, mzRange, rtRange, binWidth});

@@ -18,18 +18,16 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.List;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
-import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import javafx.beans.property.Property;
 
 /**
@@ -37,19 +35,18 @@ import javafx.beans.property.Property;
  * (FWHM) - Tailing Factor - Asymmetry factor
  */
 public class QualityParameters {
-  private QualityParameters() {}
 
-  public static void calculateQualityParameters(ModularFeatureList flist) {
+  public static void calculateAndSetModularQualityParameters(ModularFeatureList flist) {
     // add quality columns to flist - feature columns
     flist.addFeatureType(new FwhmType(), new AsymmetryFactorType(), new TailingFactorType());
 
-    flist.streamFeatures().forEach(peak -> {
-      Property<Float> height = peak.getHeight();
-      Property<Float> rt = peak.getRT();
+    flist.modularStreamFeatures().forEach(peak -> {
+      Property<Float> height = peak.getHeightProperty();
+      Property<Float> rt = peak.getRTProperty();
 
-      List<Integer> scanNumbers = peak.getScanNumbers();
+      List<Integer> scanNumbers = peak.getScanNumbersProperty();
       RawDataFile dataFile = peak.getRawDataFile();
-      List<DataPoint> dps = peak.getDataPoints();
+      List<DataPoint> dps = peak.getDataPointsProperty();
       if (height.getValue() == null || rt.getValue() == null || dataFile == null
           || scanNumbers.isEmpty() || dps.isEmpty())
         return;
@@ -58,8 +55,8 @@ public class QualityParameters {
       if (rtRange == null)
         rtRange = Range.singleton(rt.getValue());
 
-      height = peak.getHeight();
-      rt = peak.getRT();
+      height = peak.getHeightProperty();
+      rt = peak.getRTProperty();
 
       // FWHM
       double rtValues[] =
@@ -93,55 +90,101 @@ public class QualityParameters {
     });
   }
 
-  public static void calculateQualityParameters(PeakList peakList) {
-
-    Feature peak;
-    double height, rt;
-
-    for (int i = 0; i < peakList.getNumberOfRows(); i++) {
-      for (int x = 0; x < peakList.getNumberOfRawDataFiles(); x++) {
-
-        peak = peakList.getPeak(i, peakList.getRawDataFile(x));
-        if (peak != null) {
-          int[] scanNumbers = peak.getScanNumbers();
-          RawDataFile dataFile = peak.getDataFile();
-          DataPoint[] dps = new DataPoint[scanNumbers.length];
-          for (int dp = 0; dp < scanNumbers.length; dp++) {
-            dps[dp] = peak.getDataPoint(scanNumbers[dp]);
-          }
-          @Nonnull
-          Range<Double> rtRange = peak.getRawDataPointsRTRange();
-
-          height = peak.getHeight();
-          rt = peak.getRT();
-
-          // FWHM
-          double rtValues[] = peakFindRTs(height / 2, rt, scanNumbers, dps, dataFile, rtRange);
-          Double fwhm = rtValues[1] - rtValues[0];
-          if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
-            fwhm = null;
-          }
-          peak.setFWHM(fwhm);
-
-          // Tailing Factor - TF
-          double rtValues2[] = peakFindRTs(height * 0.05, rt, scanNumbers, dps, dataFile, rtRange);
-          Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt - rtValues2[0]));
-          if (tf <= 0 || Double.isNaN(tf) || Double.isInfinite(tf)) {
-            tf = null;
-          }
-          peak.setTailingFactor(tf);
-
-          // Asymmetry factor - AF
-          double rtValues3[] = peakFindRTs(height * 0.1, rt, scanNumbers, dps, dataFile, rtRange);
-          Double af = (rtValues3[1] - rt) / (rt - rtValues3[0]);
-          if (af <= 0 || Double.isNaN(af) || Double.isInfinite(af)) {
-            af = null;
-          }
-          peak.setAsymmetryFactor(af);
-
-        }
-      }
+  public static float calculateFWHM(Feature feature) {
+    if(feature == null) {
+      return Float.NaN;
     }
+    Float height = feature.getHeight();
+    Float rt = feature.getRT();
+
+    List<Integer> scanNumbers = feature.getScanNumbers();
+    RawDataFile dataFile = feature.getRawDataFile();
+    List<DataPoint> dps = feature.getDataPoints();
+    if (height == null || rt == null || dataFile == null
+        || scanNumbers.isEmpty() || dps.isEmpty())
+      throw new IllegalArgumentException("Modular feature values are not initialized.");
+
+    Range<Float> rtRange = feature.getRawDataPointsRTRange();
+    if (rtRange == null)
+      rtRange = Range.singleton(rt);
+
+    height = feature.getHeight();
+    rt = feature.getRT();
+
+    // FWHM
+    double[] rtValues =
+        peakFindRTs(height / 2.0, rt, scanNumbers, dps, dataFile, rtRange);
+    double fwhm = rtValues[1] - rtValues[0];
+    if (fwhm <= 0 || Double.isInfinite(fwhm)) {
+      return Float.NaN;
+    }
+
+    return (float) fwhm;
+  }
+
+  public static float calculateTailingFactor(Feature feature) {
+    if(feature == null) {
+      return Float.NaN;
+    }
+    Float height = feature.getHeight();
+    Float rt = feature.getRT();
+
+    List<Integer> scanNumbers = feature.getScanNumbers();
+    RawDataFile dataFile = feature.getRawDataFile();
+    List<DataPoint> dps = feature.getDataPoints();
+    if (height == null || rt == null || dataFile == null
+        || scanNumbers.isEmpty() || dps.isEmpty())
+      throw new IllegalArgumentException("Modular feature values are not initialized.");
+
+    Range<Float> rtRange = feature.getRawDataPointsRTRange();
+    if (rtRange == null)
+      rtRange = Range.singleton(rt);
+
+    height = feature.getHeight();
+    rt = feature.getRT();
+
+    // Tailing Factor - TF
+    double[] rtValues =
+        peakFindRTs(height * 0.05, rt, scanNumbers, dps, dataFile, rtRange);
+    double tf = (rtValues[1] - rtValues[0]) / (2 * (rt - rtValues[0]));
+    if (tf <= 0 || Double.isInfinite(tf)) {
+      return Float.NaN;
+    }
+
+    return (float) tf;
+  }
+
+  public static float calculateAsymmetryFactor(Feature feature) {
+    if(feature == null) {
+      return Float.NaN;
+    }
+    Float height = feature.getHeight();
+    Float rt = feature.getRT();
+
+    List<Integer> scanNumbers = feature.getScanNumbers();
+    RawDataFile dataFile = feature.getRawDataFile();
+    List<DataPoint> dps = feature.getDataPoints();
+    if (height == null || rt == null || dataFile == null
+        || scanNumbers.isEmpty() || dps.isEmpty())
+      throw new IllegalArgumentException("Modular feature values are not initialized.");
+
+    Range<Float> rtRange = feature.getRawDataPointsRTRange();
+    if (rtRange == null)
+      rtRange = Range.singleton(rt);
+
+    height = feature.getHeight();
+    rt = feature.getRT();
+
+
+    // Asymmetry factor - AF
+    double[] rtValues =
+        peakFindRTs(height * 0.1, rt, scanNumbers, dps, dataFile, rtRange);
+    double af = (rtValues[1] - rt) / (rt - rtValues[0]);
+    if (af <= 0 || Double.isInfinite(af)) {
+      af = Double.NaN;
+    }
+
+    return (float) af;
   }
 
   private static double[] peakFindRTs(double intensity, float featureRT, List<Integer> scanNumbers,

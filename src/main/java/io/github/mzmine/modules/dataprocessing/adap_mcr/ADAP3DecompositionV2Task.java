@@ -15,6 +15,13 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -28,20 +35,12 @@ import dulab.adap.datamodel.Chromatogram;
 import dulab.adap.workflow.decomposition.Decomposition;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -59,7 +58,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
   // Feature lists.
   private final MZmineProject project;
   private final ChromatogramPeakPair originalLists;
-  private PeakList newPeakList;
+  private FeatureList newPeakList;
   private final Decomposition decomposition;
 
   // User parameters
@@ -108,15 +107,12 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
           if (!isCanceled()) {
 
             // Add new peaklist to the project.
-            project.addPeakList(newPeakList);
-
-            // Add quality parameters to peaks
-            QualityParameters.calculateQualityParameters(newPeakList);
+            project.addFeatureList(newPeakList);
 
             // Remove the original peaklist if requested.
             if (parameters.getParameter(ADAP3DecompositionV2Parameters.AUTO_REMOVE).getValue()) {
-              project.removePeakList(originalLists.chromatograms);
-              project.removePeakList(originalLists.peaks);
+              project.removeFeatureList(originalLists.chromatograms);
+              project.removeFeatureList(originalLists.peaks);
             }
 
             setStatus(TaskStatus.FINISHED);
@@ -149,21 +145,21 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     }
   }
 
-  private PeakList decomposePeaks(@Nonnull ChromatogramPeakPair lists) {
+  private FeatureList decomposePeaks(@Nonnull ChromatogramPeakPair lists) {
     RawDataFile dataFile = lists.chromatograms.getRawDataFile(0);
 
     // Create new feature list.
-    final PeakList resolvedPeakList = new SimplePeakList(lists.peaks + " "
+    final FeatureList resolvedPeakList = new ModularFeatureList(lists.peaks + " "
         + parameters.getParameter(ADAP3DecompositionV2Parameters.SUFFIX).getValue(), dataFile);
 
     // Load previous applied methods.
-    for (final PeakList.PeakListAppliedMethod method : lists.peaks.getAppliedMethods()) {
+    for (final FeatureList.FeatureListAppliedMethod method : lists.peaks.getAppliedMethods()) {
       resolvedPeakList.addDescriptionOfAppliedTask(method);
     }
 
     // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Peak deconvolution by ADAP-3", parameters));
+        new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3", parameters));
 
     // Collect peak information
     List<BetterPeak> chromatograms = utils.getPeaks(lists.chromatograms);
@@ -173,7 +169,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     List<BetterComponent> components = getComponents(chromatograms, peaks);
 
     // Create PeakListRow for each components
-    List<PeakListRow> newPeakListRows = new ArrayList<>();
+    List<FeatureListRow> newPeakListRows = new ArrayList<>();
 
     int rowID = 0;
 
@@ -200,9 +196,9 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
           new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]),
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
 
-      PeakListRow row = new SimplePeakListRow(++rowID);
+      FeatureListRow row = new ModularFeatureListRow((ModularFeatureList) resolvedPeakList, ++rowID);
 
-      row.addPeak(dataFile, refPeak);
+      row.addFeature(dataFile, refPeak);
 
       // Set row properties
       row.setAverageMZ(refPeak.getMZ());
@@ -216,9 +212,9 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     // Sort new peak rows by retention time
     // ------------------------------------
 
-    newPeakListRows.sort(Comparator.comparingDouble(PeakListRow::getAverageRT));
+    newPeakListRows.sort(Comparator.comparingDouble(FeatureListRow::getAverageRT));
 
-    for (PeakListRow row : newPeakListRows)
+    for (FeatureListRow row : newPeakListRows)
       resolvedPeakList.addRow(row);
 
     return resolvedPeakList;
@@ -283,11 +279,13 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     for (double intensity : chromatogram.ys)
       dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
 
-    return new SimpleFeature(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(), area,
-        scanNumbers, dataPoints, FeatureStatus.MANUAL, representativeScan, representativeScan,
-        new int[] {}, Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
-        Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
-        Range.closed(0.0, peak.getIntensity()));
+    ModularFeature newFeature = new ModularFeature(file, peak.getMZ(), (float) peak.getRetTime(),
+        (float) peak.getIntensity(), (float) area, scanNumbers, dataPoints, FeatureStatus.MANUAL,
+        representativeScan, representativeScan, new int[] {}, Range.closed((float) peak.getFirstRetTime(),
+        (float) peak.getLastRetTime()), Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
+        Range.closed(0f, (float) peak.getIntensity()));
+    newFeature.setFeatureList(newPeakList);
+    return newFeature;
   }
 
   @Override

@@ -23,13 +23,13 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class ComplexSearchParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final ComboParameter<IonizationType> ionizationMethod =
       new ComboParameter<IonizationType>("Ionization method",

@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.RawDataFile;
  */
 public class ChromatogramCursorPosition {
 
-  private double retentionTime, mzValue, intensityValue;
+  private double mzValue, retentionTime, intensityValue;
   private RawDataFile dataFile;
   private int scanNumber;
 
@@ -82,7 +82,7 @@ public class ChromatogramCursorPosition {
   /**
    * @param retentionTime The retentionTime to set.
    */
-  public void setRetentionTime(double retentionTime) {
+  public void setRetentionTime(float retentionTime) {
     this.retentionTime = retentionTime;
   }
 

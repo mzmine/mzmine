@@ -18,23 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import javafx.collections.ObservableList;
 
 public class SortSpectralDBIdentitiesTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final PeakList peakList;
+  private final FeatureList featureList;
   private int totalRows;
   private int finishedRows;
 
@@ -43,8 +44,8 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
 
   private ParameterSet parameters;
 
-  SortSpectralDBIdentitiesTask(PeakList peakList, ParameterSet parameters) {
-    this.peakList = peakList;
+  SortSpectralDBIdentitiesTask(FeatureList featureList, ParameterSet parameters) {
+    this.featureList = featureList;
     this.parameters = parameters;
     filterByMinScore =
         parameters.getParameter(SortSpectralDBIdentitiesParameters.minScore).getValue();
@@ -69,7 +70,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Sort spectral database identities of data base search in " + peakList;
+    return "Sort spectral database identities of data base search in " + featureList;
   }
 
   /**
@@ -78,10 +79,10 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    totalRows = peakList.getNumberOfRows();
+    totalRows = featureList.getNumberOfRows();
     finishedRows = 0;
 
-    for (PeakListRow row : peakList.getRows()) {
+    for (FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
         return;
       }
@@ -91,7 +92,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+    featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Sorted spectral database identities of DB search ", parameters));
 
     setStatus(TaskStatus.FINISHED);
@@ -102,7 +103,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    *
    * @param row
    */
-  public static void sortIdentities(PeakListRow row) {
+  public static void sortIdentities(FeatureListRow row) {
     sortIdentities(row, false, 1.0d);
   }
 
@@ -113,35 +114,33 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    * @param filterMinSimilarity
    * @param minScore
    */
-  public static void sortIdentities(PeakListRow row, boolean filterMinSimilarity, double minScore) {
+  public static void sortIdentities(FeatureListRow row, boolean filterMinSimilarity, double minScore) {
     // get all row identities
-    PeakIdentity[] identities = row.getPeakIdentities();
-    if (identities == null || identities.length == 0)
+    ObservableList<FeatureIdentity> identities = row.getPeakIdentities();
+    if (identities == null || identities.isEmpty())
       return;
 
-    // filter for SpectralDBPeakIdentity and write to map
-    List<SpectralDBPeakIdentity> match = new ArrayList<>();
+    // filter for SpectralDBFeatureIdentity and write to map
+    List<SpectralDBFeatureIdentity> match = new ArrayList<>();
 
-    for (PeakIdentity identity : identities) {
-      if (identity instanceof SpectralDBPeakIdentity) {
-        row.removePeakIdentity(identity);
+    for (FeatureIdentity identity : identities) {
+      if (identity instanceof SpectralDBFeatureIdentity) {
+        row.removeFeatureIdentity(identity);
         if (!filterMinSimilarity
-            || ((SpectralDBPeakIdentity) identity).getSimilarity().getScore() >= minScore)
-          match.add((SpectralDBPeakIdentity) identity);
+            || ((SpectralDBFeatureIdentity) identity).getSimilarity().getScore() >= minScore)
+          match.add((SpectralDBFeatureIdentity) identity);
       }
     }
     if (match.isEmpty())
       return;
 
     // reversed order: by similarity score
-    match.sort((a, b) -> {
-      return Double.compare(b.getSimilarity().getScore(), a.getSimilarity().getScore());
-    });
+    match.sort((a, b) -> Double.compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()));
 
-    for (SpectralDBPeakIdentity entry : match) {
-      row.addPeakIdentity(entry, false);
+    for (SpectralDBFeatureIdentity entry : match) {
+      row.addFeatureIdentity(entry, false);
     }
-    row.setPreferredPeakIdentity(match.get(0));
+    row.setPreferredFeatureIdentity(match.get(0));
   }
 
 }

@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.features.Feature;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 
 /**
  * Data set for a single highlighted peak

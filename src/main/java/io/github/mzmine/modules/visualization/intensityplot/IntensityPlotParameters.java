@@ -18,19 +18,19 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
+import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -38,7 +38,7 @@ public class IntensityPlotParameters extends SimpleParameterSet {
 
   public static final String rawDataFilesOption = "Raw data file";
 
-  public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
   public static final MultiChoiceParameter<RawDataFile> dataFiles =
       new MultiChoiceParameter<RawDataFile>("Raw data files", "Raw data files to display",
@@ -51,7 +51,7 @@ public class IntensityPlotParameters extends SimpleParameterSet {
       new ComboParameter<YAxisValueSource>("Y axis value", "Y axis value",
           YAxisValueSource.values());
 
-  public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
+  public static final FeatureSelectionParameter selectedRows = new FeatureSelectionParameter();
 
   /**
    * Windows size and position
@@ -59,19 +59,19 @@ public class IntensityPlotParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public IntensityPlotParameters() {
-    super(new Parameter[] {peakList, dataFiles, xAxisValueSource, yAxisValueSource, selectedRows,
+    super(new Parameter[] {featureList, dataFiles, xAxisValueSource, yAxisValueSource, selectedRows,
         windowSettings});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    PeakList selectedPeakLists[] = getParameter(peakList).getValue().getMatchingPeakLists();
-    if (selectedPeakLists.length > 0) {
+    FeatureList selectedFeatureLists[] = getParameter(featureList).getValue().getMatchingFeatureLists();
+    if (selectedFeatureLists.length > 0) {
       RawDataFile plDataFiles[] =
-          selectedPeakLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
-      PeakListRow plRows[] = selectedPeakLists[0].getRows().toArray(PeakListRow[]::new);
-      Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
+          selectedFeatureLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
+      FeatureListRow plRows[] = selectedFeatureLists[0].getRows().toArray(FeatureListRow[]::new);
+      Arrays.sort(plRows, new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
       getParameter(dataFiles).setChoices(plDataFiles);
       getParameter(dataFiles).setValue(plDataFiles);
     }

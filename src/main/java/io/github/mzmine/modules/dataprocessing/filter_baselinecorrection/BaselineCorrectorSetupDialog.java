@@ -149,7 +149,8 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
     private TICPlot ticPlot;
     private RawDataFile dataFile;
-    private Range<Double> rtRange, mzRange;
+    private Range<Double> mzRange;
+    private Range<Float> rtRange;
     private BaselineCorrectorSetupDialog dialog;
     private ProgressThread progressThread;
 
@@ -157,7 +158,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     private boolean userCanceled;
 
     public PreviewTask(BaselineCorrectorSetupDialog dialog, TICPlot ticPlot, RawDataFile dataFile,
-        Range<Double> rtRange, Range<Double> mzRange) {
+        Range<Float> rtRange, Range<Double> mzRange) {
 
       this.dialog = dialog;
       this.ticPlot = ticPlot;
@@ -396,7 +397,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
    * This function sets all the information into the plot chart
    */
   @Override
-  protected void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range<Double> rtRange,
+  protected void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
 
     boolean ready = true;

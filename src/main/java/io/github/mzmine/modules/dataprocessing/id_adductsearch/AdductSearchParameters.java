@@ -21,13 +21,13 @@ package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class AdductSearchParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter("RT tolerance",
       "Maximum allowed difference of retention time to set a relationship between peaks");

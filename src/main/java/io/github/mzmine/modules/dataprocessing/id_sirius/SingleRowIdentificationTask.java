@@ -27,6 +27,7 @@ import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.ionizationType;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,7 +55,6 @@ import io.github.msdk.util.DataPointSorter.SortingProperty;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -70,7 +70,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private static final Logger logger = LoggerFactory.getLogger(SingleRowIdentificationTask.class);
   private static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
-  private final PeakListRow peakListRow;
+  private final FeatureListRow peakListRow;
   private final String massListName;
 
   // Parameters for Sirius & FingerId methods
@@ -100,7 +100,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param peakListRow peak-list row to identify.
    */
-  public SingleRowIdentificationTask(ParameterSet parameters, PeakListRow peakListRow) {
+  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow) {
     this.peakListRow = peakListRow;
     siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES).getValue();
     fingerCandidates = parameters.getParameter(FINGERID_CANDIDATES).getValue();
@@ -169,7 +169,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     try {
 
-      Scan ms1Scan = peakListRow.getBestPeak().getRepresentativeScan();
+      Scan ms1Scan = peakListRow.getBestFeature().getRepresentativeScan();
       Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
       logger.debug("Adding MS1 scan " + ScanUtils.scanToString(ms1Scan, true)
           + " for SIRIUS identification");

@@ -22,11 +22,11 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 public class SQLExportParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
   public static final StringParameter connectionString = new StringParameter(
       "JDBC connection string",
@@ -43,7 +43,7 @@ public class SQLExportParameters extends SimpleParameterSet {
       "If selected, an empty feature list will be exported with null values for all column other than the rawdatafile and any constant values.");
 
   public SQLExportParameters() {
-    super(new Parameter[] {peakList, connectionString, tableName, exportColumns, emptyExport});
+    super(new Parameter[] {featureList, connectionString, tableName, exportColumns, emptyExport});
   }
 
 }

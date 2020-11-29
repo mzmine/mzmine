@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.combinedmodule;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -66,13 +66,13 @@ public class CombinedModuleVisualizerTab extends MZmineTab {
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
+  public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -82,13 +82,13 @@ public class CombinedModuleVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }

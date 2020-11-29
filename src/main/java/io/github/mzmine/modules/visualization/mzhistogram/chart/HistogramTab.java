@@ -24,15 +24,13 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.javafx.WindowsMenu;
+import io.github.mzmine.util.RangeUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,13 +38,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.stage.Stage;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.fx.ChartViewer;
@@ -76,7 +72,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
   private Scan[] scans;
   private String massListName;
   private Range<Double> mzRange;
-  private Range<Double> rtRange;
+  private Range<Float> rtRange;
   private Boolean useRTRange;
   private double binWidth;
 
@@ -108,8 +104,8 @@ public class HistogramTab extends MZmineTab implements ActionListener {
     mzRange = parameters.getParameter(MZDistributionHistoParameters.mzRange).getValue();
     useRTRange = parameters.getParameter(MZDistributionHistoParameters.rtRange).getValue();
     if (useRTRange)
-      rtRange = parameters.getParameter(MZDistributionHistoParameters.rtRange)
-          .getEmbeddedParameter().getValue();
+      rtRange = RangeUtils.toFloatRange(parameters.getParameter(MZDistributionHistoParameters.rtRange)
+          .getEmbeddedParameter().getValue());
     binWidth = parameters.getParameter(MZDistributionHistoParameters.binWidth).getValue();
 
     data = buildHistogramData(dataFile);
@@ -143,12 +139,12 @@ public class HistogramTab extends MZmineTab implements ActionListener {
 
     Button btnPrevious = new Button("<");
     btnPrevious.setTooltip(new Tooltip("Jump to previous distribution (use left arrow"));
-    btnPrevious.setOnAction(e -> jumpToPrevPeak());
+    btnPrevious.setOnAction(e -> jumpToPrevFeature());
     pnJump.getChildren().add(btnPrevious);
 
     Button btnNext = new Button(">");
     btnNext.setTooltip(new Tooltip("Jump to previous distribution (use right arrow"));
-    btnNext.setOnAction(e -> jumpToNextPeak());
+    btnNext.setOnAction(e -> jumpToNextFeature());
     pnJump.getChildren().add(btnNext);
   }
 
@@ -197,16 +193,16 @@ public class HistogramTab extends MZmineTab implements ActionListener {
   public void actionPerformed(final ActionEvent event) {
     final String command = event.getActionCommand();
     if ("PREVIOUS_PEAK".equals(command)) {
-      jumpToPrevPeak();
+      jumpToPrevFeature();
     } else if ("NEXT_PEAK".equals(command)) {
-      jumpToNextPeak();
+      jumpToNextFeature();
     }
   }
 
   /**
    * tries to find the next local maximum to jump to the prev peak
    */
-  private void jumpToPrevPeak() {
+  private void jumpToPrevFeature() {
     XYPlot plot = getXYPlot();
     if (plot == null) {
       return;
@@ -232,7 +228,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
           if (data.getYValue(0, i - 1) != 0 && data.getYValue(0, i) >= 100
               && data.getYValue(0, i - 1) < data.getYValue(0, i)) {
             // peak found with max at i
-            setZoomAroundPeakAt(i);
+            setZoomAroundFeatureAt(i);
             return;
           }
         }
@@ -243,7 +239,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
   /**
    * tries to find the next local maximum to jump to the prev peak
    */
-  private void jumpToNextPeak() {
+  private void jumpToNextFeature() {
     XYPlot plot = getXYPlot();
     if (plot == null) {
       return;
@@ -270,7 +266,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
           if (data.getYValue(0, i + 1) != 0 && data.getYValue(0, i) >= 100
               && data.getYValue(0, i + 1) < data.getYValue(0, i)) {
             // peak found with max at i
-            setZoomAroundPeakAt(i);
+            setZoomAroundFeatureAt(i);
             return;
           }
         }
@@ -283,7 +279,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
    *
    * @param i
    */
-  private void setZoomAroundPeakAt(int i) {
+  private void setZoomAroundFeatureAt(int i) {
     XYPlot plot = getXYPlot();
     if (plot == null) {
       return;
@@ -367,13 +363,13 @@ public class HistogramTab extends MZmineTab implements ActionListener {
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
+  public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -397,13 +393,13 @@ public class HistogramTab extends MZmineTab implements ActionListener {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }

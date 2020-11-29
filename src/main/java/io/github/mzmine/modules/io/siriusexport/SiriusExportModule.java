@@ -12,10 +12,10 @@
 
 package io.github.mzmine.modules.io.siriusexport;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -49,7 +49,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
 
   }
 
-  public static void exportSinglePeakList(PeakListRow row) {
+  public static void exportSingleFeatureList(FeatureListRow row) {
 
     try {
       ParameterSet parameters =
@@ -69,7 +69,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
 
   }
 
-  public static void exportSingleRows(PeakListRow[] row) {
+  public static void exportSingleRows(FeatureListRow[] row) {
     try {
       ParameterSet parameters =
           MZmineCore.getConfiguration().getModuleParameters(SiriusExportModule.class);
@@ -89,7 +89,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTEXPORT;
+    return MZmineModuleCategory.FEATURELISTEXPORT;
   }
 
   @Override

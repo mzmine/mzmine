@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -37,7 +37,7 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
 
   private static final String MODULE_NAME = "Standard compound normalizer";
   private static final String MODULE_DESCRIPTION =
-      "This module normalizes the peak heights and areas according to selected internal standards.";
+      "This module normalizes the feature heights and areas according to selected internal standards.";
 
   @Override
   public @Nonnull String getName() {
@@ -54,10 +54,10 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] = parameters.getParameter(StandardCompoundNormalizerParameters.peakList)
-        .getValue().getMatchingPeakLists();
-    for (PeakList peakList : peakLists) {
-      Task newTask = new StandardCompoundNormalizerTask(project, peakList, parameters);
+    FeatureList featureLists[] = parameters.getParameter(StandardCompoundNormalizerParameters.featureList)
+        .getValue().getMatchingFeatureLists();
+    for (FeatureList featureList : featureLists) {
+      Task newTask = new StandardCompoundNormalizerTask(project, featureList, parameters);
       tasks.add(newTask);
     }
 

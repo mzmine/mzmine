@@ -53,7 +53,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
       new StringParameter("Picked Kovats values", "The picked values as C10:time,C12:time ... ");
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 2);
   public static final DoubleParameter noiseLevel =
-      new DoubleParameter("Min intensity", "Minimum intensity to recognice a peak",
+      new DoubleParameter("Min intensity", "Minimum intensity to recognice a feature",
           MZmineCore.getConfiguration().getIntensityFormat(), 0d);
   public static final DoubleParameter ratioTopEdge = new DoubleParameter("Ratio top/edge",
       "Minimum ratio top/edge (left and right edge)", new DecimalFormat("0.0"), 3d);
@@ -71,7 +71,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
 
   public KovatsIndexExtractionParameters() {
     super(new Parameter[] {lastSavedFile, pickedKovatsValues,
-        // picking of peaks
+        // picking of features
         dataFiles, mzRange, rtRange, noiseLevel, ratioTopEdge,
         // kovats selection
         minKovats, maxKovats, kovats //

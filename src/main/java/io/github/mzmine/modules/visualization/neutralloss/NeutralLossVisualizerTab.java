@@ -20,11 +20,12 @@ package io.github.mzmine.modules.visualization.neutralloss;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,7 +55,7 @@ public class NeutralLossVisualizerTab extends MZmineTab {
   private RawDataFile dataFile;
 
   // Parameters
-  private Range<Double> rtRange;
+  private Range<Float> rtRange;
   private Range<Double> mzRange;
   private int numOfFragments;
   private Object xAxisType;
@@ -72,7 +73,7 @@ public class NeutralLossVisualizerTab extends MZmineTab {
     this.dataFile = dataFile;
 
     // Retrieve parameter's values
-    rtRange = parameters.getParameter(NeutralLossParameters.retentionTimeRange).getValue();
+    rtRange = RangeUtils.toFloatRange(parameters.getParameter(NeutralLossParameters.retentionTimeRange).getValue());
     mzRange = parameters.getParameter(NeutralLossParameters.mzRange).getValue();
     numOfFragments = parameters.getParameter(NeutralLossParameters.numOfFragments).getValue();
     xAxisType = parameters.getParameter(NeutralLossParameters.xAxisType).getValue();
@@ -178,13 +179,13 @@ public class NeutralLossVisualizerTab extends MZmineTab {
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
+  public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -217,13 +218,13 @@ public class NeutralLossVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }

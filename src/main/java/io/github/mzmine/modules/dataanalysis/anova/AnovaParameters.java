@@ -16,7 +16,7 @@
 
 package io.github.mzmine.modules.dataanalysis.anova;
 
-import java.awt.Window;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
@@ -25,12 +25,11 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.util.ExitCode;
 
 public class AnovaParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
 
   public static final ComboParameter<UserParameter<?, ?>> selectionData =
       new ComboParameter<UserParameter<?, ?>>("Sample parameter",
@@ -38,7 +37,7 @@ public class AnovaParameters extends SimpleParameterSet {
           new UserParameter[0]);
 
   public AnovaParameters() {
-    super(new Parameter[] {peakLists, selectionData});
+    super(new Parameter[] {featureLists, selectionData});
   }
 
   @Override

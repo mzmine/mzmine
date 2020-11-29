@@ -124,7 +124,7 @@ public class MassCalibrator {
     this.logger = Logger.getLogger(this.getClass().getName());
   }
 
-  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, double retentionTime) {
+  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, float retentionTime) {
     return addMassList(massList, retentionTime, -1, 0.0);
   }
 
@@ -137,7 +137,7 @@ public class MassCalibrator {
    * @param intensityThreshold
    * @return
    */
-  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, double retentionTime,
+  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, float retentionTime,
       int scanNumber, double intensityThreshold) {
     ArrayList<MassPeakMatch> matches =
         matchPeaksWithCalibrants(massList, retentionTime, scanNumber, intensityThreshold);
@@ -157,7 +157,7 @@ public class MassCalibrator {
    *        list store
    * @return
    */
-  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime,
+  public ArrayList<Double> findMassListErrors(DataPoint[] massList, float retentionTime,
       List<MassPeakMatch> matchesStore) {
     List<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTime);
     if (matchesStore != null) {
@@ -167,7 +167,7 @@ public class MassCalibrator {
     return errors;
   }
 
-  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime) {
+  public ArrayList<Double> findMassListErrors(DataPoint[] massList, float retentionTime) {
     return findMassListErrors(massList, retentionTime, null);
   }
 
@@ -395,7 +395,7 @@ public class MassCalibrator {
   }
 
   protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList,
-      double retentionTime) {
+      float retentionTime) {
     return matchPeaksWithCalibrants(massList, retentionTime, -1, 0.0);
   }
 
@@ -411,12 +411,12 @@ public class MassCalibrator {
    * @return list of mass peak matches
    */
   protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList,
-      double retentionTime, int scanNumber, double intensityThreshold) {
+      float retentionTime, int scanNumber, double intensityThreshold) {
     ArrayList<MassPeakMatch> matches = new ArrayList<>();
 
     StandardsList retentionTimeFiltered;
     if (retentionTimeTolerance != null) {
-      Range<Double> rtRange = retentionTimeTolerance.getToleranceRange(retentionTime);
+      Range<Float> rtRange = retentionTimeTolerance.getToleranceRange(retentionTime);
       retentionTimeFiltered = standardsList.getInRanges(null, rtRange);
     } else {
       retentionTimeFiltered = standardsList;

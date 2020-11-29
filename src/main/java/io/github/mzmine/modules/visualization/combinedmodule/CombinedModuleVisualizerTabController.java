@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.util.RangeUtils;
 import java.util.Collection;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -49,7 +50,7 @@ public class CombinedModuleVisualizerTabController {
 
   private ParameterSet parameters;
   private RawDataFile dataFile;
-  private Range<Double> rtRange;
+  private Range<Float> rtRange;
   private Range<Double> mzRange;
   private AxisType xAxisType;
   private AxisType yAxisType;
@@ -66,8 +67,8 @@ public class CombinedModuleVisualizerTabController {
       dialog.show();
     });
     this.parameters = parameters;
-    rtRange =
-        parameters.getParameter(CombinedModuleParameters.retentionTimeRange).getValue();
+    rtRange = RangeUtils.toFloatRange(
+        parameters.getParameter(CombinedModuleParameters.retentionTimeRange).getValue());
     mzRange = parameters.getParameter(CombinedModuleParameters.mzRange).getValue();
     xAxisType = parameters.getParameter(CombinedModuleParameters.xAxisType).getValue();
     yAxisType = parameters.getParameter(CombinedModuleParameters.yAxisType).getValue();

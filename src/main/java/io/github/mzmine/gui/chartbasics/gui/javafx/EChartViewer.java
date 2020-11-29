@@ -51,7 +51,9 @@ import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
+/*
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
+ */
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -173,11 +175,14 @@ public class EChartViewer extends ChartViewer {
       yAxis.setAutoRange(true);
     });
 
+    // TODO:
+    /*
     addMenuItem(getContextMenu(), "Set Range on Axis", event -> {
       AxesSetupDialog dialog =
           new AxesSetupDialog((Stage) this.getScene().getWindow(), chart.getXYPlot());
       dialog.show();
     });
+     */
 
     addMenuItem(exportMenu, "EPS..", event -> handleSave("EMF Image", "EMF", ".emf", FileType.EMF));
 

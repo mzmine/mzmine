@@ -23,7 +23,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
@@ -31,7 +31,7 @@ public class LearnerParameters extends SimpleParameterSet {
   /*
    * Define any parameters here (see io.github.mzmine.parameters for parameter types)
    */
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to feature list name", "deisotoped");
@@ -43,8 +43,8 @@ public class LearnerParameters extends SimpleParameterSet {
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
       "Maximum charge to consider for detecting the isotope patterns");
 
-  public static final BooleanParameter autoRemove = new BooleanParameter("Remove original peaklist",
-      "If checked, original peaklist will be removed and only deisotoped version remains");
+  public static final BooleanParameter autoRemove = new BooleanParameter("Remove original feature list",
+      "If checked, original feature list will be removed and only deisotoped version remains");
 
   /**
    * Create a new parameterset
@@ -53,7 +53,7 @@ public class LearnerParameters extends SimpleParameterSet {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(new Parameter[] {peakLists, suffix, mzTolerance, rtTolerance, maximumCharge, autoRemove});
+    super(new Parameter[] {featureLists, suffix, mzTolerance, rtTolerance, maximumCharge, autoRemove});
   }
 
 }

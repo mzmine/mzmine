@@ -16,18 +16,16 @@
 
 package io.github.mzmine.modules.io.adapmspexport;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.mzmine.datamodel.*;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -43,7 +41,7 @@ public class AdapMspExportTask extends AbstractTask {
 
   private static final Pattern ATTRIBUTE_NAME_PATTERN = Pattern.compile("^[\\w]+$");
 
-  private final PeakList[] peakLists;
+  private final FeatureList[] featureLists;
   private final File fileName;
   private final String plNamePattern = "{}";
   private final boolean addRetTime;
@@ -54,8 +52,8 @@ public class AdapMspExportTask extends AbstractTask {
   private final IntegerMode roundMode;
 
   AdapMspExportTask(ParameterSet parameters) {
-    this.peakLists = parameters.getParameter(AdapMspExportParameters.PEAK_LISTS).getValue()
-        .getMatchingPeakLists();
+    this.featureLists = parameters.getParameter(AdapMspExportParameters.FEATURE_LISTS).getValue()
+        .getMatchingFeatureLists();
 
     this.fileName = parameters.getParameter(AdapMspExportParameters.FILENAME).getValue();
 
@@ -79,7 +77,7 @@ public class AdapMspExportTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MSP file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to MSP file(s)";
   }
 
   public void run() {
@@ -94,13 +92,13 @@ public class AdapMspExportTask extends AbstractTask {
      */
 
     // Process feature lists
-    for (PeakList peakList : peakLists) {
+    for (FeatureList featureList : featureLists) {
 
       // Filename
       File curFile = fileName;
       if (substitute) {
         // Cleanup from illegal filename characters
-        String cleanPlName = peakList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
+        String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
         // Substitute
         String newFilename =
             fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
@@ -118,7 +116,7 @@ public class AdapMspExportTask extends AbstractTask {
       }
 
       try {
-        exportPeakList(peakList, writer, curFile);
+        exportFeatureList(featureList, writer, curFile);
       } catch (IOException | IllegalArgumentException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Error while writing into file " + curFile + ": " + e.getMessage());
@@ -149,11 +147,11 @@ public class AdapMspExportTask extends AbstractTask {
       setStatus(TaskStatus.FINISHED);
   }
 
-  private void exportPeakList(PeakList peakList, FileWriter writer, File curFile)
+  private void exportFeatureList(FeatureList featureList, FileWriter writer, File curFile)
       throws IOException {
     final String newLine = System.lineSeparator();
 
-    for (PeakListRow row : peakList.getRows()) {
+    for (FeatureListRow row : featureList.getRows()) {
       IsotopePattern ip = row.getBestIsotopePattern();
       if (ip == null)
         continue;
@@ -162,16 +160,16 @@ public class AdapMspExportTask extends AbstractTask {
       if (name != null)
         writer.write("Name: " + name + newLine);
 
-      PeakIdentity identity = row.getPreferredPeakIdentity();
+      FeatureIdentity identity = row.getPreferredFeatureIdentity();
       if (identity != null) {
         // String name = identity.getName();
         // if (name != null) writer.write("Name: " + name + newLine);
 
-        String formula = identity.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+        String formula = identity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
         if (formula != null)
           writer.write("Formula: " + formula + newLine);
 
-        String id = identity.getPropertyValue(PeakIdentity.PROPERTY_ID);
+        String id = identity.getPropertyValue(FeatureIdentity.PROPERTY_ID);
         if (id != null)
           writer.write("Comments: " + id + newLine);
       }
@@ -185,11 +183,11 @@ public class AdapMspExportTask extends AbstractTask {
         writer.write(attributeName + ": " + row.getAverageRT() + newLine);
       }
 
-      PeakInformation peakInformation = row.getPeakInformation();
-      if (addAnovaPValue && peakInformation != null
-          && peakInformation.getAllProperties().containsKey("ANOVA_P_VALUE")) {
+      FeatureInformation featureInformation = row.getFeatureInformation();
+      if (addAnovaPValue && featureInformation != null
+          && featureInformation.getAllProperties().containsKey("ANOVA_P_VALUE")) {
         String attributeName = checkAttributeName(anovaAttributeName);
-        String value = peakInformation.getPropertyValue("ANOVA_P_VALUE");
+        String value = featureInformation.getPropertyValue("ANOVA_P_VALUE");
         if (value.trim().length() > 0)
           writer.write(attributeName + ": " + value + newLine);
       }
@@ -199,9 +197,9 @@ public class AdapMspExportTask extends AbstractTask {
       if (integerMZ)
         dataPoints = ScanUtils.integerDataPoints(dataPoints, roundMode);
 
-      String numPeaks = Integer.toString(dataPoints.length);
-      if (numPeaks != null)
-        writer.write("Num Peaks: " + numPeaks + newLine);
+      String numFeatures = Integer.toString(dataPoints.length);
+      if (numFeatures != null)
+        writer.write("Num Features: " + numFeatures + newLine);
 
       for (DataPoint point : dataPoints) {
         String line = point.getMZ() + " " + point.getIntensity();

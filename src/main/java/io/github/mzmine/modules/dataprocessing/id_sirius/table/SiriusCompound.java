@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_sirius.table;
 
 import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -60,7 +60,7 @@ import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
  * SiriusIdentificationMethod, then there will be Sirius Score, formula, name == formula 2) if
  * FingerIdWebMethod is used, then name may differ, added SMILES & Inchi and links to DBs
  */
-public class SiriusCompound extends SimplePeakIdentity {
+public class SiriusCompound extends SimpleFeatureIdentity {
   private static final Logger logger = LoggerFactory.getLogger(SiriusCompound.class);
   public static final int PREVIEW_HEIGHT = 150;
   public static final int PREVIEW_WIDTH = 150;

@@ -18,15 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius.table.db;
 
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.KEGGGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.LipidMapsGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.PubChemGateway;
 
-public class SiriusDBCompound extends SimplePeakIdentity {
+public class SiriusDBCompound extends SimpleFeatureIdentity {
   private final static String PUBCHEM = "PubChem";
   private final static String KEGG = "KEGG";
   private final static String CHEBI = "CHEBI";
