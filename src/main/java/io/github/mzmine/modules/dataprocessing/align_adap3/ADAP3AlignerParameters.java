@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.text.NumberFormat;
 import dulab.adap.workflow.AlignmentParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -24,7 +25,6 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import javafx.collections.FXCollections;
@@ -37,7 +37,7 @@ public class ADAP3AlignerParameters extends SimpleParameterSet {
   private static final String[] EIC_SCORE_TYPES =
       new String[] {AlignmentParameters.RT_DIFFERENCE, AlignmentParameters.CROSS_CORRELATION};
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final StringParameter NEW_PEAK_LIST_NAME =
       new StringParameter("Aligned Feature List Name", "Feature list name", "Aligned feature list");

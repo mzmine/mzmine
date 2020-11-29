@@ -18,11 +18,11 @@
 
 package io.github.mzmine.gui;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.util.List;
 import java.net.URL;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
@@ -107,7 +107,7 @@ public interface Desktop extends MZmineModule {
    *
    * @return Array of selected feature lists
    */
-  public PeakList[] getSelectedPeakLists();
+  public FeatureList[] getSelectedPeakLists();
 
   @Nonnull
   public ExitCode exitMZmine();

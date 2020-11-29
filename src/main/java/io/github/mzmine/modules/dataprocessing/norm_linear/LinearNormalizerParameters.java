@@ -23,12 +23,12 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class LinearNormalizerParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to feature list name", "normalized");
@@ -37,16 +37,16 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
       new ComboParameter<NormalizationType>("Normalization type", "Normalize intensities by...",
           NormalizationType.values());
 
-  public static final ComboParameter<PeakMeasurementType> peakMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure peaks using",
-          PeakMeasurementType.values());
+  public static final ComboParameter<FeatureMeasurementType> featureMeasurementType =
+      new ComboParameter<FeatureMeasurementType>("Feature measurement type", "Measure features using",
+          FeatureMeasurementType.values());
 
   public static final BooleanParameter autoRemove =
       new BooleanParameter("Remove original feature list",
           "If checked, original feature list will be removed and only normalized version remains");
 
   public LinearNormalizerParameters() {
-    super(new Parameter[] {peakLists, suffix, normalizationType, peakMeasurementType, autoRemove});
+    super(new Parameter[] {featureLists, suffix, normalizationType, featureMeasurementType, autoRemove});
   }
 
 }

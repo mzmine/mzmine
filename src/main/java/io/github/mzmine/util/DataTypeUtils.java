@@ -22,39 +22,39 @@ package io.github.mzmine.util;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.RowBinding;
-import io.github.mzmine.datamodel.data.types.DataType;
-import io.github.mzmine.datamodel.data.types.DetectionType;
-import io.github.mzmine.datamodel.data.types.RawFileType;
-import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
-import io.github.mzmine.datamodel.data.types.numbers.AreaType;
-import io.github.mzmine.datamodel.data.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.data.types.numbers.DataPointsType;
-import io.github.mzmine.datamodel.data.types.numbers.HeightType;
-import io.github.mzmine.datamodel.data.types.numbers.IntensityRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.MZType;
-import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.RTType;
-import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.RawFileType;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
 
 @SuppressWarnings("null")
 public class DataTypeUtils {
   // bindings from row to features
   public static final @Nonnull List<RowBinding> DEFAULT_CHROMATOGRAPHIC_ROWBINDING =
       List.of(new RowBinding(new MZType(), BindingsType.AVERAGE),
-          new RowBinding(new RTType(), BindingsType.AVERAGE),
+          new RowBinding(new RTType(), BindingsType.AVERAGE)/*,
           new RowBinding(new HeightType(), BindingsType.MAX),
-          new RowBinding(new AreaType(), BindingsType.MAX),
+          new RowBinding(new AreaType(), BindingsType.MAX)*/,
           new RowBinding(new RTRangeType(), BindingsType.RANGE),
           new RowBinding(new MZRangeType(), BindingsType.RANGE));
-  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(new RTType(),
-      new MZType(), new HeightType(), new AreaType(), new RTRangeType(), new MZRangeType());
+  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(/*new RTType(),
+      new MZType(),*/ /*new HeightType(), new AreaType()*//*, new RTRangeType(), new MZRangeType()*/);
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
       List.of(new ScanNumbersType(), new RawFileType(), new DetectionType(), new MZType(),
-          new RTType(), new HeightType(), new AreaType(), new BestScanNumberType(),
-          new DataPointsType(), new RTRangeType(), new MZRangeType(), new IntensityRangeType());
+          new MZRangeType(), new RTType(), new RTRangeType(), new HeightType(), new AreaType(),
+          new BestScanNumberType(), new DataPointsType(), new IntensityRangeType());
 
 
   /**

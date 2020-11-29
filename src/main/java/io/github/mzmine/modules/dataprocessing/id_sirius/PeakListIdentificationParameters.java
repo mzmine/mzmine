@@ -20,10 +20,10 @@ package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 public class PeakListIdentificationParameters extends SiriusParameters {
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter(
       "Amount of Sirius candidates to return",

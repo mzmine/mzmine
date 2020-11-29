@@ -22,19 +22,20 @@ import static io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSear
 import static io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchParameters.MAX_ADDUCT_HEIGHT;
 import static io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchParameters.RT_TOLERANCE;
+
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -45,7 +46,7 @@ public class AdductSearchTask extends AbstractTask {
 
   private int finishedRows;
   private int totalRows;
-  private final PeakList peakList;
+  private final FeatureList peakList;
 
   private final RTTolerance rtTolerance;
   private final MZTolerance mzTolerance;
@@ -60,7 +61,7 @@ public class AdductSearchTask extends AbstractTask {
    * @param parameterSet the parameters.
    * @param list feature list.
    */
-  public AdductSearchTask(final ParameterSet parameterSet, final PeakList list) {
+  public AdductSearchTask(final ParameterSet parameterSet, final FeatureList list) {
 
     peakList = list;
     parameters = parameterSet;
@@ -101,7 +102,7 @@ public class AdductSearchTask extends AbstractTask {
 
         // Add task description to peakList.
         peakList.addDescriptionOfAppliedTask(
-            new SimplePeakListAppliedMethod("Identification of adducts", parameters));
+            new SimpleFeatureListAppliedMethod("Identification of adducts", parameters));
 
         // Done.
         setStatus(TaskStatus.FINISHED);
@@ -121,11 +122,11 @@ public class AdductSearchTask extends AbstractTask {
   private void searchAdducts() {
 
     // Get rows.
-    final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
+    final FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
     totalRows = rows.length;
 
     // Start with the highest peaks.
-    Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Height, SortingDirection.Descending));
+    Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.Height, SortingDirection.Descending));
 
     // Compare each pair of rows against each other.
     for (int i = 0; !isCanceled() && i < totalRows; i++) {
@@ -147,14 +148,14 @@ public class AdductSearchTask extends AbstractTask {
    * @param mainRow main peak.
    * @param possibleAdduct candidate adduct peak.
    */
-  private void findAdducts(final PeakListRow mainRow, final PeakListRow possibleAdduct) {
+  private void findAdducts(final FeatureListRow mainRow, final FeatureListRow possibleAdduct) {
 
     for (final AdductType adduct : selectedAdducts) {
 
       if (checkAdduct(mainRow, possibleAdduct, adduct)) {
 
         // Add adduct identity and notify GUI.
-        possibleAdduct.addPeakIdentity(new AdductIdentity(mainRow, adduct), false);
+        possibleAdduct.addFeatureIdentity(new AdductIdentity(mainRow, adduct), false);
       }
     }
   }
@@ -168,7 +169,7 @@ public class AdductSearchTask extends AbstractTask {
    * @return true if mass difference, retention time tolerance and adduct peak height conditions are
    *         met.
    */
-  private boolean checkAdduct(final PeakListRow mainPeak, final PeakListRow possibleAdduct,
+  private boolean checkAdduct(final FeatureListRow mainPeak, final FeatureListRow possibleAdduct,
       final AdductType adduct) {
 
     return

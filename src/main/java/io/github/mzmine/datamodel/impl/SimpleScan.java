@@ -40,7 +40,7 @@ public class SimpleScan implements Scan {
   private DataPoint dataPoints[];
   private double precursorMZ;
   private int precursorCharge;
-  private double retentionTime;
+  private float retentionTime;
   private double mobility;
   private Range<Double> mzRange;
   private DataPoint basePeak;
@@ -63,7 +63,7 @@ public class SimpleScan implements Scan {
   /**
    * Constructor for creating scan with given data
    */
-  public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, double retentionTime,double mobility,
+  public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,double mobility,
       double precursorMZ, int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
@@ -231,14 +231,14 @@ public class SimpleScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#
    */
-  public double getRetentionTime() {
+  public float getRetentionTime() {
     return retentionTime;
   }
 
   /**
    * @param retentionTime The retentionTime to set.
    */
-  public void setRetentionTime(double retentionTime) {
+  public void setRetentionTime(float retentionTime) {
     this.retentionTime = retentionTime;
   }
 

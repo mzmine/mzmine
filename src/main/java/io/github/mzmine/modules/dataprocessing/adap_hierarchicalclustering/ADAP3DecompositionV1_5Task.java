@@ -15,6 +15,14 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,20 +42,11 @@ import dulab.adap.datamodel.PeakInfo;
 import dulab.adap.workflow.TwoStepDecomposition;
 import dulab.adap.workflow.TwoStepDecompositionParameters;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -63,14 +62,14 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
   // Feature lists.
   private final MZmineProject project;
-  private final PeakList originalPeakList;
-  private PeakList newPeakList;
+  private final FeatureList originalPeakList;
+  private FeatureList newPeakList;
   private final TwoStepDecomposition decomposition;
 
   // User parameters
   private final ParameterSet parameters;
 
-  ADAP3DecompositionV1_5Task(final MZmineProject project, final PeakList list,
+  ADAP3DecompositionV1_5Task(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
     // Initialize.
     this.project = project;
@@ -114,14 +113,14 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
           if (!isCanceled()) {
 
             // Add new peaklist to the project.
-            project.addPeakList(newPeakList);
+            project.addFeatureList(newPeakList);
 
-            // Add quality parameters to peaks
-            QualityParameters.calculateQualityParameters(newPeakList);
+            //// Add quality parameters to peaks
+            //QualityParameters.calculateQualityParameters(newPeakList);
 
             // Remove the original peaklist if requested.
             if (parameters.getParameter(ADAP3DecompositionV1_5Parameters.AUTO_REMOVE).getValue()) {
-              project.removePeakList(originalPeakList);
+              project.removeFeatureList(originalPeakList);
             }
 
             setStatus(TaskStatus.FINISHED);
@@ -150,24 +149,24 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     }
   }
 
-  private PeakList decomposePeaks(PeakList peakList)
+  private FeatureList decomposePeaks(FeatureList peakList)
       throws CloneNotSupportedException, IOException {
     RawDataFile dataFile = peakList.getRawDataFile(0);
 
     // Create new feature list.
-    final PeakList resolvedPeakList = new SimplePeakList(
+    final ModularFeatureList resolvedPeakList = new ModularFeatureList(
         peakList + " "
             + parameters.getParameter(ADAP3DecompositionV1_5Parameters.SUFFIX).getValue(),
         dataFile);
 
     // Load previous applied methods.
-    for (final PeakList.PeakListAppliedMethod method : peakList.getAppliedMethods()) {
+    for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
       resolvedPeakList.addDescriptionOfAppliedTask(method);
     }
 
     // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Peak deconvolution by ADAP-3", parameters));
+        new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3", parameters));
 
     // Collect peak information
     List<Peak> peaks = getPeaks(peakList,
@@ -180,7 +179,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     List<Component> components = getComponents(peaks);
 
     // Create PeakListRow for each components
-    List<PeakListRow> newPeakListRows = new ArrayList<>();
+    List<FeatureListRow> newPeakListRows = new ArrayList<>();
 
     int rowID = 0;
 
@@ -188,11 +187,14 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       if (component.getSpectrum().isEmpty())
         continue;
 
-      PeakListRow row = new SimplePeakListRow(++rowID);
+      FeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
 
       // Add the reference peak
-      PeakListRow refPeakRow = originalPeakList.getRow(component.getBestPeak().getInfo().peakID);
-      Feature refPeak = new SimpleFeature(refPeakRow.getBestPeak());
+      FeatureListRow refPeakRow = originalPeakList.getRow(component.getBestPeak().getInfo().peakID);
+      // ?
+      refPeakRow.setFeatureList(resolvedPeakList);
+      // ?
+      Feature refPeak = new ModularFeature(refPeakRow.getBestFeature());
 
       // Add spectrum
       List<DataPoint> dataPoints = new ArrayList<>();
@@ -204,13 +206,13 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
           new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]),
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
 
-      row.addPeak(dataFile, refPeak);
+      row.addFeature(dataFile, refPeak);
 
       // Add PeakInformation
-      if (refPeakRow.getPeakInformation() == null) {
-        SimplePeakInformation information = new SimplePeakInformation(
-            new HashMap<>(refPeakRow.getPeakInformation().getAllProperties()));
-        row.setPeakInformation(information);
+      if (refPeakRow.getFeatureInformation() == null) {
+        SimpleFeatureInformation information = new SimpleFeatureInformation(
+            new HashMap<>(refPeakRow.getFeatureInformation().getAllProperties()));
+        row.setFeatureInformation(information);
       }
 
       // Set row properties
@@ -225,9 +227,9 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     // Sort new peak rows by retention time
     // ------------------------------------
 
-    Collections.sort(newPeakListRows, new Comparator<PeakListRow>() {
+    Collections.sort(newPeakListRows, new Comparator<FeatureListRow>() {
       @Override
-      public int compare(PeakListRow row1, PeakListRow row2) {
+      public int compare(FeatureListRow row1, FeatureListRow row2) {
         double retTime1 = row1.getAverageRT();
         double retTime2 = row2.getAverageRT();
 
@@ -235,7 +237,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       }
     });
 
-    for (PeakListRow row : newPeakListRows)
+    for (FeatureListRow row : newPeakListRows)
       resolvedPeakList.addRow(row);
 
     return resolvedPeakList;
@@ -251,22 +253,22 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
    */
 
   @Nonnull
-  public static List<Peak> getPeaks(final PeakList peakList, final double edgeToHeightThreshold,
+  public static List<Peak> getPeaks(final FeatureList peakList, final double edgeToHeightThreshold,
       final double deltaToHeightThreshold) {
     RawDataFile dataFile = peakList.getRawDataFile(0);
 
     List<Peak> peaks = new ArrayList<>();
 
-    for (PeakListRow row : peakList.getRows()) {
-      Feature peak = row.getBestPeak();
-      int[] scanNumbers = peak.getScanNumbers();
+    for (FeatureListRow row : peakList.getRows()) {
+      Feature peak = row.getBestFeature();
+      int[] scanNumbers = peak.getScanNumbers().stream().mapToInt(i -> i).toArray();
 
       // Build chromatogram
       NavigableMap<Double, Double> chromatogram = new TreeMap<>();
       for (int scanNumber : scanNumbers) {
         DataPoint dataPoint = peak.getDataPoint(scanNumber);
         if (dataPoint != null)
-          chromatogram.put(dataFile.getScan(scanNumber).getRetentionTime(),
+          chromatogram.put((double) dataFile.getScan(scanNumber).getRetentionTime(),
               dataPoint.getIntensity());
       }
 

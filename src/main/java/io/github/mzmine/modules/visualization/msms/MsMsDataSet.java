@@ -43,20 +43,21 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
   private static final double EPSILON = 0.0000001;
 
   private RawDataFile rawDataFile;
-  private Range<Double> totalRTRange, totalMZRange;
+  private Range<Double> totalMZRange;
+  private Range<Float> totalRTRange;
   private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans,
       allProcessedScans, processedColors, totalEntries, lastMSIndex;
   private final double[] rtValues, mzValues, intensityValues;
   private IntensityType intensityType;
   private NormalizationType normalizationType;
   private final int[] scanNumbers;
-  private double minPeakInt, maxIntensity;
+  private double minFeatureInt, maxIntensity;
   private Color[] colorValues;
 
   private TaskStatus status = TaskStatus.WAITING;
 
-  MsMsDataSet(RawDataFile rawDataFile, Range<Double> rtRange, Range<Double> mzRange,
-      IntensityType intensityType, NormalizationType normalizationType, Double minPeakInt,
+  MsMsDataSet(RawDataFile rawDataFile, Range<Float> rtRange, Range<Double> mzRange,
+      IntensityType intensityType, NormalizationType normalizationType, Double minFeatureInt,
       MsMsVisualizerTab visualizer) {
 
     this.rawDataFile = rawDataFile;
@@ -65,7 +66,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
     totalMZRange = mzRange;
     this.intensityType = intensityType;
     this.normalizationType = normalizationType;
-    this.minPeakInt = minPeakInt - EPSILON;
+    this.minFeatureInt = minFeatureInt - EPSILON;
 
     allScanNumbers = rawDataFile.getScanNumbers();
     msmsScanNumbers = rawDataFile.getScanNumbers(2, rtRange);
@@ -88,7 +89,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
   public void run() {
 
     status = TaskStatus.PROCESSING;
-    double totalScanIntensity, maxPeakIntensity;
+    double totalScanIntensity, maxFeatureIntensity;
 
     for (int index = 0; index < totalScans; index++) {
 
@@ -105,7 +106,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
       } else {
         Double precursorMZ = scan.getPrecursorMZ(); // Precursor m/z
         // value
-        Double scanRT = scan.getRetentionTime(); // Scan RT
+        Float scanRT = scan.getRetentionTime(); // Scan RT
 
         // Calculate total intensity
         totalScanIntensity = 0;
@@ -127,16 +128,16 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
           }
         }
 
-        maxPeakIntensity = 0;
+        maxFeatureIntensity = 0;
         DataPoint scanDataPoints[] = scan.getDataPoints();
         for (int x = 0; x < scanDataPoints.length; x++) {
-          if (maxPeakIntensity < scanDataPoints[x].getIntensity()) {
-            maxPeakIntensity = scanDataPoints[x].getIntensity();
+          if (maxFeatureIntensity < scanDataPoints[x].getIntensity()) {
+            maxFeatureIntensity = scanDataPoints[x].getIntensity();
           }
         }
 
         if (totalRTRange.contains(scanRT) && totalMZRange.contains(precursorMZ)
-            && maxPeakIntensity > minPeakInt) {
+            && maxFeatureIntensity > minFeatureInt) {
           // Add values to arrays
           rtValues[processedScans] = scanRT;
           mzValues[processedScans] = precursorMZ;
@@ -278,7 +279,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
     for (int row = 0; row < scanNumbers.length; row++) {
       Scan msscan = rawDataFile.getScan(scanNumbers[row]);
 
-      // Get total intensity of all peaks in MS/MS scan
+      // Get total intensity of all features in MS/MS scan
       if (scanNumbers[row] > 0) {
         DataPoint scanDataPoints[] = msscan.getDataPoints();
         double selectedIons[] = new double[scanDataPoints.length];

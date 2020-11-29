@@ -52,7 +52,7 @@ public class StandardsList {
    * @param rtRange
    * @return
    */
-  public StandardsList getInRanges(Range<Double> mzRange, Range<Double> rtRange) {
+  public StandardsList getInRanges(Range<Double> mzRange, Range<Float> rtRange) {
     if (mzRange != null && rtRange == null) {
       return getInMzRange(mzRange);
     }

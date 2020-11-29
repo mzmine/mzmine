@@ -18,8 +18,10 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.util.RangeUtils;
 import java.util.Collection;
 
+import java.util.Objects;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -86,14 +88,15 @@ public class ScanSelectionParameter
 
     Range<Integer> scanNumberRange = null;
     Integer baseFilteringInteger = null;
-    Range<Double> scanRTRange = null;
+    Range<Float> scanRTRange = null;
     PolarityType polarity = null;
     MassSpectrumType spectrumType = null;
     Integer msLevel = null;
     String scanDefinition = null;
 
     scanNumberRange = XMLUtils.parseIntegerRange(xmlElement, "scan_numbers");
-    scanRTRange = XMLUtils.parseDoubleRange(xmlElement, "retention_time");
+    scanRTRange = RangeUtils.toFloatRange(
+        Objects.requireNonNull(XMLUtils.parseDoubleRange(xmlElement, "retention_time")));
 
     NodeList items = xmlElement.getElementsByTagName("ms_level");
     for (int i = 0; i < items.getLength(); i++) {
@@ -130,7 +133,7 @@ public class ScanSelectionParameter
     Document parentDocument = xmlElement.getOwnerDocument();
 
     final Range<Integer> scanNumberRange = value.getScanNumberRange();
-    final Range<Double> scanRetentionTimeRange = value.getScanRTRange();
+    final Range<Float> scanRetentionTimeRange = value.getScanRTRange();
     final Integer baseFilteringInteger = value.getBaseFilteringInteger();
     final PolarityType polarity = value.getPolarity();
     final MassSpectrumType spectrumType = value.getSpectrumType();

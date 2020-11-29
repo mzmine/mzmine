@@ -40,7 +40,8 @@ public class BaseXYPlot extends XYPlot {
 
   public Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public Range<Double> totalRTRange, totalMZRange;
+  public Range<Double> totalMZRange;
+  public Range<Float> totalRTRange;
   public BufferedImage zoomOutBitmap;
 
   public TwoDDataSet dataset;
@@ -52,7 +53,7 @@ public class BaseXYPlot extends XYPlot {
   public boolean logScale;
   public double maxValue = 0;
 
-  BaseXYPlot(TwoDDataSet dataset, Range<Double> rtRange, Range<Double> mzRange,
+  BaseXYPlot(TwoDDataSet dataset, Range<Float> rtRange, Range<Double> mzRange,
       ValueAxis domainAxis, ValueAxis rangeAxis) {
 
     super(dataset, domainAxis, rangeAxis, null);

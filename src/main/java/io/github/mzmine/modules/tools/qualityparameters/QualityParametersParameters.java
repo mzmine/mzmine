@@ -20,12 +20,12 @@ package io.github.mzmine.modules.tools.qualityparameters;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class QualityParametersParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1);
+  public static final FeatureListsParameter peakLists = new FeatureListsParameter(1);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("S/N tolerance",
       "Sets the tolerance range for S/N calculations. For high resolving instruments 0 "

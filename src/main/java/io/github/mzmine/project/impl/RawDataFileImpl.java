@@ -72,7 +72,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   // Name of this raw data file - may be changed by the user
   private String dataFileName;
 
-  private final Hashtable<Integer, Range<Double>> dataMZRange, dataRTRange;
+  private final Hashtable<Integer, Range<Double>> dataMZRange;
+  private final Hashtable<Integer, Range<Float>> dataRTRange;
   private final Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
   private final Hashtable<Integer, int[]> scanNumbersCache;
 
@@ -103,7 +104,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     // Prepare the hashtables for scan numbers and data limits.
     scanNumbersCache = new Hashtable<Integer, int[]>();
     dataMZRange = new Hashtable<Integer, Range<Double>>();
-    dataRTRange = new Hashtable<Integer, Range<Double>>();
+    dataRTRange = new Hashtable<Integer, Range<Float>>();
     dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
     dataMaxTIC = new Hashtable<Integer, Double>();
     scans = new Hashtable<Integer, StorableScan>();
@@ -190,11 +191,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    * scan can be found.
    */
   @Override
-  public int getScanNumberAtRT(double rt, int mslevel) {
+  public int getScanNumberAtRT(float rt, int mslevel) {
     if (rt > getDataRTRange(mslevel).upperEndpoint()) {
       return -1;
     }
-    Range<Double> range = Range.closed(rt - 2, rt + 2);
+    Range<Float> range = Range.closed(rt - 2, rt + 2);
     int[] scanNumbers = getScanNumbers(mslevel, range);
     double minDiff = 10E6;
 
@@ -216,7 +217,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    * scan can be found.
    */
   @Override
-  public int getScanNumberAtRT(double rt) {
+  public int getScanNumberAtRT(float rt) {
     if (rt > getDataRTRange().upperEndpoint()) {
       return -1;
     }
@@ -244,7 +245,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     if (scanNumbersCache.containsKey(msLevel)) {
       return scanNumbersCache.get(msLevel);
     }
-    Range<Double> all = Range.all();
+    Range<Float> all = Range.all();
     int scanNumbers[] = getScanNumbers(msLevel, all);
     scanNumbersCache.put(msLevel, scanNumbers);
     return scanNumbers;
@@ -255,7 +256,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    */
   @Override
   public @Nonnull
-  int[] getScanNumbers(int msLevel, @Nonnull Range<Double> rtRange) {
+  int[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
 
     assert rtRange != null;
 
@@ -567,7 +568,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
   @Override
   @Nonnull
-  public Range<Double> getDataRTRange() {
+  public Range<Float> getDataRTRange() {
     return getDataRTRange(0);
   }
 
@@ -579,12 +580,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
   @Nonnull
   @Override
-  public Range<Double> getDataRTRange(Integer msLevel) {
+  public Range<Float> getDataRTRange(Integer msLevel) {
     if (msLevel == null) {
       return getDataRTRange();
     }
     // check if we have this value already cached
-    Range<Double> rtRange = dataRTRange.get(msLevel);
+    Range<Float> rtRange = dataRTRange.get(msLevel);
     if (rtRange != null) {
       return rtRange;
     }
@@ -609,7 +610,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     if (rtRange != null) {
       dataRTRange.put(msLevel, rtRange);
     } else {
-      rtRange = Range.singleton(0.0);
+      rtRange = Range.singleton(0.0f);
     }
 
     return rtRange;
@@ -621,7 +622,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return null;
   }
 
-  public void setRTRange(int msLevel, Range<Double> rtRange) {
+  public void setRTRange(int msLevel, Range<Float> rtRange) {
     dataRTRange.put(msLevel, rtRange);
   }
 

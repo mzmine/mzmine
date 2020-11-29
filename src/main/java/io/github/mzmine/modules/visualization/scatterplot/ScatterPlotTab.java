@@ -18,29 +18,24 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.WindowsMenu;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import javafx.geometry.Orientation;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import javax.annotation.Nonnull;
 
 /**
@@ -58,13 +53,13 @@ public class ScatterPlotTab extends MZmineTab {
   private final ScatterPlotChart chart;
   private final ScatterPlotTopPanel topPanel;
   private final ScatterPlotBottomPanel bottomPanel;
-  private PeakList peakList;
+  private FeatureList featureList;
 
-  public ScatterPlotTab(PeakList peakList) {
+  public ScatterPlotTab(FeatureList featureList) {
     super("Scatter plot Visualizer", true, false);
 
-    //setTitle("Scatter plot of " + peakList);
-    this.peakList = peakList;
+    //setTitle("Scatter plot of " + featureList);
+    this.featureList = featureList;
 
     mainPane = new BorderPane();
     //mainScene = new Scene(mainPane);
@@ -79,7 +74,7 @@ public class ScatterPlotTab extends MZmineTab {
     topPanel = new ScatterPlotTopPanel();
     mainPane.setTop(topPanel);
 
-    chart = new ScatterPlotChart(this, topPanel, peakList);
+    chart = new ScatterPlotChart(this, topPanel, featureList);
     // Border border = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
     // chart.setBorder(border);
     // chart.setBackground(Color.white);
@@ -102,7 +97,7 @@ public class ScatterPlotTab extends MZmineTab {
     // leftMargin.setOpaque(false);
     // add(leftMargin, BorderLayout.WEST);
 
-    bottomPanel = new ScatterPlotBottomPanel(this, chart, peakList);
+    bottomPanel = new ScatterPlotBottomPanel(this, chart, featureList);
     mainPane.setBottom(bottomPanel);
 
     // Add the Windows menu
@@ -127,18 +122,18 @@ public class ScatterPlotTab extends MZmineTab {
   @Nonnull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return peakList.getRawDataFiles();
+    return featureList.getRawDataFiles();
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
-    return new ArrayList<>(Collections.singletonList((ModularFeatureList)peakList));
+  public Collection<? extends FeatureList> getFeatureLists() {
+    return new ArrayList<>(Collections.singletonList((ModularFeatureList) featureList));
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -148,13 +143,13 @@ public class ScatterPlotTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }

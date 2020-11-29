@@ -18,28 +18,28 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelectionType;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * Peak intensity plot module
+ * Feature intensity plot module
  */
 public class IntensityPlotModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Peak intensity plot";
-  private static final String MODULE_DESCRIPTION = "Peak intensity plot."; // TODO
+  private static final String MODULE_NAME = "Feature intensity plot";
+  private static final String MODULE_DESCRIPTION = "Feature intensity plot."; // TODO
 
   @Override
   public @Nonnull String getName() {
@@ -61,20 +61,20 @@ public class IntensityPlotModule implements MZmineRunnableModule {
     return ExitCode.OK;
   }
 
-  public static void showIntensityPlot(@Nonnull MZmineProject project, PeakList peakList,
-      PeakListRow rows[]) {
+  public static void showIntensityPlot(@Nonnull MZmineProject project, FeatureList featureList,
+      FeatureListRow rows[]) {
 
     ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(IntensityPlotModule.class);
 
-    parameters.getParameter(IntensityPlotParameters.peakList)
-        .setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS, new PeakList[] {peakList});
+    parameters.getParameter(IntensityPlotParameters.featureList)
+        .setValue(FeatureListsSelectionType.SPECIFIC_FEATURELISTS, new FeatureList[] {featureList});
 
     parameters.getParameter(IntensityPlotParameters.dataFiles)
-        .setChoices(peakList.getRawDataFiles().toArray(RawDataFile[]::new));
+        .setChoices(featureList.getRawDataFiles().toArray(RawDataFile[]::new));
 
     parameters.getParameter(IntensityPlotParameters.dataFiles)
-        .setValue(peakList.getRawDataFiles().toArray(RawDataFile[]::new));
+        .setValue(featureList.getRawDataFiles().toArray(RawDataFile[]::new));
 
     parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(rows);
 
@@ -91,8 +91,8 @@ public class IntensityPlotModule implements MZmineRunnableModule {
     ExitCode exitCode = parameters.showSetupDialog(true);
 
     if (exitCode == ExitCode.OK) {
-      PeakListRow selectedRows[] =
-          parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(peakList);
+      FeatureListRow selectedRows[] =
+          parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(featureList);
       if (selectedRows.length == 0) {
         MZmineCore.getDesktop().displayErrorMessage("No rows selected");
         return;
@@ -107,7 +107,7 @@ public class IntensityPlotModule implements MZmineRunnableModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
+    return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
   }
 
   @Override

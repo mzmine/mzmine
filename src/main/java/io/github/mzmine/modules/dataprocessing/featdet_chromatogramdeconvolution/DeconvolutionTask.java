@@ -23,19 +23,20 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.RetentionTimeMSMS;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.SUFFIX;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.mzRangeMSMS;
+
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureConvertors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -51,8 +52,8 @@ public class DeconvolutionTask extends AbstractTask {
 
   // Feature lists.
   private final MZmineProject project;
-  private final PeakList originalPeakList;
-  private PeakList newPeakList;
+  private final FeatureList originalPeakList;
+  private FeatureList newPeakList;
 
   // Counters.
   private int processedRows;
@@ -64,7 +65,8 @@ public class DeconvolutionTask extends AbstractTask {
   private RSessionWrapper rSession;
   private String errorMsg;
   private boolean setMSMSRange, setMSMSRT;
-  private double msmsRange, RTRangeMSMS;
+  private double msmsRange;
+  private float RTRangeMSMS;
 
   // function to find center mz of all feature data points
   private final CenterFunction mzCenterFunction;
@@ -75,7 +77,7 @@ public class DeconvolutionTask extends AbstractTask {
    * @param list feature list to operate on.
    * @param parameterSet task parameters.
    */
-  public DeconvolutionTask(final MZmineProject project, final PeakList list,
+  public DeconvolutionTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet, CenterFunction mzCenterFunction) {
 
     // Initialize.
@@ -147,14 +149,14 @@ public class DeconvolutionTask extends AbstractTask {
           if (!isCanceled()) {
 
             // Add new peaklist to the project.
-            project.addPeakList(newPeakList);
+            project.addFeatureList(newPeakList);
 
             // Add quality parameters to peaks
-            QualityParameters.calculateQualityParameters(newPeakList);
+            //QualityParameters.calculateQualityParameters(newPeakList);
 
             // Remove the original peaklist if requested.
             if (parameters.getParameter(AUTO_REMOVE).getValue()) {
-              project.removePeakList(originalPeakList);
+              project.removeFeatureList(originalPeakList);
             }
 
             setStatus(TaskStatus.FINISHED);
@@ -207,7 +209,7 @@ public class DeconvolutionTask extends AbstractTask {
    * @return a new feature list holding the resolved peaks.
    * @throws RSessionWrapperException
    */
-  private PeakList resolvePeaks(final PeakList peakList, RSessionWrapper rSession)
+  private FeatureList resolvePeaks(final FeatureList peakList, RSessionWrapper rSession)
       throws RSessionWrapperException {
 
     // Get data file information.
@@ -226,22 +228,22 @@ public class DeconvolutionTask extends AbstractTask {
     this.setMSMSRT = parameters.getParameter(RetentionTimeMSMS).getValue();
     if (setMSMSRT)
       this.RTRangeMSMS =
-          parameters.getParameter(RetentionTimeMSMS).getEmbeddedParameter().getValue();
+          parameters.getParameter(RetentionTimeMSMS).getEmbeddedParameter().getValue().floatValue();
     else
       this.RTRangeMSMS = 0;
 
     // Create new feature list.
-    final PeakList resolvedPeaks =
-        new SimplePeakList(peakList + " " + parameters.getParameter(SUFFIX).getValue(), dataFile);
+    final FeatureList resolvedPeaks =
+        new ModularFeatureList(peakList + " " + parameters.getParameter(SUFFIX).getValue(), dataFile);
 
     // Load previous applied methods.
-    for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
+    for (final FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
 
       resolvedPeaks.addDescriptionOfAppliedTask(method);
     }
 
     // Add task description to feature list.
-    resolvedPeaks.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+    resolvedPeaks.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Peak deconvolution by " + resolver, resolver.getParameterSet()));
 
     // Initialise counters.
@@ -250,12 +252,12 @@ public class DeconvolutionTask extends AbstractTask {
     int peakId = 1;
 
     // Process each chromatogram.
-    final PeakListRow[] peakListRows = peakList.getRows().toArray(PeakListRow[]::new);
+    final FeatureListRow[] peakListRows = peakList.getRows().toArray(FeatureListRow[]::new);
     final int chromatogramCount = peakListRows.length;
     for (int index = 0; !isCanceled() && index < chromatogramCount; index++) {
 
-      final PeakListRow currentRow = peakListRows[index];
-      final Feature chromatogram = currentRow.getPeak(dataFile);
+      final FeatureListRow currentRow = peakListRows[index];
+      final Feature chromatogram = currentRow.getFeature(dataFile);
 
       // Resolve peaks.
       final PeakResolver resolverModule = resolver.getModule();
@@ -268,9 +270,9 @@ public class DeconvolutionTask extends AbstractTask {
 
         peak.setParentChromatogramRowID(currentRow.getID());
 
-        final PeakListRow newRow = new SimplePeakListRow(peakId++);
-        newRow.addPeak(dataFile, peak);
-        newRow.setPeakInformation(peak.getPeakInformation());
+        final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) resolvedPeaks, peakId++);
+        newRow.addFeature(dataFile, FeatureConvertors.ResolvedPeakToMoularFeature(peak));
+        newRow.setFeatureInformation(peak.getPeakInformation());
         resolvedPeaks.addRow(newRow);
       }
 

@@ -379,7 +379,7 @@ public class NetCDFReadTask extends AbstractTask {
     scanLength[0] = startAndLength[1];
 
     // Get retention time of the scan
-    Double retentionTime = scansRetentionTimes.get(scanNum);
+    Float retentionTime = scansRetentionTimes.get(scanNum).floatValue();
     if (retentionTime == null) {
       logger.severe("Could not find retention time for scan " + scanNum);
       throw (new IOException("Could not find retention time for scan " + scanNum));
@@ -389,7 +389,7 @@ public class NetCDFReadTask extends AbstractTask {
     if (scanLength[0] == 0) {
       scanNum++;
 
-      return new SimpleScan(null, scanNum, 1, retentionTime.doubleValue(), 0.0,
+      return new SimpleScan(null, scanNum, 1, retentionTime, 0.0,
               0, 0, null, new DataPoint[0], MassSpectrumType.CENTROIDED,
               PolarityType.UNKNOWN, "", null);
     }
@@ -434,7 +434,7 @@ public class NetCDFReadTask extends AbstractTask {
     // Auto-detect whether this scan is centroided
     MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-    SimpleScan buildingScan = new SimpleScan(null, scanNum, 1, retentionTime.doubleValue(),
+    SimpleScan buildingScan = new SimpleScan(null, scanNum, 1, retentionTime,
             0.0, 0,0,null,dataPoints, spectrumType, polarity,
             scanDefinition, null);
 

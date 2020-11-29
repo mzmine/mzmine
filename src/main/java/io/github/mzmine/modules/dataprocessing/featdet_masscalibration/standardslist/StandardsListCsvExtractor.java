@@ -80,7 +80,7 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
         String retentionTimeString = lineValues[retentionTimeColumn];
         String molecularFormula = lineValues[ionFormulaColumn];
         String name = nameColumn < lineValues.length ? lineValues[nameColumn] : null;
-        double retentionTime = Double.valueOf(retentionTimeString);
+        float retentionTime = (float) Double.parseDouble(retentionTimeString);
         StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime);
         if (name != null && name.trim().isEmpty() == false) {
           calibrant.setName(name);

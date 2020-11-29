@@ -211,12 +211,12 @@ public class MzXMLReadTask extends AbstractTask {
         peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
 
         // Parse retention time
-        double retentionTime = 0;
+        float retentionTime = 0;
         String retentionTimeStr = attrs.getValue("retentionTime");
         if (retentionTimeStr != null) {
           Date currentDate = new Date();
           Duration dur = dataTypeFactory.newDuration(retentionTimeStr);
-          retentionTime = dur.getTimeInMillis(currentDate) / 1000d / 60d;
+          retentionTime = (float) (dur.getTimeInMillis(currentDate) / 1000d / 60d);
         } else {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("This file does not contain retentionTime for scans");

@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogFX;
 import javafx.application.Platform;
 import org.jfree.data.xy.AbstractXYZDataset;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
@@ -52,7 +52,7 @@ public class RTMZAnalyzerWindow extends Stage {
   private final RTMZPlot plot;
 
 
-  public RTMZAnalyzerWindow(AbstractXYZDataset dataset, PeakList peakList,
+  public RTMZAnalyzerWindow(AbstractXYZDataset dataset, FeatureList featureList,
       InterpolatingLookupPaintScale paintScale) {
 
     mainPane = new BorderPane();
@@ -98,7 +98,7 @@ public class RTMZAnalyzerWindow extends Stage {
 
       });
 
-    String title = peakList.getName();
+    String title = featureList.getName();
     title = title.concat(" : ");
     title = title.concat(dataset.toString());
     this.setTitle(title);

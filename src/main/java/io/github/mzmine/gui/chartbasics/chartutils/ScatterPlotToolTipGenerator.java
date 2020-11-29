@@ -18,13 +18,13 @@
 
 package io.github.mzmine.gui.chartbasics.chartutils;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
 import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.chart.util.PublicCloneable;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 
 /**
@@ -36,11 +36,11 @@ public class ScatterPlotToolTipGenerator implements XYZToolTipGenerator, PublicC
 
   private String xAxisLabel, yAxisLabel, zAxisLabel;
   private NumberFormat numberFormat = MZmineCore.getConfiguration().getMZFormat();
-  private PeakListRow rows[];
+  private FeatureListRow rows[];
   private String featureIdentity;
 
   public ScatterPlotToolTipGenerator(String xAxisLabel, String yAxisLabel, String zAxisLabel,
-      PeakListRow rows[]) {
+      FeatureListRow rows[]) {
     super();
     this.xAxisLabel = xAxisLabel;
     this.yAxisLabel = yAxisLabel;
@@ -51,8 +51,8 @@ public class ScatterPlotToolTipGenerator implements XYZToolTipGenerator, PublicC
 
   @Override
   public String generateToolTip(XYZDataset dataset, int series, int item) {
-    if (rows[item].getPreferredPeakIdentity() != null) {
-      featureIdentity = rows[item].getPreferredPeakIdentity().getName();
+    if (rows[item].getPreferredFeatureIdentity() != null) {
+      featureIdentity = rows[item].getPreferredFeatureIdentity().getName();
       return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormat.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormat.format(dataset.getYValue(series, item)) + " " + zAxisLabel + ": "
@@ -66,8 +66,8 @@ public class ScatterPlotToolTipGenerator implements XYZToolTipGenerator, PublicC
 
   @Override
   public String generateToolTip(XYDataset dataset, int series, int item) {
-    if (rows[item].getPreferredPeakIdentity() != null) {
-      featureIdentity = rows[item].getPreferredPeakIdentity().getName();
+    if (rows[item].getPreferredFeatureIdentity() != null) {
+      featureIdentity = rows[item].getPreferredFeatureIdentity().getName();
       return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormat.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormat.format(dataset.getYValue(series, item)));

@@ -18,20 +18,20 @@
 
 package io.github.mzmine.modules.dataprocessing.id_complexsearch;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -40,7 +40,7 @@ public class ComplexSearchTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private int finishedRows, totalRows;
-  private PeakList peakList;
+  private FeatureList peakList;
 
   private RTTolerance rtTolerance;
   private MZTolerance mzTolerance;
@@ -52,7 +52,7 @@ public class ComplexSearchTask extends AbstractTask {
    * @param parameters
    * @param peakList
    */
-  public ComplexSearchTask(ParameterSet parameters, PeakList peakList) {
+  public ComplexSearchTask(ParameterSet parameters, FeatureList peakList) {
 
     this.peakList = peakList;
     this.parameters = parameters;
@@ -92,18 +92,19 @@ public class ComplexSearchTask extends AbstractTask {
 
     logger.info("Starting complex search in " + peakList);
 
-    PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
+    FeatureListRow rows[] = peakList.getRows().toArray(FeatureListRow[]::new);
     totalRows = rows.length;
 
     // Sort the array by m/z so we start with biggest peak (possible
     // complex)
-    Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Descending));
+    Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Descending));
 
     // Compare each three rows against each other
     for (int i = 0; i < totalRows; i++) {
 
-      Range<Double> testRTRange = rtTolerance.getToleranceRange(rows[i].getAverageRT());
-      PeakListRow testRows[] = peakList.getRowsInsideScanRange(testRTRange);
+      Range<Float> testRTRange = rtTolerance.getToleranceRange(rows[i].getAverageRT());
+      FeatureListRow testRows[] = peakList.getRowsInsideScanRange(testRTRange)
+          .toArray(new FeatureListRow[0]);
 
       for (int j = 0; j < testRows.length; j++) {
 
@@ -130,8 +131,8 @@ public class ComplexSearchTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    ((SimplePeakList) peakList).addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Identification of complexes", parameters));
+    ((ModularFeatureList) peakList).addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Identification of complexes", parameters));
 
 
     setStatus(TaskStatus.FINISHED);
@@ -144,10 +145,10 @@ public class ComplexSearchTask extends AbstractTask {
    * Check if candidate peak may be a possible complex of given two peaks
    *
    */
-  private boolean checkComplex(PeakListRow complexRow, PeakListRow row1, PeakListRow row2) {
+  private boolean checkComplex(FeatureListRow complexRow, FeatureListRow row1, FeatureListRow row2) {
 
     // Check retention time condition
-    Range<Double> rtRange = rtTolerance.getToleranceRange(complexRow.getAverageRT());
+    Range<Float> rtRange = rtTolerance.getToleranceRange(complexRow.getAverageRT());
     if (!rtRange.contains(row1.getAverageRT()))
       return false;
     if (!rtRange.contains(row2.getAverageRT()))
@@ -175,9 +176,9 @@ public class ComplexSearchTask extends AbstractTask {
    * @param mainRow
    * @param fragmentRow
    */
-  private void addComplexInfo(PeakListRow complexRow, PeakListRow row1, PeakListRow row2) {
+  private void addComplexInfo(FeatureListRow complexRow, FeatureListRow row1, FeatureListRow row2) {
     ComplexIdentity newIdentity = new ComplexIdentity(row1, row2);
-    complexRow.addPeakIdentity(newIdentity, false);
+    complexRow.addFeatureIdentity(newIdentity, false);
   }
 
 }

@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import java.text.DecimalFormat;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.collections.FXCollections;
 
@@ -35,9 +35,9 @@ import javafx.collections.FXCollections;
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
 public class VanKrevelenDiagramParameters extends SimpleParameterSet {
-  public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
-  public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
+  public static final FeatureSelectionParameter selectedRows = new FeatureSelectionParameter();
 
   public static final ComboParameter<String> zAxisValues = new ComboParameter<>("Z-Axis",
       "Select a parameter for a third dimension, displayed as a heatmap or select none for a 2D plot",
@@ -62,7 +62,7 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public VanKrevelenDiagramParameters() {
-    super(new Parameter[] {peakList, selectedRows, zAxisValues, zScaleType, zScaleRange, paintScale,
+    super(new Parameter[] {featureList, selectedRows, zAxisValues, zScaleType, zScaleRange, paintScale,
         windowSettings});
   }
 

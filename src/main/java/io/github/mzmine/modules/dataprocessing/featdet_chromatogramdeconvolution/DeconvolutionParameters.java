@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.maths.CenterMeasure;
 
 public class DeconvolutionParameters extends SimpleParameterSet {
@@ -41,7 +41,7 @@ public class DeconvolutionParameters extends SimpleParameterSet {
       new NoiseAmplitudePeakDetector(), new SavitzkyGolayPeakDetector(),
       new MinimumSearchPeakDetector(), new CentWaveDetector(), new ADAPDetector()};
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
       "This string is added to feature list name as suffix", "deconvoluted");

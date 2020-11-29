@@ -18,14 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.FeatureConvertors;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -71,8 +72,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
   private BorderPane pnlVisible;
   private GridPane pnlLabelsFields;
   private BorderPane previewPanel;
-  private ComboBox<PeakList> comboPeakList;
-  private ComboBox<PeakListRow> comboPeak;
+  private ComboBox<FeatureList> comboPeakList;
+  private ComboBox<FeatureListRow> comboPeak;
   private CheckBox preview;
 
   private TICPlot ticPlot;
@@ -115,7 +116,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
     parameters = resolverParameters;
 
-    final PeakList[] peakLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+    final FeatureList[] peakLists = MZmineCore.getProjectManager().getCurrentProject()
+        .getFeatureLists().toArray(new FeatureList[0]);
 
     // Elements of panel.
     preview = new CheckBox("Show preview");
@@ -132,7 +134,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         // pack();
 
         // Set selections.
-        final PeakList[] selected = MZmineCore.getDesktop().getSelectedPeakLists();
+        final FeatureList[] selected = MZmineCore.getDesktop().getSelectedPeakLists();
         if (selected.length > 0) {
           comboPeakList.getSelectionModel().select(selected[0]);
         } else {
@@ -156,11 +158,11 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     // previewPanel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
     // Feature list combo-box.
-    comboPeakList = new ComboBox<PeakList>();
+    comboPeakList = new ComboBox<FeatureList>();
     // comboPeakList.setFont(COMBO_FONT);
     for (
 
-    final PeakList peakList : peakLists) {
+    final FeatureList peakList : peakLists) {
       if (peakList.getNumberOfRawDataFiles() == 1) {
         comboPeakList.getItems().add(peakList);
       }
@@ -168,7 +170,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     comboPeakList.setOnAction(e -> {
       // Remove current peaks (suspend listener).
 
-      ObservableList<PeakListRow> newItems = FXCollections
+      ObservableList<FeatureListRow> newItems = FXCollections
           .observableArrayList(comboPeakList.getSelectionModel().getSelectedItem().getRows());
       comboPeak.setItems(newItems);
 
@@ -180,13 +182,13 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     });
 
     // Peaks combo box.
-    comboPeak = new ComboBox<PeakListRow>();
+    comboPeak = new ComboBox<FeatureListRow>();
     // comboPeak.setFont(COMBO_FONT);
 
     comboPeak.setCellFactory(p -> {
-      return new ListCell<PeakListRow>() {
+      return new ListCell<FeatureListRow>() {
         @Override
-        protected void updateItem(PeakListRow item, boolean empty) {
+        protected void updateItem(FeatureListRow item, boolean empty) {
           super.updateItem(item, empty);
 
           if (item == null || empty) {
@@ -241,13 +243,13 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
     if (preview != null && preview.isSelected()) {
 
-      final PeakListRow previewRow = comboPeak.getSelectionModel().getSelectedItem();
+      final FeatureListRow previewRow = comboPeak.getSelectionModel().getSelectedItem();
       if (previewRow != null) {
 
         logger.finest("Loading new preview peak " + previewRow);
 
         ticPlot.removeAllDataSets();
-        ticPlot.addDataSet(new ChromatogramTICDataSet(previewRow.getPeaks()[0]));
+        ticPlot.addDataSet(new ChromatogramTICDataSet(previewRow.getFeatures().get(0)));
 
         // Auto-range to axes.
         ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
@@ -266,10 +268,10 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         }
 
         // Load the intensities and RTs into array.
-        final Feature previewPeak = previewRow.getPeaks()[0];
+        final Feature previewPeak = previewRow.getFeatures().get(0);
 
         // Resolve peaks.
-        Feature[] resolvedPeaks = {};
+        ResolvedPeak[] resolvedPeaks = {};
         RSessionWrapper rSession;
         try {
 
@@ -309,7 +311,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         final int peakCount = Math.min(MAX_PEAKS, resolvedPeaks.length);
         for (int i = 0; i < peakCount; i++) {
 
-          final FeatureDataSet featureDataSet = new FeatureDataSet(resolvedPeaks[i]);
+          final FeatureDataSet featureDataSet
+              = new FeatureDataSet(FeatureConvertors.ResolvedPeakToMoularFeature(resolvedPeaks[i]));
           ticPlot.addFeatureDataSet(featureDataSet);
         }
 

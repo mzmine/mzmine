@@ -28,17 +28,16 @@ import com.google.common.collect.Range;
  */
 public class RTTolerance {
 
-  private final double tolerance;
+  private final float tolerance;
   private final Unit unit;
 
-  public RTTolerance(final double rtTolerance, Unit unit) {
-
+  public RTTolerance(final float rtTolerance, Unit unit) {
     this.tolerance = rtTolerance;
     this.unit = unit;
   }
 
   // old constructor for compatibility with other mzmine branches and pull requests
-  public RTTolerance(final boolean isAbsolute, final double rtTolerance) {
+  public RTTolerance(final boolean isAbsolute, final float rtTolerance) {
       this(rtTolerance, isAbsolute ? Unit.MINUTES : Unit.PERCENT);
   }
 
@@ -55,10 +54,9 @@ public class RTTolerance {
     return unit;
   }
 
-
-  public Range<Double> getToleranceRange(final double rtValue) {
+  public Range<Float> getToleranceRange(final float rtValue) {
     // rtValue is given in minutes
-    double absoluteTolerance;
+    float absoluteTolerance;
     switch (unit) {
       case SECONDS:
         absoluteTolerance = tolerance / 60;
@@ -74,7 +72,7 @@ public class RTTolerance {
     return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
   }
 
-  public boolean checkWithinTolerance(final double rt1, final double rt2) {
+  public boolean checkWithinTolerance(final float rt1, final float rt2) {
 
     return getToleranceRange(rt1).contains(rt2);
   }

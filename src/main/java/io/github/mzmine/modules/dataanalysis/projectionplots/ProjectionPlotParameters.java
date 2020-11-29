@@ -21,24 +21,24 @@ package io.github.mzmine.modules.dataanalysis.projectionplots;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class ProjectionPlotParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final RawDataFilesParameter dataFiles =
       new RawDataFilesParameter(new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
 
   public static final ColoringTypeParameter coloringType = new ColoringTypeParameter();
 
-  public static final ComboParameter<PeakMeasurementType> peakMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure peaks using",
-          PeakMeasurementType.values());
+  public static final ComboParameter<FeatureMeasurementType> featureMeasurementType =
+      new ComboParameter<FeatureMeasurementType>("Peak measurement type", "Measure features using",
+          FeatureMeasurementType.values());
 
   public static final Integer[] componentPossibleValues = {1, 2, 3, 4, 5};
 
@@ -50,7 +50,7 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
           componentPossibleValues, componentPossibleValues[1]);
 
   public ProjectionPlotParameters() {
-    super(new Parameter[] {peakLists, dataFiles, coloringType, peakMeasurementType, xAxisComponent,
+    super(new Parameter[] {featureLists, dataFiles, coloringType, featureMeasurementType, xAxisComponent,
         yAxisComponent});
   }
 

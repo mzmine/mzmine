@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.util.RangeUtils;
 import java.text.NumberFormat;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -50,6 +51,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
   private final BorderPane pnlPreviewFields = new BorderPane();
   private final ComboBox<RawDataFile> comboDataFileName = new ComboBox<RawDataFile>(
       MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+  // TODO: FloatRangeComponent
   private final DoubleRangeComponent rtRangeBox =
       new DoubleRangeComponent(MZmineCore.getConfiguration().getRTFormat());
   private final DoubleRangeComponent mzRangeBox =
@@ -121,7 +123,8 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     ticViewComboBox.getSelectionModel().select(TICPlotType.TIC);
     ticViewComboBox.setOnAction(e -> parametersChanged());
 
-    rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
+    // TODO: FloatRangeComponent
+    rtRangeBox.setValue(Range.closed(previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue(), previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue()));
     mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
 
     pnlFlds.getChildren().add(comboDataFileName);
@@ -153,7 +156,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
    *
    * @param dataFile
    */
-  protected abstract void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range<Double> rtRange,
+  protected abstract void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange);
 
   private void updateTitle() {
@@ -215,7 +218,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
       return;
 
-    Range<Double> rtRange = rtRangeBox.getValue();
+    Range<Float> rtRange = RangeUtils.toFloatRange(rtRangeBox.getValue());
     Range<Double> mzRange = mzRangeBox.getValue();
     updateParameterSetFromComponents();
 

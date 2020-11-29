@@ -72,7 +72,8 @@ public class NativeFileReadTask extends AbstractTask {
   private String scanId;
   private PolarityType polarity;
   private Range<Double> mzRange;
-  private double retentionTime = 0, precursorMZ = 0;
+  private float retentionTime = 0;
+  private double precursorMZ = 0;
 
   public NativeFileReadTask(MZmineProject project, File fileToOpen, RawDataFileType fileType,
       RawDataFileWriter newMZmineFile) {
@@ -239,7 +240,7 @@ public class NativeFileReadTask extends AbstractTask {
 
       if (line.startsWith("RETENTION TIME: ")) {
         // Retention time is reported in minutes.
-        retentionTime = Double.parseDouble(line.substring("RETENTION TIME: ".length()));
+        retentionTime = (float) Double.parseDouble(line.substring("RETENTION TIME: ".length()));
       }
 
       if (line.startsWith("PRECURSOR: ")) {

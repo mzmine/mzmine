@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.histogram;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,15 +30,14 @@ import org.jfree.data.statistics.HistogramType;
 import org.jfree.data.xy.AbstractIntervalXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 
 public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   private static final long serialVersionUID = 1L;
   private HistogramDataType dataType;
-  private PeakList peakList;
+  private FeatureList featureList;
   private RawDataFile[] rawDataFiles;
   private int numOfBins;
   private double maximum, minimum;
@@ -48,13 +48,13 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
   /** The histogram type. */
   private HistogramType type;
 
-  public HistogramPlotDataset(PeakList peakList, RawDataFile[] rawDataFiles, int numOfBins,
+  public HistogramPlotDataset(FeatureList featureList, RawDataFile[] rawDataFiles, int numOfBins,
       HistogramDataType dataType, Range<Double> range) {
 
     this.list = new Vector<HashMap<?, ?>>();
     this.type = HistogramType.FREQUENCY;
     this.dataType = dataType;
-    this.peakList = peakList;
+    this.featureList = featureList;
     this.numOfBins = numOfBins;
     this.rawDataFiles = rawDataFiles;
 
@@ -67,24 +67,24 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   public void updateHistogramDataset() {
     this.list.clear();
-    Feature[] peaks;
+    Feature[] features;
     double[] values = null;
     for (RawDataFile dataFile : rawDataFiles) {
-      peaks = peakList.getPeaks(dataFile).toArray(Feature[]::new);
-      values = new double[peaks.length];
-      for (int i = 0; i < peaks.length; i++) {
+      features = featureList.getFeatures(dataFile).toArray(Feature[]::new);
+      values = new double[features.length];
+      for (int i = 0; i < features.length; i++) {
         switch (dataType) {
           case AREA:
-            values[i] = peaks[i].getArea();
+            values[i] = features[i].getArea();
             break;
           case HEIGHT:
-            values[i] = peaks[i].getHeight();
+            values[i] = features[i].getHeight();
             break;
           case MASS:
-            values[i] = peaks[i].getMZ();
+            values[i] = features[i].getMZ();
             break;
           case RT:
-            values[i] = peaks[i].getRT();
+            values[i] = features[i].getRT();
             break;
         }
 
@@ -120,8 +120,8 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
     this.dataType = dataType;
   }
 
-  public PeakList getPeakList() {
-    return this.peakList;
+  public FeatureList getFeatureList() {
+    return this.featureList;
   }
 
   /**

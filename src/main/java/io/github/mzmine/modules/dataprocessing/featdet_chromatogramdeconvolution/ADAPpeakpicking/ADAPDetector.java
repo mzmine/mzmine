@@ -31,6 +31,7 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.ABS_WAV_COEFFS;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.HALF_WAVELET_WINDOW;
 
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +41,8 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.PeakInfo;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
@@ -103,13 +103,13 @@ public class ADAPDetector implements PeakResolver {
   @Override
   public ResolvedPeak[] resolvePeaks(final Feature chromatogram, final ParameterSet parameters,
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
-      double rTRangeMSMS) throws RSessionWrapperException {
+      float rTRangeMSMS) throws RSessionWrapperException {
 
-    int scanNumbers[] = chromatogram.getScanNumbers();
+    int scanNumbers[] = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
     final int scanCount = scanNumbers.length;
     double retentionTimes[] = new double[scanCount];
     double intensities[] = new double[scanCount];
-    RawDataFile dataFile = chromatogram.getDataFile();
+    RawDataFile dataFile = chromatogram.getRawDataFile();
     for (int i = 0; i < scanCount; i++) {
       final int scanNum = scanNumbers[i];
       retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
@@ -198,7 +198,7 @@ public class ADAPDetector implements PeakResolver {
 
         PeakInfo curPeak = ADAPPeaks.get(i);
 
-        SimplePeakInformation information = new SimplePeakInformation();
+        SimpleFeatureInformation information = new SimpleFeatureInformation();
         information.addProperty("Signal-to-Noise", Double.toString(curPeak.signalToNoiseRatio));
         information.addProperty("Coefficient-over-area", Double.toString(curPeak.coeffOverArea));
         // information.addProperty("index",

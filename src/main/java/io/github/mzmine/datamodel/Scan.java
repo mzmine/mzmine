@@ -57,7 +57,7 @@ public interface Scan extends MassSpectrum {
    *
    * @return Retention time of this scan in minutes
    */
-  public double getRetentionTime();
+  public float getRetentionTime();
 
   /**
    *

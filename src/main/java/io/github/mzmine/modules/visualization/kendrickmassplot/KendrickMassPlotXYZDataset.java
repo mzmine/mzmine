@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jfree.data.xy.AbstractXYZDataset;
 
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
 
@@ -34,7 +34,7 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   private static final long serialVersionUID = 1L;
 
-  private PeakListRow selectedRows[];
+  private FeatureListRow selectedRows[];
   private String xAxisKMBase;
   private String zAxisKMBase;
   private String customYAxisKMBase;
@@ -47,13 +47,13 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   public KendrickMassPlotXYZDataset(ParameterSet parameters) {
 
-    PeakList peakList = parameters.getParameter(KendrickMassPlotParameters.peakList).getValue()
-        .getMatchingPeakLists()[0];
+    FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
+        .getMatchingFeatureLists()[0];
 
     this.parameters = parameters;
 
     this.selectedRows =
-        parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(peakList);
+        parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(featureList);
 
     this.customYAxisKMBase =
         parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue();
@@ -127,13 +127,13 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
         } else if (zAxisKMBase.equals("Area")) {
           zValues[i] = selectedRows[i].getAverageArea();
         } else if (zAxisKMBase.equals("Tailing factor")) {
-          zValues[i] = selectedRows[i].getBestPeak().getTailingFactor();
+          zValues[i] = selectedRows[i].getBestFeature().getTailingFactor();
         } else if (zAxisKMBase.equals("Asymmetry factor")) {
-          zValues[i] = selectedRows[i].getBestPeak().getAsymmetryFactor();
+          zValues[i] = selectedRows[i].getBestFeature().getAsymmetryFactor();
         } else if (zAxisKMBase.equals("FWHM")) {
-          zValues[i] = selectedRows[i].getBestPeak().getFWHM();
+          zValues[i] = selectedRows[i].getBestFeature().getFWHM();
         } else if (zAxisKMBase.equals("m/z")) {
-          zValues[i] = selectedRows[i].getBestPeak().getMZ();
+          zValues[i] = selectedRows[i].getBestFeature().getMZ();
         }
       }
   }

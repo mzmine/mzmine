@@ -144,7 +144,7 @@ public class CsvReadTask extends AbstractTask {
         if (columns == null || columns.length != mzs.length + 1)
           continue;
 
-        double rt = Double.valueOf(columns[0]) / 60;
+        float rt = (float) (Double.valueOf(columns[0]) / 60);
 
         DataPoint dataPoints[] = new SimpleDataPoint[mzs.length];
         for (int i = 0; i < dataPoints.length; i++) {

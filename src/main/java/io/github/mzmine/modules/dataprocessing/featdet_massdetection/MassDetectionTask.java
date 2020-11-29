@@ -112,7 +112,7 @@ public class MassDetectionTask extends AbstractTask {
     ArrayList<Double> allIntensities = new ArrayList<>();
     // idecies of full mass list where scan starts?
     ArrayList<Integer> startIndex = new ArrayList<>();
-    ArrayList<Double> scanAcquisitionTime = new ArrayList<>();
+    ArrayList<Float> scanAcquisitionTime = new ArrayList<>();
     // XCMS needs this one
     ArrayList<Double> totalIntensity = new ArrayList<>();
 

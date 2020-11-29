@@ -23,11 +23,11 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 public class MZTabmExportParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
@@ -39,6 +39,6 @@ public class MZTabmExportParameters extends SimpleParameterSet {
       , "Include peaks with unknown identity");
 
   public MZTabmExportParameters() {
-    super(new Parameter[]{peakLists, filename, exportAll});
+    super(new Parameter[]{featureLists, filename, exportAll});
   }
 }

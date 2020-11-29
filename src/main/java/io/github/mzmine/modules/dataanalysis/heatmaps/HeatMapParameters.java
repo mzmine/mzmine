@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataanalysis.heatmaps;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.ArrayList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -30,7 +31,6 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.R.REngineType;
 
@@ -38,7 +38,7 @@ public class HeatMapParameters extends SimpleParameterSet {
 
   public static final String[] fileTypes = {"pdf", "svg", "png", "fig"};
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
 
   public static final FileNameParameter fileName = new FileNameParameter("Output name",
       "Select the path and name of the output file.", FileSelectionType.SAVE);
@@ -59,8 +59,8 @@ public class HeatMapParameters extends SimpleParameterSet {
   public static final BooleanParameter useIdenfiedRows =
       new BooleanParameter("Only identified rows", "Plot only identified rows.", false);
 
-  public static final BooleanParameter usePeakArea = new BooleanParameter("Use peak area",
-      "Peak area will be used if this option is selected. Peak height will be used otherwise",
+  public static final BooleanParameter useFeatureArea = new BooleanParameter("Use feature area",
+      "Feature area will be used if this option is selected. Feature height will be used otherwise",
       true);
 
   public static final BooleanParameter scale = new BooleanParameter("Scaling",
@@ -101,8 +101,8 @@ public class HeatMapParameters extends SimpleParameterSet {
       REngineType.RCALLER);
 
   public HeatMapParameters() {
-    super(new Parameter[] {peakLists, fileName, fileTypeSelection, selectionData, referenceGroup,
-        useIdenfiedRows, usePeakArea, scale, log, showControlSamples, plegend, star, height, width,
+    super(new Parameter[] {featureLists, fileName, fileTypeSelection, selectionData, referenceGroup,
+        useIdenfiedRows, useFeatureArea, scale, log, showControlSamples, plegend, star, height, width,
         columnMargin, rowMargin, RENGINE_TYPE});
   }
 

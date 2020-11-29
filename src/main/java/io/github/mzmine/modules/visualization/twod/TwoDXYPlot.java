@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
@@ -36,7 +37,7 @@ import com.google.common.collect.Range;
 class TwoDXYPlot extends BaseXYPlot {
   boolean datasetChanged = false;
 
-  TwoDXYPlot(TwoDDataSet dataset, Range<Double> rtRange, Range<Double> mzRange,
+  TwoDXYPlot(TwoDDataSet dataset, Range<Float> rtRange, Range<Double> mzRange,
       ValueAxis domainAxis, ValueAxis rangeAxis) {
 
     super(dataset, rtRange, mzRange, domainAxis, rangeAxis);
@@ -93,7 +94,7 @@ class TwoDXYPlot extends BaseXYPlot {
         double pointMZMin = imageMZMin + (j * imageMZStep);
         double pointMZMax = pointMZMin + imageMZStep;
 
-        double lv = dataset.upperEndpointIntensity(Range.closed(pointRTMin, pointRTMax),
+        double lv = dataset.upperEndpointIntensity(RangeUtils.toFloatRange(Range.closed(pointRTMin, pointRTMax)),
             Range.closed(pointMZMin, pointMZMax), plotMode);
 
         if (logScale) {

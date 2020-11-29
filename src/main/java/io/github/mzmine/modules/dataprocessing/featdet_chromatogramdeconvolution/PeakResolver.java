@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.R.REngineType;
@@ -67,6 +67,6 @@ public interface PeakResolver extends MZmineModule {
    */
   public ResolvedPeak[] resolvePeaks(Feature chromatogram, ParameterSet parameters,
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
-      double rTRangeMSMS) throws RSessionWrapperException;
+      float rTRangeMSMS) throws RSessionWrapperException;
 
 }

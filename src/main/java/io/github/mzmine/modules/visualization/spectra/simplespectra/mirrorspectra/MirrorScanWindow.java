@@ -41,7 +41,7 @@ import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.Ps
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 
 /**
  * Creates a window with a mirror chart to compare to scans
@@ -111,7 +111,7 @@ public class MirrorScanWindow extends JFrame {
    *
    * @param db
    */
-  public void setScans(SpectralDBPeakIdentity db) {
+  public void setScans(SpectralDBFeatureIdentity db) {
     Scan scan = db.getQueryScan();
     if (scan == null)
       return;

@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import org.jfree.data.xy.AbstractXYDataset;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import io.github.mzmine.util.SearchDefinition;
 
@@ -39,7 +39,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
    */
   private static final long serialVersionUID = 1L;
 
-  private PeakListRow displayedRows[], selectedRows[];
+  private FeatureListRow displayedRows[], selectedRows[];
 
   private ScatterPlotAxisSelection axisX, axisY;
   private SearchDefinition currentSearch;
@@ -48,8 +48,8 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   // the log-scale scatter plot
   private double defaultValue;
 
-  public ScatterPlotDataSet(PeakList peakList) {
-    this.displayedRows = peakList.getRows().toArray(PeakListRow[]::new);
+  public ScatterPlotDataSet(FeatureList featureList) {
+    this.displayedRows = featureList.getRows().toArray(FeatureListRow[]::new);
   }
 
   void setDisplayedAxes(ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY) {
@@ -59,7 +59,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
     // Update the default value to minimum value divided by 2
     double minValue = Double.MAX_VALUE;
-    for (PeakListRow row : displayedRows) {
+    for (FeatureListRow row : displayedRows) {
       double valX = axisX.getValue(row);
       double valY = axisX.getValue(row);
       if ((valX > 0) && (valX < minValue))
@@ -73,7 +73,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
   }
 
-  public PeakListRow getRow(int series, int item) {
+  public FeatureListRow getRow(int series, int item) {
     if (series == 0)
       return displayedRows[item];
     else
@@ -142,7 +142,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   /**
    * Returns the feature list row which exactly matches given X and Y values
    */
-  public PeakListRow getRow(double valueX, double valueY) {
+  public FeatureListRow getRow(double valueX, double valueY) {
 
     for (int i = 0; i < displayedRows.length; i++) {
       if ((Math.abs(valueX - getXValue(0, i)) < 0.0000001)
@@ -157,15 +157,15 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
     this.currentSearch = newSearch;
 
     if (newSearch == null) {
-      this.selectedRows = new PeakListRow[0];
+      this.selectedRows = new FeatureListRow[0];
     } else {
-      ArrayList<PeakListRow> selected = new ArrayList<PeakListRow>();
-      for (PeakListRow row : displayedRows) {
+      ArrayList<FeatureListRow> selected = new ArrayList<FeatureListRow>();
+      for (FeatureListRow row : displayedRows) {
         if (newSearch.conforms(row)) {
           selected.add(row);
         }
       }
-      this.selectedRows = selected.toArray(new PeakListRow[0]);
+      this.selectedRows = selected.toArray(new FeatureListRow[0]);
     }
 
     fireDatasetChanged();

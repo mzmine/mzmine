@@ -18,18 +18,17 @@
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.List;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.modules.dataprocessing.align_hierarchical.RowVsRowScoreGC;
 
 public class RowVsRowDistanceProvider {
 
   MZmineProject project;
   // boolean useOldestRDFancestor;
   // Hashtable<RawDataFile, List<double[]>> rtAdjustementMapping;
-  List<PeakListRow> full_rows_list;
+  List<FeatureListRow> full_rows_list;
   double mzWeight;
   double rtWeight;
   boolean useApex;
@@ -42,7 +41,7 @@ public class RowVsRowDistanceProvider {
   public RowVsRowDistanceProvider(MZmineProject project,
       // boolean useOldestRDFancestor,
       // Hashtable<RawDataFile, List<double[]>> rtAdjustementMapping,
-      List<PeakListRow> full_rows_list, double mzWeight, double rtWeight,
+      List<FeatureListRow> full_rows_list, double mzWeight, double rtWeight,
       // boolean useApex, boolean useKnownCompoundsAsRef,
       // boolean useDetectedMzOnly, RTTolerance rtToleranceAfter,
       double maximumScore) {
@@ -65,8 +64,8 @@ public class RowVsRowDistanceProvider {
   public RowVsRowScoreGC getScore(int row_id, int aligned_row_id, double mzMaxDiff,
       double rtMaxDiff) {
 
-    PeakListRow peakListRow = full_rows_list.get(row_id);
-    PeakListRow alignedRow = full_rows_list.get(aligned_row_id);
+    FeatureListRow peakListRow = full_rows_list.get(row_id);
+    FeatureListRow alignedRow = full_rows_list.get(aligned_row_id);
 
     RowVsRowScoreGC score = new RowVsRowScoreGC(project, // useOldestRDFancestor,
         // rtAdjustementMapping,
@@ -112,8 +111,8 @@ public class RowVsRowDistanceProvider {
     // aligned_row_id = tmp;
     // }
 
-    PeakListRow row = full_rows_list.get(i);
-    PeakListRow k_row = full_rows_list.get(j);
+    FeatureListRow row = full_rows_list.get(i);
+    FeatureListRow k_row = full_rows_list.get(j);
 
     // System.out.println("(2) Rows: (" + i + "," + j + ")" + row + " | " +
     // k_row);
@@ -123,7 +122,7 @@ public class RowVsRowDistanceProvider {
     // || (row_id >= 45 && aligned_row_id >= 45 && row_id < 102 &&
     // aligned_row_id < 102)
     // || (row_id >= 102 && aligned_row_id >= 102)) {
-    if (row.getRawDataFiles()[0] == k_row.getRawDataFiles()[0]) {
+    if (row.getRawDataFiles().get(0) == k_row.getRawDataFiles().get(0)) {
       return 1000.0d;
     }
     // Not candidate
@@ -138,8 +137,8 @@ public class RowVsRowDistanceProvider {
       // + " >= " + mzMaxDiff/2.0 + "? " +
       // (Math.abs(row.getBestPeak().getMZ() -
       // k_row.getBestPeak().getMZ()) >= mzMaxDiff/2.0));
-      if ((Math.abs(row.getBestPeak().getRT() - k_row.getBestPeak().getRT()) >= rtMaxDiff / 2.0
-          || Math.abs(row.getBestPeak().getMZ() - k_row.getBestPeak().getMZ()) >= mzMaxDiff
+      if ((Math.abs(row.getBestFeature().getRT() - k_row.getBestFeature().getRT()) >= rtMaxDiff / 2.0
+          || Math.abs(row.getBestFeature().getMZ() - k_row.getBestFeature().getMZ()) >= mzMaxDiff
               / 2.0)) {
         return 100.0d;
       }

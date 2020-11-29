@@ -18,16 +18,16 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ExtendedIsotopePatternDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
@@ -57,8 +57,8 @@ public class SpectraToolTipGenerator implements XYToolTipGenerator {
 
       Feature peak = peakListDataSet.getPeak(series, item);
 
-      PeakList peakList = peakListDataSet.getPeakList();
-      PeakListRow row = peakList.getPeakRow(peak);
+      FeatureList peakList = peakListDataSet.getFeatureList();
+      FeatureListRow row = peakList.getFeatureRow(peak);
 
       String tooltip = "Peak: " + peak + "\nStatus: " + peak.getFeatureStatus()
           + "\nFeature list row: " + row + "\nData point m/z: " + mzFormat.format(mzValue)

@@ -17,15 +17,15 @@
  */
 package io.github.mzmine.modules.dataanalysis.clustering;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.swing.SwingUtilities;
 import org.jfree.data.xy.AbstractXYDataset;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
@@ -36,7 +36,7 @@ import io.github.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotWindo
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingNode;
 import javafx.scene.Scene;
@@ -64,7 +64,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   private double[] component2Coords;
   private ParameterSet parameters;
   private RawDataFile[] selectedRawDataFiles;
-  private PeakListRow[] selectedRows;
+  private FeatureListRow[] selectedRows;
   private int[] groupsForSelectedRawDataFiles, groupsForSelectedVariables;
   private Object[] parameterValuesForGroups;
   private int finalNumberOfGroups;
@@ -78,18 +78,18 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   private ClusteringDataType typeOfData;
   private Instances dataset;
   private int progress;
-  private PeakList peakList;
+  private FeatureList featureList;
 
   public ClusteringTask(ParameterSet parameters) {
 
     this.parameters = parameters;
 
-    this.peakList = parameters.getParameter(ClusteringParameters.peakLists).getValue()
-        .getMatchingPeakLists()[0];
+    this.featureList = parameters.getParameter(ClusteringParameters.featureLists).getValue()
+        .getMatchingFeatureLists()[0];
     this.selectedRawDataFiles = parameters.getParameter(ClusteringParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
     this.selectedRows =
-        parameters.getParameter(ClusteringParameters.rows).getMatchingRows(peakList);
+        parameters.getParameter(ClusteringParameters.rows).getMatchingRows(featureList);
     clusteringStep = parameters.getParameter(ClusteringParameters.clusteringAlgorithm).getValue();
     typeOfData = parameters.getParameter(ClusteringParameters.typeOfData).getValue();
 
@@ -147,8 +147,8 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
       name += " M/Z: " + this.selectedRows[item].getAverageMZ() + " RT:"
           + this.selectedRows[item].getAverageRT();
       if (selectedRows[item].getPeakIdentities() != null
-          && selectedRows[item].getPeakIdentities().length > 0) {
-        name += " CompoundName: " + selectedRows[item].getPeakIdentities()[0].getName();
+          && selectedRows[item].getPeakIdentities().size() > 0) {
+        name += " CompoundName: " + selectedRows[item].getPeakIdentities().get(0).getName();
       }
       return name;
     } else {
@@ -285,8 +285,8 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
           variableNames[i] = selectedRows[i].getID() + " - " + selectedRows[i].getAverageMZ()
               + " - " + selectedRows[i].getAverageRT();
           if (selectedRows[i].getPeakIdentities() != null
-              && selectedRows[i].getPeakIdentities().length > 0) {
-            variableNames[i] += " - " + selectedRows[i].getPeakIdentities()[0].getName();
+              && selectedRows[i].getPeakIdentities().size() > 0) {
+            variableNames[i] += " - " + selectedRows[i].getPeakIdentities().get(0).getName();
           }
         }
 
@@ -370,22 +370,22 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   private double[][] createMatrix(boolean isForSamples) {
     // Generate matrix of raw data (input to CDA)
     boolean useArea = true;
-    if (parameters.getParameter(ClusteringParameters.peakMeasurementType)
-        .getValue() == PeakMeasurementType.AREA) {
+    if (parameters.getParameter(ClusteringParameters.featureMeasurementType)
+        .getValue() == FeatureMeasurementType.AREA) {
       useArea = true;
     }
-    if (parameters.getParameter(ClusteringParameters.peakMeasurementType)
-        .getValue() == PeakMeasurementType.HEIGHT) {
+    if (parameters.getParameter(ClusteringParameters.featureMeasurementType)
+        .getValue() == FeatureMeasurementType.HEIGHT) {
       useArea = false;
     }
     double[][] rawData;
     if (isForSamples) {
       rawData = new double[selectedRawDataFiles.length][selectedRows.length];
       for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-        PeakListRow peakListRow = selectedRows[rowIndex];
+        FeatureListRow featureListRow = selectedRows[rowIndex];
         for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
           RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-          Feature p = peakListRow.getPeak(rawDataFile);
+          Feature p = featureListRow.getFeature(rawDataFile);
           if (p != null) {
             if (useArea) {
               rawData[fileIndex][rowIndex] = p.getArea();
@@ -398,10 +398,10 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     } else {
       rawData = new double[selectedRows.length][selectedRawDataFiles.length];
       for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-        PeakListRow peakListRow = selectedRows[rowIndex];
+        FeatureListRow featureListRow = selectedRows[rowIndex];
         for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
           RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-          Feature p = peakListRow.getPeak(rawDataFile);
+          Feature p = featureListRow.getFeature(rawDataFile);
           if (p != null) {
             if (useArea) {
               rawData[rowIndex][fileIndex] = p.getArea();
@@ -508,7 +508,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   }
 
   /**
-   * @see io.github.mzmine.taskcontrol.Task#setStatus()
+   * // @see io.github.mzmine.taskcontrol.Task#setStatus()
    */
   public void setStatus(TaskStatus newStatus) {
     this.status = newStatus;

@@ -18,15 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport;
 
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.text.MessageFormat;
 import java.util.HashMap;
-
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 
 /**
  * Identity of GNPS library matching results import.
  */
-public class GNPSResultsIdentity extends SimplePeakIdentity {
+public class GNPSResultsIdentity extends SimpleFeatureIdentity {
   public enum ATT {
     CLUSTER_INDEX("cluster index", Integer.class), // GNPS cluster -
                                                    // similarity

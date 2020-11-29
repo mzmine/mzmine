@@ -65,7 +65,7 @@ public class MassDetectionModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKPICKING;
+    return MZmineModuleCategory.FEATUREDETECTION;
   }
 
   @Override

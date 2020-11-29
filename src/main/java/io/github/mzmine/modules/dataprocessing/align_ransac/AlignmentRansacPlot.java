@@ -158,13 +158,13 @@ public class AlignmentRansacPlot extends EChartViewer {
       for (AlignStructMol point : data) {
 
         if (point.Aligned) {
-          s1.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
+          s1.add(point.row1.getFeatures().get(0).getRT(), point.row2.getFeatures().get(0).getRT());
         } else {
-          s2.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
+          s2.add(point.row1.getFeatures().get(0).getRT(), point.row2.getFeatures().get(0).getRT());
         }
         try {
-          s3.add(function.value(point.row2.getPeaks()[0].getRT()),
-              point.row2.getPeaks()[0].getRT());
+          s3.add(function.value(point.row2.getFeatures().get(0).getRT()),
+              point.row2.getFeatures().get(0).getRT());
         } catch (Exception e) {
         }
       }

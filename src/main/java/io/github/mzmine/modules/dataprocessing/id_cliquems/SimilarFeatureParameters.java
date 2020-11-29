@@ -41,7 +41,7 @@ public class SimilarFeatureParameters extends SimpleParameterSet {
 
   public SimilarFeatureParameters() {
     super(new Parameter[]{MZ_DIFF, RT_DIFF, IN_DIFF});
-    RT_DIFF.setValue(new RTTolerance(false, 0.0004));
+    RT_DIFF.setValue(new RTTolerance(false, 0.0004f));
 
   }
 

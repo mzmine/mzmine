@@ -25,7 +25,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 /**
@@ -108,7 +108,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetup
 
           // Ignore the raw data files and feature lists parameters
           if (!(parameter instanceof RawDataFilesParameter)
-              && !(parameter instanceof PeakListsParameter)
+              && !(parameter instanceof FeatureListsParameter)
               && !parameter.checkValue(errorMessages)) {
             allParamsOK = false;
 

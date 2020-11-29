@@ -165,7 +165,7 @@ public class ImsVisualizerTask extends AbstractTask {
     public void initDataFactories() {
         appliedSteps++;
         // initialize data factory for the plots data.
-        dataFactory = new DataFactory(parameterSet, 0.0, this);
+        dataFactory = new DataFactory(parameterSet, 0f, this);
     }
 
     public void initmzMobilityGui() {

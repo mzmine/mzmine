@@ -18,12 +18,12 @@
 
 package io.github.mzmine.project.impl;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicReference;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import javafx.application.Platform;
@@ -47,7 +47,7 @@ public class MZmineProjectImpl implements MZmineProject {
           ));
 
 
-  private final SimpleListProperty<PeakList> featureListsProperty = //
+  private final SimpleListProperty<FeatureList> featureListsProperty = //
       new SimpleListProperty<>(//
           FXCollections.synchronizedObservableList(//
               FXCollections.observableArrayList()//
@@ -168,39 +168,34 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public PeakList[] getPeakLists() {
-    return featureListsProperty.get().toArray(new PeakList[0]);
-  }
+  public void addFeatureList(final FeatureList featureList) {
 
-  @Override
-  public void addPeakList(final PeakList peakList) {
-
-    assert peakList != null;
+    assert featureList != null;
     Platform.runLater(() -> {
-      featureListsProperty.get().add(peakList);
+      featureListsProperty.get().add((ModularFeatureList) featureList);
     });
 
   }
 
   @Override
-  public void removePeakList(final PeakList peakList) {
+  public void removeFeatureList(final FeatureList featureList) {
 
-    assert peakList != null;
+    assert featureList != null;
 
     Platform.runLater(() -> {
-      featureListsProperty.get().remove(peakList);
+      featureListsProperty.get().remove(featureList);
     });
   }
 
   @Override
-  public PeakList[] getPeakLists(RawDataFile file) {
-    PeakList[] currentPeakLists = getPeakLists();
-    Vector<PeakList> result = new Vector<PeakList>();
-    for (PeakList peakList : currentPeakLists) {
-      if (peakList.hasRawDataFile(file))
-        result.add(peakList);
+  public ModularFeatureList[] getFeatureLists(RawDataFile file) {
+    FeatureList[] currentFeatureLists = getFeatureLists().toArray(FeatureList[]::new);
+    Vector<ModularFeatureList> result = new Vector<ModularFeatureList>();
+    for (FeatureList featureList : currentFeatureLists) {
+      if (featureList.hasRawDataFile(file))
+        result.add((ModularFeatureList) featureList);
     }
-    return result.toArray(new PeakList[0]);
+    return result.toArray(new ModularFeatureList[0]);
 
   }
 
@@ -249,12 +244,12 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public ObservableList<PeakList> getFeatureLists() {
+  public ObservableList<FeatureList> getFeatureLists() {
     return featureListsProperty.get();
   }
 
   @Override
-  public ListProperty<PeakList> featureListsProperty() {
+  public ListProperty<FeatureList> featureListsProperty() {
     return featureListsProperty;
   }
 

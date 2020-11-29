@@ -24,24 +24,24 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.RangeUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -57,8 +57,8 @@ public class SmoothingTask extends AbstractTask {
 
   // Feature lists: original and processed.
   private final MZmineProject project;
-  private final PeakList origPeakList;
-  private SimplePeakList newPeakList;
+  private final FeatureList origPeakList;
+  private ModularFeatureList newPeakList;
 
   // Parameters.
   private final ParameterSet parameters;
@@ -75,7 +75,7 @@ public class SmoothingTask extends AbstractTask {
    * @param peakList the peak-list.
    * @param smoothingParameters smoothing parameters.
    */
-  public SmoothingTask(final MZmineProject project, final PeakList peakList,
+  public SmoothingTask(final MZmineProject project, final FeatureList peakList,
       final ParameterSet smoothingParameters) {
 
     // Initialize.
@@ -111,24 +111,24 @@ public class SmoothingTask extends AbstractTask {
       final double[] filterWeights = SavitzkyGolayFilter.getNormalizedWeights(filterWidth);
 
       // Create new feature list
-      newPeakList = new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
+      newPeakList = new ModularFeatureList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
 
       // Process each row.
-      for (final PeakListRow row : origPeakList.getRows()) {
+      for (final FeatureListRow row : origPeakList.getRows()) {
 
         if (!isCanceled()) {
 
           // Create a new peak-list row.
           final int originalID = row.getID();
-          final PeakListRow newRow = new SimplePeakListRow(originalID);
+          final FeatureListRow newRow = new ModularFeatureListRow(newPeakList, originalID);
 
           // Process each peak.
-          for (final Feature peak : row.getPeaks()) {
+          for (final Feature peak : row.getFeatures()) {
 
             if (!isCanceled()) {
 
               // Copy original peak intensities.
-              final int[] scanNumbers = peak.getScanNumbers();
+              final int[] scanNumbers = peak.getScanNumbers().stream().mapToInt(i -> i).toArray();
               final int numScans = scanNumbers.length;
               final double[] intensities = new double[numScans];
               for (int i = 0; i < numScans; i++) {
@@ -141,13 +141,13 @@ public class SmoothingTask extends AbstractTask {
               final double[] smoothed = convolve(intensities, filterWeights);
 
               // Measure peak (max, ranges, area etc.)
-              final RawDataFile dataFile = peak.getDataFile();
+              final RawDataFile dataFile = peak.getRawDataFile();
               final DataPoint[] newDataPoints = new DataPoint[numScans];
-              double maxIntensity = 0.0;
+              float maxIntensity = 0f;
               int maxScanNumber = -1;
               DataPoint maxDataPoint = null;
               Range<Double> intensityRange = null;
-              double area = 0.0;
+              float area = 0f;
               for (int i = 0; i < numScans; i++) {
 
                 final int scanNumber = scanNumbers[i];
@@ -164,7 +164,7 @@ public class SmoothingTask extends AbstractTask {
                   // Track maximum intensity data point.
                   if (intensity > maxIntensity) {
 
-                    maxIntensity = intensity;
+                    maxIntensity = (float) intensity;
                     maxScanNumber = scanNumber;
                     maxDataPoint = newDataPoint;
                   }
@@ -192,12 +192,14 @@ public class SmoothingTask extends AbstractTask {
               if (!isCanceled() && maxScanNumber >= 0) {
 
                 // Create a new peak.
-                newRow.addPeak(dataFile,
-                    new SimpleFeature(dataFile, maxDataPoint.getMZ(), peak.getRT(), maxIntensity,
-                        area, scanNumbers, newDataPoints, peak.getFeatureStatus(), maxScanNumber,
-                        peak.getMostIntenseFragmentScanNumber(),
-                        peak.getAllMS2FragmentScanNumbers(), peak.getRawDataPointsRTRange(),
-                        peak.getRawDataPointsMZRange(), intensityRange));
+                ModularFeature newFeature
+                    = new ModularFeature(dataFile, maxDataPoint.getMZ(), peak.getRT(), maxIntensity,
+                    area, scanNumbers, newDataPoints, peak.getFeatureStatus(), maxScanNumber,
+                    peak.getMostIntenseFragmentScanNumber(),
+                    peak.getAllMS2FragmentScanNumbers().stream().mapToInt(i -> i).toArray(), peak.getRawDataPointsRTRange(),
+                    peak.getRawDataPointsMZRange(), RangeUtils.toFloatRange(intensityRange));
+                newFeature.setFeatureList(newPeakList);
+                newRow.addFeature(dataFile, newFeature);
               }
             }
           }
@@ -210,25 +212,25 @@ public class SmoothingTask extends AbstractTask {
       if (!isCanceled()) {
 
         // Add new peak-list to the project.
-        project.addPeakList(newPeakList);
+        project.addFeatureList(newPeakList);
 
         // Add quality parameters to peaks
-        QualityParameters.calculateQualityParameters(newPeakList);
+        //QualityParameters.calculateQualityParameters(newPeakList);
 
         // Remove the original peak-list if requested.
         if (removeOriginal) {
-          project.removePeakList(origPeakList);
+          project.removeFeatureList(origPeakList);
         }
 
         // Copy previously applied methods
-        for (final PeakListAppliedMethod method : origPeakList.getAppliedMethods()) {
+        for (final FeatureListAppliedMethod method : origPeakList.getAppliedMethods()) {
 
           newPeakList.addDescriptionOfAppliedTask(method);
         }
 
         // Add task description to peak-list.
         newPeakList.addDescriptionOfAppliedTask(
-            new SimplePeakListAppliedMethod("Peaks smoothed by Savitzky-Golay filter", parameters));
+            new SimpleFeatureListAppliedMethod("Peaks smoothed by Savitzky-Golay filter", parameters));
 
         logger.finest("Finished peak smoothing: " + progress + " rows processed");
 

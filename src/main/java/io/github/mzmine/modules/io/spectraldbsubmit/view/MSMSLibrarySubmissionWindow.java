@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.modules.io.spectraldbsubmit.view;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -38,6 +39,8 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -54,7 +57,6 @@ import javax.swing.border.EmptyBorder;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
@@ -78,7 +80,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleCompo
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.PeakListRowSorter;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.GridBagPanel;
@@ -140,8 +142,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
   //
   private boolean isFragmentScan = true;
   // data either rows or list of entries with 1 or multiple scans
-  private PeakListRow[] rows;
-  private List<Scan[]> scanList;
+  private FeatureListRow[] rows;
+  private ObservableList<ObservableList<Scan>> scanList;
   private ResultsTextPane txtResults;
 
   /**
@@ -250,9 +252,9 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
    * @param sorting
    * @param direction
    */
-  public void setData(PeakListRow[] rows, SortingProperty sorting, SortingDirection direction,
+  public void setData(FeatureListRow[] rows, SortingProperty sorting, SortingDirection direction,
       boolean isFragmentScan) {
-    Arrays.sort(rows, new PeakListRowSorter(sorting, direction));
+    Arrays.sort(rows, new FeatureListRowSorter(sorting, direction));
     setData(rows, isFragmentScan);
   }
 
@@ -262,7 +264,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
    * @param rows
    * @param raw
    */
-  public void setData(PeakListRow[] rows, boolean isFragmentScan) {
+  public void setData(FeatureListRow[] rows, boolean isFragmentScan) {
     getMSLevelComponent().setText(isFragmentScan ? "2" : "1");
     scanList = null;
     this.rows = rows;
@@ -270,7 +272,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
     setFragmentScan(isFragmentScan);
     // set rt
-    double rt = Arrays.stream(rows).mapToDouble(PeakListRow::getAverageRT).average().orElse(-1);
+    double rt = Arrays.stream(rows).mapToDouble(FeatureListRow::getAverageRT).average().orElse(-1);
     setRetentionTimeToComponent(rt);
     updateAllChartSelectors();
   }
@@ -281,7 +283,9 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
    * @param scan
    */
   public void setData(Scan scan) {
-    setData(new Scan[] {scan});
+    ObservableList<ObservableList<Scan>> newScanList = FXCollections.observableArrayList();
+    newScanList.add(FXCollections.observableArrayList(scan));
+    setData(newScanList);
   }
 
   /**
@@ -289,28 +293,31 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
    *
    * @param scans
    */
-  public void setData(Scan[] scans) {
-    scanList = new ArrayList<>();
+  // remove? clashes with public void setData(ObservableList<ObservableList<Scan>> scanList)
+  /*
+  public void setData(ObservableList<Scan> scans) {
+    scanList = FXCollections.observableArrayList();
     scanList.add(scans);
     setData(scanList);
   }
+  */
 
   /**
    * Set data as set of entries with 1 or multiple scans
    *
    * @param scanList
    */
-  public void setData(List<Scan[]> scanList) {
+  public void setData(ObservableList<ObservableList<Scan>> scanList) {
     this.scanList = scanList;
     rows = null;
     this.pnScanSelect = new ScanSelectPanel[scanList.size()];
 
-    double rt = scanList.stream().flatMap(Arrays::stream).mapToDouble(Scan::getRetentionTime)
+    double rt = scanList.stream().flatMap(ObservableList::stream).mapToDouble(Scan::getRetentionTime)
         .average().orElse(0d);
 
     // any scan matches MS level 1? --> set level to ms1
     int minMSLevel =
-        scanList.stream().flatMap(Arrays::stream).mapToInt(Scan::getMSLevel).min().orElse(1);
+        scanList.stream().flatMap(ObservableList::stream).mapToInt(Scan::getMSLevel).min().orElse(1);
     getMSLevelComponent().setText(minMSLevel < 2 ? "1" : "" + minMSLevel);
     setFragmentScan(minMSLevel > 1);
 
@@ -698,9 +705,11 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
         ScanSortMode sort = getComboSortMode().getSelectionModel().getSelectedItem();
 
         if (rows != null) {
+          // TODO: ScanSelectPanel to JavaFX
+          /*
           // create MS2 of all rows
           for (int i = 0; i < rows.length; i++) {
-            PeakListRow row = rows[i];
+            FeatureListRow row = rows[i];
             ScanSelectPanel pn =
                 new ScanSelectPanel(row, sort, noiseLevel, minSignals, massListName);
             pnScanSelect[i] = pn;
@@ -713,10 +722,11 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
               group.add(new ChartViewWrapper(c));
             }
           }
+          */
         } else if (scanList != null) {
           // all selectors of scanlist
           for (int i = 0; i < scanList.size(); i++) {
-            Scan[] scansEntry = scanList.get(i);
+            ObservableList<Scan> scansEntry = scanList.get(i);
             ScanSelectPanel pn =
                 new ScanSelectPanel(scansEntry, sort, noiseLevel, minSignals, massListName);
             pnScanSelect[i] = pn;

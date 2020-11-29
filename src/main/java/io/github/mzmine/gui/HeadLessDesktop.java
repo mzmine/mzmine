@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.net.URL;
 import java.util.Collections;
@@ -27,9 +28,7 @@ import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
@@ -87,7 +86,7 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public PeakList[] getSelectedPeakLists() {
+  public ModularFeatureList[] getSelectedPeakLists() {
     throw new UnsupportedOperationException();
   }
 

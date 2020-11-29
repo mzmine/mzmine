@@ -55,7 +55,7 @@ public class HistogramVisualizerModule implements MZmineRunnableModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
+    return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
   }
 
   @Override

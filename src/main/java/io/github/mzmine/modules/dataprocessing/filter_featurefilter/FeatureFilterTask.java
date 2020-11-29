@@ -18,23 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.RangeUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Booleans;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakUtils;
 
 /**
  * Filters out peaks from feature list.
@@ -46,8 +47,8 @@ public class FeatureFilterTask extends AbstractTask {
 
   // Feature lists
   private final MZmineProject project;
-  private final PeakList origPeakList;
-  private PeakList filteredPeakList;
+  private final FeatureList origPeakList;
+  private FeatureList filteredPeakList;
 
   // Processed rows counter
   private int processedRows, totalRows;
@@ -61,7 +62,7 @@ public class FeatureFilterTask extends AbstractTask {
    * @param list feature list to process.
    * @param parameterSet task parameters.
    */
-  public FeatureFilterTask(final MZmineProject project, final PeakList list,
+  public FeatureFilterTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
 
     // Initialize
@@ -100,11 +101,11 @@ public class FeatureFilterTask extends AbstractTask {
       if (!isCanceled()) {
 
         // Add new peaklist to the project
-        project.addPeakList(filteredPeakList);
+        project.addFeatureList(filteredPeakList);
 
         // Remove the original peaklist if requested
         if (parameters.getParameter(FeatureFilterParameters.AUTO_REMOVE).getValue()) {
-          project.removePeakList(origPeakList);
+          project.removeFeatureList(origPeakList);
         }
         setStatus(TaskStatus.FINISHED);
         logger.info("Finished feature list filter");
@@ -124,10 +125,10 @@ public class FeatureFilterTask extends AbstractTask {
    * @param peakList feature list to filter.
    * @return a new feature list with entries of the original feature list that pass the filtering.
    */
-  private PeakList filterPeakList(final PeakList peakList) {
+  private FeatureList filterPeakList(final FeatureList peakList) {
 
     // Make a copy of the peakList
-    final PeakList newPeakList = new SimplePeakList(
+    final FeatureList newPeakList = new ModularFeatureList(
         peakList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
         peakList.getRawDataFiles());
 
@@ -150,36 +151,36 @@ public class FeatureFilterTask extends AbstractTask {
         parameters.getParameter(FeatureFilterParameters.MS2_Filter).getValue();
 
     // Loop through all rows in feature list
-    final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
+    final FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
-      final PeakListRow row = rows[processedRows];
-      final RawDataFile[] rawdatafiles = row.getRawDataFiles();
+      final FeatureListRow row = rows[processedRows];
+      final RawDataFile[] rawdatafiles = row.getRawDataFiles().toArray(new RawDataFile[0]);
       int totalRawDataFiles = rawdatafiles.length;
       boolean[] keepPeak = new boolean[totalRawDataFiles];
 
       for (int i = 0; i < totalRawDataFiles; i++) {
         // Peak values
         keepPeak[i] = true;
-        final Feature peak = row.getPeak(rawdatafiles[i]);
+        final Feature peak = row.getFeature(rawdatafiles[i]);
         final double peakDuration = peak.getRawDataPointsRTRange().upperEndpoint()
             - peak.getRawDataPointsRTRange().lowerEndpoint();
         final double peakArea = peak.getArea();
         final double peakHeight = peak.getHeight();
-        final int peakDatapoints = peak.getScanNumbers().length;
+        final int peakDatapoints = peak.getScanNumbers().size();
         final int msmsScanNumber = peak.getMostIntenseFragmentScanNumber();
 
-        Double peakFWHM = peak.getFWHM();
-        Double peakTailingFactor = peak.getTailingFactor();
-        Double peakAsymmetryFactor = peak.getAsymmetryFactor();
+        Float peakFWHM = peak.getFWHM();
+        Float peakTailingFactor = peak.getTailingFactor();
+        Float peakAsymmetryFactor = peak.getAsymmetryFactor();
         if (peakFWHM == null) {
-          peakFWHM = -1.0;
+          peakFWHM = -1.0f;
         }
         if (peakTailingFactor == null) {
-          peakTailingFactor = -1.0;
+          peakTailingFactor = -1.0f;
         }
         if (peakAsymmetryFactor == null) {
-          peakAsymmetryFactor = -1.0;
+          peakAsymmetryFactor = -1.0f;
         }
 
         // Check Duration
@@ -226,8 +227,8 @@ public class FeatureFilterTask extends AbstractTask {
 
         // Check FWHM
         if (filterByFWHM) {
-          final Range<Double> fwhmRange = parameters.getParameter(FeatureFilterParameters.PEAK_FWHM)
-              .getEmbeddedParameter().getValue();
+          final Range<Float> fwhmRange = RangeUtils.toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_FWHM)
+              .getEmbeddedParameter().getValue());
           if (!fwhmRange.contains(peakFWHM)) {
             // Mark peak to be removed
             keepPeak[i] = false;
@@ -236,9 +237,9 @@ public class FeatureFilterTask extends AbstractTask {
 
         // Check Tailing Factor
         if (filterByTailingFactor) {
-          final Range<Double> tailingRange =
-              parameters.getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR)
-                  .getEmbeddedParameter().getValue();
+          final Range<Float> tailingRange =
+              RangeUtils.toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR)
+                  .getEmbeddedParameter().getValue());
           if (!tailingRange.contains(peakTailingFactor)) {
             // Mark peak to be removed
             keepPeak[i] = false;
@@ -247,9 +248,9 @@ public class FeatureFilterTask extends AbstractTask {
 
         // Check height
         if (filterByAsymmetryFactor) {
-          final Range<Double> asymmetryRange =
-              parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR)
-                  .getEmbeddedParameter().getValue();
+          final Range<Float> asymmetryRange =
+              RangeUtils.toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR)
+                  .getEmbeddedParameter().getValue());
           if (!asymmetryRange.contains(peakAsymmetryFactor)) {
             // Mark peak to be removed
             keepPeak[i] = false;
@@ -275,21 +276,21 @@ public class FeatureFilterTask extends AbstractTask {
   /**
    * Create a copy of a feature list row.
    */
-  private static PeakListRow copyPeakRow(final PeakListRow row, final boolean[] keepPeak) {
+  private FeatureListRow copyPeakRow(final FeatureListRow row, final boolean[] keepPeak) {
 
     // Copy the feature list row.
-    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-    PeakUtils.copyPeakListRowProperties(row, newRow);
+    final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) filteredPeakList, row.getID());
+    FeatureUtils.copyFeatureListRowProperties(row, newRow);
 
     // Copy the peaks.
     int i = 0;
-    for (final Feature peak : row.getPeaks()) {
+    for (final Feature peak : row.getFeatures()) {
 
       // Only keep peak if it fulfills the filter criteria
       if (keepPeak[i]) {
-        final Feature newPeak = new SimpleFeature(peak);
-        PeakUtils.copyPeakProperties(peak, newPeak);
-        newRow.addPeak(peak.getDataFile(), newPeak);
+        final Feature newPeak = new ModularFeature(peak);
+        FeatureUtils.copyFeatureProperties(peak, newPeak);
+        newRow.addFeature(peak.getRawDataFile(), newPeak);
       }
       i++;
     }

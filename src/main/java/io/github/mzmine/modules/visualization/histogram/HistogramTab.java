@@ -19,20 +19,16 @@
 package io.github.mzmine.modules.visualization.histogram;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import io.github.mzmine.util.javafx.WindowsMenu;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import javax.annotation.Nonnull;
 
 public class HistogramTab extends MZmineTab {
@@ -43,7 +39,7 @@ public class HistogramTab extends MZmineTab {
   private HistogramChart histogram;
 
   private RawDataFile rawDataFiles[];
-  private PeakList peakList;
+  private FeatureList featureList;
 
   private HistogramDataType dataType;
   private int numOfBins;
@@ -52,7 +48,7 @@ public class HistogramTab extends MZmineTab {
   public HistogramTab(ParameterSet parameters) {
     super("Histogram Visualizer", true, false);
 
-    peakList = parameters.getParameter(HistogramParameters.peakList).getValue().getMatchingPeakLists()[0];
+    featureList = parameters.getParameter(HistogramParameters.featureList).getValue().getMatchingFeatureLists()[0];
 
     //this.setTitle("Histogram of " + peakList.getName());
 
@@ -105,9 +101,9 @@ public class HistogramTab extends MZmineTab {
     //setMinWidth(600.0);
     //setMinHeight(400.0);
 
-    if (peakList != null) {
+    if (featureList != null) {
       HistogramPlotDataset dataSet =
-          new HistogramPlotDataset(peakList, rawDataFiles, numOfBins, dataType, range);
+          new HistogramPlotDataset(featureList, rawDataFiles, numOfBins, dataType, range);
       histogram.addDataset(dataSet, dataType);
     }
 
@@ -125,13 +121,13 @@ public class HistogramTab extends MZmineTab {
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
-    return new ArrayList<>(Collections.singletonList((ModularFeatureList)peakList));
+  public Collection<? extends FeatureList> getFeatureLists() {
+    return new ArrayList<>(Collections.singletonList((ModularFeatureList) featureList));
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -141,13 +137,13 @@ public class HistogramTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }

@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -49,21 +49,21 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] =
-        parameters.getParameter(ScatterPlotParameters.peakLists).getValue().getMatchingPeakLists();
-    if ((peakLists == null) || (peakLists.length != 1)) {
+    FeatureList featureLists[] =
+        parameters.getParameter(ScatterPlotParameters.featureLists).getValue().getMatchingFeatureLists();
+    if ((featureLists == null) || (featureLists.length != 1)) {
       MZmineCore.getDesktop().displayErrorMessage("Please select a single aligned feature list");
       return ExitCode.ERROR;
     }
 
-    PeakList peakList = peakLists[0];
-    if (peakList.getNumberOfRawDataFiles() < 2) {
+    FeatureList featureList = featureLists[0];
+    if (featureList.getNumberOfRawDataFiles() < 2) {
       MZmineCore.getDesktop().displayErrorMessage("There is only one raw data file in the selected "
           + "feature list, it is necessary at least two for comparison");
       return ExitCode.ERROR;
     }
 
-    ScatterPlotTab newTab = new ScatterPlotTab(peakList);
+    ScatterPlotTab newTab = new ScatterPlotTab(featureList);
     MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
@@ -71,7 +71,7 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
+    return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
   }
 
   @Override
@@ -79,15 +79,15 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
     return ScatterPlotParameters.class;
   }
 
-  public static void showNewScatterPlotWindow(PeakList peakList) {
+  public static void showNewScatterPlotWindow(FeatureList featureList) {
 
-    if (peakList.getNumberOfRawDataFiles() < 2) {
+    if (featureList.getNumberOfRawDataFiles() < 2) {
       MZmineCore.getDesktop().displayErrorMessage("There is only one raw data file in the selected "
           + "feature list, it is necessary at least two for comparison");
       return;
     }
 
-    ScatterPlotTab newTab = new ScatterPlotTab(peakList);
+    ScatterPlotTab newTab = new ScatterPlotTab(featureList);
     MZmineCore.getDesktop().addTab(newTab);
 
   }

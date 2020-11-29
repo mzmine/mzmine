@@ -19,6 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -45,7 +47,7 @@ public class ResultWindowController {
     private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
-    private PeakListRow peakListRow;
+    private FeatureListRow peakListRow;
     private Task searchTask;
     private double searchedMass;
 
@@ -68,11 +70,13 @@ public class ResultWindowController {
 
     @FXML
     private void initialize(){
-        colID.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(PeakIdentity.PROPERTY_ID)));
+        colID.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(
+            FeatureIdentity.PROPERTY_ID)));
         colName.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getName()));
-        colFormula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(PeakIdentity.PROPERTY_FORMULA)));
+        colFormula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(
+            FeatureIdentity.PROPERTY_FORMULA)));
         colMassDiff.setCellValueFactory(cell-> {
-            String compFormula = cell.getValue().getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+            String compFormula = cell.getValue().getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
             String cellVar = "";
             if (compFormula != null) {
                 double compMass = FormulaUtils.calculateExactMass(compFormula);
@@ -99,7 +103,7 @@ public class ResultWindowController {
      * @param searchTask
      * @param searchedMass
      */
-    public void initValues(PeakListRow peakListRow, Task searchTask, double searchedMass){
+    public void initValues(FeatureListRow peakListRow, Task searchTask, double searchedMass){
         this.peakListRow = peakListRow;
         this.searchTask = searchTask;
         this.searchedMass = searchedMass;
@@ -141,7 +145,7 @@ public class ResultWindowController {
 
             }
 
-            peakListRow.addPeakIdentity(compound, false);
+            peakListRow.addFeatureIdentity(compound, false);
             dispose();
         }
         catch (Exception e){
@@ -163,7 +167,7 @@ public class ResultWindowController {
         URL url2D = compound.get2DStructureURL();
         URL url3D = compound.get3DStructureURL();
         String name =
-                compound.getName() + " (" + compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
+                compound.getName() + " (" + compound.getPropertyValue(FeatureIdentity.PROPERTY_ID) + ")";
         MolStructureViewer viewer = new MolStructureViewer(name, url2D, url3D);
         viewer.show();
     }
@@ -183,9 +187,9 @@ public class ResultWindowController {
         if (predictedPattern == null)
             return;
 
-        Feature peak = peakListRow.getBestPeak();
+        Feature peak = peakListRow.getBestFeature();
 
-        RawDataFile dataFile = peak.getDataFile();
+        RawDataFile dataFile = peak.getRawDataFile();
         int scanNumber = peak.getRepresentativeScanNumber();
         SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null,
                 peak.getIsotopePattern(), predictedPattern);
@@ -203,7 +207,7 @@ public class ResultWindowController {
 
         logger.finest("Launching default browser to display compound details");
 
-        String urlString = compound.getPropertyValue(PeakIdentity.PROPERTY_URL);
+        String urlString = compound.getPropertyValue(FeatureIdentity.PROPERTY_URL);
 
         if ((urlString == null) || (urlString.length() == 0))
             return;

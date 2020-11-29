@@ -1,26 +1,25 @@
 package io.github.mzmine.modules.dataprocessing.featdet_peakextender;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import java.text.Format;
 import java.util.Arrays;
 import java.util.Hashtable;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 
-public class ExtendedPeak implements Feature {
-  private SimplePeakInformation peakInfo;
+public class ExtendedPeak {
+  private SimpleFeatureInformation peakInfo;
 
   // Data file of this chromatogram
   private RawDataFile dataFile;
@@ -39,7 +38,8 @@ public class ExtendedPeak implements Feature {
   private int[] allMS2FragmentScanNumbers;
 
   // Ranges of raw data points
-  private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
+  private Range<Double> rawDataPointsMZRange;
+  private Range<Float> rawDataPointsIntensityRange, rawDataPointsRTRange;
 
   // Keep track of last added data point
   private DataPoint lastMzPeak;
@@ -72,7 +72,6 @@ public class ExtendedPeak implements Feature {
     dataPointsMap.put(scanNumber, mzValue);
   }
 
-  @Override
   public DataPoint getDataPoint(int scanNumber) {
     return dataPointsMap.get(scanNumber);
   }
@@ -87,7 +86,6 @@ public class ExtendedPeak implements Feature {
   /**
    * This method returns m/z value of the extended peak
    */
-  @Override
   public double getMZ() {
     return mz;
   }
@@ -101,17 +99,14 @@ public class ExtendedPeak implements Feature {
     return "Extended peak " + MZmineCore.getConfiguration().getMZFormat().format(mz) + " m/z";
   }
 
-  @Override
   public double getArea() {
     return area;
   }
 
-  @Override
   public double getHeight() {
     return height;
   }
 
-  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
@@ -125,57 +120,46 @@ public class ExtendedPeak implements Feature {
     this.fragmentScan = scanNumber;
   }
 
-  @Override
   public int[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
-  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
-  @Override
   public double getRT() {
     return rt;
   }
 
-  @Override
-  public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
+  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  @Override
-  public @Nonnull Range<Double> getRawDataPointsRTRange() {
+  public @Nonnull Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
-  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
-  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
 
-  @Override
-  public @Nonnull RawDataFile getDataFile() {
+  public @Nonnull RawDataFile getRawDataFile() {
     return dataFile;
   }
 
-  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
-  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
@@ -208,12 +192,12 @@ public class ExtendedPeak implements Feature {
       dataPointsMap.put(allScanNumbers[i], newDataPoint);
 
       if (i == 0) {
-        rawDataPointsIntensityRange = Range.singleton(mzPeak.getIntensity());
+        rawDataPointsIntensityRange = Range.singleton((float) mzPeak.getIntensity());
         rawDataPointsMZRange = Range.singleton(mzPeak.getMZ());
         rawDataPointsRTRange = Range.singleton(aScan.getRetentionTime());
       } else {
         rawDataPointsIntensityRange =
-            rawDataPointsIntensityRange.span(Range.singleton(mzPeak.getIntensity()));
+            rawDataPointsIntensityRange.span(Range.singleton((float) mzPeak.getIntensity()));
         rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(mzPeak.getMZ()));
         rawDataPointsRTRange = rawDataPointsRTRange.span(Range.singleton(aScan.getRetentionTime()));
       }
@@ -254,12 +238,10 @@ public class ExtendedPeak implements Feature {
 
   }
 
-  @Override
   public int getCharge() {
     return charge;
   }
 
-  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
@@ -269,61 +251,58 @@ public class ExtendedPeak implements Feature {
    */
   @Override
   public String toString() {
-    return PeakUtils.peakToString(this);
+    StringBuffer buf = new StringBuffer();
+    Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+    buf.append("m/z ");
+    buf.append(mzFormat.format(getMZ()));
+    buf.append(" (");
+    buf.append(timeFormat.format(getRT()));
+    buf.append(" min) [" + getRawDataFile().getName() + "]");
+    return buf.toString();
   }
 
-  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
-  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
-  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
-  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
-  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
-  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
   // dulab Edit
-  @Override
   public void outputChromToFile() {
     int nothing = -1;
   }
 
-  @Override
-  public void setPeakInformation(SimplePeakInformation peakInfoIn) {
+  public void setPeakInformation(SimpleFeatureInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
-  @Override
-  public SimplePeakInformation getPeakInformation() {
+  public SimpleFeatureInformation getPeakInformation() {
     return peakInfo;
   }
 
-  @Override
   public void setFragmentScanNumber(int fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
 
-  @Override
   public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
     // also set best scan by TIC
@@ -339,15 +318,13 @@ public class ExtendedPeak implements Feature {
   }
   // End dulab Edit
 
-  private PeakList peakList;
+  private FeatureList peakList;
 
-  @Override
-  public PeakList getPeakList() {
+  public FeatureList getPeakList() {
     return peakList;
   }
 
-  @Override
-  public void setPeakList(PeakList peakList) {
+  public void setPeakList(FeatureList peakList) {
     this.peakList = peakList;
   }
 

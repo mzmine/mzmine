@@ -58,21 +58,21 @@ public class RTToleranceComponent extends BorderPane {
     int index = toleranceType.getSelectionModel().getSelectedIndex();
     String valueString = toleranceField.getText();
 
-    double toleranceDouble;
+    float toleranceFloat;
     Unit toleranceUnit = Unit.values()[index];
     try {
       if (toleranceUnit == Unit.SECONDS || toleranceUnit == Unit.MINUTES) {
-        toleranceDouble =
-                MZmineCore.getConfiguration().getRTFormat().parse(valueString).doubleValue();
+        toleranceFloat =
+                MZmineCore.getConfiguration().getRTFormat().parse(valueString).floatValue();
       } else {
         Number toleranceValue = Double.parseDouble(valueString);
-        toleranceDouble = toleranceValue.doubleValue();
+        toleranceFloat = toleranceValue.floatValue();
       }
     } catch (Exception e) {
       return null;
     }
 
-    RTTolerance value = new RTTolerance(toleranceDouble, toleranceUnit);
+    RTTolerance value = new RTTolerance(toleranceFloat, toleranceUnit);
 
     return value;
 

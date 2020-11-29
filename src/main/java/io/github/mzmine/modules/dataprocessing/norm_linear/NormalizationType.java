@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.norm_linear;
 public enum NormalizationType {
 
   AverageIntensity("Average intensity"), AverageSquaredIntensity(
-      "Average squared intensity"), MaximumPeakHeight(
+      "Average squared intensity"), MaximumFeatureHeight(
           "Maximum peak intensity"), TotalRawSignal("Total raw signal");
 
   private final String name;

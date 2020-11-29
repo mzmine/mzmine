@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;

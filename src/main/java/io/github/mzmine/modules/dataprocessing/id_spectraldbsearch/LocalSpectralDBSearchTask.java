@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,9 +28,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -41,7 +41,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final PeakList peakList;
+  private final FeatureList featureList;
   private final @Nonnull String massListName;
   private final File dataBaseFile;
 
@@ -50,11 +50,11 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   private List<RowsSpectralMatchTask> tasks;
 
   private int totalTasks;
-  private PeakListRow[] rows;
+  private FeatureListRow[] rows;
 
-  public LocalSpectralDBSearchTask(PeakList peakList, ParameterSet parameters) {
-    this.peakList = peakList;
-    this.rows = peakList.getRows().toArray(PeakListRow[]::new);
+  public LocalSpectralDBSearchTask(FeatureList featureList, ParameterSet parameters) {
+    this.featureList = featureList;
+    this.rows = featureList.getRows().toArray(FeatureListRow[]::new);
     this.parameters = parameters;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
@@ -75,7 +75,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Spectral database identification of " + peakList + " using database " + dataBaseFile;
+    return "Spectral database identification of " + featureList + " using database " + dataBaseFile;
   }
 
   /**
@@ -121,7 +121,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     logger.info("Added " + count + " spectral library matches");
 
     // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+    featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Peak identification using MS/MS spectral database " + dataBaseFile, parameters));
 
     setStatus(TaskStatus.FINISHED);
@@ -142,7 +142,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
-        RowsSpectralMatchTask task = new RowsSpectralMatchTask(peakList.getName(), rows, parameters,
+        RowsSpectralMatchTask task = new RowsSpectralMatchTask(featureList.getName(), rows, parameters,
             alreadyProcessed + 1, list);
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
