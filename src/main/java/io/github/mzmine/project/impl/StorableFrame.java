@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public class StorableFrame extends StorableScan implements Frame {
    */
   private Range<Double> mobilityRange;
 
-//  private final List<Integer> mobilityScanNumbers;
+  private final List<Mobilogram> mobilograms;
 
   /**
    * Creates a storable frame and also stores the mobility resolved scans.
@@ -60,6 +61,7 @@ public class StorableFrame extends StorableScan implements Frame {
     super(originalFrame, rawDataFile, numberOfDataPoints, storageID);
 
     frameId = originalFrame.getFrameId();
+    mobilograms = new ArrayList<>();
     mobilityScans = new TreeMap<>();
     mobilityRange = null;
 
@@ -86,6 +88,8 @@ public class StorableFrame extends StorableScan implements Frame {
     this.frameId = frameId;
     this.mobilityRange = mobilityRange;
     this.mobilityType = mobilityType;
+
+    mobilograms = new ArrayList<>();
 
     mobilityScans = new TreeMap<>();
     for (int scannum : mobilityScanNumbers) {
@@ -142,4 +146,10 @@ public class StorableFrame extends StorableScan implements Frame {
 
     mobilityScans.put(mobilityScan.getScanNumber(), mobilityScan);
   }
+
+  @Override
+  public List<Mobilogram> getMobilograms() {
+    return mobilograms;
+  }
+
 }

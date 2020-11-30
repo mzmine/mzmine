@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -134,5 +135,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Override
   public int getFrameId() {
     return frameId;
+  }
+
+  @Override
+  public List<Mobilogram> getMobilograms() {
+    throw new UnsupportedOperationException("getMobilograms is not supported by SimpleFrame");
   }
 }
