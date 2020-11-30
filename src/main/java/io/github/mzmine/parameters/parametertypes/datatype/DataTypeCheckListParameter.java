@@ -18,7 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.datatype;
 
-import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -105,6 +105,35 @@ public class DataTypeCheckListParameter implements
       addDataType(dataType, val);
     }
     return val;
+  }
+
+  /**
+   * Sets data type visibility value
+   *
+   * @param dataType The data type
+   * @param val true/false
+   */
+  public void setDataTypeVisible(DataType dataType, Boolean val) {
+    setDataTypeVisible(dataType.getHeaderString(), val);
+  }
+
+  /**
+   * Sets data type visibility value
+   *
+   * @param dataType Name of the data type
+   * @param val true/false
+   */
+  public void setDataTypeVisible(String dataType, Boolean val) {
+    value.put(dataType, val);
+  }
+
+  /**
+   * Sets data types and their visibility values
+   *
+   * @param map Map containing new data types and their values
+   */
+  public void setDataTypesAndVisibility(Map<String, Boolean> map) {
+    value = new HashMap<>(map);
   }
 
   @Override

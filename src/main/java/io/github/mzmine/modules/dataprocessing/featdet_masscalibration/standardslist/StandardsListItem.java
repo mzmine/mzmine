@@ -30,10 +30,10 @@ public class StandardsListItem {
 
   protected String molecularFormula;
   protected String name;
-  protected double retentionTime;
+  protected float retentionTime;
   protected double mzRatio;
 
-  public StandardsListItem(String molecularFormula, double retentionTime) {
+  public StandardsListItem(String molecularFormula, float retentionTime) {
     this.molecularFormula = molecularFormula;
     this.retentionTime = retentionTime;
     this.mzRatio = FormulaUtils.calculateMzRatio(molecularFormula);
@@ -63,7 +63,7 @@ public class StandardsListItem {
     return name;
   }
 
-  public double getRetentionTime() {
+  public float getRetentionTime() {
     return retentionTime;
   }
 

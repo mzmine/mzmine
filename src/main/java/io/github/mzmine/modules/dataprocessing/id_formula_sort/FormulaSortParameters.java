@@ -17,15 +17,15 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.text.DecimalFormat;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class FormulaSortParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final DoubleParameter MAX_PPM_WEIGHT =
       new DoubleParameter("Max ppm distance (weight)",
@@ -45,6 +45,6 @@ public class FormulaSortParameters extends SimpleParameterSet {
 
   public FormulaSortParameters(boolean isSub) {
     super(isSub ? new Parameter[] {MAX_PPM_WEIGHT, ISOTOPE_SCORE_WEIGHT, MSMS_SCORE_WEIGHT}
-        : new Parameter[] {PEAK_LISTS, MAX_PPM_WEIGHT, ISOTOPE_SCORE_WEIGHT, MSMS_SCORE_WEIGHT});
+        : new Parameter[] {FEATURE_LISTS, MAX_PPM_WEIGHT, ISOTOPE_SCORE_WEIGHT, MSMS_SCORE_WEIGHT});
   }
 }

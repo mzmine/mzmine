@@ -18,13 +18,14 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.util.PeakUtils;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
 import java.util.Objects;
+import javafx.collections.ObservableList;
 import org.jfree.data.xy.AbstractXYDataset;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
@@ -37,38 +38,38 @@ public class FeatureDataSet extends AbstractXYDataset {
    *
    */
   private static final long serialVersionUID = 1L;
-  private final Feature peak;
-  private final double[] retentionTimes;
+  private final Feature feature;
+  private final float[] retentionTimes;
   private final double[] intensities;
   private final double[] mzValues;
   private final String name;
-  private final int peakItem;
+  private final int featureItem;
 
   /**
    * Create the data set.
    *
-   * @param p the peak.
+   * @param p the feature.
    * @param id peak identity to use as a label.
    */
   public FeatureDataSet(final Feature p, final String id) {
 
-    peak = p;
+    feature = p;
     name = id;
 
-    final int[] scanNumbers = peak.getScanNumbers();
-    final RawDataFile dataFile = peak.getDataFile();
-    final int peakScanNumber = peak.getRepresentativeScanNumber();
+    final ObservableList<Integer> scanNumbers = feature.getScanNumbers();
+    final RawDataFile dataFile = feature.getRawDataFile();
+    final int peakScanNumber = feature.getRepresentativeScanNumber();
 
     // Copy peak data.
-    final int scanCount = scanNumbers.length;
-    retentionTimes = new double[scanCount];
+    final int scanCount = scanNumbers.size();
+    retentionTimes = new float[scanCount];
     intensities = new double[scanCount];
     mzValues = new double[scanCount];
     int peakIndex = -1;
     for (int i = 0; i < scanCount; i++) {
 
       // Representative scan number?
-      final int scanNumber = scanNumbers[i];
+      final int scanNumber = scanNumbers.get(i);
       if (peakIndex < 0 && scanNumber == peakScanNumber) {
 
         peakIndex = i;
@@ -76,7 +77,7 @@ public class FeatureDataSet extends AbstractXYDataset {
 
       // Copy RT and m/z.
       retentionTimes[i] = dataFile.getScan(scanNumber).getRetentionTime();
-      final DataPoint dataPoint = peak.getDataPoint(scanNumber);
+      final DataPoint dataPoint = feature.getDataPoint(scanNumber);
       if (dataPoint == null) {
 
         mzValues[i] = 0.0;
@@ -89,7 +90,7 @@ public class FeatureDataSet extends AbstractXYDataset {
       }
     }
 
-    peakItem = peakIndex;
+    featureItem = peakIndex;
   }
 
   /**
@@ -108,7 +109,7 @@ public class FeatureDataSet extends AbstractXYDataset {
 
   @Override
   public Comparable<?> getSeriesKey(final int series) {
-    return PeakUtils.peakToString(peak);
+    return FeatureUtils.featureToString(feature);
   }
 
   @Override
@@ -131,15 +132,15 @@ public class FeatureDataSet extends AbstractXYDataset {
   }
 
   public Feature getFeature() {
-    return peak;
+    return feature;
   }
 
   public String getName() {
     return name;
   }
 
-  public boolean isPeak(final int item) {
-    return item == peakItem;
+  public boolean isFeature(final int item) {
+    return item == featureItem;
   }
 
   @Override
@@ -151,8 +152,8 @@ public class FeatureDataSet extends AbstractXYDataset {
       return false;
     }
     FeatureDataSet that = (FeatureDataSet) o;
-    return peakItem == that.peakItem &&
-        Objects.equals(peak, that.peak) &&
+    return featureItem == that.featureItem &&
+        Objects.equals(feature, that.feature) &&
         Arrays.equals(retentionTimes, that.retentionTimes) &&
         Arrays.equals(intensities, that.intensities) &&
         Arrays.equals(mzValues, that.mzValues) &&
@@ -161,7 +162,7 @@ public class FeatureDataSet extends AbstractXYDataset {
 
   @Override
   public int hashCode() {
-    int result = Objects.hash(peak);
+    int result = Objects.hash(feature);
     result = 31 * result + Arrays.hashCode(retentionTimes);
     result = 31 * result + Arrays.hashCode(mzValues);
     return result;

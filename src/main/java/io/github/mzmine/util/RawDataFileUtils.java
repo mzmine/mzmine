@@ -31,10 +31,10 @@ import io.github.mzmine.datamodel.Scan;
  */
 public class RawDataFileUtils {
 
-  public static @Nonnull Range<Double> findTotalRTRange(RawDataFile dataFiles[], int msLevel) {
-    Range<Double> rtRange = null;
+  public static @Nonnull Range<Float> findTotalRTRange(RawDataFile dataFiles[], int msLevel) {
+    Range<Float> rtRange = null;
     for (RawDataFile file : dataFiles) {
-      Range<Double> dfRange = file.getDataRTRange(msLevel);
+      Range<Float> dfRange = file.getDataRTRange(msLevel);
       if (dfRange == null)
         continue;
       if (rtRange == null)
@@ -43,7 +43,7 @@ public class RawDataFileUtils {
         rtRange = rtRange.span(dfRange);
     }
     if (rtRange == null)
-      rtRange = Range.singleton(0.0);
+      rtRange = Range.singleton(0.0f);
     return rtRange;
   }
 

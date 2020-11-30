@@ -18,6 +18,15 @@
 
 package io.github.mzmine.project.impl;
 
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataFileWriter;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.io.File;
@@ -30,6 +39,7 @@ import java.nio.FloatBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -38,22 +48,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import java.util.EnumSet;
-import java.util.stream.Collectors;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -67,12 +67,15 @@ import java.util.stream.Collectors;
  */
 public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
+  public static final String SAVE_IDENTIFIER = "Raw data file";
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   // Name of this raw data file - may be changed by the user
   private String dataFileName;
 
-  private final Hashtable<Integer, Range<Double>> dataMZRange, dataRTRange;
+  private final Hashtable<Integer, Range<Double>> dataMZRange;
+  private final Hashtable<Integer, Range<Float>> dataRTRange;
   private final Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
   private final Hashtable<Integer, int[]> scanNumbersCache;
 
@@ -103,7 +106,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     // Prepare the hashtables for scan numbers and data limits.
     scanNumbersCache = new Hashtable<Integer, int[]>();
     dataMZRange = new Hashtable<Integer, Range<Double>>();
-    dataRTRange = new Hashtable<Integer, Range<Double>>();
+    dataRTRange = new Hashtable<Integer, Range<Float>>();
     dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
     dataMaxTIC = new Hashtable<Integer, Double>();
     scans = new Hashtable<Integer, StorableScan>();
@@ -112,6 +115,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     color = new SimpleObjectProperty<>();
     color.setValue(MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
+
   }
 
   @Override
@@ -190,11 +194,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    * scan can be found.
    */
   @Override
-  public int getScanNumberAtRT(double rt, int mslevel) {
+  public int getScanNumberAtRT(float rt, int mslevel) {
     if (rt > getDataRTRange(mslevel).upperEndpoint()) {
       return -1;
     }
-    Range<Double> range = Range.closed(rt - 2, rt + 2);
+    Range<Float> range = Range.closed(rt - 2, rt + 2);
     int[] scanNumbers = getScanNumbers(mslevel, range);
     double minDiff = 10E6;
 
@@ -216,7 +220,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    * scan can be found.
    */
   @Override
-  public int getScanNumberAtRT(double rt) {
+  public int getScanNumberAtRT(float rt) {
     if (rt > getDataRTRange().upperEndpoint()) {
       return -1;
     }
@@ -244,18 +248,18 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     if (scanNumbersCache.containsKey(msLevel)) {
       return scanNumbersCache.get(msLevel);
     }
-    Range<Double> all = Range.all();
+    Range<Float> all = Range.all();
     int scanNumbers[] = getScanNumbers(msLevel, all);
     scanNumbersCache.put(msLevel, scanNumbers);
     return scanNumbers;
   }
 
   /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, double, double)
+   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
    */
   @Override
   public @Nonnull
-  int[] getScanNumbers(int msLevel, @Nonnull Range<Double> rtRange) {
+  int[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
 
     assert rtRange != null;
 
@@ -283,7 +287,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   @Nonnull
   public int[] getScanNumbers() {
 
-    if (scanNumbersCache.containsKey(0)) {
+    if (scanNumbersCache.containsKey(0) && scanNumbersCache.get(0).length == scans.size()) {
       return scanNumbersCache.get(0);
     }
 
@@ -319,7 +323,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxBasePeakIntensity()
+   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxBasePeakIntensity(int)
    */
   @Override
   public double getDataMaxBasePeakIntensity(int msLevel) {
@@ -364,7 +368,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxTotalIonCurrent()
+   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxTotalIonCurrent(int)
    */
   @Override
   public double getDataMaxTotalIonCurrent(int msLevel) {
@@ -506,8 +510,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     StorableScan storedScan = new StorableScan(newScan, this, dataPoints.length, storageID);
 
-    scans.put(newScan.getScanNumber(), storedScan);
-
+    if(scans.put(newScan.getScanNumber(), storedScan) != null) {
+      logger.info("scan " + newScan.getScanNumber() + " already existed");
+    };
   }
 
   /**
@@ -567,24 +572,24 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
   @Override
   @Nonnull
-  public Range<Double> getDataRTRange() {
+  public Range<Float> getDataRTRange() {
     return getDataRTRange(0);
   }
 
-  @Nonnull
-  @Override
-  public Range<Double> getDataMobilityRange() {
-    return null;
-  }
+//  @Nonnull
+//  @Override
+//  public Range<Double> getDataMobilityRange() {
+//    return null;
+//  }
 
   @Nonnull
   @Override
-  public Range<Double> getDataRTRange(Integer msLevel) {
+  public Range<Float> getDataRTRange(Integer msLevel) {
     if (msLevel == null) {
       return getDataRTRange();
     }
     // check if we have this value already cached
-    Range<Double> rtRange = dataRTRange.get(msLevel);
+    Range<Float> rtRange = dataRTRange.get(msLevel);
     if (rtRange != null) {
       return rtRange;
     }
@@ -609,19 +614,25 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     if (rtRange != null) {
       dataRTRange.put(msLevel, rtRange);
     } else {
-      rtRange = Range.singleton(0.0);
+      rtRange = Range.singleton(0.0f);
     }
 
     return rtRange;
   }
 
-  @Nonnull
-  @Override
-  public Range<Double> getDataMobilityRange(int msLevel) {
-    return null;
-  }
+//  @Nonnull
+//  @Override
+//  public Range<Double> getDataMobilityRange(int msLevel) {
+//    return mobilityRange;
+//  }
+//
+//  @Nonnull
+//  @Override
+//  public MobilityType getMobilityType() {
+//    return mobilityType;
+//  }
 
-  public void setRTRange(int msLevel, Range<Double> rtRange) {
+  public void setRTRange(int msLevel, Range<Float> rtRange) {
     dataRTRange.put(msLevel, rtRange);
   }
 

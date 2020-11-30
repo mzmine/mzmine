@@ -18,6 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -29,23 +39,15 @@ import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.autocarbon.AutoCarbonParameters;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -54,8 +56,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.PeakListRowSorter;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -88,9 +88,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private double mergeWidth;
   private String message;
   private int totalRows, finishedRows;
-  private PeakList resultPeakList;
+  private FeatureList resultPeakList;
   private MZmineProject project;
-  private PeakList peakList;
+  private FeatureList peakList;
   private boolean checkRT;
   private ExtendedIsotopePattern[] pattern;
   private PolarityType polarityType;
@@ -127,7 +127,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @param peakListRow
    * @param peak
    */
-  IsotopePeakScannerTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+  IsotopePeakScannerTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
     this.parameters = parameters;
     this.project = project;
     this.peakList = peakList;
@@ -235,18 +235,18 @@ public class IsotopePeakScannerTask extends AbstractTask {
     logger.info("maxPatternSize: " + maxPatternSize);
 
     // get all rows and sort by m/z
-    PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
-    Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
+    Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     PeakListHandler plh = new PeakListHandler();
     plh.setUp(peakList);
 
-    resultPeakList = new SimplePeakList(peakList.getName() + suffix, peakList.getRawDataFiles());
+    resultPeakList = new ModularFeatureList(peakList.getName() + suffix, peakList.getRawDataFiles());
     PeakListHandler resultMap = new PeakListHandler();
 
     for (int i = 0; i < totalRows; i++) {
       // i will represent the index of the row in peakList
-      if (rows[i].getPeakIdentities().length > 0) {
+      if (rows[i].getPeakIdentities().size() > 0) {
         finishedRows++;
         continue;
       }
@@ -256,7 +256,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
       // now get all peaks that lie within RT and maxIsotopeMassRange:
       // pL[index].mz ->
       // pL[index].mz+maxMass
-      ArrayList<PeakListRow> groupedPeaks =
+      ArrayList<FeatureListRow> groupedPeaks =
           groupPeaks(rows, i, diff[maxPatternIndex][diff[maxPatternIndex].length - 1]);
 
       if (groupedPeaks.size() < 2) {
@@ -437,13 +437,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
       // PeakListRow parent = copyPeakRow(peakList.getRow(i));
 
       boolean allPeaksAddable = true;
-      List<PeakListRow> rowBuffer = new ArrayList<PeakListRow>();
+      List<FeatureListRow> rowBuffer = new ArrayList<FeatureListRow>();
 
-      PeakListRow original = getRowFromCandidate(candidates, bestPatternIndex, 0, plh);
+      FeatureListRow original = getRowFromCandidate(candidates, bestPatternIndex, 0, plh);
       if (original == null)
         continue;
 
-      PeakListRow parent = copyPeakRow(original);
+      FeatureListRow parent = copyPeakRow(original);
 
       if (resultMap.containsID(parent.getID())) // if we can assign this
                                                 // row multiple times we
@@ -482,13 +482,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
                                                                     // groupedPeaks[0]/
       // ==candidates.get(0) which we added before
       {
-        PeakListRow originalChild = getRowFromCandidate(candidates, bestPatternIndex, k, plh);
+        FeatureListRow originalChild = getRowFromCandidate(candidates, bestPatternIndex, k, plh);
 
         if (originalChild == null) {
           allPeaksAddable = false;
           continue;
         }
-        PeakListRow child = copyPeakRow(originalChild);
+        FeatureListRow child = copyPeakRow(originalChild);
 
         if (accurateAvgIntensity) {
           dp[k] = new SimpleDataPoint(child.getAverageMZ(),
@@ -531,10 +531,10 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
       IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED,
           element + " monoisotopic mass: " + parent.getAverageMZ());
-      parent.getBestPeak().setIsotopePattern(resultPattern);
+      parent.getBestFeature().setIsotopePattern(resultPattern);
 
-      for (PeakListRow row : rowBuffer) {
-        row.getBestPeak().setIsotopePattern(resultPattern);
+      for (FeatureListRow row : rowBuffer) {
+        row.getBestFeature().setIsotopePattern(resultPattern);
         resultMap.addRow(row);
       }
 
@@ -586,7 +586,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @return null if no peak with the given parameters exists, the specified feature list row
    *         otherwise.
    */
-  private @Nullable PeakListRow getRowFromCandidate(@Nonnull Candidates[] candidates,
+  private @Nullable FeatureListRow getRowFromCandidate(@Nonnull Candidates[] candidates,
       int bestPatternIndex, int peakIndex, @Nonnull PeakListHandler plh) {
 
     if (bestPatternIndex >= candidates.length)
@@ -599,7 +599,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
     if (cand != null) {
       int id = cand.getCandID();
-      PeakListRow original = plh.getRowByID(id);
+      FeatureListRow original = plh.getRowByID(id);
       return original;
     }
     return null;
@@ -713,20 +713,20 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @return will return ArrayList<PeakListRow> of all peaks within the range of pL[parentIndex].mz
    *         -> pL[parentIndex].mz+maxMass
    */
-  private ArrayList<PeakListRow> groupPeaks(PeakListRow[] pL, int parentIndex, double maxDiff) {
+  private ArrayList<FeatureListRow> groupPeaks(FeatureListRow[] pL, int parentIndex, double maxDiff) {
 
-    ArrayList<PeakListRow> buf = new ArrayList<PeakListRow>();
+    ArrayList<FeatureListRow> buf = new ArrayList<FeatureListRow>();
 
     buf.add(pL[parentIndex]); // this means the result will contain
                               // row(parentIndex) itself
 
     double mz = pL[parentIndex].getAverageMZ();
-    double rt = pL[parentIndex].getAverageRT();
+    float rt = pL[parentIndex].getAverageRT();
 
     for (int i = parentIndex + 1; i < pL.length; i++) // will not add the
                                                       // parent peak itself
     {
-      PeakListRow r = pL[i];
+      FeatureListRow r = pL[i];
       // check for rt
 
       if (r.getAverageHeight() < minHeight)
@@ -757,16 +757,17 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @param row the row to copy.
    * @return the newly created copy.
    */
-  private static PeakListRow copyPeakRow(final PeakListRow row) {
+  private static FeatureListRow copyPeakRow(final FeatureListRow row) {
     // Copy the feature list row.
-    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-    PeakUtils.copyPeakListRowProperties(row, newRow);
+    final FeatureListRow newRow = new ModularFeatureListRow(
+        (ModularFeatureList) row.getFeatureList(), row.getID());
+    FeatureUtils.copyFeatureListRowProperties(row, newRow);
 
     // Copy the peaks.
-    for (final Feature peak : row.getPeaks()) {
-      final Feature newPeak = new SimpleFeature(peak);
-      PeakUtils.copyPeakProperties(peak, newPeak);
-      newRow.addPeak(peak.getDataFile(), newPeak);
+    for (final Feature peak : row.getFeatures()) {
+      final Feature newPeak = new ModularFeature(peak);
+      FeatureUtils.copyFeatureProperties(peak, newPeak);
+      newRow.addFeature(peak.getRawDataFile(), newPeak);
     }
 
     return newRow;
@@ -804,7 +805,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @param row PeakListRow to add the comment to
    * @param str comment to be added
    */
-  public static void addComment(PeakListRow row, String str) {
+  public static void addComment(FeatureListRow row, String str) {
     String current = row.getComment();
     if (current == null)
       row.setComment(str);
@@ -815,25 +816,26 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   /**
-   * Add feature list to project, delete old if requested, add description to result
+   * Add feature list to project, delete old if requested, add description to result,
+   * show new feature list in a new tab
    */
   public void addResultToProject() {
     // Add new peakList to the project
-    project.addPeakList(resultPeakList);
+    project.addFeatureList(resultPeakList);
 
     // Load previous applied methods
-    for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
+    for (FeatureListAppliedMethod proc : peakList.getAppliedMethods()) {
       resultPeakList.addDescriptionOfAppliedTask(proc);
     }
 
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("IsotopePeakScanner", parameters));
+        new SimpleFeatureListAppliedMethod("IsotopePeakScanner", parameters));
   }
 
-  private PolarityType getPeakListPolarity(PeakList peakList) {
-    int[] scans = peakList.getRow(0).getPeaks()[0].getScanNumbers();
-    RawDataFile raw = peakList.getRow(0).getPeaks()[0].getDataFile();
+  private PolarityType getPeakListPolarity(FeatureList peakList) {
+    int[] scans = peakList.getRow(0).getFeatures().get(0).getScanNumbers().stream().mapToInt(i -> i).toArray();
+    RawDataFile raw = peakList.getRow(0).getFeatures().get(0).getRawDataFile();
     return raw.getScan(scans[0]).getPolarity();
   }
 

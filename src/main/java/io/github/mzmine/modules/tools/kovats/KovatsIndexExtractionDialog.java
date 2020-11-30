@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.tools.kovats;
 
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.util.RangeUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -71,7 +71,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DialogLoggerUtil;
-import io.github.mzmine.util.color.Colors;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
 import io.github.mzmine.util.javafx.FxIconUtil;
@@ -112,7 +111,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   // accepts saved files
   private Consumer<File> saveFileListener;
-  private TextField txtPeakPick;
+  private TextField txtFeaturePick;
   private TextField valuesComponent;
   private TICPlot chart;
 
@@ -197,12 +196,12 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     BorderPane center = new BorderPane();
     newMainPanel.getChildren().add(center);
 
-    // all parameters on peak pick panel
+    // all parameters on feature pick panel
     BorderPane pnSouth = new BorderPane();
     center.setBottom(pnSouth);
 
-    FlowPane pnPeakPick = new FlowPane();
-    pnSouth.setCenter(pnPeakPick);
+    FlowPane pnFeaturePick = new FlowPane();
+    pnSouth.setCenter(pnFeaturePick);
 
     valuesComponent = getComponentForParameter(KovatsIndexExtractionParameters.pickedKovatsValues);
     MZRangeComponent mzc =
@@ -218,11 +217,11 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     pnCenter.setBottom(valuesComponent);
 
     BorderPane pnButtonFlow = new BorderPane();
-    pnPeakPick.getChildren().add(pnButtonFlow);
+    pnFeaturePick.getChildren().add(pnButtonFlow);
     Button btnUpdateChart = new Button("Update chart");
     btnUpdateChart.setOnAction(e -> updateChart());
     pnButtonFlow.getChildren().add(btnUpdateChart);
-    Button btnPickRT = new Button("Pick peaks");
+    Button btnPickRT = new Button("Pick features");
     btnPickRT.setOnAction(e -> pickRetentionTimes());
     pnButtonFlow.getChildren().add(btnPickRT);
     Button btnSaveFile = new Button("Save to file");
@@ -248,11 +247,11 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     cbSecondRaw = new CheckBox();
     initRawDataFileSelection();
 
-    pnPeakPick.getChildren().add(new Label("Raw data file(s)"));
-    pnPeakPick.getChildren().add(comboDataFileName);
+    pnFeaturePick.getChildren().add(new Label("Raw data file(s)"));
+    pnFeaturePick.getChildren().add(comboDataFileName);
     cbSecondRaw.setOnAction(e -> useSecondDataFile(cbSecondRaw.isSelected()));
-    pnPeakPick.getChildren().add(cbSecondRaw);
-    pnPeakPick.getChildren().add(comboDataFileName2);
+    pnFeaturePick.getChildren().add(cbSecondRaw);
+    pnFeaturePick.getChildren().add(comboDataFileName2);
     // direct alkane selection < CxH2x+1 >
     FlowPane pnAlkaneSelect = new FlowPane();
     // Dimension dim = new Dimension(SIZE, SIZE);
@@ -272,16 +271,16 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
     pnAlkaneSelect.getChildren().addAll(btnPrevAlkane, lbCurrentAlkane, btnNextAlkane,
         cbCurrentAlkaneSubH);
-    pnPeakPick.getChildren().add(pnAlkaneSelect);
+    pnFeaturePick.getChildren().add(pnAlkaneSelect);
 
-    pnPeakPick.getChildren().add(new Label("m/z range"));
-    pnPeakPick.getChildren().add(mzc);
-    pnPeakPick.getChildren().add(new Label(KovatsIndexExtractionParameters.rtRange.getName()));
-    pnPeakPick.getChildren().add(rtc);
-    pnPeakPick.getChildren().add(new Label(KovatsIndexExtractionParameters.noiseLevel.getName()));
-    pnPeakPick.getChildren().add(noisec);
-    pnPeakPick.getChildren().add(new Label(KovatsIndexExtractionParameters.ratioTopEdge.getName()));
-    pnPeakPick.getChildren().add(edgeRatioC);
+    pnFeaturePick.getChildren().add(new Label("m/z range"));
+    pnFeaturePick.getChildren().add(mzc);
+    pnFeaturePick.getChildren().add(new Label(KovatsIndexExtractionParameters.rtRange.getName()));
+    pnFeaturePick.getChildren().add(rtc);
+    pnFeaturePick.getChildren().add(new Label(KovatsIndexExtractionParameters.noiseLevel.getName()));
+    pnFeaturePick.getChildren().add(noisec);
+    pnFeaturePick.getChildren().add(new Label(KovatsIndexExtractionParameters.ratioTopEdge.getName()));
+    pnFeaturePick.getChildren().add(edgeRatioC);
 
     // add listeners
     comboDataFileName.setOnAction(e -> updateChart());
@@ -519,8 +518,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
       Range<Double> rangeMZ =
           parameterSet.getParameter(KovatsIndexExtractionParameters.mzRange).getValue();
-      Range<Double> rangeRT =
-          parameterSet.getParameter(KovatsIndexExtractionParameters.rtRange).getValue();
+      Range<Float> rangeRT = RangeUtils.toFloatRange(
+          parameterSet.getParameter(KovatsIndexExtractionParameters.rtRange).getValue());
       if (rangeMZ == null) {
         // set range to specific alkane fragment
         rangeMZ = Range.closed(56.6, 57.5);
@@ -530,7 +529,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       if (rangeRT == null) {
         rangeRT = selectedDataFile[0].getDataRTRange();
         ((RTRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.rtRange))
-            .setValue(rangeRT);
+            .setValue(RangeUtils.toDoubleRange(rangeRT));
       }
 
       // create dataset
@@ -567,7 +566,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       // revalidate();
       // repaint();
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Peak picking parameters incorrect");
+      logger.log(Level.WARNING, "Feature picking parameters incorrect");
     }
   }
 
@@ -689,7 +688,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   /**
-   * Peak picking to define Kovats index retention times
+   * Feature picking to define Kovats index retention times
    */
   private void pickRetentionTimes() {
     updateParameterSetFromComponents();
@@ -730,9 +729,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
         maxRT = rt;
       }
 
-      // is peak?
+      // is feature?
       if (max / startI > ratioEdge && max / intensity > ratioEdge) {
-        // add peak
+        // add feature
         results.add(maxRT);
 
         max = 0;

@@ -90,14 +90,14 @@ public class DesktopSetup implements Runnable {
           if (taskBar.isSupported(Taskbar.Feature.ICON_BADGE_NUMBER))
             taskBar.setIconBadge(null);
           /*
-           * if (taskBar.isSupported( Taskbar.Feature.PROGRESS_STATE_WINDOW))
+           * if (taskBar.isSupported( Taskbar.FeatureOld.PROGRESS_STATE_WINDOW))
            * taskBar.setWindowProgressState( MZmineCore.getDesktop().getMainWindow(),
            * Taskbar.State.OFF);
            */
           if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
             taskBar.setProgressValue(-1);
           /*
-           * if (taskBar.isSupported( Taskbar.Feature.PROGRESS_VALUE_WINDOW))
+           * if (taskBar.isSupported( Taskbar.FeatureOld.PROGRESS_VALUE_WINDOW))
            * taskBar.setWindowProgressValue( MZmineCore.getDesktop().getMainWindow(), -1);
            */
         }

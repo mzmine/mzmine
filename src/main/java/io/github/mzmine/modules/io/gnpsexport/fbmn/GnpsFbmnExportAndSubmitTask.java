@@ -192,13 +192,13 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         ExportRowCommonElement.ROW_MZ, ExportRowCommonElement.ROW_RT};
 
     ExportRowDataFileElement[] rawdata =
-        new ExportRowDataFileElement[] {ExportRowDataFileElement.PEAK_AREA};
+        new ExportRowDataFileElement[] {ExportRowDataFileElement.FEATURE_AREA};
 
     RowFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
 
     CSVExportTask quanExport = new CSVExportTask(
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.PEAK_LISTS).getValue()
-            .getMatchingPeakLists(), //
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
+            .getMatchingFeatureLists(), //
         full, ",", common, rawdata, false, ";", filter);
     if (tasks != null)
       tasks.add(quanExport);

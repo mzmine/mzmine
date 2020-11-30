@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.io.File;
 import java.util.Hashtable;
 
@@ -33,17 +34,17 @@ import javafx.collections.ObservableList;
  * <li>Experimental parameters and their values for each RawDataFile. Experimental parameters are
  * available for defining any properties of the sample, for instance concentration or a class label.
  * <li>Opened RawDataFiles
- * <li>PeakLists of each RawDataFile. A feature list represents results of feature detection on a
- * single RawDataFile or a processed version of a preceding PeakList.
- * <li>PeakLists of multiple aligned PeakLists. An aligned feature list represent results of
- * aligning multiple PeakLists of individual runs or a processed version of a preceding aligned
- * PeakList.
+ * <li>FeatureLists of each RawDataFile. A feature list represents results of feature detection on a
+ * single RawDataFile or a processed version of a preceding FeatureList.
+ * <li>FeatureLists of multiple aligned FeatureLists. An aligned feature list represent results of
+ * aligning multiple FeatureLists of individual runs or a processed version of a preceding aligned
+ * FeatureList.
  * </ul>
  *
  * @see UserParameter
  * @see ParameterValue
  * @see RawDataFile
- * @see PeakList
+ * @see FeatureList
  *
  */
 public interface MZmineProject {
@@ -114,31 +115,28 @@ public interface MZmineProject {
   /**
    * Adds a feature list to the project
    */
-  public void addPeakList(PeakList peaklist);
-
+  public void addFeatureList(FeatureList featureList);
 
   /**
    * Removes a feature list from the project
    */
-  public void removePeakList(PeakList peaklist);
+  public void removeFeatureList(FeatureList featureList);
 
   /**
    * Returns all feature lists of the project
    */
-  public PeakList[] getPeakLists();
+  public ObservableList<FeatureList> getFeatureLists();
 
   public ObservableList<RawDataFile> getRawDataFiles();
 
   public ListProperty<RawDataFile> rawDataFilesProperty();
 
-  public ObservableList<PeakList> getFeatureLists();
-
-  public ListProperty<PeakList> featureListsProperty();
+  public ListProperty<FeatureList> featureListsProperty();
 
   /**
    * Returns all feature lists which contain given data file
    */
-  public PeakList[] getPeakLists(RawDataFile file);
+  public FeatureList[] getFeatureLists(RawDataFile file);
 
   public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues();
 

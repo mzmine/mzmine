@@ -21,9 +21,9 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementati
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -47,7 +47,7 @@ public class ComputeCliqueModule {
   private final Logger logger = Logger.getLogger(getClass().getName());
 
   private final AnClique anClique;
-  private final PeakList peakList;
+  private final FeatureList peakList;
   private List<PeakData> peakDataList;
   private final RawDataFile rawDataFile;
 
@@ -59,7 +59,7 @@ public class ComputeCliqueModule {
   //cosine correlation matrix calculated over columns of EIC matrix
   private double[][] cosineCorrelation;
 
-  public ComputeCliqueModule(PeakList peakList, RawDataFile rdf, MutableDouble progress,
+  public ComputeCliqueModule(FeatureList peakList, RawDataFile rdf, MutableDouble progress,
       CliqueMSTask task) {
     this.rawDataFile = rdf;
     this.peakList = peakList;
@@ -76,26 +76,26 @@ public class ComputeCliqueModule {
    * @param dataFile raw Data File
    * @return PeakData contains sufficient data for cliqueMS algorithm
    */
-  private List<PeakData> getPeakDataFromPeaks(PeakList peakList, RawDataFile dataFile) {
+  private List<PeakData> getPeakDataFromPeaks(FeatureList peakList, RawDataFile dataFile) {
     List<PeakData> peakDataList = new ArrayList<>();
     for (int i = 0; i < peakList.getRows().size(); i++) {
-      PeakListRow peak = peakList.getRows().get(i);
+      FeatureListRow peak = peakList.getRows().get(i);
       double mz;
       double mzmin;
       double mzmax;
-      double rt;
-      double rtmin;
-      double rtmax;
-      double intensity;
+      float rt;
+      float rtmin;
+      float rtmax;
+      float intensity;
       int peakListRowID;
-      if (peak.hasPeak(dataFile)) {
-        mz = peak.getPeak(dataFile).getMZ();
-        mzmin = peak.getPeak(dataFile).getRawDataPointsMZRange().lowerEndpoint();
-        mzmax = peak.getPeak(dataFile).getRawDataPointsMZRange().upperEndpoint();
-        rt = peak.getPeak(dataFile).getRT();
-        rtmin = peak.getPeak(dataFile).getRawDataPointsRTRange().lowerEndpoint();
-        rtmax = peak.getPeak(dataFile).getRawDataPointsRTRange().upperEndpoint();
-        intensity = peak.getPeak(dataFile).getHeight();
+      if (peak.hasFeature(dataFile)) {
+        mz = peak.getFeature(dataFile).getMZ();
+        mzmin = peak.getFeature(dataFile).getRawDataPointsMZRange().lowerEndpoint();
+        mzmax = peak.getFeature(dataFile).getRawDataPointsMZRange().upperEndpoint();
+        rt = peak.getFeature(dataFile).getRT();
+        rtmin = peak.getFeature(dataFile).getRawDataPointsRTRange().lowerEndpoint();
+        rtmax = peak.getFeature(dataFile).getRawDataPointsRTRange().upperEndpoint();
+        intensity = peak.getFeature(dataFile).getHeight();
         peakListRowID = peak.getID();
         PeakData peakData = new PeakData(mz, mzmin, mzmax, rt, rtmin, rtmax, intensity, i + 1,
             peakListRowID);
@@ -249,9 +249,9 @@ public class ComputeCliqueModule {
         PeakData p1 = peakDataList.get(edgeX.get(i));
         PeakData p2 = peakDataList.get(edgeY.get(i));
         Range<Double> mz_Range = mzdiff.getToleranceRange(p1.getMz());
-        Range<Double> rt_Range = rtdiff.getToleranceRange(p1.getRt());
+        Range<Float> rt_Range = rtdiff.getToleranceRange((float) p1.getRt());
         double error_int = Math.abs(p1.getIntensity() - p2.getIntensity()) / p1.getIntensity();
-        if ((mz_Range.contains(p2.getMz())) && (rt_Range.contains(p2.getRt())) && (error_int
+        if ((mz_Range.contains(p2.getMz())) && (rt_Range.contains((float) p2.getRt())) && (error_int
             < intdiff)) {
           Integer node = (edgeX.get(i) < edgeY.get(i) ? edgeX.get(i) : edgeY.get(i));
           identicalNodes.add((edgeX.get(i) >= edgeY.get(i) ? edgeX.get(i) : edgeY.get(i)));
@@ -260,9 +260,9 @@ public class ComputeCliqueModule {
       }
     }
 
-    HashMap<PeakData, PeakListRow> peakMap = new HashMap<>(); // map b/w peakData and peakListRow
+    HashMap<PeakData, FeatureListRow> peakMap = new HashMap<>(); // map b/w peakData and peakListRow
     for (PeakData pd : peakDataList) {
-      for (PeakListRow row : peakList.getRows()) {
+      for (FeatureListRow row : peakList.getRows()) {
         if (pd.getPeakListRowID() == row.getID()) {
           peakMap.put(pd, row);
         }
@@ -275,7 +275,7 @@ public class ComputeCliqueModule {
       Integer nodeToReplace = identicalNodes.get(i);
       PeakData pdNodeToDelete = peakDataList.get(nodeToDeleted);
       PeakData pdNodeToReplace = peakDataList.get(nodeToReplace);
-      PeakListRow row = peakMap.get(pdNodeToDelete);
+      FeatureListRow row = peakMap.get(pdNodeToDelete);
       row.setComment("Similar to peak: " + pdNodeToReplace.getPeakListRowID());
 
     }

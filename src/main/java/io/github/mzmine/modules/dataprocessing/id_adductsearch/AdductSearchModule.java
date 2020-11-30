@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -66,8 +66,8 @@ public class AdductSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
       @Nonnull final Collection<Task> tasks) {
 
-    for (final PeakList peakList : parameters.getParameter(AdductSearchParameters.PEAK_LISTS)
-        .getValue().getMatchingPeakLists()) {
+    for (final FeatureList peakList : parameters.getParameter(AdductSearchParameters.PEAK_LISTS)
+        .getValue().getMatchingFeatureLists()) {
       tasks.add(new AdductSearchTask(parameters, peakList));
     }
 

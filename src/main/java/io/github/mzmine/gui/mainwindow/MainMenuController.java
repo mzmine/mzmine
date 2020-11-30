@@ -51,6 +51,11 @@ public class MainMenuController {
   @FXML
   private Menu recentProjectsMenu;
 
+  @FXML
+  public void initialize() {
+    fillRecentProjects();
+  }
+
   public void closeProject(Event event) {
     MZmineGUI.requestCloseProject();
   }
@@ -159,6 +164,10 @@ public class MainMenuController {
   }
 
   public void fillRecentProjects(Event event) {
+    fillRecentProjects();
+  }
+
+  private void fillRecentProjects() {
 
     recentProjectsMenu.getItems().clear();
 

@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.io.File;
 import java.util.Collection;
 import io.github.mzmine.parameters.Parameter;
@@ -27,7 +28,6 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 
@@ -42,7 +42,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   /**
    * Feature lists to operate on.
    */
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   /**
    * Mass List of MSn fragment ions.

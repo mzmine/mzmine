@@ -23,13 +23,13 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 public class PeakListBlankSubtractionParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter alignedPeakList =
-      new PeakListsParameter("Aligned peak list", 1, 1);
+  public static final FeatureListsParameter alignedPeakList =
+      new FeatureListsParameter("Aligned peak list", 1, 1);
 
   public static final RawDataFilesParameter blankRawDataFiles =
       new RawDataFilesParameter("Blank/Control raw data files", 1, 100);

@@ -18,11 +18,10 @@
 
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
-
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakListRow;
 
 public class ScatterPlotItemLabelGenerator implements XYItemLabelGenerator {
 
@@ -34,8 +33,8 @@ public class ScatterPlotItemLabelGenerator implements XYItemLabelGenerator {
 
     ScatterPlotDataSet scatterDataSet = (ScatterPlotDataSet) dataSet;
 
-    PeakListRow row = scatterDataSet.getRow(series, item);
-    PeakIdentity identity = row.getPreferredPeakIdentity();
+    FeatureListRow row = scatterDataSet.getRow(series, item);
+    FeatureIdentity identity = row.getPreferredFeatureIdentity();
     if (identity != null) {
       return identity.getName();
     } else {

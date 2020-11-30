@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FeatureTableFXUtil;
@@ -34,13 +34,13 @@ public class FeatureTableFXModule implements MZmineModule {
    * @param flist
    */
   public static void createFeatureListTable(ModularFeatureList flist) {
-    Platform.runLater(() -> FeatureTableFXUtil.createFeatureTableWindow(flist));
+    Platform.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
   }
 
   @Nonnull
   @Override
   public String getName() {
-    return "Feature list table";
+    return "FeatureOld list table";
   }
 
   @Nullable

@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -53,9 +53,9 @@ public class SiriusIdentificationModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    final PeakList[] peakLists = parameters.getParameter(PeakListIdentificationParameters.peakLists)
-        .getValue().getMatchingPeakLists();
-    for (final PeakList peakList : peakLists) {
+    final FeatureList[] peakLists = parameters.getParameter(PeakListIdentificationParameters.peakLists)
+        .getValue().getMatchingFeatureLists();
+    for (final FeatureList peakList : peakLists) {
       Task newTask = new PeakListIdentificationTask(parameters, peakList);
       tasks.add(newTask);
     }
@@ -68,7 +68,7 @@ public class SiriusIdentificationModule implements MZmineProcessingModule {
    *
    * @param row the feature list row.
    */
-  public static void showSingleRowIdentificationDialog(final PeakListRow row) {
+  public static void showSingleRowIdentificationDialog(final FeatureListRow row) {
 
     assert Platform.isFxApplicationThread();
 

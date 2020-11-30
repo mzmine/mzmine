@@ -80,7 +80,7 @@ public class GnpsFbmnExportAndSubmitModule implements MZmineProcessingModule {
 
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTEXPORT;
+    return MZmineModuleCategory.FEATURELISTEXPORT;
   }
 
   @Override

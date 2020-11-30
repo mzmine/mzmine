@@ -72,7 +72,7 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
 
   public static void showIDAVisualizerSetupDialog(RawDataFile dataFile, Range<Double> mzRange,
       Range<Double> rtRange, IntensityType intensityType, NormalizationType normalizationType,
-      Double minPeakInt) {
+      Double minFeatureInt) {
     ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(MsMsVisualizerModule.class);
 
@@ -91,8 +91,8 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
     if (normalizationType != null) {
       parameters.getParameter(MsMsParameters.normalizationType).setValue(normalizationType);
     }
-    if (!Double.isNaN(minPeakInt)) {
-      parameters.getParameter(MsMsParameters.minPeakInt).setValue(minPeakInt);
+    if (!Double.isNaN(minFeatureInt)) {
+      parameters.getParameter(MsMsParameters.minFeatureInt).setValue(minFeatureInt);
     }
 
     ExitCode exitCode = parameters.showSetupDialog(true);

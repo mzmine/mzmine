@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import io.github.msdk.datamodel.IonAnnotation;
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.taskcontrol.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -31,7 +31,7 @@ import java.util.List;
 public class ResultWindowFX extends Stage {
    private ResultWindowController controller;
 
-    public ResultWindowFX(PeakListRow peakListRow, Task searchTask)
+    public ResultWindowFX(FeatureListRow peakListRow, Task searchTask)
     {
         try
         {

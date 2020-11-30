@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.text.NumberFormat;
 
 import io.github.mzmine.modules.dataprocessing.align_hierarchical.ClustererType;
@@ -30,7 +31,6 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
@@ -47,7 +47,7 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
       "Ignored if clusterer type is not 'Cached'. Saves RAM at the expense of CPU during the 2nd step of the clustering (building clusters from tree).",
       false);
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final StringParameter peakListName =
       new StringParameter("Feature list name", "Feature list name", "Aligned feature list");

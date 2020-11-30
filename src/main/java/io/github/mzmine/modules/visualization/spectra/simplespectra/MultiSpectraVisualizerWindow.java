@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -26,9 +28,11 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -39,8 +43,6 @@ import javax.swing.JSplitPane;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
@@ -55,8 +57,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 public class MultiSpectraVisualizerWindow extends JFrame {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private RawDataFile[] rawFiles;
-  private PeakListRow row;
+  private List<RawDataFile> rawFiles;
+  private FeatureListRow row;
   private RawDataFile activeRaw;
 
   private static final long serialVersionUID = 1L;
@@ -68,11 +70,11 @@ public class MultiSpectraVisualizerWindow extends JFrame {
    *
    * @param row
    */
-  public MultiSpectraVisualizerWindow(PeakListRow row) {
+  public MultiSpectraVisualizerWindow(FeatureListRow row) {
     this(row, row.getBestFragmentation().getDataFile());
   }
 
-  public MultiSpectraVisualizerWindow(PeakListRow row, RawDataFile raw) {
+  public MultiSpectraVisualizerWindow(FeatureListRow row, RawDataFile raw) {
     setBackground(Color.WHITE);
     setExtendedState(JFrame.MAXIMIZED_BOTH);
     setMinimumSize(new Dimension(800, 600));
@@ -109,7 +111,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     pnMenu.add(lbRaw);
 
     int n = 0;
-    for (Feature f : row.getPeaks()) {
+    for (Feature f : row.getFeatures()) {
       if (f.getMostIntenseFragmentScanNumber() > 0)
         n++;
     }
@@ -131,9 +133,9 @@ public class MultiSpectraVisualizerWindow extends JFrame {
   private void nextRaw() {
     logger.log(Level.INFO, "All MS/MS scans window: next raw file");
     int n = indexOfRaw(activeRaw);
-    while (n + 1 < rawFiles.length) {
+    while (n + 1 < rawFiles.size()) {
       n++;
-      setRawFileAndShow(rawFiles[n]);
+      setRawFileAndShow(rawFiles.get(n));
     }
   }
 
@@ -145,7 +147,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     int n = indexOfRaw(activeRaw) - 1;
     while (n - 1 >= 0) {
       n--;
-      setRawFileAndShow(rawFiles[n]);
+      setRawFileAndShow(rawFiles.get(n));
     }
   }
 
@@ -155,7 +157,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
    * @param row
    * @param raw
    */
-  public void setData(PeakListRow row, RawDataFile raw) {
+  public void setData(FeatureListRow row, RawDataFile raw) {
     rawFiles = row.getRawDataFiles();
     this.row = row;
     setRawFileAndShow(raw);
@@ -168,24 +170,24 @@ public class MultiSpectraVisualizerWindow extends JFrame {
    * @return true if row has peak with MS2 spectrum in RawDataFile raw
    */
   public boolean setRawFileAndShow(RawDataFile raw) {
-    Feature peak = row.getPeak(raw);
+    Feature peak = row.getFeature(raw);
     // no peak / no ms2 - return false
     if (peak == null || peak.getAllMS2FragmentScanNumbers() == null
-        || peak.getAllMS2FragmentScanNumbers().length == 0)
+        || peak.getAllMS2FragmentScanNumbers().size() == 0)
       return false;
 
     this.activeRaw = raw;
     // clear
     pnGrid.removeAll();
 
-    int[] numbers = peak.getAllMS2FragmentScanNumbers();
+    ObservableList<Integer> numbers = peak.getAllMS2FragmentScanNumbers();
     for (int scan : numbers) {
       pnGrid.add(addSpectra(scan));
     }
 
     int n = indexOfRaw(raw);
     lbRaw.setText(n + ": " + raw.getName());
-    logger.log(Level.INFO, "All MS/MS scans window: Added " + numbers.length
+    logger.log(Level.INFO, "All MS/MS scans window: Added " + numbers.size()
         + " spectra of raw file " + n + ": " + raw.getName());
     // show
     pnGrid.revalidate();
@@ -206,7 +208,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     // labels for TIC visualizer
     Map<Feature, String> labelsMap = new HashMap<Feature, String>(0);
 
-    Feature peak = row.getPeak(activeRaw);
+    Feature peak = row.getFeature(activeRaw);
 
     // scan selection
     ScanSelection scanSelection = new ScanSelection(activeRaw.getDataRTRange(1), 1);

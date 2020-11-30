@@ -17,7 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.taskcontrol.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -31,7 +31,7 @@ public class ResultWindowFX extends Stage {
 
     private ResultWindowController controller;
 
-    public ResultWindowFX(String title, PeakListRow peakListRow, double searchedMass, int charge,
+    public ResultWindowFX(String title, FeatureListRow peakListRow, double searchedMass, int charge,
                           Task searchTask){
 
         try{

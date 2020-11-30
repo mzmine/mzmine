@@ -61,7 +61,8 @@ public class RTRangeComponent extends DoubleRangeComponent {
 
       Range<Double> rtRange = null;
       for (RawDataFile file : currentFiles) {
-        Range<Double> fileRange = file.getDataRTRange();
+        // TODO: FloatRangeComponent
+        Range<Double> fileRange = Range.closed(file.getDataRTRange().lowerEndpoint().doubleValue(), file.getDataRTRange().upperEndpoint().doubleValue());
         if (rtRange == null)
           rtRange = fileRange;
         else

@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import java.text.DecimalFormat;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -26,8 +28,6 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
 import io.github.mzmine.util.ExitCode;
 
 /**
@@ -36,9 +36,9 @@ import io.github.mzmine.util.ExitCode;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotParameters extends SimpleParameterSet {
-  public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
-  public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
+  public static final FeatureSelectionParameter selectedRows = new FeatureSelectionParameter();
 
   public static final StringParameter yAxisCustomKendrickMassBase =
       new StringParameter("Kendrick mass base for y-Axis",
@@ -79,7 +79,7 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public KendrickMassPlotParameters() {
-    super(new Parameter[] {peakList, selectedRows, yAxisCustomKendrickMassBase, xAxisValues,
+    super(new Parameter[] {featureList, selectedRows, yAxisCustomKendrickMassBase, xAxisValues,
         xAxisCustomKendrickMassBase, zAxisValues, zAxisCustomKendrickMassBase, zScaleType,
         zScaleRange, paintScale, windowSettings});
   }

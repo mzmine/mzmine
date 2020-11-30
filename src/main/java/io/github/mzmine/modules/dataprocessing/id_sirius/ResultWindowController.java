@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.util.List;
@@ -35,19 +36,17 @@ import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import io.github.mzmine.datamodel.PeakListRow;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class ResultWindowController{
 
     private final ObservableList<SiriusCompound> compounds = FXCollections.observableArrayList();
-    private PeakListRow peakListRow;
+    private FeatureListRow peakListRow;
     private Task searchTask;
 
     @FXML
@@ -152,7 +151,7 @@ public class ResultWindowController{
      compoundsTable.setItems(compounds);
     }
 
-    public void initValues(PeakListRow peakListRow, Task searchTask)
+    public void initValues(FeatureListRow peakListRow, Task searchTask)
     {
         this.peakListRow = peakListRow;
         this.searchTask = searchTask;
@@ -169,7 +168,7 @@ private void addIdentityOnClick(ActionEvent ae){
                 "Select one result to add as compound identity");
         return;
     }
-    peakListRow.addPeakIdentity(compound, false);
+    peakListRow.addFeatureIdentity(compound, false);
     dispose();
 
 }

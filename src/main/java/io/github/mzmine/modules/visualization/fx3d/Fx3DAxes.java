@@ -62,7 +62,7 @@ public class Fx3DAxes extends Group {
    * @param maxBinnedIntensity Sets the values to the axes according to the range of RT, MZ and
    *        maxIntensity.
    */
-  public void setValues(Range<Double> rtRange, Range<Double> mzRange, double maxBinnedIntensity) {
+  public void setValues(Range<Float> rtRange, Range<Double> mzRange, double maxBinnedIntensity) {
     // rtAxis
     double rtDelta = (rtRange.upperEndpoint() - rtRange.lowerEndpoint()) / 7;
     double rtScaleValue = rtRange.lowerEndpoint();
@@ -222,7 +222,7 @@ public class Fx3DAxes extends Group {
    * @param maxBinnedIntensity Updates the axes values according to the new ranges of RT,MZ and
    *        maximum intensity.
    */
-  public void updateAxisParameters(Range<Double> rtRange, Range<Double> mzRange,
+  public void updateAxisParameters(Range<Float> rtRange, Range<Double> mzRange,
       double maxBinnedIntensity) {
     this.getChildren().clear();
     rtRotate.setAngle(0);

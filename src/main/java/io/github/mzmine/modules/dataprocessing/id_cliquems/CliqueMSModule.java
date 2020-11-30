@@ -20,7 +20,7 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -53,10 +53,10 @@ public class CliqueMSModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] = parameters.getParameter(CliqueMSParameters.PEAK_LISTS).getValue()
-        .getMatchingPeakLists();
+    FeatureList peakLists[] = parameters.getParameter(CliqueMSParameters.PEAK_LISTS).getValue()
+        .getMatchingFeatureLists();
 
-    for (PeakList peakList : peakLists) {
+    for (FeatureList peakList : peakLists) {
       Task newTask = new CliqueMSTask(parameters, peakList);
       tasks.add(newTask);
     }

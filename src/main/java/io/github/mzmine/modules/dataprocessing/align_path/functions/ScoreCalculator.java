@@ -17,7 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
 
 public interface ScoreCalculator {
@@ -29,7 +29,7 @@ public interface ScoreCalculator {
    * @param params
    * @return
    */
-  double calculateScore(AlignmentPath path, PeakListRow peak, ParameterSet params);
+  double calculateScore(AlignmentPath path, FeatureListRow peak, ParameterSet params);
 
   double getWorstScore();
 
@@ -43,9 +43,9 @@ public interface ScoreCalculator {
    * @param params
    * @return
    */
-  boolean matches(AlignmentPath path, PeakListRow peak, ParameterSet params);
+  boolean matches(AlignmentPath path, FeatureListRow peak, ParameterSet params);
 
-  boolean isValid(PeakListRow peak);
+  boolean isValid(FeatureListRow peak);
 
   String name();
 }

@@ -21,6 +21,9 @@ package io.github.mzmine.modules.io.mztabmexport;
 import de.isas.mztab2.io.MzTabValidatingWriter;
 import de.isas.mztab2.model.*;
 import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -40,13 +43,13 @@ public class MZTabmExportTask extends AbstractTask {
   private final MZmineProject project;
   private final File fileName;
   private String plNamePattern = "{}";
-  private PeakList[] peakLists;
+  private FeatureList[] featureLists;
   private final boolean exportAll;
 
   MZTabmExportTask(MZmineProject project, ParameterSet parameters) {
     this.project = project;
-    this.peakLists =
-        parameters.getParameter(MZTabmExportParameters.peakLists).getValue().getMatchingPeakLists();
+    this.featureLists =
+        parameters.getParameter(MZTabmExportParameters.featureLists).getValue().getMatchingFeatureLists();
     this.fileName = parameters.getParameter(MZTabmExportParameters.filename).getValue();
     this.exportAll = parameters.getParameter(MZTabmExportParameters.exportAll).getValue();
   }
@@ -61,7 +64,7 @@ public class MZTabmExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MzTab-m file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to MzTab-m file(s)";
   }
 
   @Override
@@ -71,19 +74,19 @@ public class MZTabmExportTask extends AbstractTask {
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
     // Total Number of rows
-    for (PeakList peakList : peakLists) {
-      totalRows += peakList.getNumberOfRows();
+    for (FeatureList featureList : featureLists) {
+      totalRows += featureList.getNumberOfRows();
     }
 
     //Process feature Lists
-    for (PeakList peakList : peakLists) {
+    for (FeatureList featureList : featureLists) {
       File curFile = fileName;
       try {
         //Filename
         if (substitute) {
           // Cleanup from illegal filename characters
           //not small alphabets, large alphabets, numbers, dots or dashes
-          String cleanPlName = peakList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
+          String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
           // Substitute
           String newFilename =
               fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
@@ -96,7 +99,7 @@ public class MZTabmExportTask extends AbstractTask {
         Metadata mtd = new Metadata();
         mtd.setMzTabVersion("2.0.0-M");
         mtd.setMzTabID("1");
-        mtd.setDescription(peakList.getName());
+        mtd.setDescription(featureList.getName());
         mtd.addSoftwareItem(new Software().id(1).parameter(
             new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine")
                 .value(MZmineCore.getMZmineVersion())));
@@ -117,11 +120,11 @@ public class MZTabmExportTask extends AbstractTask {
             version("4.0.9").
             uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
 
-        List<IOptColumnMappingBuilder> peak_mzList = new ArrayList<>();
-        List<IOptColumnMappingBuilder> peak_rtList = new ArrayList<>();
-        List<IOptColumnMappingBuilder> peak_heightList = new ArrayList<>();
+        List<IOptColumnMappingBuilder> feature_mzList = new ArrayList<>();
+        List<IOptColumnMappingBuilder> feature_rtList = new ArrayList<>();
+        List<IOptColumnMappingBuilder> feature_heightList = new ArrayList<>();
 
-        final RawDataFile rawDataFiles[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
+        final RawDataFile rawDataFiles[] = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
         int fileCounter = 0;
         // Study Variable name and descriptions
         Hashtable<String, List<RawDataFile>> svhash = new Hashtable<>();
@@ -188,9 +191,10 @@ public class MZTabmExportTask extends AbstractTask {
           }
 
           //Optional Columns
-          peak_mzList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_mz"));
-          peak_rtList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_rt"));
-          peak_heightList
+          // TODO: rename "peak_mz" to "feature_mz" in both import and export and test if they work
+          feature_mzList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_mz"));
+          feature_rtList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_rt"));
+          feature_heightList
               .add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_height"));
         }
         int studyVarCount = 0;
@@ -209,8 +213,8 @@ public class MZTabmExportTask extends AbstractTask {
         //Write data rows
         Map<Parameter, Database> databases = new LinkedHashMap<>();
 
-        for (int i = 0; i < peakList.getRows().size(); ++i) {
-          PeakListRow peakListRow = peakList.getRows().get(i);
+        for (int i = 0; i < featureList.getRows().size(); ++i) {
+          FeatureListRow featureListRow = featureList.getRows().get(i);
           SmallMoleculeSummary sm = new SmallMoleculeSummary();
           sm.setSmlId(i + 1);
           SmallMoleculeFeature smf = new SmallMoleculeFeature();
@@ -229,27 +233,27 @@ public class MZTabmExportTask extends AbstractTask {
             return;
           }
           sm.setReliability("2");
-          PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
-          if (exportAll || peakIdentity != null) {
-            if (peakIdentity != null) {
+          FeatureIdentity featureIdentity = featureListRow.getPreferredFeatureIdentity();
+          if (exportAll || featureIdentity != null) {
+            if (featureIdentity != null) {
               boolean shouldAdd = true;
               Parameter dbParam = new Parameter().
-                  name(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_METHOD));
-              String dbURI = (peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL) == null ||
-                  peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL).equals("")) ?
-                  "mzmine://"+peakIdentity.getClass().getSimpleName():
-                  peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL);
+                  name(featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_METHOD));
+              String dbURI = (featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL) == null ||
+                  featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL).equals("")) ?
+                  "mzmine://"+ featureIdentity.getClass().getSimpleName():
+                  featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
               databases.putIfAbsent(dbParam, new Database().param(dbParam)
-                  .prefix(peakIdentity.getClass().getSimpleName())
+                  .prefix(featureIdentity.getClass().getSimpleName())
                   .version(MZmineCore.getMZmineVersion())
                   .uri(dbURI));
 
               //Identity Information
-              String identifier = escapeString(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_ID));
-              String method = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_METHOD);
-              String formula = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
-              String description = escapeString(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_NAME));
-              String url = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL);
+              String identifier = escapeString(featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_ID));
+              String method = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_METHOD);
+              String formula = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
+              String description = escapeString(featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_NAME));
+              String url = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
               sm.addDatabaseIdentifierItem(identifier);
               sme.setDatabaseIdentifier(identifier);
               sme.setIdentificationMethod(new Parameter().name(method));
@@ -270,9 +274,9 @@ public class MZTabmExportTask extends AbstractTask {
               }
             }
 
-            Double rowMZ = peakListRow.getAverageMZ();
+            Double rowMZ = featureListRow.getAverageMZ();
             int rowCharge = 0;
-            Double rowRT = peakListRow.getAverageRT();
+            Float rowRT = featureListRow.getAverageRT();
 
             if (rowMZ != null) {
               smf.setExpMassToCharge(rowMZ);
@@ -281,43 +285,43 @@ public class MZTabmExportTask extends AbstractTask {
               sme.setTheoreticalMassToCharge(rowMZ);
             }
             if (rowRT != null) {
-              smf.setRetentionTimeInSeconds(rowRT);
+              smf.setRetentionTimeInSeconds(Double.valueOf(rowRT));
             }
             int dataFileCount = 0;
             Hashtable<String, List<Double>> sampleVariableAbundancehash = new Hashtable<>();
             for (RawDataFile dataFile : rawDataFiles) {
               dataFileCount++;
-              Feature peak = peakListRow.getPeak(dataFile);
-              if (peak != null) {
+              Feature feature = featureListRow.getFeature(dataFile);
+              if (feature != null) {
                 //Spectra ref
                 List<SpectraRef> sr = new ArrayList<>();
-                for(int x:peak.getScanNumbers()){
-                  sr.add(new SpectraRef().msRun(rawDataFileToAssay.get(peak.getDataFile()).
+                for(int x:feature.getScanNumbers()){
+                  sr.add(new SpectraRef().msRun(rawDataFileToAssay.get(feature.getRawDataFile()).
                       getMsRunRef().get(0)).reference("index=" + x));
                 }
                 if(sr.size() == 0){
-                sr.add(new SpectraRef().msRun(rawDataFileToAssay.get(peak.getDataFile()).
+                sr.add(new SpectraRef().msRun(rawDataFileToAssay.get(feature.getRawDataFile()).
                     getMsRunRef().get(0)).reference("index=0"));
                 }
                 sme.setSpectraRef(sr);
-                rowCharge = peak.getCharge();
+                rowCharge = feature.getCharge();
 
-                String peakMZ = String.valueOf(peak.getMZ());
-                String peakRT = String.valueOf(peak.getRT());
-                String peakHeight = String.valueOf(peak.getHeight());
-                Double peakArea = peak.getArea();
-                sm.addOptItem(peak_mzList.get(dataFileCount - 1).build(peakMZ));
-                sm.addOptItem(peak_rtList.get(dataFileCount - 1).build(peakRT));
-                sm.addOptItem(peak_heightList.get(dataFileCount - 1).build(peakHeight));
-                sm.addAbundanceAssayItem(peakArea);
-                smf.addAbundanceAssayItem(peakArea);
+                String featureMZ = String.valueOf(feature.getMZ());
+                String featureRT = String.valueOf(feature.getRT());
+                String featureHeight = String.valueOf(feature.getHeight());
+                Double featureArea = (double) feature.getArea();
+                sm.addOptItem(feature_mzList.get(dataFileCount - 1).build(featureMZ));
+                sm.addOptItem(feature_rtList.get(dataFileCount - 1).build(featureRT));
+                sm.addOptItem(feature_heightList.get(dataFileCount - 1).build(featureHeight));
+                sm.addAbundanceAssayItem(featureArea);
+                smf.addAbundanceAssayItem(featureArea);
                 for (String sampleVariable : svhash.keySet()) {
                   if (svhash.get(sampleVariable).contains(dataFile)) {
                     if (sampleVariableAbundancehash.containsKey(sampleVariable)) {
-                      sampleVariableAbundancehash.get(sampleVariable).add(peakArea);
+                      sampleVariableAbundancehash.get(sampleVariable).add(featureArea);
                     } else {
                       List<Double> l = new ArrayList<>();
-                      l.add(peakArea);
+                      l.add(featureArea);
                       sampleVariableAbundancehash.put(sampleVariable, l);
                     }
                   }

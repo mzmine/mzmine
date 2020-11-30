@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats;
 
+import io.github.mzmine.datamodel.MobilityType;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,7 +84,7 @@ public class MzMLReadTask extends AbstractTask {
    * scans.
    */
   private static final int PARENT_STACK_SIZE = 20;
-  private LinkedList<SimpleScan> parentStack = new LinkedList<SimpleScan>();
+  private LinkedList<io.github.mzmine.datamodel.Scan> parentStack = new LinkedList<>();
 
   public MzMLReadTask(MZmineProject project, File fileToOpen, RawDataFileWriter newMZmineFile) {
     this.project = project;
@@ -141,7 +142,7 @@ public class MzMLReadTask extends AbstractTask {
 
         // Extract scan data
         int msLevel = extractMSLevel(spectrum);
-        double retentionTime = extractRetentionTime(spectrum);
+        float retentionTime = (float) extractRetentionTime(spectrum);
         PolarityType polarity = extractPolarity(spectrum);
         int parentScan = extractParentScanNumber(spectrum);
         double precursorMz = extractPrecursorMz(spectrum);
@@ -153,11 +154,18 @@ public class MzMLReadTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-        SimpleScan scan =
-            new SimpleScan(null, scanNumber, msLevel, retentionTime, mobility, precursorMz,
-                precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition, null);
+        io.github.mzmine.datamodel.Scan scan;
 
-        for (SimpleScan s : parentStack) {
+        if(Double.compare(mobility, -1.0d) == 0) {
+          scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
+              precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition, null);
+        } else {
+          scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
+              precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition, null, mobility,
+              MobilityType.DRIFT_TUBE);
+        }
+
+        for (io.github.mzmine.datamodel.Scan s : parentStack) {
           if (s.getScanNumber() == parentScan) {
             s.addFragmentScan(scanNumber);
           }
@@ -168,7 +176,7 @@ public class MzMLReadTask extends AbstractTask {
          * candidates is defined by limitSize.
          */
         if (parentStack.size() > PARENT_STACK_SIZE) {
-          SimpleScan firstScan = parentStack.removeLast();
+          io.github.mzmine.datamodel.Scan firstScan = parentStack.removeLast();
           newMZmineFile.addScan(firstScan);
         }
 
@@ -179,7 +187,7 @@ public class MzMLReadTask extends AbstractTask {
       }
 
       while (!parentStack.isEmpty()) {
-        SimpleScan scan = parentStack.removeLast();
+        io.github.mzmine.datamodel.Scan scan = parentStack.removeLast();
         newMZmineFile.addScan(scan);
 
       }
@@ -563,7 +571,7 @@ public class MzMLReadTask extends AbstractTask {
         }
       }
     }
-    return 0;
+    return -1.0d;
   }
 
 }

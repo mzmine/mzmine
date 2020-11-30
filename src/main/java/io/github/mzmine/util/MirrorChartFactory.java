@@ -19,10 +19,10 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
@@ -33,7 +33,7 @@ import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.Ps
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
@@ -70,7 +70,7 @@ public class MirrorChartFactory {
    * @param db
    * @return
    */
-  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(SpectralDBPeakIdentity db) {
+  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(SpectralDBFeatureIdentity db) {
 
     Scan scan = db.getQueryScan();
     if (scan == null) {
@@ -226,13 +226,13 @@ public class MirrorChartFactory {
 
 
   // ---- From old SpectrumChartFactory
-  public static Scan getMSMSScan(PeakListRow row, RawDataFile raw, boolean alwaysShowBest,
+  public static Scan getMSMSScan(FeatureListRow row, RawDataFile raw, boolean alwaysShowBest,
       boolean useBestForMissingRaw) {
     Scan scan = null;
     if (alwaysShowBest || raw == null) {
       scan = row.getBestFragmentation();
     } else if (raw != null) {
-      Feature peak = row.getPeak(raw);
+      Feature peak = row.getFeature(raw);
       if (peak != null) {
         scan = raw.getScan(peak.getMostIntenseFragmentScanNumber());
       }
@@ -436,7 +436,7 @@ public class MirrorChartFactory {
    * @param alwaysShowBest
    * @return
    */
-  public static EChartPanel createMSMSChartPanel(PeakListRow row, RawDataFile raw,
+  public static EChartPanel createMSMSChartPanel(FeatureListRow row, RawDataFile raw,
       boolean showTitle, boolean showLegend, boolean alwaysShowBest, boolean useBestForMissingRaw) {
     Scan scan = getMSMSScan(row, raw, alwaysShowBest, useBestForMissingRaw);
     if (scan == null) {

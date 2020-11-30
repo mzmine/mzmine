@@ -18,20 +18,21 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.main.MZmineCore;
+import java.text.Format;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
 
@@ -39,9 +40,9 @@ import io.github.mzmine.util.scans.ScanUtils;
  * ResolvedPeak
  *
  */
-public class ResolvedPeak implements Feature {
+public class ResolvedPeak{
 
-  private SimplePeakInformation peakInfo;
+  private SimpleFeatureInformation peakInfo;
 
   // Data file of this chromatogram
   private RawDataFile dataFile;
@@ -65,7 +66,8 @@ public class ResolvedPeak implements Feature {
   private int[] allMS2FragmentScanNumbers;
 
   // Ranges of raw data points
-  private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
+  private Range<Double> rawDataPointsMZRange;
+  private Range<Float> rawDataPointsIntensityRange, rawDataPointsRTRange;
 
   // Isotope pattern. Null by default but can be set later by deisotoping
   // method.
@@ -85,16 +87,17 @@ public class ResolvedPeak implements Feature {
    * exception is thrown.
    */
   public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd,
-      CenterFunction mzCenterFunction, double msmsRange, double RTRangeMSMS) {
+      CenterFunction mzCenterFunction, double msmsRange, float RTRangeMSMS) {
 
     assert regionEnd > regionStart;
 
-    this.dataFile = chromatogram.getDataFile();
+    this.peakList = chromatogram.getFeatureList();
+    this.dataFile = chromatogram.getRawDataFile();
 
     // Make an array of scan numbers of this peak
     scanNumbers = new int[regionEnd - regionStart + 1];
 
-    int chromatogramScanNumbers[] = chromatogram.getScanNumbers();
+    int chromatogramScanNumbers[] = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
 
     System.arraycopy(chromatogramScanNumbers, regionStart, scanNumbers, 0,
         regionEnd - regionStart + 1);
@@ -127,14 +130,14 @@ public class ResolvedPeak implements Feature {
       dataPointIntensityValues[i] = dp.getIntensity();
 
       if (rawDataPointsIntensityRange == null) {
-        rawDataPointsIntensityRange = Range.singleton(dp.getIntensity());
+        rawDataPointsIntensityRange = Range.singleton((float) dp.getIntensity());
         rawDataPointsRTRange = Range.singleton(dataFile.getScan(scanNumbers[i]).getRetentionTime());
         rawDataPointsMZRange = Range.singleton(dp.getMZ());
       } else {
         rawDataPointsRTRange = rawDataPointsRTRange
             .span(Range.singleton(dataFile.getScan(scanNumbers[i]).getRetentionTime()));
         rawDataPointsIntensityRange =
-            rawDataPointsIntensityRange.span(Range.singleton(dp.getIntensity()));
+            rawDataPointsIntensityRange.span(Range.singleton((float) dp.getIntensity()));
         rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(dp.getMZ()));
       }
 
@@ -172,15 +175,15 @@ public class ResolvedPeak implements Feature {
       lowerBound = 0;
     }
     Range<Double> searchingRange = Range.closed(lowerBound, upperBound);
-    double lowerBoundRT = rawDataPointsRTRange.lowerEndpoint();
-    double upperBoundRT = rawDataPointsRTRange.upperEndpoint();
-    double midRT = (upperBoundRT + lowerBoundRT) / 2;
+    float lowerBoundRT = rawDataPointsRTRange.lowerEndpoint();
+    float upperBoundRT = rawDataPointsRTRange.upperEndpoint();
+    float midRT = (upperBoundRT + lowerBoundRT) / 2;
     lowerBoundRT = midRT - RTRangeMSMS / 2;
     upperBoundRT = midRT + RTRangeMSMS / 2;
     if (lowerBound < 0) {
       lowerBound = 0;
     }
-    Range<Double> searchingRangeRT = Range.closed(lowerBoundRT, upperBoundRT);
+    Range<Float> searchingRangeRT = Range.closed(lowerBoundRT, upperBoundRT);
 
     if (msmsRange == 0)
       searchingRange = rawDataPointsMZRange;
@@ -203,7 +206,6 @@ public class ResolvedPeak implements Feature {
   /**
    * This method returns a representative datapoint of this peak in a given scan
    */
-  @Override
   public DataPoint getDataPoint(int scanNumber) {
     int index = Arrays.binarySearch(scanNumbers, scanNumber);
     if (index < 0)
@@ -216,7 +218,6 @@ public class ResolvedPeak implements Feature {
   /**
    * This method returns m/z value of the chromatogram
    */
-  @Override
   public double getMZ() {
     return mz;
   }
@@ -228,132 +229,115 @@ public class ResolvedPeak implements Feature {
    */
   @Override
   public String toString() {
-    return PeakUtils.peakToString(this);
+    StringBuffer buf = new StringBuffer();
+    Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+    buf.append("m/z ");
+    buf.append(mzFormat.format(getMZ()));
+    buf.append(" (");
+    buf.append(timeFormat.format(getRT()));
+    buf.append(" min) [" + getRawDataFile().getName() + "]");
+    return buf.toString();
   }
 
-  @Override
   public double getArea() {
     return area;
   }
 
-  @Override
   public double getHeight() {
     return height;
   }
 
-  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
-  @Override
   public int[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
-  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
-  @Override
   public double getRT() {
     return rt;
   }
 
-  @Override
-  public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
+  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  @Override
-  public @Nonnull Range<Double> getRawDataPointsRTRange() {
+  public @Nonnull Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
-  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
-  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
 
-  @Override
-  public @Nonnull RawDataFile getDataFile() {
+  public @Nonnull RawDataFile getRawDataFile() {
     return dataFile;
   }
 
-  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
-  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
-  @Override
   public int getCharge() {
     return charge;
   }
 
-  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
-  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
-  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
-  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
-  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
-  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
-  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
   // dulab Edit
-  @Override
   public void outputChromToFile() {
     int nothing = -1;
   }
 
-  @Override
-  public void setPeakInformation(SimplePeakInformation peakInfoIn) {
+  public void setPeakInformation(SimpleFeatureInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
-  @Override
-  public SimplePeakInformation getPeakInformation() {
+  public SimpleFeatureInformation getPeakInformation() {
     return peakInfo;
   }
   // End dulab Edit
@@ -362,18 +346,15 @@ public class ResolvedPeak implements Feature {
     this.parentChromatogramRowID = id;
   }
 
-  @Override
   @Nullable
   public Integer getParentChromatogramRowID() {
     return this.parentChromatogramRowID;
   }
 
-  @Override
   public void setFragmentScanNumber(int fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
 
-  @Override
   public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
     // also set best scan by TIC
@@ -388,15 +369,13 @@ public class ResolvedPeak implements Feature {
     setFragmentScanNumber(best);
   }
 
-  private PeakList peakList;
+  private FeatureList peakList;
 
-  @Override
-  public PeakList getPeakList() {
+  public FeatureList getPeakList() {
     return peakList;
   }
 
-  @Override
-  public void setPeakList(PeakList peakList) {
+  public void setPeakList(FeatureList peakList) {
     this.peakList = peakList;
   }
 

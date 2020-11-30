@@ -64,7 +64,7 @@ public class ProductIonFilterParameters extends SimpleParameterSet {
       "Percent of scan base peak of which ms/ms product ions must be above to be included in analysis",
       MZmineCore.getConfiguration().getRTFormat(), 5.0);
 
-  public static final FileNameParameter fileName = new FileNameParameter("Peaklist output file",
+  public static final FileNameParameter fileName = new FileNameParameter("FeatureList output file",
       "Name of the output CSV file containing m/z and RT of selected precursor ions. "
           + "If the file already exists, it will be overwritten.",
       "csv", FileSelectionType.SAVE);

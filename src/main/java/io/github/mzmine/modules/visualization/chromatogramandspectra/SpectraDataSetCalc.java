@@ -73,9 +73,9 @@ public class SpectraDataSetCalc extends AbstractTask {
       rawDataFiles.forEach(rawDataFile -> {
         int num = -1;
         if (scanSelection.getMsLevel() != null) {
-          num = rawDataFile.getScanNumberAtRT(rt, scanSelection.getMsLevel());
+          num = rawDataFile.getScanNumberAtRT((float) rt, scanSelection.getMsLevel());
         } else {
-          num = rawDataFile.getScanNumberAtRT(rt);
+          num = rawDataFile.getScanNumberAtRT((float) rt);
         }
         if (num != -1) {
           Scan scan = rawDataFile.getScan(num);

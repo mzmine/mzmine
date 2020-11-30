@@ -23,14 +23,14 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class Ms2SearchParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakList1 = new PeakListsParameter("Feature List 1", 1, 1);
+  public static final FeatureListsParameter peakList1 = new FeatureListsParameter("Feature List 1", 1, 1);
 
-  public static final PeakListsParameter peakList2 = new PeakListsParameter("Feature List 2", 1, 1);
+  public static final FeatureListsParameter peakList2 = new FeatureListsParameter("Feature List 2", 1, 1);
 
   public static final MassListParameter massList = new MassListParameter();
 

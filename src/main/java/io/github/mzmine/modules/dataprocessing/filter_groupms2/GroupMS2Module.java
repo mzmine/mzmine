@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -53,10 +53,10 @@ public class GroupMS2Module implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    final PeakList[] peakLists =
-        parameters.getParameter(GroupMS2Parameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+    final FeatureList[] peakLists =
+        parameters.getParameter(GroupMS2Parameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
 
-    for (PeakList peakList : peakLists) {
+    for (FeatureList peakList : peakLists) {
       Task newTask = new GroupMS2Task(project, peakList, parameters);
       tasks.add(newTask);
     }
@@ -65,7 +65,7 @@ public class GroupMS2Module implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTFILTERING;
+    return MZmineModuleCategory.FEATURELISTFILTERING;
   }
 
   @Override

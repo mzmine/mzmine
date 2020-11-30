@@ -27,7 +27,7 @@ public enum ExportRowCommonElement {
   ROW_IDENTITY_ALL("Export row identity (all IDs)"), //
   ROW_IDENTITY_DETAILS("Export row identity (main ID + details)"), //
   ROW_COMMENT("Export row comment"), //
-  ROW_PEAK_NUMBER("Export row number of detected peaks");
+  ROW_FEATURE_NUMBER("Export row number of detected features");
 
   private final String name;
 

@@ -18,8 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.Hashtable;
-import java.util.Iterator;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -27,12 +33,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,7 +41,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
@@ -50,12 +50,12 @@ public class JoinAlignerTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private PeakList peakLists[], alignedPeakList;
+  private FeatureList featureLists[], alignedFeatureList;
 
   // Processed rows counter
   private int processedRows, totalRows;
 
-  private String peakListName;
+  private String featureListName;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
   private double mzWeight, rtWeight;
@@ -76,10 +76,10 @@ public class JoinAlignerTask extends AbstractTask {
     this.project = project;
     this.parameters = parameters;
 
-    peakLists =
-        parameters.getParameter(JoinAlignerParameters.peakLists).getValue().getMatchingPeakLists();
+    featureLists =
+        parameters.getParameter(JoinAlignerParameters.peakLists).getValue().getMatchingFeatureLists();
 
-    peakListName = parameters.getParameter(JoinAlignerParameters.peakListName).getValue();
+    featureListName = parameters.getParameter(JoinAlignerParameters.peakListName).getValue();
 
     mzTolerance = parameters.getParameter(JoinAlignerParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(JoinAlignerParameters.RTTolerance).getValue();
@@ -119,7 +119,7 @@ public class JoinAlignerTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Join aligner, " + peakListName + " (" + peakLists.length + " feature lists)";
+    return "Join aligner, " + featureListName + " (" + featureLists.length + " feature lists)";
   }
 
   /**
@@ -149,15 +149,15 @@ public class JoinAlignerTask extends AbstractTask {
 
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
-    for (int i = 0; i < peakLists.length; i++) {
-      totalRows += peakLists[i].getNumberOfRows() * 2;
+    for (FeatureList list : featureLists) {
+      totalRows += list.getNumberOfRows() * 2;
     }
 
     // Collect all data files
     Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-    for (PeakList peakList : peakLists) {
+    for (FeatureList featureList : featureLists) {
 
-      for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+      for (RawDataFile dataFile : featureList.getRawDataFiles()) {
 
         // Each data file can only have one column in aligned feature
         // list
@@ -173,39 +173,40 @@ public class JoinAlignerTask extends AbstractTask {
     }
 
     // Create a new aligned feature list
-    alignedPeakList = new SimplePeakList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
+    alignedFeatureList = new ModularFeatureList(featureListName, allDataFiles.toArray(new RawDataFile[0]));
 
     // Iterate source feature lists
-    for (PeakList peakList : peakLists) {
+    for (FeatureList featureList : featureLists) {
 
       // Create a sorted set of scores matching
       TreeSet<RowVsRowScore> scoreSet = new TreeSet<RowVsRowScore>();
 
-      PeakListRow allRows[] = peakList.getRows().toArray(PeakListRow[]::new);
+      FeatureListRow[] allRows = featureList.getRows().toArray(FeatureListRow[]::new);
 
       // Calculate scores for all possible alignments of this row
-      for (PeakListRow row : allRows) {
+      for (FeatureListRow row : allRows) {
 
         if (isCanceled())
           return;
 
         // Calculate limits for a row with which the row can be aligned
         Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
-        Range<Double> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
+        Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
         // Get all rows of the aligned peaklist within parameter limits
-        PeakListRow candidateRows[] = alignedPeakList.getRowsInsideScanAndMZRange(rtRange, mzRange);
+        List<FeatureListRow> candidateRows = alignedFeatureList
+            .getRowsInsideScanAndMZRange(rtRange, mzRange);
 
         // Calculate scores and store them
-        for (PeakListRow candidate : candidateRows) {
+        for (FeatureListRow candidate : candidateRows) {
 
           if (sameChargeRequired) {
-            if (!PeakUtils.compareChargeState(row, candidate))
+            if (!FeatureUtils.compareChargeState(row, candidate))
               continue;
           }
 
           if (sameIDRequired) {
-            if (!PeakUtils.compareIdentities(row, candidate))
+            if (!FeatureUtils.compareIdentities(row, candidate))
               continue;
           }
 
@@ -235,8 +236,8 @@ public class JoinAlignerTask extends AbstractTask {
             // scans
             if (msLevel == 1) {
               rowDPs =
-                  row.getBestPeak().getRepresentativeScan().getMassList(massList).getDataPoints();
-              candidateDPs = candidate.getBestPeak().getRepresentativeScan().getMassList(massList)
+                  row.getBestFeature().getRepresentativeScan().getMassList(massList).getDataPoints();
+              candidateDPs = candidate.getBestFeature().getRepresentativeScan().getMassList(massList)
                   .getDataPoints();
             }
 
@@ -269,21 +270,17 @@ public class JoinAlignerTask extends AbstractTask {
           RowVsRowScore score =
               new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
                   RangeUtils.rangeLength(rtRange) / 2.0, rtWeight);
-
           scoreSet.add(score);
         }
         processedRows++;
       }
 
       // Create a table of mappings for best scores
-      Hashtable<PeakListRow, PeakListRow> alignmentMapping =
-          new Hashtable<PeakListRow, PeakListRow>();
+      Hashtable<FeatureListRow, FeatureListRow> alignmentMapping =
+          new Hashtable<FeatureListRow, FeatureListRow>();
 
       // Iterate scores by descending order
-      Iterator<RowVsRowScore> scoreIterator = scoreSet.iterator();
-      while (scoreIterator.hasNext()) {
-
-        RowVsRowScore score = scoreIterator.next();
+      for (RowVsRowScore score : scoreSet) {
 
         // Check if the row is already mapped
         if (alignmentMapping.containsKey(score.getPeakListRow()))
@@ -298,25 +295,27 @@ public class JoinAlignerTask extends AbstractTask {
       }
 
       // Align all rows using mapping
-      for (PeakListRow row : allRows) {
+      for (FeatureListRow row : allRows) {
 
-        PeakListRow targetRow = alignmentMapping.get(row);
+        FeatureListRow targetRow = alignmentMapping.get(row);
 
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
-          targetRow = new SimplePeakListRow(newRowID);
+          targetRow = new ModularFeatureListRow((ModularFeatureList) featureList, newRowID);
           newRowID++;
-          alignedPeakList.addRow(targetRow);
+          alignedFeatureList.addRow(targetRow);
         }
 
         // Add all peaks from the original row to the aligned row
+        // TODO: test aligned feature list correctness, seems like rows are not aligned correctly
+        //  while aligning previously aligned feature lists
         for (RawDataFile file : row.getRawDataFiles()) {
-          targetRow.addPeak(file, row.getPeak(file));
+          targetRow.addFeature(file, row.getFeature(file));
         }
 
         // Add all non-existing identities from the original row to the
         // aligned row
-        PeakUtils.copyPeakListRowProperties(row, targetRow);
+        FeatureUtils.copyFeatureListRowProperties(row, targetRow);
 
         processedRows++;
 
@@ -325,11 +324,11 @@ public class JoinAlignerTask extends AbstractTask {
     } // Next feature list
 
     // Add new aligned feature list to the project
-    project.addPeakList(alignedPeakList);
+    project.addFeatureList(alignedFeatureList);
 
     // Add task description to peakList
-    alignedPeakList
-        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Join aligner", parameters));
+    alignedFeatureList
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Join aligner", parameters));
 
     logger.info("Finished join aligner");
 

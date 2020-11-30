@@ -18,11 +18,12 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -44,9 +45,6 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.TextAnchor;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
@@ -58,14 +56,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.dialogs.FeatureOverviewWindow;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 
 /**
  * Task to create a Van Krevelen Diagram of selected features of a selected feature list
@@ -80,13 +73,13 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private JFreeChart chart;
-  private PeakList peakList;
+  private FeatureList featureList;
   private String zAxisLabel;
   private String zAxisScaleType;
   private Range<Double> zScaleRange;
   private String paintScaleStyle;
-  private PeakListRow rows[];
-  private PeakListRow filteredRows[];
+  private FeatureListRow rows[];
+  private FeatureListRow filteredRows[];
   private String title;
   private int displayedFeatures;
   private int featuresWithoutFormula;
@@ -96,22 +89,22 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
   public VanKrevelenDiagramTask(ParameterSet parameters) {
     this.parameters = parameters;
-    peakList = parameters.getParameter(VanKrevelenDiagramParameters.peakList).getValue()
-        .getMatchingPeakLists()[0];
+    featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
+        .getMatchingFeatureLists()[0];
     zAxisLabel =
         parameters.getParameter(VanKrevelenDiagramParameters.zAxisValues).getValue().toString();
     zAxisScaleType = parameters.getParameter(VanKrevelenDiagramParameters.zScaleType).getValue();
     zScaleRange = parameters.getParameter(VanKrevelenDiagramParameters.zScaleRange).getValue();
     paintScaleStyle = parameters.getParameter(VanKrevelenDiagramParameters.paintScale).getValue();
     rows = parameters.getParameter(VanKrevelenDiagramParameters.selectedRows)
-        .getMatchingRows(peakList);
+        .getMatchingRows(featureList);
     filteredRows = filterSelectedRows(rows);
-    title = "Van Krevelen Diagram [" + peakList + "]";
+    title = "Van Krevelen Diagram [" + featureList + "]";
   }
 
   @Override
   public String getTaskDescription() {
-    return "Van Krevelen Diagram for " + peakList;
+    return "Van Krevelen Diagram for " + featureList;
   }
 
   @Override
@@ -123,7 +116,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   public void run() {
     try {
       setStatus(TaskStatus.PROCESSING);
-      logger.info("Create Van Krevelen diagram of " + peakList);
+      logger.info("Create Van Krevelen diagram of " + featureList);
       // Task canceled?
       if (isCanceled())
         return;
@@ -200,7 +193,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             + " feature list rows are not displayed, because no molecular formula was assigned.");
         alert.show();
       });
-      logger.info("Finished creating van Krevelen diagram of " + peakList);
+      logger.info("Finished creating van Krevelen diagram of " + featureList);
       setStatus(TaskStatus.FINISHED);
     } catch (
 
@@ -382,20 +375,20 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   /*
    * This method removes all feature list rows, that cannot be plot in a Van Krevelen diagram
    */
-  private PeakListRow[] filterSelectedRows(PeakListRow[] selectedRows) {
-    ArrayList<PeakListRow> rows = new ArrayList<PeakListRow>();
-    for (PeakListRow peakListRow : selectedRows) {
+  private FeatureListRow[] filterSelectedRows(FeatureListRow[] selectedRows) {
+    ArrayList<FeatureListRow> rows = new ArrayList<FeatureListRow>();
+    for (FeatureListRow featureListRow : selectedRows) {
       boolean hasIdentity = false;
       boolean isFormula = false;
       boolean hasSuitableElements = false;
 
       // check for identity
-      if (peakListRow.getPreferredPeakIdentity() != null)
+      if (featureListRow.getPreferredFeatureIdentity() != null)
         hasIdentity = true;
 
       // check for formula
-      if (hasIdentity && peakListRow.getPreferredPeakIdentity()
-          .getPropertyValue(PeakIdentity.PROPERTY_FORMULA) != null) {
+      if (hasIdentity && featureListRow.getPreferredFeatureIdentity()
+          .getPropertyValue(FeatureIdentity.PROPERTY_FORMULA) != null) {
         isFormula = true;
       } else {
         featuresWithoutFormula++;
@@ -405,7 +398,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       // elements C, H, and O)
       if (isFormula) {
         String s =
-            peakListRow.getPreferredPeakIdentity().getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+            featureListRow.getPreferredFeatureIdentity().getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
         if (s.contains("C") && s.contains("H") && s.contains("O")) {
           hasSuitableElements = true;
           displayedFeatures++;
@@ -416,12 +409,12 @@ public class VanKrevelenDiagramTask extends AbstractTask {
         }
       }
 
-      // add peakListRow
+      // add featureListRow
       if (hasIdentity && isFormula && hasSuitableElements)
-        rows.add(peakListRow);
+        rows.add(featureListRow);
     }
     if (rows.size() > 0) {
-      return rows.stream().toArray(PeakListRow[]::new);
+      return rows.toArray(FeatureListRow[]::new);
     } else
       return null;
   }

@@ -97,7 +97,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
     String toleranceNum = xmlElement.getTextContent();
     if (toleranceNum.length() == 0)
       return;
-    double tolerance = Double.valueOf(toleranceNum);
+    float tolerance = (float) Double.parseDouble(toleranceNum);
     this.value = new RTTolerance(tolerance, toleranceUnit);
   }
 
@@ -107,7 +107,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
       return;
     }
     xmlElement.setAttribute("unit", value.getUnit().name());
-    double tolerance = value.getTolerance();
+    float tolerance = (float) value.getTolerance();
     String toleranceNum = String.valueOf(tolerance);
     xmlElement.setTextContent(toleranceNum);
   }

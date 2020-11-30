@@ -18,9 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Comparator;
-
-import io.github.mzmine.datamodel.PeakListRow;
 
 public class AlignmentSorterFactory {
 
@@ -54,7 +53,7 @@ public class AlignmentSorterFactory {
     public abstract String toString();
   }
 
-  public static Comparator<PeakListRow> getComparator(final SORT_MODE mode) {
+  public static Comparator<FeatureListRow> getComparator(final SORT_MODE mode) {
     return getComparator(mode, true);
   }
 
@@ -65,7 +64,7 @@ public class AlignmentSorterFactory {
    * @param ascending
    * @return
    */
-  public static Comparator<PeakListRow> getComparator(final SORT_MODE mode,
+  public static Comparator<FeatureListRow> getComparator(final SORT_MODE mode,
       final boolean ascending) {
     switch (mode) {
       case name:
@@ -79,39 +78,39 @@ public class AlignmentSorterFactory {
     }
   }
 
-  private static Comparator<PeakListRow> getNameComparator(final boolean ascending) {
-    return new Comparator<PeakListRow>() {
+  private static Comparator<FeatureListRow> getNameComparator(final boolean ascending) {
+    return new Comparator<FeatureListRow>() {
 
-      public int compare(PeakListRow o1, PeakListRow o2) {
+      public int compare(FeatureListRow o1, FeatureListRow o2) {
         int comparison = 0;
-        comparison = o1.getPreferredPeakIdentity().getName()
-            .compareToIgnoreCase(o2.getPreferredPeakIdentity().getName());
+        comparison = o1.getPreferredFeatureIdentity().getName()
+            .compareToIgnoreCase(o2.getPreferredFeatureIdentity().getName());
 
         return ascending ? comparison : -comparison;
       }
     };
   }
 
-  private static Comparator<PeakListRow> getPeakCountComparator(final boolean ascending) {
-    return new Comparator<PeakListRow>() {
+  private static Comparator<FeatureListRow> getPeakCountComparator(final boolean ascending) {
+    return new Comparator<FeatureListRow>() {
 
-      public int compare(PeakListRow o1, PeakListRow o2) {
-        int comp = (Integer) o1.getNumberOfPeaks() - (Integer) o2.getNumberOfPeaks();
+      public int compare(FeatureListRow o1, FeatureListRow o2) {
+        int comp = (Integer) o1.getNumberOfFeatures() - (Integer) o2.getNumberOfFeatures();
         return ascending ? comp : -comp;
       }
     };
   }
 
-  private static Comparator<PeakListRow> getDoubleValComparator(final boolean ascending,
+  private static Comparator<FeatureListRow> getDoubleValComparator(final boolean ascending,
       final SORT_MODE mode) {
-    return new Comparator<PeakListRow>() {
+    return new Comparator<FeatureListRow>() {
 
-      public int compare(PeakListRow o1, PeakListRow o2) {
+      public int compare(FeatureListRow o1, FeatureListRow o2) {
         int comparison = 0;
         double val1 = 0.0;
         double val2 = 0.0;
         if (mode == SORT_MODE.rt)
-          val1 = (Double) o1.getAverageRT();
+          val1 = (double) o1.getAverageRT();
         if (val1 < val2) {
           comparison = -1;
         }
@@ -123,10 +122,10 @@ public class AlignmentSorterFactory {
     };
   }
 
-  private static Comparator<PeakListRow> nullComparator() {
-    return new Comparator<PeakListRow>() {
+  private static Comparator<FeatureListRow> nullComparator() {
+    return new Comparator<FeatureListRow>() {
 
-      public int compare(PeakListRow o1, PeakListRow o2) {
+      public int compare(FeatureListRow o1, FeatureListRow o2) {
         return 0;
       }
     };

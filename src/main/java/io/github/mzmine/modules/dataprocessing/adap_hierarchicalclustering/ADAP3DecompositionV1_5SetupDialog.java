@@ -15,6 +15,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.text.DecimalFormat;
@@ -32,7 +33,6 @@ import com.google.common.collect.Sets;
 import dulab.adap.common.algorithms.FeatureTools;
 import dulab.adap.datamodel.Peak;
 import dulab.adap.workflow.TwoStepDecomposition;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -84,7 +84,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
   private GridPane pnlLabelsFields;
   private HBox pnlTabs;
   private CheckBox preview;
-  private ComboBox<PeakList> comboPeakList;
+  private ComboBox<FeatureList> comboPeakList;
 
   private final ObservableList<ComboClustersItem> comboClustersModel =
       FXCollections.observableArrayList();
@@ -112,7 +112,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
       // Retrieve current PeakList
       // -------------------------
 
-      final PeakList peakList = comboPeakList.getSelectionModel().getSelectedItem();
+      final FeatureList peakList = comboPeakList.getSelectionModel().getSelectedItem();
 
       final List<Peak> peaks = ADAP3DecompositionV1_5Task.getPeaks(peakList,
           parameterSet.getParameter(ADAP3DecompositionV1_5Parameters.EDGE_TO_HEIGHT_RATIO)
@@ -156,7 +156,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
     retTimeMZPlot = new SimpleScatterPlot("Retention time", "m/z");
     retTimeIntensityPlot = new EICPlot();
 
-    PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
+    FeatureList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
 
     // -----------------------------
     // Panel with preview parameters
@@ -209,7 +209,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
     // previewPanel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
     // comboPeakList.setFont(COMBO_FONT);
-    for (final PeakList peakList : peakLists)
+    for (final FeatureList peakList : peakLists)
       if (peakList.getNumberOfRawDataFiles() == 1)
         comboPeakList.getItems().add(peakList);
     // comboPeakList.addActionListener(this);

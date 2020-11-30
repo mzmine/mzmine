@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -26,9 +29,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -54,15 +54,15 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
   private double foldChange;
   private int minBlankDetections;
 
-  private PeakList alignedFeatureList;
-  private PeakListRow[] alignedFeatureRows;
+  private FeatureList alignedFeatureList;
+  private FeatureListRow[] alignedFeatureRows;
   private RawDataFile[] blankRaws;
   private RawDataFile thisRaw;
 
   private int finishedRows, totalRows;
 
   public PeakListBlankSubtractionSingleTask(PeakListBlankSubtractionParameters parameters,
-      RawDataFile thisRaw, PeakListRow[] rows) {
+      RawDataFile thisRaw, FeatureListRow[] rows) {
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -78,7 +78,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
         .getValue().getMatchingRawDataFiles();
     this.alignedFeatureList =
         parameters.getParameter(PeakListBlankSubtractionParameters.alignedPeakList).getValue()
-            .getMatchingPeakLists()[0];
+            .getMatchingFeatureLists()[0];
     this.minBlankDetections =
         parameters.getParameter(PeakListBlankSubtractionParameters.minBlanks).getValue();
     this.thisRaw = thisRaw;
@@ -101,10 +101,10 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.FINISHED);
-    ArrayList<PeakListRow> rows = new ArrayList<>();
+    ArrayList<FeatureListRow> rows = new ArrayList<>();
 
     // get the rows that contain peaks from the current raw data file
-    for (PeakListRow row : alignedFeatureRows) {
+    for (FeatureListRow row : alignedFeatureRows) {
       for (RawDataFile raw : row.getRawDataFiles()) {
         if (raw.equals(thisRaw)) {
           rows.add(row);
@@ -127,7 +127,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
 
     List<RawDataFile> blankRawsList = Arrays.asList(blankRaws);
 
-    for (PeakListRow row : rows) {
+    for (FeatureListRow row : rows) {
 
       if (getStatus() == TaskStatus.CANCELED)
         return;
@@ -150,7 +150,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
         // other threads are using the same array, so we have to do this
         // synchronized.
         synchronized (row) {
-          row.removePeak(thisRaw);
+          row.removeFeature(thisRaw);
           featuresRemoved++;
         }
       }
@@ -171,13 +171,13 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
    * @param blankRaws The raw data file of blanks/control samples.
    * @return The intensity increase.
    */
-  private double getIntensityIncrease(PeakListRow row, RawDataFile thisRaw,
+  private double getIntensityIncrease(FeatureListRow row, RawDataFile thisRaw,
       RawDataFile[] blankRaws) {
-    Feature thisFeature = row.getPeak(thisRaw);
+    Feature thisFeature = row.getFeature(thisRaw);
     Feature[] blankFeatures = new Feature[blankRaws.length];
 
     for (int i = 0; i < blankFeatures.length; i++) {
-      blankFeatures[i] = row.getPeak(blankRaws[i]);
+      blankFeatures[i] = row.getFeature(blankRaws[i]);
     }
 
     double avgBlankIntensity = 0;

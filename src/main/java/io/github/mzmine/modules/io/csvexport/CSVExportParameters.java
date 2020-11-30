@@ -27,16 +27,16 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 public class CSVExportParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Name of the output CSV file. "
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). "
+          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
           + "If the file already exists, it will be overwritten.",
       "csv", FileSelectionType.SAVE);
 
@@ -49,11 +49,11 @@ public class CSVExportParameters extends SimpleParameterSet {
 
   public static final MultiChoiceParameter<ExportRowDataFileElement> exportDataFileItems =
       new MultiChoiceParameter<ExportRowDataFileElement>("Export data file elements",
-          "Selection of peak's elements to export", ExportRowDataFileElement.values());
+          "Selection of feature's elements to export", ExportRowDataFileElement.values());
 
-  public static final BooleanParameter exportAllPeakInfo =
+  public static final BooleanParameter exportAllFeatureInfo =
       new BooleanParameter("Export quantitation results and other information",
-          "If checked, all peak-information results for a peak will be exported. ", false);
+          "If checked, all feature-information results for a feature will be exported. ", false);
 
   public static final StringParameter idSeparator = new StringParameter("Identification separator",
       "Character(s) used to separate identification results in the exported file", ";");
@@ -63,8 +63,8 @@ public class CSVExportParameters extends SimpleParameterSet {
       RowFilter.values(), RowFilter.ALL);
 
   public CSVExportParameters() {
-    super(new Parameter[] {peakLists, filename, fieldSeparator, exportCommonItems,
-        exportDataFileItems, exportAllPeakInfo, idSeparator, filter});
+    super(new Parameter[] {featureLists, filename, fieldSeparator, exportCommonItems,
+        exportDataFileItems, exportAllFeatureInfo, idSeparator, filter});
   }
 
 }

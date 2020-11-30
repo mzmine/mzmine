@@ -23,11 +23,11 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 public class MzTabExportParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
@@ -36,9 +36,9 @@ public class MzTabExportParameters extends SimpleParameterSet {
       "mzTab", 32, FileSelectionType.SAVE);
 
   public static final BooleanParameter exportall =
-      new BooleanParameter("Include all peaks", "Includes peaks with unknown identity");
+      new BooleanParameter("Include all features", "Includes features with unknown identity");
 
   public MzTabExportParameters() {
-    super(new Parameter[] {peakLists, filename, exportall});
+    super(new Parameter[] {featureLists, filename, exportall});
   }
 }

@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -26,8 +29,6 @@ import javax.annotation.Nonnull;
 import org.slf4j.LoggerFactory;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import io.github.mzmine.parameters.ParameterSet;
@@ -35,7 +36,6 @@ import io.github.mzmine.parameters.parametertypes.MassListComponent;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -57,8 +57,8 @@ public class PeakListIdentificationTask extends AbstractTask {
   private boolean cancelled;
 
   private final ParameterSet parameters;
-  private final PeakList peakList;
-  private PeakListRow currentRow;
+  private final FeatureList peakList;
+  private FeatureListRow currentRow;
 
   /**
    * Create the identification task.
@@ -66,7 +66,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param list feature list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
+  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list) {
     peakList = list;
     numItems = 0;
     currentRow = null;
@@ -122,8 +122,8 @@ public class PeakListIdentificationTask extends AbstractTask {
 
         // Identify the feature list rows starting from the biggest
         // peaks.
-        PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
-        Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+        FeatureListRow rows[] = peakList.getRows().toArray(FeatureListRow[]::new);
+        Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 
         // Initialize counters.
         numItems = rows.length;
@@ -167,11 +167,11 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param amount of identities to be added from list
    */
   public synchronized static void addSiriusCompounds(@Nonnull List<IonAnnotation> annotations,
-      @Nonnull PeakListRow row, int amount) {
+      @Nonnull FeatureListRow row, int amount) {
     for (int i = 0; i < amount; i++) {
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) annotations.get(i);
       SiriusCompound compound = new SiriusCompound(annotation);
-      row.addPeakIdentity(compound, false);
+      row.addFeatureIdentity(compound, false);
     }
   }
 

@@ -156,9 +156,9 @@ public class HistogramChart extends EChartViewer {
     if (dataSet.getItemCount(0) > 6)
       axis.setVerticalTickLabels(true);
 
-    plot.getRangeAxis().setLabel("Number of peaks");
+    plot.getRangeAxis().setLabel("Number of features");
     plot.setDataset(0, newSet);
-    setTitle(dataSet.getPeakList().getName(), "Histogram of peaks's " + dataType);
+    setTitle(dataSet.getFeatureList().getName(), "Histogram of feature's " + dataType);
   }
 
   public void setAxisNumberFormat(HistogramDataType dataType) {

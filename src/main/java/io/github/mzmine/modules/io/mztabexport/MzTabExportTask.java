@@ -18,17 +18,17 @@
 
 package io.github.mzmine.modules.io.mztabexport;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.regex.Pattern;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -56,13 +56,13 @@ class MzTabExportTask extends AbstractTask {
   private final MZmineProject project;
   private final File fileName;
   private String plNamePattern = "{}";
-  private PeakList[] peakLists;
+  private FeatureList[] featureLists;
   private final boolean exportall;
 
   MzTabExportTask(MZmineProject project, ParameterSet parameters) {
     this.project = project;
-    this.peakLists =
-        parameters.getParameter(MzTabExportParameters.peakLists).getValue().getMatchingPeakLists();
+    this.featureLists =
+        parameters.getParameter(MzTabExportParameters.featureLists).getValue().getMatchingFeatureLists();
     this.fileName = parameters.getParameter(MzTabExportParameters.filename).getValue();
     this.exportall = parameters.getParameter(MzTabExportParameters.exportall).getValue();
   }
@@ -77,7 +77,7 @@ class MzTabExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MzTab file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to MzTab file(s)";
   }
 
   @Override
@@ -89,12 +89,12 @@ class MzTabExportTask extends AbstractTask {
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
     // Total number of rows
-    for (PeakList peakList : peakLists) {
+    for (FeatureList peakList : featureLists) {
       totalRows += peakList.getNumberOfRows();
     }
 
     // Process feature lists
-    for (PeakList peakList : peakLists) {
+    for (FeatureList peakList : featureLists) {
 
       File curFile = fileName;
       try {
@@ -196,23 +196,23 @@ class MzTabExportTask extends AbstractTask {
         out.write(newLine);
 
         // Write data rows
-        for (PeakListRow peakListRow : peakList.getRows()) {
+        for (FeatureListRow peakListRow : peakList.getRows()) {
 
           // Cancel?
           if (isCanceled()) {
             return;
           }
 
-          PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
-          if (exportall || peakIdentity != null) {
+          FeatureIdentity featureIdentity = peakListRow.getPreferredFeatureIdentity();
+          if (exportall || featureIdentity != null) {
             SmallMolecule sm = new SmallMolecule(factory, mtd);
-            if (peakIdentity != null) {
+            if (featureIdentity != null) {
               // Identity information
-              String identifier = escapeString(peakIdentity.getPropertyValue("ID"));
-              String database = peakIdentity.getPropertyValue("Identification method");
-              String formula = peakIdentity.getPropertyValue("Molecular formula");
-              String description = escapeString(peakIdentity.getPropertyValue("Name"));
-              String url = peakIdentity.getPropertyValue("URL");
+              String identifier = escapeString(featureIdentity.getPropertyValue("ID"));
+              String database = featureIdentity.getPropertyValue("Identification method");
+              String formula = featureIdentity.getPropertyValue("Molecular formula");
+              String description = escapeString(featureIdentity.getPropertyValue("Name"));
+              String url = featureIdentity.getPropertyValue("URL");
 
               if (identifier != null) {
                 sm.setIdentifier(identifier);
@@ -248,12 +248,12 @@ class MzTabExportTask extends AbstractTask {
             int dataFileCount = 0;
             for (RawDataFile dataFile : rawDataFiles) {
               dataFileCount++;
-              Feature peak = peakListRow.getPeak(dataFile);
+              Feature peak = peakListRow.getFeature(dataFile);
               if (peak != null) {
                 String peakMZ = String.valueOf(peak.getMZ());
                 String peakRT = String.valueOf(String.valueOf(peak.getRT()));
                 String peakHeight = String.valueOf(peak.getHeight());
-                Double peakArea = peak.getArea();
+                double peakArea = peak.getArea();
 
                 sm.setOptionColumnValue(new Assay(dataFileCount), "peak_mz", peakMZ);
                 sm.setOptionColumnValue(new Assay(dataFileCount), "peak_rt", peakRT);

@@ -76,7 +76,7 @@ public interface RawDataFile {
    * @return Sorted array of scan numbers, never returns null
    */
   @Nonnull
-  public int[] getScanNumbers(int msLevel, @Nonnull Range<Double> rtRange);
+  public int[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
 
   /**
    * Scan could be null if scanID is not contained in the raw data file
@@ -93,32 +93,26 @@ public interface RawDataFile {
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
    * the rt range of this file.
    */
-  public int getScanNumberAtRT(double rt, int mslevel);
+  public int getScanNumberAtRT(float rt, int mslevel);
 
   /**
    * @param rt The rt
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
    * the rt range of this file.
    */
-  public int getScanNumberAtRT(double rt);
+  public int getScanNumberAtRT(float rt);
 
   @Nonnull
   public Range<Double> getDataMZRange();
 
   @Nonnull
-  public Range<Double> getDataRTRange();
-
-  @Nonnull
-  public Range<Double> getDataMobilityRange();
+  public Range<Float> getDataRTRange();
 
   @Nonnull
   public Range<Double> getDataMZRange(int msLevel);
 
   @Nonnull
-  public Range<Double> getDataRTRange(Integer msLevel);
-
-  @Nonnull
-  public Range<Double> getDataMobilityRange(int msLevel);
+  public Range<Float> getDataRTRange(Integer msLevel);
 
   public double getDataMaxBasePeakIntensity(int msLevel);
 

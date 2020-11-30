@@ -181,7 +181,7 @@ public class ColorsFX {
   }
 
   public static String toHexString(Color color) {
-    return String.format("%02x%02x%02x", Math.min(255, (int) (color.getRed() * 255)),
+    return String.format("#%02x%02x%02x", Math.min(255, (int) (color.getRed() * 255)),
         Math.min(255, (int) (color.getGreen() * 255)),
         Math.min(255, (int) (color.getBlue() * 255)));
   }

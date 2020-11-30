@@ -39,7 +39,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.awt.Color;
 import java.io.File;
 import java.text.DecimalFormat;
@@ -77,7 +77,7 @@ public class SpectralMatchTask extends AbstractTask {
   private List<SpectralDBEntry> list;
   private int totalSteps;
 
-  private List<SpectralDBPeakIdentity> matches;
+  private List<SpectralDBFeatureIdentity> matches;
   private SpectraIdentificationResultsWindowFX resultWindow;
 
   private int count = 0;
@@ -212,9 +212,9 @@ public class SpectralMatchTask extends AbstractTask {
         if (sim != null && (!needsIsotopePattern
             || checkForIsotopePattern(sim, mzToleranceSpectra, minMatchedIsoSignals))) {
           count++;
-          // use SpectralDBPeakIdentity to store all results similar
+          // use SpectralDBFeatureIdentity to store all results similar
           // to peaklist method
-          matches.add(new SpectralDBPeakIdentity(currentScan, massListName, ident, sim,
+          matches.add(new SpectralDBFeatureIdentity(currentScan, massListName, ident, sim,
               SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
         }
         // next row
@@ -355,9 +355,9 @@ public class SpectralMatchTask extends AbstractTask {
     }
   }
 
-  private void addIdentities(List<SpectralDBPeakIdentity> matches) {
+  private void addIdentities(List<SpectralDBFeatureIdentity> matches) {
 
-    for (SpectralDBPeakIdentity match : matches) {
+    for (SpectralDBFeatureIdentity match : matches) {
       try {
         // TODO put into separate method and add comments
         // get data points of matching scans

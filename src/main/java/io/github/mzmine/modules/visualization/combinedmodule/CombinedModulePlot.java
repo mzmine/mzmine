@@ -43,7 +43,7 @@ public class CombinedModulePlot extends EChartViewer {
   private RawDataFile dataFile;
   private CombinedModuleVisualizerTabController visualizer;
   private CombinedModuleDataset dataset;
-  private Range<Double> rtRange;
+  private Range<Float> rtRange;
   private Range<Double> mzRange;
   private String massList;
   private Double noiseLevel;
@@ -71,7 +71,7 @@ public class CombinedModulePlot extends EChartViewer {
   }
 
   public void setPlot(RawDataFile dataFile, CombinedModuleVisualizerTabController visualizer,
-      Range<Double> rtRange, Range<Double> mzRange, AxisType xAxisType, AxisType yAxisType,
+      Range<Float> rtRange, Range<Double> mzRange, AxisType xAxisType, AxisType yAxisType,
       String massList, Double noiseLevel, ColorScale colorScale) {
 
     this.visualizer = visualizer;

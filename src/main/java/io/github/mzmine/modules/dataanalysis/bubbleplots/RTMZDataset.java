@@ -18,12 +18,11 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jfree.data.xy.XYZDataset;
-
-import io.github.mzmine.datamodel.PeakListRow;
 
 public interface RTMZDataset extends XYZDataset {
 
-  public abstract PeakListRow getPeakListRow(int item);
+  public abstract FeatureListRow getFeatureListRow(int item);
 
 }

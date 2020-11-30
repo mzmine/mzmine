@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.align_path.scorer;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.AlignmentPath;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.ScoreCalculator;
@@ -29,7 +29,7 @@ import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCal
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.util.PeakUtils;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
 
 public class RTScore implements ScoreCalculator {
@@ -38,11 +38,11 @@ public class RTScore implements ScoreCalculator {
   RTTolerance rtTolerance;
   private final static double WORST_SCORE = Double.MAX_VALUE;
 
-  public double calculateScore(AlignmentPath path, PeakListRow peak, ParameterSet parameters) {
+  public double calculateScore(AlignmentPath path, FeatureListRow peak, ParameterSet parameters) {
     try {
       rtTolerance = parameters.getParameter(PathAlignerParameters.RTTolerance).getValue();
       mzTolerance = parameters.getParameter(PathAlignerParameters.MZTolerance).getValue();
-      Range<Double> rtRange = rtTolerance.getToleranceRange(path.getRT());
+      Range<Float> rtRange = rtTolerance.getToleranceRange((float) path.getRT());
       Range<Double> mzRange = mzTolerance.getToleranceRange(path.getMZ());
 
       if (!rtRange.contains(peak.getAverageRT()) || !mzRange.contains(peak.getAverageMZ())) {
@@ -57,13 +57,13 @@ public class RTScore implements ScoreCalculator {
           + ((rtDiff / (RangeUtils.rangeLength(rtRange) / 2.0)));
 
       if (parameters.getParameter(PathAlignerParameters.SameChargeRequired).getValue()) {
-        if (!PeakUtils.compareChargeState(path.convertToAlignmentRow(0), peak)) {
+        if (!FeatureUtils.compareChargeState(path.convertToAlignmentRow(0), peak)) {
           return WORST_SCORE;
         }
       }
 
       if (parameters.getParameter(PathAlignerParameters.SameIDRequired).getValue()) {
-        if (!PeakUtils.compareIdentities(path.convertToAlignmentRow(0), peak)) {
+        if (!FeatureUtils.compareIdentities(path.convertToAlignmentRow(0), peak)) {
           return WORST_SCORE;
         }
       }
@@ -89,10 +89,10 @@ public class RTScore implements ScoreCalculator {
     }
   }
 
-  public boolean matches(AlignmentPath path, PeakListRow peak, ParameterSet parameters) {
+  public boolean matches(AlignmentPath path, FeatureListRow peak, ParameterSet parameters) {
     rtTolerance = parameters.getParameter(PathAlignerParameters.RTTolerance).getValue();
     mzTolerance = parameters.getParameter(PathAlignerParameters.MZTolerance).getValue();
-    Range<Double> rtRange = rtTolerance.getToleranceRange(path.getRT());
+    Range<Float> rtRange = rtTolerance.getToleranceRange((float) path.getRT());
     Range<Double> mzRange = mzTolerance.getToleranceRange(path.getMZ());
 
     if (!rtRange.contains(peak.getAverageRT()) || !mzRange.contains(peak.getAverageMZ())) {
@@ -105,7 +105,7 @@ public class RTScore implements ScoreCalculator {
     return WORST_SCORE;
   }
 
-  public boolean isValid(PeakListRow peak) {
+  public boolean isValid(FeatureListRow peak) {
     return true;
   }
 

@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.components.PeakXICComponent;
 import javafx.scene.control.Label;
@@ -27,9 +27,9 @@ import javafx.scene.layout.BorderPane;
 
 public class PeakPreviewComboRenderer extends BorderPane {
 
-  PeakPreviewComboRenderer(PeakListRow row) {
+  PeakPreviewComboRenderer(FeatureListRow row) {
 
-    Feature peak = row.getPeaks()[0];
+    Feature peak = row.getFeatures().get(0);
 
     String labelText = "#" + row.getID() + " "
         + MZmineCore.getConfiguration().getMZFormat().format(row.getAverageMZ()) + " m/z ";

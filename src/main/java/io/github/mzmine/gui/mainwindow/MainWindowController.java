@@ -18,30 +18,31 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.logging.Logger;
-import org.controlsfx.control.StatusBar;
-import com.google.common.collect.Ordering;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
-import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.util.FeatureTableFXUtil;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.logging.Logger;
+import javafx.application.Platform;
+import org.controlsfx.control.StatusBar;
+import com.google.common.collect.Ordering;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -122,13 +123,13 @@ public class MainWindowController {
   private ListView<RawDataFile> rawDataTree;
 
   @FXML
-  private ListView<PeakList> featureTree;
+  private ListView<FeatureList> featureTree;
 
   @FXML
   private Tab tvAligned;
 
   @FXML
-  private TreeView<ModularFeatureList> tvAlignedFeatureLists;
+  private TreeView<FeatureList> tvAlignedFeatureLists;
 
   @FXML
   private AnchorPane tbRawData;
@@ -139,8 +140,8 @@ public class MainWindowController {
   @FXML
   private BorderPane rawDataOverview;
 
-  // @FXML
-  // private RawDataOverviewWindowController rawDataOverviewController;
+  @FXML
+  private RawDataOverviewWindowController rawDataOverviewController;
 
   @FXML
   private TabPane mainTabPane;
@@ -285,7 +286,7 @@ public class MainWindowController {
 
     featureTree.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
       @Override
-      protected void updateItem(PeakList item, boolean empty) {
+      protected void updateItem(FeatureList item, boolean empty) {
         super.updateItem(item, empty);
         if (empty || (item == null)) {
           setText("");
@@ -411,14 +412,13 @@ public class MainWindowController {
 
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
     addTab(rop);
-
   }
 
   public ListView<RawDataFile> getRawDataTree() {
     return rawDataTree;
   }
 
-  public ListView<PeakList> getFeatureTree() {
+  public ListView<FeatureList> getFeatureTree() {
     return featureTree;
   }
 
@@ -471,7 +471,6 @@ public class MainWindowController {
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(TwoDVisualizerModule.class, parameters);
     }
-
   }
 
   public void handleShow3DPlot(Event event) {
@@ -587,9 +586,12 @@ public class MainWindowController {
   }
 
   public void handleOpenFeatureList(Event event) {
-    var selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
-    for (PeakList fl : selectedFeatureLists) {
-      PeakListTableModule.showNewPeakListVisualizerWindow(fl);
+    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    for (FeatureList fl : selectedFeatureLists) {
+      //PeakListTableModule.showNewPeakListVisualizerWindow(fl);
+      Platform.runLater(() -> {
+        FeatureTableFXUtil.addFeatureTableTab(fl);
+      });
     }
   }
 
@@ -601,9 +603,9 @@ public class MainWindowController {
 
   @FXML
   public void handleRemoveFeatureList(Event event) {
-    PeakList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
-    for (PeakList fl : selectedFeatureLists) {
-      MZmineCore.getProjectManager().getCurrentProject().removePeakList(fl);
+    FeatureList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
+    for (FeatureList fl : selectedFeatureLists) {
+      MZmineCore.getProjectManager().getCurrentProject().removeFeatureList(fl);
     }
   }
 

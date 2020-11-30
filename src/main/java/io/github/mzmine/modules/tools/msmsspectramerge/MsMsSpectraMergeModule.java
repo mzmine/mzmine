@@ -23,6 +23,8 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,9 +43,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.MZmineModule;
@@ -91,18 +91,18 @@ public class MsMsSpectraMergeModule implements MZmineModule {
    * @param massList name of the mass list to use when extracting peaks
    * @return list of merged MS/MS spectra belonging to this feature
    */
-  public List<MergedSpectrum> getMergedSpectra(ParameterSet parameters, PeakListRow row,
+  public List<MergedSpectrum> getMergedSpectra(ParameterSet parameters, FeatureListRow row,
       String massList) {
     final MergeMode mode =
         parameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE).getValue();
     final double npeaksFilter =
-        parameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue();
+        parameters.getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER).getValue();
     switch (mode) {
       case CONSECUTIVE_SCANS:
         // merge all consecutive MS/MS, remove peaks if they do not occur
         // consistently in merged
         // spectra, return the list of merged spectra
-        return Arrays.stream(row.getPeaks())
+        return row.getFeatures().stream()
             .flatMap(x -> mergeConsecutiveScans(parameters, x, massList).stream())
             .filter(x -> x.data.length > 0).map(x -> x.filterByRelativeNumberOfScans(npeaksFilter))
             .collect(Collectors.toList());
@@ -112,7 +112,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
         // Remove peaks if they do not occur consistently in merged spectra.
         // Returns a merged MS/MS
         // for each sample
-        return Arrays.stream(row.getPeaks()).map(x -> mergeFromSameSample(parameters, x, massList))
+        return row.getFeatures().stream().map(x -> mergeFromSameSample(parameters, x, massList))
             .filter(x -> x.data.length > 0).map(x -> x.filterByRelativeNumberOfScans(npeaksFilter))
             .collect(Collectors.toList());
       case ACROSS_SAMPLES:
@@ -142,7 +142,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
    * @param massList name of the mass list to use when extracting peaks
    * @return merged spectrum or null, if none exist
    */
-  public MergedSpectrum getBestMergedSpectrum(ParameterSet parameters, PeakListRow row,
+  public MergedSpectrum getBestMergedSpectrum(ParameterSet parameters, FeatureListRow row,
       String massList) {
     return getMergedSpectra(parameters, row, massList).stream()
         .max(Comparator.comparingDouble(MergedSpectrum::getBestFragmentScanScore)).orElse(null);
@@ -156,10 +156,10 @@ public class MsMsSpectraMergeModule implements MZmineModule {
    * @param massList name of the mass list to use when extracting peaks
    * @return the merged MS/MS of all fragment spectra belonging to the feature row
    */
-  public MergedSpectrum mergeAcrossSamples(ParameterSet parameters, PeakListRow row,
+  public MergedSpectrum mergeAcrossSamples(ParameterSet parameters, FeatureListRow row,
       String massList) {
     return mergeAcrossFragmentSpectra(parameters,
-        Arrays.stream(row.getPeaks()).map(r -> mergeFromSameSample(parameters, r, massList))
+        row.getFeatures().stream().map(r -> mergeFromSameSample(parameters, r, massList))
             .filter(x -> x.data.length > 0).collect(Collectors.toList()));
   }
 
@@ -279,7 +279,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
     MergedSpectrum initial = bestOne;
     final double lowestMassToConsider = Math.min(50d, initial.precursorMz - 50d);
 
-    final DataPoint[] initialMostIntense = ScanUtils.extractMostIntensePeaksAcrossMassRange(
+    final DataPoint[] initialMostIntense = ScanUtils.extractMostIntenseFeaturesAcrossMassRange(
         initial.data, Range.closed(lowestMassToConsider, lowestMassToConsider + 100), 6);
     final Range<Double> cosineRange = Range.closed(lowestMassToConsider, initial.precursorMz - 20);
     double lowestIntensityToConsider;
@@ -304,7 +304,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
       MergedSpectrum scan = toMerge.get(k);
       DataPoint[] dataPoints = scan.data;
       final DataPoint[] mostIntense =
-          ScanUtils.extractMostIntensePeaksAcrossMassRange(dataPoints, Range.closed(50d, 150d), 6);
+          ScanUtils.extractMostIntenseFeaturesAcrossMassRange(dataPoints, Range.closed(50d, 150d), 6);
       final double norm = ScanUtils.probabilityProductUnnormalized(mostIntense, mostIntense,
           massTolerance, lowestIntensityToConsider, cosineRange);
       final double cosine =
@@ -389,11 +389,11 @@ public class MsMsSpectraMergeModule implements MZmineModule {
     initial.bestFragmentScanScore = best;
     final double lowestMassToConsider = Math.min(50d, scans.feature.getMZ() - 50d);
 
-    final DataPoint[] initialMostIntense = ScanUtils.extractMostIntensePeaksAcrossMassRange(
+    final DataPoint[] initialMostIntense = ScanUtils.extractMostIntenseFeaturesAcrossMassRange(
         initial.data, Range.closed(lowestMassToConsider, 150d), 6);
 
     double lowestIntensityToConsider;
-    final int mostIntensPeakWithin = ScanUtils.findMostIntensePeakWithin(initialMostIntense,
+    final int mostIntensPeakWithin = ScanUtils.findMostIntenseFeatureWithin(initialMostIntense,
         Range.closed(lowestMassToConsider, scans.feature.getMZ()));
     if (mostIntensPeakWithin >= 0)
       lowestIntensityToConsider = 0.005d * initialMostIntense[mostIntensPeakWithin].getIntensity();
@@ -414,7 +414,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
       }
       DataPoint[] dataPoints = scan.getMassList(massList).getDataPoints();
       final DataPoint[] mostIntense =
-          ScanUtils.extractMostIntensePeaksAcrossMassRange(dataPoints, cosineRange, 6);
+          ScanUtils.extractMostIntenseFeaturesAcrossMassRange(dataPoints, cosineRange, 6);
       final double norm = ScanUtils.probabilityProductUnnormalized(mostIntense, mostIntense,
           mzTolerance, lowestIntensityToConsider, cosineRange);
       final double cosine =

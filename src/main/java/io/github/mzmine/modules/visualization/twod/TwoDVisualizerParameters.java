@@ -44,7 +44,7 @@ public class TwoDVisualizerParameters extends SimpleParameterSet {
 
   public static final MZRangeParameter mzRange = new MZRangeParameter();
 
-  public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
+  public static final FeatureThresholdParameter featureThresholdSettings = new FeatureThresholdParameter();
 
   /**
    * Windows size and position
@@ -52,7 +52,7 @@ public class TwoDVisualizerParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public TwoDVisualizerParameters() {
-    super(new Parameter[] {plotType, dataFiles, scanSelection, mzRange, peakThresholdSettings,
+    super(new Parameter[] {plotType, dataFiles, scanSelection, mzRange, featureThresholdSettings,
         windowSettings});
   }
 

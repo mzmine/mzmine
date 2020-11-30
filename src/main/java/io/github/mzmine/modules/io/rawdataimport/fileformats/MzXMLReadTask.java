@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -55,7 +55,7 @@ import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
- * 
+ *
  */
 public class MzXMLReadTask extends AbstractTask {
 
@@ -142,8 +142,9 @@ public class MzXMLReadTask extends AbstractTask {
       return;
     }
 
-    if (isCanceled())
+    if (isCanceled()) {
       return;
+    }
 
     if (parsedScans == 0) {
       setStatus(TaskStatus.ERROR);
@@ -161,19 +162,22 @@ public class MzXMLReadTask extends AbstractTask {
   }
 
   private class MzXMLHandler extends DefaultHandler {
+
     public void startElement(String namespaceURI, String lName, // local
         // name
         String qName, // qualified name
         Attributes attrs) throws SAXException {
 
-      if (isCanceled())
+      if (isCanceled()) {
         throw new SAXException("Parsing Cancelled");
+      }
 
       // <msRun>
       if (qName.equals("msRun")) {
         String s = attrs.getValue("scanCount");
-        if (s != null)
+        if (s != null) {
           totalScans = Integer.parseInt(s);
+        }
       }
 
       // <scan>
@@ -193,30 +197,33 @@ public class MzXMLReadTask extends AbstractTask {
         // mzXML files with empty msLevel attribute do exist, so we use
         // 1 as default
         int msLevel = 1;
-        if (!Strings.isNullOrEmpty(attrs.getValue("msLevel")))
+        if (!Strings.isNullOrEmpty(attrs.getValue("msLevel"))) {
           msLevel = Integer.parseInt(attrs.getValue("msLevel"));
+        }
 
         String scanType = attrs.getValue("scanType");
         String filterLine = attrs.getValue("filterLine");
         String scanId = filterLine;
-        if (Strings.isNullOrEmpty(scanId))
+        if (Strings.isNullOrEmpty(scanId)) {
           scanId = scanType;
+        }
 
         PolarityType polarity;
         String polarityAttr = attrs.getValue("polarity");
-        if ((polarityAttr != null) && (polarityAttr.length() == 1))
+        if ((polarityAttr != null) && (polarityAttr.length() == 1)) {
           polarity = PolarityType.fromSingleChar(polarityAttr);
-        else
+        } else {
           polarity = PolarityType.UNKNOWN;
+        }
         peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
 
         // Parse retention time
-        double retentionTime = 0;
+        float retentionTime = 0;
         String retentionTimeStr = attrs.getValue("retentionTime");
         if (retentionTimeStr != null) {
           Date currentDate = new Date();
           Duration dur = dataTypeFactory.newDuration(retentionTimeStr);
-          retentionTime = dur.getTimeInMillis(currentDate) / 1000d / 60d;
+          retentionTime = (float) (dur.getTimeInMillis(currentDate) / 1000d / 60d);
         } else {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("This file does not contain retentionTime for scans");
@@ -244,9 +251,8 @@ public class MzXMLReadTask extends AbstractTask {
         msLevelTree++;
         parentTreeValue[msLevel] = scanNumber;
 
-        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, 0,
-                0,0, null, new DataPoint[0], null,
-                polarity, scanId, null);
+        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, 0, 0, null,
+            new DataPoint[0], null, polarity, scanId, null);
 
       }
 
@@ -256,10 +262,11 @@ public class MzXMLReadTask extends AbstractTask {
         charBuffer.setLength(0);
         compressFlag = false;
         String compressionType = attrs.getValue("compressionType");
-        if ((compressionType == null) || (compressionType.equals("none")))
+        if ((compressionType == null) || (compressionType.equals("none"))) {
           compressFlag = false;
-        else
+        } else {
           compressFlag = true;
+        }
         precision = attrs.getValue("precision");
 
       }
@@ -269,8 +276,9 @@ public class MzXMLReadTask extends AbstractTask {
         // clean the current char buffer for the new element
         charBuffer.setLength(0);
         String precursorCharge = attrs.getValue("precursorCharge");
-        if (precursorCharge != null)
+        if (precursorCharge != null) {
           buildingScan.setPrecursorCharge(Integer.parseInt(precursorCharge));
+        }
       }
 
     }
@@ -324,8 +332,9 @@ public class MzXMLReadTask extends AbstractTask {
       if (qName.equalsIgnoreCase("precursorMz")) {
         final String textContent = charBuffer.toString();
         double precursorMz = 0d;
-        if (!textContent.isEmpty())
+        if (!textContent.isEmpty()) {
           precursorMz = Double.parseDouble(textContent);
+        }
         buildingScan.setPrecursorMZ(precursorMz);
         return;
       }
@@ -389,7 +398,7 @@ public class MzXMLReadTask extends AbstractTask {
 
     /**
      * characters()
-     * 
+     *
      * @see org.xml.sax.ContentHandler#characters(char[], int, int)
      */
     public void characters(char buf[], int offset, int len) throws SAXException {

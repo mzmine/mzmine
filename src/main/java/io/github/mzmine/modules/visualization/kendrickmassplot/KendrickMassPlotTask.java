@@ -18,10 +18,11 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartFactory;
@@ -45,8 +46,6 @@ import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
@@ -59,12 +58,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.dialogs.FeatureOverviewWindow;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 
 /**
  * Task to create a Kendrick mass plot of selected features of a selected feature list
@@ -82,7 +76,7 @@ public class KendrickMassPlotTask extends AbstractTask {
   private XYDataset dataset2D;
   private XYZDataset dataset3D;
   private JFreeChart chart;
-  private PeakList peakList;
+  private FeatureList featureList;
   private String title;
   private String xAxisLabel;
   private String yAxisLabel;
@@ -90,16 +84,16 @@ public class KendrickMassPlotTask extends AbstractTask {
   private String zAxisScaleType;
   private Range<Double> zScaleRange;
   private String paintScaleStyle;
-  private PeakListRow rows[];
+  private FeatureListRow rows[];
   private int totalSteps = 3, appliedSteps = 0;
 
   public KendrickMassPlotTask(ParameterSet parameters) {
-    peakList = parameters.getParameter(KendrickMassPlotParameters.peakList).getValue()
-        .getMatchingPeakLists()[0];
+    featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
+        .getMatchingFeatureLists()[0];
 
     this.parameters = parameters;
 
-    title = "Kendrick mass plot [" + peakList + "]";
+    title = "Kendrick mass plot [" + featureList + "]";
 
     if (parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
         .getValue() == true) {
@@ -129,13 +123,14 @@ public class KendrickMassPlotTask extends AbstractTask {
 
     paintScaleStyle = parameters.getParameter(KendrickMassPlotParameters.paintScale).getValue();
 
-    rows = parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(peakList);
+    rows = parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(
+        featureList);
 
   }
 
   @Override
   public String getTaskDescription() {
-    return "Create Kendrick mass plot for " + peakList;
+    return "Create Kendrick mass plot for " + featureList;
   }
 
   @Override
@@ -146,7 +141,7 @@ public class KendrickMassPlotTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Create Kendrick mass plot of " + peakList);
+    logger.info("Create Kendrick mass plot of " + featureList);
     // Task canceled?
     if (isCanceled())
       return;
@@ -223,7 +218,7 @@ public class KendrickMassPlotTask extends AbstractTask {
     });
 
     setStatus(TaskStatus.FINISHED);
-    logger.info("Finished creating Kendrick mass plot of " + peakList);
+    logger.info("Finished creating Kendrick mass plot of " + featureList);
   }
 
   /**

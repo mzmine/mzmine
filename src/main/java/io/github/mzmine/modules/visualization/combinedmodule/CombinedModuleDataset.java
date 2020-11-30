@@ -39,7 +39,8 @@ import org.jfree.data.xy.XYDataset;
 public class CombinedModuleDataset extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
   private RawDataFile rawDataFile;
-  private Range<Double> totalRTRange, totalMZRange;
+  private Range<Double> totalMZRange;
+  private Range<Float> totalRTRange;
   private CombinedModuleVisualizerTabController visualizer;
   private TaskStatus status = TaskStatus.WAITING;
   private int processedScans, scanNumbers[];
@@ -53,7 +54,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
   private static int PRECURSOR_LEVEL = 1;
   private static int NEUTRALLOSS_LEVEL = 2;
 
-  public CombinedModuleDataset(RawDataFile dataFile, Range<Double> rtRange, Range<Double> mzRange,
+  public CombinedModuleDataset(RawDataFile dataFile, Range<Float> rtRange, Range<Double> mzRange,
       CombinedModuleVisualizerTabController visualizer, AxisType xAxisType, AxisType yAxisType,
       Double noiseLevel, ColorScale colorScale, String massList) {
     this.rawDataFile = dataFile;
@@ -82,7 +83,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
     setStatus(TaskStatus.PROCESSING);
     processedScans = 0;
 
-    ArrayList<Double> retentionList = new ArrayList<Double>();
+    ArrayList<Float> retentionList = new ArrayList<Float>();
     ArrayList<Double> precursorList = new ArrayList<Double>();
     for (int scanNumber : scanNumbers) {
       if (status == TaskStatus.CANCELED) {
@@ -116,8 +117,8 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
       }
       DataPoint[] scanDataPoints = massList.getDataPoints();
 
-      // topPeaks will contain indexes to mzValues in scan above a threshold
-      List<Integer> topPeaksList = new ArrayList<Integer>();
+      // top Features will contain indexes to mzValues in scan above a threshold
+      List<Integer> topFeaturesIndexesList = new ArrayList<Integer>();
 
       for (int i = 0; i < scanDataPoints.length; i++) {
         // Cancel?
@@ -129,18 +130,18 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
         }
         if (scanDataPoints[i].getIntensity() > noiseLevel) {
           // add the peaks
-          topPeaksList.add(i);
+          topFeaturesIndexesList.add(i);
         }
       }
-      for (int peakIndex : topPeaksList) {
+      for (int featureIndex : topFeaturesIndexesList) {
 
         // if we have a very few peaks, the array may not be full
-        if (peakIndex < 0) {
+        if (featureIndex < 0) {
           break;
         }
 
         CombinedModuleDataPoint newPoint =
-            new CombinedModuleDataPoint(scanDataPoints[peakIndex].getMZ(), scan.getScanNumber(),
+            new CombinedModuleDataPoint(scanDataPoints[featureIndex].getMZ(), scan.getScanNumber(),
                 scan.getPrecursorMZ(), scan.getPrecursorCharge(), scan.getRetentionTime());
 
         dataSeries.get(0).add(newPoint);

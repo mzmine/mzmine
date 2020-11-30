@@ -144,7 +144,7 @@ public class CsvReadTask extends AbstractTask {
         if (columns == null || columns.length != mzs.length + 1)
           continue;
 
-        double rt = Double.valueOf(columns[0]) / 60;
+        float rt = (float) (Double.valueOf(columns[0]) / 60);
 
         DataPoint dataPoints[] = new SimpleDataPoint[mzs.length];
         for (int i = 0; i < dataPoints.length; i++) {
@@ -152,7 +152,7 @@ public class CsvReadTask extends AbstractTask {
           dataPoints[i] = new SimpleDataPoint(mzs[i], Double.valueOf(intensity));
         }
 
-        Scan scan = new SimpleScan(null, scanNumber, 1, rt, 0.0, 0.0, 1, null, dataPoints,
+        Scan scan = new SimpleScan(null, scanNumber, 1, rt, 0.0, 1, null, dataPoints,
                 MassSpectrumType.CENTROIDED, PolarityType.POSITIVE,
                 "ICP-" + mstype + " " + ions.substring(0, ions.length() - 2), mzRange);
 

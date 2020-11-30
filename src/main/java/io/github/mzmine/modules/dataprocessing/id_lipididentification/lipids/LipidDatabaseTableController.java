@@ -261,11 +261,11 @@ public class LipidDatabaseTableController {
         super.updateItem(item, empty);
         if (getIndex() >= 0) {
           if (tableData.get(getIndex()).getInfo().toString().contains("Possible interference")) {
-            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(possibleInterFX));
+            this.setStyle("-fx-background-color: " + ColorsFX.toHexString(possibleInterFX));
           } else if (tableData.get(getIndex()).getInfo().contains("Interference")) {
-            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(interFX));
+            this.setStyle("-fx-background-color: " + ColorsFX.toHexString(interFX));
           } else {
-            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(noInterFX));
+            this.setStyle("-fx-background-color: " + ColorsFX.toHexString(noInterFX));
           }
         }
       }
@@ -283,9 +283,9 @@ public class LipidDatabaseTableController {
 
     // legend
     statusLabel.setStyle("-fx-font-weight: bold");
-    noInterLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(noInterFX));
-    possibleInterLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(possibleInterFX));
-    interLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(interFX));
+    noInterLabel.setStyle("-fx-background-color: " + ColorsFX.toHexString(noInterFX));
+    possibleInterLabel.setStyle("-fx-background-color: " + ColorsFX.toHexString(possibleInterFX));
+    interLabel.setStyle("-fx-background-color: " + ColorsFX.toHexString(interFX));
   }
 
   /**

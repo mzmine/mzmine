@@ -20,6 +20,12 @@ package io.github.mzmine.modules.io.mztabmimport;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.*;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
@@ -129,9 +135,9 @@ public class MzTabmImportTask extends AbstractTask {
         }
 
       //Create new feature list
-      String peakListName = inputFile.getName().replace(".mzTab", "");
+      String featureListName = inputFile.getName().replace(".mzTab", "");
       RawDataFile rawDataArray[] = rawDataFiles.toArray(new RawDataFile[0]);
-      PeakList newPeakList = new SimplePeakList(peakListName, rawDataArray);
+      FeatureList newFeatureList = new ModularFeatureList(featureListName, rawDataArray);
 
       // Check if not canceled
         if (isCanceled()) {
@@ -146,7 +152,7 @@ public class MzTabmImportTask extends AbstractTask {
             return;
         }
       // import small molecules feature (=feature list rows)
-      importTablesData(newPeakList, mzTabFile, rawDataFiles);
+      importTablesData(newFeatureList, mzTabFile, rawDataFiles);
 
       // Check if not canceled
         if (isCanceled()) {
@@ -154,7 +160,7 @@ public class MzTabmImportTask extends AbstractTask {
         }
 
       // Add the new feature list to the project
-      project.addPeakList(newPeakList);
+      project.addFeatureList(newFeatureList);
 
       // Finish
       setStatus(TaskStatus.FINISHED);
@@ -301,15 +307,16 @@ public class MzTabmImportTask extends AbstractTask {
     }
   }
 
-  private void importTablesData(PeakList newPeakList, MzTab mzTabmFile,
+  private void importTablesData(FeatureList newFeatureList, MzTab mzTabmFile,
       List<RawDataFile> rawDataFiles) {
     List<Assay> assayList = mzTabmFile.getMetadata().getAssay();
     List<SmallMoleculeSummary> smallMoleculeSummaryList = mzTabmFile.getSmallMoleculeSummary();
 
     //Loop through SMF data
     String formula, description, method, url = "";
-    double mzExp = 0, abundance = 0, peak_mz = 0, peak_rt = 0, peak_height = 0, rtValue = 0;
-     int charge = 0;
+    double mzExp = 0, abundance = 0, feature_mz = 0;
+    float feature_rt = 0, feature_height = 0, rtValue = 0;
+    int charge = 0;
     int rowCounter = 0;
     List<SmallMoleculeFeature> smfList = mzTabmFile.getSmallMoleculeFeature();
     List<SmallMoleculeEvidence> smeList = mzTabmFile.getSmallMoleculeEvidence();
@@ -336,7 +343,7 @@ public class MzTabmImportTask extends AbstractTask {
         url = sml.getUri().get(0);
       }
 //            Average Retention Time
-      rtValue = smf.getRetentionTimeInSeconds();
+      rtValue = smf.getRetentionTimeInSeconds().floatValue();
 //            Get corresponding SME objects from SMF
       List<SmallMoleculeEvidence> corrSMEList = new ArrayList<>();
       List<Integer> smeIDRefList = smf.getSmeIdRefs();
@@ -361,13 +368,13 @@ public class MzTabmImportTask extends AbstractTask {
 //            m/z value
       mzExp = smf.getExpMassToCharge();
 //            Add shared infor to peakListRow
-      SimplePeakListRow newRow = new SimplePeakListRow(rowCounter);
+      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) newFeatureList, rowCounter);
       newRow.setAverageMZ(mzExp);
       newRow.setAverageRT(rtValue);
       if (description != null) {
-        SimplePeakIdentity newIdentity =
-            new SimplePeakIdentity(description, formula, method, identifier, url);
-        newRow.addPeakIdentity(newIdentity, false);
+        SimpleFeatureIdentity newIdentity =
+            new SimpleFeatureIdentity(description, formula, method, identifier, url);
+        newRow.addFeatureIdentity(newIdentity, false);
       }
 
       // Add raw data file entries to row
@@ -380,8 +387,8 @@ public class MzTabmImportTask extends AbstractTask {
         }
         List<OptColumnMapping> optColList = sml.getOpt();
         //Use average values if optional data for each msrun is not provided
-        peak_mz = mzExp;
-        peak_rt = rtValue;
+        feature_mz = mzExp;
+        feature_rt = rtValue;
         if (optColList != null) {
           for (OptColumnMapping optCol : optColList) {
             MzTabAccess mzTabAccess = new MzTabAccess(mzTabmFile);
@@ -389,41 +396,42 @@ public class MzTabmImportTask extends AbstractTask {
             if (!optAssay.isEmpty()) {
               if (dataFileAssay.getName().equals(optAssay.get().getName()) && optCol.getIdentifier()
                   .contains("peak_mz")) {
-                peak_mz = Double.parseDouble(optCol.getValue());
+                feature_mz = Double.parseDouble(optCol.getValue());
               } else if (dataFileAssay.getName().equals(optAssay.get().getName()) && optCol
                   .getIdentifier().contains("peak_rt")) {
-                peak_rt = Double.parseDouble(optCol.getValue());
+                feature_rt = (float) Double.parseDouble(optCol.getValue());
               } else if (dataFileAssay.getName().equals(optAssay.get().getName()) && optCol
                   .getIdentifier().contains("peak_height")) {
-                peak_height = Double.parseDouble(optCol.getValue());
+                feature_height = (float) Double.parseDouble(optCol.getValue());
               }
             }
           }
         }
         int scanNumbers[] = {};
         DataPoint finalDataPoint[] = new DataPoint[1];
-        finalDataPoint[0] = new SimpleDataPoint(peak_mz, peak_height);
+        finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         int representativeScan = 0;
         int fragmentScan = 0;
         int[] allFragmentScans = new int[]{0};
 
-        Range<Double> finalRTRange = Range.singleton(peak_rt);
-        Range<Double> finalMZRange = Range.singleton(peak_mz);
-        Range<Double> finalIntensityRange = Range.singleton(peak_height);
+        Range<Float> finalRTRange = Range.singleton(feature_rt);
+        Range<Double> finalMZRange = Range.singleton(feature_mz);
+        Range<Float> finalIntensityRange = Range.singleton(feature_height);
         FeatureStatus status = FeatureStatus.DETECTED;
         if (abundance == 0) {
           status = FeatureStatus.UNKNOWN;
         }
 
-        Feature peak = new SimpleFeature(rawData, peak_mz, peak_rt, peak_height, abundance,
+        Feature feature = new ModularFeature(rawData, feature_mz, feature_rt, feature_height,
+            (float) abundance,
             scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
             finalRTRange, finalMZRange, finalIntensityRange);
-        peak.setCharge(charge);
-        newRow.addPeak(rawData, peak);
+        feature.setCharge(charge);
+        newRow.addFeature(rawData, feature);
       }
 
       // Add row to feature list
-      newPeakList.addRow(newRow);
+      newFeatureList.addRow(newRow);
     }
   }
 }

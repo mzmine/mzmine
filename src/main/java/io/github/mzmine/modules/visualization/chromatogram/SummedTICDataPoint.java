@@ -19,12 +19,12 @@
 package io.github.mzmine.modules.visualization.chromatogram;
 
 public class SummedTICDataPoint {
-  private double rt;
+  private float rt;
   private double intensity;
   private double mzBasePeak;
   private double intensityBasePeak;
 
-  public SummedTICDataPoint(double rt, double intensity, double mzBasePeak,
+  public SummedTICDataPoint(float rt, double intensity, double mzBasePeak,
       double intensityBasePeak) {
     super();
     this.rt = rt;
@@ -41,11 +41,11 @@ public class SummedTICDataPoint {
     this.intensityBasePeak = intensityBasePeak;
   }
 
-  public double getRetentionTime() {
+  public float getRetentionTime() {
     return rt;
   }
 
-  public void setRetentionTime(double rt) {
+  public void setRetentionTime(float rt) {
     this.rt = rt;
   }
 

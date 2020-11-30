@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_neutralloss;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Locale;
@@ -29,14 +30,13 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.FormulaUtils;
 
 public class NeutralLossFilterParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 

@@ -38,14 +38,14 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter(1);
+  public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter(1);
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Base name of the output files (.MGF and .CSV).", "mgf", FileSelectionType.SAVE);
@@ -55,9 +55,9 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
           "Choose the representative m/z of a an ADAP spectral cluster. This m/z is used as the PEPMASS in the mgf file.",
           MzMode.values(), MzMode.AS_IN_FEATURE_TABLE);
 
-  public static final ComboParameter<PeakMeasurementType> PEAK_INTENSITY =
+  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY =
       new ComboParameter<>("Feature intensity", "Intensity in the quantification table (csv).",
-          PeakMeasurementType.values(), PeakMeasurementType.AREA);
+          FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
 
   public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT =
       new OptionalModuleParameter<>("Submit to GNPS GC-MS", "Directly submits a GNPS-GC job",
@@ -67,7 +67,7 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
       new BooleanParameter("Open folder", "Opens the export folder", false);
 
   public GnpsGcExportAndSubmitParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, PEAK_INTENSITY,
+    super(new Parameter[] {FEATURE_LISTS, FILENAME, REPRESENTATIVE_MZ, FEATURE_INTENSITY,
         // SUBMIT,
         OPEN_FOLDER});
   }

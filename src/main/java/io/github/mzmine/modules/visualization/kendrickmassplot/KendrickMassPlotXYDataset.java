@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jfree.data.xy.AbstractXYDataset;
 
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
 
@@ -34,7 +34,7 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
 
   private static final long serialVersionUID = 1L;
 
-  private PeakListRow selectedRows[];
+  private FeatureListRow selectedRows[];
   private String xAxisKMBase;
   private String customYAxisKMBase;
   private String customXAxisKMBase;
@@ -44,13 +44,13 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
 
   public KendrickMassPlotXYDataset(ParameterSet parameters) {
 
-    PeakList peakList = parameters.getParameter(KendrickMassPlotParameters.peakList).getValue()
-        .getMatchingPeakLists()[0];
+    FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
+        .getMatchingFeatureLists()[0];
 
     this.parameters = parameters;
 
     this.selectedRows =
-        parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(peakList);
+        parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(featureList);
 
     this.customYAxisKMBase =
         parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue();

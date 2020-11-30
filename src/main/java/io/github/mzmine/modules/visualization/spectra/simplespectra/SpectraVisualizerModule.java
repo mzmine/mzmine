@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 

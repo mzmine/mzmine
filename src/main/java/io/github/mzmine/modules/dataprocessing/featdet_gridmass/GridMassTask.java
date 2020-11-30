@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.util.FeatureConvertors;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,11 +32,8 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -74,7 +74,7 @@ public class GridMassTask extends AbstractTask {
   private double minMasa = 0;
   private double maxMasa = 0;
 
-  private SimplePeakList newPeakList;
+  private ModularFeatureList newPeakList;
 
   private String ignoreTimes = "";
 
@@ -162,7 +162,7 @@ public class GridMassTask extends AbstractTask {
     }
 
     // Create new feature list
-    newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
+    newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
 
     int j;
     // minimumTimeSpan
@@ -509,8 +509,8 @@ public class GridMassTask extends AbstractTask {
             peak.finishChromatogram();
             if (peak.getArea() > 1e-6) {
               newPeakID++;
-              SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
-              newRow.addPeak(dataFile, peak);
+              ModularFeatureListRow newRow = new ModularFeatureListRow(newPeakList, newPeakID);
+              newRow.addFeature(dataFile, FeatureConvertors.ChromatogramToModularFeature(peak));
               newRow.setComment(sx.toString(retentiontime));
               newPeakList.addRow(newRow);
               if (debug > 0)
@@ -562,10 +562,10 @@ public class GridMassTask extends AbstractTask {
     logger.info("Peaks on " + dataFile + " = " + newPeakList.getNumberOfRows());
 
     // Add new peaklist to the project
-    project.addPeakList(newPeakList);
+    project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(newPeakList);
+    //QualityParameters.calculateQualityParameters(newPeakList);
 
     setStatus(TaskStatus.FINISHED);
 

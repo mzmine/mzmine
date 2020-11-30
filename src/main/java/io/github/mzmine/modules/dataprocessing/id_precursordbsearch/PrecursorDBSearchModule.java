@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -50,10 +50,10 @@ public class PrecursorDBSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] = parameters.getParameter(PrecursorDBSearchParameters.peakLists).getValue()
-        .getMatchingPeakLists();
+    FeatureList peakLists[] = parameters.getParameter(PrecursorDBSearchParameters.peakLists).getValue()
+        .getMatchingFeatureLists();
 
-    for (PeakList peakList : peakLists) {
+    for (FeatureList peakList : peakLists) {
       Task newTask = new PrecursorDBSearchTask(peakList, parameters);
       tasks.add(newTask);
     }

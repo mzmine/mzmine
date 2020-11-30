@@ -15,6 +15,8 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import java.awt.Window;
 import java.text.NumberFormat;
 
@@ -24,8 +26,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelectionType;
 import io.github.mzmine.util.ExitCode;
 
 /**
@@ -33,11 +33,11 @@ import io.github.mzmine.util.ExitCode;
  */
 public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter CHROMATOGRAM_LISTS =
-      new PeakListsParameter("Chromatograms", 1, Integer.MAX_VALUE);
+  public static final FeatureListsParameter CHROMATOGRAM_LISTS =
+      new FeatureListsParameter("Chromatograms", 1, Integer.MAX_VALUE);
 
-  public static final PeakListsParameter PEAK_LISTS =
-      new PeakListsParameter("Peaks", 1, Integer.MAX_VALUE);
+  public static final FeatureListsParameter PEAK_LISTS =
+      new FeatureListsParameter("Peaks", 1, Integer.MAX_VALUE);
 
   // ------------------------------------------------------------------------
   // ----- First-phase parameters -------------------------------------------
@@ -88,8 +88,8 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    CHROMATOGRAM_LISTS.setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
-    PEAK_LISTS.setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
+    CHROMATOGRAM_LISTS.setValue(FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS);
+    PEAK_LISTS.setValue(FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS);
 
     final ADAP3DecompositionV2SetupDialog dialog =
         new ADAP3DecompositionV2SetupDialog(valueCheckRequired, this);

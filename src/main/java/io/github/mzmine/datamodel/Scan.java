@@ -57,13 +57,19 @@ public interface Scan extends MassSpectrum {
    *
    * @return Retention time of this scan in minutes
    */
-  public double getRetentionTime();
+  public float getRetentionTime();
 
   /**
    *
    * @return mobility of this scan
    */
   public double getMobility();
+
+  /**
+   *
+   * @return {@link MobilityType} of this scan
+   */
+  public MobilityType getMobilityType();
 
   /**
    *
@@ -101,5 +107,6 @@ public interface Scan extends MassSpectrum {
 
   public void removeMassList(@Nonnull MassList massList);
 
+  public void addFragmentScan(int scanNumber);
 }
 

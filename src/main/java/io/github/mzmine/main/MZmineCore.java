@@ -18,6 +18,7 @@
 
 package io.github.mzmine.main;
 
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +43,9 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+/*
 import io.github.mzmine.modules.batchmode.BatchModeModule;
+ */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.ProjectManagerImpl;
@@ -151,11 +154,14 @@ public final class MZmineCore {
         logger.severe("Cannot read batch file " + batchFile);
         System.exit(1);
       }
+      // TODO:
+      /*
       ExitCode exitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(), batchFile);
       if (exitCode == ExitCode.OK)
         System.exit(0);
       else
         System.exit(1);
+       */
 
     }
 
@@ -229,6 +235,10 @@ public final class MZmineCore {
 
   public static RawDataFileWriter createNewFile(String name) throws IOException {
     return new RawDataFileImpl(name);
+  }
+
+  public static RawDataFileWriter createNewIMSFile(String name) throws IOException {
+    return new IMSRawDataFileImpl(name);
   }
 
   @Nonnull

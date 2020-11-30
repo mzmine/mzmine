@@ -18,7 +18,8 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.BasicStroke;
 import java.awt.Font;
@@ -45,7 +46,6 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import com.google.common.base.Joiner;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.Desktop;
@@ -110,8 +110,8 @@ public class TICVisualizerTab extends MZmineTab {
    * Constructor for total ion chromatogram visualizer
    */
   public TICVisualizerTab(RawDataFile dataFiles[], TICPlotType plotType,
-      ScanSelection scanSelection, Range<Double> mzRange, List<Feature> peaks,
-      Map<Feature, String> peakLabels) {
+      ScanSelection scanSelection, Range<Double> mzRange, List<Feature> features,
+      Map<Feature, String> featureLabels) {
     super("TIC Visualizer", true, false);
 
     assert mzRange != null;
@@ -195,18 +195,18 @@ public class TICVisualizerTab extends MZmineTab {
         backgroundBtn);
     mainPane.setRight(toolBar);
 
-    // add all peaks
-    if (peaks != null) {
+    // add all features
+    if (features != null) {
 
-      for (Feature peak : peaks) {
-        if (peakLabels != null && peakLabels.containsKey(peak)) {
+      for (Feature feature : features) {
+        if (featureLabels != null && featureLabels.containsKey(feature)) {
 
-          final String label = peakLabels.get(peak);
-          ticPlot.addLabelledPeakDataSet(new FeatureDataSet(peak, label), label);
+          final String label = featureLabels.get(feature);
+          ticPlot.addLabelledPeakDataSet(new FeatureDataSet(feature, label), label);
 
         } else {
 
-          ticPlot.addFeatureDataSet(new FeatureDataSet(peak));
+          ticPlot.addFeatureDataSet(new FeatureDataSet(feature));
         }
       }
     }
@@ -396,12 +396,12 @@ public class TICVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
+  public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -424,13 +424,13 @@ public class TICVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 
@@ -491,7 +491,7 @@ public class TICVisualizerTab extends MZmineTab {
    * @return current cursor position
    */
   public ChromatogramCursorPosition getCursorPosition() {
-    double selectedRT = ticPlot.getXYPlot().getDomainCrosshairValue();
+    float selectedRT = (float) ticPlot.getXYPlot().getDomainCrosshairValue();
     double selectedIT = ticPlot.getXYPlot().getRangeCrosshairValue();
     Enumeration<TICDataSet> e = ticDataSets.elements();
     while (e.hasMoreElements()) {
@@ -537,7 +537,7 @@ public class TICVisualizerTab extends MZmineTab {
         int index = dataSet.getIndex(pos.getRetentionTime(), pos.getIntensityValue());
         if (index > 0) {
           index--;
-          pos.setRetentionTime(dataSet.getXValue(0, index));
+          pos.setRetentionTime((float) dataSet.getXValue(0, index));
           pos.setIntensityValue(dataSet.getYValue(0, index));
           setCursorPosition(pos);
 
@@ -553,7 +553,7 @@ public class TICVisualizerTab extends MZmineTab {
         if (index >= 0) {
           index++;
           if (index < dataSet.getItemCount(0)) {
-            pos.setRetentionTime(dataSet.getXValue(0, index));
+            pos.setRetentionTime((float) dataSet.getXValue(0, index));
             pos.setIntensityValue(dataSet.getYValue(0, index));
             setCursorPosition(pos);
           }

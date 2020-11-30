@@ -7,8 +7,8 @@
 <?import io.github.mzmine.util.javafx.*?>
 
 <MenuBar useSystemMenuBar="true"
-	xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
+  xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
 
 
 	<!-- PROJECT -->
@@ -69,12 +69,12 @@
 	</Menu>
 
 
-	<!-- RAW DATA METHODS -->
-	<Menu text="Raw data methods">
-		<MenuItem text="Raw data import" onAction="#runModule"
-			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
-		<MenuItem text="Raw data import (folder)" onAction="#runModule"
-			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule" />
+  <!-- RAW DATA METHODS -->
+  <Menu text="Raw data methods">
+    <MenuItem text="Raw data import" onAction="#runModule"
+      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule"/>
+    <MenuItem text="Raw data import (folder)" onAction="#runModule"
+      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule"/>
 
 		<Menu text="Raw data export">
 			<MenuItem text="Export raw data file to mzML"
@@ -157,10 +157,7 @@
 			<Menu text="MS1">
 				<MenuItem onAction="#runModule"
 					text="ADAP chromatogram builder"
-					userData="io.github.mzmine.modules.dataprocessing.featdet_ADAPchromatogrambuilder.ADAPChromatogramBuilderModule" />
-				<MenuItem onAction="#runModule"
-					text="Modular ADAP chromatogram builder"
-					userData="io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule" />
+					userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule" />
 				<MenuItem text="Chromatogram deconvolution"
 					onAction="#runModule"
 					userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule" />
@@ -272,7 +269,7 @@
 					userData="io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule" />
 				<MenuItem text="Chemical formula prediction"
 					onAction="#runModule"
-					userData="io.github.mzmine.modules.dataprocessing.id_formulapredictionpeaklist.FormulaPredictionPeakListModule" />
+					userData="io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule" />
 				<MenuItem text="Lipid search" onAction="#runModule"
 					userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchModule" />
 				<MenuItem text="MS2 similarity search"

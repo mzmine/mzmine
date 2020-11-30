@@ -18,11 +18,11 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.controlsfx.control.CheckListView;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
@@ -68,7 +68,7 @@ public class FeaturesComponent extends HBox {
     addButton.setOnAction(e -> {
       logger.finest("Add button clicked!");
 
-      ComboParameter<PeakList> featureListsParam =
+      ComboParameter<FeatureList> featureListsParam =
           new ComboParameter<>("Feature list", "Feature list selection",
               MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
       ComboParameter<RawDataFile> dataFilesParam = new ComboParameter<>("Raw data file",
@@ -79,22 +79,23 @@ public class FeaturesComponent extends HBox {
           new Parameter[] {featureListsParam, dataFilesParam, featuresParam});
 
       ParameterSetupDialog dialog = new ParameterSetupDialog(true, paramSet);
-      ComboBox<PeakList> featureListsCombo = dialog.getComponentForParameter(featureListsParam);
+      ComboBox<FeatureList> featureListsCombo = dialog.getComponentForParameter(featureListsParam);
       ComboBox<RawDataFile> dataFilesCombo = dialog.getComponentForParameter(dataFilesParam);
       CheckListView<Feature> featuresSelection = dialog.getComponentForParameter(featuresParam);
       featureListsCombo.setOnAction(e2 -> {
-        PeakList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
+        FeatureList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
         if (featureList == null)
           return;
-        dataFilesCombo.setItems(featureList.getRawDataFiles());
+        // TODO: make featureList.getRawDataFiles() return observable list
+        dataFilesCombo.setItems(FXCollections.observableArrayList(featureList.getRawDataFiles()));
         dataFilesCombo.getSelectionModel().selectFirst();
       });
       dataFilesCombo.setOnAction(e3 -> {
-        PeakList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
+        FeatureList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
         RawDataFile dataFile = dataFilesCombo.getSelectionModel().getSelectedItem();
         if (featureList == null || dataFile == null)
           return;
-        var features = FXCollections.observableArrayList(featureList.getPeaks(dataFile));
+        var features = FXCollections.observableArrayList(featureList.getFeatures(dataFile));
         featuresSelection.setItems(features);
       });
       featureListsCombo.getSelectionModel().selectFirst();

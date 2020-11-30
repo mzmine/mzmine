@@ -19,8 +19,7 @@
 package io.github.mzmine.modules.tools.qualityparameters;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -46,33 +45,21 @@ public class QualityParametersModule implements MZmineRunnableModule {
   @Override
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    for (PeakList peakList : parameters.getParameter(QualityParametersParameters.peakLists)
-        .getValue().getMatchingPeakLists()) {
-      runModule(peakList, parameters);
-    }
-    return ExitCode.OK;
-  }
-
-  public ExitCode runModule(PeakList[] peakLists, ParameterSet parameters) {
-    for(PeakList peakList : peakLists){
-      runModule(peakList, parameters);
-    }
-    return ExitCode.OK;
-  }
-
-  public ExitCode runModule(PeakList peakList, ParameterSet parameters) {
-    MZmineCore.getTaskController().addTask(new QualityParametersTask(peakList, parameters));
-    return ExitCode.OK;
-  }
-
-  public ExitCode runModule(ModularFeatureList[] featureLists, ParameterSet parameters) {
-    for(ModularFeatureList featureList : featureLists){
+    for (FeatureList featureList : parameters.getParameter(QualityParametersParameters.peakLists)
+        .getValue().getMatchingFeatureLists()) {
       runModule(featureList, parameters);
     }
     return ExitCode.OK;
   }
 
-  public ExitCode runModule(ModularFeatureList featureList, ParameterSet parameters) {
+  public ExitCode runModule(FeatureList[] featureLists, ParameterSet parameters) {
+    for(FeatureList featureList : featureLists){
+      runModule(featureList, parameters);
+    }
+    return ExitCode.OK;
+  }
+
+  public ExitCode runModule(FeatureList featureList, ParameterSet parameters) {
     MZmineCore.getTaskController().addTask(new QualityParametersTask(featureList, parameters));
     return ExitCode.OK;
   }
