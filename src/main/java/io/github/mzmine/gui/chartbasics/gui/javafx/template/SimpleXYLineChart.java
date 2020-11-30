@@ -22,6 +22,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
@@ -34,6 +35,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
+import javax.annotation.Nonnull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -71,16 +73,18 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     this("x", "y");
   }
 
-  public SimpleXYLineChart(@NamedArg("xlabel") String xLabel, @NamedArg("ylabel") String yLabel) {
-    this(null, xLabel, yLabel);
-  }
-
-  public SimpleXYLineChart(@NamedArg("title") String title, @NamedArg("xlabel") String xLabel,
+  public SimpleXYLineChart(@NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel) {
-    this(title, xLabel, yLabel, PlotOrientation.HORIZONTAL, true, true);
+    this("", xLabel, yLabel);
   }
 
-  public SimpleXYLineChart(@NamedArg("title") String title, @NamedArg("xlabel") String xLabel,
+  public SimpleXYLineChart(@NamedArg("title") @Nonnull String title,
+      @NamedArg("xlabel") String xLabel,
+      @NamedArg("ylabel") String yLabel) {
+    this(title, xLabel, yLabel, PlotOrientation.VERTICAL, true, true);
+  }
+
+  public SimpleXYLineChart(@NamedArg("title") @Nonnull String title, @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel, @NamedArg("orientation") PlotOrientation orientation,
       @NamedArg("legend") boolean createLegend, @NamedArg("tooltips") boolean showTooltips) {
     super(ChartFactory.createXYLineChart(title, xLabel, yLabel, null, orientation, createLegend,
@@ -110,6 +114,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
       history.clear();
     }
 
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
     defaultRenderer = new ColoredXYRenderer();
     plot.setRenderer(defaultRenderer);
