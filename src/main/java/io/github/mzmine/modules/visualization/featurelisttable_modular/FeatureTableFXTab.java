@@ -5,12 +5,14 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javax.annotation.Nonnull;
 
 public class FeatureTableFXTab extends MZmineTab {
   private FeatureTableFX table;
+  private FeatureTableFXMLTabAnchorPaneController controller;
 
   public FeatureTableFXTab(FeatureList flist) {
     super("Feature Table", true, false);
@@ -28,7 +30,7 @@ public class FeatureTableFXTab extends MZmineTab {
       e.printStackTrace();
     }
 
-    FeatureTableFXMLTabAnchorPaneController controller = loader.getController();
+    controller = loader.getController();
     controller.setFeatureList(flist);
 
     setContent(root);
@@ -42,24 +44,26 @@ public class FeatureTableFXTab extends MZmineTab {
     return table.getFeatureList();
   }
 
-  // TODO: implement methods inherited from MZmineTab
-
   @Nonnull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return null;
+    return getFeatureList().getRawDataFiles();
   }
 
   @Nonnull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
-    return null;
+    return !getFeatureList().isAligned()
+        ? Collections.singletonList(getFeatureList())
+        : Collections.emptyList();
   }
 
   @Nonnull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return null;
+    return getFeatureList().isAligned()
+        ? Collections.singletonList(getFeatureList())
+        : Collections.emptyList();
   }
 
   @Override
@@ -69,12 +73,19 @@ public class FeatureTableFXTab extends MZmineTab {
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
+    if(featureLists == null || featureLists.isEmpty()) {
+      return;
+    }
 
+    // Get first selected feature list
+    FeatureList featureList = featureLists.iterator().next();
+
+    controller.setFeatureList(featureList);
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
       Collection<? extends FeatureList> featurelists) {
-
+    onFeatureListSelectionChanged(featurelists);
   }
 }

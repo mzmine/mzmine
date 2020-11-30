@@ -174,6 +174,12 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     if (flist.isEmpty()) {
       return;
     }
+
+    // Clear old rows
+    getRoot().getChildren().clear();
+    // Clear old columns
+    getColumns().clear();
+
     this.flist = flist;
 
     addColumns(flist);

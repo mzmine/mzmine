@@ -244,4 +244,7 @@ public interface FeatureList {
 
   public void setDateCreated(String date);
 
+  default boolean isAligned() {
+    return getNumberOfRawDataFiles() > 1;
+  }
 }
