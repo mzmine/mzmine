@@ -20,11 +20,16 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
+import javafx.beans.NamedArg;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Cursor;
@@ -42,7 +47,7 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 
-public class SimpleXYLineChart<DatasetType extends ColoredXYDataset> extends
+public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     EChartViewer /*implements LabelColorMatch*/ {
 
   private static final double AXIS_MARGINS = 0.001;
@@ -55,21 +60,36 @@ public class SimpleXYLineChart<DatasetType extends ColoredXYDataset> extends
   private final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
 
   protected EStandardChartTheme theme;
-  private SimpleLabelGenerator<DatasetType> labelGenerator;
-  private SimpleToolTipGenerator<DatasetType> toolTipGenerator;
+  //  private SimpleLabelGenerator<DatasetType> labelGenerator;
+//  private SimpleToolTipGenerator<DatasetType> toolTipGenerator;
   protected ColoredXYRenderer defaultRenderer;
 
   private int nextDataSetNum;
   private int labelsVisible;
 
-  public SimpleXYLineChart(String title, String xLabel, String yLabel, PlotOrientation orientation,
-      boolean createLegend, boolean showTooltips) {
+  public SimpleXYLineChart() {
+    this("x", "y");
+  }
+
+  public SimpleXYLineChart(@NamedArg("xlabel") String xLabel, @NamedArg("ylabel") String yLabel) {
+    this(null, xLabel, yLabel);
+  }
+
+  public SimpleXYLineChart(@NamedArg("title") String title, @NamedArg("xlabel") String xLabel,
+      @NamedArg("ylabel") String yLabel) {
+    this(title, xLabel, yLabel, PlotOrientation.HORIZONTAL, true, true);
+  }
+
+  public SimpleXYLineChart(@NamedArg("title") String title, @NamedArg("xlabel") String xLabel,
+      @NamedArg("ylabel") String yLabel, @NamedArg("orientation") PlotOrientation orientation,
+      @NamedArg("legend") boolean createLegend, @NamedArg("tooltips") boolean showTooltips) {
     super(ChartFactory.createXYLineChart(title, xLabel, yLabel, null, orientation, createLegend,
         showTooltips, false), true, true, true, true, true);
 
     chart = getChart();
     plot = chart.getXYPlot();
-    chartTitle = chart.getTitle();
+    chartTitle = new TextTitle(title);
+    chart.setTitle(chartTitle);
     chartSubTitle = new TextTitle();
     chart.addSubtitle(chartSubTitle);
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
@@ -95,12 +115,19 @@ public class SimpleXYLineChart<DatasetType extends ColoredXYDataset> extends
     plot.setRenderer(defaultRenderer);
   }
 
+  public synchronized int addDataset(T datasetProvider) {
+    ColoredXYDataset dataset = new ColoredXYDataset(datasetProvider);
+    plot.setDataset(nextDataSetNum, dataset);
+    plot.setRenderer(nextDataSetNum, defaultRenderer);
+    nextDataSetNum++;
+    return nextDataSetNum - 1;
+  }
+
   /**
-   *
    * @param dataset
    * @return the dataset index
    */
-  public synchronized int addDataSet(XYDataset dataset) {
+  public synchronized int addDataset(XYDataset dataset) {
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, defaultRenderer);
     nextDataSetNum++;
@@ -112,6 +139,39 @@ public class SimpleXYLineChart<DatasetType extends ColoredXYDataset> extends
     plot.setDataset(index, null);
     plot.setRenderer(index, null);
     return ds;
+  }
+
+  /**
+   * @param datasetProviders
+   * @return Mapping of the dataset index and the provider values.
+   */
+  public Map<Integer, T> addDatasets(Collection<T> datasetProviders) {
+    chart.setNotify(false);
+    HashMap<Integer, T> map = new HashMap<>();
+    for (T datasetProvider : datasetProviders) {
+      map.put(this.addDataset(datasetProvider), datasetProvider);
+    }
+    chart.setNotify(true);
+    chart.fireChartChanged();
+    return map;
+  }
+
+  public synchronized void removeAllDatasets() {
+    chart.setNotify(false);
+    for (int i = 0; i < nextDataSetNum; i++) {
+      plot.setDataset(i, null);
+      plot.setRenderer(i, null);
+    }
+    chart.setNotify(true);
+    chart.fireChartChanged();
+  }
+
+  public void setDomainAxisLabel(String label) {
+    plot.getDomainAxis().setLabel(label);
+  }
+
+  public void setRangeAxisLabel(String label) {
+    plot.getRangeAxis().setLabel(label);
   }
 
   public void setDomainAxisNumberFormatOverride(NumberFormat format) {
