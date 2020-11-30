@@ -18,6 +18,7 @@
 
 package io.github.mzmine.main;
 
+import io.github.mzmine.gui.preferences.UnitFormat;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -70,6 +71,8 @@ public interface MZmineConfiguration {
   public NumberFormat getIntensityFormat();
 
   public NumberFormat getPPMFormat();
+
+  public UnitFormat getUnitFormat();
 
   public void loadConfiguration(File file) throws IOException;
 
