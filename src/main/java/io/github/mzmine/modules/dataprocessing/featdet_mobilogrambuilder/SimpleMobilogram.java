@@ -3,28 +3,35 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder;
 import com.google.common.collect.Range;
 import com.google.common.math.Quantiles;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 
 /**
  * Mobilogram representation. Values have to be calculated after all data points have been added.
  */
 public class SimpleMobilogram implements Mobilogram {
 
+  private static NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+  private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private final SortedMap<Integer, MobilityDataPoint> dataPoints;
+  private final MobilityType mt;
   private double mobility;
   private double mz;
+  private double maximumIntensity;
   private Range<Double> mobilityRange;
   private Range<Double> mzRange;
-  private Map<Integer, MobilityDataPoint> dataPoints;
-  private final MobilityType mt;
 
   public SimpleMobilogram(MobilityType mt) {
     mobility = -1;
     mz = -1;
+    maximumIntensity = -1;
     dataPoints = new TreeMap<>();
     mobilityRange = null;
     mzRange = null;
@@ -38,15 +45,19 @@ public class SimpleMobilogram implements Mobilogram {
     mobility = Quantiles.median()
         .compute(dataPoints.values().stream().map(MobilityDataPoint::getMobility).collect(
             Collectors.toList()));
+
+    maximumIntensity =
+        dataPoints.values().stream().mapToDouble(MobilityDataPoint::getIntensity).max()
+            .getAsDouble();
   }
 
   public boolean containsDpForScan(int scanNum) {
-    return dataPoints.keySet().contains(scanNum);
+    return dataPoints.containsKey(scanNum);
   }
 
   public void addDataPoint(MobilityDataPoint dp) {
     dataPoints.put(dp.getScanNum(), dp);
-    if(mobilityRange != null) {
+    if (mobilityRange != null) {
       mobilityRange.span(Range.singleton(dp.getMobility()));
       mzRange.span(Range.singleton(dp.getMZ()));
     } else {
@@ -57,6 +68,7 @@ public class SimpleMobilogram implements Mobilogram {
 
   /**
    * Make sure {@link SimpleMobilogram#calc()} has been called
+   *
    * @return the median mz
    */
   @Override
@@ -66,11 +78,17 @@ public class SimpleMobilogram implements Mobilogram {
 
   /**
    * Make sure {@link SimpleMobilogram#calc()} has been called
+   *
    * @return the median mobility
    */
   @Override
   public double getMobility() {
     return mobility;
+  }
+
+  @Override
+  public double getMaximumIntensity() {
+    return maximumIntensity;
   }
 
   @Override
@@ -83,11 +101,13 @@ public class SimpleMobilogram implements Mobilogram {
     return mobilityRange;
   }
 
+  @Nonnull
   @Override
   public List<MobilityDataPoint> getDataPoints() {
     return new ArrayList<>(dataPoints.values());
   }
 
+  @Nonnull
   @Override
   public List<Integer> getScanNumbers() {
     return new ArrayList<>(dataPoints.keySet());
@@ -126,5 +146,12 @@ public class SimpleMobilogram implements Mobilogram {
   @Override
   public int getValueCount() {
     return getDataPoints().size();
+  }
+
+  @Override
+  public String representativeString() {
+    return mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
+        .format(mzRange.upperEndpoint())
+        + " @" + mobilityFormat.format(getMobility()) + " " + getMobilityType().getUnit();
   }
 }

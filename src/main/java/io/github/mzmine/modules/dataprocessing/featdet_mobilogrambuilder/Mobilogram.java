@@ -31,6 +31,8 @@ public interface Mobilogram extends PlotDatasetProvider {
 
   public double getMobility();
 
+  public double getMaximumIntensity();
+
   @Nullable
   public Range<Double> getMobilityRange();
 
@@ -44,5 +46,7 @@ public interface Mobilogram extends PlotDatasetProvider {
   List<Integer> getScanNumbers();
 
   public MobilityType getMobilityType();
+
+  public String representativeString();
 
 }

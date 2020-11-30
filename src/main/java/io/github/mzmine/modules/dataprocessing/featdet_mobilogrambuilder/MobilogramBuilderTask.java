@@ -13,25 +13,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Worker task of the mobilogram builder
  */
 public class MobilogramBuilderTask extends AbstractTask {
 
+  private static Logger logger = Logger.getLogger(MobilogramBuilderTask.class.getName());
+
   private final List<Frame> frames;
   private final MZTolerance mzTolerance;
   private final String massList;
   private int processedFrames;
-  private int totalFrames;
+  private final int totalFrames;
+  private final int minPeaks;
 
 
   public MobilogramBuilderTask(List<Frame> frames, ParameterSet parameters) {
     this.frames = frames;
     this.mzTolerance = parameters.getParameter(MobilogramBuilderParameters.mzTolerance).getValue();
     this.massList = parameters.getParameter(MobilogramBuilderParameters.massList).getValue();
+    this.minPeaks = parameters.getParameter(MobilogramBuilderParameters.minPeaks).getValue();
+
     totalFrames = (frames.size() != 0) ? frames.size() : 1;
     setStatus(TaskStatus.WAITING);
   }
@@ -61,6 +66,7 @@ public class MobilogramBuilderTask extends AbstractTask {
       }
 
       List<Mobilogram> mobilograms = calculateMobilogramsForScans(frame.getMobilityScans());
+
       processedFrames++;
       frame.getMobilograms().addAll(mobilograms);
     }
@@ -115,7 +121,7 @@ public class MobilogramBuilderTask extends AbstractTask {
       allDps.removeAll(itemsToRemove);
       itemsToRemove.clear();
 
-      if (mobilogram.getDataPoints().size() > 1) {
+      if (mobilogram.getDataPoints().size() > minPeaks) {
         mobilogram.calc();
         mobilograms.add(mobilogram);
       }

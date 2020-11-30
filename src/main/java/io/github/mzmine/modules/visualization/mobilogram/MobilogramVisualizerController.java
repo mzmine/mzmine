@@ -9,6 +9,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import io.github.mzmine.project.impl.StorableFrame;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import javafx.beans.property.ListProperty;
@@ -18,6 +19,10 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.util.Callback;
+import javafx.util.StringConverter;
 
 public class MobilogramVisualizerController {
 
@@ -39,6 +44,8 @@ public class MobilogramVisualizerController {
   private ObservableList<Frame> frames;
   private ObservableList<Mobilogram> mobilograms;
 
+  private NumberFormat rtFormat;
+
 
   @FXML
   public void initialize() {
@@ -49,17 +56,17 @@ public class MobilogramVisualizerController {
     rawDataFileSelector.setItems(rawDataFiles);
     frameSelector.setItems(frames);
     mobilogramSelector.setItems(mobilograms);
-  }
 
-  public void setRawDataFiles(Collection<RawDataFile> rawDataFiles) {
-    rawDataFileSelector.getItems().clear();
-    rawDataFileSelector.getItems().addAll(rawDataFiles);
+    rtFormat = MZmineCore.getConfiguration().getRTFormat();
+
+    initMobilgramBox();
+    initFrameBox();
   }
 
   public void onRawDataFileSelectionChanged(ActionEvent actionEvent) {
     RawDataFile selectedFile = rawDataFileSelector.getValue();
     frameSelector.getItems().clear();
-    if(!(selectedFile instanceof IMSRawDataFile)) {
+    if (!(selectedFile instanceof IMSRawDataFile)) {
       return;
     }
 
@@ -75,19 +82,98 @@ public class MobilogramVisualizerController {
   public void onFrameSelectionChanged(ActionEvent actionEvent) {
     Frame selectedFrame = frameSelector.getValue();
     mobilogramSelector.getItems().clear();
-    if(selectedFrame instanceof StorableFrame) { // simple frame cannot have mobilograms
+    if (selectedFrame instanceof StorableFrame) { // simple frame cannot have mobilograms
       mobilogramSelector.getItems().addAll(selectedFrame.getMobilograms());
     }
   }
 
   public void onMobilogramSelectionChanged(ActionEvent actionEvent) {
     Mobilogram selectedMobilogram = mobilogramSelector.getValue();
-    if(selectedMobilogram != null) {
+    mobilogramChart.removeAllDatasets();
+    if (selectedMobilogram != null) {
       mobilogramChart.addDataset(selectedMobilogram);
     }
   }
 
   public ObservableList<RawDataFile> getRawDataFiles() {
     return rawDataFiles;
+  }
+
+  public void setRawDataFiles(Collection<RawDataFile> rawDataFiles) {
+    rawDataFileSelector.getItems().clear();
+    rawDataFileSelector.getItems().addAll(rawDataFiles);
+  }
+
+  private void initMobilgramBox() {
+    Callback<ListView<Mobilogram>, ListCell<Mobilogram>> listViewListCellCallback =
+        new Callback<>() {
+          @Override
+          public ListCell<Mobilogram> call(ListView<Mobilogram> param) {
+            return new ListCell<Mobilogram>() {
+              @Override
+              protected void updateItem(Mobilogram item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                  setGraphic(null);
+                } else {
+                  setText(item.representativeString());
+                }
+              }
+            };
+          }
+        };
+    mobilogramSelector.setConverter(new StringConverter<Mobilogram>() {
+      @Override
+      public String toString(Mobilogram object) {
+        if (object != null) {
+          return object.representativeString();
+        }
+        return "";
+      }
+
+      @Override
+      public Mobilogram fromString(String string) {
+        return null;
+      }
+    });
+    mobilogramSelector.setCellFactory(listViewListCellCallback);
+  }
+
+  private void initFrameBox() {
+    Callback<ListView<Frame>, ListCell<Frame>> listViewListCellCallback =
+        new Callback<>() {
+          @Override
+          public ListCell<Frame> call(ListView<Frame> param) {
+            return new ListCell<Frame>() {
+              @Override
+              protected void updateItem(Frame item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                  setGraphic(null);
+                } else {
+                  setText(item.getFrameId() + " @" + rtFormat.format(item.getRetentionTime()) +
+                      " min (" + item.getMobilograms().size() + ")");
+                }
+              }
+            };
+          }
+        };
+
+    frameSelector.setConverter(new StringConverter<Frame>() {
+      @Override
+      public String toString(Frame item) {
+        if(item == null) {
+          return "";
+        }
+        return item.getFrameId() + " @" + rtFormat.format(item.getRetentionTime()) +
+            " min (" + item.getMobilograms().size() + ")";
+      }
+
+      @Override
+      public Frame fromString(String string) {
+        return null;
+      }
+    });
+    frameSelector.setCellFactory(listViewListCellCallback);
   }
 }
