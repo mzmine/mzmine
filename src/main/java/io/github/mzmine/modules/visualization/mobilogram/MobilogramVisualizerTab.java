@@ -25,7 +25,6 @@ public class MobilogramVisualizerTab extends MZmineTab {
     try {
       AnchorPane root = loader.load();
       controller = loader.getController();
-      controller.initialize();
       setContent(root);
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Could not load MobilogramVisualizerPane.fxml", e);

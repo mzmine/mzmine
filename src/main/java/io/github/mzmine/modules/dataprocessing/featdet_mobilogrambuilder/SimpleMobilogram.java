@@ -7,6 +7,7 @@ import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -24,17 +25,17 @@ public class SimpleMobilogram implements Mobilogram {
   private final MobilityType mt;
   private double mobility;
   private double mz;
-  private double maximumIntensity;
   private Range<Double> mobilityRange;
   private Range<Double> mzRange;
+  private MobilityDataPoint highestDataPoint;
 
   public SimpleMobilogram(MobilityType mt) {
     mobility = -1;
     mz = -1;
-    maximumIntensity = -1;
     dataPoints = new TreeMap<>();
     mobilityRange = null;
     mzRange = null;
+    highestDataPoint = null;
     this.mt = mt;
   }
 
@@ -46,9 +47,8 @@ public class SimpleMobilogram implements Mobilogram {
         .compute(dataPoints.values().stream().map(MobilityDataPoint::getMobility).collect(
             Collectors.toList()));
 
-    maximumIntensity =
-        dataPoints.values().stream().mapToDouble(MobilityDataPoint::getIntensity).max()
-            .getAsDouble();
+    highestDataPoint = dataPoints.values().stream()
+        .max(Comparator.comparingDouble(MobilityDataPoint::getIntensity)).get();
   }
 
   public boolean containsDpForScan(int scanNum) {
@@ -88,7 +88,7 @@ public class SimpleMobilogram implements Mobilogram {
 
   @Override
   public double getMaximumIntensity() {
-    return maximumIntensity;
+    return highestDataPoint.getIntensity();
   }
 
   @Override
@@ -105,6 +105,12 @@ public class SimpleMobilogram implements Mobilogram {
   @Override
   public List<MobilityDataPoint> getDataPoints() {
     return new ArrayList<>(dataPoints.values());
+  }
+
+  @Nonnull
+  @Override
+  public MobilityDataPoint getHighestDataPoint() {
+    return highestDataPoint;
   }
 
   @Nonnull

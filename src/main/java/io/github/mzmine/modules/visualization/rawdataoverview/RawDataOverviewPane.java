@@ -43,7 +43,6 @@ public class RawDataOverviewPane extends MZmineTab {
     try {
       BorderPane root = loader.load();
       controller = loader.getController();
-      controller.initialize();
       setContent(root);
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Could not load RawDataOverview.fxml", e);

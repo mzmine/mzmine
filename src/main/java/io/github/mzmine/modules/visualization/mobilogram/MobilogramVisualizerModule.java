@@ -32,7 +32,7 @@ public class MobilogramVisualizerModule implements MZmineRunnableModule {
     RawDataFile[] files = parameters.getParameter(MobilogramVisualizerParameters.rawFiles)
         .getValue().getMatchingRawDataFiles();
     MZmineCore.getDesktop().addTab(tab);
-//    tab.onRawDataFileSelectionChanged(Arrays.asList(files));
+    tab.onRawDataFileSelectionChanged(Arrays.asList(files));
 
     return ExitCode.OK;
   }
