@@ -21,14 +21,25 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
+import java.util.Objects;
+import javax.annotation.Nullable;
+
+/**
+ * Contains information about the currently selected point
+ */
 public class PlotCursorPosition {
 
   final double rangeValue;
   final double domainValue;
+  final ColoredXYDataset dataset;
+  final int valueIndex;
 
-  public PlotCursorPosition(double rangeVal, double domainVal) {
+  public PlotCursorPosition(double rangeVal, double domainVal,
+      int valueIndex, ColoredXYDataset dataset) {
     this.rangeValue = rangeVal;
     this.domainValue = domainVal;
+    this.valueIndex = valueIndex;
+    this.dataset = dataset;
   }
 
   public double getRangeValue() {
@@ -37,5 +48,40 @@ public class PlotCursorPosition {
 
   public double getDomainValue() {
     return domainValue;
+  }
+
+  /**
+   * @return -1 if values were not in any {@link ColoredXYDataset}
+   */
+  public int getValueIndex() {
+    return valueIndex;
+  }
+
+  /**
+   * @return The dataset or null
+   */
+  @Nullable
+  public ColoredXYDataset getDataset() {
+    return dataset;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof PlotCursorPosition)) {
+      return false;
+    }
+    PlotCursorPosition that = (PlotCursorPosition) o;
+    return Double.compare(that.getRangeValue(), getRangeValue()) == 0 &&
+        Double.compare(that.getDomainValue(), getDomainValue()) == 0 &&
+        getValueIndex() == that.getValueIndex() &&
+        Objects.equals(getDataset(), that.getDataset());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getRangeValue(), getDomainValue(), getDataset(), getValueIndex());
   }
 }

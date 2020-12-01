@@ -18,7 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
-import com.google.common.collect.Lists;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.DomainValueProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
@@ -38,7 +37,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   private final DomainValueProvider<Number> domainValueProvider;
   private final RangeValueProvider<Number> rangeValueProvider;
   private final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
-  private int itemCount;
+  private final int itemCount;
 
   public ColoredXYDataset(DomainValueProvider<Number> domainValueProvider,
       RangeValueProvider<Number> rangeValueProvider,
@@ -96,8 +95,30 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
     return rangeValueProvider.getRangeValue(item);
   }
 
-  public int getIndex(final double domainValue, final double rangeValue) {
-    return 0;
+  public int getValueIndex(final double domainValue, final double rangeValue) {
     // todo binary search somehow here
+    for (int i = 0; i < itemCount; i++) {
+      if (Double.compare(domainValue, getX(0, i).doubleValue()) == 0
+          && Double.compare(rangeValue, getY(0, i).doubleValue()) == 0) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  public ColorProvider getColorProvider() {
+    return colorProvider;
+  }
+
+  public DomainValueProvider<Number> getDomainValueProvider() {
+    return domainValueProvider;
+  }
+
+  public RangeValueProvider<Number> getRangeValueProvider() {
+    return rangeValueProvider;
+  }
+
+  public SeriesKeyProvider<Comparable<?>> getSeriesKeyProvider() {
+    return seriesKeyProvider;
   }
 }
