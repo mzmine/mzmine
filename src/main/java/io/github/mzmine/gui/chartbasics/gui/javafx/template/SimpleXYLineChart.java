@@ -84,7 +84,8 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     this(title, xLabel, yLabel, PlotOrientation.VERTICAL, true, true);
   }
 
-  public SimpleXYLineChart(@NamedArg("title") @Nonnull String title, @NamedArg("xlabel") String xLabel,
+  public SimpleXYLineChart(@NamedArg("title") @Nonnull String title,
+      @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel, @NamedArg("orientation") PlotOrientation orientation,
       @NamedArg("legend") boolean createLegend, @NamedArg("tooltips") boolean showTooltips) {
     super(ChartFactory.createXYLineChart(title, xLabel, yLabel, null, orientation, createLegend,
@@ -106,7 +107,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     xAxis.setUpperMargin(AXIS_MARGINS);
     xAxis.setLowerMargin(AXIS_MARGINS);
 
-    cursorPositionProperty = new SimpleObjectProperty<>();
+    cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeChromatogramMouseListener();
 
     ZoomHistory history = getZoomHistory();
@@ -227,6 +228,9 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   }
 
   public void setCursorPosition(PlotCursorPosition cursorPosition) {
+    if(cursorPosition.equals(cursorPositionProperty().get())) {
+      return;
+    }
     this.cursorPositionProperty.set(cursorPosition);
   }
 
@@ -263,6 +267,23 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     double domainValue = getXYPlot().getDomainCrosshairValue();
     double rangeValue = getXYPlot().getRangeCrosshairValue();
 
-    return new PlotCursorPosition(domainValue, rangeValue);
+    int index = -1;
+    int datasetIndex = -1;
+    for (int i = 0; i < nextDataSetNum; i++) {
+      XYDataset dataset = plot.getDataset(i);
+      if (dataset instanceof ColoredXYDataset) {
+        index = ((ColoredXYDataset) dataset).getValueIndex(domainValue, rangeValue);
+      }
+      if (index != -1) {
+        datasetIndex = i;
+        break;
+      }
+    }
+
+    return (index != -1) ?
+        new PlotCursorPosition(domainValue, rangeValue, index,
+            (ColoredXYDataset) plot.getDataset(datasetIndex)) :
+        new PlotCursorPosition(domainValue,
+            rangeValue, index, null);
   }
 }
