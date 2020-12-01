@@ -33,6 +33,8 @@ import java.util.logging.Logger;
 import javafx.beans.NamedArg;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
 import javax.annotation.Nonnull;
@@ -285,5 +287,10 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
             (ColoredXYDataset) plot.getDataset(datasetIndex)) :
         new PlotCursorPosition(domainValue,
             rangeValue, index, null);
+  }
+
+  public void addContextMenuItem(String title, EventHandler<ActionEvent> ai) {
+    logger.info("call");
+    addMenuItem(getContextMenu(), title, ai);
   }
 }
