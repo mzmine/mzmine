@@ -58,8 +58,8 @@ public class SimpleMobilogram implements Mobilogram {
   public void addDataPoint(MobilityDataPoint dp) {
     dataPoints.put(dp.getScanNum(), dp);
     if (mobilityRange != null) {
-      mobilityRange.span(Range.singleton(dp.getMobility()));
-      mzRange.span(Range.singleton(dp.getMZ()));
+      mobilityRange = mobilityRange.span(Range.singleton(dp.getMobility()));
+      mzRange = mzRange.span(Range.singleton(dp.getMZ()));
     } else {
       mobilityRange = Range.singleton(dp.getMobility());
       mzRange = Range.singleton(dp.getMZ());
