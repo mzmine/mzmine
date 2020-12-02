@@ -100,7 +100,7 @@ public class ScanSelection {
     return scanDefinition;
   }
 
-  public List<Scan> getMachtingScans(List<Scan> scans) {
+  public List<? extends Scan> getMachtingScans(List<? extends Scan> scans) {
     List<Scan> eligibleScans = new ArrayList<>();
     for (Scan scan : scans) {
       if (matches(scan)) {
