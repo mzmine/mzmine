@@ -96,8 +96,9 @@ public class ScanSelectionComponent extends FlowPane {
       final String polarityTypes[] = {"Any", "+", "-"};
       final ComboParameter<String> polarityParameter = new ComboParameter<>("Polarity",
           "Include only scans of this polarity", FXCollections.observableArrayList(polarityTypes));
-      if ((polarity == PolarityType.POSITIVE) || (polarity == PolarityType.NEGATIVE))
+      if ((polarity == PolarityType.POSITIVE) || (polarity == PolarityType.NEGATIVE)) {
         polarityParameter.setValue(polarity.asSingleChar());
+      }
       final String spectraTypes[] = {"Any", "Centroided", "Profile", "Thresholded"};
       final ComboParameter<String> spectrumTypeParameter = new ComboParameter<>("Spectrum type",
           "Include only spectra of this type", FXCollections.observableArrayList(spectraTypes));
@@ -115,7 +116,7 @@ public class ScanSelectionComponent extends FlowPane {
         }
       }
 
-      paramSet = new SimpleParameterSet(new Parameter[] {scanNumParameter,
+      paramSet = new SimpleParameterSet(new Parameter[]{scanNumParameter,
           baseFilteringIntegerParameter, rtParameter, mobilityParameter, msLevelParameter,
           scanDefinitionParameter, polarityParameter, spectrumTypeParameter});
       exitCode = paramSet.showSetupDialog(true);
@@ -123,9 +124,18 @@ public class ScanSelectionComponent extends FlowPane {
         scanNumberRange = paramSet.getParameter(scanNumParameter).getValue();
         this.baseFilteringInteger = paramSet.getParameter(baseFilteringIntegerParameter).getValue();
         scanMobilityRange = paramSet.getParameter(mobilityParameter).getValue();
-        // TODO: FloatRangeComponent
-        scanRTRange = Range.closed(paramSet.getParameter(rtParameter).getValue().lowerEndpoint().floatValue(),
-            paramSet.getParameter(rtParameter).getValue().upperEndpoint().floatValue());
+        // TODO: FloatRangeComponent - causes npe -> wrapped in if. can be removed when float
+        //  comp exists
+//        scanRTRange = Range.closed(paramSet.getParameter(rtParameter).getValue().lowerEndpoint().floatValue(),
+//            paramSet.getParameter(rtParameter).getValue().upperEndpoint().floatValue());
+        if (paramSet.getParameter(rtParameter).getValue() != null) {
+          scanRTRange = Range
+              .closed(paramSet.getParameter(rtParameter).getValue().lowerEndpoint().floatValue(),
+                  paramSet.getParameter(rtParameter).getValue().upperEndpoint().floatValue());
+        } else {
+          scanRTRange = null;
+        }
+
         msLevel = paramSet.getParameter(msLevelParameter).getValue();
         scanDefinition = paramSet.getParameter(scanDefinitionParameter).getValue();
         final int selectedPolarityIndex = Arrays.asList(polarityTypes)
