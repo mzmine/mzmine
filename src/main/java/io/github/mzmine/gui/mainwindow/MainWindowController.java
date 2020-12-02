@@ -333,6 +333,7 @@ public class MainWindowController {
 
     // TODO: aligned feature lists tree selection listener
 
+    /*
     // update if tab selection in main window changes
     getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
       if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) {
@@ -348,6 +349,7 @@ public class MainWindowController {
         // TODO: Add the same for feature lists
       }
     });
+    */
 
     // taskNameColumn.setPrefWidth(800.0);
     // taskNameColumn.setMinWidth(600.0);

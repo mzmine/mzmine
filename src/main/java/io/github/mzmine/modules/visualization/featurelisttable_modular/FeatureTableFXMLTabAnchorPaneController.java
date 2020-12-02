@@ -59,34 +59,19 @@ public class FeatureTableFXMLTabAnchorPaneController {
   private SpectraPlot spectrumPlot;
 
   @FXML
-  private BorderPane pnMain;
-
-  @FXML
-  private CheckMenuItem miShowXIC;
-
-  @FXML
-  private CheckMenuItem miShowSpectrum;
-
-  @FXML
   private SplitPane pnSpectrumXICSplit;
 
   @FXML
   private SplitPane pnTablePreviewSplit;
 
   @FXML
-  private MenuItem miParameters;
-
-  @FXML
-  private StackPane pnMainCenter;
-
-  @FXML
   private StackPane pnPreview;
 
-  @FXML
-  private ChoiceBox<DataType> cmbFilter;
+  //@FXML
+  //private ChoiceBox<DataType> cmbFilter;
 
-  @FXML
-  private TextField txtSearch;
+  //@FXML
+  //private TextField txtSearch;
 
   @FXML
   private FeatureTableFX featureTable;
@@ -95,10 +80,6 @@ public class FeatureTableFXMLTabAnchorPaneController {
   public void initialize() {
     param = MZmineCore.getConfiguration()
         .getModuleParameters(FeatureTableFXModule.class);
-
-    miShowSpectrum
-        .setSelected(param.getParameter(FeatureTableFXParameters.showSpectrum).getValue());
-    miShowXIC.setSelected(param.getParameter(FeatureTableFXParameters.showXIC).getValue());
 
     xicPlot = new TICPlot();
     xicPlot.setPlotType(TICPlotType.TIC);
@@ -109,6 +90,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
     spectrumPlot.setMinHeight(150);
     spectrumPlot.setPrefHeight(150);
 
+    /*
     cmbFilter.setConverter(new StringConverter<>() {
       @Override
       public String toString(DataType object) {
@@ -122,6 +104,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
             .orElse(null);
       }
     });
+    */
 
     pnTablePreviewSplit.setDividerPosition(0, 1);
     pnSpectrumXICSplit.getItems().addListener((ListChangeListener<? super Node>) change -> {
@@ -149,7 +132,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
   }
 
   @FXML
-  void miParametersOnAction(ActionEvent event) {
+  public void miParametersOnAction(ActionEvent event) {
     Platform.runLater(() -> {
       ExitCode exitCode = param.showSetupDialog(true);
       if (exitCode == ExitCode.OK) {
@@ -159,37 +142,33 @@ public class FeatureTableFXMLTabAnchorPaneController {
   }
 
   @FXML
-  void miShowXICOnAction(ActionEvent event) {
+  public void miShowXICOnAction(ActionEvent event) {
     if (event != null) {
       event.consume();
     }
 
-    if (miShowXIC.isSelected()) {
+    if (param.getParameter(FeatureTableFXParameters.showXIC).getValue()) {
       if (!pnSpectrumXICSplit.getItems().contains(xicPlot)) {
         pnSpectrumXICSplit.getItems().add(xicPlot);
       }
     } else {
       pnSpectrumXICSplit.getItems().remove(xicPlot);
     }
-
-    param.getParameter(FeatureTableFXParameters.showXIC).setValue(miShowXIC.isSelected());
   }
 
   @FXML
-  void miShowSpectrumOnAction(ActionEvent event) {
+  public void miShowSpectrumOnAction(ActionEvent event) {
     if (event != null) {
       event.consume();
     }
 
-    if (miShowSpectrum.isSelected()) {
+    if (param.getParameter(FeatureTableFXParameters.showSpectrum).getValue()) {
       if (!pnSpectrumXICSplit.getItems().contains(spectrumPlot)) {
         pnSpectrumXICSplit.getItems().add(spectrumPlot);
       }
     } else {
       pnSpectrumXICSplit.getItems().remove(spectrumPlot);
     }
-
-    param.getParameter(FeatureTableFXParameters.showSpectrum).setValue(miShowSpectrum.isSelected());
   }
 
 
@@ -199,7 +178,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
    * @param selectedRow
    */
   void updateXICPlot(FeatureListRow selectedRow) {
-    if (!miShowXIC.isSelected()) {
+    if (!param.getParameter(FeatureTableFXParameters.showXIC).getValue()) {
       return;
     }
     xicPlot.removeAllDataSets();
@@ -216,7 +195,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
    * @param selectedRow
    */
   void updateSpectrumPlot(FeatureListRow selectedRow) {
-    if (!miShowSpectrum.isSelected()) {
+    if (!param.getParameter(FeatureTableFXParameters.showSpectrum).getValue()) {
       return;
     }
     spectrumPlot.removeAllDataSets();
@@ -233,10 +212,6 @@ public class FeatureTableFXMLTabAnchorPaneController {
    * In case the parameters are changed in the setup dialog, they are applied to the window.
    */
   void updateWindowToParameterSetValues() {
-    miShowSpectrum
-        .setSelected(param.getParameter(FeatureTableFXParameters.showSpectrum).getValue());
-    miShowXIC.setSelected(param.getParameter(FeatureTableFXParameters.showXIC).getValue());
-
     miShowSpectrumOnAction(null);
     miShowXICOnAction(null);
 
@@ -245,6 +220,21 @@ public class FeatureTableFXMLTabAnchorPaneController {
         param.getParameter(FeatureTableFXParameters.showFeatureTypeColumns).getValue());
   }
 
+  public void invertShowXICParameter() {
+    FeatureTableFXParameters.showXIC.setValue(!param.getParameter(FeatureTableFXParameters.showXIC).getValue());
+  }
+
+  public boolean getShowXICValue() {
+    return param.getParameter(FeatureTableFXParameters.showXIC).getValue();
+  }
+
+  public void invertShowSpectrumParameter() {
+    FeatureTableFXParameters.showSpectrum.setValue(!param.getParameter(FeatureTableFXParameters.showSpectrum).getValue());
+  }
+
+  public boolean getShowSpectrumValue() {
+    return param.getParameter(FeatureTableFXParameters.showSpectrum).getValue();
+  }
 
   public void setFeatureList(FeatureList featureList) {
     featureTable.addData(featureList);
@@ -263,15 +253,15 @@ public class FeatureTableFXMLTabAnchorPaneController {
       if (dataType instanceof SubColumnsFactory) {
         continue;
       }
-      cmbFilter.getItems().add(dataType);
+      //cmbFilter.getItems().add(dataType);
     }
 
-    txtSearch.setOnKeyReleased(keyEvent -> searchFeatureTable());
-    cmbFilter.valueProperty().addListener((observable, oldVal, newVal) -> searchFeatureTable());
+    //txtSearch.setOnKeyReleased(keyEvent -> searchFeatureTable());
+    //cmbFilter.valueProperty().addListener((observable, oldVal, newVal) -> searchFeatureTable());
   }
 
   void searchFeatureTable() {
-    DataType type = cmbFilter.getValue();
+    DataType type = null;//cmbFilter.getValue();
     if (type == null) {
       return;
     }
@@ -279,8 +269,8 @@ public class FeatureTableFXMLTabAnchorPaneController {
     featureTable.getFilteredRowItems().setPredicate(item -> {
       ModularFeatureListRow row = (ModularFeatureListRow) item.getValue();
       String value = type.getFormattedString(row.get(type));
-      String filter = txtSearch.getText().toLowerCase().trim();
-      return value.contains(filter);
+      //String filter = txtSearch.getText().toLowerCase().trim();
+      return true;//return value.contains(filter);
     });
 
     featureTable.getRoot().getChildren().clear();
