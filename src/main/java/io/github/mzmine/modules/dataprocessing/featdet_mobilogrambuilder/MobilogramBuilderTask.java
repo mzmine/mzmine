@@ -35,15 +35,16 @@ public class MobilogramBuilderTask extends AbstractTask {
   private int processedFrames;
 
   public MobilogramBuilderTask(List<Frame> frames, ParameterSet parameters) {
-    this.frames = frames;
     this.mzTolerance = parameters.getParameter(MobilogramBuilderParameters.mzTolerance).getValue();
     this.massList = parameters.getParameter(MobilogramBuilderParameters.massList).getValue();
     this.minPeaks = parameters.getParameter(MobilogramBuilderParameters.minPeaks).getValue();
     this.addDpFromRaw = parameters.getParameter(MobilogramBuilderParameters.addRawDp).getValue();
     this.scanSelection =
         parameters.getParameter(MobilogramBuilderParameters.scanSelection).getValue();
+//    this.frames = frames;
+    this.frames = (List<Frame>) scanSelection.getMachtingScans((frames));
 
-    totalFrames = (frames.size() != 0) ? frames.size() : 1;
+    totalFrames = (this.frames.size() != 0) ? this.frames.size() : 1;
     setStatus(TaskStatus.WAITING);
   }
 

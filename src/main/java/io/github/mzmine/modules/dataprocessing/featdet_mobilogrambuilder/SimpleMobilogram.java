@@ -158,6 +158,7 @@ public class SimpleMobilogram implements Mobilogram {
   public String representativeString() {
     return mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
         .format(mzRange.upperEndpoint())
-        + " @" + mobilityFormat.format(getMobility()) + " " + getMobilityType().getUnit();
+        + " @" + mobilityFormat.format(getMobility()) + " " + getMobilityType().getUnit() + " ("
+        + getDataPoints().size() + ")";
   }
 }
