@@ -26,6 +26,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -87,14 +88,29 @@ public class MsnPeakPickingTask extends AbstractTask {
 
     int[] totalMSLevel = dataFile.getMSLevels();
 
+    // No MSn scan in datafile.
     if (!ArrayUtils.contains(totalMSLevel, msLevel)) {
-      throw new IllegalStateException(
-          "Unable to create MSn feature list because there are no MSn scans at MS Level.");
+      setStatus(TaskStatus.ERROR);
+      final String msg = "No MS" + msLevel + " scans in " + dataFile.getName();
+      setErrorMessage(msg);
+      return;
     }
 
     final Scan scans[] = scanSelection.getMatchingScans(dataFile);
     totalScans = scans.length;
 
+    // No scans in selection range.
+    if (totalScans == 0) {
+      setStatus(TaskStatus.ERROR);
+      final String msg = "No scans detected in selection range for " + dataFile.getName();
+      setErrorMessage(msg);
+      return;
+    }
+
+    /**
+     * Process each MS2 scan to find MSn scans through fragmentationScan tracing. If a MSn scan
+     * found, build simple modular feature for MS2 precursor in range.
+     */
     for (Scan scan : scans) {
 
       // Canceled?
@@ -133,11 +149,11 @@ public class MsnPeakPickingTask extends AbstractTask {
 
         Range<Float> rtRange = rtTolerance.getToleranceRange(scanRT);
         Range<Double> mzRange = mzTolerance.getToleranceRange(precursorMZ);
-        
+
         // Build simple feature for precursor in ranges.
         ModularFeature newFeature =
             FeatureUtils.buildSimpleModularFeature(newFeatureList, dataFile, rtRange, mzRange);
-        
+
         // Add feature to feature list.
         if (newFeature != null) {
 
@@ -151,15 +167,20 @@ public class MsnPeakPickingTask extends AbstractTask {
       processedScans++;
     }
 
+    // No MSn features detected in range.
     if (newFeatureList.isEmpty()) {
-
+      setStatus(TaskStatus.ERROR);
+      final String msg =
+          "No MSn precursor features detected in selected range for " + dataFile.getName();
+      setErrorMessage(msg);
+      return;
     }
 
     // Add new feature list to the project
     project.addFeatureList(newFeatureList);
 
-    logger.info("Finished MSn feature builder on " + dataFile + ", " + processedScans
-        + " scans processed");
+    logger.info(
+        "Finished MSn feature builder on " + dataFile + ", " + processedScans + " scans processed");
 
     setStatus(TaskStatus.FINISHED);
   }
