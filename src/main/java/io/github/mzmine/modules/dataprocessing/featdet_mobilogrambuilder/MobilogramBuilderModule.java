@@ -48,12 +48,6 @@ public class MobilogramBuilderModule implements MZmineRunnableModule {
         MobilogramBuilderTask task = new MobilogramBuilderTask(frames, parameters);
         MZmineCore.getTaskController().addTask(task);
       }
-
-//      MobilogramBuilderTask task =
-//          new MobilogramBuilderTask(((IMSRawDataFile) file).getFrames().subList(0, 3)
-//              , parameters);
-//        MZmineCore.getTaskController().addTask(task);
-
     }
 
     return ExitCode.OK;

@@ -30,7 +30,8 @@ import javafx.util.StringConverter;
 
 public class MobilogramVisualizerController {
 
-  private static Logger logger = Logger.getLogger(MobilogramVisualizerController.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(MobilogramVisualizerController.class.getName());
 
   @FXML
   public SimpleXYLineChart<Mobilogram> mobilogramChart;
@@ -50,11 +51,8 @@ public class MobilogramVisualizerController {
 
   private NumberFormat rtFormat;
 
-
   @FXML
   public void initialize() {
-
-    logger.info("called");
 
     rawDataFiles = FXCollections.observableArrayList(new ArrayList<>());
     frames = FXCollections.observableArrayList(new ArrayList<>());
