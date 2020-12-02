@@ -26,7 +26,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -127,7 +126,7 @@ public class MsnPeakPickingTask extends AbstractTask {
       // Does scan possess MSn scans?
       boolean validScan = false;
 
-      // If MS2, true by default.
+      // If mslevel is 2, true by default.
       if (scan.getMSLevel() == msLevel) {
         validScan = true;
       } else {
