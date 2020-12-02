@@ -172,7 +172,8 @@ public class MobilogramVisualizerController {
                 if (item == null || empty) {
                   setGraphic(null);
                 } else {
-                  setText(item.getFrameId() + " @" + rtFormat.format(item.getRetentionTime()) +
+                  setText(item.getFrameId() + " MS" + item.getMSLevel() + " @" +
+                      rtFormat.format(item.getRetentionTime()) +
                       " min (" + item.getMobilograms().size() + ")");
                 }
               }
@@ -186,7 +187,8 @@ public class MobilogramVisualizerController {
         if (item == null) {
           return "";
         }
-        return item.getFrameId() + " @" + rtFormat.format(item.getRetentionTime()) +
+        return item.getFrameId() + " MS" + item.getMSLevel() + " @" + rtFormat
+            .format(item.getRetentionTime()) +
             " min (" + item.getMobilograms().size() + ")";
       }
 
