@@ -392,7 +392,8 @@ public class EChartViewer extends ChartViewer {
    */
   public Object[][] getDataArrayForExport() {
     if (getChart().getPlot() instanceof XYPlot && getChart().getXYPlot() != null
-        && getChart().getXYPlot().getDataset() != null) {
+      /*&& getChart().getXYPlot().getDataset() != null*/) { // getDataset() may be null if the
+      // first dataset was removed, but the plot may still hold other datasets
       try {
         List<Object[]> modelList = new ArrayList<>();
 
@@ -430,7 +431,7 @@ public class EChartViewer extends ChartViewer {
             for (Object[] o : model) {
               modelList.add(o);
             }
-          } else {
+          } else if (data != null) {
             int series = data.getSeriesCount();
             Object[][] model = new Object[series * 2][];
             for (int s = 0; s < series; s++) {
