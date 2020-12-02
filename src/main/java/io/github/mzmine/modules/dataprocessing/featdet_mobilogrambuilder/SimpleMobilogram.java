@@ -7,7 +7,9 @@ import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -160,5 +162,47 @@ public class SimpleMobilogram implements Mobilogram {
         .format(mzRange.upperEndpoint())
         + " @" + mobilityFormat.format(getMobility()) + " " + getMobilityType().getUnit() + " ("
         + getDataPoints().size() + ")";
+  }
+
+  public List<MobilityDataPoint> fillMissingScanNumsWithZero() {
+    if (dataPoints.size() <= 3) {
+      return Collections.emptyList();
+    }
+
+    // find smallest mobility distance between two points
+    // get two dp
+    double minDist = 0;
+    MobilityDataPoint aDp = null;
+    for (MobilityDataPoint dp : dataPoints.values()) {
+      if (aDp == null) {
+        aDp = dp;
+      } else {
+        minDist = Math
+            .abs((aDp.getMobility() - dp.getMobility()) / (aDp.getScanNum() - dp.getScanNum()));
+      }
+    }
+
+    List<MobilityDataPoint> newDps = new ArrayList<>();
+    int nextScanNum = dataPoints.values().stream().findFirst().get().getScanNum() + 1;
+    double lastMobility = dataPoints.get(nextScanNum - 1).getMobility();
+    Iterator<MobilityDataPoint> iterator = dataPoints.values().iterator();
+    if (iterator.hasNext()) {
+      iterator.next();
+    }
+    while (iterator.hasNext()) {
+      MobilityDataPoint nextDp = iterator.next();
+      while (nextDp.getScanNum() != nextScanNum) {
+        MobilityDataPoint newDp = new MobilityDataPoint(this.getMZ(), 0.0d,
+            lastMobility - minDist, nextScanNum);
+        newDps.add(newDp);
+        nextScanNum++;
+        lastMobility -= minDist;
+      }
+      lastMobility = nextDp.getMobility();
+      nextScanNum = nextDp.getScanNum() + 1;
+    }
+    newDps.forEach(dp -> dataPoints.put(dp.getScanNum(), dp));
+    calc();
+    return newDps;
   }
 }
