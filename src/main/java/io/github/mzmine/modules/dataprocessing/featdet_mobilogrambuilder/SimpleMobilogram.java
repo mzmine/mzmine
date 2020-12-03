@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder;
 
 import com.google.common.collect.Range;
 import com.google.common.math.Quantiles;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
@@ -15,14 +16,18 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Mobilogram representation. Values have to be calculated after all data points have been added.
+ * Datapoints passed to this mobilogram will be stored in RAM. Use {@link
+ * io.github.mzmine.project.impl.StorableMobilogram} to store data points on the disc.
  */
 public class SimpleMobilogram implements Mobilogram {
 
   private static NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
   private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private final IMSRawDataFile rawDataFile;
   private final SortedMap<Integer, MobilityDataPoint> dataPoints;
   private final MobilityType mt;
   private double mobility;
@@ -31,7 +36,7 @@ public class SimpleMobilogram implements Mobilogram {
   private Range<Double> mzRange;
   private MobilityDataPoint highestDataPoint;
 
-  public SimpleMobilogram(MobilityType mt) {
+  public SimpleMobilogram(MobilityType mt, @Nullable IMSRawDataFile rawDataFile) {
     mobility = -1;
     mz = -1;
     dataPoints = new TreeMap<>();
@@ -39,6 +44,7 @@ public class SimpleMobilogram implements Mobilogram {
     mzRange = null;
     highestDataPoint = null;
     this.mt = mt;
+    this.rawDataFile = rawDataFile;
   }
 
   public void calc() {
@@ -164,13 +170,18 @@ public class SimpleMobilogram implements Mobilogram {
         + getDataPoints().size() + ")";
   }
 
+  @Override
+  @Nullable
+  public IMSRawDataFile getRawDataFile() {
+    return rawDataFile;
+  }
+
   public List<MobilityDataPoint> fillMissingScanNumsWithZero() {
     if (dataPoints.size() <= 3) {
       return Collections.emptyList();
     }
 
-    // find smallest mobility distance between two points
-    // get two dp
+    // find smallest mobility distance between two points // get two dp
     double minDist = 0;
     MobilityDataPoint aDp = null;
     for (MobilityDataPoint dp : dataPoints.values()) {
@@ -179,6 +190,7 @@ public class SimpleMobilogram implements Mobilogram {
       } else {
         minDist = Math
             .abs((aDp.getMobility() - dp.getMobility()) / (aDp.getScanNum() - dp.getScanNum()));
+        break;
       }
     }
 

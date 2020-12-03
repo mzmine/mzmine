@@ -20,9 +20,9 @@ public class MobilogramBuilderParameters extends SimpleParameterSet {
       + "selection", "Filter scans based on their properties. Different noise levels ( -> mass "
       + "lists) are recommended for MS1 and MS/MS scans", new ScanSelection());
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.001, 5,
-      false);
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z width",
+      "m/z width between mobility scans to be assigned to the same mobilogram. Correlates with MS"
+          + " mass accuracy and resolution.", 0.002, 10, false);
 
   public static final IntegerParameter minPeaks = new IntegerParameter("Minimum peaks", "Minimum "
       + "peaks in a mobilogram (above previously set noise levels)", 7);

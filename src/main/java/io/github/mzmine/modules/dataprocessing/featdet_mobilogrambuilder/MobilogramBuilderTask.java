@@ -4,7 +4,6 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.StorableFrame;
@@ -84,9 +83,9 @@ public class MobilogramBuilderTask extends AbstractTask {
       printDuplicateStatistics(mobilograms);
       mobilograms.forEach(mob -> ((SimpleMobilogram) mob).fillMissingScanNumsWithZero());
 
+      frame.clearMobilograms();
+      mobilograms.forEach(frame::addMobilogram);
       processedFrames++;
-      frame.getMobilograms().clear(); // remove previous mobilograms
-      frame.getMobilograms().addAll(mobilograms);
     }
 
     setStatus(TaskStatus.FINISHED);
@@ -118,12 +117,16 @@ public class MobilogramBuilderTask extends AbstractTask {
     List<MobilityDataPoint> itemsToRemove = new ArrayList<>();
 
     for (int i = 0; i < allDps.size(); i++) {
+      if(isCanceled()) {
+        return null;
+      }
+
       final MobilityDataPoint baseDp = allDps.get(i);
       final double baseMz = baseDp.getMZ();
       allDps.remove(baseDp);
       i--; // item removed
 
-      final SimpleMobilogram mobilogram = new SimpleMobilogram(mobilityType);
+      final SimpleMobilogram mobilogram = new SimpleMobilogram(mobilityType, null);
       mobilogram.addDataPoint(baseDp);
 
       // go through all dps and add mzs within tolerance
@@ -165,6 +168,10 @@ public class MobilogramBuilderTask extends AbstractTask {
     allDps.sort(Comparator.comparingDouble(MobilityDataPoint::getMZ));
 
     for (Mobilogram mobilogram : mobilograms) {
+      if(isCanceled()) {
+        return;
+      }
+
       Date start = new Date();
       // todo maybe mobilogram.getMZRange()?
       double lowerMzLimit = mzTolerance.getToleranceRange(mobilogram.getMZ()).lowerEndpoint();

@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
 import java.util.List;
@@ -51,5 +52,7 @@ public interface Mobilogram extends PlotDatasetProvider {
   public MobilityType getMobilityType();
 
   public String representativeString();
+
+  public IMSRawDataFile getRawDataFile();
 
 }

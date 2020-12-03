@@ -18,6 +18,7 @@
 
 package io.github.mzmine.project.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -31,9 +32,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 public class StorableFrame extends StorableScan implements Frame {
+
+  private static final Logger logger = Logger.getLogger(Frame.class.getName());
 
   private final int frameId;
 
@@ -41,12 +45,11 @@ public class StorableFrame extends StorableScan implements Frame {
    * key = scan num, value = mobility scan // TODO do we need this?
    */
   private final SortedMap<Integer, Scan> mobilityScans;
+  private final List<StorableMobilogram> mobilograms;
   /**
    * Mobility range of this frame. Updated when a scan is added.
    */
   private Range<Double> mobilityRange;
-
-  private final List<Mobilogram> mobilograms;
 
   /**
    * Creates a storable frame and also stores the mobility resolved scans.
@@ -148,8 +151,55 @@ public class StorableFrame extends StorableScan implements Frame {
   }
 
   @Override
-  public List<Mobilogram> getMobilograms() {
-    return mobilograms;
+  public ImmutableList<Mobilogram> getMobilograms() {
+    return ImmutableList.copyOf(mobilograms);
   }
 
+  /**
+   * @param mobilogram
+   * @return the storage id, -1 on error
+   */
+  @Override
+  public int addMobilogram(Mobilogram mobilogram) {
+
+    if (mobilogram instanceof StorableMobilogram && !mobilogram.getRawDataFile()
+        .equals(rawDataFile)) {
+
+      logger.warning(() -> "Cannot add mobilogram of " + mobilogram.getRawDataFile().getName() +
+          " to Frame of " + rawDataFile.getName());
+      return -1;
+
+    } else if (mobilogram instanceof StorableMobilogram && mobilogram.getRawDataFile()
+        .equals(rawDataFile)) {
+
+      logger.fine(() -> "Mobilogram already stored in this raw data file.");
+      if (!mobilograms.contains(mobilogram)) {
+        mobilograms.add((StorableMobilogram) mobilogram);
+      }
+      return ((StorableMobilogram) mobilogram).getStorageID();
+
+    } else {
+
+      try {
+        final int storageId = ((IMSRawDataFileImpl) rawDataFile)
+            .storeDataPointsForMobilogram(mobilogram.getDataPoints());
+
+        StorableMobilogram storableMobilogram = new StorableMobilogram(mobilogram,
+            (IMSRawDataFileImpl) rawDataFile, storageId);
+
+        mobilograms.add(storableMobilogram);
+        return storageId;
+      } catch (IOException | ClassCastException e) {
+        e.printStackTrace();
+        return -1;
+      }
+    }
+  }
+
+  @Override
+  public void clearMobilograms() {
+    mobilograms.forEach(mob -> ((IMSRawDataFileImpl) rawDataFile)
+        .removeDataPointsForMobilogram(mob.getStorageID()));
+    mobilograms.clear();
+  }
 }

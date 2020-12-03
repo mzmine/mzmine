@@ -24,7 +24,12 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -38,12 +43,11 @@ import javax.annotation.Nullable;
 public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Ion mobility Raw data file";
-
+  protected final MobilityDataPointStorage mdpStorage;
   private final TreeMap<Integer, StorableFrame> frames;
   private final Hashtable<Integer, List<Integer>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
   private final Hashtable<Integer, List<Frame>> frameMsLevelCache;
-
   protected Range<Double> mobilityRange;
   protected MobilityType mobilityType;
 
@@ -58,6 +62,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
     mobilityRange = null;
     mobilityType = MobilityType.NONE;
+
+    mdpStorage = new MobilityDataPointStorage();
   }
 
   @Override
@@ -83,9 +89,9 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
       frames.put(storedFrame.getFrameId(), storedFrame);
       return;
     } else {
-      if(mobilityRange == null) {
+      if (mobilityRange == null) {
         mobilityRange = Range.singleton(newScan.getMobility());
-      } else if(!mobilityRange.contains(newScan.getMobility())){
+      } else if (!mobilityRange.contains(newScan.getMobility())) {
         mobilityRange = mobilityRange.span(Range.singleton(newScan.getMobility()));
       }
       super.addScan(newScan);
@@ -102,7 +108,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Override
   public List<Frame> getFrames(int msLevel) {
     return frameMsLevelCache.computeIfAbsent(msLevel, level -> frames.values().stream()
-          .filter(frame -> frame.getMSLevel() == msLevel).collect(Collectors.toList()));
+        .filter(frame -> frame.getMSLevel() == msLevel).collect(Collectors.toList()));
   }
 
   @Nullable
@@ -229,5 +235,22 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
       dataMobilityRangeCache.put(msLevel, Range.closed(lower, upper));
     }
     return dataMobilityRangeCache.get(msLevel);
+  }
+
+  int storeDataPointsForMobilogram(List<MobilityDataPoint> dataPoints) throws IOException {
+    return mdpStorage.storeDataPoints(dataPoints);
+  }
+
+  List<MobilityDataPoint> loadDatapointsForMobilogram(int storageId) throws IOException {
+//    System.out.println("Reading data points for storage id " + storageId);
+    return mdpStorage.readDataPoints(storageId);
+  }
+
+  public void removeDataPointsForMobilogram(int id) {
+    try {
+      mdpStorage.removeStoredDataPoints(id);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
@@ -38,8 +39,8 @@ import javax.annotation.Nullable;
 public class SimpleFrame extends SimpleScan implements Frame {
 
   private final int frameId;
-  private MobilityType mobilityType;
   private final SortedMap<Integer, Scan> mobilityScans;
+  private MobilityType mobilityType;
   /**
    * Mobility range of this frame. Updated when a scan is added.
    */
@@ -138,7 +139,17 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   @Override
-  public List<Mobilogram> getMobilograms() {
+  public ImmutableList<Mobilogram> getMobilograms() {
     throw new UnsupportedOperationException("getMobilograms is not supported by SimpleFrame");
+  }
+
+  @Override
+  public int addMobilogram(Mobilogram mobilogram) {
+    throw new UnsupportedOperationException("addMobilogram is not supported by SimpleFrame");
+  }
+
+  @Override
+  public void clearMobilograms() {
+    throw new UnsupportedOperationException("clearMobilograms is not supported by SimpleFrame");
   }
 }

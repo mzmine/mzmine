@@ -48,6 +48,10 @@ public interface Frame extends Scan {
   @Nonnull
   public List<Scan> getMobilityScans();
 
-  public List<Mobilogram> getMobilograms();
+  public ImmutableList<Mobilogram> getMobilograms();
+
+  public int addMobilogram(Mobilogram mobilogram);
+
+  public void clearMobilograms();
 
 }
