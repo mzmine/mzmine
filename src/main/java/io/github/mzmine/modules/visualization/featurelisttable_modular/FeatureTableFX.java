@@ -57,6 +57,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -349,7 +350,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     return flist;
   }
 
-  @Nullable
+  @Nonnull
   public FilteredList<TreeItem<FeatureListRow>> getFilteredRowItems() {
     return filteredRowItems;
   }

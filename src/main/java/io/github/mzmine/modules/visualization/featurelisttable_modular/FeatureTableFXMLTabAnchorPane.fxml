@@ -23,13 +23,7 @@
                     <FeatureTableFX fx:id="featureTable"/>
                   </children>
                 </StackPane>
-                <StackPane fx:id="pnPreview" minHeight="0.0" minWidth="0.0" prefHeight="0.0"
-                  prefWidth="0.0" SplitPane.resizableWithParent="false">
-                  <children>
-                    <SplitPane fx:id="pnSpectrumXICSplit" prefHeight="0.0" prefWidth="0.0"
-                      visible="false"/>
-                  </children>
-                </StackPane>
+                <SplitPane fx:id="pnFilters" maxHeight="20.0" minWidth="20.0"/>
               </items>
             </SplitPane>
           </children>

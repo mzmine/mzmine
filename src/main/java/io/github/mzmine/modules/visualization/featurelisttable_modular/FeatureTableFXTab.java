@@ -10,7 +10,6 @@ import java.util.Collections;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -20,10 +19,6 @@ import javafx.scene.layout.BorderPane;
 import javax.annotation.Nonnull;
 
 public class FeatureTableFXTab extends MZmineTab {
-  private final Image XIC_ICON =
-      FxIconUtil.loadImageFromResources("icons/xicicon.png");
-  private final Image SPECTRA_ICON =
-      FxIconUtil.loadImageFromResources("icons/spectrumicon.png");
   private final Image SELECTION_ICON =
       FxIconUtil.loadImageFromResources("icons/propertiesicon.png");
 
@@ -55,26 +50,10 @@ public class FeatureTableFXTab extends MZmineTab {
     controller = loader.getController();
     controller.setFeatureList(flist);
 
+    // TODO: if there would be only selectColumnsButton in the toolbar, then remove toolbar and
+    //  improve "+" button behaviour of the feature table header
     // Setup tool bar
     toolBar.setOrientation(Orientation.VERTICAL);
-
-    ToggleButton showXICButton = new ToggleButton(null, new ImageView(XIC_ICON));
-    showXICButton.setSelected(controller.getShowXICValue());
-    showXICButton.setTooltip(new Tooltip("Show XIC plot"));
-    showXICButton.setOnAction(e -> {
-      controller.invertShowXICParameter();
-      controller.miShowXICOnAction(null);
-      showXICButton.setSelected(controller.getShowXICValue());
-    });
-
-    ToggleButton showSpectrumButton = new ToggleButton(null, new ImageView(SPECTRA_ICON));
-    showSpectrumButton.setSelected(controller.getShowSpectrumValue());
-    showSpectrumButton.setTooltip(new Tooltip("Show spectrum plot"));
-    showSpectrumButton.setOnAction(e -> {
-      controller.invertShowSpectrumParameter();
-      controller.miShowSpectrumOnAction(null);
-      showSpectrumButton.setSelected(controller.getShowSpectrumValue());
-    });
 
     Button selectColumnsButton = new Button(null, new ImageView(SELECTION_ICON));
     selectColumnsButton.setTooltip(new Tooltip("Select columns to show/hide"));
@@ -82,7 +61,7 @@ public class FeatureTableFXTab extends MZmineTab {
       controller.miParametersOnAction(null);
     });
 
-    toolBar.getItems().addAll(selectColumnsButton, showXICButton, showSpectrumButton);
+    toolBar.getItems().addAll(selectColumnsButton);
 
     // Setup main pane
     mainPane.setCenter(root);
