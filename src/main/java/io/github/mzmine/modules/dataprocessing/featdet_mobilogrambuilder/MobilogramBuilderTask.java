@@ -4,7 +4,6 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.StorableFrame;
@@ -82,7 +81,8 @@ public class MobilogramBuilderTask extends AbstractTask {
         addDataPointsFromRaw(mobilograms, frame.getMobilityScans());
       }
       printDuplicateStatistics(mobilograms);
-      mobilograms.forEach(mob -> ((SimpleMobilogram) mob).fillMissingScanNumsWithZero());
+//      mobilograms.forEach(mob -> ((SimpleMobilogram) mob).fillMissingScanNumsWithZero());
+      mobilograms.forEach(mob -> ((SimpleMobilogram)mob).fillEdgesWithZeros(3));
 
       processedFrames++;
       frame.getMobilograms().clear(); // remove previous mobilograms
