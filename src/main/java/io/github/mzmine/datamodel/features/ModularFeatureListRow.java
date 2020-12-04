@@ -184,16 +184,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return get(DetectionType.class).getValue();
   }
 
-  public double getMZ() {
-    return get(MZType.class).getValue();
-  }
-
   public Range<Double> getMZRange() {
     return get(MZRangeType.class).getValue();
-  }
-
-  public float getRT() {
-    return get(RTType.class).getValue();
   }
 
   public float getHeight() {
