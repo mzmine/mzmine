@@ -18,7 +18,9 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
 
+import java.util.List;
+
 public interface RangeValueProvider<ValueType extends Number> extends ValueCountProvider {
 
-  public ValueType getRangeValue(int index);
+  public List<ValueType> getRangeValues();
 }
