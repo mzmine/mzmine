@@ -71,7 +71,6 @@ public class StorableMobilogram implements Mobilogram {
   }
 
   /**
-   *
    * @return the median mobility
    */
   @Override
@@ -135,13 +134,15 @@ public class StorableMobilogram implements Mobilogram {
   }
 
   @Override
-  public Number getDomainValue(int index) {
-    return getDataPoints().get(index).getMobility();
+  public List<Number> getDomainValues() {
+    return getDataPoints().stream().map(MobilityDataPoint::getMobility)
+        .collect(Collectors.toList());
   }
 
   @Override
-  public Number getRangeValue(int index) {
-    return getDataPoints().get(index).getIntensity();
+  public List<Number> getRangeValues() {
+    return getDataPoints().stream().map(MobilityDataPoint::getIntensity)
+        .collect(Collectors.toList());
   }
 
   @Override
