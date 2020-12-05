@@ -117,6 +117,8 @@
     <Menu text="Mobilogram detection">
       <MenuItem text="Mobilogram builder" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilogramBuilderModule"/>
+      <MenuItem text="Mobilogram smoother" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramSmootherModule"/>
     </Menu>
 
   </Menu>
