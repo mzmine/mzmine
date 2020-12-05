@@ -24,6 +24,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatase
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.RangeValueProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider;
 import java.awt.Color;
+import java.util.List;
 import org.jfree.data.xy.AbstractXYDataset;
 
 /**
@@ -38,6 +39,9 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   private final RangeValueProvider<Number> rangeValueProvider;
   private final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   private final int itemCount;
+
+  private final List<Number> domainValues;
+  private final List<Number> rangeValues;
 
   public ColoredXYDataset(DomainValueProvider<Number> domainValueProvider,
       RangeValueProvider<Number> rangeValueProvider,
@@ -54,6 +58,9 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
     this.domainValueProvider = domainValueProvider;
     this.rangeValueProvider = rangeValueProvider;
     this.seriesKeyProvider = seriesKeyProvider;
+
+    domainValues = domainValueProvider.getDomainValues();
+    rangeValues = rangeValueProvider.getRangeValues();
   }
 
   public ColoredXYDataset(PlotDatasetProvider datasetProvider) {
@@ -87,12 +94,12 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
 
   @Override
   public Number getX(int series, int item) {
-    return domainValueProvider.getDomainValue(item);
+    return domainValues.get(item);
   }
 
   @Override
   public Number getY(int series, int item) {
-    return rangeValueProvider.getRangeValue(item);
+    return rangeValues.get(item);
   }
 
   public int getValueIndex(final double domainValue, final double rangeValue) {
