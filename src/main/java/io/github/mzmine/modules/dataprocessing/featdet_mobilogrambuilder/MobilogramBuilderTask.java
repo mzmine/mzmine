@@ -81,7 +81,8 @@ public class MobilogramBuilderTask extends AbstractTask {
         addDataPointsFromRaw(mobilograms, frame.getMobilityScans());
       }
       printDuplicateStatistics(mobilograms);
-      mobilograms.forEach(mob -> ((SimpleMobilogram) mob).fillMissingScanNumsWithZero());
+//      mobilograms.forEach(mob -> ((SimpleMobilogram) mob).fillMissingScanNumsWithZero());
+      mobilograms.forEach(mob -> ((SimpleMobilogram)mob).fillEdgesWithZeros(3));
 
       frame.clearMobilograms();
       mobilograms.forEach(frame::addMobilogram);
