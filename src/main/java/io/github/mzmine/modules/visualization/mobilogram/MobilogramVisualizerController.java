@@ -4,18 +4,19 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.SimpleXYLineChart;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.DomainValueProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramChangeListener;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.project.impl.StorableFrame;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EventListener;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,23 +28,26 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import javax.annotation.Nullable;
 
 public class MobilogramVisualizerController {
 
   private static final Logger logger =
       Logger.getLogger(MobilogramVisualizerController.class.getName());
 
-  @FXML
-  public SimpleXYLineChart<Mobilogram> mobilogramChart;
+  private List<MobilogramChangeListener> mobilogramListeners;
 
   @FXML
-  public ComboBox<RawDataFile> rawDataFileSelector;
+  private SimpleXYLineChart<Mobilogram> mobilogramChart;
 
   @FXML
-  public ComboBox<Frame> frameSelector;
+  private ComboBox<RawDataFile> rawDataFileSelector;
 
   @FXML
-  public ComboBox<Mobilogram> mobilogramSelector;
+  private ComboBox<Frame> frameSelector;
+
+  @FXML
+  private ComboBox<Mobilogram> mobilogramSelector;
 
   private ObservableList<RawDataFile> rawDataFiles;
   private ObservableList<Frame> frames;
@@ -64,6 +68,7 @@ public class MobilogramVisualizerController {
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
 
+    mobilogramListeners = new ArrayList<>();
     initMobilgramBox();
     initFrameBox();
 
@@ -105,11 +110,13 @@ public class MobilogramVisualizerController {
   }
 
   public void onMobilogramSelectionChanged(ActionEvent actionEvent) {
-    Mobilogram selectedMobilogram = mobilogramSelector.getValue();
+    final Mobilogram selectedMobilogram = mobilogramSelector.getValue();
     mobilogramChart.removeAllDatasets();
     if (selectedMobilogram != null) {
       mobilogramChart.addDataset(selectedMobilogram);
     }
+
+    mobilogramListeners.forEach(l -> l.change(selectedMobilogram));
   }
 
   public ObservableList<RawDataFile> getRawDataFiles() {
@@ -198,5 +205,28 @@ public class MobilogramVisualizerController {
       }
     });
     frameSelector.setCellFactory(listViewListCellCallback);
+  }
+
+  @Nullable
+  public Mobilogram getSelectedMobilogram() {
+    return mobilogramSelector.getValue();
+  }
+
+  @Nullable
+  public Frame getSelectedFrame() {
+    return frameSelector.getValue();
+  }
+
+  @Nullable
+  public RawDataFile getSelectedRawDataFile() {
+    return rawDataFileSelector.getValue();
+  }
+
+  public SimpleXYLineChart<Mobilogram> getMobilogramChart() {
+    return mobilogramChart;
+  }
+
+  public void addMobilogramSelectionListener(MobilogramChangeListener listener) {
+    mobilogramListeners.add(listener);
   }
 }

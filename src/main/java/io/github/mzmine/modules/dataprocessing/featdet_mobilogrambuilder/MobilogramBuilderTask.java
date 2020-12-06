@@ -9,6 +9,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.StorableFrame;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MobilogramUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -81,8 +82,9 @@ public class MobilogramBuilderTask extends AbstractTask {
         addDataPointsFromRaw(mobilograms, frame.getMobilityScans());
       }
       printDuplicateStatistics(mobilograms);
-//      mobilograms.forEach(mob -> ((SimpleMobilogram) mob).fillMissingScanNumsWithZero());
-      mobilograms.forEach(mob -> ((SimpleMobilogram)mob).fillEdgesWithZeros(3));
+      mobilograms
+          .forEach(mob -> MobilogramUtils.fillMissingScanNumsWithZero((SimpleMobilogram) mob));
+//      mobilograms.forEach(mob -> ((SimpleMobilogram)mob).fillEdgesWithZeros(3));
 
       frame.clearMobilograms();
       mobilograms.forEach(frame::addMobilogram);
@@ -118,7 +120,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     List<MobilityDataPoint> itemsToRemove = new ArrayList<>();
 
     for (int i = 0; i < allDps.size(); i++) {
-      if(isCanceled()) {
+      if (isCanceled()) {
         return null;
       }
 
@@ -169,7 +171,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     allDps.sort(Comparator.comparingDouble(MobilityDataPoint::getMZ));
 
     for (Mobilogram mobilogram : mobilograms) {
-      if(isCanceled()) {
+      if (isCanceled()) {
         return;
       }
 
@@ -223,20 +225,15 @@ public class MobilogramBuilderTask extends AbstractTask {
 
     List<Mobilogram> copyMobilograms = new ArrayList<>(mobilograms);
 
+    int overlapCounter = 0;
     for (Mobilogram baseMob : mobilograms) {
       copyMobilograms.remove(baseMob);
       for (Mobilogram copyMob : copyMobilograms) {
         if (baseMob.getMZRange().isConnected(copyMob.getMobilityRange())) {
-          int overlapCounter = 0;
-          for (MobilityDataPoint dp : baseMob.getDataPoints()) {
-            if (copyMob.getDataPoints().contains(dp)) {
-              overlapCounter++;
-            }
-          }
-          logger.info(baseMob.representativeString() + " and " + copyMob.representativeString()
-              + " share " + overlapCounter + " data points");
+          overlapCounter++;
         }
       }
     }
+    logger.info("Found " + overlapCounter + " overlaps within " + mobilograms.size());
   }
 }

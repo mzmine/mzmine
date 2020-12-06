@@ -4,37 +4,103 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.SimpleMobilogram;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SavitzkyGolayFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MobilogramUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
+import org.apache.commons.math3.exception.DimensionMismatchException;
+import org.apache.commons.math3.exception.NoDataException;
+import org.apache.commons.math3.exception.NotFiniteNumberException;
+import org.apache.commons.math3.exception.NumberIsTooSmallException;
 
 public class MobilogramSmootherTask extends AbstractTask {
 
   private final List<Frame> frames;
-  private final LoessInterpolator loess;
-  private final double bandwidth;
+  private final double[] weights;
   private final int totalFrames;
   private int processedFrames;
 
 
   public MobilogramSmootherTask(List<Frame> frames, ParameterSet parameters) {
-    bandwidth = 0.08;
-//    this.loess = new LoessInterpolator(bandwidth, 0);
-    this.loess = new LoessInterpolator();
     this.frames = frames;
+    weights =
+        SavitzkyGolayFilter.getNormalizedWeights(
+            parameters.getParameter(MobilogramSmootherParameters.filterWidth).getValue());
 
     totalFrames = frames.size();
     processedFrames = 0;
     setStatus(TaskStatus.WAITING);
   }
 
+  @Nullable
+  public static SimpleMobilogram loessSmoothMobilogram(Mobilogram mobilogram,
+      LoessInterpolator loess) {
+    List<MobilityDataPoint> dataPoints = mobilogram.getDataPoints();
+    // loess needs x val in ascending order, tims has descending mobility
+    Collections.reverse(dataPoints);
+
+    double[] smoothedIntensity;
+    try {
+      smoothedIntensity = loess
+          .smooth(dataPoints.stream().mapToDouble(MobilityDataPoint::getMobility).toArray(),
+              dataPoints.stream().mapToDouble(MobilityDataPoint::getIntensity).toArray());
+    } catch (DimensionMismatchException | NoDataException
+        | NotFiniteNumberException | NumberIsTooSmallException e) {
+      return null;
+    }
+
+    SimpleMobilogram smoothedMobilogram = new SimpleMobilogram(mobilogram.getMobilityType(),
+        mobilogram.getRawDataFile());
+    for (int i = 0; i < dataPoints.size(); i++) {
+      MobilityDataPoint dp = dataPoints.get(i);
+
+      smoothedMobilogram.addDataPoint(new MobilityDataPoint(dp.getMZ(),
+          smoothedIntensity[i], dp.getMobility(), dp.getScanNum()));
+    }
+    smoothedMobilogram.calc();
+    return MobilogramUtils.removeZeroIntensityDataPoints(smoothedMobilogram);
+  }
+
+  @Nullable
+  public static SimpleMobilogram sgSmoothMobilogram(Mobilogram mobilogram,
+      double[] weights) {
+    List<MobilityDataPoint> dataPoints = mobilogram.getDataPoints();
+    // tims has descending mobility
+    Collections.reverse(dataPoints);
+
+    final double[] smoothedIntensity = SavitzkyGolayFilter
+        .convolve(dataPoints.stream().mapToDouble(MobilityDataPoint::getIntensity).toArray(),
+            weights);
+
+    SimpleMobilogram smoothedMobilogram = new SimpleMobilogram(mobilogram.getMobilityType(),
+        mobilogram.getRawDataFile());
+
+    final double scaleFactor =
+        mobilogram.getMaximumIntensity() / Arrays.stream(smoothedIntensity).max().getAsDouble();
+
+    for (int i = 0; i < dataPoints.size(); i++) {
+      final MobilityDataPoint dp = dataPoints.get(i);
+      double newIntensity = (smoothedIntensity[i]) * scaleFactor;
+      newIntensity = (newIntensity > 0) ? newIntensity : 0; // SG can cause artifacts
+
+      smoothedMobilogram.addDataPoint(new MobilityDataPoint(dp.getMZ(),
+          newIntensity, dp.getMobility(), dp.getScanNum()));
+    }
+
+    smoothedMobilogram.calc();
+    return smoothedMobilogram;
+  }
+
   @Override
   public String getTaskDescription() {
-    return "Smoothing mobilogram " + processedFrames + "/" + totalFrames;
+    return "Smoothing mobilograms of frame " + processedFrames + "/" + totalFrames;
   }
 
   @Override
@@ -55,9 +121,8 @@ public class MobilogramSmootherTask extends AbstractTask {
           return;
         }
 
-        SimpleMobilogram smoothedMobilogram = smoothMobilogram(mobilogram, loess);
+        SimpleMobilogram smoothedMobilogram = sgSmoothMobilogram(mobilogram, weights);
         smoothedMobilograms.add(smoothedMobilogram);
-
       }
 
       frame.clearMobilograms();
@@ -67,28 +132,5 @@ public class MobilogramSmootherTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
-  }
-
-  public static SimpleMobilogram smoothMobilogram(Mobilogram mobilogram, LoessInterpolator loess) {
-    List<MobilityDataPoint> dataPoints = mobilogram.getDataPoints();
-    // loess needs x val in ascending order, tims has descending mobility
-    Collections.reverse(dataPoints);
-
-    double[] smoothedIntensity = loess
-        .smooth(dataPoints.stream().mapToDouble(MobilityDataPoint::getMobility).toArray(),
-            dataPoints.stream().mapToDouble(MobilityDataPoint::getIntensity).toArray());
-
-    SimpleMobilogram smoothedMobilogram = new SimpleMobilogram(mobilogram.getMobilityType(),
-        mobilogram.getRawDataFile());
-    for (int i = 0; i < dataPoints.size(); i++) {
-      // keep in mind
-      MobilityDataPoint dp = dataPoints.get(dataPoints.size() - 1 - i);
-
-      smoothedMobilogram.addDataPoint(new MobilityDataPoint(dp.getMZ(),
-          smoothedIntensity[i], dp.getMobility(), dp.getScanNum()));
-    }
-//        smoothedMobilogram.fillEdgesWithZeros(3);
-    smoothedMobilogram.calc();
-    return smoothedMobilogram;
   }
 }
