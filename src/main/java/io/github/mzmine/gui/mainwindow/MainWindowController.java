@@ -733,17 +733,26 @@ public class MainWindowController {
   public void addTab(Tab tab) {
     if (tab instanceof MZmineTab) {
       ((MZmineTab) tab).updateOnSelectionProperty().addListener(((obs, old, val) -> {
-        if (val.booleanValue()) {
-          if (((MZmineTab) tab).getRawDataFiles() != null && (!((MZmineTab) tab).getRawDataFiles()
-              .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
-              || ((MZmineTab) tab).getRawDataFiles().size() != rawDataTree.getSelectionModel()
-                  .getSelectedItems().size())) {
+        if (val) {
+          if (!((MZmineTab) tab).getRawDataFiles()
+              .equals(rawDataTree.getSelectionModel().getSelectedItems())) {
             ((MZmineTab) tab)
                 .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
           }
+
+          if(!((MZmineTab) tab).getFeatureLists()
+              .equals(featureTree.getSelectionModel().getSelectedItems())) {
+            ((MZmineTab) tab)
+                .onFeatureListSelectionChanged(featureTree.getSelectionModel().getSelectedItems());
+          }
+
+          if(!((MZmineTab) tab).getAlignedFeatureLists()
+              .equals(alignedFeatureTree.getSelectionModel().getSelectedItems())) {
+            ((MZmineTab) tab)
+                .onAlignedFeatureListSelectionChanged(alignedFeatureTree.getSelectionModel().getSelectedItems());
+          }
         }
       }));
-      // TODO: add same for feature lists
     }
 
     getMainTabPane().getTabs().add(tab);
