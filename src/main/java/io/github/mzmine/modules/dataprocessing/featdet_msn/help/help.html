@@ -16,8 +16,13 @@
             The modules scans the raw data looking for MSn scans and builds a
             chromatographic feature for each MS1 precursor ion with a corresponding MSn scan.
         </p><p>
-            The feature list of precursor signals is constructed using the specified mass and
-            retention time tolerances. For each detected MSn-containing precursor signal, a targeted chromatogram
+            Precursor ion signals are detected through fragment scan tracing. Starting with all MS2
+            scans in range, MSn scans are recursively detected by tracing through each fragment scan
+            associated with each previous MS level. If a scan at the specified <i>MS Level</i> is detected,
+            the precursor m/z recorded in the MS2 scan is utilized to build a chromatogram feature.
+        </p><p>
+            The feature list of precursor signals is constructed using the specified <i>mass and
+            retention time tolerances</i>. For each detected MSn-containing precursor signal, a targeted chromatogram
             in the retention time range is built using all MS1 basepeaks within the mass range. 
         </p><p>
             If more than one peak is detected in the range or more precise peak integration
@@ -29,7 +34,7 @@
             <dt>MS level</dt>
             <dd>The MS level for precursor feature building. All fragment scans corresponding to this MS level
                 are detected and traced back to their MS1 precursor ion origin. <i>Do not set MS Level in the
-                Scan Selection field - this will cause the algorithm to behave improperly.</i></dd>
+                Scan Selection field - all MSn levels are required to trace MSn precursor origins.</i></dd>
             <dt>m/z Tolerance</dt>
             <dd>Precursor ion (MS1) mass tolerance for feature building. All MS1 base peaks within this mass range will be
             use to build a targeted chromatogram feature.</dd>
