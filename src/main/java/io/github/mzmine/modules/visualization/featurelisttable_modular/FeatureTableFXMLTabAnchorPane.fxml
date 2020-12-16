@@ -11,49 +11,6 @@
   <children>
     <BorderPane fx:id="pnMain" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0"
       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-      <top>
-        <HBox BorderPane.alignment="CENTER">
-          <children>
-            <MenuBar>
-              <menus>
-                <Menu mnemonicParsing="false" text="Feature List">
-                  <items>
-                    <MenuItem mnemonicParsing="false" text="Close"/>
-                  </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Settings">
-                  <items>
-                    <MenuItem fx:id="miParameters" mnemonicParsing="false"
-                      onAction="#miParametersOnAction" text="Parameters"/>
-                    <SeparatorMenuItem mnemonicParsing="false"/>
-                    <CheckMenuItem fx:id="miShowXIC" mnemonicParsing="false"
-                      onAction="#miShowXICOnAction" text="Show XIC"/>
-                    <CheckMenuItem fx:id="miShowSpectrum" mnemonicParsing="false"
-                      onAction="#miShowSpectrumOnAction" text="Show spectrum"/>
-                  </items>
-                </Menu>
-              </menus>
-            </MenuBar>
-            <Region HBox.hgrow="ALWAYS" />
-            <FlowPane hgap="10.0">
-              <children>
-                <Label text="Filter by:"/>
-                <ChoiceBox fx:id="cmbFilter" prefWidth="150.0"/>
-                <TextField fx:id="txtSearch"/>
-              </children>
-              <padding>
-                <Insets left="5.0" right="5.0"/>
-              </padding>
-              <VBox.margin>
-                <Insets/>
-              </VBox.margin>
-              <opaqueInsets>
-                <Insets/>
-              </opaqueInsets>
-            </FlowPane>
-          </children>
-        </HBox>
-      </top>
       <center>
         <StackPane fx:id="pnMainCenter" prefHeight="150.0" prefWidth="200.0"
           BorderPane.alignment="CENTER">
@@ -66,13 +23,7 @@
                     <FeatureTableFX fx:id="featureTable"/>
                   </children>
                 </StackPane>
-                <StackPane fx:id="pnPreview" minHeight="0.0" minWidth="0.0" prefHeight="0.0"
-                  prefWidth="0.0" SplitPane.resizableWithParent="false">
-                  <children>
-                    <SplitPane fx:id="pnSpectrumXICSplit" prefHeight="0.0" prefWidth="0.0"
-                      visible="false"/>
-                  </children>
-                </StackPane>
+                <SplitPane fx:id="pnFilters" maxHeight="20.0" minWidth="20.0"/>
               </items>
             </SplitPane>
           </children>

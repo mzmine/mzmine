@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.Frame;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
@@ -34,12 +35,12 @@ import io.github.mzmine.util.TextUtils;
 public class ScanSelection {
 
   private final Range<Integer> scanNumberRange;
-  private Integer baseFilteringInteger;
   private final Range<Double> scanMobilityRange;
   private final Range<Float> scanRTRange;
   private final PolarityType polarity;
   private final MassSpectrumType spectrumType;
   private final Integer msLevel;
+  private Integer baseFilteringInteger;
   private String scanDefinition;
 
   public ScanSelection() {
@@ -99,6 +100,16 @@ public class ScanSelection {
     return scanDefinition;
   }
 
+  public List<? extends Scan> getMachtingScans(List<? extends Scan> scans) {
+    List<Scan> eligibleScans = new ArrayList<>();
+    for (Scan scan : scans) {
+      if (matches(scan)) {
+        eligibleScans.add(scan);
+      }
+    }
+    return eligibleScans;
+  }
+
   public Scan[] getMatchingScans(RawDataFile dataFile) {
 
     final List<Scan> matchingScans = new ArrayList<>();
@@ -107,8 +118,9 @@ public class ScanSelection {
     for (int scanNumber : scanNumbers) {
 
       Scan scan = dataFile.getScan(scanNumber);
-      if (matches(scan))
+      if (matches(scan)) {
         matchingScans.add(scan);
+      }
     }
 
     return matchingScans.toArray(new Scan[matchingScans.size()]);
@@ -122,8 +134,9 @@ public class ScanSelection {
 
     for (int scanNumber : scanNumbers) {
       Scan scan = dataFile.getScan(scanNumber);
-      if (matches(scan))
+      if (matches(scan)) {
         matchingScans.add(scanNumber);
+      }
     }
 
     return Ints.toArray(matchingScans);
@@ -132,58 +145,73 @@ public class ScanSelection {
   public boolean matches(Scan scan) {
     // scan offset was changed
     int offset;
-    if (scanNumberRange != null)
+    if (scanNumberRange != null) {
       offset = scanNumberRange.lowerEndpoint();
-    else {
+    } else {
       // first scan number
-      if (scan.getDataFile() != null && scan.getDataFile().getScanNumbers().length > 0)
+      if (scan.getDataFile() != null && scan.getDataFile().getScanNumbers().length > 0) {
         offset = scan.getDataFile().getScanNumbers()[0];
-      else
+      } else {
         offset = 1;
+      }
     }
     return matches(scan, offset);
   }
 
   /**
-   * 
    * @param scan
    * @param scanNumberOffset is used for baseFilteringInteger (filter every n-th scan)
    * @return
    */
   public boolean matches(Scan scan, int scanNumberOffset) {
-    if ((msLevel != null) && (!msLevel.equals(scan.getMSLevel())))
+    if ((msLevel != null) && (!msLevel.equals(scan.getMSLevel()))) {
       return false;
+    }
 
-    if ((polarity != null) && (!polarity.equals(scan.getPolarity())))
+    if ((polarity != null) && (!polarity.equals(scan.getPolarity()))) {
       return false;
+    }
 
-    if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType())))
+    if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType()))) {
       return false;
+    }
 
-    if ((scanNumberRange != null) && (!scanNumberRange.contains(scan.getScanNumber())))
+    if ((scanNumberRange != null) && (!scanNumberRange.contains(scan.getScanNumber()))) {
       return false;
+    }
 
     if ((baseFilteringInteger != null)
-        && ((scan.getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0))
+        && ((scan.getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0)) {
       return false;
+    }
 
-    if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime())))
+    if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime()))) {
       return false;
+    }
 
-    if ((scanMobilityRange != null) && (!scanMobilityRange.contains(scan.getMobility())))
-      return false;
+    if (scan instanceof Frame) {
+      if (scanMobilityRange != null && !((Frame) scan).getMobilityRange().isConnected(scanMobilityRange)) {
+        return false;
+      }
+    } else {
+      if ((scanMobilityRange != null) && (!scanMobilityRange.contains(scan.getMobility()))) {
+        return false;
+      }
+    }
 
     if (!Strings.isNullOrEmpty(scanDefinition)) {
 
       final String actualScanDefinition = scan.getScanDefinition();
 
-      if (Strings.isNullOrEmpty(actualScanDefinition))
+      if (Strings.isNullOrEmpty(actualScanDefinition)) {
         return false;
+      }
 
       final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
 
-      if (!actualScanDefinition.matches(regex))
+      if (!actualScanDefinition.matches(regex)) {
         return false;
+      }
     }
     return true;
   }

@@ -34,9 +34,21 @@ import com.google.common.collect.Range;
 public class RangeUtils {
 
   /**
+   * [-inf, +inf] range.
+   */
+  public static final Range<Double> DOUBLE_INFINITE_RANGE
+      = Range.closed(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+
+  /**
+   * [NaN, NaN] range.
+   */
+  public static final Range<Double> DOUBLE_NAN_RANGE
+      = Range.singleton(Double.NaN);
+
+  /**
    * Parses a range from String where upper and lower bounds are delimited by a dash, e.g.
    * "100.0-200.5". Note: we are dealing with doubles, so in an unfortunate case the range might
-   * look like this "3.402439E-36-1.310424E-2"
+   * look like this "3.402439E-36-1.310424E-2".
    * 
    */
   public static Range<Double> parseDoubleRange(String text) {
@@ -90,7 +102,7 @@ public class RangeUtils {
 
   /**
    * Returns length of the given range.
-   * i.e. (a..b) -> b - a
+   * i.e. [a..b] -> b - a
    *
    * @param range Range
    * @return Range length
@@ -101,7 +113,7 @@ public class RangeUtils {
 
   /**
    * Returns central value of the given range.
-   * i.e. (a..b) -> (a + b) / 2
+   * i.e. [a..b] -> [a + b] / 2
    *
    * @param range Range
    * @return Range center
@@ -153,5 +165,16 @@ public class RangeUtils {
         : r1.upperEndpoint();
 
     return Range.closed(lower, upper);
+  }
+
+  /**
+   * Checks if the given range equals to [NaN, NaN].
+   *
+   * @param range Range
+   * @return True if the range equals to [NaN, NaN], false otherwise
+   */
+  public static <N extends Number & Comparable<N>> boolean isNaNRange(@Nonnull Range<N> range) {
+    return Double.isNaN(range.lowerEndpoint().doubleValue())
+        && Double.isNaN(range.upperEndpoint().doubleValue());
   }
 }

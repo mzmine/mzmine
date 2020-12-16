@@ -309,7 +309,6 @@ public class MainWindowController {
     });
 
     // notify selected tab about raw file selection change
-    // TODO: Add the same when the feature model is finally done
     rawDataTree.getSelectionModel().getSelectedItems()
         .addListener((ListChangeListener<RawDataFile>) c -> {
           c.next();
@@ -321,6 +320,20 @@ public class MainWindowController {
           }
         });
 
+    featureTree.getSelectionModel().getSelectedItems()
+        .addListener((ListChangeListener<FeatureList>) c -> {
+          c.next();
+          for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
+            if (tab instanceof MZmineTab && tab.isSelected()
+                && ((MZmineTab) tab).isUpdateOnSelection()) {
+              ((MZmineTab) tab).onFeatureListSelectionChanged(c.getList());
+            }
+          }
+        });
+
+    // TODO: aligned feature lists tree selection listener
+
+    /*
     // update if tab selection in main window changes
     getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
       if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) {
@@ -336,6 +349,7 @@ public class MainWindowController {
         // TODO: Add the same for feature lists
       }
     });
+    */
 
     // taskNameColumn.setPrefWidth(800.0);
     // taskNameColumn.setMinWidth(600.0);
