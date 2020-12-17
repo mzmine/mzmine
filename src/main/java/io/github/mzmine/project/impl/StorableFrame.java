@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
@@ -107,8 +108,8 @@ public class StorableFrame extends StorableScan implements Frame {
   }
 
   @Override
-  public List<Integer> getMobilityScanNumbers() {
-    return new ArrayList<>(mobilityScans.keySet());
+  public Set<Integer> getMobilityScanNumbers() {
+    return mobilityScans.keySet();
   }
 
   @Nonnull
@@ -122,9 +123,9 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Nonnull
   @Override
-  public Scan getMobilityScan(int scanNum) {
+  public Scan getMobilityScan(int num) {
     return Objects.requireNonNull(
-        mobilityScans.computeIfAbsent(scanNum, i -> rawDataFile.getScan(scanNum)));
+        mobilityScans.computeIfAbsent(num, i -> rawDataFile.getScan(num)));
   }
 
   @Nonnull
