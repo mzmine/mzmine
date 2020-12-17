@@ -31,6 +31,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilog
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
@@ -84,8 +85,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
    * @return Scan numbers of sub scans.
    */
   @Override
-  public List<Integer> getMobilityScanNumbers() {
-    return new ArrayList<>(mobilityScans.keySet());
+  public Set<Integer> getMobilityScanNumbers() {
+    return mobilityScans.keySet();
   }
 
   @Override
@@ -118,7 +119,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   @Override
-  public Scan getMobilityScan(int scanNum) {
+  public Scan getMobilityScan(int num) {
     throw new UnsupportedOperationException(
         "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }

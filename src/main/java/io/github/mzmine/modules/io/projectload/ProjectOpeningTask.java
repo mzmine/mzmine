@@ -22,6 +22,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.PeakListOpenHandler_3
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.modules.io.projectload.version_3_0.UserParameterOpenHandler_3_0;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,9 +45,6 @@ import io.github.mzmine.modules.io.projectload.version_2_5.PeakListOpenHandler_2
 import io.github.mzmine.modules.io.projectload.version_2_5.RawDataFileOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.UserParameterOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
-/*
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
- */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
@@ -244,7 +242,7 @@ public class ProjectOpeningTask extends AbstractTask {
         final Matcher peakListMatcher = peakListPattern.matcher(entryName);
         if (peakListMatcher.matches()) {
           final String peakListName = peakListMatcher.group(2);
-          loadPeakList(cis, peakListName);
+          loadFeatureList(cis, peakListName);
         }
 
         // Close the ZIP entry
@@ -449,21 +447,15 @@ public class ProjectOpeningTask extends AbstractTask {
 
   }
 
-  private void loadPeakList(InputStream is, String peakListName) throws IOException,
+  private void loadFeatureList(InputStream is, String featureListName) throws IOException,
       ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
-    // TODO:
-    /*
-    logger.info("Loading feature list " + peakListName);
+    logger.info("Loading feature list " + featureListName);
 
-    currentLoadedObjectName = peakListName;
+    currentLoadedObjectName = featureListName;
 
-    PeakList newPeakList = peakListOpenHandler.readPeakList(is);
+    FeatureList newFeatureList = peakListOpenHandler.readPeakList(is);
 
-    newProject.addPeakList(newPeakList);
-
-    // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(newPeakList);
-    */
+    newProject.addFeatureList(newFeatureList);
   }
 
   private void loadUserParameters(InputStream is) throws IOException, ParserConfigurationException,

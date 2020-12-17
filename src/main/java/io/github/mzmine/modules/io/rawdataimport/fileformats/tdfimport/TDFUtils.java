@@ -249,7 +249,7 @@ public class TDFUtils {
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
     final long firstScanNum = frameTable.getFirstScanNumForFrame(frameId);
     final List<Scan> scans = new ArrayList<>(numScans);
-    final Set<Long> precursorIds = precursorTable.getPrecursorIdsForMS1Frame(frameId);
+//    final Set<Long> precursorIds = precursorTable.getPrecursorIdsForMS1Frame(frameId);
     final List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
@@ -271,11 +271,11 @@ public class TDFUtils {
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
     for (int i = 0; i < dataPoints.size(); i++) {
-      if (dataPoints.get(i).length == 0) {
+      /*if (dataPoints.get(i).length == 0) {
         continue;
-      }
+      }*/
 
-      Set<Integer> fragmentScanNumbers = new HashSet<>();
+//      Set<Integer> fragmentScanNumbers = new HashSet<>();
       double precursorMz = 0.d;
       int precursorCharge = 0;
       if (msLevel == 2 && framePrecursorTable != null) {
@@ -284,7 +284,7 @@ public class TDFUtils {
           precursorMz = fpi.getLargestPeakMz();
           precursorCharge = fpi.getCharge();
         }
-      } else {
+      } /*else {
         for (Long precursorId : precursorIds) {
           if (wasPrecursorDetectedAtBrukerScanNum(precursorId, i, framePrecursorTable)) {
             Set<Integer> nums =
@@ -294,13 +294,13 @@ public class TDFUtils {
         }
       }
       final int[] fragmentScanNums =
-          fragmentScanNumbers.stream().mapToInt(Integer::intValue).toArray();
+          fragmentScanNumbers.stream().mapToInt(Integer::intValue).toArray();*/
 
       Scan scan = new SimpleScan(null,
           Math.toIntExact(firstScanNum + i), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
           precursorMz, precursorCharge,
-          fragmentScanNums,
+          /*fragmentScanNums*/ null,
           dataPoints.get(i),
           MassSpectrumType.CENTROIDED,
           polarity, scanDefinition, metaDataTable.getMzRange(), mobilities[i], MobilityType.TIMS);

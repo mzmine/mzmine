@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -37,13 +38,22 @@ public interface Frame extends Scan {
   @Nonnull
   public MobilityType getMobilityType();
 
-  public List<Integer> getMobilityScanNumbers();
+  /**
+   *
+   * @return Unsorted set of sub spectrum numbers.
+   */
+  public Set<Integer> getMobilityScanNumbers();
 
   @Nonnull
   public Range<Double> getMobilityRange();
 
+  /**
+   *
+   * @param num the number of the sub spectrum
+   * @return the sub spectrum
+   */
   @Nullable
-  public Scan getMobilityScan(int scanNum);
+  public Scan getMobilityScan(int num);
 
   @Nonnull
   public List<Scan> getMobilityScans();

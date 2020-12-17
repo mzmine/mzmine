@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel;
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -39,17 +40,17 @@ public interface IMSRawDataFile extends RawDataFile {
   public Frame getFrame(int frameNum);
 
   /**
-   * @return List of all frames in this raw data file. List may be empty if no frames exist.
+   * @return Set of all frames in this raw data file. List may be empty if no frames exist.
    */
   @Nonnull
-  public List<Frame> getFrames();
+  public Collection<? extends Frame> getFrames();
 
   /**
    * @param msLevel The ms level
    * @return List of frames with the given msLevel. May be empty.
    */
   @Nonnull
-  public List<Frame> getFrames(int msLevel);
+  public Collection<? extends Frame> getFrames(int msLevel);
 
   /**
    * @param msLevel
@@ -57,7 +58,7 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return List of frames with given ms mlevel in the specified rt window. May be empty.
    */
   @Nonnull
-  public List<Frame> getFrames(int msLevel, Range<Float> rtRange);
+  public Collection<? extends Frame> getFrames(int msLevel, Range<Float> rtRange);
 
   /**
    * @return The number of frames in this raw data file. equivalent to {@link
@@ -76,7 +77,7 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return The frame numbers in the specified ms level. Might be empty.
    */
   @Nonnull
-  public List<Integer> getFrameNumbers(int msLevel);
+  public Set<Integer> getFrameNumbers(int msLevel);
 
   /**
    * @param msLevel
@@ -84,7 +85,7 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return The frame numbers in the specified ms level and rt range. Might be empty.
    */
   @Nonnull
-  public List<Integer> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  public Set<Integer> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange);
 
   /**
    * @return The mobility range of this raw data file. Might be empty.
