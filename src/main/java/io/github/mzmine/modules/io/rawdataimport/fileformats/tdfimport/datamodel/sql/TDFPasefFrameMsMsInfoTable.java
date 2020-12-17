@@ -18,7 +18,11 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql;
 
+import java.sql.Connection;
 import java.util.Arrays;
+import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
 
 /**
  * This table describes PASEF frames. For every PASEF frame, it represents a list of non-overlapping
@@ -76,17 +80,53 @@ public class TDFPasefFrameMsMsInfoTable extends TDFDataTable<Long> {
    */
   public static final String PRECURSOR_ID = "Precursor";
 
+  private final TDFDataColumn<Long> frameIdColumn;
+  private final TDFDataColumn<Long> precursorIdColumn;
+  private final TDFDataColumn<Long> scanNumBeginColumn;
+  private final TDFDataColumn<Long> scanNumEndColumn;
+
   public TDFPasefFrameMsMsInfoTable() {
     super(PASEF_FRAME_MSMS_TABLE_NAME, FRAME_ID);
 
+    // added by constructor
+    frameIdColumn = (TDFDataColumn<Long>) getColumn(TDFPasefFrameMsMsInfoTable.FRAME_ID);
+
+    // add manually
+    precursorIdColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.PRECURSOR_ID);
+    scanNumBeginColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.SCAN_NUM_BEGIN);
+    scanNumEndColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.SCAN_NUM_END);
+
     columns.addAll(Arrays.asList(
-        new TDFDataColumn<Long>(SCAN_NUM_BEGIN),
-        new TDFDataColumn<Long>(SCAN_NUM_END),
+        scanNumBeginColumn,
+        scanNumEndColumn,
         new TDFDataColumn<Double>(ISOLATION_MZ),
         new TDFDataColumn<Double>(ISOLATION_WIDTH),
         new TDFDataColumn<Double>(COLLISION_ENERGY),
-        new TDFDataColumn<Long>(PRECURSOR_ID)
+        precursorIdColumn
     ));
   }
+
+  /**
+   *
+   * @param frame
+   * @param brukerScanNum Bruker layout!
+   * @return the precursor id or -1;
+   */
+  public int getPrecursorIdAtScan(long frame, long brukerScanNum) {
+    int index = 0;
+    for (; index < getColumn(FRAME_ID).size(); index++) {
+      if (frameIdColumn.get(index) == frame
+          && scanNumBeginColumn.get(index) <= brukerScanNum
+          && scanNumEndColumn.get(index) > brukerScanNum) {
+        return precursorIdColumn.get(index).intValue();
+      } else if (frameIdColumn.get(index) > frame) {
+        break;
+      }
+    }
+    return -1;
+  }
+
+
+
 
 }

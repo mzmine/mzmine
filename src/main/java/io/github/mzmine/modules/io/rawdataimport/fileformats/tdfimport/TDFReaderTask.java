@@ -84,8 +84,10 @@ public class TDFReaderTask extends AbstractTask {
    */
 
   /**
-   * @param tdf
-   * @param tdfBin
+   * @param project
+   * @param file
+   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via {@link
+   *                      MZmineCore#createNewIMSFile(String)}.
    */
   public TDFReaderTask(MZmineProject project, File file, RawDataFileWriter newMZmineFile) {
     File[] files = new File[2];
@@ -109,7 +111,7 @@ public class TDFReaderTask extends AbstractTask {
     precursorTable = new TDFPrecursorTable();
     pasefFrameMsMsInfoTable = new TDFPasefFrameMsMsInfoTable();
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
-    framePrecursorTable = new FramePrecursorTable();
+    framePrecursorTable = new FramePrecursorTable(frameTable);
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     isMaldi = false;
 
@@ -283,7 +285,7 @@ public class TDFReaderTask extends AbstractTask {
       finishedPercentage = 0.9 * frameId / numFrames;
       final List<Scan> scans = TDFUtils.loadScansForTIMSFrame(
           handle, frameId, tdfFrameTable, tdfMetaDataTable,
-          framePrecursorTable);
+          framePrecursorTable, pasefFrameMsMsInfoTable, precursorTable);
 
       try {
         for (Scan scan : scans) {

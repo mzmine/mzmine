@@ -18,7 +18,10 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql;
 
+import com.google.common.collect.Range;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Table containing all precursors / features detected by an on-line precursor-selection algorithm.
@@ -78,27 +81,51 @@ public class TDFPrecursorTable extends TDFDataTable<Long> {
    */
   public static final String PARENT_ID = "Parent";
 
+  private final TDFDataColumn<Long> precursorIdColumn;
+  private final TDFDataColumn<Double> largestPeakMzColumn;
+  private final TDFDataColumn<Double> averageMzColumn;
+  private final TDFDataColumn<Double> monoisotopicMzColumn;
+  private final TDFDataColumn<Long> chargeColumn;
+  private final TDFDataColumn<Double> scanNumberColumn;
+  private final TDFDataColumn<Double> intensityColumn;
+  private final TDFDataColumn<Long> frameIdColumn;
+
   public TDFPrecursorTable() {
     super(PRECURSOR_TABLE_NAME, PRECURSOR_ID);
 
-    columns.addAll(Arrays.asList(new TDFDataColumn<Double>(LARGEST_PEAK_MZ),
-        new TDFDataColumn<Double>(AVERAGE_MZ),
-        new TDFDataColumn<Double>(MONOISOTOPIC_MZ),
-        new TDFDataColumn<Long>(CHARGE),
-        new TDFDataColumn<Double>(SCAN_NUMBER),
-        new TDFDataColumn<Double>(INTENSITY),
-        new TDFDataColumn<Long>(PARENT_ID)
-    ));
+    precursorIdColumn = (TDFDataColumn<Long>) getColumn(PRECURSOR_ID);
+    largestPeakMzColumn = new TDFDataColumn<>(LARGEST_PEAK_MZ);
+    averageMzColumn = new TDFDataColumn<>(AVERAGE_MZ);
+    monoisotopicMzColumn = new TDFDataColumn<>(MONOISOTOPIC_MZ);
+    chargeColumn = new TDFDataColumn<>(CHARGE);
+    scanNumberColumn = new TDFDataColumn<>(SCAN_NUMBER);
+    intensityColumn = new TDFDataColumn<>(INTENSITY);
+    frameIdColumn = new TDFDataColumn<>(PARENT_ID);
+
+    columns.addAll(Arrays.asList(largestPeakMzColumn,
+        averageMzColumn,
+        monoisotopicMzColumn,
+        chargeColumn,
+        scanNumberColumn,
+        intensityColumn,
+        frameIdColumn));
   }
 
-  private static class X {
-    long frame;
-    long precursorId;
-
+  public Set<Long> getPrecursorIdsForMS1Frame(long frame) {
+    HashSet<Long> precursorIds = new HashSet<>();
+    for (int index = 0; index < precursorIdColumn.size(); index++) {
+      if (frameIdColumn.get(index) == frame) {
+        precursorIds.add(precursorIdColumn.get(index));
+      } else if (frameIdColumn.get(index) > frame) {
+        break;
+      }
+    }
+    return precursorIds;
   }
 
   @Override
   public boolean isValid() {
     return true;
   }
+
 }
