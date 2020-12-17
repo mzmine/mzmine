@@ -271,9 +271,9 @@ public class TDFUtils {
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
     for (int i = 0; i < dataPoints.size(); i++) {
-      if (dataPoints.get(i).length == 0) {
+      /*if (dataPoints.get(i).length == 0) {
         continue;
-      }
+      }*/
 
 //      Set<Integer> fragmentScanNumbers = new HashSet<>();
       double precursorMz = 0.d;
