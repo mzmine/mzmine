@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,7 @@ public interface Frame extends Scan {
 
   /**
    * Equivalent to {@link Scan#getScanNumber()}.
+   *
    * @return the scan number
    */
   @Deprecated
@@ -45,7 +47,6 @@ public interface Frame extends Scan {
   public MobilityType getMobilityType();
 
   /**
-   *
    * @return Unsorted set of sub spectrum numbers.
    */
   public Set<Integer> getMobilityScanNumbers();
@@ -54,7 +55,6 @@ public interface Frame extends Scan {
   public Range<Double> getMobilityRange();
 
   /**
-   *
    * @param num the number of the sub spectrum
    * @return the sub spectrum
    */
@@ -67,4 +67,11 @@ public interface Frame extends Scan {
   public double getMobilityForSubSpectrum(int subSpectrumIndex);
 
   public Map<Integer, Double> getMobilities();
+
+  /**
+   * @return Precursor info for this frame. Empty set if this is not an MS/MS frame or no precursors
+   * were fragmented or assigned.
+   */
+  @Nonnull
+  public Set<FramePrecursorInfo> getPrecursorInfo();
 }

@@ -21,8 +21,10 @@ package io.github.mzmine.project.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -39,6 +41,7 @@ public class StorableFrame extends StorableScan implements Frame {
    */
   private final Map<Integer, MobilityMassSpectrum> mobilityMassSpectra;
 //  private final Map<Integer, Double> mobilities;
+  private final Set<FramePrecursorInfo> precursorInfos;
   /**
    * Mobility range of this frame. Updated when a scan is added.
    */
@@ -60,18 +63,7 @@ public class StorableFrame extends StorableScan implements Frame {
 //    mobilities = new HashMap<>(originalFrame.getNumberOfMobilityScans());
     mobilityMassSpectra = new HashMap<>(originalFrame.getNumberOfMobilityScans());
     mobilityRange = null;
-
-//    for(Integer num : originalFrame.getMobilityScanNumbers()) {
-//      mobilities.put(num, originalFrame.getMobilityForSubSpectrum(num));
-//    }
-
-    // TODO subspectra
-    /*for (int spectrumNum : originalFrame.getMobilityScanNumbers()) {
-      MobilityMassSpectrum spectrum = originalFrame.getMobilityScan(spectrumNum);
-      if (spectrum != null) {
-        addMobilityScan(spectrum);
-      }
-    }*/
+    precursorInfos = originalFrame.getPrecursorInfo();
 
   }
 
@@ -173,6 +165,12 @@ public class StorableFrame extends StorableScan implements Frame {
     return ((IMSRawDataFileImpl) rawDataFile).getMobilitiesForFrame(getScanNumber());
   }
 
+  @Nonnull
+  @Override
+  public Set<FramePrecursorInfo> getPrecursorInfo() {
+    return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -201,7 +199,8 @@ public class StorableFrame extends StorableScan implements Frame {
   @Override
   public int hashCode() {
     return Objects
-        .hash(getScanNumber(), getMSLevel(), getPrecursorMZ(), getPrecursorCharge(), getRetentionTime(),
+        .hash(getScanNumber(), getMSLevel(), getPrecursorMZ(), getPrecursorCharge(),
+            getRetentionTime(),
             getDataPointMZRange(), getHighestDataPoint(), getTIC(), getSpectrumType(),
             getNumberOfDataPoints(),
             getDataFile(), getMassLists(), getPolarity(), getScanDefinition(), getScanningMZRange(),

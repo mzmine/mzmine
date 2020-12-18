@@ -48,8 +48,10 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Long> precursorIdColumn;
   private final TDFDataColumn<Long> scanNumBeginColumn;
   private final TDFDataColumn<Long> scanNumEndColumn;
+  private final TDFDataColumn<Long> collisionEnergyColumn;
   private final TDFDataColumn<Double> largestPeakMzColumn;
   private final TDFDataColumn<Long> chargeColumn;
+  private final TDFDataColumn<Double> monoisotopicMzColumn;
 
   /**
    * Key = FrameId
@@ -79,15 +81,20 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
     precursorIdColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.PRECURSOR_ID);
     scanNumBeginColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.SCAN_NUM_BEGIN);
     scanNumEndColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.SCAN_NUM_END);
+    collisionEnergyColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.COLLISION_ENERGY);
     largestPeakMzColumn = new TDFDataColumn<>(TDFPrecursorTable.LARGEST_PEAK_MZ);
     chargeColumn = new TDFDataColumn<>(TDFPrecursorTable.CHARGE);
+    monoisotopicMzColumn = new TDFDataColumn<>(TDFPrecursorTable.MONOISOTOPIC_MZ);
+
 
     columns.addAll(Arrays.asList(
         precursorIdColumn,
         scanNumBeginColumn,
         scanNumEndColumn,
+        collisionEnergyColumn,
         largestPeakMzColumn,
-        chargeColumn
+        chargeColumn,
+        monoisotopicMzColumn
     ));
 
     info = new HashMap<>();
@@ -113,8 +120,10 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
         + msmstable + "." + TDFPasefFrameMsMsInfoTable.PRECURSOR_ID + ", "
         + msmstable + "." + TDFPasefFrameMsMsInfoTable.SCAN_NUM_BEGIN + ", "
         + msmstable + "." + TDFPasefFrameMsMsInfoTable.SCAN_NUM_END + ", "
+        + msmstable + "." + TDFPasefFrameMsMsInfoTable.COLLISION_ENERGY + ", "
         + precursorstable + "." + TDFPrecursorTable.LARGEST_PEAK_MZ + ", "
-        + precursorstable + "." + TDFPrecursorTable.CHARGE;
+        + precursorstable + "." + TDFPrecursorTable.CHARGE + ", "
+        + precursorstable + "." + TDFPrecursorTable.MONOISOTOPIC_MZ;
   }
 
   @Override

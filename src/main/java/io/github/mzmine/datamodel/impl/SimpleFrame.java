@@ -26,30 +26,36 @@ import io.github.mzmine.datamodel.MobilityMassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class SimpleFrame extends SimpleScan implements Frame {
 
-  private MobilityType mobilityType;
   private final int numMobilitySpectra;
+  private MobilityType mobilityType;
 //  private final Map<Integer, Scan> mobilityScans;
   /**
    * Mobility range of this frame. Updated when a scan is added.
    */
   private Range<Double> mobilityRange;
   private Map<Integer, Double> mobilities;
+  private Set<FramePrecursorInfo> precursorInfos;
 
-  public SimpleFrame(RawDataFile dataFile, int scanNumber, int msLevel,
+  public SimpleFrame(@Nullable RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge,
       DataPoint[] dataPoints,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
-      Range<Double> scanMZRange, MobilityType mobilityType,
-      final int numMobilitySpectra, Map<Integer, Double> mobilities) {
+      @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
+      final int numMobilitySpectra,
+      @Nonnull Map<Integer, Double> mobilities,
+      @Nullable Set<FramePrecursorInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ,
         precursorCharge, /*fragmentScans,*/
         dataPoints, spectrumType, polarity, scanDefinition, scanMZRange);
@@ -58,6 +64,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     mobilityRange = Range.singleton(0.d);
     this.numMobilitySpectra = numMobilitySpectra;
     this.mobilities = mobilities;
+    this.precursorInfos = precursorInfos;
   }
 
   /**
@@ -113,6 +120,12 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Override
   public Map<Integer, Double> getMobilities() {
     return mobilities;
+  }
+
+  @Nonnull
+  @Override
+  public Set<FramePrecursorInfo> getPrecursorInfo() {
+    return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
   }
 
   @Override

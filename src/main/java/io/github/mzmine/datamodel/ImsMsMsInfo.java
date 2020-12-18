@@ -18,31 +18,40 @@
 
 package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.impl.precursors.MsMsInfo;
-import java.util.Set;
+import com.google.common.collect.Range;
 
 /**
- *
+ * Precursor information stored in IMS MS2 frames regarding their respective sub spectra.
  */
-public interface PrecursorInfo {
+public interface ImsMsMsInfo {
 
   /**
    *
-   * @return The precursor / isolation mz
+   * @return The m/z of the detected precursor.
    */
-  public double getPrecursorMZ();
+  public double getPrecursorMz();
 
   /**
    *
-   * @return The MS-1 scan number this precursor was detected in.
+   * @return The range of spectra numbers in this frame where this precursor was fragmented in.
    */
-  public int getRepresentativeScanNumber();
+  public Range<Integer> getSpectrumNumberRange();
 
   /**
    *
-   * @return Charge of this precursor. 0 if unknown.
+   * @return Collision energy this precursor was fragmented at in the given range.
    */
-  public int getCharge();
+  public float getCollisionEnergy();
 
-  public Set<MsMsInfo> getMsMsInfo();
+  /**
+   * @return The charge of the precursor. 0 = unknown.
+   */
+  public int getPrecursorCharge();
+
+  /**
+   *
+   * @return The frame this precursor was initially detected in.
+   */
+  public int getParentFrameNumber();
+
 }
