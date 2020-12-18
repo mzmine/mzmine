@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel;
 import com.google.common.collect.Range;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -122,4 +123,7 @@ public interface IMSRawDataFile extends RawDataFile {
   @Nonnull
   public MobilityType getMobilityType();
 
+  public double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber);
+
+  public Map<Integer, Double> getMobilitiesForFrame(int frameNumber);
 }

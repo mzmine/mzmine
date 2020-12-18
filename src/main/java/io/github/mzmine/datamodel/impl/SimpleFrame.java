@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityMassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -47,12 +48,12 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private Map<Integer, Double> mobilities;
 
   public SimpleFrame(RawDataFile dataFile, int scanNumber, int msLevel,
-      float retentionTime, double precursorMZ, int precursorCharge, int[] fragmentScans,
+      float retentionTime, double precursorMZ, int precursorCharge, /*int[] fragmentScans,*/
       DataPoint[] dataPoints,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
-      Range<Double> scanMZRange, int frameId, MobilityType mobilityType,
-      final int numMobilitySpectra) {
+      Range<Double> scanMZRange, MobilityType mobilityType,
+      final int numMobilitySpectra, Map<Integer, Double> mobilities) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ,
         precursorCharge, /*fragmentScans,*/
         dataPoints, spectrumType, polarity, scanDefinition, scanMZRange);
@@ -60,7 +61,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
     this.numMobilitySpectra = numMobilitySpectra;
-
+    this.mobilities = mobilities;
   }
 
   /**
@@ -68,8 +69,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   public int getNumberOfMobilityScans() {
-    throw new UnsupportedOperationException(
-        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
+    return numMobilitySpectra;
   }
 
   @Override
@@ -83,8 +83,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   public Set<Integer> getMobilityScanNumbers() {
-    throw new UnsupportedOperationException(
-        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
+    return mobilities.keySet();
   }
 
   @Override
@@ -95,7 +94,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   @Override
-  public Scan getMobilityScan(int num) {
+  public MobilityMassSpectrum getMobilityScan(int num) {
     throw new UnsupportedOperationException(
         "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
@@ -105,19 +104,18 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   @Nonnull
-  public List<Scan> getMobilityScans() {
+  public List<MobilityMassSpectrum> getMobilityScans() {
     throw new UnsupportedOperationException(
         "Mobility scans are not associated with SimpleFrames, only StorableFrames");
-  }
-
-  @Override
-  public int getFrameId() {
-    return super.getScanNumber();
   }
 
   @Override
   public double getMobilityForSubSpectrum(int subSpectrumIndex) {
-    throw new UnsupportedOperationException(
-        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
+    return mobilities.getOrDefault(subSpectrumIndex, MobilityMassSpectrum.DEFAULT_MOBILITY);
+  }
+
+  @Override
+  public Map<Integer, Double> getMobilities() {
+    return mobilities;
   }
 }

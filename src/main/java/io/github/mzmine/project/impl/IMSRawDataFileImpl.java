@@ -22,17 +22,21 @@ import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityMassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,11 +44,18 @@ import javax.annotation.Nullable;
 public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Ion mobility Raw data file";
-
+  private static Logger logger = Logger.getLogger(IMSRawDataFileImpl.class.getName());
   private final TreeMap<Integer, StorableFrame> frames;
   private final Hashtable<Integer, Set<Integer>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
   private final Hashtable<Integer, Collection<? extends Frame>> frameMsLevelCache;
+
+  /**
+   * Mobility <-> sub spectrum number is the same for a segment but might change between segments!
+   * Key = Range of Frame numbers in a segment (inclusive) Value = Mapping of sub spectrum number ->
+   * mobility
+   */
+  private final Map<Range<Integer>, Map<Integer, Double>> segmentMobilityRange;
 
   protected Range<Double> mobilityRange;
   protected MobilityType mobilityType;
@@ -56,13 +67,16 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
     frameMsLevelCache = new Hashtable<>();
+    segmentMobilityRange = new HashMap<>();
 
     mobilityRange = null;
     mobilityType = MobilityType.NONE;
   }
 
   @Override
-  public synchronized void addScan(Scan newScan) throws IOException {
+  public synchronized Scan addScan(Scan newScan) throws IOException {
+
+    // TODO: dirty hack - currently the frames are added to the scan and frame map
     if (this.mobilityType == MobilityType.NONE) {
       this.mobilityType = newScan.getMobilityType();
     }
@@ -75,41 +89,49 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     if (newScan instanceof Frame) {
       Frame newFrame = (Frame) newScan;
       if (newScan instanceof StorableFrame) {
+        scans.put(((StorableFrame) newScan).getFrameId(), (StorableFrame) newFrame);
         frames.put(((StorableFrame) newScan).getFrameId(), (StorableFrame) newFrame);
-        return;
+        return newFrame;
       }
+
+      Range<Integer> segmentKey = getSegmentKeyForFrame(((Frame) newScan).getScanNumber());
+      segmentMobilityRange.putIfAbsent(segmentKey, newFrame.getMobilities());
+
       final int storageId = storeDataPoints(newFrame.getDataPoints());
       StorableFrame storedFrame = new StorableFrame(newFrame, this,
           newFrame.getNumberOfDataPoints(), storageId);
+      scans.put(storedFrame.getFrameId(), storedFrame);
       frames.put(storedFrame.getFrameId(), storedFrame);
-      return;
+      return storedFrame;
     } else {
-      if (mobilityRange == null) {
+      logger.info("Only frames should be added to an IMSRawDataFile");
+      return super.addScan(newScan);
+      /*if (mobilityRange == null) {
         mobilityRange = Range.singleton(newScan.getMobility());
       } else if (!mobilityRange.contains(newScan.getMobility())) {
         mobilityRange = mobilityRange.span(Range.singleton(newScan.getMobility()));
       }
-      super.addScan(newScan);
+      super.addScan(newScan);*/
     }
   }
 
   @Nonnull
   @Override
   public Collection<? extends Frame> getFrames() {
-    return frames.values();
+    return (Collection<? extends Frame>) frames.values();
   }
 
   @Nonnull
   @Override
   public Collection<? extends Frame> getFrames(int msLevel) {
-    return frameMsLevelCache.computeIfAbsent(msLevel, level -> frames.values().stream()
+    return frameMsLevelCache.computeIfAbsent(msLevel, level -> getFrames().stream()
         .filter(frame -> frame.getMSLevel() == msLevel).collect(Collectors.toSet()));
   }
 
   @Nullable
   @Override
   public Frame getFrame(int frameNum) {
-    return frames.get(frameNum);
+    return (Frame) frames.get(frameNum);
   }
 
   @Override
@@ -217,19 +239,48 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
       double lower = 1E10;
       double upper = -1E10;
       synchronized (frames) {
-        for (Entry<Integer, StorableFrame> e : frames.entrySet()) {
-          if (e.getValue().getMSLevel() == msLevel &&
-              e.getValue().getMobilityRange().lowerEndpoint() < lower) {
-            lower = e.getValue().getMobilityRange().lowerEndpoint();
+        for (Frame e : getFrames()) {
+          if (e.getMSLevel() == msLevel &&
+              e.getMobilityRange().lowerEndpoint() < lower) {
+            lower = e.getMobilityRange().lowerEndpoint();
           }
-          if (e.getValue().getMSLevel() == msLevel &&
-              e.getValue().getMobilityRange().upperEndpoint() > upper) {
-            upper = e.getValue().getMobilityRange().upperEndpoint();
+          if (e.getMSLevel() == msLevel &&
+              e.getMobilityRange().upperEndpoint() > upper) {
+            upper = e.getMobilityRange().upperEndpoint();
           }
         }
       }
       dataMobilityRangeCache.put(msLevel, Range.closed(lower, upper));
     }
     return dataMobilityRangeCache.get(msLevel);
+  }
+
+  /**
+   * @param frameRange The range (in frame ids) for an acquisition segment.
+   */
+  public void addSegment(Range<Integer> frameRange) {
+    segmentMobilityRange.put(frameRange, null);
+  }
+
+  @Override
+  public double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber) {
+    Map<Integer, Double> mobilityValues =
+        segmentMobilityRange.entrySet().stream()
+            .filter(entry -> entry.getKey().contains(frameNumber))
+            .findFirst().get().getValue();
+    return mobilityValues.getOrDefault(mobilitySpectrumNumber,
+        MobilityMassSpectrum.DEFAULT_MOBILITY);
+  }
+
+  @Override
+  public Map<Integer, Double> getMobilitiesForFrame(int frameNumber) {
+    return segmentMobilityRange.entrySet().stream()
+        .filter(entry -> entry.getKey().contains(frameNumber))
+        .findFirst().get().getValue();
+  }
+
+  private Range<Integer> getSegmentKeyForFrame(int frameId) {
+    return segmentMobilityRange.keySet().stream()
+        .filter(segmentRange -> segmentRange.contains(frameId)).findFirst().get();
   }
 }

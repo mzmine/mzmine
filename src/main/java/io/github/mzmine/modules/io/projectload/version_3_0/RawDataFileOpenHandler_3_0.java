@@ -327,9 +327,9 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
 
     if (qName.equals(RawDataElementName_3_0.FRAME.getElementName())) {
 
-      final StorableFrame storableScan = new StorableFrame(newRawDataFile, currentStorageID,
+      /*final StorableFrame storableScan = new StorableFrame(newRawDataFile, currentStorageID,
           dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
-          /*fragmentScan,*/ null, polarity, scanDescription, scanMZRange, frameId,
+          *//*fragmentScan,*//* null, polarity, scanDescription, scanMZRange, frameId,
           mobilityType, Range.closed(lowerMobilityRange, upperMobilityRange),
           Arrays.stream(mobilityScans).boxed().collect(Collectors.toList()));
 
@@ -342,7 +342,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       for (StorableMassList newML : massLists) {
         newML.setScan(storableScan);
         storableScan.addMassList(newML);
-      }
+      }*/
 
       resetReadValues();
     }

@@ -240,18 +240,18 @@ class RawDataFileSaveHandler {
           return;
         }
 
-        StorableFrame frame = (StorableFrame) imsFile.getFrame(frameNum);
-        int storageID = frame.getStorageID();
-        atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
-            String.valueOf(storageID));
-        hd.startElement("", "", RawDataElementName.FRAME.getElementName(), atts);
-        fillScanElement(frame, hd);
-        fillFrameElement(frame, hd);
-        hd.endElement("", "", RawDataElementName.FRAME.getElementName());
-        atts.clear();
-
-        completedFrames++;
-        progress = 0.9 + (0.1 * ((double) completedFrames / numOfFrames));
+//        StorableFrame frame = (StorableFrame) imsFile.getFrame(frameNum);
+//        int storageID = frame.getStorageID();
+//        atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+//            String.valueOf(storageID));
+//        hd.startElement("", "", RawDataElementName.FRAME.getElementName(), atts);
+//        fillScanElement(frame, hd);
+//        fillFrameElement(frame, hd);
+//        hd.endElement("", "", RawDataElementName.FRAME.getElementName());
+//        atts.clear();
+//
+//        completedFrames++;
+//        progress = 0.9 + (0.1 * ((double) completedFrames / numOfFrames));
       }
     }
 

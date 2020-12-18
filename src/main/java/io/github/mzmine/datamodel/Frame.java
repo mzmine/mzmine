@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -29,7 +30,14 @@ import javax.annotation.Nullable;
  */
 public interface Frame extends Scan {
 
-  public int getFrameId();
+  /**
+   * Equivalent to {@link Scan#getScanNumber()}.
+   * @return the scan number
+   */
+  @Deprecated
+  public default int getFrameId() {
+    return getScanNumber();
+  }
 
   public int getNumberOfMobilityScans();
 
@@ -58,4 +66,5 @@ public interface Frame extends Scan {
 
   public double getMobilityForSubSpectrum(int subSpectrumIndex);
 
+  public Map<Integer, Double> getMobilities();
 }

@@ -23,6 +23,8 @@ package io.github.mzmine.datamodel;
 
 public interface MobilityMassSpectrum extends MassSpectrum {
 
+  public static final double DEFAULT_MOBILITY = -1.0d;
+
   /**
    *
    * @return The mobility of this sub-spectrum. The unit will depend on the respective mass
@@ -52,6 +54,6 @@ public interface MobilityMassSpectrum extends MassSpectrum {
    *
    * @return The index of this subspectrum.
    */
-  public int getSpectrumIndex();
+  public int getSpectrumNumber();
 
 }
