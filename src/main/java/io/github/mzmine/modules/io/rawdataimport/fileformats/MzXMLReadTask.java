@@ -238,20 +238,20 @@ public class MzXMLReadTask extends AbstractTask {
           throw new SAXException("The value of msLevel is bigger than 10");
         }
 
-        if (msLevel > 1) {
+        /*if (msLevel > 1) {
           parentScan = parentTreeValue[msLevel - 1];
           for (SimpleScan p : parentStack) {
             if (p.getScanNumber() == parentScan) {
               p.addFragmentScan(scanNumber);
             }
           }
-        }
+        }*/
 
         // Setting the level of fragment of scan and parent scan number
         msLevelTree++;
         parentTreeValue[msLevel] = scanNumber;
 
-        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, 0, 0, null,
+        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, 0, 0, /*null,*/
             new DataPoint[0], null, polarity, scanId, null);
 
       }

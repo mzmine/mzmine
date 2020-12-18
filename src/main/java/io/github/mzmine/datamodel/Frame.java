@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,7 +33,14 @@ import javax.annotation.Nullable;
  */
 public interface Frame extends Scan {
 
-  public int getFrameId();
+  /**
+   * Equivalent to {@link Scan#getScanNumber()}.
+   * @return the scan number
+   */
+  @Deprecated
+  public default int getFrameId() {
+    return getScanNumber();
+  }
 
   public int getNumberOfMobilityScans();
 
@@ -53,14 +62,18 @@ public interface Frame extends Scan {
    * @return the sub spectrum
    */
   @Nullable
-  public Scan getMobilityScan(int num);
+  public MobilityMassSpectrum getMobilityScan(int num);
 
+  @Nonnull
+  public List<MobilityMassSpectrum> getMobilityScans();
+
+  public double getMobilityForSubSpectrum(int subSpectrumIndex);
+
+  public Map<Integer, Double> getMobilities();
 
   public ImmutableList<Mobilogram> getMobilograms();
 
   public int addMobilogram(Mobilogram mobilogram);
 
   public void clearMobilograms();
-
-  public Collection<Scan> getMobilityScans();
 }
