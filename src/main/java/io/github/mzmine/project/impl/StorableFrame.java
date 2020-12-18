@@ -53,7 +53,6 @@ public class StorableFrame extends StorableScan implements Frame {
    */
   private Range<Double> mobilityRange;
 
-
   /**
    * Creates a storable frame and also stores the mobility resolved scans.
    *
@@ -69,7 +68,6 @@ public class StorableFrame extends StorableScan implements Frame {
 //    mobilities = new HashMap<>(originalFrame.getNumberOfMobilityScans());
     mobilityMassSpectra = new HashMap<>(originalFrame.getNumberOfMobilityScans());
     mobilograms = new ArrayList<>();
-    mobilityScans = new TreeMap<>();
     mobilityRange = null;
 
 //    for(Integer num : originalFrame.getMobilityScanNumbers()) {

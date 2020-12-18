@@ -76,7 +76,7 @@ public class MobilogramBuilderTask extends AbstractTask {
       }
 
       List<Scan> eligibleScans = frame.getMobilityScans().stream().filter(
-          scanSelection::matches).collect(Collectors.toList());
+          f -> scanSelection.matches(f)).collect(Collectors.toList());
       List<Mobilogram> mobilograms =
           calculateMobilogramsForScans(eligibleScans);
 
