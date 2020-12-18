@@ -170,6 +170,11 @@
 					text="Targeted feature detection"
 					userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule" />
 			</Menu>
+			<Menu text="Ion Mobility">
+		        <MenuItem onAction="#runModule"
+		          	text="Ion mobility trace builder"
+		          	userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>
+		    </Menu>
 			<Menu text="MS/MS">
 				<MenuItem onAction="#runModule"
 					text="MS/MS feature list builder"
