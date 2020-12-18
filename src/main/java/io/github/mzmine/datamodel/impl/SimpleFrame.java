@@ -29,8 +29,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import java.util.ArrayList;
+import io.github.mzmine.project.impl.StorableFrame;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -129,7 +132,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   @Nonnull
-  public List<Scan> getMobilityScans() {
+  public Collection<Scan> getMobilityScans() {
     throw new UnsupportedOperationException(
         "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
@@ -152,5 +155,41 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Override
   public void clearMobilograms() {
     throw new UnsupportedOperationException("clearMobilograms is not supported by SimpleFrame");
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleFrame)) {
+      return false;
+    }
+    SimpleFrame that = (SimpleFrame) o;
+    return getScanNumber() == that.getScanNumber() && getMSLevel() == that.getMSLevel()
+        && Double.compare(that.getPrecursorMZ(), getPrecursorMZ()) == 0
+        && getPrecursorCharge() == that.getPrecursorCharge()
+        && Float.compare(that.getRetentionTime(), getRetentionTime()) == 0
+        && getNumberOfDataPoints() == that.getNumberOfDataPoints()
+        && Double.compare(that.getMobility(), getMobility()) == 0
+        && Objects.equals(getDataPointMZRange(), that.getDataPointMZRange()) && Objects
+        .equals(getHighestDataPoint(), that.getHighestDataPoint()) && Double.compare(getTIC(),
+        that.getTIC()) == 0
+        && getSpectrumType() == that.getSpectrumType() && getDataFile().equals(that.getDataFile())
+        && Objects.equals(getMassLists(), that.getMassLists()) && getPolarity() == that
+        .getPolarity() && Objects.equals(getScanDefinition(), that.getScanDefinition())
+        && getScanningMZRange().equals(that.getScanningMZRange()) && getMobilityType() == that
+        .getMobilityType() && getFrameId() == that.getFrameId();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+        .hash(getScanNumber(), getMSLevel(), getPrecursorMZ(), getPrecursorCharge(),
+            getRetentionTime(),
+            getDataPointMZRange(), getHighestDataPoint(), getTIC(), getSpectrumType(),
+            getNumberOfDataPoints(),
+            getDataFile(), getMassLists(), getPolarity(), getScanDefinition(), getScanningMZRange(),
+            getMobility(), getMobilityType(), getFrameId());
   }
 }

@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,8 +55,6 @@ public interface Frame extends Scan {
   @Nullable
   public Scan getMobilityScan(int num);
 
-  @Nonnull
-  public List<Scan> getMobilityScans();
 
   public ImmutableList<Mobilogram> getMobilograms();
 
@@ -64,4 +62,5 @@ public interface Frame extends Scan {
 
   public void clearMobilograms();
 
+  public Collection<Scan> getMobilityScans();
 }
