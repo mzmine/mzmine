@@ -52,7 +52,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
       PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, int frameId, MobilityType mobilityType,
       @Nonnull List<Integer> mobilityScanNumbers) {
-    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, fragmentScans,
+    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*fragmentScans,*/
         dataPoints, spectrumType, polarity, scanDefinition, scanMZRange);
 
     this.frameId = frameId;

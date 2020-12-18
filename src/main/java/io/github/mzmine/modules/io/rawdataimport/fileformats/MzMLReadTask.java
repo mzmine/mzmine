@@ -158,18 +158,18 @@ public class MzMLReadTask extends AbstractTask {
 
         if(Double.compare(mobility, -1.0d) == 0) {
           scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-              precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition, null);
+              precursorCharge, /*null,*/ dataPoints, spectrumType, polarity, scanDefinition, null);
         } else {
           scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-              precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition, null, mobility,
+              precursorCharge, /*null,*/ dataPoints, spectrumType, polarity, scanDefinition, null, mobility,
               MobilityType.DRIFT_TUBE);
         }
 
-        for (io.github.mzmine.datamodel.Scan s : parentStack) {
+        /*for (io.github.mzmine.datamodel.Scan s : parentStack) {
           if (s.getScanNumber() == parentScan) {
             s.addFragmentScan(scanNumber);
           }
-        }
+        }*/
 
         /*
          * Verify the size of parentStack. The actual size of the window to cover possible

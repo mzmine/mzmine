@@ -300,7 +300,7 @@ public class TDFUtils {
           Math.toIntExact(firstScanNum + i), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
           precursorMz, precursorCharge,
-          /*fragmentScanNums*/ null,
+//          /*fragmentScanNums*/ null,
           dataPoints.get(i),
           MassSpectrumType.CENTROIDED,
           polarity, scanDefinition, metaDataTable.getMzRange(), mobilities[i], MobilityType.TIMS);
@@ -350,7 +350,7 @@ public class TDFUtils {
       Scan scan = new SimpleScan(null,
           Math.toIntExact(firstScanNum + i), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          precursorMz, precursorCharge, null, dataPoints.get(i), MassSpectrumType.CENTROIDED,
+          precursorMz, precursorCharge, /*null,*/ dataPoints.get(i), MassSpectrumType.CENTROIDED,
           polarity, scanDefinition, metaDataTable.getMzRange(), mobilities[i], MobilityType.TIMS);
       scans.add(scan);
     }
@@ -457,7 +457,7 @@ public class TDFUtils {
 
     return new SimpleScan(null, scanNum, msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-        0.d, 0, null, dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
+        0.d, 0, /*null,*/ dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
         metaDataTable.getMzRange());
   }
 

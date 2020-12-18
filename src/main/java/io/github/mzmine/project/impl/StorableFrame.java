@@ -74,14 +74,14 @@ public class StorableFrame extends StorableScan implements Frame {
 
   public StorableFrame(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
       int scanNumber, int msLevel, float retentionTime, double precursorMZ,
-      int precursorCharge, int[] fragmentScans,
+      int precursorCharge,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, int frameId, @Nonnull MobilityType mobilityType,
       @Nonnull Range<Double> mobilityRange, @Nonnull List<Integer> mobilityScanNumbers) {
 
     super(rawDataFile, storageID, numberOfDataPoints, scanNumber, msLevel, retentionTime,
-        precursorMZ, precursorCharge, fragmentScans, spectrumType, polarity, scanDefinition,
+        precursorMZ, precursorCharge, spectrumType, polarity, scanDefinition,
         scanMZRange);
 
     this.frameId = frameId;

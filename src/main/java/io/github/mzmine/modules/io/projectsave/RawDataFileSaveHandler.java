@@ -315,7 +315,7 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.QUANTITY_DATAPOINTS.getElementName());
 
     // <FRAGMENT_SCAN>
-    if (scan.getFragmentScanNumbers() != null) {
+    /*if (scan.getFragmentScanNumbers() != null) {
       int[] fragmentScans = scan.getFragmentScanNumbers();
       atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
           String.valueOf(fragmentScans.length));
@@ -328,7 +328,7 @@ class RawDataFileSaveHandler {
       }
       hd.endElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
 
-    }
+    }*/
 
     // <MASS_LIST>
     MassList massLists[] = scan.getMassLists();
