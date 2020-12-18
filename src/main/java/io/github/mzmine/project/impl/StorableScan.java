@@ -427,6 +427,7 @@ public class StorableScan implements Scan {
     return mobility;
   }
 
+  @Nonnull
   @Override
   public MobilityType getMobilityType() {
     return mobilityType;

@@ -37,13 +37,14 @@ import javax.annotation.Nullable;
 
 public class SimpleFrame extends SimpleScan implements Frame {
 
-  private final int frameId;
   private MobilityType mobilityType;
-  private final SortedMap<Integer, Scan> mobilityScans;
+  private final int numMobilitySpectra;
+//  private final Map<Integer, Scan> mobilityScans;
   /**
    * Mobility range of this frame. Updated when a scan is added.
    */
   private Range<Double> mobilityRange;
+  private Map<Integer, Double> mobilities;
 
   public SimpleFrame(RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge, int[] fragmentScans,
@@ -51,18 +52,15 @@ public class SimpleFrame extends SimpleScan implements Frame {
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, int frameId, MobilityType mobilityType,
-      @Nonnull List<Integer> mobilityScanNumbers) {
-    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*fragmentScans,*/
+      final int numMobilitySpectra) {
+    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ,
+        precursorCharge, /*fragmentScans,*/
         dataPoints, spectrumType, polarity, scanDefinition, scanMZRange);
 
-    this.frameId = frameId;
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
+    this.numMobilitySpectra = numMobilitySpectra;
 
-    mobilityScans = new TreeMap<>();
-    for (int scannum : mobilityScanNumbers) {
-      mobilityScans.put(scannum, null);
-    }
   }
 
   /**
@@ -70,7 +68,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   public int getNumberOfMobilityScans() {
-    return mobilityScans.size();
+    throw new UnsupportedOperationException(
+        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
 
   @Override
@@ -84,36 +83,15 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   public Set<Integer> getMobilityScanNumbers() {
-    return mobilityScans.keySet();
+    throw new UnsupportedOperationException(
+        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
 
   @Override
   @Nonnull
   public Range<Double> getMobilityRange() {
-    return mobilityRange;
-  }
-
-  /**
-   * Adds the scan as a sub scan. The scan number is taken from the mobility scan.
-   *
-   * @param mobilityScan The scan to add.
-   * @return {@link Map#put(Object, Object)}
-   */
-  @Nullable
-  public Scan addMobilityScan(@Nonnull Scan mobilityScan) {
-    if (mobilityScan.getMobility() < mobilityRange.lowerEndpoint()) {
-      mobilityRange = Range.closed(mobilityScan.getMobility(), mobilityRange.upperEndpoint());
-    }
-    if (mobilityScan.getMobility() > mobilityRange.upperEndpoint()) {
-      mobilityRange = Range.closed(mobilityRange.lowerEndpoint(), mobilityScan.getMobility());
-    }
-    return mobilityScans.put(mobilityScan.getScanNumber(), mobilityScan);
-  }
-
-  public void addMobilityScans(List<Scan> mobilityScans) {
-    for (Scan scan : mobilityScans) {
-      addMobilityScan(scan);
-    }
+    throw new UnsupportedOperationException(
+        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
 
   @Override
@@ -134,6 +112,12 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public int getFrameId() {
-    return frameId;
+    return super.getScanNumber();
+  }
+
+  @Override
+  public double getMobilityForSubSpectrum(int subSpectrumIndex) {
+    throw new UnsupportedOperationException(
+        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
 }

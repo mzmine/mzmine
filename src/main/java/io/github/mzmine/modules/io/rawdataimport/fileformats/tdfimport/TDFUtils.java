@@ -411,7 +411,7 @@ public class TDFUtils {
     return new SimpleFrame(null, scanNum, msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
         0.d, 0, null, dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
-        metaDataTable.getMzRange(), (int) frameId, MobilityType.TIMS, subscanNumbers);
+        metaDataTable.getMzRange(), (int) frameId, MobilityType.TIMS, numScans);
   }
 
   @Nullable

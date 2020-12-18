@@ -51,8 +51,11 @@ public interface Frame extends Scan {
    * @return the sub spectrum
    */
   @Nullable
-  public Scan getMobilityScan(int num);
+  public MobilityMassSpectrum getMobilityScan(int num);
 
   @Nonnull
-  public List<Scan> getMobilityScans();
+  public List<MobilityMassSpectrum> getMobilityScans();
+
+  public double getMobilityForSubSpectrum(int subSpectrumIndex);
+
 }

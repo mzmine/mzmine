@@ -20,17 +20,15 @@ package io.github.mzmine.project.impl;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.MobilityMassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import javax.annotation.Nonnull;
 
 public class StorableFrame extends StorableScan implements Frame {
@@ -38,15 +36,16 @@ public class StorableFrame extends StorableScan implements Frame {
   private final int frameId;
 
   /**
-   * key = scan num, value = mobility scan // TODO do we need this?
+   * key = scan num, value = mobility mass spectrum // TODO do we need this?
    */
-  private final SortedMap<Integer, Scan> mobilityScans;
+  private final Map<Integer, MobilityMassSpectrum> mobilityMassSpectra;
   /**
    * Mobility range of this frame. Updated when a scan is added.
    */
   private Range<Double> mobilityRange;
 
-//  private final List<Integer> mobilityScanNumbers;
+  private final Map<Integer, Double> mobilities;
+
 
   /**
    * Creates a storable frame and also stores the mobility resolved scans.
@@ -61,18 +60,21 @@ public class StorableFrame extends StorableScan implements Frame {
     super(originalFrame, rawDataFile, numberOfDataPoints, storageID);
 
     frameId = originalFrame.getFrameId();
-    mobilityScans = new TreeMap<>();
+    mobilities = new HashMap<>(originalFrame.getNumberOfMobilityScans());
+    mobilityMassSpectra = new HashMap<>(originalFrame.getNumberOfMobilityScans());
     mobilityRange = null;
 
+    // TODO subspectra
     for (int scannum : originalFrame.getMobilityScanNumbers()) {
       Scan scan = rawDataFile.getScan(scannum);
       if (scan != null) {
         addMobilityScan(scan);
       }
     }
+
   }
 
-  public StorableFrame(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
+  /*public StorableFrame(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
       int scanNumber, int msLevel, float retentionTime, double precursorMZ,
       int precursorCharge,
       MassSpectrumType spectrumType,
@@ -95,7 +97,7 @@ public class StorableFrame extends StorableScan implements Frame {
         addMobilityScan(scan);
       }
     }
-  }
+  }*/
 
   @Override
   public int getFrameId() {
@@ -104,12 +106,12 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Override
   public int getNumberOfMobilityScans() {
-    return mobilityScans.size();
+    return mobilityMassSpectra.size();
   }
 
   @Override
   public Set<Integer> getMobilityScanNumbers() {
-    return mobilityScans.keySet();
+    return mobilityMassSpectra.keySet();
   }
 
   @Nonnull
@@ -125,13 +127,13 @@ public class StorableFrame extends StorableScan implements Frame {
   @Override
   public Scan getMobilityScan(int num) {
     return Objects.requireNonNull(
-        mobilityScans.computeIfAbsent(num, i -> rawDataFile.getScan(num)));
+        mobilityMassSpectra.computeIfAbsent(num, i -> rawDataFile.getScan(num)));
   }
 
   @Nonnull
   @Override
   public List<Scan> getMobilityScans() {
-    return new ArrayList<>(mobilityScans.values());
+    return new ArrayList<>(mobilityMassSpectra.values());
   }
 
   protected final void addMobilityScan(Scan mobilityScan) {
@@ -141,6 +143,6 @@ public class StorableFrame extends StorableScan implements Frame {
       mobilityRange = mobilityRange.span(Range.singleton(mobilityScan.getMobility()));
     }
 
-    mobilityScans.put(mobilityScan.getScanNumber(), mobilityScan);
+    mobilityMassSpectra.put(mobilityScan.getScanNumber(), mobilityScan);
   }
 }
