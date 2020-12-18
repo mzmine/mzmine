@@ -12,10 +12,12 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MobilogramUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -26,7 +28,7 @@ public class MobilogramBuilderTask extends AbstractTask {
 
   private static Logger logger = Logger.getLogger(MobilogramBuilderTask.class.getName());
 
-  private final List<Frame> frames;
+  private final Set<Frame> frames;
   private final MZTolerance mzTolerance;
   private final String massList;
   private final int totalFrames;
@@ -43,7 +45,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     this.scanSelection =
         parameters.getParameter(MobilogramBuilderParameters.scanSelection).getValue();
 //    this.frames = frames;
-    this.frames = (List<Frame>) scanSelection.getMachtingScans((frames));
+    this.frames = (Set<Frame>) scanSelection.getMachtingScans((frames));
 
     totalFrames = (this.frames.size() != 0) ? this.frames.size() : 1;
     setStatus(TaskStatus.WAITING);
@@ -154,7 +156,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     return mobilograms;
   }
 
-  private void addDataPointsFromRaw(List<Mobilogram> mobilograms, List<Scan> rawScans) {
+  private void addDataPointsFromRaw(List<Mobilogram> mobilograms, Collection<Scan> rawScans) {
     // rawScans are actually StorableScans so data points are stored on the hard disc. We preload
     // everything here at once
     int numDp = 0;
