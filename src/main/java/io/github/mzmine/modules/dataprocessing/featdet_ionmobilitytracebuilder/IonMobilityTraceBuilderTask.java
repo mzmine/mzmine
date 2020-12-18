@@ -18,11 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -69,10 +72,9 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final int minDataPointsRt;
   private final int minTotalSignals;
   private final ScanSelection scanSelection;
-  private double dataPointHeight;
-  private double dataPointWidth;
   private double progress = 0.0;
   private String taskDescription = "";
+  private double mobilityWidth;
 
   @SuppressWarnings("unchecked")
   public IonMobilityTraceBuilderTask(MZmineProject project, RawDataFile rawDataFile,
@@ -148,7 +150,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
               dp -> allDataPoints.add(new RetentionTimeMobilityDataPoint(scan.getMobility(),
                   dp.getMZ(), scan.getRetentionTime(), dp.getIntensity(), frame.getFrameId(),
-                  scan.getScanNumber(), dataPointWidth, dataPointHeight)));
+                  scan.getScanNumber(), mobilityWidth)));
         }
       }
       progress = (processedFrame / (double) frames.size()) / 4;
@@ -274,7 +276,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     Set<Integer> scanNumbers = new HashSet<>();
     SortedSet<RetentionTimeMobilityDataPoint> sortedRetentionTimeMobilityDataPoints =
         new TreeSet<>(new Comparator<RetentionTimeMobilityDataPoint>() {
-
           @Override
           public int compare(RetentionTimeMobilityDataPoint o1, RetentionTimeMobilityDataPoint o2) {
             if (o1.getScanNumber() > o2.getScanNumber()) {
@@ -407,18 +408,21 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
 
 
   private void calculateDataPointSizeForPlots(Set<Frame> frames) {
-    Frame frameA = null;
-    SortedSet<Frame> sortedFrames = new TreeSet<>(Comparator.comparing(Frame::getRetentionTime));
-    sortedFrames.addAll(frames);
-    for (Frame frame : sortedFrames) {
-      if (frameA == null) {
-        frameA = frame;
-      } else if (frameA.getMSLevel() == 1 && frame.getMSLevel() == 1) {
-        dataPointWidth = Math.abs(frameA.getRetentionTime() - frame.getRetentionTime());
-        dataPointHeight = 1 / (double) frame.getNumberOfMobilityScans();
-        break;
-      }
+    List<Integer> numberOfScansPerFrame = new ArrayList<>();
+    for (Frame frame : frames) {
+      numberOfScansPerFrame.add(frame.getNumberOfMobilityScans());
     }
+    Collections.sort(numberOfScansPerFrame);
+    int medianScanNumbers;
+    if (numberOfScansPerFrame.size() % 2 == 0) {
+      int indexA = numberOfScansPerFrame.size() / 2;
+      int indexB = numberOfScansPerFrame.size() / 2 - 1;
+      medianScanNumbers =
+          (numberOfScansPerFrame.get(indexA) + numberOfScansPerFrame.get(indexB)) / 2;
+    } else {
+      int index = numberOfScansPerFrame.size() / 2;
+      medianScanNumbers = numberOfScansPerFrame.get(index);
+    }
+    mobilityWidth = 1 / (double) medianScanNumbers;
   }
-
 }

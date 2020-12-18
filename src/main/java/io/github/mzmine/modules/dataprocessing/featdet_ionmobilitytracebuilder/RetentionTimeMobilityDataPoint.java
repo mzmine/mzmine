@@ -28,20 +28,17 @@ public class RetentionTimeMobilityDataPoint implements DataPoint {
   private final double intensity;
   private final int frameNumber;
   private final int scanNumber;
-  private final double dataPointWidth;
-  private final double dataPointHeight;
+  private final double mobilityWidth;
 
   public RetentionTimeMobilityDataPoint(double mobility, double mz, Float retentionTime,
-      double intensity, int frameNumber, int scanNumber, double dataPointWidth,
-      double dataPointHeight) {
+      double intensity, int frameNumber, int scanNumber, double mobilityWidth) {
     this.mobility = mobility;
     this.mz = mz;
     this.retentionTime = retentionTime;
     this.intensity = intensity;
     this.frameNumber = frameNumber;
     this.scanNumber = scanNumber;
-    this.dataPointWidth = dataPointWidth;
-    this.dataPointHeight = dataPointHeight;
+    this.mobilityWidth = mobilityWidth;
   }
 
   public double getMobility() {
@@ -68,12 +65,8 @@ public class RetentionTimeMobilityDataPoint implements DataPoint {
     return scanNumber;
   }
 
-  public double getDataPointWidth() {
-    return dataPointWidth;
-  }
-
-  public double getDataPointHeight() {
-    return dataPointHeight;
+  public double getMobilityWidth() {
+    return mobilityWidth;
   }
 
   @Override
