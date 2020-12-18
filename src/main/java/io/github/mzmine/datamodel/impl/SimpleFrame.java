@@ -21,12 +21,12 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityMassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -38,14 +38,10 @@ import javax.annotation.Nullable;
 public class SimpleFrame extends SimpleScan implements Frame {
 
   private final int numMobilitySpectra;
-  private MobilityType mobilityType;
-//  private final Map<Integer, Scan> mobilityScans;
-  /**
-   * Mobility range of this frame. Updated when a scan is added.
-   */
-  private Range<Double> mobilityRange;
-  private Map<Integer, Double> mobilities;
-  private Set<FramePrecursorInfo> precursorInfos;
+  private final MobilityType mobilityType;
+  private final Range<Double> mobilityRange;
+  private final Map<Integer, Double> mobilities;
+  private final Set<ImsMsMsInfo> precursorInfos;
 
   public SimpleFrame(@Nullable RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge,
@@ -55,7 +51,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
       @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
       final int numMobilitySpectra,
       @Nonnull Map<Integer, Double> mobilities,
-      @Nullable Set<FramePrecursorInfo> precursorInfos) {
+      @Nullable Set<ImsMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ,
         precursorCharge, /*fragmentScans,*/
         dataPoints, spectrumType, polarity, scanDefinition, scanMZRange);
@@ -124,7 +120,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Nonnull
   @Override
-  public Set<FramePrecursorInfo> getPrecursorInfo() {
+  public Set<ImsMsMsInfo> getPrecursorInfo() {
     return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
   }
 

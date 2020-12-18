@@ -163,11 +163,11 @@ public class TDFReaderTask extends AbstractTask {
     Set<Frame> frames = new LinkedHashSet<>();
     try {
       for (int scanNum = frameId; scanNum < frameTable.getNumberOfFrames(); scanNum++) {
-        finishedPercentage = 0.1 * loadedFrames / numFrames;
+        finishedPercentage = 0.1 * ((double) loadedFrames) / numFrames;
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        Scan frame = TDFUtils
-            .exctractCentroidScanForTimsFrame(handle, frameId, metaDataTable, frameTable);
+        Scan frame = TDFUtils.exctractCentroidScanForTimsFrame(handle, frameId, metaDataTable,
+            frameTable, framePrecursorTable);
         Frame storedFrame = (Frame) newMZmineFile.addScan(frame);
         frames.add(storedFrame);
         frameId++;
@@ -368,7 +368,7 @@ public class TDFReaderTask extends AbstractTask {
       Frame thisFrame = rawDataFile.getFrame(i);
       Frame nextFrame = rawDataFile.getFrame(i + 1);
 
-      if(nextFrame == null) {
+      if (nextFrame == null) {
         break;
       }
 

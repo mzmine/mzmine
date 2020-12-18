@@ -258,9 +258,9 @@ public class TDFUtils {
     }
 
     for (int i = 0; i < dataPoints.size(); i++) {
-      if (dataPoints.get(i).length == 0) {
+      /*if (dataPoints.get(i).length == 0) {
         continue;
-      }
+      }*/
 
       spectra.add(new SimpleMobilityMassSpectrum(i, frame, dataPoints.get(i)));
     }
@@ -344,8 +344,9 @@ public class TDFUtils {
    * @return
    */
   public static SimpleFrame exctractCentroidScanForTimsFrame(final long handle, final long frameId,
-      /*final int scanNum, */@Nonnull final TDFMetaDataTable metaDataTable,
-      @Nonnull final TDFFrameTable frameTable) {
+      @Nonnull final TDFMetaDataTable metaDataTable,
+      @Nonnull final TDFFrameTable frameTable,
+      @Nonnull final FramePrecursorTable framePrecursorTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -370,7 +371,8 @@ public class TDFUtils {
     return new SimpleFrame(null, Math.toIntExact(frameId), msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
         0.d, 0, /*null,*/ dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
-        metaDataTable.getMzRange(), MobilityType.TIMS, numScans, mobilitiesMap);
+        metaDataTable.getMzRange(), MobilityType.TIMS, numScans, mobilitiesMap,
+        framePrecursorTable.getMsMsInfoForFrame(Math.toIntExact(frameId)));
   }
 
   @Nullable
@@ -529,21 +531,6 @@ public class TDFUtils {
     } else {
       return false;
     }
-  }
-
-  /**
-   * @param precursor
-   * @param brukerScanNum       subscan number of the ms1 frame.
-   * @param framePrecursorTable
-   * @return
-   */
-  private static boolean wasPrecursorDetectedAtBrukerScanNum(long precursor, int brukerScanNum,
-      FramePrecursorTable framePrecursorTable) {
-    Range<Long> scanRange = framePrecursorTable.getBrukerScanNumberRangeForPrecursor(precursor);
-    if (scanRange == null) {
-      return false;
-    }
-    return scanRange.contains((long) brukerScanNum);
   }
 
 }

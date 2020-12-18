@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
+import java.util.Objects;
 
 public class ImsMsMsInfoImpl implements ImsMsMsInfo {
 
@@ -39,9 +40,8 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
     this.parentFrameNumber = parentFrameNumber;
   }
 
-
   @Override
-  public double getPrecursorMz() {
+  public double getLargestPeakMz() {
     return precursorMz;
   }
 
@@ -63,5 +63,27 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
   @Override
   public int getParentFrameNumber() {
     return parentFrameNumber;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ImsMsMsInfoImpl)) {
+      return false;
+    }
+    ImsMsMsInfoImpl that = (ImsMsMsInfoImpl) o;
+    return Double.compare(that.precursorMz, precursorMz) == 0
+        && Float.compare(that.getCollisionEnergy(), getCollisionEnergy()) == 0
+        && getPrecursorCharge() == that.getPrecursorCharge() && getParentFrameNumber() == that
+        .getParentFrameNumber() && getSpectrumNumberRange().equals(that.getSpectrumNumberRange());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+        .hash(precursorMz, getSpectrumNumberRange(), getCollisionEnergy(), getPrecursorCharge(),
+            getParentFrameNumber());
   }
 }

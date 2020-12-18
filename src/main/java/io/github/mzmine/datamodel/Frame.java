@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -73,5 +72,5 @@ public interface Frame extends Scan {
    * were fragmented or assigned.
    */
   @Nonnull
-  public Set<FramePrecursorInfo> getPrecursorInfo();
+  public Set<ImsMsMsInfo> getPrecursorInfo();
 }

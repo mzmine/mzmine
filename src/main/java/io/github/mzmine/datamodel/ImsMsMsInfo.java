@@ -27,9 +27,9 @@ public interface ImsMsMsInfo {
 
   /**
    *
-   * @return The m/z of the detected precursor.
+   * @return The most intense m/z of the detected precursor.
    */
-  public double getPrecursorMz();
+  public double getLargestPeakMz();
 
   /**
    *

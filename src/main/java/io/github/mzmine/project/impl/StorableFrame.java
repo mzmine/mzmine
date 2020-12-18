@@ -20,8 +20,8 @@ package io.github.mzmine.project.impl;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MobilityMassSpectrum;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,7 +41,7 @@ public class StorableFrame extends StorableScan implements Frame {
    */
   private final Map<Integer, MobilityMassSpectrum> mobilityMassSpectra;
 //  private final Map<Integer, Double> mobilities;
-  private final Set<FramePrecursorInfo> precursorInfos;
+  private final Set<ImsMsMsInfo> precursorInfos;
   /**
    * Mobility range of this frame. Updated when a scan is added.
    */
@@ -167,7 +167,7 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Nonnull
   @Override
-  public Set<FramePrecursorInfo> getPrecursorInfo() {
+  public Set<ImsMsMsInfo> getPrecursorInfo() {
     return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
   }
 
