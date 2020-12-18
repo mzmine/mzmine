@@ -20,7 +20,10 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.Frame;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
@@ -100,8 +103,8 @@ public class ScanSelection {
     return scanDefinition;
   }
 
-  public List<? extends Scan> getMachtingScans(List<? extends Scan> scans) {
-    List<Scan> eligibleScans = new ArrayList<>();
+  public Set<? extends Scan> getMachtingScans(Collection<? extends Scan> scans) {
+    Set<Scan> eligibleScans = new HashSet<>();
     for (Scan scan : scans) {
       if (matches(scan)) {
         eligibleScans.add(scan);
