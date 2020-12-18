@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -62,7 +62,7 @@ public interface Frame extends Scan {
   public MobilityMassSpectrum getMobilityScan(int num);
 
   @Nonnull
-  public List<MobilityMassSpectrum> getMobilityScans();
+  public Collection<MobilityMassSpectrum> getMobilityScans();
 
   public double getMobilityForSubSpectrum(int subSpectrumIndex);
 

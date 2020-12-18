@@ -26,15 +26,11 @@ import io.github.mzmine.datamodel.MobilityMassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class SimpleFrame extends SimpleScan implements Frame {
 
@@ -48,7 +44,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private Map<Integer, Double> mobilities;
 
   public SimpleFrame(RawDataFile dataFile, int scanNumber, int msLevel,
-      float retentionTime, double precursorMZ, int precursorCharge, /*int[] fragmentScans,*/
+      float retentionTime, double precursorMZ, int precursorCharge, int[] fragmentScans,
       DataPoint[] dataPoints,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
@@ -104,7 +100,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   @Nonnull
-  public List<MobilityMassSpectrum> getMobilityScans() {
+  public Collection<MobilityMassSpectrum> getMobilityScans() {
     throw new UnsupportedOperationException(
         "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
@@ -117,5 +113,41 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Override
   public Map<Integer, Double> getMobilities() {
     return mobilities;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleFrame)) {
+      return false;
+    }
+    SimpleFrame that = (SimpleFrame) o;
+    return getScanNumber() == that.getScanNumber() && getMSLevel() == that.getMSLevel()
+        && Double.compare(that.getPrecursorMZ(), getPrecursorMZ()) == 0
+        && getPrecursorCharge() == that.getPrecursorCharge()
+        && Float.compare(that.getRetentionTime(), getRetentionTime()) == 0
+        && getNumberOfDataPoints() == that.getNumberOfDataPoints()
+        && Double.compare(that.getMobility(), getMobility()) == 0
+        && Objects.equals(getDataPointMZRange(), that.getDataPointMZRange()) && Objects
+        .equals(getHighestDataPoint(), that.getHighestDataPoint()) && Double.compare(getTIC(),
+        that.getTIC()) == 0
+        && getSpectrumType() == that.getSpectrumType() && getDataFile().equals(that.getDataFile())
+        && Objects.equals(getMassLists(), that.getMassLists()) && getPolarity() == that
+        .getPolarity() && Objects.equals(getScanDefinition(), that.getScanDefinition())
+        && getScanningMZRange().equals(that.getScanningMZRange()) && getMobilityType() == that
+        .getMobilityType() && getFrameId() == that.getFrameId();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+        .hash(getScanNumber(), getMSLevel(), getPrecursorMZ(), getPrecursorCharge(),
+            getRetentionTime(),
+            getDataPointMZRange(), getHighestDataPoint(), getTIC(), getSpectrumType(),
+            getNumberOfDataPoints(),
+            getDataFile(), getMassLists(), getPolarity(), getScanDefinition(), getScanningMZRange(),
+            getMobility(), getMobilityType(), getFrameId());
   }
 }

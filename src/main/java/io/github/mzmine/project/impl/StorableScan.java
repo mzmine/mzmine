@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -432,4 +433,5 @@ public class StorableScan implements Scan {
   public MobilityType getMobilityType() {
     return mobilityType;
   }
+
 }
