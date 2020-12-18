@@ -18,13 +18,15 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.datamodel.Frame;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -100,8 +102,8 @@ public class ScanSelection {
     return scanDefinition;
   }
 
-  public List<? extends Scan> getMachtingScans(List<? extends Scan> scans) {
-    List<Scan> eligibleScans = new ArrayList<>();
+  public Set<? extends Scan> getMachtingScans(Set<? extends Scan> scans) {
+    Set<Scan> eligibleScans = new HashSet<>();
     for (Scan scan : scans) {
       if (matches(scan)) {
         eligibleScans.add(scan);
@@ -190,7 +192,8 @@ public class ScanSelection {
     }
 
     if (scan instanceof Frame) {
-      if (scanMobilityRange != null && !((Frame) scan).getMobilityRange().isConnected(scanMobilityRange)) {
+      if (scanMobilityRange != null
+          && !((Frame) scan).getMobilityRange().isConnected(scanMobilityRange)) {
         return false;
       }
     } else {
