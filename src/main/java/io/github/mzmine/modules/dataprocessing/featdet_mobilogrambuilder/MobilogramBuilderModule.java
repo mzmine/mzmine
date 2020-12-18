@@ -14,6 +14,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -41,7 +42,8 @@ public class MobilogramBuilderModule implements MZmineRunnableModule {
         continue;
       }
 
-      List<List<Frame>> frameLists  = Lists.partition(((IMSRawDataFile) file).getFrames(),
+      List<List<Frame>> frameLists  =
+          Lists.partition(((IMSRawDataFile) file).getFrames().stream().collect(Collectors.toList()),
           ((IMSRawDataFile) file).getFrames().size() / numberOfThreads);
 
       for(List<Frame> frames : frameLists) {
