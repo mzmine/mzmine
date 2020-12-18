@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_msms;
+package io.github.mzmine.modules.dataprocessing.featdet_msn;
 
 import java.util.Collection;
 
@@ -30,11 +30,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
-public class MsMsFeatureDetectionModule implements MZmineProcessingModule {
+public class MsnFeatureDetectionModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "MS/MS feature list builder";
+  private static final String MODULE_NAME = "MSn feature list builder";
   private static final String MODULE_DESCRIPTION =
-      "This module looks through the whole raw data for MS2 scans and makes a list of chromatographic features using the precursor mass.";
+      "This module looks through the whole raw data for MSn scans and makes a list of chromatographic features using the precursor mass.";
 
   @Override
   public @Nonnull String getName() {
@@ -51,11 +51,11 @@ public class MsMsFeatureDetectionModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    RawDataFile[] dataFiles = parameters.getParameter(MsMsPeakPickerParameters.dataFiles).getValue()
+    RawDataFile[] dataFiles = parameters.getParameter(MsnPeakPickerParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
 
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new MsMsPeakPickingTask(project, dataFile, parameters);
+      Task newTask = new MsnPeakPickingTask(project, dataFile, parameters);
       tasks.add(newTask);
     }
 
@@ -70,7 +70,7 @@ public class MsMsFeatureDetectionModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MsMsPeakPickerParameters.class;
+    return MsnPeakPickerParameters.class;
   }
 
 }
