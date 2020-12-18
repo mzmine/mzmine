@@ -99,8 +99,7 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Override
   public Set<Integer> getMobilityScanNumbers() {
-//    return mobilityMassSpectra.keySet();
-    return ((IMSRawDataFileImpl) rawDataFile).getMobilitiesForFrame(getScanNumber()).keySet();
+    return mobilityMassSpectra.keySet();
   }
 
   @Nonnull
