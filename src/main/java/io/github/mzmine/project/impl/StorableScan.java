@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -45,8 +46,9 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class StorableScan implements Scan {
 
+  protected RawDataFileImpl rawDataFile;
+  protected MobilityType mobilityType;
   private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private int scanNumber, msLevel, fragmentScans[];
   private double precursorMZ;
   private int precursorCharge;
@@ -56,15 +58,12 @@ public class StorableScan implements Scan {
   private Double totalIonCurrent;
   private MassSpectrumType spectrumType;
   private int numberOfDataPoints;
-  protected RawDataFileImpl rawDataFile;
   private ArrayList<MassList> massLists = new ArrayList<MassList>();
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
-
   private int storageID;
   private double mobility;
-  protected MobilityType mobilityType;
 
   /**
    * Constructor for creating a storable scan from a given scan
@@ -454,4 +453,5 @@ public class StorableScan implements Scan {
   public MobilityType getMobilityType() {
     return mobilityType;
   }
+
 }
