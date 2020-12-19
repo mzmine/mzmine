@@ -19,6 +19,9 @@
 package io.github.mzmine.datamodel.features;
 
 import java.util.stream.Stream;
+
+import io.github.mzmine.datamodel.features.correlation.R2RMS2Similarity;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
@@ -28,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
  * Interface for feature list
  */
 public interface FeatureList {
+
 
   public interface FeatureListAppliedMethod {
 
@@ -247,4 +251,38 @@ public interface FeatureList {
   default boolean isAligned() {
     return getNumberOfRawDataFiles() > 1;
   }
+
+  /**
+   * List of RowGroups group features based on different methods
+   */
+  void setGroups(RowGroupList groups);
+
+  /**
+   * List of RowGroups group features based on different methods
+   * @return
+   */
+  RowGroupList getGroups();
+
+
+  /**
+   * Add row-to-row relationships
+   *
+   * @param a
+   * @param b
+   * @param similarity
+   */
+  void addR2RSimilarity(FeatureListRow a, FeatureListRow b, R2RMS2Similarity similarity);
+
+  /**
+   * Add row-to-row relationships
+   *
+   * @param map
+   */
+  void addR2RSimilarity(R2RMap<R2RMS2Similarity> map);
+
+  /**
+   * A map with all row-to-row relationships
+   * @return
+   */
+  R2RMap<R2RMS2Similarity> getR2RSimilarityMap();
 }

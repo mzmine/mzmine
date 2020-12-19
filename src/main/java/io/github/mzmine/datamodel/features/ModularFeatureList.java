@@ -1,5 +1,7 @@
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.features.correlation.R2RMS2Similarity;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.types.AreaBarType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
@@ -60,6 +62,11 @@ public class ModularFeatureList implements FeatureList {
   private String dateCreated;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
+
+  // grouping
+  private R2RMap<R2RMS2Similarity> ms2SimilarityMap;
+  private RowGroupList groups;
+
 
   public ModularFeatureList(String name) {
     this(name, List.of());
@@ -457,6 +464,7 @@ public class ModularFeatureList implements FeatureList {
     this.dateCreated = date;
   }
 
+
   // TODO: if this method would be called frequently, then store and update whole mz range in
   //  a private variable during rows initialization
   @Override
@@ -483,4 +491,35 @@ public class ModularFeatureList implements FeatureList {
     return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
   }
 
+
+
+  @Override
+  public void setGroups(RowGroupList groups) {
+    this.groups = groups;
+  }
+
+  @Override
+  public RowGroupList getGroups() {
+    return groups;
+  }
+
+  @Override
+  public void addR2RSimilarity(FeatureListRow a, FeatureListRow b, R2RMS2Similarity similarity) {
+    if (ms2SimilarityMap == null)
+      ms2SimilarityMap = new R2RMap<>();
+    ms2SimilarityMap.add(a, b, similarity);
+  }
+
+  @Override
+  public void addR2RSimilarity(R2RMap<R2RMS2Similarity> map) {
+    if (ms2SimilarityMap == null)
+      this.ms2SimilarityMap = map;
+    else
+      this.ms2SimilarityMap.putAll(map);
+  }
+
+  @Override
+  public R2RMap<R2RMS2Similarity> getR2RSimilarityMap() {
+    return ms2SimilarityMap;
+  }
 }

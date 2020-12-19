@@ -18,7 +18,16 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.RowGroup;
+import javafx.collections.ObservableList;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * GroupedFeatureListRows always have a main (representative) row and sub rows to build a tree structure
@@ -28,7 +37,207 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
  */
 public class GroupedFeatureListRow implements FeatureListRow {
 
+    private FeatureGroupType groupType;
     private List<FeatureListRow> subRows;
     private FeatureListRow mainRow;
 
+
+    public GroupedFeatureListRow(FeatureGroupType groupType, List<FeatureListRow> subRows, FeatureListRow mainRow) {
+        this.groupType = groupType;
+        this.subRows = subRows;
+        this.mainRow = mainRow;
+    }
+
+    public FeatureGroupType getGroupType() {
+        return groupType;
+    }
+
+    public List<FeatureListRow> getSubRows() {
+        return subRows;
+    }
+
+    public FeatureListRow getMainRow() {
+        return mainRow;
+    }
+
+    public void setMainRow(FeatureListRow mainRow) {
+        this.mainRow = mainRow;
+    }
+
+    @Override
+    public ObservableList<RawDataFile> getRawDataFiles() {
+        return mainRow.getRawDataFiles();
+    }
+
+    @Override
+    public int getID() {
+        return mainRow.getID();
+    }
+
+    @Override
+    public int getNumberOfFeatures() {
+        return mainRow.getNumberOfFeatures();
+    }
+
+    @Override
+    public ObservableList<Feature> getFeatures() {
+        return mainRow.getFeatures();
+    }
+
+    @Override
+    public Feature getFeature(RawDataFile rawData) {
+        return mainRow.getFeature(rawData);
+    }
+
+    @Override
+    public void addFeature(RawDataFile rawData, Feature feature) {
+        mainRow.addFeature(rawData, feature);
+    }
+
+    @Override
+    public void removeFeature(RawDataFile file) {
+        mainRow.removeFeature(file);
+    }
+
+    @Override
+    public boolean hasFeature(Feature feature) {
+        return mainRow.hasFeature(feature);
+    }
+
+    @Override
+    public boolean hasFeature(RawDataFile rawData) {
+        return mainRow.hasFeature(rawData);
+    }
+
+    @Override
+    public double getAverageMZ() {
+        return mainRow.getAverageMZ();
+    }
+
+    @Override
+    public float getAverageRT() {
+        return mainRow.getAverageRT();
+    }
+
+    @Override
+    public double getAverageHeight() {
+        return mainRow.getAverageHeight();
+    }
+
+    @Override
+    public int getRowCharge() {
+        return mainRow.getRowCharge();
+    }
+
+    @Override
+    public double getAverageArea() {
+        return mainRow.getAverageArea();
+    }
+
+    @Override
+    public String getComment() {
+        return mainRow.getComment();
+    }
+
+    @Override
+    public void setComment(String comment) {
+        mainRow.setComment(comment);
+    }
+
+    @Override
+    public void setAverageMZ(double averageMZ) {
+        mainRow.setAverageMZ(averageMZ);
+    }
+
+    @Override
+    public void setAverageRT(float averageRT) {
+        mainRow.setAverageRT(averageRT);
+    }
+
+    @Override
+    public void addFeatureIdentity(FeatureIdentity identity, boolean preffered) {
+        mainRow.addFeatureIdentity(identity,preffered);
+    }
+
+    @Override
+    public void removeFeatureIdentity(FeatureIdentity identity) {
+        mainRow.removeFeatureIdentity(identity);
+    }
+
+    @Override
+    public ObservableList<FeatureIdentity> getPeakIdentities() {
+        return mainRow.getPeakIdentities();
+    }
+
+    @Override
+    public FeatureIdentity getPreferredFeatureIdentity() {
+        return mainRow.getPreferredFeatureIdentity();
+    }
+
+    @Override
+    public void setPreferredFeatureIdentity(FeatureIdentity identity) {
+        mainRow.setPreferredFeatureIdentity(identity);
+    }
+
+    @Override
+    public void setFeatureInformation(FeatureInformation featureInformation) {
+        mainRow.setFeatureInformation(featureInformation);
+    }
+
+    @Override
+    public FeatureInformation getFeatureInformation() {
+        return mainRow.getFeatureInformation();
+    }
+
+    @Override
+    public double getMaxDataPointIntensity() {
+        return mainRow.getMaxDataPointIntensity();
+    }
+
+    @Override
+    public Feature getBestFeature() {
+        return mainRow.getBestFeature();
+    }
+
+    @Override
+    public Scan getBestFragmentation() {
+        return mainRow.getBestFragmentation();
+    }
+
+    @Nonnull
+    @Override
+    public ObservableList<Scan> getAllMS2Fragmentations() {
+        return mainRow.getAllMS2Fragmentations();
+    }
+
+    @Override
+    public IsotopePattern getBestIsotopePattern() {
+        return mainRow.getBestIsotopePattern();
+    }
+
+    @Override
+    public void setID(int id) {
+        mainRow.setID(id);
+    }
+
+    @Nullable
+    @Override
+    public FeatureList getFeatureList() {
+        return mainRow.getFeatureList();
+    }
+
+    @Override
+    public void setFeatureList(@Nonnull FeatureList flist) {
+        mainRow.setFeatureList(flist);
+    }
+
+    @Override
+    public void setGroup(RowGroup group) {
+        mainRow.setGroup(group);
+    }
+
+    @Override
+    public RowGroup getGroup() {
+        return mainRow.getGroup();
+    }
 }

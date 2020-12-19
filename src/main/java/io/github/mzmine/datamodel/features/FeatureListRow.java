@@ -217,5 +217,16 @@ public interface FeatureListRow {
 
   void setFeatureList(@Nonnull FeatureList flist);
 
-  // End DorresteinLab edit
+  /**
+   * Correlated features grouped
+   * @param group
+   */
+  public void setGroup(RowGroup group);
+
+  /**
+   * Correlated features grouped
+   *
+   * @return
+   */
+  public RowGroup getGroup();
 }

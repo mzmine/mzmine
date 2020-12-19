@@ -96,6 +96,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   private int rowCharge;
 
   private FeatureInformation featureInformation;
+  private RowGroup group;
 
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist) {
     this.flist = flist;
@@ -351,6 +352,16 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       throw new IllegalArgumentException("Cannot set non-modular feature list to modular feature list row.");
     }
     this.flist = (ModularFeatureList) flist;
+  }
+
+  @Override
+  public void setGroup(RowGroup group) {
+    this.group = group;
+  }
+
+  @Override
+  public RowGroup getGroup() {
+    return group;
   }
 
   public String getComment() {
