@@ -28,25 +28,26 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class StorableFrame extends StorableScan implements Frame {
 
   private static Logger logger = Logger.getLogger(Frame.class.getName());
 
   /**
-   * key = scan num, value = mobility mass spectrum // TODO do we need this?
+   * key = scan num, value = mobility mass spectrum
    */
   private final Map<Integer, MobilityMassSpectrum> mobilityMassSpectra;
-//  private final Map<Integer, Double> mobilities;
   private final Set<ImsMsMsInfo> precursorInfos;
+
   /**
    * Mobility range of this frame. Updated when a scan is added.
    */
   private Range<Double> mobilityRange;
-
 
   /**
    * Creates a storable frame and also stores the mobility resolved scans.
@@ -168,6 +169,14 @@ public class StorableFrame extends StorableScan implements Frame {
   @Override
   public Set<ImsMsMsInfo> getPrecursorInfo() {
     return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
+  }
+
+  @Nullable
+  @Override
+  public ImsMsMsInfo getImsMsMsInfoForSubScan(int subScanNumber) {
+    Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
+        .filter(info -> info.getSpectrumNumberRange().contains(subScanNumber)).findFirst();
+    return pcInfo.orElse(null);
   }
 
   @Override

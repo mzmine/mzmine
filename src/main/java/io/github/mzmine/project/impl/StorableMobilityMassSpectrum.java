@@ -21,6 +21,7 @@ package io.github.mzmine.project.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityMassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
@@ -35,8 +36,8 @@ public class StorableMobilityMassSpectrum implements MobilityMassSpectrum {
   private final DataPoint highestDataPoint;
   private final double totalIonCount;
   private final int spectrumNumber;
-  private Range<Double> dataPointsMzRange;
   private final int storageId;
+  private Range<Double> dataPointsMzRange;
 
   public StorableMobilityMassSpectrum(MobilityMassSpectrum originalSpectrum,
       final int storageId) {
@@ -74,14 +75,14 @@ public class StorableMobilityMassSpectrum implements MobilityMassSpectrum {
 
   @Override
   public int getNumberOfDataPoints() {
-    return ((IMSRawDataFileImpl)getFrame().getDataFile()).getDataPointsLengths().get(storageId);
+    return ((IMSRawDataFileImpl) getFrame().getDataFile()).getDataPointsLengths().get(storageId);
   }
 
   @Nonnull
   @Override
   public DataPoint[] getDataPoints() {
     try {
-      return ((IMSRawDataFileImpl)frame.getDataFile()).readDataPoints(this.storageId);
+      return ((IMSRawDataFileImpl) frame.getDataFile()).readDataPoints(this.storageId);
     } catch (IOException e) {
       e.printStackTrace();
       return new DataPoint[0];
@@ -123,5 +124,11 @@ public class StorableMobilityMassSpectrum implements MobilityMassSpectrum {
   @Override
   public int getSpectrumNumber() {
     return spectrumNumber;
+  }
+
+  @Nullable
+  @Override
+  public ImsMsMsInfo getMsMsInfo() {
+    return frame.getImsMsMsInfoForSubScan(spectrumNumber);
   }
 }

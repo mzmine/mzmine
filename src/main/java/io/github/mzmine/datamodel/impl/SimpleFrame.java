@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -122,6 +123,14 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Override
   public Set<ImsMsMsInfo> getPrecursorInfo() {
     return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
+  }
+
+  @Nullable
+  @Override
+  public ImsMsMsInfo getImsMsMsInfoForSubScan(int subScanNumber) {
+    Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
+        .filter(info -> info.getSpectrumNumberRange().contains(subScanNumber)).findFirst();
+    return pcInfo.orElse(null);
   }
 
   @Override

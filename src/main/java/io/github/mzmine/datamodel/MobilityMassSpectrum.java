@@ -18,6 +18,12 @@
 
 package io.github.mzmine.datamodel;
 
+import javax.annotation.Nullable;
+
+/**
+ * Mass spectrum acquired during an ion mobility experiment. Note that this class does not extend
+ * {@link Scan} but just {@link MassSpectrum}.
+ */
 public interface MobilityMassSpectrum extends MassSpectrum {
 
   public static final double DEFAULT_MOBILITY = -1.0d;
@@ -49,5 +55,8 @@ public interface MobilityMassSpectrum extends MassSpectrum {
    * @return The index of this subspectrum.
    */
   public int getSpectrumNumber();
+
+  @Nullable
+  public ImsMsMsInfo getMsMsInfo();
 
 }

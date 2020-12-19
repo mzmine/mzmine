@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityMassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
@@ -116,5 +117,11 @@ public class SimpleMobilityMassSpectrum implements MobilityMassSpectrum {
   @Override
   public int getSpectrumNumber() {
     return spectrumNumber;
+  }
+
+  @Nullable
+  @Override
+  public ImsMsMsInfo getMsMsInfo() {
+    return frame.getImsMsMsInfoForSubScan(spectrumNumber);
   }
 }
