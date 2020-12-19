@@ -18,6 +18,8 @@
 
 package io.github.mzmine.datamodel;
 
+import java.util.Set;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -61,4 +63,12 @@ public interface MobilityScan extends MassSpectrum {
   @Nullable
   public ImsMsMsInfo getMsMsInfo();
 
+  public void addMassList(final @Nonnull MassList massList);
+
+  public void removeMassList(final @Nonnull MassList massList);
+
+  @Nonnull
+  public Set<MassList> getMassLists();
+
+  public MassList getMassList(@Nonnull String name);
 }

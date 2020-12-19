@@ -21,10 +21,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -127,5 +129,26 @@ public class SimpleMobilityScan implements MobilityScan {
   @Override
   public ImsMsMsInfo getMsMsInfo() {
     return frame.getImsMsMsInfoForMobilityScan(spectrumNumber);
+  }
+
+  @Override
+  public synchronized void addMassList(@Nonnull MassList massList) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public synchronized void removeMassList(@Nonnull MassList massList) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @Nonnull
+  public Set<MassList> getMassLists() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public MassList getMassList(@Nonnull String name) {
+    throw new UnsupportedOperationException();
   }
 }
