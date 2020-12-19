@@ -40,16 +40,16 @@ public class SimpleMobilityScan implements MobilityScan {
   private final DataPoint[] dataPoints;
   private final DataPoint highestDataPoint;
   private final double totalIonCount;
-  private final int spectrumNumber;
+  private final int mobilityScamNumber;
   private Range<Double> dataPointsMzRange;
 
-  public SimpleMobilityScan(int spectrumNumber, Frame frame, DataPoint[] dataPoints) {
+  public SimpleMobilityScan(int mobilityScamNumber, Frame frame, DataPoint[] dataPoints) {
     this.frame = frame;
     this.dataPoints = dataPoints;
     ScanUtils.sortDataPointsByMz(this.dataPoints);
     this.totalIonCount = ScanUtils.getTIC(dataPoints, 0.d);
     this.highestDataPoint = ScanUtils.findTopDataPoint(dataPoints);
-    this.spectrumNumber = spectrumNumber;
+    this.mobilityScamNumber = mobilityScamNumber;
   }
 
   @Nonnull
@@ -102,7 +102,7 @@ public class SimpleMobilityScan implements MobilityScan {
 
   @Override
   public double getMobility() {
-    return frame.getMobilityForMobilityScanNumber(spectrumNumber);
+    return frame.getMobilityForMobilityScanNumber(mobilityScamNumber);
   }
 
   @Override
@@ -121,14 +121,14 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public int getSpectrumNumber() {
-    return spectrumNumber;
+  public int getMobilityScamNumber() {
+    return mobilityScamNumber;
   }
 
   @Nullable
   @Override
   public ImsMsMsInfo getMsMsInfo() {
-    return frame.getImsMsMsInfoForMobilityScan(spectrumNumber);
+    return frame.getImsMsMsInfoForMobilityScan(mobilityScamNumber);
   }
 
   @Override

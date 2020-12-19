@@ -56,9 +56,9 @@ public interface MobilityScan extends MassSpectrum {
   public float getRetentionTime();
 
   /**
-   * @return The index of this subspectrum.
+   * @return The index of this mobility subscan.
    */
-  public int getSpectrumNumber();
+  public int getMobilityScamNumber();
 
   @Nullable
   public ImsMsMsInfo getMsMsInfo();

@@ -147,11 +147,11 @@ public class StorableFrame extends StorableScan implements Frame {
       StorableMobilityScan storableMobilityScan =
           new StorableMobilityScan(originalMobilityScan, storageId);
       mobilitySubScans
-          .put(originalMobilityScan.getSpectrumNumber(), storableMobilityScan);
+          .put(originalMobilityScan.getMobilityScamNumber(), storableMobilityScan);
 
     } catch (IOException e) {
       e.printStackTrace();
-      logger.warning(() -> "Mobility scan " + originalMobilityScan.getSpectrumNumber() +
+      logger.warning(() -> "Mobility scan " + originalMobilityScan.getMobilityScamNumber() +
           " for frame " + getFrameId() + " not stored.");
     }
   }
