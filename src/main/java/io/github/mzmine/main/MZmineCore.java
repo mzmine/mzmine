@@ -18,7 +18,6 @@
 
 package io.github.mzmine.main;
 
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,16 +43,17 @@ import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 /*
-import io.github.mzmine.modules.batchmode.BatchModeModule;
+ * import io.github.mzmine.modules.batchmode.BatchModeModule;
  */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.ProjectManagerImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
-import io.github.mzmine.util.ExitCode;
 import javafx.application.Application;
 
 /**
@@ -156,11 +156,8 @@ public final class MZmineCore {
       }
       // TODO:
       /*
-      ExitCode exitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(), batchFile);
-      if (exitCode == ExitCode.OK)
-        System.exit(0);
-      else
-        System.exit(1);
+       * ExitCode exitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
+       * batchFile); if (exitCode == ExitCode.OK) System.exit(0); else System.exit(1);
        */
 
     }
@@ -239,6 +236,10 @@ public final class MZmineCore {
 
   public static RawDataFileWriter createNewIMSFile(String name) throws IOException {
     return new IMSRawDataFileImpl(name);
+  }
+
+  public static RawDataFileWriter createNewImagingFile(String name) throws IOException {
+    return new ImagingRawDataFileImpl(name);
   }
 
   @Nonnull

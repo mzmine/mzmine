@@ -18,15 +18,19 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-
-import io.github.mzmine.datamodel.*;
-import io.github.mzmine.util.scans.ScanUtils;
-
-import javax.annotation.Nonnull;
 import java.util.TreeSet;
 import java.util.Vector;
+import javax.annotation.Nonnull;
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Simple implementation of the Scan interface.
@@ -385,5 +389,70 @@ public class SimpleScan implements Scan {
       scanMZRange = getDataPointMZRange();
     return scanMZRange;
   }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + msLevel;
+    result = prime * result + ((mzRange == null) ? 0 : mzRange.hashCode());
+    result = prime * result + ((polarity == null) ? 0 : polarity.hashCode());
+    result = prime * result + precursorCharge;
+    long temp;
+    temp = Double.doubleToLongBits(precursorMZ);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    result = prime * result + Float.floatToIntBits(retentionTime);
+    result = prime * result + ((scanDefinition == null) ? 0 : scanDefinition.hashCode());
+    result = prime * result + ((scanMZRange == null) ? 0 : scanMZRange.hashCode());
+    result = prime * result + scanNumber;
+    result = prime * result + ((spectrumType == null) ? 0 : spectrumType.hashCode());
+    temp = Double.doubleToLongBits(totalIonCurrent);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    SimpleScan other = (SimpleScan) obj;
+    if (msLevel != other.msLevel)
+      return false;
+    if (mzRange == null) {
+      if (other.mzRange != null)
+        return false;
+    } else if (!mzRange.equals(other.mzRange))
+      return false;
+    if (polarity != other.polarity)
+      return false;
+    if (precursorCharge != other.precursorCharge)
+      return false;
+    if (Double.doubleToLongBits(precursorMZ) != Double.doubleToLongBits(other.precursorMZ))
+      return false;
+    if (Float.floatToIntBits(retentionTime) != Float.floatToIntBits(other.retentionTime))
+      return false;
+    if (scanDefinition == null) {
+      if (other.scanDefinition != null)
+        return false;
+    } else if (!scanDefinition.equals(other.scanDefinition))
+      return false;
+    if (scanMZRange == null) {
+      if (other.scanMZRange != null)
+        return false;
+    } else if (!scanMZRange.equals(other.scanMZRange))
+      return false;
+    if (scanNumber != other.scanNumber)
+      return false;
+    if (spectrumType != other.spectrumType)
+      return false;
+    if (Double.doubleToLongBits(totalIonCurrent) != Double.doubleToLongBits(other.totalIonCurrent))
+      return false;
+    return true;
+  }
+
 }
 
