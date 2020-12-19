@@ -21,32 +21,40 @@ package io.github.mzmine.project.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
+/**
+ * @author https://github.com/SteffenHeu
+ * @see io.github.mzmine.datamodel.Frame
+ */
 public class StorableFrame extends StorableScan implements Frame {
 
   private static Logger logger = Logger.getLogger(Frame.class.getName());
 
   /**
-   * key = scan num, value = mobility mass spectrum // TODO do we need this?
+   * key = scan num, value = mobility scan
    */
-  private final Map<Integer, MobilityMassSpectrum> mobilityMassSpectra;
-//  private final Map<Integer, Double> mobilities;
+  private final Map<Integer, MobilityScan> mobilitySubScans;
+  private final Set<ImsMsMsInfo> precursorInfos;
   private final List<StorableMobilogram> mobilograms;
   /**
    * Mobility range of this frame. Updated when a scan is added.
@@ -65,23 +73,10 @@ public class StorableFrame extends StorableScan implements Frame {
       RawDataFileImpl rawDataFile, int numberOfDataPoints, int storageID) throws IOException {
     super(originalFrame, rawDataFile, numberOfDataPoints, storageID);
 
-//    mobilities = new HashMap<>(originalFrame.getNumberOfMobilityScans());
-    mobilityMassSpectra = new HashMap<>(originalFrame.getNumberOfMobilityScans());
+    mobilitySubScans = new HashMap<>(originalFrame.getNumberOfMobilityScans());
     mobilograms = new ArrayList<>();
     mobilityRange = null;
-
-//    for(Integer num : originalFrame.getMobilityScanNumbers()) {
-//      mobilities.put(num, originalFrame.getMobilityForSubSpectrum(num));
-//    }
-
-    // TODO subspectra
-    /*for (int spectrumNum : originalFrame.getMobilityScanNumbers()) {
-      MobilityMassSpectrum spectrum = originalFrame.getMobilityScan(spectrumNum);
-      if (spectrum != null) {
-        addMobilityScan(spectrum);
-      }
-    }*/
-
+    precursorInfos = originalFrame.getImsMsMsInfos();
   }
 
   /*public StorableFrame(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
@@ -113,13 +108,12 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Override
   public int getNumberOfMobilityScans() {
-    return mobilityMassSpectra.size();
+    return mobilitySubScans.size();
   }
 
   @Override
   public Set<Integer> getMobilityScanNumbers() {
-//    return mobilityMassSpectra.keySet();
-    return ((IMSRawDataFileImpl) rawDataFile).getMobilitiesForFrame(getScanNumber()).keySet();
+    return mobilitySubScans.keySet();
   }
 
   @Nonnull
@@ -133,55 +127,79 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Nonnull
   @Override
-  public MobilityMassSpectrum getMobilityScan(int num) {
-    return Objects.requireNonNull(mobilityMassSpectra.get(num));
+  public MobilityScan getMobilityScan(int num) {
+    return Objects.requireNonNull(mobilitySubScans.get(num));
   }
 
   @Nonnull
   @Override
-  public List<MobilityMassSpectrum> getMobilityScans() {
-    return new ArrayList<>(mobilityMassSpectra.values());
+  public Collection<MobilityScan> getMobilityScans() {
+    return mobilitySubScans.values();
   }
 
   /**
    * Not to be used during processing. Can only be called during raw data file reading before
    * finishWriting() was called.
    *
-   * @param originalMobilityMassSpectrum The spectrum to store.
+   * @param originalMobilityScan The mobility scan to store.
    */
-  public final void addMobilityScan(MobilityMassSpectrum originalMobilityMassSpectrum) {
+  public final void addMobilityScan(MobilityScan originalMobilityScan) {
     try {
       final int storageId =
-          rawDataFile.storeDataPoints(originalMobilityMassSpectrum.getDataPoints());
+          rawDataFile.storeDataPoints(originalMobilityScan.getDataPoints());
 
       if (mobilityRange == null) {
-        mobilityRange = Range.singleton(originalMobilityMassSpectrum.getMobility());
-      } else if (!mobilityRange.contains(originalMobilityMassSpectrum.getMobility())) {
+        mobilityRange = Range.singleton(originalMobilityScan.getMobility());
+      } else if (!mobilityRange.contains(originalMobilityScan.getMobility())) {
         mobilityRange = mobilityRange
-            .span(Range.singleton(originalMobilityMassSpectrum.getMobility()));
+            .span(Range.singleton(originalMobilityScan.getMobility()));
       }
 
-      StorableMobilityMassSpectrum storableSpectrum =
-          new StorableMobilityMassSpectrum(originalMobilityMassSpectrum, storageId);
-      mobilityMassSpectra
-          .put(originalMobilityMassSpectrum.getSpectrumNumber(), storableSpectrum);
+      StorableMobilityScan storableMobilityScan =
+          new StorableMobilityScan(originalMobilityScan, storageId);
+      mobilitySubScans
+          .put(originalMobilityScan.getSpectrumNumber(), storableMobilityScan);
 
     } catch (IOException e) {
       e.printStackTrace();
-      logger.warning(() -> "Mobility spectrum " + originalMobilityMassSpectrum.getSpectrumNumber() +
+      logger.warning(() -> "Mobility scan " + originalMobilityScan.getSpectrumNumber() +
           " for frame " + getFrameId() + " not stored.");
     }
   }
 
+  /**
+   * @param mobilityScanIndex
+   * @return
+   * @see io.github.mzmine.datamodel.IMSRawDataFile#getMobilityForMobilitySpectrum(int, int)
+   */
   @Override
-  public double getMobilityForSubSpectrum(int subSpectrumIndex) {
+  public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
     return ((IMSRawDataFileImpl) rawDataFile)
-        .getMobilityForMobilitySpectrum(getScanNumber(), subSpectrumIndex);
+        .getMobilityForMobilitySpectrum(getScanNumber(), mobilityScanIndex);
   }
 
+  /**
+   * @return
+   * @see IMSRawDataFileImpl#getMobilitiesForFrame(int)
+   */
+  @Nullable
   @Override
   public Map<Integer, Double> getMobilities() {
     return ((IMSRawDataFileImpl) rawDataFile).getMobilitiesForFrame(getScanNumber());
+  }
+
+  @Nonnull
+  @Override
+  public Set<ImsMsMsInfo> getImsMsMsInfos() {
+    return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
+  }
+
+  @Nullable
+  @Override
+  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+    Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
+        .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
+    return pcInfo.orElse(null);
   }
 
   @Override
@@ -265,7 +283,8 @@ public class StorableFrame extends StorableScan implements Frame {
   @Override
   public int hashCode() {
     return Objects
-        .hash(getScanNumber(), getMSLevel(), getPrecursorMZ(), getPrecursorCharge(), getRetentionTime(),
+        .hash(getScanNumber(), getMSLevel(), getPrecursorMZ(), getPrecursorCharge(),
+            getRetentionTime(),
             getDataPointMZRange(), getHighestDataPoint(), getTIC(), getSpectrumType(),
             getNumberOfDataPoints(),
             getDataFile(), getMassLists(), getPolarity(), getScanDefinition(), getScanningMZRange(),

@@ -57,19 +57,56 @@ public interface Frame extends Scan {
   public Range<Double> getMobilityRange();
 
   /**
-   *
-   * @param num the number of the sub spectrum
-   * @return the sub spectrum
+   * @param num the number of the sub scan.
+   * @return the mobility scan or null of no scan with that number exists.
    */
   @Nullable
-  public MobilityMassSpectrum getMobilityScan(int num);
+  public MobilityScan getMobilityScan(int num);
 
   @Nonnull
-  public List<MobilityMassSpectrum> getMobilityScans();
+  public Collection<MobilityScan> getMobilityScans();
 
-  public double getMobilityForSubSpectrum(int subSpectrumIndex);
+  /**
+   * @param mobilityScanIndex
+   * @return The mobility of this sub spectrum.
+   */
+  public double getMobilityForMobilityScanNumber(int mobilityScanIndex);
 
+  /**
+   * @return Mapping of sub scan number <-> mobility
+   */
+  @Nullable
   public Map<Integer, Double> getMobilities();
+
+  /**
+   * @return Set of ImsMsMsInfos for this frame. Empty set if this is not an MS/MS frame or no
+   * precursors were fragmented or assigned.
+   */
+  @Nonnull
+  public Set<ImsMsMsInfo> getImsMsMsInfos();
+
+  /**
+   * @param mobilityScanNumber The sub scan number of the given sub scan.
+   * @return ImsMsMsInfo or null if no precursor was fragmented at that scan.
+   */
+  @Nullable
+  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber);
+
+  /**
+   * @return Always 0.0
+   */
+  @Override
+  default double getPrecursorMZ() {
+    return 0.0d;
+  }
+
+  /**
+   * @return Always 0
+   */
+  @Override
+  default int getPrecursorCharge() {
+    return 0;
+  }
 
   public ImmutableList<Mobilogram> getMobilograms();
 

@@ -18,30 +18,42 @@
 
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.Range;
+
 /**
- * Stores information on mobility type, axis labels and units.
+ * Precursor information stored in IMS MS2 frames regarding their respective sub spectra.
  *
  * @author https://github.com/SteffenHeu
  */
-public enum MobilityType {
+public interface ImsMsMsInfo {
 
-  NONE("none", "none"), TIMS("1/k0", "Vs/cm^2"),
-  DRIFT_TUBE("Drift time", "ms"), TRAVELING_WAVE("TODO", "TODO"),
-  FAIMS("TODO", "TODO");
+  /**
+   *
+   * @return The most intense m/z of the detected precursor.
+   */
+  public double getLargestPeakMz();
 
-  private final String axisLabel;
-  private final String unit;
+  /**
+   *
+   * @return The range of spectra numbers in this frame where this precursor was fragmented in.
+   */
+  public Range<Integer> getSpectrumNumberRange();
 
-  MobilityType(String axisLabel, String unit) {
-    this.axisLabel = axisLabel;
-    this.unit = unit;
-  }
+  /**
+   *
+   * @return Collision energy this precursor was fragmented at in the given range.
+   */
+  public float getCollisionEnergy();
 
-  public String getAxisLabel() {
-    return axisLabel;
-  }
+  /**
+   * @return The charge of the precursor. 0 = unknown.
+   */
+  public int getPrecursorCharge();
 
-  public String getUnit() {
-    return unit;
-  }
+  /**
+   *
+   * @return The frame this precursor was initially detected in.
+   */
+  public int getParentFrameNumber();
+
 }

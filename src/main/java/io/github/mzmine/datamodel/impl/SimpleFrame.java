@@ -22,8 +22,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -32,35 +33,35 @@ import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilog
 import java.util.ArrayList;
 import io.github.mzmine.project.impl.StorableFrame;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * @author https://github.com/SteffenHeu
+ * @see Frame
+ */
 public class SimpleFrame extends SimpleScan implements Frame {
 
-  private MobilityType mobilityType;
   private final int numMobilitySpectra;
-//  private final Map<Integer, Scan> mobilityScans;
-  private final SortedMap<Integer, Scan> mobilityScans;
-  private MobilityType mobilityType;
-  /**
-   * Mobility range of this frame. Updated when a scan is added.
-   */
-  private Range<Double> mobilityRange;
-  private Map<Integer, Double> mobilities;
+  private final MobilityType mobilityType;
+  private final Range<Double> mobilityRange;
+  private final Map<Integer, Double> mobilities;
+  private final Set<ImsMsMsInfo> precursorInfos;
 
-  public SimpleFrame(RawDataFile dataFile, int scanNumber, int msLevel,
-      float retentionTime, double precursorMZ, int precursorCharge, /*int[] fragmentScans,*/
+  public SimpleFrame(@Nullable RawDataFile dataFile, int scanNumber, int msLevel,
+      float retentionTime, double precursorMZ, int precursorCharge,
       DataPoint[] dataPoints,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
-      Range<Double> scanMZRange, MobilityType mobilityType,
-      final int numMobilitySpectra, Map<Integer, Double> mobilities) {
+      @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
+      final int numMobilitySpectra,
+      @Nonnull Map<Integer, Double> mobilities,
+      @Nullable Set<ImsMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ,
         precursorCharge, /*fragmentScans,*/
         dataPoints, spectrumType, polarity, scanDefinition, scanMZRange);
@@ -69,6 +70,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     mobilityRange = Range.singleton(0.d);
     this.numMobilitySpectra = numMobilitySpectra;
     this.mobilities = mobilities;
+    this.precursorInfos = precursorInfos;
   }
 
   /**
@@ -101,7 +103,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   @Override
-  public MobilityMassSpectrum getMobilityScan(int num) {
+  public MobilityScan getMobilityScan(int num) {
     throw new UnsupportedOperationException(
         "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
@@ -111,19 +113,33 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   @Nonnull
-  public List<MobilityMassSpectrum> getMobilityScans() {
+  public Collection<MobilityScan> getMobilityScans() {
     throw new UnsupportedOperationException(
         "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
 
   @Override
-  public double getMobilityForSubSpectrum(int subSpectrumIndex) {
-    return mobilities.getOrDefault(subSpectrumIndex, MobilityMassSpectrum.DEFAULT_MOBILITY);
+  public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
+    return mobilities.getOrDefault(mobilityScanIndex, MobilityScan.DEFAULT_MOBILITY);
   }
 
   @Override
   public Map<Integer, Double> getMobilities() {
     return mobilities;
+  }
+
+  @Nonnull
+  @Override
+  public Set<ImsMsMsInfo> getImsMsMsInfos() {
+    return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
+  }
+
+  @Nullable
+  @Override
+  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+    Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
+        .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
+    return pcInfo.orElse(null);
   }
 
   @Override

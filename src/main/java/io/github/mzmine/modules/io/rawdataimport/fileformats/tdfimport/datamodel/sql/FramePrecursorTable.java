@@ -19,23 +19,23 @@
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import java.sql.Connection;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
  * As this is not a "real" table of the tdf format, it does not share the TDF prefix.
  * <p>
  * Maps precursor info (isolation m/z, precursor id and charge) to the respective scan numbers.
- * Returns {@link FramePrecursorInfo} for each* scan in a frame.
+ * Returns {@link ImsMsMsInfo} for each frame.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public class FramePrecursorTable extends TDFDataTable<Long> {
 
@@ -48,22 +48,17 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Long> precursorIdColumn;
   private final TDFDataColumn<Long> scanNumBeginColumn;
   private final TDFDataColumn<Long> scanNumEndColumn;
+  private final TDFDataColumn<Double> collisionEnergyColumn;
   private final TDFDataColumn<Double> largestPeakMzColumn;
   private final TDFDataColumn<Long> chargeColumn;
+  private final TDFDataColumn<Long> parentIdColumn;
 
   /**
-   * Key = FrameId
-   */
-  private final Map<Long, Collection<FramePrecursorInfo>> info;
-
-  /**
-   * Key = PrecursorId
+   * Key = FrameId of the MS2 Frame
    * <p></p>
-   * Value = Set of fragment scan numbers.
+   * Value = Collection of ImsMsMsInfo on all precursors in the frame.
    */
-  private final Map<Long, Set<Integer>> fragmentScanNumbers;
-
-  private final Map<Long, Range<Long>> precursorScanNumRanges;
+  private final Map<Integer, Set<ImsMsMsInfo>> info;
 
   private final TDFFrameTable frameTable;
 
@@ -79,20 +74,22 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
     precursorIdColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.PRECURSOR_ID);
     scanNumBeginColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.SCAN_NUM_BEGIN);
     scanNumEndColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.SCAN_NUM_END);
+    collisionEnergyColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.COLLISION_ENERGY);
     largestPeakMzColumn = new TDFDataColumn<>(TDFPrecursorTable.LARGEST_PEAK_MZ);
     chargeColumn = new TDFDataColumn<>(TDFPrecursorTable.CHARGE);
+    parentIdColumn = new TDFDataColumn<>(TDFPrecursorTable.PARENT_ID);
 
     columns.addAll(Arrays.asList(
         precursorIdColumn,
         scanNumBeginColumn,
         scanNumEndColumn,
+        collisionEnergyColumn,
         largestPeakMzColumn,
-        chargeColumn
+        chargeColumn,
+        parentIdColumn
     ));
 
     info = new HashMap<>();
-    fragmentScanNumbers = new HashMap<>();
-    precursorScanNumRanges = new HashMap<>();
   }
 
   @Override
@@ -113,8 +110,10 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
         + msmstable + "." + TDFPasefFrameMsMsInfoTable.PRECURSOR_ID + ", "
         + msmstable + "." + TDFPasefFrameMsMsInfoTable.SCAN_NUM_BEGIN + ", "
         + msmstable + "." + TDFPasefFrameMsMsInfoTable.SCAN_NUM_END + ", "
+        + msmstable + "." + TDFPasefFrameMsMsInfoTable.COLLISION_ENERGY + ", "
         + precursorstable + "." + TDFPrecursorTable.LARGEST_PEAK_MZ + ", "
-        + precursorstable + "." + TDFPrecursorTable.CHARGE;
+        + precursorstable + "." + TDFPrecursorTable.CHARGE + ", "
+        + precursorstable + "." + TDFPrecursorTable.PARENT_ID;
   }
 
   @Override
@@ -135,139 +134,20 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
    * Summarises
    */
   private void collapseInfo() {
-    for (int i = 0; i < keyList.size(); i++) {
-      final long frameId = keyList.get(i);
-      final long precoursorId = precursorIdColumn.get(i);
+    for (int i = 0; i < frameIdColumn.size(); i++) {
+      final int frameId = frameIdColumn.get(i).intValue();
 
-      Collection<FramePrecursorInfo> entry = info.computeIfAbsent(frameId, k -> new HashSet<>());
-      entry.add(
-          new FramePrecursorInfo(precoursorId, scanNumBeginColumn.get(i).intValue(),
-              scanNumEndColumn.get(i).intValue(), largestPeakMzColumn.get(i),
-              chargeColumn.get(i).intValue()));
-
-      final Set<Integer> fragmentScanNums =
-          fragmentScanNumbers.computeIfAbsent(precoursorId, k -> new HashSet<>());
-      final long baseScanNum = frameTable.getFirstScanNumForFrame(frameIdColumn.get(i).intValue());
-      for (int scanNum = scanNumBeginColumn.get(i).intValue();
-          scanNum < scanNumEndColumn.get(i).intValue(); scanNum++) {
-        fragmentScanNums.add((int) (baseScanNum + scanNum));
-      }
-
-      final int finali = i;
-      precursorScanNumRanges.computeIfAbsent(precoursorId,
-          key -> Range.closed(scanNumBeginColumn.get(finali), scanNumEndColumn.get(finali)));
+      Set<ImsMsMsInfo> entry = info.computeIfAbsent(frameId, k -> new HashSet<>());
+      entry.add(new ImsMsMsInfoImpl(largestPeakMzColumn.get(i),
+          Range.closedOpen(scanNumBeginColumn.get(i).intValue(),
+              scanNumEndColumn.get(i).intValue()), collisionEnergyColumn.get(i).floatValue(),
+          chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue()));
     }
   }
 
-  public Range<Long> getBrukerScanNumberRangeForPrecursor(long precursorId) {
-    return precursorScanNumRanges.get(precursorId);
-  }
-
-  /**
-   * @param precursorId
-   * @return Array of fragment scan numbers (unsorted) or empty set if no fragment scans for that
-   * prefursor exist
-   */
-  @Nonnull
-  public Set<Integer> getFragmentScansForPrecursor(long precursorId) {
-    return fragmentScanNumbers.getOrDefault(precursorId, Collections.emptySet());
-  }
-
-  /**
-   * Returns the precursor info at the requested MS2 frame as read from the tdf file. Does not match
-   * with MZmine layout!
-   *
-   * @param frameId The frame id
-   * @param scanNum The <b>Bruker</b> scan number - Does <b>not</b> match MZmine layout!
-   * @return The {@link FramePrecursorInfo} or null if not present.
-   */
   @Nullable
-  public FramePrecursorInfo getPrecursorInfoForMS2ScanNumber(long frameId, int scanNum) {
-    Collection<FramePrecursorInfo> set = info.get(frameId);
-    if (set == null) {
-      return null;
-    }
-
-    for (FramePrecursorInfo fpi : set) {
-      if (fpi.containsScanNum(scanNum)) {
-        return fpi;
-      }
-    }
-    return null;
+  public Set<ImsMsMsInfo> getMsMsInfoForFrame(int frameNum) {
+    return info.get(frameNum);
   }
 
-  /**
-   * Summarises information on precursors in a specific frame.
-   */
-  public final static class FramePrecursorInfo {
-
-    private final long precursorId;
-    private final double largestPeakMz;
-    private final int charge;
-
-    private final Range<Integer> scanRange;
-
-    /**
-     * @param precursorId
-     * @param brukerScanNumBegin bruker layout
-     * @param brukerScanNumEnd   bruker layout
-     * @param largestPeakMz
-     * @param charge
-     */
-    public FramePrecursorInfo(long precursorId, int brukerScanNumBegin, int brukerScanNumEnd,
-        double largestPeakMz, int charge) {
-      this.precursorId = precursorId;
-      this.largestPeakMz = largestPeakMz;
-      this.charge = charge;
-
-      /**
-       * see {@link TDFPasefFrameMsMsInfoTable#SCAN_NUM_END}
-       */
-      scanRange = Range.closedOpen(brukerScanNumBegin, brukerScanNumEnd);
-    }
-
-    boolean containsScanNum(int scanNum) {
-      return scanRange.contains(scanNum);
-    }
-
-    public long getPrecursorId() {
-      return precursorId;
-    }
-
-    public int getScanNumBegin() {
-      return scanRange.lowerEndpoint();
-    }
-
-    public int getScanNumEnd() {
-      return scanRange.upperEndpoint();
-    }
-
-    public double getLargestPeakMz() {
-      return largestPeakMz;
-    }
-
-    public int getCharge() {
-      return charge;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof FramePrecursorInfo)) {
-        return false;
-      }
-      FramePrecursorInfo that = (FramePrecursorInfo) o;
-      return getPrecursorId() == that.getPrecursorId()
-          && Double.compare(that.getLargestPeakMz(), getLargestPeakMz()) == 0
-          && getCharge() == that.getCharge() && scanRange.equals(that.scanRange);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(getPrecursorId(), getLargestPeakMz(), getCharge(), scanRange);
-    }
-
-  }
 }

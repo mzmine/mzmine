@@ -1,22 +1,19 @@
 /*
+ * Copyright 2006-2020 The MZmine Development Team
  *
- *  * Copyright 2006-2020 The MZmine Development Team
- *  *
- *  * This file is part of MZmine.
- *  *
- *  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  * General Public License as published by the Free Software Foundation; either version 2 of the
- *  * License, or (at your option) any later version.
- *  *
- *  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  * Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  * USA
+ * This file is part of MZmine.
  *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package io.github.mzmine.project.impl;
@@ -24,24 +21,29 @@ package io.github.mzmine.project.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class StorableMobilityMassSpectrum implements MobilityMassSpectrum {
+/**
+ * @author https://github.com/SteffenHeu
+ * @see io.github.mzmine.datamodel.MobilityScan
+ */
+public class StorableMobilityScan implements MobilityScan {
 
   private final Frame frame;
   private final DataPoint highestDataPoint;
   private final double totalIonCount;
   private final int spectrumNumber;
-  private Range<Double> dataPointsMzRange;
   private final int storageId;
+  private Range<Double> dataPointsMzRange;
 
-  public StorableMobilityMassSpectrum(MobilityMassSpectrum originalSpectrum,
+  public StorableMobilityScan(MobilityScan originalSpectrum,
       final int storageId) {
     this.frame = originalSpectrum.getFrame();
     this.totalIonCount = originalSpectrum.getTIC();
@@ -77,14 +79,14 @@ public class StorableMobilityMassSpectrum implements MobilityMassSpectrum {
 
   @Override
   public int getNumberOfDataPoints() {
-    return ((IMSRawDataFileImpl)getFrame().getDataFile()).getDataPointsLengths().get(storageId);
+    return ((IMSRawDataFileImpl) getFrame().getDataFile()).getDataPointsLengths().get(storageId);
   }
 
   @Nonnull
   @Override
   public DataPoint[] getDataPoints() {
     try {
-      return ((IMSRawDataFileImpl)frame.getDataFile()).readDataPoints(this.storageId);
+      return ((IMSRawDataFileImpl) frame.getDataFile()).readDataPoints(this.storageId);
     } catch (IOException e) {
       e.printStackTrace();
       return new DataPoint[0];
@@ -105,7 +107,7 @@ public class StorableMobilityMassSpectrum implements MobilityMassSpectrum {
 
   @Override
   public double getMobility() {
-    return frame.getMobilityForSubSpectrum(spectrumNumber);
+    return frame.getMobilityForMobilityScanNumber(spectrumNumber);
   }
 
   @Override
@@ -126,5 +128,11 @@ public class StorableMobilityMassSpectrum implements MobilityMassSpectrum {
   @Override
   public int getSpectrumNumber() {
     return spectrumNumber;
+  }
+
+  @Nullable
+  @Override
+  public ImsMsMsInfo getMsMsInfo() {
+    return frame.getImsMsMsInfoForMobilityScan(spectrumNumber);
   }
 }

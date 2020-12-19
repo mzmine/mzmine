@@ -18,19 +18,18 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 
-import com.google.common.collect.Range;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.SimpleMobilityMassSpectrum;
+import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.BrukerScanMode;
@@ -50,7 +49,6 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,14 +57,20 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public class TDFUtils {
 
   public static final int SCAN_PACKAGE_SIZE = 50;
-  public static final int BUFFER_SIZE_INCREMENT = 100000; // 100 kb increase each time we fail
-  public static int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
 
+  public static final int BUFFER_SIZE_INCREMENT = 100000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
+  public static int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private static TDFLibrary tdfLib = null;
+
+  private TDFUtils() {
+  }
 
   /**
    * Initialises the tdf library. Is called when openFile is called.
@@ -241,13 +245,13 @@ public class TDFUtils {
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
-  public static Set<MobilityMassSpectrum> loadSpectraForTIMSFrame(final long handle,
+  public static Set<MobilityScan> loadSpectraForTIMSFrame(final long handle,
       final long frameId, final Frame frame,
       @Nonnull final TDFFrameTable frameTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
-    final LinkedHashSet<MobilityMassSpectrum> spectra = new LinkedHashSet<>(numScans);
+    final LinkedHashSet<MobilityScan> spectra = new LinkedHashSet<>(numScans);
     final List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
@@ -258,11 +262,11 @@ public class TDFUtils {
     }
 
     for (int i = 0; i < dataPoints.size(); i++) {
-      if (dataPoints.get(i).length == 0) {
+      /*if (dataPoints.get(i).length == 0) {
         continue;
-      }
+      }*/
 
-      spectra.add(new SimpleMobilityMassSpectrum(i, frame, dataPoints.get(i)));
+      spectra.add(new SimpleMobilityScan(i, frame, dataPoints.get(i)));
     }
 
     return spectra;
@@ -344,8 +348,9 @@ public class TDFUtils {
    * @return
    */
   public static SimpleFrame exctractCentroidScanForTimsFrame(final long handle, final long frameId,
-      /*final int scanNum, */@Nonnull final TDFMetaDataTable metaDataTable,
-      @Nonnull final TDFFrameTable frameTable) {
+      @Nonnull final TDFMetaDataTable metaDataTable,
+      @Nonnull final TDFFrameTable frameTable,
+      @Nonnull final FramePrecursorTable framePrecursorTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -370,7 +375,8 @@ public class TDFUtils {
     return new SimpleFrame(null, Math.toIntExact(frameId), msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
         0.d, 0, /*null,*/ dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
-        metaDataTable.getMzRange(), MobilityType.TIMS, numScans, mobilitiesMap);
+        metaDataTable.getMzRange(), MobilityType.TIMS, numScans, mobilitiesMap,
+        framePrecursorTable.getMsMsInfoForFrame(Math.toIntExact(frameId)));
   }
 
   @Nullable
@@ -529,21 +535,6 @@ public class TDFUtils {
     } else {
       return false;
     }
-  }
-
-  /**
-   * @param precursor
-   * @param brukerScanNum       subscan number of the ms1 frame.
-   * @param framePrecursorTable
-   * @return
-   */
-  private static boolean wasPrecursorDetectedAtBrukerScanNum(long precursor, int brukerScanNum,
-      FramePrecursorTable framePrecursorTable) {
-    Range<Long> scanRange = framePrecursorTable.getBrukerScanNumberRangeForPrecursor(precursor);
-    if (scanRange == null) {
-      return false;
-    }
-    return scanRange.contains((long) brukerScanNum);
   }
 
 }

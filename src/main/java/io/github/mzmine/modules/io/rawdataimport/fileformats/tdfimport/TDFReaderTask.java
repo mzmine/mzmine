@@ -22,7 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
@@ -45,7 +45,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,6 +52,9 @@ import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public class TDFReaderTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFReaderTask.class.getName());
@@ -163,11 +165,11 @@ public class TDFReaderTask extends AbstractTask {
     Set<Frame> frames = new LinkedHashSet<>();
     try {
       for (int scanNum = frameId; scanNum < frameTable.getNumberOfFrames(); scanNum++) {
-        finishedPercentage = 0.1 * loadedFrames / numFrames;
+        finishedPercentage = 0.1 * ((double) loadedFrames) / numFrames;
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        Scan frame = TDFUtils
-            .exctractCentroidScanForTimsFrame(handle, frameId, metaDataTable, frameTable);
+        Scan frame = TDFUtils.exctractCentroidScanForTimsFrame(handle, frameId, metaDataTable,
+            frameTable, framePrecursorTable);
         Frame storedFrame = (Frame) newMZmineFile.addScan(frame);
         frames.add(storedFrame);
         frameId++;
@@ -285,10 +287,10 @@ public class TDFReaderTask extends AbstractTask {
       setDescription(
           "Importing " + rawDataFileName + ": Frame " + frame.getFrameId() + "/" + numFrames);
       finishedPercentage = 0.1 + 0.9 * loadedFrames / numFrames;
-      final Set<MobilityMassSpectrum> spectra = TDFUtils
+      final Set<MobilityScan> spectra = TDFUtils
           .loadSpectraForTIMSFrame(handle, frame.getFrameId(), frame, frameTable);
 
-      for (MobilityMassSpectrum spectrum : spectra) {
+      for (MobilityScan spectrum : spectra) {
         ((StorableFrame) frame).addMobilityScan(spectrum);
       }
       loadedFrames++;
@@ -368,16 +370,17 @@ public class TDFReaderTask extends AbstractTask {
       Frame thisFrame = rawDataFile.getFrame(i);
       Frame nextFrame = rawDataFile.getFrame(i + 1);
 
-      if(nextFrame == null) {
+      if (nextFrame == null) {
         break;
       }
 
       Set<Integer> nums = thisFrame.getMobilityScanNumbers();
       for (Integer num : nums) {
-        if (Double.compare(thisFrame.getMobilityForSubSpectrum(num),
-            nextFrame.getMobilityForSubSpectrum(num)) != 0) {
+        if (Double.compare(thisFrame.getMobilityForMobilityScanNumber(num),
+            nextFrame.getMobilityForMobilityScanNumber(num)) != 0) {
           logger.info("Mobilities for num " + num + " dont match 1: " + thisFrame
-              .getMobilityForSubSpectrum(num) + " 2: " + nextFrame.getMobilityForSubSpectrum(num));
+              .getMobilityForMobilityScanNumber(num) + " 2: " + nextFrame
+              .getMobilityForMobilityScanNumber(num));
         }
       }
     }
