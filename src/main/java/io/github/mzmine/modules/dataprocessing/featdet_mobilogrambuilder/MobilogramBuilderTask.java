@@ -113,7 +113,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     for (MobilityScan scan : scans) {
       Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
           dp -> allDps.add(new MobilityDataPoint(dp.getMZ(), dp.getIntensity(), scan.getMobility(),
-              scan.getScanNumber())));
+              scan.getSpectrumNumber())));
     }
 
     // sort by highest dp, we assume that that measurement was the most accurate
@@ -157,18 +157,18 @@ public class MobilogramBuilderTask extends AbstractTask {
     return mobilograms;
   }
 
-  private void addDataPointsFromRaw(List<Mobilogram> mobilograms, Collection<Scan> rawScans) {
+  private void addDataPointsFromRaw(List<Mobilogram> mobilograms, Collection<MobilityScan> rawScans) {
     // rawScans are actually StorableScans so data points are stored on the hard disc. We preload
     // everything here at once
     int numDp = 0;
-    for (Scan scan : rawScans) {
+    for (MobilityScan scan : rawScans) {
       numDp += scan.getDataPoints().length;
     }
     final List<MobilityDataPoint> allDps = new ArrayList<>(numDp);
-    for (Scan scan : rawScans) {
+    for (MobilityScan scan : rawScans) {
       Arrays.stream(scan.getDataPoints()).forEach(
           dp -> allDps.add(new MobilityDataPoint(dp.getMZ(), dp.getIntensity(), scan.getMobility(),
-              scan.getScanNumber())));
+              scan.getSpectrumNumber())));
     }
     // if we sort here, we can use break conditions later
     allDps.sort(Comparator.comparingDouble(MobilityDataPoint::getMZ));
