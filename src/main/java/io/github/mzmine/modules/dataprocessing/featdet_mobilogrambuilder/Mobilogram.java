@@ -47,7 +47,7 @@ public interface Mobilogram extends PlotDatasetProvider {
   public MobilityDataPoint getHighestDataPoint();
 
   @Nonnull
-  List<Integer> getScanNumbers();
+  List<Integer> getMobilityScanNumbers();
 
   public MobilityType getMobilityType();
 

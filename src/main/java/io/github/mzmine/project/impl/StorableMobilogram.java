@@ -113,7 +113,7 @@ public class StorableMobilogram implements Mobilogram {
 
   @Nonnull
   @Override
-  public List<Integer> getScanNumbers() {
+  public List<Integer> getMobilityScanNumbers() {
     return getDataPoints().stream().mapToInt(MobilityDataPoint::getScanNum).boxed()
         .collect(Collectors.toList());
   }

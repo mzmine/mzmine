@@ -123,7 +123,7 @@ public class SimpleMobilogram implements Mobilogram {
 
   @Nonnull
   @Override
-  public List<Integer> getScanNumbers() {
+  public List<Integer> getMobilityScanNumbers() {
     return new ArrayList<>(dataPoints.keySet());
   }
 

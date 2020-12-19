@@ -3,7 +3,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -84,7 +83,7 @@ public class MobilogramBuilderTask extends AbstractTask {
       if (addDpFromRaw) {
         addDataPointsFromRaw(mobilograms, frame.getMobilityScans());
       }
-      printDuplicateStatistics(mobilograms);
+//      printDuplicateStatistics(mobilograms);
       mobilograms
           .forEach(mob -> MobilogramUtils.fillMissingScanNumsWithZero((SimpleMobilogram) mob));
 //      mobilograms.forEach(mob -> ((SimpleMobilogram)mob).fillEdgesWithZeros(3));
@@ -113,7 +112,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     for (MobilityScan scan : scans) {
       Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
           dp -> allDps.add(new MobilityDataPoint(dp.getMZ(), dp.getIntensity(), scan.getMobility(),
-              scan.getSpectrumNumber())));
+              scan.getMobilityScamNumber())));
     }
 
     // sort by highest dp, we assume that that measurement was the most accurate
@@ -168,7 +167,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     for (MobilityScan scan : rawScans) {
       Arrays.stream(scan.getDataPoints()).forEach(
           dp -> allDps.add(new MobilityDataPoint(dp.getMZ(), dp.getIntensity(), scan.getMobility(),
-              scan.getSpectrumNumber())));
+              scan.getMobilityScamNumber())));
     }
     // if we sort here, we can use break conditions later
     allDps.sort(Comparator.comparingDouble(MobilityDataPoint::getMZ));
@@ -205,7 +204,7 @@ public class MobilogramBuilderTask extends AbstractTask {
       Date preSearch = new Date();
       List<MobilityDataPoint> eligibleDps =
           allDps.subList(lowerStartIndex, upperStopIndex + 1).stream()
-              .filter(dp -> !mobilogram.getScanNumbers().contains(dp.getScanNum())).collect(
+              .filter(dp -> !mobilogram.getMobilityScanNumbers().contains(dp.getScanNum())).collect(
               Collectors.toList());
       Date done = new Date();
 
