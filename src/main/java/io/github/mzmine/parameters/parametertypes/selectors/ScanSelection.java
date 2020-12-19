@@ -162,23 +162,6 @@ public class ScanSelection {
     return matches(scan, offset);
   }
 
-  public boolean matches(MobilityScan scan) {
-    // scan offset was changed
-    int offset;
-    if (scanNumberRange != null) {
-      offset = scanNumberRange.lowerEndpoint();
-    } else {
-      // first scan number
-      if (scan.getFrame().getDataFile() != null
-          && scan.getFrame().getDataFile().getScanNumbers().length > 0) {
-        offset = scan.getFrame().getDataFile().getScanNumbers()[0];
-      } else {
-        offset = 1;
-      }
-    }
-    return matches(scan, offset);
-  }
-
   /**
    * @param scan
    * @param scanNumberOffset is used for baseFilteringInteger (filter every n-th scan)
@@ -211,8 +194,7 @@ public class ScanSelection {
     }
 
     if (scan instanceof Frame) {
-      if (scanMobilityRange != null && !((Frame) scan).getMobilityRange()
-          .isConnected(scanMobilityRange)) {
+      if (scanMobilityRange != null && !((Frame) scan).getMobilityRange().isConnected(scanMobilityRange)) {
         return false;
       }
     } else {
@@ -236,6 +218,24 @@ public class ScanSelection {
       }
     }
     return true;
+  }
+
+
+  public boolean matches(MobilityScan scan) {
+    // scan offset was changed
+    int offset;
+    if (scanNumberRange != null) {
+      offset = scanNumberRange.lowerEndpoint();
+    } else {
+      // first scan number
+      if (scan.getFrame().getDataFile() != null
+          && scan.getFrame().getDataFile().getScanNumbers().length > 0) {
+        offset = scan.getFrame().getDataFile().getScanNumbers()[0];
+      } else {
+        offset = 1;
+      }
+    }
+    return matches(scan, offset);
   }
 
   /**

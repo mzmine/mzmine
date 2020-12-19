@@ -54,7 +54,7 @@ public class StorableMobilityScan implements MobilityScan {
     this.frame = originalSpectrum.getFrame();
     this.totalIonCount = originalSpectrum.getTIC();
     this.highestDataPoint = originalSpectrum.getHighestDataPoint();
-    this.spectrumNumber = originalSpectrum.getSpectrumNumber();
+    this.spectrumNumber = originalSpectrum.getMobilityScamNumber();
     this.storageId = storageId;
     this.massLists = new HashSet<>();
   }
@@ -133,7 +133,7 @@ public class StorableMobilityScan implements MobilityScan {
   }
 
   @Override
-  public int getSpectrumNumber() {
+  public int getMobilityScamNumber() {
     return spectrumNumber;
   }
 
