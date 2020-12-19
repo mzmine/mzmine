@@ -34,6 +34,8 @@ import javax.annotation.Nullable;
  * <p>
  * Maps precursor info (isolation m/z, precursor id and charge) to the respective scan numbers.
  * Returns {@link ImsMsMsInfo} for each frame.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public class FramePrecursorTable extends TDFDataTable<Long> {
 
@@ -137,9 +139,9 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
 
       Set<ImsMsMsInfo> entry = info.computeIfAbsent(frameId, k -> new HashSet<>());
       entry.add(new ImsMsMsInfoImpl(largestPeakMzColumn.get(i),
-              Range.closedOpen(scanNumBeginColumn.get(i).intValue(),
-                  scanNumEndColumn.get(i).intValue()), collisionEnergyColumn.get(i).floatValue(),
-              chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue()));
+          Range.closedOpen(scanNumBeginColumn.get(i).intValue(),
+              scanNumEndColumn.get(i).intValue()), collisionEnergyColumn.get(i).floatValue(),
+          chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue()));
     }
   }
 

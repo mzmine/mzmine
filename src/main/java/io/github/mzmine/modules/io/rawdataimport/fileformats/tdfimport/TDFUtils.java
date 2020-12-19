@@ -57,14 +57,20 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public class TDFUtils {
 
   public static final int SCAN_PACKAGE_SIZE = 50;
-  public static final int BUFFER_SIZE_INCREMENT = 100000; // 100 kb increase each time we fail
-  public static int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
 
+  public static final int BUFFER_SIZE_INCREMENT = 100000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
+  public static int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private static TDFLibrary tdfLib = null;
+
+  private TDFUtils() {
+  }
 
   /**
    * Initialises the tdf library. Is called when openFile is called.

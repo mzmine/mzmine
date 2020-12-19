@@ -52,6 +52,9 @@ import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public class TDFReaderTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFReaderTask.class.getName());
@@ -376,7 +379,8 @@ public class TDFReaderTask extends AbstractTask {
         if (Double.compare(thisFrame.getMobilityForMobilityScanNumber(num),
             nextFrame.getMobilityForMobilityScanNumber(num)) != 0) {
           logger.info("Mobilities for num " + num + " dont match 1: " + thisFrame
-              .getMobilityForMobilityScanNumber(num) + " 2: " + nextFrame.getMobilityForMobilityScanNumber(num));
+              .getMobilityForMobilityScanNumber(num) + " 2: " + nextFrame
+              .getMobilityForMobilityScanNumber(num));
         }
       }
     }

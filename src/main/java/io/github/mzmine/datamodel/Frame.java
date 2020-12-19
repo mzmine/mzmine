@@ -27,6 +27,8 @@ import javax.annotation.Nullable;
 
 /**
  * A frame is a collection of mobility resolved spectra at one point in time.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public interface Frame extends Scan {
 
@@ -96,8 +98,6 @@ public interface Frame extends Scan {
   default double getPrecursorMZ() {
     return 0.0d;
   }
-
-  ;
 
   /**
    * @return Always 0

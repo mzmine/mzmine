@@ -36,6 +36,10 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * @author https://github.com/SteffenHeu
+ * @see Frame
+ */
 public class SimpleFrame extends SimpleScan implements Frame {
 
   private final int numMobilitySpectra;

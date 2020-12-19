@@ -27,7 +27,6 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +42,11 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * @see io.github.mzmine.datamodel.IMSRawDataFile
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Ion mobility Raw data file";

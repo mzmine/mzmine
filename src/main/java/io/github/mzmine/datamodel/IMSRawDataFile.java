@@ -28,6 +28,8 @@ import javax.annotation.Nullable;
 
 /**
  * Represents a raw data file, that offers the additional mobility dimension within the scans.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public interface IMSRawDataFile extends RawDataFile {
 

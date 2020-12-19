@@ -22,6 +22,11 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import java.util.Objects;
 
+/**
+ * @see io.github.mzmine.datamodel.ImsMsMsInfo
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class ImsMsMsInfoImpl implements ImsMsMsInfo {
 
   private final double precursorMz;

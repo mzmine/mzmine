@@ -22,6 +22,8 @@ import com.google.common.collect.Range;
 
 /**
  * Precursor information stored in IMS MS2 frames regarding their respective sub spectra.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public interface ImsMsMsInfo {
 

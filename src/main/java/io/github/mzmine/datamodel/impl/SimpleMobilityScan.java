@@ -28,6 +28,10 @@ import io.github.mzmine.util.scans.ScanUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * @author https://github.com/SteffenHeu
+ * @see io.github.mzmine.datamodel.MobilityScan
+ */
 public class SimpleMobilityScan implements MobilityScan {
 
   private final Frame frame;

@@ -23,6 +23,8 @@ import javax.annotation.Nullable;
 /**
  * Mass spectrum acquired during an ion mobility experiment. Note that this class does not extend
  * {@link Scan} but just {@link MassSpectrum}.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public interface MobilityScan extends MassSpectrum {
 

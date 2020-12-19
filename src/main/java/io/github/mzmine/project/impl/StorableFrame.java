@@ -34,6 +34,10 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * @author https://github.com/SteffenHeu
+ * @see io.github.mzmine.datamodel.Frame
+ */
 public class StorableFrame extends StorableScan implements Frame {
 
   private static Logger logger = Logger.getLogger(Frame.class.getName());
@@ -153,9 +157,9 @@ public class StorableFrame extends StorableScan implements Frame {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.IMSRawDataFile#getMobilityForMobilitySpectrum(int, int) 
    * @param mobilityScanIndex
    * @return
+   * @see io.github.mzmine.datamodel.IMSRawDataFile#getMobilityForMobilitySpectrum(int, int)
    */
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
@@ -164,8 +168,8 @@ public class StorableFrame extends StorableScan implements Frame {
   }
 
   /**
-   * @see IMSRawDataFileImpl#getMobilitiesForFrame(int)
    * @return
+   * @see IMSRawDataFileImpl#getMobilitiesForFrame(int)
    */
   @Nullable
   @Override

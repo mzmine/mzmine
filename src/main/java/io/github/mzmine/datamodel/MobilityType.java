@@ -18,6 +18,11 @@
 
 package io.github.mzmine.datamodel;
 
+/**
+ * Stores information on mobility type, axis labels and units.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public enum MobilityType {
 
   NONE("none", "none"), TIMS("1/k0", "Vs/cm^2"),

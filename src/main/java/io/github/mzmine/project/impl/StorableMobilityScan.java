@@ -31,6 +31,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * @author https://github.com/SteffenHeu
  * @see io.github.mzmine.datamodel.MobilityScan
  */
 public class StorableMobilityScan implements MobilityScan {
