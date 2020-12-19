@@ -45,15 +45,16 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
       false);
 
   public static final IntegerParameter minDataPointsRt = new IntegerParameter(
-      "Minimum Retention Time Data Points",
-      "Minimum " + "signals in a ion mobility ion trace (above previously set noise levels)", 7);
+      "Minimum retention time data points",
+      "Minimum number of time resolved data points in an ion mobility trace. In other words, chromatographic peak width in number of data points",
+      7);
 
-  public static final IntegerParameter minTotalSignals = new IntegerParameter(
-      "Minimum total Signals",
-      "Minimum " + "signals in a ion mobility ion trace (above previously set noise levels)", 50);
+  public static final IntegerParameter minTotalSignals =
+      new IntegerParameter("Minimum total Signals",
+          "Minimum number of signals (data points) in an ion mobility trace", 200);
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "iontraces");
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "This string is added to filename as suffix", "ionmobilitytrace");
 
   public IonMobilityTraceBuilderParameters() {
     super(new Parameter[] {rawDataFiles, massList, scanSelection, mzTolerance, minDataPointsRt,
