@@ -33,6 +33,7 @@ import java.util.Arrays;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
 
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -338,5 +339,93 @@ public class FeatureUtils {
   public static FeatureListRow[] sortRowsMzAsc(FeatureListRow[] rows) {
     Arrays.sort(rows, ascMzRowSorter);
     return rows;
+  }
+
+  /**
+   * Builds simple modular feature from manual feature using mz and rt range.
+   *
+   * @param featureList
+   * @param dataFile
+   * @param rtRange
+   * @param mzRange
+   * @return The result of the integration.
+   */
+  public static ModularFeature buildSimpleModularFeature(ModularFeatureList featureList,
+      RawDataFile dataFile, Range<Float> rtRange, Range<Double> mzRange) {
+
+    // Get MS1 scans in RT range.
+    int[] scanRange = dataFile.getScanNumbers(1, rtRange);
+
+    // Feature parameters.
+    DataPoint targetDP[] = new DataPoint[scanRange.length];
+    double targetMZ;
+    float targetRT, targetHeight, targetArea;
+    targetMZ = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2;
+    targetRT = (float) (rtRange.upperEndpoint() + rtRange.lowerEndpoint()) / 2;
+    targetHeight = targetArea = 0;
+    int representativeScan = 0;
+    int fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
+    int[] allMS2fragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
+
+    // Get target data points, height, and estimated area over range.
+    for (int i = 0; i < scanRange.length; i++) {
+
+      int num = scanRange[i];
+      double mz = targetMZ;
+      double intensity = 0;
+
+      // Get base peak for target.
+      Scan scan = dataFile.getScan(num);
+      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+
+      // If peak exists, get data point values.
+      if (basePeak != null) {
+        mz = basePeak.getMZ();
+        intensity = basePeak.getIntensity();
+      }
+
+      // Add data point to array.
+      targetDP[i] = new SimpleDataPoint(mz, intensity);
+
+      // Update feature height and scan.
+      if (intensity > targetHeight) {
+        targetHeight = (float) intensity;
+        representativeScan = scan.getScanNumber();
+      }
+
+      // Skip area calculation for last datapoint.
+      if (i == scanRange.length - 1) {
+        break;
+      }
+
+      // Get next scan for area calculation.
+      Scan nextScan = dataFile.getScan(scanRange[i + 1]);
+      DataPoint nextBasePeak = ScanUtils.findBasePeak(scan, mzRange);
+      double nextIntensity = 0;
+
+      if (nextBasePeak != null) {
+        nextIntensity = nextBasePeak.getIntensity();
+      }
+
+      // Naive area under the curve calculation.
+      double rtDifference = nextScan.getRetentionTime() - scan.getRetentionTime();
+      rtDifference *= 60;
+      targetArea += (rtDifference * (intensity + nextIntensity) / 2);
+    }
+
+    if (targetHeight != 0) {
+
+      // Set intensity range with maximum height in range.
+      Range intensityRange = Range.open((float) 0.0, targetHeight);
+      
+      // Build new feature for target.
+      ModularFeature newPeak = new ModularFeature(featureList, dataFile, targetMZ, targetRT,
+          targetHeight, targetArea, scanRange, targetDP, FeatureStatus.DETECTED, representativeScan,
+          fragmentScan, allMS2fragmentScanNumbers, rtRange, mzRange, intensityRange);
+
+      return newPeak;
+    } else {
+      return null;
+    }
   }
 }

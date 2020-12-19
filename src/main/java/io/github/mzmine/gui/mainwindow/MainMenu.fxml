@@ -175,10 +175,10 @@
 		          	text="Ion mobility trace builder"
 		          	userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>
 		    </Menu>
-			<Menu text="MS/MS">
-				<MenuItem onAction="#runModule"
-					text="MS/MS feature list builder"
-					userData="io.github.mzmine.modules.dataprocessing.featdet_msms.MsMsFeatureDetectionModule" />
+			<Menu text="MSn">
+			<MenuItem onAction="#runModule"
+					text="MSn feature list builder"
+					userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule" />
 			</Menu>
 			<Menu text="SRM">
 				<MenuItem onAction="#runModule"

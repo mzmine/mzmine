@@ -42,7 +42,7 @@ import io.github.mzmine.main.MZmineCore;
 public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
 
   private final XYPlot plot;
-  static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
+  static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   private PaintScaleLegend legend;
   private XYBlockRendererSmallBlocks blockRenderer;
   private double dataPointHeight;
@@ -88,9 +88,7 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
 
-    // set the pixel renderer
-    setPixelRenderer(scale);
-    // set the legend
+    setPixelRenderer();
     prepareLegend(min, max, scale);
 
     blockRenderer.setPaintScale(scale);
@@ -103,14 +101,13 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
 
   }
 
-  void setPixelRenderer(LookupPaintScale scale) {
-    // set the block renderer
+  private void setPixelRenderer() {
     blockRenderer = new XYBlockRendererSmallBlocks();
     blockRenderer.setBlockHeight(dataPointHeight);
     blockRenderer.setBlockWidth(dataPointWidth);
   }
 
-  void prepareLegend(double min, double max, LookupPaintScale scale) {
+  private void prepareLegend(double min, double max, LookupPaintScale scale) {
     NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);

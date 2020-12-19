@@ -105,7 +105,6 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
         dataPointHeight = dp.getMobilityWidth();
       } else if (!(dpA.getRetentionTime().equals(dp.getRetentionTime()))) {
         rtDeltas.add(dpA.getRetentionTime() - dp.getRetentionTime());
-        // System.out.println("Rt delta: " + (dpA.getRetentionTime() - dp.getRetentionTime()));
         dpA = dp;
       }
     }

@@ -19,6 +19,7 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,7 +103,7 @@ public class ScanSelection {
     return scanDefinition;
   }
 
-  public Set<? extends Scan> getMachtingScans(Set<? extends Scan> scans) {
+  public Set<? extends Scan> getMachtingScans(Collection<? extends Scan> scans) {
     Set<Scan> eligibleScans = new HashSet<>();
     for (Scan scan : scans) {
       if (matches(scan)) {
