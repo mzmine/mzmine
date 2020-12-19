@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder;
 
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
@@ -75,7 +76,7 @@ public class MobilogramBuilderTask extends AbstractTask {
         continue;
       }
 
-      List<Scan> eligibleScans = frame.getMobilityScans().stream().filter(
+      List<MobilityScan> eligibleScans = frame.getMobilityScans().stream().filter(
           f -> scanSelection.matches(f)).collect(Collectors.toList());
       List<Mobilogram> mobilograms =
           calculateMobilogramsForScans(eligibleScans);
@@ -96,7 +97,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  protected List<Mobilogram> calculateMobilogramsForScans(List<Scan> scans) {
+  protected List<Mobilogram> calculateMobilogramsForScans(List<MobilityScan> scans) {
     if (scans.size() == 0 || scans.get(0).getMassList(massList) == null) {
       return Collections.emptyList();
     }
@@ -104,12 +105,12 @@ public class MobilogramBuilderTask extends AbstractTask {
     final MobilityType mobilityType = scans.get(0).getMobilityType();
     int numDp = 0;
 
-    for (Scan scan : scans) {
+    for (MobilityScan scan : scans) {
       numDp += scan.getMassList(massList).getDataPoints().length;
     }
     final List<MobilityDataPoint> allDps = new ArrayList<>(numDp);
 
-    for (Scan scan : scans) {
+    for (MobilityScan scan : scans) {
       Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
           dp -> allDps.add(new MobilityDataPoint(dp.getMZ(), dp.getIntensity(), scan.getMobility(),
               scan.getScanNumber())));

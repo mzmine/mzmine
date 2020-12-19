@@ -19,6 +19,7 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.MobilityScan;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -161,6 +162,23 @@ public class ScanSelection {
     return matches(scan, offset);
   }
 
+  public boolean matches(MobilityScan scan) {
+    // scan offset was changed
+    int offset;
+    if (scanNumberRange != null) {
+      offset = scanNumberRange.lowerEndpoint();
+    } else {
+      // first scan number
+      if (scan.getFrame().getDataFile() != null
+          && scan.getFrame().getDataFile().getScanNumbers().length > 0) {
+        offset = scan.getFrame().getDataFile().getScanNumbers()[0];
+      } else {
+        offset = 1;
+      }
+    }
+    return matches(scan, offset);
+  }
+
   /**
    * @param scan
    * @param scanNumberOffset is used for baseFilteringInteger (filter every n-th scan)
@@ -193,7 +211,8 @@ public class ScanSelection {
     }
 
     if (scan instanceof Frame) {
-      if (scanMobilityRange != null && !((Frame) scan).getMobilityRange().isConnected(scanMobilityRange)) {
+      if (scanMobilityRange != null && !((Frame) scan).getMobilityRange()
+          .isConnected(scanMobilityRange)) {
         return false;
       }
     } else {
@@ -205,6 +224,58 @@ public class ScanSelection {
     if (!Strings.isNullOrEmpty(scanDefinition)) {
 
       final String actualScanDefinition = scan.getScanDefinition();
+
+      if (Strings.isNullOrEmpty(actualScanDefinition)) {
+        return false;
+      }
+
+      final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
+
+      if (!actualScanDefinition.matches(regex)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * @param scan
+   * @param scanNumberOffset is used for baseFilteringInteger (filter every n-th scan)
+   * @return
+   */
+  public boolean matches(MobilityScan scan, int scanNumberOffset) {
+    if ((msLevel != null) && (!msLevel.equals(scan.getFrame().getMSLevel()))) {
+      return false;
+    }
+
+    if ((polarity != null) && (!polarity.equals(scan.getFrame().getPolarity()))) {
+      return false;
+    }
+
+    if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType()))) {
+      return false;
+    }
+
+    if ((scanNumberRange != null) && (!scanNumberRange.contains(scan.getFrame().getScanNumber()))) {
+      return false;
+    }
+
+    if ((baseFilteringInteger != null)
+        && ((scan.getFrame().getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0)) {
+      return false;
+    }
+
+    if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime()))) {
+      return false;
+    }
+
+    if ((scanMobilityRange != null) && (!scanMobilityRange.contains(scan.getMobility()))) {
+      return false;
+    }
+
+    if (!Strings.isNullOrEmpty(scanDefinition)) {
+
+      final String actualScanDefinition = scan.getFrame().getScanDefinition();
 
       if (Strings.isNullOrEmpty(actualScanDefinition)) {
         return false;
