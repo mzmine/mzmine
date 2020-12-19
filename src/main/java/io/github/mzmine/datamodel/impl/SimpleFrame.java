@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -94,7 +94,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   @Override
-  public MobilityMassSpectrum getMobilityScan(int num) {
+  public MobilityScan getMobilityScan(int num) {
     throw new UnsupportedOperationException(
         "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
@@ -104,14 +104,14 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   @Nonnull
-  public Collection<MobilityMassSpectrum> getMobilityScans() {
+  public Collection<MobilityScan> getMobilityScans() {
     throw new UnsupportedOperationException(
         "Mobility scans are not associated with SimpleFrames, only StorableFrames");
   }
 
   @Override
-  public double getMobilityForSubSpectrum(int subSpectrumIndex) {
-    return mobilities.getOrDefault(subSpectrumIndex, MobilityMassSpectrum.DEFAULT_MOBILITY);
+  public double getMobilityForSubSpectrum(int subScanIndex) {
+    return mobilities.getOrDefault(subScanIndex, MobilityScan.DEFAULT_MOBILITY);
   }
 
   @Override
@@ -121,7 +121,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Nonnull
   @Override
-  public Set<ImsMsMsInfo> getPrecursorInfo() {
+  public Set<ImsMsMsInfo> getImsMsMsInfos() {
     return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
   }
 

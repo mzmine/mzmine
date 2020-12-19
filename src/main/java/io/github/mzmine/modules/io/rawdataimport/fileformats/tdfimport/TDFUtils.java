@@ -18,19 +18,18 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 
-import com.google.common.collect.Range;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.SimpleMobilityMassSpectrum;
+import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.BrukerScanMode;
@@ -50,7 +49,6 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -241,13 +239,13 @@ public class TDFUtils {
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
-  public static Set<MobilityMassSpectrum> loadSpectraForTIMSFrame(final long handle,
+  public static Set<MobilityScan> loadSpectraForTIMSFrame(final long handle,
       final long frameId, final Frame frame,
       @Nonnull final TDFFrameTable frameTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
-    final LinkedHashSet<MobilityMassSpectrum> spectra = new LinkedHashSet<>(numScans);
+    final LinkedHashSet<MobilityScan> spectra = new LinkedHashSet<>(numScans);
     final List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
@@ -262,7 +260,7 @@ public class TDFUtils {
         continue;
       }*/
 
-      spectra.add(new SimpleMobilityMassSpectrum(i, frame, dataPoints.get(i)));
+      spectra.add(new SimpleMobilityScan(i, frame, dataPoints.get(i)));
     }
 
     return spectra;

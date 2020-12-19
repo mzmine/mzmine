@@ -22,7 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
@@ -45,7 +45,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -285,10 +284,10 @@ public class TDFReaderTask extends AbstractTask {
       setDescription(
           "Importing " + rawDataFileName + ": Frame " + frame.getFrameId() + "/" + numFrames);
       finishedPercentage = 0.1 + 0.9 * loadedFrames / numFrames;
-      final Set<MobilityMassSpectrum> spectra = TDFUtils
+      final Set<MobilityScan> spectra = TDFUtils
           .loadSpectraForTIMSFrame(handle, frame.getFrameId(), frame, frameTable);
 
-      for (MobilityMassSpectrum spectrum : spectra) {
+      for (MobilityScan spectrum : spectra) {
         ((StorableFrame) frame).addMobilityScan(spectrum);
       }
       loadedFrames++;

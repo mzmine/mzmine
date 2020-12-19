@@ -15,44 +15,42 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
-package io.github.mzmine.project.impl;
+package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class StorableMobilityMassSpectrum implements MobilityMassSpectrum {
+public class SimpleMobilityScan implements MobilityScan {
 
   private final Frame frame;
+  private final DataPoint[] dataPoints;
   private final DataPoint highestDataPoint;
   private final double totalIonCount;
   private final int spectrumNumber;
-  private final int storageId;
   private Range<Double> dataPointsMzRange;
 
-  public StorableMobilityMassSpectrum(MobilityMassSpectrum originalSpectrum,
-      final int storageId) {
-    this.frame = originalSpectrum.getFrame();
-    this.totalIonCount = originalSpectrum.getTIC();
-    this.highestDataPoint = originalSpectrum.getHighestDataPoint();
-    this.spectrumNumber = originalSpectrum.getSpectrumNumber();
-    this.storageId = storageId;
+  public SimpleMobilityScan(int spectrumNumber, Frame frame, DataPoint[] dataPoints) {
+    this.frame = frame;
+    this.dataPoints = dataPoints;
+    ScanUtils.sortDataPointsByMz(this.dataPoints);
+    this.totalIonCount = ScanUtils.getTIC(dataPoints, 0.d);
+    this.highestDataPoint = ScanUtils.findTopDataPoint(dataPoints);
+    this.spectrumNumber = spectrumNumber;
   }
 
   @Nonnull
   @Override
   public Range<Double> getDataPointMZRange() {
     if (dataPointsMzRange == null) {
-      dataPointsMzRange = ScanUtils.findMzRange(getDataPoints());
+      dataPointsMzRange = ScanUtils.findMzRange(dataPoints);
     }
     return dataPointsMzRange;
   }
@@ -75,30 +73,25 @@ public class StorableMobilityMassSpectrum implements MobilityMassSpectrum {
 
   @Override
   public int getNumberOfDataPoints() {
-    return ((IMSRawDataFileImpl) getFrame().getDataFile()).getDataPointsLengths().get(storageId);
+    return dataPoints.length;
   }
 
   @Nonnull
   @Override
   public DataPoint[] getDataPoints() {
-    try {
-      return ((IMSRawDataFileImpl) frame.getDataFile()).readDataPoints(this.storageId);
-    } catch (IOException e) {
-      e.printStackTrace();
-      return new DataPoint[0];
-    }
+    return dataPoints;
   }
 
   @Nonnull
   @Override
   public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
-    return ScanUtils.getDataPointsByMass(getDataPoints(), mzRange);
+    return ScanUtils.getDataPointsByMass(dataPoints, mzRange);
   }
 
   @Nonnull
   @Override
   public DataPoint[] getDataPointsOverIntensity(double intensity) {
-    return ScanUtils.getFiltered(getDataPoints(), intensity);
+    return ScanUtils.getFiltered(dataPoints, intensity);
   }
 
   @Override

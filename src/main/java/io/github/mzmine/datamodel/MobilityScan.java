@@ -24,13 +24,13 @@ import javax.annotation.Nullable;
  * Mass spectrum acquired during an ion mobility experiment. Note that this class does not extend
  * {@link Scan} but just {@link MassSpectrum}.
  */
-public interface MobilityMassSpectrum extends MassSpectrum {
+public interface MobilityScan extends MassSpectrum {
 
   public static final double DEFAULT_MOBILITY = -1.0d;
 
   /**
    * @return The mobility of this sub-spectrum. The unit will depend on the respective mass
-   * spectrometer and can be checked via {@link MobilityMassSpectrum#getMobilityType()}.
+   * spectrometer and can be checked via {@link MobilityScan#getMobilityType()}.
    */
   public double getMobility();
 

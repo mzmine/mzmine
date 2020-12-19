@@ -54,40 +54,56 @@ public interface Frame extends Scan {
   public Range<Double> getMobilityRange();
 
   /**
-   * @param num the number of the sub spectrum
-   * @return the sub spectrum
+   * @param num the number of the sub scan.
+   * @return the mobility scan or null of no scan with that number exists.
    */
   @Nullable
-  public MobilityMassSpectrum getMobilityScan(int num);
+  public MobilityScan getMobilityScan(int num);
 
   @Nonnull
-  public Collection<MobilityMassSpectrum> getMobilityScans();
+  public Collection<MobilityScan> getMobilityScans();
 
   /**
-   *
-   * @param subSpectrumIndex
+   * @param subScanIndex
    * @return The mobility of this sub spectrum.
    */
-  public double getMobilityForSubSpectrum(int subSpectrumIndex);
+  public double getMobilityForSubSpectrum(int subScanIndex);
 
   /**
-   *
    * @return Mapping of sub scan number <-> mobility
    */
+  @Nullable
   public Map<Integer, Double> getMobilities();
 
   /**
-   * @return Precursor info for this frame. Empty set if this is not an MS/MS frame or no precursors
-   * were fragmented or assigned.
+   * @return Set of ImsMsMsInfos for this frame. Empty set if this is not an MS/MS frame or no
+   * precursors were fragmented or assigned.
    */
   @Nonnull
-  public Set<ImsMsMsInfo> getPrecursorInfo();
+  public Set<ImsMsMsInfo> getImsMsMsInfos();
 
   /**
-   *
    * @param subScanNumber The sub scan number of the given sub scan.
    * @return ImsMsMsInfo or null if no precursor was fragmented at that scan.
    */
   @Nullable
   public ImsMsMsInfo getImsMsMsInfoForSubScan(int subScanNumber);
+
+  /**
+   * @return Always 0.0
+   */
+  @Override
+  default double getPrecursorMZ() {
+    return 0.0d;
+  }
+
+  ;
+
+  /**
+   * @return Always 0
+   */
+  @Override
+  default int getPrecursorCharge() {
+    return 0;
+  }
 }

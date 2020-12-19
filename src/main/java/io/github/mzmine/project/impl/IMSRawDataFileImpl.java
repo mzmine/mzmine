@@ -22,11 +22,12 @@ import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MobilityMassSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +35,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -262,21 +264,33 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     segmentMobilityRange.put(frameRange, null);
   }
 
+  /**
+   *
+   * @param frameNumber The frame number
+   * @param mobilitySpectrumNumber The mobility spectrum number with regard to the frame.
+   * @return The mobility for the respective scan or {@link MobilityScan#DEFAULT_MOBILITY}.
+   */
   @Override
   public double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber) {
-    Map<Integer, Double> mobilityValues =
-        segmentMobilityRange.entrySet().stream()
-            .filter(entry -> entry.getKey().contains(frameNumber))
-            .findFirst().get().getValue();
-    return mobilityValues.getOrDefault(mobilitySpectrumNumber,
-        MobilityMassSpectrum.DEFAULT_MOBILITY);
+    Map<Integer, Double> mobilities = getMobilitiesForFrame(frameNumber);
+    if(mobilities != null) {
+      return mobilities.getOrDefault(mobilitySpectrumNumber, MobilityScan.DEFAULT_MOBILITY);
+    }
+    return MobilityScan.DEFAULT_MOBILITY;
   }
 
+  /**
+   *
+   * @param frameNumber The frame number.
+   * @return Map of mobility scan number <-> mobility or null for invalid frame numbers.
+   */
+  @Nullable
   @Override
   public Map<Integer, Double> getMobilitiesForFrame(int frameNumber) {
-    return segmentMobilityRange.entrySet().stream()
-        .filter(entry -> entry.getKey().contains(frameNumber))
-        .findFirst().get().getValue();
+    Optional<Entry<Range<Integer>, Map<Integer, Double>>> entry = segmentMobilityRange.entrySet().stream()
+        .filter(e -> e.getKey().contains(frameNumber))
+        .findFirst();
+    return entry.map(Entry::getValue).orElse(null);
   }
 
   private Range<Integer> getSegmentKeyForFrame(int frameId) {
