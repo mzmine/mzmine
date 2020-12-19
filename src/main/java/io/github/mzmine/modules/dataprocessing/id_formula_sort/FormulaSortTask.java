@@ -42,9 +42,6 @@ public class FormulaSortTask extends AbstractTask {
   /**
    *
    * @param parameters
-   * @param peakList
-   * @param peakListRow
-   * @param peak
    */
   public FormulaSortTask(ParameterSet parameters) {
     weightIsotopeScore =
@@ -59,9 +56,6 @@ public class FormulaSortTask extends AbstractTask {
     message = "Sorting formula lists of feature list " + featureList.getName();
   }
 
-  /**
-   * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
@@ -69,9 +63,6 @@ public class FormulaSortTask extends AbstractTask {
     return finishedRows / (double) totalRows;
   }
 
-  /**
-   * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return message;

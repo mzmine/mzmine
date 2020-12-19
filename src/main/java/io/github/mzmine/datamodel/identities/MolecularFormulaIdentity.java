@@ -1,56 +1,46 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
- * This file is part of MZmine.
+ * This file is part of MZmine 2.
  * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.datamodel.identities;
 
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.util.Map;
 import javax.annotation.Nonnull;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.util.FormulaUtils;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class MolecularFormulaIdentity extends SimpleFeatureIdentity {
+public class MolecularFormulaIdentity {
 
   private final @Nonnull IMolecularFormula cdkFormula;
   private Double rdbe;
-  private Double isotopeScore;
-  private Double msmsScore;
-  private double neutralMass;
 
-  public MolecularFormulaIdentity(IMolecularFormula cdkFormula, double neutralMass,
-      Double isotopeScore, Double msmsScore) {
-    super("");
+  public MolecularFormulaIdentity(IMolecularFormula cdkFormula) {
     this.cdkFormula = cdkFormula;
-    this.neutralMass = neutralMass;
-    this.isotopeScore = isotopeScore;
-    this.msmsScore = msmsScore;
     rdbe = RDBERestrictionChecker.calculateRDBE(cdkFormula);
-    setPropertyValue(PROPERTY_NAME, getFormulaAsString());
-    setPropertyValue(PROPERTY_FORMULA, getFormulaAsString());
   }
 
-  public MolecularFormulaIdentity(String formula, double neutralMass, Double isotopeScore,
-      Double msmsScore) {
-    this(FormulaUtils.createMajorIsotopeMolFormula(formula), neutralMass, isotopeScore, msmsScore);
+  public MolecularFormulaIdentity(String formula) {
+    this(FormulaUtils.createMajorIsotopeMolFormula(formula));
   }
 
   public String getFormulaAsString() {
@@ -86,21 +76,22 @@ public class MolecularFormulaIdentity extends SimpleFeatureIdentity {
    * @param ppmMax
    * @return
    */
-  public double getScore(double ppmMax) {
-    return getScore(ppmMax, 0, 0);
+  public double getScore(double neutralMass, double ppmMax) {
+    return getScore(neutralMass, ppmMax, 1, 1);
   }
 
   /**
    * Merged score with weights
    * 
+   * @param neutralMass
    * @param ppmMax weight for ppm distance
    * @param fIsotopeScore
    * @param fMSMSscore
    * @return
    */
-  public double getScore(double ppmMax, double fIsotopeScore, double fMSMSscore) {
-    return getPPMScore(neutralMass, ppmMax) + fIsotopeScore * getIsotopeScore()
-        + fMSMSscore * getMSMSScore();
+  public double getScore(double neutralMass, double ppmMax, double fIsotopeScore,
+      double fMSMSscore) {
+    return getPPMScore(neutralMass, ppmMax);
   }
 
   /**
@@ -121,7 +112,7 @@ public class MolecularFormulaIdentity extends SimpleFeatureIdentity {
    * @return The isotope score or null
    */
   public Double getIsotopeScore() {
-    return isotopeScore == null ? 0 : isotopeScore;
+    return null;
   }
 
   /**
@@ -129,7 +120,7 @@ public class MolecularFormulaIdentity extends SimpleFeatureIdentity {
    * @return the msms score or null
    */
   public Double getMSMSScore() {
-    return msmsScore == null ? 0 : msmsScore;
+    return null;
   }
 
   /**

@@ -1,20 +1,3 @@
-/*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
- */
 package io.github.mzmine.datamodel.identities.iontype;
 
 import java.text.MessageFormat;
@@ -24,12 +7,12 @@ import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.FormulaUtils;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class IonType extends NeutralMolecule implements Comparable<IonType> {
 
@@ -189,6 +172,7 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return false;
   }
 
+
   @Override
   public String toString() {
     return toString(true);
@@ -300,6 +284,7 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
       return this;
   }
 
+
   /**
    * Undefined adduct with 1 molecule and all modifications
    * 
@@ -326,6 +311,7 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
   public double getMass(double mz) {
     return ((mz * this.getAbsCharge()) - this.getMassDifference()) / this.getMolecules();
   }
+
 
   /**
    * neutral mass of M to mz of yM+X]charge

@@ -80,8 +80,6 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
    *
    * @param parameters
    * @param featureList
-   * @param peakListRow
-   * @param peak
    */
   FormulaPredictionFeatureListTask(FeatureList featureList, ParameterSet parameters) {
 

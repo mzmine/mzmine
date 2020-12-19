@@ -50,7 +50,6 @@ public class FormulaUtils {
    * weighting). Best will be at first position
    * 
    * @param list
-   * @param neutralMass
    * @param ppmMax
    * @param weightIsotopeScore
    * @param weightMSMSscore
