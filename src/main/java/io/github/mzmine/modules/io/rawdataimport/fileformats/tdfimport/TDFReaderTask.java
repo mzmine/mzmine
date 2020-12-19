@@ -373,10 +373,10 @@ public class TDFReaderTask extends AbstractTask {
 
       Set<Integer> nums = thisFrame.getMobilityScanNumbers();
       for (Integer num : nums) {
-        if (Double.compare(thisFrame.getMobilityForSubSpectrum(num),
-            nextFrame.getMobilityForSubSpectrum(num)) != 0) {
+        if (Double.compare(thisFrame.getMobilityForMobilityScanNumber(num),
+            nextFrame.getMobilityForMobilityScanNumber(num)) != 0) {
           logger.info("Mobilities for num " + num + " dont match 1: " + thisFrame
-              .getMobilityForSubSpectrum(num) + " 2: " + nextFrame.getMobilityForSubSpectrum(num));
+              .getMobilityForMobilityScanNumber(num) + " 2: " + nextFrame.getMobilityForMobilityScanNumber(num));
         }
       }
     }

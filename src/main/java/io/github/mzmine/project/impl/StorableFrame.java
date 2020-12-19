@@ -154,13 +154,13 @@ public class StorableFrame extends StorableScan implements Frame {
 
   /**
    * @see io.github.mzmine.datamodel.IMSRawDataFile#getMobilityForMobilitySpectrum(int, int) 
-   * @param subScanIndex
+   * @param mobilityScanIndex
    * @return
    */
   @Override
-  public double getMobilityForSubSpectrum(int subScanIndex) {
+  public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
     return ((IMSRawDataFileImpl) rawDataFile)
-        .getMobilityForMobilitySpectrum(getScanNumber(), subScanIndex);
+        .getMobilityForMobilitySpectrum(getScanNumber(), mobilityScanIndex);
   }
 
   /**
@@ -181,9 +181,9 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Nullable
   @Override
-  public ImsMsMsInfo getImsMsMsInfoForSubScan(int subScanNumber) {
+  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
-        .filter(info -> info.getSpectrumNumberRange().contains(subScanNumber)).findFirst();
+        .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
   }
 

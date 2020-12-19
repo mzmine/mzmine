@@ -64,10 +64,10 @@ public interface Frame extends Scan {
   public Collection<MobilityScan> getMobilityScans();
 
   /**
-   * @param subScanIndex
+   * @param mobilityScanIndex
    * @return The mobility of this sub spectrum.
    */
-  public double getMobilityForSubSpectrum(int subScanIndex);
+  public double getMobilityForMobilityScanNumber(int mobilityScanIndex);
 
   /**
    * @return Mapping of sub scan number <-> mobility
@@ -83,11 +83,11 @@ public interface Frame extends Scan {
   public Set<ImsMsMsInfo> getImsMsMsInfos();
 
   /**
-   * @param subScanNumber The sub scan number of the given sub scan.
+   * @param mobilityScanNumber The sub scan number of the given sub scan.
    * @return ImsMsMsInfo or null if no precursor was fragmented at that scan.
    */
   @Nullable
-  public ImsMsMsInfo getImsMsMsInfoForSubScan(int subScanNumber);
+  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber);
 
   /**
    * @return Always 0.0

@@ -110,8 +110,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   @Override
-  public double getMobilityForSubSpectrum(int subScanIndex) {
-    return mobilities.getOrDefault(subScanIndex, MobilityScan.DEFAULT_MOBILITY);
+  public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
+    return mobilities.getOrDefault(mobilityScanIndex, MobilityScan.DEFAULT_MOBILITY);
   }
 
   @Override
@@ -127,9 +127,9 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Nullable
   @Override
-  public ImsMsMsInfo getImsMsMsInfoForSubScan(int subScanNumber) {
+  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
-        .filter(info -> info.getSpectrumNumberRange().contains(subScanNumber)).findFirst();
+        .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
   }
 

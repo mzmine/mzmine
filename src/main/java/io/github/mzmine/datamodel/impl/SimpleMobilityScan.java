@@ -96,7 +96,7 @@ public class SimpleMobilityScan implements MobilityScan {
 
   @Override
   public double getMobility() {
-    return frame.getMobilityForSubSpectrum(spectrumNumber);
+    return frame.getMobilityForMobilityScanNumber(spectrumNumber);
   }
 
   @Override
@@ -122,6 +122,6 @@ public class SimpleMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public ImsMsMsInfo getMsMsInfo() {
-    return frame.getImsMsMsInfoForSubScan(spectrumNumber);
+    return frame.getImsMsMsInfoForMobilityScan(spectrumNumber);
   }
 }

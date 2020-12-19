@@ -106,7 +106,7 @@ public class StorableMobilityScan implements MobilityScan {
 
   @Override
   public double getMobility() {
-    return frame.getMobilityForSubSpectrum(spectrumNumber);
+    return frame.getMobilityForMobilityScanNumber(spectrumNumber);
   }
 
   @Override
@@ -132,6 +132,6 @@ public class StorableMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public ImsMsMsInfo getMsMsInfo() {
-    return frame.getImsMsMsInfoForSubScan(spectrumNumber);
+    return frame.getImsMsMsInfoForMobilityScan(spectrumNumber);
   }
 }
