@@ -24,6 +24,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.MIN_RELATIVE_HEIGHT;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.ColoredXYShapeRenderer;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.SimpleMobilogram;
@@ -76,7 +78,8 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
     int counter = 1;
     for (Mobilogram mob : mobilograms) {
       PreviewMobilogram prev = new PreviewMobilogram(mob, "Deconv " + counter);
-      previousDataSetNums.add(controller.getMobilogramChart().addDataset(prev));
+      previousDataSetNums.add(controller.getMobilogramChart().addDataset(new ColoredXYDataset(prev),
+          new ColoredXYShapeRenderer()));
       counter++;
     }
   }
