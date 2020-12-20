@@ -158,10 +158,10 @@ public class MzMLReadTask extends AbstractTask {
 
         if(Double.compare(mobility, -1.0d) == 0) {
           scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-              precursorCharge, /*null,*/ dataPoints, spectrumType, polarity, scanDefinition, null);
+              precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null);
         } else {
           scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-              precursorCharge, /*null,*/ dataPoints, spectrumType, polarity, scanDefinition, null, mobility,
+              precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null, mobility,
               MobilityType.DRIFT_TUBE);
         }
 

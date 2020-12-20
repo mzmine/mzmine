@@ -355,7 +355,7 @@ public class NativeFileReadTask extends AbstractTask {
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
         SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMZ,
-            precursorCharge, /*null,*/ dataPoints, spectrumType, polarity, scanId, mzRange);
+            precursorCharge, dataPoints, spectrumType, polarity, scanId, mzRange);
         newMZmineFile.addScan(newScan);
 
         parsedScans++;
