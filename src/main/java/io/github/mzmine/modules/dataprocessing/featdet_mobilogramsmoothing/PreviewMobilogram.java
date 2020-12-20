@@ -28,25 +28,29 @@ import java.awt.Color;
 
 public class PreviewMobilogram extends SimpleMobilogram {
 
-  public PreviewMobilogram(Mobilogram mobilogram) {
-    super(mobilogram.getMobilityType(), mobilogram.getRawDataFile());
+  private final String seriesKey;
+  private final Color awt;
 
+  public PreviewMobilogram(Mobilogram mobilogram, final String seriesKey) {
+    super(mobilogram.getMobilityType(), mobilogram.getRawDataFile());
+    this.awt = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
+    this.seriesKey = seriesKey;
     mobilogram.getDataPoints().forEach(this::addDataPoint);
     calc();
   }
 
   @Override
   public Color getAWTColor() {
-    return MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
+    return awt;
   }
 
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColor();
+    return MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
   }
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return "smoothed";
+    return seriesKey;
   }
 }
