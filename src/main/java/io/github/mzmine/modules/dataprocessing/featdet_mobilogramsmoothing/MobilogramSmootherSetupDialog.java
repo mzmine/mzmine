@@ -30,9 +30,10 @@ import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.SimpleM
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SavitzkyGolayFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithMobilogramPreview;
+import io.github.mzmine.util.DeconvolutionUtils;
 import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.MobilogramUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -69,9 +70,9 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
 
     previousDataSetNums.forEach(num -> controller.getMobilogramChart().removeDataSet(num));
 
-//    PreviewMobilogram preview = new PreviewMobilogram(smoothed, "smoothed");
-//    previousDataSetNums.add(controller.getMobilogramChart().addDataset(preview));
-    Set<Mobilogram> mobilograms = resolveMobilogram(smoothed, smoothed, parameterSet);
+    PreviewMobilogram preview = new PreviewMobilogram(smoothed, "smoothed");
+    previousDataSetNums.add(controller.getMobilogramChart().addDataset(preview));
+    Set<Mobilogram> mobilograms = resolveMobilogram(mobilogram, smoothed, parameterSet);
     int counter = 1;
     for (Mobilogram mob : mobilograms) {
       PreviewMobilogram prev = new PreviewMobilogram(mob, "Deconv " + counter);
@@ -119,14 +120,17 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
     final double minRatio =
         parameters.getParameter(MobilogramSmootherParameters.MIN_RATIO).getValue();
 
-    Set<Set<Integer>> resolved = MobilogramUtils.resolveMobilogramLocalMinimum(mobilities, intensities,
-        indices, /*smoothedMobilogram.getDataPoints(), */peakDuration, searchRTRange, minRatio,
-        minAbsHeight,
-        minRelHeight,
-        chromatographicThresholdLevel);
+    double maximumIntensity = Arrays.stream(intensities).max().getAsDouble();
+    final double minHeight = Math.max(minAbsHeight, minRelHeight * maximumIntensity);
+
+    Set<Set<Integer>> resolved = DeconvolutionUtils.resolveXYDataByLocalMinimum(mobilities, intensities,
+        indices, peakDuration, searchRTRange, minRatio, minHeight, chromatographicThresholdLevel);
 
     Set<Mobilogram> resolvedMobilogram = new HashSet<>();
-    List<MobilityDataPoint> originalDataPoints = originalMobilogram.getDataPoints();
+    List<MobilityDataPoint> originalDataPoints =
+        originalMobilogram.getDataPoints().stream()
+            .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility)).collect(
+            Collectors.toList());
     logger.info("-----");
     for (Set<Integer> indicesSet : resolved) {
       logger.info("Number of deconvolved mobilograms size: " + indicesSet.size());
@@ -136,7 +140,7 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
       }
 
       Set<MobilityDataPoint> newDps = new HashSet<>();
-      indicesSet.forEach(index -> newDps.add(dataPoints.get(index)));
+      indicesSet.forEach(index -> newDps.add(originalDataPoints.get(index)));
 //          originalDataPoints.stream().filter(dp -> scanNumbers.contains(dp.getScanNum())).collect(
 //              Collectors.toSet());
 
