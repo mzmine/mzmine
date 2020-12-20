@@ -111,18 +111,6 @@ public class ImagingParameters {
   }
 
 
-  public void print() {
-    System.out.println("pixel dim " + width + " " + height + " " + depth);
-    System.out.println("lateral " + lateralWidth + " " + lateralHeight);
-    System.out.println("pixel size " + pixelWidth + " " + pixelShape);
-    System.out.println(hStart + " " + vStart);
-    System.out.println(pattern + " " + scanDirection);
-    System.out.println("spectraPerPixel " + spectraPerPixel);
-    System.out.println("mz range" + minMZ + " " + maxMZ);
-
-  }
-
-
   public double getMinMZ() {
     return minMZ;
   }
@@ -261,5 +249,76 @@ public class ImagingParameters {
   public void setScanDirection(ScanDirection scanDirection) {
     this.scanDirection = scanDirection;
   }
+
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + depth;
+    result = prime * result + ((hStart == null) ? 0 : hStart.hashCode());
+    result = prime * result + height;
+    long temp;
+    temp = Double.doubleToLongBits(lateralHeight);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(lateralWidth);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(maxMZ);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(minMZ);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    result = prime * result + ((pattern == null) ? 0 : pattern.hashCode());
+    temp = Double.doubleToLongBits(pixelShape);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(pixelWidth);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    result = prime * result + ((scanDirection == null) ? 0 : scanDirection.hashCode());
+    result = prime * result + spectraPerPixel;
+    result = prime * result + ((vStart == null) ? 0 : vStart.hashCode());
+    result = prime * result + width;
+    return result;
+  }
+
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    ImagingParameters other = (ImagingParameters) obj;
+    if (depth != other.depth)
+      return false;
+    if (hStart != other.hStart)
+      return false;
+    if (height != other.height)
+      return false;
+    if (Double.doubleToLongBits(lateralHeight) != Double.doubleToLongBits(other.lateralHeight))
+      return false;
+    if (Double.doubleToLongBits(lateralWidth) != Double.doubleToLongBits(other.lateralWidth))
+      return false;
+    if (Double.doubleToLongBits(maxMZ) != Double.doubleToLongBits(other.maxMZ))
+      return false;
+    if (Double.doubleToLongBits(minMZ) != Double.doubleToLongBits(other.minMZ))
+      return false;
+    if (pattern != other.pattern)
+      return false;
+    if (Double.doubleToLongBits(pixelShape) != Double.doubleToLongBits(other.pixelShape))
+      return false;
+    if (Double.doubleToLongBits(pixelWidth) != Double.doubleToLongBits(other.pixelWidth))
+      return false;
+    if (scanDirection != other.scanDirection)
+      return false;
+    if (spectraPerPixel != other.spectraPerPixel)
+      return false;
+    if (vStart != other.vStart)
+      return false;
+    if (width != other.width)
+      return false;
+    return true;
+  }
+
 
 }

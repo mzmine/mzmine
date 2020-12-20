@@ -170,6 +170,11 @@
 					text="Targeted feature detection"
 					userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule" />
 			</Menu>
+			<Menu text="Imaging">
+		        <MenuItem onAction="#runModule"
+		          	text="Image builder"
+		          	userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
+		    </Menu>      	
 			<Menu text="MSn">
 				<MenuItem onAction="#runModule"
 					text="MSn feature list builder"

@@ -1,6 +1,5 @@
 package io.github.mzmine.datamodel;
 
-import java.util.Set;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
 
 
@@ -16,17 +15,15 @@ public interface ImagingRawDataFile extends RawDataFile {
 
   public ImagingParameters getImagingParam();
 
-  public Scan getScan(float x, float y);
-
-  /**
-   * all scans in this area
-   * 
-   * @param x
-   * @param y
-   * @param x2 inclusive
-   * @param y2 inclusive
-   * @return
-   */
-  public Set<Scan> getScans(float x, float y, float x2, float y2);
+  // /**
+  // * all scans in this area
+  // *
+  // * @param x
+  // * @param y
+  // * @param x2 inclusive
+  // * @param y2 inclusive
+  // * @return
+  // */
+  // public Set<Scan> getScansInArea(float x, float y, float x2, float y2);
 
 }
