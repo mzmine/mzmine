@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,9 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import java.awt.Window;
-import java.util.logging.Logger;
-
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -41,6 +39,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.logging.Logger;
+import javafx.scene.control.ButtonType;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
@@ -73,7 +75,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new OptionalParameter<>(outFilename);
 
   public MassDetectionParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, massDetector, name, outFilenameOption});
+    super(new Parameter[]{dataFiles, scanSelection, massDetector, name, outFilenameOption});
   }
 
   @Override
@@ -82,14 +84,16 @@ public class MassDetectionParameters extends SimpleParameterSet {
     ExitCode exitCode = super.showSetupDialog(valueCheckRequired);
 
     // If the parameters are not complete, let's just stop here
-    if (exitCode != ExitCode.OK)
+    if (exitCode != ExitCode.OK) {
       return exitCode;
+    }
 
     RawDataFile selectedFiles[] = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
 
     // If no file selected (e.g. in batch mode setup), just return
-    if ((selectedFiles == null) || (selectedFiles.length == 0))
+    if ((selectedFiles == null) || (selectedFiles.length == 0)) {
       return exitCode;
+    }
 
     // Do an additional check for centroid/continuous data and show a
     // warning if there is a potential problem
@@ -99,16 +103,18 @@ public class MassDetectionParameters extends SimpleParameterSet {
     for (RawDataFile file : selectedFiles) {
       Scan scans[] = scanSel.getMatchingScans(file);
       for (Scan s : scans) {
-        if (s.getSpectrumType() == MassSpectrumType.CENTROIDED)
+        if (s.getSpectrumType() == MassSpectrumType.CENTROIDED) {
           numCentroided++;
-        else
+        } else {
           numProfile++;
+        }
       }
     }
 
     // If no scans found, let's just stop here
-    if (numCentroided + numProfile == 0)
+    if (numCentroided + numProfile == 0) {
       return exitCode;
+    }
 
     // Do we have mostly centroided scans?
     final double proportionCentroided = (double) numCentroided / (numCentroided + numProfile);
@@ -128,6 +134,19 @@ public class MassDetectionParameters extends SimpleParameterSet {
       String msg =
           "MZmine thinks you are running the centroid mass detector on (mostly) profile scans. This will likely produce wrong results.";
       MZmineCore.getDesktop().displayMessage(null, msg);
+    }
+
+    RawDataFile[] files = dataFiles.getValue().getMatchingRawDataFiles();
+    Optional<RawDataFile> opt = Arrays.stream(files)
+        .filter(file -> (file instanceof IMSRawDataFile)).findAny();
+    if (opt.isPresent() && !massDetectorName.startsWith("Centroid")) {
+      String msg = "MZmine thinks you are running a profile mass detector on an Ion mobility raw "
+          + "data file. Only the centroid mass detector officially supports mobility scan peak "
+          + "detection due to the size of ion mobility raw data files."
+          + " Do you want to continue anyway?";
+      if(MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO) == ButtonType.NO) {
+        return ExitCode.CANCEL;
+      }
     }
 
     return exitCode;

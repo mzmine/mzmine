@@ -20,6 +20,9 @@ package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamode
 
 import io.github.mzmine.datamodel.PolarityType;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public class TIMSFrameInfo {
 
   private final int id;

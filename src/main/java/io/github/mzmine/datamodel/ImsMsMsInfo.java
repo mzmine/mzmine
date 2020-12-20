@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,28 +18,42 @@
 
 package io.github.mzmine.datamodel;
 
-import java.io.IOException;
+import com.google.common.collect.Range;
 
 /**
- * This interface represents a raw data file which is being modified. Scans can be added to the file
- * by calling the addScan() method. Final RawDataFile instance is obtained by calling
- * finishWriting() method.
+ * Precursor information stored in IMS MS2 frames regarding their respective sub spectra.
+ *
+ * @author https://github.com/SteffenHeu
  */
-public interface RawDataFileWriter {
+public interface ImsMsMsInfo {
 
   /**
-   * Adds a new scan to the file.
-   * 
-   * @param newScan Scan to add
-   * @return the stored scan
+   *
+   * @return The most intense m/z of the detected precursor.
    */
-  public Scan addScan(Scan newScan) throws IOException;
+  public double getLargestPeakMz();
 
   /**
-   * Finishes writing of the file
-   * 
-   * @return newly written file as RawDataFile
+   *
+   * @return The range of spectra numbers in this frame where this precursor was fragmented in.
    */
-  public RawDataFile finishWriting() throws IOException;
+  public Range<Integer> getSpectrumNumberRange();
+
+  /**
+   *
+   * @return Collision energy this precursor was fragmented at in the given range.
+   */
+  public float getCollisionEnergy();
+
+  /**
+   * @return The charge of the precursor. 0 = unknown.
+   */
+  public int getPrecursorCharge();
+
+  /**
+   *
+   * @return The frame this precursor was initially detected in.
+   */
+  public int getParentFrameNumber();
 
 }
