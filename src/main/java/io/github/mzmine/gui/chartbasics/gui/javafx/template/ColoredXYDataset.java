@@ -39,6 +39,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   private final RangeValueProvider<Number> rangeValueProvider;
   private final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   private final int itemCount;
+  private Color color;
+  private javafx.scene.paint.Color colorfx;
 
   private final List<Number> domainValues;
   private final List<Number> rangeValues;
@@ -50,8 +52,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
     if (domainValueProvider.getValueCount() != rangeValueProvider.getValueCount()) {
       throw new IllegalArgumentException(
           "Number of domain values does not match number of range values.");
-    }
 
+    }
     this.itemCount = domainValueProvider.getValueCount();
 
     this.colorProvider = colorProvider;
@@ -61,6 +63,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
 
     domainValues = domainValueProvider.getDomainValues();
     rangeValues = rangeValueProvider.getRangeValues();
+    this.color = colorProvider.getAWTColor();
+    this.colorfx = colorProvider.getFXColor();
   }
 
   public ColoredXYDataset(PlotDatasetProvider datasetProvider) {
@@ -69,7 +73,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
 
   @Override
   public Color getAWTColor() {
-    return colorProvider.getAWTColor();
+    return color;
   }
 
   @Override

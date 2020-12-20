@@ -66,7 +66,8 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   protected EStandardChartTheme theme;
   //  private SimpleLabelGenerator<DatasetType> labelGenerator;
 //  private SimpleToolTipGenerator<DatasetType> toolTipGenerator;
-  protected ColoredXYRenderer defaultRenderer;
+  protected ColoredXYLineRenderer defaultLineRenderer;
+  protected ColoredXYShapeRenderer defaultShapeRenderer;
 
   private int nextDataSetNum;
   private int labelsVisible;
@@ -119,16 +120,24 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
 
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
-    defaultRenderer = new ColoredXYRenderer();
-    plot.setRenderer(defaultRenderer);
+    defaultLineRenderer = new ColoredXYLineRenderer();
+    defaultShapeRenderer = new ColoredXYShapeRenderer();
+    plot.setRenderer(defaultLineRenderer);
+  }
+
+  public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
+    plot.setDataset(nextDataSetNum, dataset);
+    plot.setRenderer(nextDataSetNum, renderer);
+    nextDataSetNum++;
+    return nextDataSetNum - 1;
   }
 
   public synchronized int addDataset(T datasetProvider) {
+    if(datasetProvider instanceof XYDataset) {
+      return addDataset((XYDataset) datasetProvider);
+    }
     ColoredXYDataset dataset = new ColoredXYDataset(datasetProvider);
-    plot.setDataset(nextDataSetNum, dataset);
-    plot.setRenderer(nextDataSetNum, defaultRenderer);
-    nextDataSetNum++;
-    return nextDataSetNum - 1;
+    return addDataset(dataset, defaultLineRenderer);
   }
 
   /**
@@ -136,10 +145,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
    * @return the dataset index
    */
   public synchronized int addDataset(XYDataset dataset) {
-    plot.setDataset(nextDataSetNum, dataset);
-    plot.setRenderer(nextDataSetNum, defaultRenderer);
-    nextDataSetNum++;
-    return nextDataSetNum - 1;
+    return addDataset(dataset, defaultLineRenderer);
   }
 
   public synchronized XYDataset removeDataSet(int index) {

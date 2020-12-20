@@ -42,12 +42,12 @@ import org.jfree.data.xy.XYDataset;
  * Nasty renderer blatantly copied together from {@link XYLineAndShapeRenderer} and {@link
  * org.jfree.chart.renderer.xy.SamplingXYLineRenderer}
  */
-public class ColoredXYRenderer extends XYLineAndShapeRenderer {
+public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
 
   private static final long serialVersionUID = 1L;
   private double transparency = 1.0f;
 
-  public ColoredXYRenderer() {
+  public ColoredXYLineRenderer() {
     super(true, false);
     setDrawSeriesLineAsPath(true);
   }
