@@ -22,6 +22,9 @@ import com.google.common.collect.Range;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Provides utility methods to deconvolve sets of x-y data.
+ */
 public class DeconvolutionUtils {
 
   /**
@@ -36,19 +39,16 @@ public class DeconvolutionUtils {
    *                                      value collection. (has to be strictly monotonically
    *                                      increasing)
    * @param xRange                        {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#PEAK_DURATION}
-   * @param searchXRange                  {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#SEARCH_RT_RANGE
+   * @param searchXRange                  {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#SEARCH_RT_RANGE}
    * @param minRatio                      {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#MIN_RATIO}
-   * @param minAbsHeight                  {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#MIN_ABSOLUTE_HEIGHT}
-   * @param minRelHeight                  {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#MIN_RELATIVE_HEIGHT}
+   * @param minHeight                     Minimum height to be recognised as a peak.
    * @param chromatographicThresholdLevel {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#CHROMATOGRAPHIC_THRESHOLD_LEVEL}
    * @return Collection of a Set of indices for each resolved peak.
    * @see io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetector
    */
-  public static Set<Set<Integer>> resolveXYDataByLocalMinimum(final double x[],
-      final double y[],
-      final int[] indices, Range<Double> xRange, final float searchXRange,
-      final double minRatio, final double minHeight,
-      final double chromatographicThresholdLevel) {
+  public static Set<Set<Integer>> resolveXYDataByLocalMinimum(final double[] x, final double[] y,
+      final int[] indices, Range<Double> xRange, final float searchXRange, final double minRatio,
+      final double minHeight, final double chromatographicThresholdLevel) {
 
     if (x.length != y.length || x.length != indices.length) {
       throw new AssertionError("Length of x, y and indices array does not match.");
@@ -102,14 +102,8 @@ public class DeconvolutionUtils {
               && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
               x[currentRegionEnd] - x[currentRegionStart])) {
 
-//            resolvedPeaks.add(new ResolvedPeak(mobilogram, currentRegionStart, currentRegionEnd,
-//                mzCenterFunction, msmsRange, rTRangeMSMS));
-
             int finalCurrentRegionStart = currentRegionStart;
             int finalCurrentRegionEnd = currentRegionEnd;
-//            resolved.add(Arrays.stream(identifiers)
-//                .filter(id -> (id >= finalCurrentRegionStart && id <= finalCurrentRegionEnd))
-//                .boxed().collect(Collectors.toSet()));
 
             Set<Integer> set = new HashSet<>();
             for (Integer id : indices) {
@@ -179,9 +173,6 @@ public class DeconvolutionUtils {
 
               int finalCurrentRegionStart = currentRegionStart;
               int finalCurrentRegionEnd = currentRegionEnd;
-//              resolved.add(Arrays.stream(identifiers)
-//                  .filter(id -> (id >= finalCurrentRegionStart && id <= finalCurrentRegionEnd))
-//                  .boxed().collect(Collectors.toSet()));
 
               Set<Integer> set = new HashSet<>();
               for (Integer id : indices) {
