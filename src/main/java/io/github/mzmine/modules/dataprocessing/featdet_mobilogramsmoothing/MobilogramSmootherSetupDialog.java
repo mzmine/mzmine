@@ -36,6 +36,7 @@ import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.deconvolution.impl.LocalMinimumResolver;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -129,7 +130,7 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
     LocalMinimumResolver resolver = new LocalMinimumResolver(peakDuration, searchRTRange, minRatio,
         minHeight, chromatographicThresholdLevel);
 
-    Set<Set<Integer>> resolved = resolver.resolveToIndices(mobilities, intensities, indices);
+    Collection<? extends Collection<Integer>> resolved = resolver.resolveToIndices(mobilities, intensities, indices);
 
     Set<Mobilogram> resolvedMobilogram = new HashSet<>();
     List<MobilityDataPoint> originalDataPoints =
@@ -137,7 +138,7 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
             .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility)).collect(
             Collectors.toList());
     logger.info("-----");
-    for (Set<Integer> indicesSet : resolved) {
+    for (Collection<Integer> indicesSet : resolved) {
       logger.info("Number of deconvolved mobilograms size: " + indicesSet.size());
 
       if (indicesSet.isEmpty()) {
