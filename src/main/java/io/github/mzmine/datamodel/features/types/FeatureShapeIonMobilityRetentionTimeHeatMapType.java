@@ -42,7 +42,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType
   @Nonnull
   @Override
   public String getHeaderString() {
-    return "Ion Mobility Trace";
+    return "Ion mobility trace";
   }
 
   @Override
