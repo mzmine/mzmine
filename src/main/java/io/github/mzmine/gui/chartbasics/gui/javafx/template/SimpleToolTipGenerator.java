@@ -18,10 +18,35 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
 
-public interface SimpleToolTipGenerator<DataSetType extends AbstractXYDataset> extends
-    XYToolTipGenerator {
+public class SimpleToolTipGenerator implements XYToolTipGenerator {
 
+  private final EChartViewer chart;
+  private final XYPlot plot;
+
+  public SimpleToolTipGenerator(EChartViewer chart){
+    super();
+
+    this.chart = chart;
+    plot = chart.getChart().getXYPlot();
+
+    if(plot == null) {
+      throw new IllegalArgumentException("SimpleToolTipGenerator can only be used for XY-plots.");
+    }
+
+  }
+
+  @Override
+  public String generateToolTip(XYDataset dataset, int series, int item) {
+    if(!(dataset instanceof ColoredXYDataset)) {
+      return plot.getDomainAxis().getLabel() + ": " + dataset.getX(series, item) + "\n" +
+          plot.getRangeAxis().getLabel() + ": " + dataset.getY(series, item);
+    }
+    return ((ColoredXYDataset) dataset).getToolTip(item);
+  }
 }

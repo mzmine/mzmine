@@ -65,8 +65,8 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   private final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
 
   protected EStandardChartTheme theme;
-  private final SimpleXYLabelGenerator defaultLabelGenerator;
-  //  private SimpleToolTipGenerator<DatasetType> toolTipGenerator;
+  protected SimpleXYLabelGenerator defaultLabelGenerator;
+  protected SimpleToolTipGenerator defaultToolTipGenerator;
   protected ColoredXYLineRenderer defaultLineRenderer;
   protected ColoredXYShapeRenderer defaultShapeRenderer;
 
@@ -122,10 +122,12 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
     defaultLabelGenerator = new SimpleXYLabelGenerator(this);
+    defaultToolTipGenerator = new SimpleToolTipGenerator(this);
     defaultShapeRenderer = new ColoredXYShapeRenderer();
     defaultLineRenderer = new ColoredXYLineRenderer();
     defaultLineRenderer.setDefaultItemLabelGenerator(defaultLabelGenerator);
     defaultLineRenderer.setDefaultItemLabelsVisible(true);
+    defaultLineRenderer.setDefaultToolTipGenerator(defaultToolTipGenerator);
 
     plot.setRenderer(defaultLineRenderer);
   }
