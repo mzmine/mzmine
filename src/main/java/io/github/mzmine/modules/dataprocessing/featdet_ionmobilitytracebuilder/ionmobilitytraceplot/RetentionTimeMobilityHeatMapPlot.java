@@ -113,6 +113,7 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
     legend = new PaintScaleLegend(scale, scaleAxis);
+    legend.setPadding(5, 0, 5, 0);
     legend.setStripOutlineVisible(false);
     legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     legend.setAxisOffset(5.0);

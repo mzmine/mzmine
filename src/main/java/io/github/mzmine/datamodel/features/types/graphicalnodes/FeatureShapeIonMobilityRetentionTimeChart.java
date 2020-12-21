@@ -90,8 +90,8 @@ public class FeatureShapeIonMobilityRetentionTimeChart extends StackPane {
 
       // do not add data to chart
       xAxis.setAutoRanging(false);
-      xAxis.setUpperBound(maxRT + 2);
-      xAxis.setLowerBound(((minRT - 2) > 0) ? (minRT - 2) : 0);
+      xAxis.setUpperBound(maxRT + 0.1);
+      xAxis.setLowerBound(((minRT - 0.1) > 0) ? (minRT - 0.1) : 0);
 
       bc.setOnScroll(new EventHandler<>() {
         @Override
