@@ -30,8 +30,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.SortedMap;
 import java.util.logging.Logger;
 import javafx.beans.NamedArg;
 import javafx.beans.property.ObjectProperty;
@@ -67,8 +65,8 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   private final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
 
   protected EStandardChartTheme theme;
-  //  private SimpleLabelGenerator<DatasetType> labelGenerator;
-//  private SimpleToolTipGenerator<DatasetType> toolTipGenerator;
+  private final SimpleXYLabelGenerator defaultLabelGenerator;
+  //  private SimpleToolTipGenerator<DatasetType> toolTipGenerator;
   protected ColoredXYLineRenderer defaultLineRenderer;
   protected ColoredXYShapeRenderer defaultShapeRenderer;
 
@@ -123,8 +121,12 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
 
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
-    defaultLineRenderer = new ColoredXYLineRenderer();
+    defaultLabelGenerator = new SimpleXYLabelGenerator(this);
     defaultShapeRenderer = new ColoredXYShapeRenderer();
+    defaultLineRenderer = new ColoredXYLineRenderer();
+    defaultLineRenderer.setDefaultItemLabelGenerator(defaultLabelGenerator);
+    defaultLineRenderer.setDefaultItemLabelsVisible(true);
+
     plot.setRenderer(defaultLineRenderer);
   }
 
@@ -136,7 +138,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   }
 
   public synchronized int addDataset(T datasetProvider) {
-    if(datasetProvider instanceof XYDataset) {
+    if (datasetProvider instanceof XYDataset) {
       return addDataset((XYDataset) datasetProvider);
     }
     ColoredXYDataset dataset = new ColoredXYDataset(datasetProvider);
@@ -184,15 +186,14 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   }
 
   /**
-   *
    * @return Mapping of datasetIndex -> Dataset
    */
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
     final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
 
-    for(int i = 0; i < nextDataSetNum; i++) {
+    for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset dataset = plot.getDataset(i);
-      if(dataset != null) {
+      if (dataset != null) {
         datasetMap.put(i, dataset);
       }
     }
@@ -255,7 +256,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   }
 
   public void setCursorPosition(PlotCursorPosition cursorPosition) {
-    if(cursorPosition.equals(cursorPositionProperty().get())) {
+    if (cursorPosition.equals(cursorPositionProperty().get())) {
       return;
     }
     this.cursorPositionProperty.set(cursorPosition);
