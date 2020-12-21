@@ -77,6 +77,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
 
     minRangeValue = Double.MAX_VALUE;
 
+    domainValues = domainValueProvider.getDomainValues();
+    rangeValues = rangeValueProvider.getRangeValues();
     MZmineCore.getTaskController().addTask(new ValueComputing(() -> {
       compute();
       return 1;
@@ -174,9 +176,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   }
 
   public void compute() {
-
-    domainValues = domainValueProvider.getDomainValues();
-    rangeValues = rangeValueProvider.getRangeValues();
 
     for (Double rangeValue : rangeValues) {
       if (rangeValue.doubleValue() < minRangeValue.doubleValue()) {
