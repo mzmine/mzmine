@@ -29,6 +29,8 @@ public enum MZmineModuleCategory {
   ISOTOPES("Isotopes"), //
   FEATURELIST("Feature list methods"), //
   FEATURELISTDETECTION("Feature list processing"), //
+  FEATURE_GROUPING("Feature grouping"), //
+  ION_IDENTITY_NETWORKS("Ion identity networking"), //
   SPECTRALDECONVOLUTION("Spectral deconvolution"), //
   FEATURELISTFILTERING("Feature list filtering"), //
   ALIGNMENT("Alignment"), //

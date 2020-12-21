@@ -1,8 +1,26 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package io.github.mzmine.datamodel.identities.iontype;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import io.github.mzmine.datamodel.identities.NeutralMolecule;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CombinedIonModification extends IonModification {
 
@@ -38,6 +56,10 @@ public class CombinedIonModification extends IonModification {
     charge = z;
     mass = md;
     this.parsedName = parseName();
+  }
+
+  public CombinedIonModification(List<IonModification> adduct) {
+    this(adduct.toArray(IonModification[]::new));
   }
 
   @Override
@@ -153,5 +175,19 @@ public class CombinedIonModification extends IonModification {
   @Override
   public int getAdductsCount() {
     return adducts.length;
+  }
+
+
+
+  @Override
+  public Map<String, String> getDataMap() {
+    Map<String, String> map = new TreeMap<>();
+    map.put("Name", streamAdducts().map(NeutralMolecule::getName).collect(Collectors.joining(";")));
+    map.put("Mass Diff", streamAdducts().map(NeutralMolecule::getMass).map(String::valueOf).collect(Collectors.joining(";")));
+    map.put("Type", streamAdducts().map(IonModification::getType).map(Enum::name).collect(Collectors.joining(";")));
+    map.put("Charge", streamAdducts().map(IonModification::getCharge).map(String::valueOf).collect(Collectors.joining(";")));
+    map.put("Max Modification", streamAdducts().map(IonModification::getModificationLimit).map(String::valueOf).collect(Collectors.joining(";")));
+    map.put("Formula", streamAdducts().map(IonModification::getMolFormula).collect(Collectors.joining(";")));
+    return map;
   }
 }

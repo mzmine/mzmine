@@ -171,7 +171,6 @@ public class SimpleParameterSet implements ParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
     assert Platform.isFxApplicationThread();
 
     if ((parameters == null) || (parameters.length == 0))

@@ -29,7 +29,6 @@
 
 package io.github.mzmine.modules.io.gnpsexport.fbmn;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -39,42 +38,12 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.rowfilter.RowFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 
 public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
-
-  /**
-   * Define which rows to export
-   *
-   * @author Robin Schmid (robinschmid@uni-muenster.de)
-   *
-   */
-  public enum RowFilter {
-    ALL, ONLY_WITH_MS2;
-
-    @Override
-    public String toString() {
-      return super.toString().replaceAll("_", " ");
-    }
-
-    /**
-     * Filter a row
-     *
-     * @param row
-     * @return
-     */
-    public boolean filter(FeatureListRow row) {
-      switch (this) {
-        case ALL:
-          return true;
-        case ONLY_WITH_MS2:
-          return row.getBestFragmentation() != null;
-      }
-      return false;
-    }
-  }
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 

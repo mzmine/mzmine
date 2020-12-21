@@ -106,6 +106,15 @@ public interface FeatureList {
 
   /**
    * Creates a stream of FeatureListRows
+   *
+   * @return
+   */
+  default Stream<FeatureListRow> stream(boolean parallel) {
+    return parallel? parallelStream() : stream();
+  }
+
+  /**
+   * Creates a stream of FeatureListRows
    * 
    * @return
    */
@@ -118,6 +127,14 @@ public interface FeatureList {
    */
   public Stream<FeatureListRow> parallelStream();
 
+  /**
+   * Stream of all features across all samples
+   *
+   * @return
+   */
+  default Stream<Feature> streamFeatures(boolean parallel) {
+    return parallel? parallelStreamFeatures() : streamFeatures();
+  }
   /**
    * Stream of all features across all samples
    * 

@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ObjectGenerator;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -34,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  * Params to add custom adducts.
  *
  */
-public class AddAdductParameters extends SimpleParameterSet {
+public class AddAdductParameters extends SimpleParameterSet implements ObjectGenerator<AdductType> {
 
   // Adduct name.
   public static final StringParameter NAME =
@@ -46,6 +47,15 @@ public class AddAdductParameters extends SimpleParameterSet {
 
   public AddAdductParameters() {
     super(new Parameter[] {NAME, MASS_DIFFERENCE});
+  }
+
+  public AdductType createObject() {
+    try {
+      return new AdductType(getParameter(AddAdductParameters.NAME).getValue(),
+              getParameter(AddAdductParameters.MASS_DIFFERENCE).getValue());
+    } catch (Exception ex) {
+      return null;
+    }
   }
 
 }

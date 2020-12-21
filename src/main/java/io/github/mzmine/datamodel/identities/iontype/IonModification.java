@@ -1,15 +1,33 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.StringMapParser;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class IonModification extends NeutralMolecule implements Comparable<IonModification> {
+public class IonModification extends NeutralMolecule implements Comparable<IonModification>, StringMapParser<IonModification> {
 
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
   public static final IonModification M_MINUS =
@@ -137,7 +155,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
    * @param name
    * @param massDifference
    * @param charge
-   * @param molecules
    */
   public IonModification(IonModificationType type, String name, String molFormula,
       double massDifference, int charge) {
@@ -293,6 +310,10 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     return new IonModification[] {this};
   }
 
+  public Stream<IonModification> streamAdducts() {
+    return Stream.of(getAdducts());
+  }
+
   public int getNumberOfAdducts() {
     return 1;
   }
@@ -327,7 +348,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
    * 
    * (mass*mol + deltaMass) /charge
    * 
-   * @param mz
    * @return
    */
   public double getMZ(double neutralmass) {
@@ -376,7 +396,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * 
-   * @param b
    * @return true if no adduct is a duplicate
    */
   public boolean uniqueAdductsTo(IonModification adduct) {
@@ -479,4 +498,58 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     return 1;
   }
 
+
+
+  @Override
+  public Map<String, String> getDataMap() {
+    Map<String, String> map = new TreeMap<>();
+    map.put("Name", getName());
+    map.put("Mass Diff", String.valueOf(getMass()));
+    map.put("Type", getType().name());
+    map.put("Charge", String.valueOf(getCharge()));
+    map.put("Max Modification", String.valueOf(getModificationLimit()));
+    map.put("Formula", getMolFormula());
+    return map;
+  }
+
+  @Override
+  public IonModification parseDataMap(Map<String, String> map) {
+    String name = map.get("Name");
+    // is combined
+    if(name.split(";").length>1) {
+      try {
+      List<IonModification> mods = new ArrayList<>();
+
+      String[] names = name.split(";");
+      String[] massdiffs = map.get("Mass Diff").split(";");
+      String[] charges = map.get("Charge").split(";");
+      String[] formulas = map.get("Formula").split(";");
+      String[] types = map.get("Type").split(";");
+      for(int i=0; i<names.length; i++) {
+        double massdiff = Double.parseDouble(massdiffs[i]);
+        int charge = Integer.parseInt(charges[i]);
+        String formula = formulas[i];
+        IonModificationType type = IonModificationType.valueOf(types[i]);
+
+        IonModification ion = new IonModification(type, names[i], formula, massdiff, charge);
+        mods.add(ion);
+      }
+      return new CombinedIonModification(mods);
+    }catch(Exception ex) {
+      return null;
+    }
+    }
+    else {new IonModification(IonModificationType.ADDUCT, "NH4", "NH4", 18.033823, 1);
+      try {
+        double massdiff = Double.parseDouble(map.get("Mass Diff"));
+        int charge = Integer.parseInt(map.get("Charge"));
+        int mod  = Integer.parseInt(map.getOrDefault("Max Modification", "-1"));
+        String formula = map.getOrDefault("Formula", "");
+        IonModificationType type = IonModificationType.valueOf(map.getOrDefault("Type", ""));
+        return new IonModification(type, name, formula, massdiff, charge);
+      }catch(Exception ex) {
+        return null;
+      }
+    }
+  }
 }

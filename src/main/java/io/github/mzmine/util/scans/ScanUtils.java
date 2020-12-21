@@ -39,6 +39,10 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
@@ -66,6 +70,16 @@ import java.util.Map;
 public class ScanUtils {
 
   private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
+
+  /**
+   * Common utility method to be used as Scan.toString() method in various Scan implementations
+   *
+   * @param scan Scan to be converted to String
+   * @return String representation of the scan
+   */
+  public static @Nonnull String scanToString(@Nonnull Scan scan) {
+    return scanToString(scan, false);
+  }
 
   /**
    * Common utility method to be used as Scan.toString() method in various Scan implementations
@@ -1200,5 +1214,23 @@ public class ScanUtils {
     }
 
     return result;
+  }
+
+
+  /**
+   * Most abundant n signals
+   *
+   * @param scan
+   * @param n
+   * @return
+   */
+  public static DataPoint[] getMostAbundantSignals(DataPoint[] scan, int n) {
+    if (scan.length <= n)
+      return scan;
+    else {
+      Arrays.sort(scan,
+              new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+      return Arrays.copyOf(scan, n);
+    }
   }
 }

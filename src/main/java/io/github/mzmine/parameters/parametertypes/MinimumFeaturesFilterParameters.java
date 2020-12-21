@@ -32,6 +32,7 @@ import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
 
 import java.awt.Window;
+import java.util.List;
 
 public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
 
@@ -113,7 +114,7 @@ public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
    * @return
    */
   public MinimumFeatureFilter createFilterWithGroups(MZmineProject project,
-                                                     RawDataFile[] rawDataFiles, String groupingParameter, double minHeight) {
+                                                     List<RawDataFile> rawDataFiles, String groupingParameter, double minHeight) {
     AbsoluteNRelativeInt minFInSamples = this.getParameter(MIN_SAMPLES_ALL).getValue();
     AbsoluteNRelativeInt minFInGroups = this.getParameter(MIN_SAMPLES_GROUP).getValue();
     double minIPercOverlap = this.getParameter(MIN_INTENSITY_OVERLAP).getValue();

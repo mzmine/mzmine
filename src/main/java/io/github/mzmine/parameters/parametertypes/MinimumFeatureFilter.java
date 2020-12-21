@@ -62,7 +62,7 @@ public class MinimumFeatureFilter {
    * @param minFInGroups
    * @param minFeatureHeight
    */
-  public MinimumFeatureFilter(MZmineProject project, RawDataFile[] raw, String groupParam,
+  public MinimumFeatureFilter(MZmineProject project, List<RawDataFile> raw, String groupParam,
                               AbsoluteNRelativeInt minFInSamples, AbsoluteNRelativeInt minFInGroups,
                               double minFeatureHeight, double minIPercOverlap, boolean excludeEstimatedFeatures) {
     this(minFInSamples, minFInGroups, minFeatureHeight, minIPercOverlap, excludeEstimatedFeatures);
@@ -87,7 +87,7 @@ public class MinimumFeatureFilter {
    * @param row
    * @return
    */
-  public boolean filterMinFeatures(final RawDataFile raw[], FeatureListRow row) {
+  public boolean filterMinFeatures(final List<RawDataFile> raw, FeatureListRow row) {
     // filter min samples in all
     if (minFInSamples.isGreaterZero()) {
       int n = 0;
@@ -98,7 +98,7 @@ public class MinimumFeatureFilter {
         }
       }
       // stop if <n
-      if (!minFInSamples.checkGreaterEqualMax(raw.length, n))
+      if (!minFInSamples.checkGreaterEqualMax(raw.size(), n))
         return false;
     }
 
@@ -152,7 +152,7 @@ public class MinimumFeatureFilter {
    * @param row2
    * @return
    */
-  public OverlapResult filterMinFeaturesOverlap(final RawDataFile raw[], FeatureListRow row,
+  public OverlapResult filterMinFeaturesOverlap(final List<RawDataFile> raw, FeatureListRow row,
       FeatureListRow row2) {
     return filterMinFeaturesOverlap(raw, row, row2, null);
   }
@@ -167,7 +167,7 @@ public class MinimumFeatureFilter {
    * @param rtTolerance
    * @return
    */
-  public OverlapResult filterMinFeaturesOverlap(final RawDataFile raw[], FeatureListRow row,
+  public OverlapResult filterMinFeaturesOverlap(final List<RawDataFile> raw, FeatureListRow row,
       FeatureListRow row2, RTTolerance rtTolerance) {
     OverlapResult result = OverlapResult.TRUE;
     // filter min samples in all
@@ -191,7 +191,7 @@ public class MinimumFeatureFilter {
         }
       }
       // stop if <n
-      if (!minFInSamples.checkGreaterEqualMax(raw.length, n))
+      if (!minFInSamples.checkGreaterEqualMax(raw.size(), n))
         return OverlapResult.BelowMinSamples;
     }
 
@@ -307,10 +307,10 @@ public class MinimumFeatureFilter {
    * @param raw all positive raw data files
    * @return
    */
-  public boolean filterMinFeatures(RawDataFile[] all, List<RawDataFile> raw) {
+  public boolean filterMinFeatures(List<RawDataFile> all, List<RawDataFile> raw) {
     // filter min samples in all
     if (minFInSamples.isGreaterZero()
-        && !minFInSamples.checkGreaterEqualMax(all.length, raw.size()))
+        && !minFInSamples.checkGreaterEqualMax(all.size(), raw.size()))
       return false;
 
     // short cut
@@ -346,7 +346,7 @@ public class MinimumFeatureFilter {
    * gets called to initialise group variables
    * 
    */
-  public void setSampleGroups(MZmineProject project, RawDataFile[] raw, String groupingParameter) {
+  public void setSampleGroups(MZmineProject project, List<RawDataFile> raw, String groupingParameter) {
     this.project = project;
     if (groupingParameter == null || groupingParameter.length() == 0) {
       this.sgroupSize = null;
