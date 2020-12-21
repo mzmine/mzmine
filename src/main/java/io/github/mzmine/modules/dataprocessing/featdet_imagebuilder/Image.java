@@ -3,14 +3,12 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 import java.util.Set;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
 
 public class Image implements IImage {
 
   private double mz;
   private ImagingParameters imagingParameters;
-  private Coordinates mostIntensCoordinate;
   private double maximumIntensity;
   private Range<Double> mzRange;
   private Range<Double> intensityRange;
@@ -19,22 +17,19 @@ public class Image implements IImage {
   private String representativeString;
   private FeatureList featureList;
 
-  public Image(double mz, ImagingParameters imagingParameters, Coordinates mostIntensCoordinate,
-      double maximumIntensity, Range<Double> mzRange) {
+  public Image(double mz, ImagingParameters imagingParameters, double maximumIntensity,
+      Range<Double> mzRange) {
     this.mz = mz;
     this.imagingParameters = imagingParameters;
-    this.mostIntensCoordinate = mostIntensCoordinate;
     this.maximumIntensity = maximumIntensity;
     this.mzRange = mzRange;
   }
 
-  public Image(double mz, ImagingParameters imagingParameters, Coordinates mostIntensCoordinate,
-      double maximumIntensity, Range<Double> mzRange, Range<Double> intensityRange,
-      Set<ImageDataPoint> dataPoints, Set<Integer> scanNumbers, String representativeString,
-      FeatureList featureList) {
+  public Image(double mz, ImagingParameters imagingParameters, double maximumIntensity,
+      Range<Double> mzRange, Range<Double> intensityRange, Set<ImageDataPoint> dataPoints,
+      Set<Integer> scanNumbers, String representativeString, FeatureList featureList) {
     this.mz = mz;
     this.imagingParameters = imagingParameters;
-    this.mostIntensCoordinate = mostIntensCoordinate;
     this.maximumIntensity = maximumIntensity;
     this.mzRange = mzRange;
     this.intensityRange = intensityRange;
@@ -58,14 +53,6 @@ public class Image implements IImage {
 
   public void setImagingParameters(ImagingParameters imagingParameters) {
     this.imagingParameters = imagingParameters;
-  }
-
-  public Coordinates getMostIntensCoordinate() {
-    return mostIntensCoordinate;
-  }
-
-  public void setMostIntensCoordinate(Coordinates mostIntensCoordinate) {
-    this.mostIntensCoordinate = mostIntensCoordinate;
   }
 
   public double getMaximumIntensity() {
@@ -134,8 +121,6 @@ public class Image implements IImage {
     long temp;
     temp = Double.doubleToLongBits(maximumIntensity);
     result = prime * result + (int) (temp ^ (temp >>> 32));
-    result =
-        prime * result + ((mostIntensCoordinate == null) ? 0 : mostIntensCoordinate.hashCode());
     temp = Double.doubleToLongBits(mz);
     result = prime * result + (int) (temp ^ (temp >>> 32));
     result = prime * result + ((mzRange == null) ? 0 : mzRange.hashCode());
@@ -171,11 +156,6 @@ public class Image implements IImage {
       return false;
     if (Double.doubleToLongBits(maximumIntensity) != Double
         .doubleToLongBits(other.maximumIntensity))
-      return false;
-    if (mostIntensCoordinate == null) {
-      if (other.mostIntensCoordinate != null)
-        return false;
-    } else if (!mostIntensCoordinate.equals(other.mostIntensCoordinate))
       return false;
     if (Double.doubleToLongBits(mz) != Double.doubleToLongBits(other.mz))
       return false;

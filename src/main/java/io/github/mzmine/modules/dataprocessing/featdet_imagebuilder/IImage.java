@@ -5,7 +5,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
 
 public interface IImage {
@@ -17,10 +16,6 @@ public interface IImage {
   ImagingParameters getImagingParameters();
 
   void setImagingParameters(ImagingParameters imagingParameters);
-
-  Coordinates getMostIntensCoordinate();
-
-  void setMostIntensCoordinate(Coordinates mostIntensCoordinate);
 
   double getMaximumIntensity();
 

@@ -41,7 +41,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.ImageType;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -67,6 +66,8 @@ public class ImageBuilderTask extends AbstractTask {
   private final int minTotalSignals;
   private final ScanSelection scanSelection;
   private final ImagingParameters imagingParameters;
+  private double pixelWidth;
+  private double pixelHeight;
   private double progress = 0.0;
   private String taskDescription = "";
 
@@ -100,12 +101,18 @@ public class ImageBuilderTask extends AbstractTask {
       return;
     }
     progress = 0.0;
+    calculatePixelSize();
     Set<ImageDataPoint> imageDataPoints = extractAllDataPointsFromScans();
     createImageTargetSet(imageDataPoints);
     SortedSet<IImage> images = finishImages();
     buildModularFeatureList(images);
     progress = 1.0;
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void calculatePixelSize() {
+    pixelWidth = imagingParameters.getLateralWidth() / imagingParameters.getMaxNumberOfPixelX();
+    pixelHeight = imagingParameters.getLateralHeight() / imagingParameters.getMaxNumberOfPixelY();
   }
 
   // Extract all data point sorted by intensity
@@ -128,14 +135,16 @@ public class ImageBuilderTask extends AbstractTask {
       if (!(scan instanceof StorableImagingScan) || !scanSelection.matches(scan)) {
         continue;
       }
-      System.out.println(((StorableImagingScan) scan).getCoordinates().toString());
       if (scan.getMassList(massList) == null) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Scan #" + scan.getScanNumber() + " does not have a mass list " + massList);
       } else {
         Arrays.stream(scan.getMassList(massList).getDataPoints())
-            .forEach(dp -> allDataPoints.add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(),
-                scan.getScanNumber(), ((StorableImagingScan) scan).getCoordinates(), 1, 1)));
+            .forEach(dp -> allDataPoints
+                .add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(), scan.getScanNumber(),
+                    ((StorableImagingScan) scan).getCoordinates().getX() * pixelWidth,
+                    ((StorableImagingScan) scan).getCoordinates().getY() * pixelHeight, 1,
+                    pixelHeight, pixelWidth)));
       }
       progress = (processedScans / (double) scans.length) / 4;
       processedScans++;
@@ -190,7 +199,7 @@ public class ImageBuilderTask extends AbstractTask {
         if (toBeLowerBound < toBeUpperBound) {
           Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
           IImage newImage = new Image(imageDataPoint.getMZ(), imagingParameters,
-              imageDataPoint.getCoordinates(), imageDataPoint.getIntensity(), newRange);
+              imageDataPoint.getIntensity(), newRange);
           Set<ImageDataPoint> dataPointsSetForImage = new HashSet<>();
           dataPointsSetForImage.add(imageDataPoint);
           newImage.setDataPoints(dataPointsSetForImage);
@@ -265,7 +274,6 @@ public class ImageBuilderTask extends AbstractTask {
     sortedRetentionTimeMobilityDataPoints.addAll(image.getDataPoints());
     // Update raw data point ranges, height, and representative scan
     double maximumIntensity = Double.MIN_VALUE;
-    Coordinates mostIntenseCoordinate = null;
     for (ImageDataPoint imageDataPoint : sortedRetentionTimeMobilityDataPoints) {
       scanNumbers.add(imageDataPoint.getScanNumber());
 
@@ -282,7 +290,6 @@ public class ImageBuilderTask extends AbstractTask {
       // set maxima
       if (maximumIntensity < imageDataPoint.getIntensity()) {
         maximumIntensity = imageDataPoint.getIntensity();
-        mostIntenseCoordinate = imageDataPoint.getCoordinates();
       }
 
     }
@@ -292,7 +299,6 @@ public class ImageBuilderTask extends AbstractTask {
     image.setMzRange(rawDataPointsMZRange);
     image.setIntensityRange(rawDataPointsIntensityRange);
     image.setMaximumIntensity(maximumIntensity);
-    image.setMostIntensCoordinate(mostIntenseCoordinate);
     // logger.info("Ion Trace results:\n" + "Scan numbers: " + ionTrace.getScanNumbers() + "\n" + //
     // "Mobility range: " + ionTrace.getMobilityRange() + "\n" + //
     // "m/z range: " + ionTrace.getMzRange() + "\n" + //
@@ -344,11 +350,6 @@ public class ImageBuilderTask extends AbstractTask {
     featureList.addRowType(new ImageType());
     int featureId = 1;
     for (IImage image : images) {
-      System.out.println(image.getDataPoints().size());
-      Set<ImageDataPoint> dps = image.getDataPoints();
-      for (ImageDataPoint dp : dps) {
-        System.out.println(dp.getCoordinates().toString());
-      }
       image.setFeatureList(featureList);
       ModularFeature modular = FeatureConvertors.ImageToModularFeature(image, rawDataFile);
       ModularFeatureListRow newRow =

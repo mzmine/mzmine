@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -24,7 +25,7 @@ import io.github.mzmine.main.MZmineCore;
 public class ImageHeatMapPlot extends EChartViewer {
 
   private final XYPlot plot;
-  static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
+  static final Font legendFont = new Font("SansSerif", Font.PLAIN, 8);
   private PaintScaleLegend legend;
   private XYBlockRenderer blockRenderer;
   private double dataPointHeight;
@@ -33,8 +34,8 @@ public class ImageHeatMapPlot extends EChartViewer {
   public ImageHeatMapPlot(XYZDataset dataset, String paintScaleStyle, double dataPointWidth,
       double dataPointHeight) {
 
-    super(ChartFactory.createScatterPlot("", "", "", dataset, PlotOrientation.VERTICAL, true, true,
-        true));
+    super(ChartFactory.createScatterPlot("", "[\u00B5m]", "[\u00B5m]", dataset,
+        PlotOrientation.VERTICAL, true, true, true));
 
     this.dataPointWidth = dataPointWidth;
     this.dataPointHeight = dataPointHeight;
@@ -69,7 +70,10 @@ public class ImageHeatMapPlot extends EChartViewer {
     plot = chart.getXYPlot();
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
-
+    ((NumberAxis) chart.getXYPlot().getRangeAxis())
+        .setNumberFormatOverride(new DecimalFormat("0.0E0"));
+    ((NumberAxis) chart.getXYPlot().getDomainAxis())
+        .setNumberFormatOverride(new DecimalFormat("0.0E0"));
     setPixelRenderer();
     prepareLegend(min, max, scale);
 
@@ -91,10 +95,12 @@ public class ImageHeatMapPlot extends EChartViewer {
 
   private void prepareLegend(double min, double max, LookupPaintScale scale) {
     NumberAxis scaleAxis = new NumberAxis(null);
+    scaleAxis.setNumberFormatOverride(new DecimalFormat("0.0E0"));
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
     legend = new PaintScaleLegend(scale, scaleAxis);
+    legend.setPadding(5, 0, 5, 0);
     legend.setStripOutlineVisible(false);
     legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     legend.setAxisOffset(5.0);

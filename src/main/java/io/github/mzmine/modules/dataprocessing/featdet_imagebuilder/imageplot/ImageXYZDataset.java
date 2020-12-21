@@ -4,12 +4,12 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class ImageXYZDataset extends AbstractXYZDataset {
 
-  private Integer[] xValues;
-  private Integer[] yValues;
+  private Double[] xValues;
+  private Double[] yValues;
   private Double[] zValues;
   private String seriesKey;
 
-  public ImageXYZDataset(Integer[] xValues, Integer[] yValues, Double[] zValues, String seriesKey) {
+  public ImageXYZDataset(Double[] xValues, Double[] yValues, Double[] zValues, String seriesKey) {
     super();
     this.xValues = xValues;
     this.yValues = yValues;

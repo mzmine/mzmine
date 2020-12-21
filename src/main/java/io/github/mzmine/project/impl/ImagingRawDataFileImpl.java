@@ -87,7 +87,8 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
   public int[][][] getXYZScanNumbers() {
     if (xyzScanNumbers == null) {
       // sort all scan numbers to xyz location
-      xyzScanNumbers = new int[param.getWidth()][param.getHeight()][param.getDepth()];
+      xyzScanNumbers = new int[param.getMaxNumberOfPixelX()][param.getMaxNumberOfPixelY()][param
+          .getMaxNumberOfPixelZ()];
       for (int x = 0; x < xyzScanNumbers.length; x++) {
         for (int y = 0; y < xyzScanNumbers[x].length; y++) {
           for (int z = 0; z < xyzScanNumbers[x][y].length; z++) {
@@ -100,8 +101,8 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
       for (int i = 0; i < numbers.length; i++) {
         if (getScan(numbers[i]) instanceof ImagingScan) {
           Coordinates c = ((ImagingScan) getScan(numbers[i])).getCoordinates();
-          if (c.getX() < param.getWidth() && c.getY() < param.getHeight()
-              && c.getZ() < param.getDepth())
+          if (c.getX() < param.getMaxNumberOfPixelX() && c.getY() < param.getMaxNumberOfPixelY()
+              && c.getZ() < param.getMaxNumberOfPixelZ())
             xyzScanNumbers[c.getX()][c.getY()][c.getZ()] = numbers[i];
         }
       }

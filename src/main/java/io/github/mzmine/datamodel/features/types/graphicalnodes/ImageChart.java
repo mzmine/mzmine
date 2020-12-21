@@ -14,7 +14,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageHeatMapPlot;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageXYZDataset;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
 import javafx.scene.layout.StackPane;
 
 public class ImageChart extends StackPane {
@@ -26,8 +25,8 @@ public class ImageChart extends StackPane {
 
   public ImageChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
     try {
-      Integer[] xValues = null;
-      Integer[] yValues = null;
+      Double[] xValues = null;
+      Double[] yValues = null;
       Double[] zValues = null;
 
       int size = row.getFilesFeatures().size();
@@ -37,24 +36,23 @@ public class ImageChart extends StackPane {
         List<ImageDataPoint> dataPoints = new ArrayList<>();
         dataPoints.addAll((Collection<? extends ImageDataPoint>) dps);
         // add data points retention time -> intensity
-        List<Integer> xValuesSet = new ArrayList<>();
-        List<Integer> yValuesSet = new ArrayList<>();
+        List<Double> xValuesSet = new ArrayList<>();
+        List<Double> yValuesSet = new ArrayList<>();
         List<Double> zValuesSet = new ArrayList<>();
         for (ImageDataPoint dp : dataPoints) {
           if (dataPointHeight == null) {
             dataPointHeight = dp.getDataPointHeigth();
             dataPointWidth = dp.getDataPointWidth();
           }
-          Coordinates coordinates = dp.getCoordinates();
-          xValuesSet.add(coordinates.getX());
-          yValuesSet.add(coordinates.getY());
+          xValuesSet.add(dp.getxWorld());
+          yValuesSet.add(dp.getyWorld());
           zValuesSet.add(dp.getIntensity());
           if (progress != null)
             progress.addAndGet(1.0 / size / dataPoints.size());
         }
-        xValues = new Integer[xValuesSet.size()];
+        xValues = new Double[xValuesSet.size()];
         xValues = xValuesSet.toArray(xValues);
-        yValues = new Integer[yValuesSet.size()];
+        yValues = new Double[yValuesSet.size()];
         yValues = yValuesSet.toArray(yValues);
         zValues = new Double[zValuesSet.size()];
         zValues = zValuesSet.toArray(zValues);

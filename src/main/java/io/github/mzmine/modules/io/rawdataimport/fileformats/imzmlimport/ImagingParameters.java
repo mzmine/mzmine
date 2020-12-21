@@ -41,10 +41,14 @@ public class ImagingParameters {
   /**
    * lateral width and height in mumeter
    */
-  private double lateralWidth, lateralHeight;
-  private double pixelWidth = 1, pixelShape = 1;
+  private double lateralWidth;
+  private double lateralHeight;
+  private double pixelWidth = 1;
+  private double pixelShape = 1;
   // max number of pixels in x and y and z (depth)
-  private int width, height, depth = 1;
+  private int maxNumberOfPixelX;
+  private int maxNumberOfPixelY;
+  private int maxNumberOfPixelZ = 1;
   // vertical and horizontal start
   private VerticalStart vStart;
   private HorizontalStart hStart;
@@ -56,9 +60,9 @@ public class ImagingParameters {
 
 
   public ImagingParameters(ImzML imz) {
-    width = imz.getWidth();
-    height = imz.getHeight();
-    depth = imz.getDepth();
+    maxNumberOfPixelX = imz.getWidth();
+    maxNumberOfPixelY = imz.getHeight();
+    maxNumberOfPixelZ = imz.getDepth();
     spectraPerPixel = imz.getNumberOfSpectraPerPixel();
     minMZ = imz.getMinimumDetectedmz();
     maxMZ = imz.getMaximumDetectedmz();
@@ -116,68 +120,13 @@ public class ImagingParameters {
   }
 
 
-  public double getMaxMZ() {
-    return maxMZ;
-  }
-
-
-  public double getLateralWidth() {
-    return lateralWidth;
-  }
-
-
-  public double getLateralHeight() {
-    return lateralHeight;
-  }
-
-
-  public double getPixelWidth() {
-    return pixelWidth;
-  }
-
-
-  public double getPixelShape() {
-    return pixelShape;
-  }
-
-
-  public int getWidth() {
-    return width;
-  }
-
-
-  public int getHeight() {
-    return height;
-  }
-
-
-  public int getDepth() {
-    return depth;
-  }
-
-
-  public VerticalStart getvStart() {
-    return vStart;
-  }
-
-
-  public HorizontalStart gethStart() {
-    return hStart;
-  }
-
-
-  public int getSpectraPerPixel() {
-    return spectraPerPixel;
-  }
-
-
-  public Pattern getPattern() {
-    return pattern;
-  }
-
-
   public void setMinMZ(double minMZ) {
     this.minMZ = minMZ;
+  }
+
+
+  public double getMaxMZ() {
+    return maxMZ;
   }
 
 
@@ -186,8 +135,18 @@ public class ImagingParameters {
   }
 
 
+  public double getLateralWidth() {
+    return lateralWidth;
+  }
+
+
   public void setLateralWidth(double lateralWidth) {
     this.lateralWidth = lateralWidth;
+  }
+
+
+  public double getLateralHeight() {
+    return lateralHeight;
   }
 
 
@@ -196,8 +155,18 @@ public class ImagingParameters {
   }
 
 
+  public double getPixelWidth() {
+    return pixelWidth;
+  }
+
+
   public void setPixelWidth(double pixelWidth) {
     this.pixelWidth = pixelWidth;
+  }
+
+
+  public double getPixelShape() {
+    return pixelShape;
   }
 
 
@@ -206,18 +175,38 @@ public class ImagingParameters {
   }
 
 
-  public void setWidth(int width) {
-    this.width = width;
+  public int getMaxNumberOfPixelX() {
+    return maxNumberOfPixelX;
   }
 
 
-  public void setHeight(int height) {
-    this.height = height;
+  public void setMaxNumberOfPixelX(int maxNumberOfPixelX) {
+    this.maxNumberOfPixelX = maxNumberOfPixelX;
   }
 
 
-  public void setDepth(int depth) {
-    this.depth = depth;
+  public int getMaxNumberOfPixelY() {
+    return maxNumberOfPixelY;
+  }
+
+
+  public void setMaxNumberOfPixelY(int maxNumberOfPixelY) {
+    this.maxNumberOfPixelY = maxNumberOfPixelY;
+  }
+
+
+  public int getMaxNumberOfPixelZ() {
+    return maxNumberOfPixelZ;
+  }
+
+
+  public void setMaxNumberOfPixelZ(int maxNumberOfPixelZ) {
+    this.maxNumberOfPixelZ = maxNumberOfPixelZ;
+  }
+
+
+  public VerticalStart getvStart() {
+    return vStart;
   }
 
 
@@ -226,13 +215,28 @@ public class ImagingParameters {
   }
 
 
+  public HorizontalStart gethStart() {
+    return hStart;
+  }
+
+
   public void sethStart(HorizontalStart hStart) {
     this.hStart = hStart;
   }
 
 
+  public int getSpectraPerPixel() {
+    return spectraPerPixel;
+  }
+
+
   public void setSpectraPerPixel(int spectraPerPixel) {
     this.spectraPerPixel = spectraPerPixel;
+  }
+
+
+  public Pattern getPattern() {
+    return pattern;
   }
 
 
@@ -255,9 +259,7 @@ public class ImagingParameters {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + depth;
     result = prime * result + ((hStart == null) ? 0 : hStart.hashCode());
-    result = prime * result + height;
     long temp;
     temp = Double.doubleToLongBits(lateralHeight);
     result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -265,6 +267,9 @@ public class ImagingParameters {
     result = prime * result + (int) (temp ^ (temp >>> 32));
     temp = Double.doubleToLongBits(maxMZ);
     result = prime * result + (int) (temp ^ (temp >>> 32));
+    result = prime * result + maxNumberOfPixelX;
+    result = prime * result + maxNumberOfPixelY;
+    result = prime * result + maxNumberOfPixelZ;
     temp = Double.doubleToLongBits(minMZ);
     result = prime * result + (int) (temp ^ (temp >>> 32));
     result = prime * result + ((pattern == null) ? 0 : pattern.hashCode());
@@ -275,7 +280,6 @@ public class ImagingParameters {
     result = prime * result + ((scanDirection == null) ? 0 : scanDirection.hashCode());
     result = prime * result + spectraPerPixel;
     result = prime * result + ((vStart == null) ? 0 : vStart.hashCode());
-    result = prime * result + width;
     return result;
   }
 
@@ -289,17 +293,19 @@ public class ImagingParameters {
     if (getClass() != obj.getClass())
       return false;
     ImagingParameters other = (ImagingParameters) obj;
-    if (depth != other.depth)
-      return false;
     if (hStart != other.hStart)
-      return false;
-    if (height != other.height)
       return false;
     if (Double.doubleToLongBits(lateralHeight) != Double.doubleToLongBits(other.lateralHeight))
       return false;
     if (Double.doubleToLongBits(lateralWidth) != Double.doubleToLongBits(other.lateralWidth))
       return false;
     if (Double.doubleToLongBits(maxMZ) != Double.doubleToLongBits(other.maxMZ))
+      return false;
+    if (maxNumberOfPixelX != other.maxNumberOfPixelX)
+      return false;
+    if (maxNumberOfPixelY != other.maxNumberOfPixelY)
+      return false;
+    if (maxNumberOfPixelZ != other.maxNumberOfPixelZ)
       return false;
     if (Double.doubleToLongBits(minMZ) != Double.doubleToLongBits(other.minMZ))
       return false;
@@ -315,10 +321,7 @@ public class ImagingParameters {
       return false;
     if (vStart != other.vStart)
       return false;
-    if (width != other.width)
-      return false;
     return true;
   }
-
 
 }
