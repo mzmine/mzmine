@@ -24,6 +24,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextP
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.RangeValueProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider;
 
 public class ColoredXYZDataset extends ColoredXYDataset {
 
@@ -32,8 +33,9 @@ public class ColoredXYZDataset extends ColoredXYDataset {
       RangeValueProvider rangeValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider,
       LabelTextProvider labelTextProvider,
+      ToolTipTextProvider toolTipTextProvider,
       ColorProvider colorProvider) {
     super(domainValueProvider, rangeValueProvider, seriesKeyProvider, labelTextProvider,
-        colorProvider);
+        toolTipTextProvider, colorProvider);
   }
 }

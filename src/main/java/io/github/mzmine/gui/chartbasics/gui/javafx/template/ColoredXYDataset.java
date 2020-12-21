@@ -24,6 +24,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextP
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.RangeValueProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -46,6 +47,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   private final RangeValueProvider rangeValueProvider;
   private final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   private final LabelTextProvider labelTextProvider;
+  private final ToolTipTextProvider toolTipTextProvider;
   private final int itemCount;
   private Color color;
   private javafx.scene.paint.Color colorfx;
@@ -58,7 +60,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   public ColoredXYDataset(DomainValueProvider domainValueProvider,
       RangeValueProvider rangeValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
-      ColorProvider colorProvider) {
+      ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider) {
 
     if (domainValueProvider.getValueCount() != rangeValueProvider.getValueCount()) {
       throw new IllegalArgumentException(
@@ -72,6 +74,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
     this.rangeValueProvider = rangeValueProvider;
     this.seriesKeyProvider = seriesKeyProvider;
     this.labelTextProvider = labelTextProvider;
+    this.toolTipTextProvider = toolTipTextProvider;
 
     this.color = colorProvider.getAWTColor();
     this.colorfx = colorProvider.getFXColor();
@@ -87,7 +90,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   }
 
   public ColoredXYDataset(PlotDatasetProvider datasetProvider) {
-    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider, datasetProvider);
+    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider, datasetProvider,
+        datasetProvider);
   }
 
   @Override
@@ -174,6 +178,14 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
       return labelTextProvider.getLabel(itemIndex);
     }
     return String.valueOf(getYValue(1, itemIndex));
+  }
+
+  @Nullable
+  public String getToolTip(final int itemIndex) {
+    if (itemIndex > getItemCount(1) || toolTipTextProvider == null) {
+      return null;
+    }
+    return toolTipTextProvider.getToolTipText(itemIndex);
   }
 
   public void compute() {
