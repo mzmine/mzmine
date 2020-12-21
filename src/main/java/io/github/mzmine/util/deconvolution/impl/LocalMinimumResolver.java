@@ -13,14 +13,15 @@ public class LocalMinimumResolver implements IXYResolver<Set<Double>, double[], 
   final Range<Double> xRange;
   final float searchXRange;
   final double minRatio;
-  final double minHeight;
+  double minHeight;
   final double chromatographicThresholdLevel;
 
   /**
    * @param xRange                        {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#PEAK_DURATION}
    * @param searchXRange                  {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#SEARCH_RT_RANGE}
    * @param minRatio                      {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#MIN_RATIO}
-   * @param minHeight                     Minimum height to be recognised as a peak.
+   * @param minHeight                     Minimum height to be recognised as a peak. Can be reset
+   *                                      via {@link LocalMinimumResolver#setMinHeight(double)}
    * @param chromatographicThresholdLevel {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#CHROMATOGRAPHIC_THRESHOLD_LEVEL}
    */
   public LocalMinimumResolver(Range<Double> xRange, float searchXRange, double minRatio,
@@ -33,10 +34,10 @@ public class LocalMinimumResolver implements IXYResolver<Set<Double>, double[], 
   }
 
   /**
-   * @param x domain values of the data to be deconvoluted
-   * @param y range values of the data to be deconvoluted. Has to be * strictly monotonically
-   *          increasing (e.g. RT or mobility). * The values inside this array are set to 0 if they
-   *          fall * below the chromatographicThresholdLevel.
+   * @param x domain values of the data to be resolved
+   * @param y range values of the data to be resolved. Values have to be <b>strictly monotonically
+   *          increasing</b> (e.g. RT or mobility). The values inside this array are set to 0 if
+   *          they fall below the chromatographicThresholdLevel.
    * @return Collection of a Set of x values for each resolved peak
    */
   @Override
@@ -178,10 +179,10 @@ public class LocalMinimumResolver implements IXYResolver<Set<Double>, double[], 
   }
 
   /**
-   * @param x domain values of the data to be deconvoluted
-   * @param y range values of the data to be deconvoluted. Has to be * strictly monotonically
-   *          increasing (e.g. RT or mobility). * The values inside this array are set to 0 if they
-   *          fall * below the chromatographicThresholdLevel.
+   * @param x domain values of the data to be resolved
+   * @param y range values of the data to be resolved. Values have to be <b>strictly monotonically *
+   *          increasing</b> (e.g. RT or mobility). The values inside this array are set to 0 if
+   *          they fall below the chromatographicThresholdLevel.
    * @return Collection of a Set of indices for each resolved peak.
    */
   @Override
@@ -323,5 +324,12 @@ public class LocalMinimumResolver implements IXYResolver<Set<Double>, double[], 
       }
     }
     return resolved;
+  }
+
+  /**
+   * @param newMinHeight Sets the minimum height in case a new set of data shall be processed.
+   */
+  public void setMinHeight(final double newMinHeight) {
+    this.minHeight = newMinHeight;
   }
 }
