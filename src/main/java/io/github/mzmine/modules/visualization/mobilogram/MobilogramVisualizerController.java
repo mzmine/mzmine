@@ -10,6 +10,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramChangeListener;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.PreviewMobilogram;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.project.impl.StorableFrame;
 import java.text.NumberFormat;
@@ -38,7 +39,7 @@ public class MobilogramVisualizerController {
   private List<MobilogramChangeListener> mobilogramListeners;
 
   @FXML
-  private SimpleXYLineChart<Mobilogram> mobilogramChart;
+  private SimpleXYLineChart<PreviewMobilogram> mobilogramChart;
 
   @FXML
   private ComboBox<RawDataFile> rawDataFileSelector;
@@ -113,7 +114,8 @@ public class MobilogramVisualizerController {
     final Mobilogram selectedMobilogram = mobilogramSelector.getValue();
     mobilogramChart.removeAllDatasets();
     if (selectedMobilogram != null) {
-      mobilogramChart.addDataset(selectedMobilogram);
+      mobilogramChart.addDataset(
+          new PreviewMobilogram(selectedMobilogram, selectedMobilogram.representativeString()));
     }
 
     mobilogramListeners.forEach(l -> l.change(selectedMobilogram));
@@ -222,7 +224,7 @@ public class MobilogramVisualizerController {
     return rawDataFileSelector.getValue();
   }
 
-  public SimpleXYLineChart<Mobilogram> getMobilogramChart() {
+  public SimpleXYLineChart<PreviewMobilogram> getMobilogramChart() {
     return mobilogramChart;
   }
 

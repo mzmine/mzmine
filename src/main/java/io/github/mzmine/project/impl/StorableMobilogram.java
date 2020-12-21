@@ -124,38 +124,6 @@ public class StorableMobilogram implements Mobilogram {
   }
 
   @Override
-  public Color getAWTColor() {
-    return rawDataFile.getColorAWT();
-  }
-
-  @Override
-  public javafx.scene.paint.Color getFXColor() {
-    return rawDataFile.getColor();
-  }
-
-  @Override
-  public List<Double> getDomainValues() {
-    return getDataPoints().stream().map(MobilityDataPoint::getMobility)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  public List<Double> getRangeValues() {
-    return getDataPoints().stream().map(MobilityDataPoint::getIntensity)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  public Comparable<?> getSeriesKey() {
-    return "m/z range " + getMZRange().toString();
-  }
-
-  @Override
-  public int getValueCount() {
-    return getDataPoints().size();
-  }
-
-  @Override
   public String representativeString() {
     return mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
         .format(mzRange.upperEndpoint())

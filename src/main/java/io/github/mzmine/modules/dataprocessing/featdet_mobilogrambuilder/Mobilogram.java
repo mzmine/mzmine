@@ -26,7 +26,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface Mobilogram extends PlotDatasetProvider {
+public interface Mobilogram {
 
   public double getMZ();
 
