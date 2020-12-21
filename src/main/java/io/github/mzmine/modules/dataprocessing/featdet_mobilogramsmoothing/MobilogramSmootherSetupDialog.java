@@ -118,7 +118,7 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
     final Range<Double> peakDuration =
         parameters.getParameter(MobilogramSmootherParameters.PEAK_DURATION).getValue();
     final float searchRTRange =
-        parameters.getParameter(MobilogramSmootherParameters.SEARCH_RT_RANGE).getValue()
+        parameters.getParameter(MobilogramSmootherParameters.SEARCH_MOBILITY_RANGE).getValue()
             .floatValue();
     final double minRatio =
         parameters.getParameter(MobilogramSmootherParameters.MIN_RATIO).getValue();
