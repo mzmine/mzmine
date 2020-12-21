@@ -199,7 +199,10 @@ public class MsnPeakPickingTask extends AbstractTask {
       return null;
     }
 
-    int[] fragmentScanNumbers = scan.getFragmentScanNumbers();
+    // int[] fragmentScanNumbers = scan.getFragmentScanNumbers();
+    int[] fragmentScanNumbers = new int[0];
+    if(fragmentScanNumbers==null || fragmentScanNumbers.length==0)
+      return new int[0];
 
     // Recursively search fragment scans for all scan numbers at MS level.
     if (fragmentScanNumbers != null) {
