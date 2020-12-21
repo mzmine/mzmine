@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  ~ Copyright 2006-2020 The MZmine Development Team
+  ~ This file is part of MZmine.
+  ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+  ~ General Public License as published by the Free Software Foundation; either version 2 of the
+  ~ License, or (at your option) any later version.
+  ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+  ~ Public License for more details.
+  ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+  ~ USA 
+  -->
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.gui.chartbasics.gui.javafx.template.DatasetControlPaneController">
+  <children>
+    <TableView fx:id="tvOverview" layoutX="14.0" layoutY="39.0" prefHeight="400.0" prefWidth="600.0"
+      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+      AnchorPane.topAnchor="0.0">
+      <columns>
+        <TableColumn fx:id="colShow" editable="false" prefWidth="75.0" text="Show"/>
+        <TableColumn fx:id="colDatasetType" editable="false" prefWidth="75.0" text="Dataset type"/>
+        <TableColumn fx:id="colDatasetName" editable="false" prefWidth="75.0" text="Name"/>
+        <TableColumn fx:id="colColor" editable="true" prefWidth="75.0" text="Color"/>
+      </columns>
+    </TableView>
+  </children>
+</AnchorPane>
