@@ -26,9 +26,11 @@ import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javafx.beans.NamedArg;
@@ -50,6 +52,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
 public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
@@ -63,6 +66,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   private final TextTitle chartSubTitle;
 
   private final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
+  private final List<DatasetsChangedListener> datasetListeners;
 
   protected EStandardChartTheme theme;
   protected SimpleXYLabelGenerator defaultLabelGenerator;
@@ -128,14 +132,16 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     defaultLineRenderer.setDefaultItemLabelGenerator(defaultLabelGenerator);
     defaultLineRenderer.setDefaultItemLabelsVisible(true);
     defaultLineRenderer.setDefaultToolTipGenerator(defaultToolTipGenerator);
-
     plot.setRenderer(defaultLineRenderer);
+
+    datasetListeners = new ArrayList<>();
   }
 
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
+    notifyDatasetsChangedListeners();
     return nextDataSetNum - 1;
   }
 
@@ -159,6 +165,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     XYDataset ds = plot.getDataset(index);
     plot.setDataset(index, null);
     plot.setRenderer(index, null);
+    notifyDatasetsChangedListeners();
     return ds;
   }
 
@@ -174,6 +181,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     }
     chart.setNotify(true);
     chart.fireChartChanged();
+    notifyDatasetsChangedListeners();
     return map;
   }
 
@@ -185,6 +193,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     }
     chart.setNotify(true);
     chart.fireChartChanged();
+    notifyDatasetsChangedListeners();
   }
 
   /**
@@ -320,5 +329,26 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   public void addContextMenuItem(String title, EventHandler<ActionEvent> ai) {
     logger.info("call");
     addMenuItem(getContextMenu(), title, ai);
+  }
+
+
+  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
+    datasetListeners.add(listener);
+  }
+
+  public void removeDatasetsChangedListener(DatasetsChangedListener listener) {
+    datasetListeners.remove(listener);
+  }
+
+  public void clearDatasetsChangedListeners(DatasetChangeListener listener) {
+    datasetListeners.clear();
+  }
+
+  private void notifyDatasetsChangedListeners() {
+    Map<Integer, XYDataset> datasets = getAllDatasets();
+
+    for(DatasetsChangedListener listener : datasetListeners) {
+      listener.datasetsChanged(datasets);
+    }
   }
 }
