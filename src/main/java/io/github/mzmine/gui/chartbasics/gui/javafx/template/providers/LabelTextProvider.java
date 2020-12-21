@@ -16,11 +16,12 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template;
+package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
 
-import org.jfree.chart.labels.XYItemLabelGenerator;
+/**
+ *
+ */
+public interface LabelTextProvider {
 
-public interface SimpleLabelGenerator<DataSetType extends ColoredXYDataset> extends
-    XYItemLabelGenerator {
-
+  public String getLabel(int index);
 }
