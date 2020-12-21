@@ -23,11 +23,13 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.SimpleMobilogram;
 import java.awt.Color;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,7 +42,13 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetPr
 
   private final List<Double> xValues;
   private final List<Double> yValues;
-  private final List<Integer> scanNumbers;
+
+  private final NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+  private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+  private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
+
+  private List<MobilityDataPoint> sortedDps;
 
 
   public PreviewMobilogram(Mobilogram mobilogram, final String seriesKey) {
@@ -48,7 +56,6 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetPr
     this.awt = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
     this.seriesKey = seriesKey;
     mobilogram.getDataPoints().forEach(this::addDataPoint);
-    scanNumbers = new ArrayList<>();
     yValues = new ArrayList<>();
     xValues = new ArrayList<>();
     calc();
@@ -71,22 +78,27 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetPr
 
   @Override
   public String getLabel(int index) {
-    int scanNum = scanNumbers.get(index);
-    MobilityDataPoint dp = getDataPoints().get(index);
-    double mz = dp.getMZ();
-    return String.valueOf(mz);
+    return mzFormat.format(sortedDps.get(index).getMZ());
+  }
+
+  @Override
+  public String getToolTipText(int itemIndex) {
+    return "Mobility scan #" + sortedDps.get(itemIndex).getScanNum()
+        + "\nm/z " + mzFormat.format(sortedDps.get(itemIndex).getMZ())
+        + "\nIntensity: " + intensityFormat.format(yValues.get(itemIndex))
+        + "\nMobility: " + mobilityFormat.format(xValues.get(itemIndex)) + " " + getMobilityType()
+        .getUnit();
   }
 
   @Override
   public void calc() {
     super.calc();
 
-    List<MobilityDataPoint> sortedDps = getDataPoints().stream()
-        .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility)).collect(
-            Collectors.toList());
+    sortedDps = getDataPoints().stream()
+        .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility))
+        .collect(Collectors.toList());
 
-    for(MobilityDataPoint dp : sortedDps) {
-      scanNumbers.add(dp.getScanNum());
+    for (MobilityDataPoint dp : sortedDps) {
       xValues.add(dp.getMobility());
       yValues.add(dp.getIntensity());
     }
@@ -106,4 +118,5 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetPr
   public int getValueCount() {
     return xValues.size();
   }
+
 }
