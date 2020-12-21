@@ -143,13 +143,13 @@ public class SimpleMobilogram implements Mobilogram {
   }
 
   @Override
-  public List<Number> getDomainValues() {
+  public List<Double> getDomainValues() {
     return getDataPoints().stream().map(MobilityDataPoint::getMobility)
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<Number> getRangeValues() {
+  public List<Double> getRangeValues() {
     return getDataPoints().stream().map(MobilityDataPoint::getIntensity)
         .collect(Collectors.toList());
   }
