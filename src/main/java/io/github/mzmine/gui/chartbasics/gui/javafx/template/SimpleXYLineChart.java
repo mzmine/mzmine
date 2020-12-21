@@ -28,7 +28,10 @@ import java.awt.Paint;
 import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.SortedMap;
 import java.util.logging.Logger;
 import javafx.beans.NamedArg;
 import javafx.beans.property.ObjectProperty;
@@ -172,6 +175,22 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     }
     chart.setNotify(true);
     chart.fireChartChanged();
+  }
+
+  /**
+   *
+   * @return Mapping of datasetIndex -> Dataset
+   */
+  public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
+    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
+
+    for(int i = 0; i < nextDataSetNum; i++) {
+      XYDataset dataset = plot.getDataset(i);
+      if(dataset != null) {
+        datasetMap.put(i, dataset);
+      }
+    }
+    return datasetMap;
   }
 
   public void setDomainAxisLabel(String label) {

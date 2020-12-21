@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
 
-public interface PlotDatasetProvider extends DomainValueProvider<Number>,
-    RangeValueProvider<Number>, SeriesKeyProvider<Comparable<?>>, ColorProvider {
+public interface PlotDatasetProvider extends DomainValueProvider,
+    RangeValueProvider, SeriesKeyProvider<Comparable<?>>, ColorProvider {
 
 }

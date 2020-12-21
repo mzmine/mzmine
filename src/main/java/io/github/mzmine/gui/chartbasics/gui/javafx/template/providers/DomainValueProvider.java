@@ -20,7 +20,7 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
 
 import java.util.List;
 
-public interface DomainValueProvider<ValueType extends Number> extends ValueCountProvider {
+public interface DomainValueProvider extends ValueCountProvider {
 
-  public List<ValueType> getDomainValues();
+  public List<Double> getDomainValues();
 }
