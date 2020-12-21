@@ -57,7 +57,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
 
   public ColoredXYDataset(DomainValueProvider domainValueProvider,
       RangeValueProvider rangeValueProvider,
-      SeriesKeyProvider<Comparable<?>> seriesKeyProvider, ColorProvider colorProvider) {
+      SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
+      ColorProvider colorProvider) {
 
     if (domainValueProvider.getValueCount() != rangeValueProvider.getValueCount()) {
       throw new IllegalArgumentException(
@@ -70,7 +71,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
     this.domainValueProvider = domainValueProvider;
     this.rangeValueProvider = rangeValueProvider;
     this.seriesKeyProvider = seriesKeyProvider;
-    this.labelTextProvider = null;
+    this.labelTextProvider = labelTextProvider;
 
     this.color = colorProvider.getAWTColor();
     this.colorfx = colorProvider.getFXColor();
@@ -86,7 +87,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   }
 
   public ColoredXYDataset(PlotDatasetProvider datasetProvider) {
-    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider);
+    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider, datasetProvider);
   }
 
   @Override
@@ -166,7 +167,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
 
   @Nullable
   public String getLabel(final int itemIndex) {
-    if(itemIndex > getItemCount(1)) {
+    if (itemIndex > getItemCount(1)) {
       return null;
     }
     if (labelTextProvider != null) {
