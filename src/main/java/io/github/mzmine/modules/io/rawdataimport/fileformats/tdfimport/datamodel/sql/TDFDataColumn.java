@@ -21,7 +21,9 @@ package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamode
 import java.util.ArrayList;
 import javax.annotation.Nonnull;
 
-
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public class TDFDataColumn<DataType> extends ArrayList<DataType> {
   protected final String coulumnName;
 

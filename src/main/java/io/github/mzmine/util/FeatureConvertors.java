@@ -184,18 +184,18 @@ public class FeatureConvertors {
     // .collect(Collectors.toCollection(FXCollections::observableArrayList)));
 
     // Quality parameters
-    float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    if (!Float.isNaN(fwhm)) {
-      modularFeature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    if (!Float.isNaN(tf)) {
-      modularFeature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    if (!Float.isNaN(af)) {
-      modularFeature.set(AsymmetryFactorType.class, af);
-    }
+    // float fwhm = QualityParameters.calculateFWHM(modularFeature);
+    // if (!Float.isNaN(fwhm)) {
+    modularFeature.set(FwhmType.class, -1);
+    // }
+    // float tf = QualityParameters.calculateTailingFactor(modularFeature);
+    // if (!Float.isNaN(tf)) {
+    modularFeature.set(TailingFactorType.class, -1);
+    // }
+    // float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
+    // if (!Float.isNaN(af)) {
+    modularFeature.set(AsymmetryFactorType.class, -1);
+    // }
 
     return modularFeature;
   }

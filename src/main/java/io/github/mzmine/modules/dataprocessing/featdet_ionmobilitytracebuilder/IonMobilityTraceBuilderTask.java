@@ -35,8 +35,8 @@ import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -141,16 +141,16 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       if (!(frame instanceof StorableFrame) || !scanSelection.matches(frame)) {
         continue;
       }
-      for (Scan scan : frame.getMobilityScans()) {
+      for (MobilityScan scan : frame.getMobilityScans()) {
         if (scan.getMassList(massList) == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(
-              "Scan #" + scan.getScanNumber() + " does not have a mass list " + massList);
+              "Scan #" + scan.getMobilityScamNumber() + " does not have a mass list " + massList);
         } else {
           Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
               dp -> allDataPoints.add(new RetentionTimeMobilityDataPoint(scan.getMobility(),
                   dp.getMZ(), scan.getRetentionTime(), dp.getIntensity(), frame.getFrameId(),
-                  scan.getScanNumber(), mobilityWidth)));
+                  scan.getMobilityScamNumber(), mobilityWidth)));
         }
       }
       progress = (processedFrame / (double) frames.size()) / 4;

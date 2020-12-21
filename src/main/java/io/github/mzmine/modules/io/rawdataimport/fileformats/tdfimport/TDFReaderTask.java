@@ -18,8 +18,11 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
@@ -33,6 +36,7 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFPrecursorTable;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.StorableFrame;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -42,11 +46,15 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public class TDFReaderTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFReaderTask.class.getName());
@@ -61,10 +69,11 @@ public class TDFReaderTask extends AbstractTask {
   private final FramePrecursorTable framePrecursorTable;
   private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private final RawDataFileWriter newMZmineFile;
-  private String description;
-  private double finishedPercentage;
   private boolean isMaldi;
 
+  private String description;
+  private double finishedPercentage;
+  private int loadedFrames;
   /**
    * Bruker tims format:
    * - Folder
@@ -124,6 +133,7 @@ public class TDFReaderTask extends AbstractTask {
     this.newMZmineFile = newMZmineFile;
     ((IMSRawDataFile) newMZmineFile).setName(rawDataFileName);
 
+    loadedFrames = 0;
     setStatus(TaskStatus.WAITING);
   }
 
@@ -148,34 +158,33 @@ public class TDFReaderTask extends AbstractTask {
 
     Date start = new Date();
 
-    if (!isMaldi) {
-      appendScansFromTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable, metaDataTable,
-          pasefFrameMsMsInfoTable, framePrecursorTable);
-    } else {
-      appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
-          metaDataTable, maldiFrameInfoTable);
-    }
-
-    final long lastFrameId = frameTable.getFrameIdColumn().get(frameTable.getNumberOfFrames() - 1);
-    final int lastScanNum = Math.toIntExact(
-        frameTable.getFirstScanNumForFrame(lastFrameId) +
-            frameTable.getNumScansColumn().get(frameTable.getFrameIdColumn().indexOf(lastFrameId)));
+    identifySegments((IMSRawDataFileImpl) newMZmineFile);
 
     // collect average spectra for each frame
-    int frameId = 1;
+    int frameId = frameTable.getFrameIdColumn().get(0).intValue();
+    Set<Frame> frames = new LinkedHashSet<>();
     try {
-      for (int scanNum = lastScanNum; scanNum < lastScanNum + numFrames; scanNum++) {
-        finishedPercentage = 0.9 + 0.1 * frameId / numFrames;
+      for (int scanNum = frameId; scanNum < frameTable.getNumberOfFrames(); scanNum++) {
+        finishedPercentage = 0.1 * ((double) loadedFrames) / numFrames;
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        Scan frame = TDFUtils
-            .exctractCentroidScanForTimsFrame(handle, frameId, scanNum, metaDataTable, frameTable);
-        newMZmineFile.addScan(frame);
+        Scan frame = TDFUtils.exctractCentroidScanForTimsFrame(handle, frameId, metaDataTable,
+            frameTable, framePrecursorTable);
+        Frame storedFrame = (Frame) newMZmineFile.addScan(frame);
+        frames.add(storedFrame);
         frameId++;
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
+
+//    if (!isMaldi) {
+    appendScansFromTimsSegment(handle, frameTable, frames);
+//    } else {
+//      appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
+//          metaDataTable, maldiFrameInfoTable);
+//    }
+
     TDFUtils.close(handle);
 
     try {
@@ -185,6 +194,7 @@ public class TDFReaderTask extends AbstractTask {
       logger.info("Imported " + rawDataFileName + ". Loaded " + file.getNumOfScans() + " scans and "
           + ((IMSRawDataFile) file).getNumberOfFrames() + " frames.");
       MZmineCore.getProjectManager().getCurrentProject().addFile(file);
+      compareMobilities((IMSRawDataFile) file);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -261,40 +271,29 @@ public class TDFReaderTask extends AbstractTask {
   /**
    * Adds all scans from the pasef segment to a raw data file. Does not add the frame spectra!
    *
-   * @param rawDataFile                The raw file the scans will be added to
-   * @param handle                     handle of the tdfbin. {@link TDFUtils#openFile(File)} {@link
-   *                                   TDFUtils#openFile(File, long)}
-   * @param firstFrameId               id of the first frame in the segment
-   * @param lastFrameId                id of the last frame in the segment
-   * @param tdfFrameTable              {@link TDFFrameTable} of the tdf file
-   * @param tdfMetaDataTable           {@link TDFMetaDataTable} of the tdf file
-   * @param tdfPasefFrameMsMsInfoTable {@link TDFPasefFrameMsMsInfoTable} of the tdf file
-   * @param framePrecursorTable        {@link FramePrecursorTable} of the tdf file
+   * @param handle        handle of the tdfbin. {@link TDFUtils#openFile(File)} {@link
+   *                      TDFUtils#openFile(File, long)}
+   * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
+   * @param frames        the frames to load mobility spectra for
    */
-  private void appendScansFromTimsSegment(@Nonnull final RawDataFileWriter rawDataFile,
-      final long handle,
-      final long firstFrameId, final long lastFrameId,
+  private void appendScansFromTimsSegment(final long handle,
       @Nonnull final TDFFrameTable tdfFrameTable,
-      @Nonnull final TDFMetaDataTable tdfMetaDataTable,
-      @Nonnull final TDFPasefFrameMsMsInfoTable tdfPasefFrameMsMsInfoTable,
-      @Nonnull final FramePrecursorTable framePrecursorTable) {
+      Set<Frame> frames) {
+
+    loadedFrames = 0;
     final long numFrames = tdfFrameTable.getNumberOfFrames();
 
-    for (long frameId = firstFrameId; frameId <= lastFrameId; frameId++) {
-      setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
-      finishedPercentage = 0.9 * frameId / numFrames;
-      final List<Scan> scans = TDFUtils.loadScansForTIMSFrame(
-          handle, frameId, tdfFrameTable, tdfMetaDataTable,
-          framePrecursorTable, pasefFrameMsMsInfoTable, precursorTable);
+    for (Frame frame : frames) {
+      setDescription(
+          "Importing " + rawDataFileName + ": Frame " + frame.getFrameId() + "/" + numFrames);
+      finishedPercentage = 0.1 + 0.9 * loadedFrames / numFrames;
+      final Set<MobilityScan> spectra = TDFUtils
+          .loadSpectraForTIMSFrame(handle, frame.getFrameId(), frame, frameTable);
 
-      try {
-        for (Scan scan : scans) {
-          rawDataFile.addScan(scan);
-        }
-      } catch (IOException e) {
-        e.printStackTrace();
-        TDFUtils.close(handle);
+      for (MobilityScan spectrum : spectra) {
+        ((StorableFrame) frame).addMobilityScan(spectrum);
       }
+      loadedFrames++;
     }
   }
 
@@ -362,4 +361,28 @@ public class TDFReaderTask extends AbstractTask {
     return new File[]{tdf, tdf_bin};
   }
 
+  private void identifySegments(IMSRawDataFileImpl rawDataFile) {
+    rawDataFile.addSegment(Range.closed(1, frameTable.getNumberOfFrames()));
+  }
+
+  private void compareMobilities(IMSRawDataFile rawDataFile) {
+    for (int i = 1; i < rawDataFile.getNumberOfFrames() + 1; i++) {
+      Frame thisFrame = rawDataFile.getFrame(i);
+      Frame nextFrame = rawDataFile.getFrame(i + 1);
+
+      if (nextFrame == null) {
+        break;
+      }
+
+      Set<Integer> nums = thisFrame.getMobilityScanNumbers();
+      for (Integer num : nums) {
+        if (Double.compare(thisFrame.getMobilityForMobilityScanNumber(num),
+            nextFrame.getMobilityForMobilityScanNumber(num)) != 0) {
+          logger.info("Mobilities for num " + num + " dont match 1: " + thisFrame
+              .getMobilityForMobilityScanNumber(num) + " 2: " + nextFrame
+              .getMobilityForMobilityScanNumber(num));
+        }
+      }
+    }
+  }
 }
