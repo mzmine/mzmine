@@ -124,27 +124,19 @@ public class ImageBuilderTask extends AbstractTask {
       }
     });
     Scan[] scans = scanSelection.getMatchingScans(rawDataFile);
-
-    for (int i = 0; i < scans.length; i++) {
-
-      if (!(scans[0] instanceof StorableImagingScan) || !scanSelection.matches(scans[0])) {
+    for (Scan scan : scans) {
+      if (!(scan instanceof StorableImagingScan) || !scanSelection.matches(scan)) {
         continue;
       }
-      System.out.println(((StorableImagingScan) scans[0]).getCoordinates().toString());
-      // if (scans[0].getMassList(massList) == null) {
-      // setStatus(TaskStatus.ERROR);
-      // setErrorMessage(
-      // "Scan #" + scans[0].getScanNumber() + " does not have a mass list " + massList);
-      // } else {
-      // Arrays.stream(scans[0].getMassList(massList).getDataPoints())
-      // .forEach(dp -> allDataPoints.add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(),
-      // scans[0].getScanNumber(), ((StorableImagingScan) scans[0]).getCoordinates(),
-      // imagingParameters.getPixelWidth(), imagingParameters.getPixelShape())));
-      // }
-      Arrays.stream(scans[0].getDataPoints())
-          .forEach(dp -> allDataPoints.add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(),
-              scans[0].getScanNumber(), ((StorableImagingScan) scans[0]).getCoordinates(),
-              imagingParameters.getPixelWidth(), imagingParameters.getPixelShape())));
+      System.out.println(((StorableImagingScan) scan).getCoordinates().toString());
+      if (scan.getMassList(massList) == null) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Scan #" + scan.getScanNumber() + " does not have a mass list " + massList);
+      } else {
+        Arrays.stream(scan.getMassList(massList).getDataPoints())
+            .forEach(dp -> allDataPoints.add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(),
+                scan.getScanNumber(), ((StorableImagingScan) scan).getCoordinates(), 1, 1)));
+      }
       progress = (processedScans / (double) scans.length) / 4;
       processedScans++;
     }

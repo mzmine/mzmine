@@ -91,6 +91,7 @@ public class StorableScan implements Scan {
 
     this.mobility = originalScan.getMobility();
     this.mobilityType = originalScan.getMobilityType();
+
   }
 
   public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,

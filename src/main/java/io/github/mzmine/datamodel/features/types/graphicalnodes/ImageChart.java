@@ -3,6 +3,8 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.jfree.data.xy.XYZDataset;
 import com.google.common.util.concurrent.AtomicDouble;
@@ -19,6 +21,8 @@ public class ImageChart extends StackPane {
 
   private Double dataPointWidth;
   private Double dataPointHeight;
+
+  private static Logger logger = Logger.getLogger(ImageChart.class.getName());
 
   public ImageChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
     try {
@@ -63,7 +67,7 @@ public class ImageChart extends StackPane {
           new ImageHeatMapPlot(dataset, "Rainbow", dataPointWidth, dataPointHeight);
       this.getChildren().add(retentionTimeMobilityHeatMapPlot);
     } catch (Exception ex) {
-      // logger.log(Level.WARNING, "error in DP", ex);
+      logger.log(Level.WARNING, "error in DP", ex);
     }
   }
 

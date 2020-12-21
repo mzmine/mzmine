@@ -49,7 +49,6 @@ import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.project.impl.StorableImagingScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
@@ -176,8 +175,6 @@ public class ImzMLReadTask extends AbstractTask {
       rawDataFile = (ImagingRawDataFile) newMZmineFile.finishWriting();
       // set settings of image
       rawDataFile.setImagingParam(new ImagingParameters(imzml));
-      System.out
-          .println(((StorableImagingScan) rawDataFile.getScan(5)).getCoordinates().toString());
       project.addFile(rawDataFile);
 
     } catch (Throwable e) {
