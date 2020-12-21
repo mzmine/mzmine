@@ -19,11 +19,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import java.awt.Window;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -44,6 +39,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
 
 public class MassDetectionParameters extends SimpleParameterSet {
@@ -143,8 +141,9 @@ public class MassDetectionParameters extends SimpleParameterSet {
         .filter(file -> (file instanceof IMSRawDataFile)).findAny();
     if (opt.isPresent() && !massDetectorName.startsWith("Centroid")) {
       String msg = "MZmine thinks you are running a profile mass detector on an Ion mobility raw "
-          + "data file. Only the centroid mass detector supports mobility scan peak detection."
-          + " Do you want to continue any way?";
+          + "data file. Only the centroid mass detector officially supports mobility scan peak "
+          + "detection due to the size of ion mobility raw data files."
+          + " Do you want to continue anyway?";
       if(MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO) == ButtonType.NO) {
         return ExitCode.CANCEL;
       }

@@ -406,23 +406,24 @@ public class TDFUtils {
    */
   public static Scan extractProfileScanForFrame(final long handle, final long frameId,
       final int scanNum, final TDFMetaDataTable metaDataTable, final TDFFrameTable frameTable) {
-    int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
-    int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
-    ProfileData data = extractProfileForFrame(handle, frameId, 0, numScans);
-    String scanDefinition =
+
+    final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
+    final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
+    final ProfileData data = extractProfileForFrame(handle, frameId, 0, numScans);
+    final String scanDefinition =
         metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue());
-    int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
-    PolarityType polarity = PolarityType.fromSingleChar(
+    final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
-    DataPoint[] dps = data.toDataPoints(metaDataTable.getMzRange().lowerEndpoint(),
+    final DataPoint[] dps = data.toDataPoints(metaDataTable.getMzRange().lowerEndpoint(),
         metaDataTable.getMzRange().upperEndpoint());
 
     return new SimpleScan(null, scanNum, msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-        0.d, 0, /*null,*/ dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
+        0.d, 0, dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
         metaDataTable.getMzRange());
   }
 
