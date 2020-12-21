@@ -17,28 +17,19 @@
 
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate;
 
-import java.awt.Window;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.featurelistmethods.grouping.metacorrelate.minfeaturefilter.MinimumFeaturesFilterParameters;
-import net.sf.mzmine.modules.featurelistmethods.identification.ionidentity.ionidnetworking.IonNetworkingParameters;
-import net.sf.mzmine.modules.featurelistmethods.identification.ionidentity.ionidnetworking.IonNetworkingParameters.Setup;
-import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.MassListParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
-import net.sf.mzmine.parameters.parametertypes.PercentParameter;
-import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import net.sf.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
-import net.sf.mzmine.util.ExitCode;
+
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.*;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.util.ExitCode;
 
 public class SimpleMetaCorrelateParameters extends SimpleParameterSet {
 

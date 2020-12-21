@@ -39,6 +39,9 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
@@ -59,6 +62,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
@@ -149,7 +153,6 @@ public class MetaCorrelateTask extends AbstractTask {
    * Create the task.
    *
    * @param parameterSet the parameters.
-   * @param list peak list.
    */
   public MetaCorrelateTask(final MZmineProject project, final ParameterSet parameterSet,
       final FeatureList featureList) {
