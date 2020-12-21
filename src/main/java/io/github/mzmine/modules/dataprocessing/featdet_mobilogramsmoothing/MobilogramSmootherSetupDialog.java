@@ -32,8 +32,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.SimpleM
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SavitzkyGolayFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithMobilogramPreview;
-import io.github.mzmine.util.DeconvolutionUtils;
 import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.deconvolution.impl.LocalMinimumResolver;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -126,8 +126,10 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
     double maximumIntensity = Arrays.stream(intensities).max().getAsDouble();
     final double minHeight = Math.max(minAbsHeight, minRelHeight * maximumIntensity);
 
-    Set<Set<Integer>> resolved = DeconvolutionUtils.resolveXYDataByLocalMinimum(mobilities, intensities,
-        indices, peakDuration, searchRTRange, minRatio, minHeight, chromatographicThresholdLevel);
+    LocalMinimumResolver resolver = new LocalMinimumResolver(peakDuration, searchRTRange, minRatio,
+        minHeight, chromatographicThresholdLevel);
+
+    Set<Set<Integer>> resolved = resolver.resolveToIndices(mobilities, intensities, indices);
 
     Set<Mobilogram> resolvedMobilogram = new HashSet<>();
     List<MobilityDataPoint> originalDataPoints =
