@@ -1,27 +1,24 @@
 /*
+ * Copyright 2006-2020 The MZmine Development Team
  *
- *  * Copyright 2006-2020 The MZmine Development Team
- *  *
- *  * This file is part of MZmine.
- *  *
- *  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  * General Public License as published by the Free Software Foundation; either version 2 of the
- *  * License, or (at your option) any later version.
- *  *
- *  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  * Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  * USA
+ * This file is part of MZmine.
  *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotXYDatasetProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
@@ -34,7 +31,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetProvider {
+public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDatasetProvider {
 
   private final String seriesKey;
   private final Color awt;
@@ -127,10 +124,4 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetPr
   public double getComputationFinishedPercentage() {
     return finishedPercentage;
   }
-
-  @Override
-  public int getValueCount() {
-    return xValues.size();
-  }
-
 }
