@@ -60,6 +60,16 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
+/**
+ * Generic plot class that can be used to plot everything that implements the {@link
+ * PlotXYDatasetProvider} interface or is a {@link ColoredXYDataset}.
+ *
+ * @param <T>
+ * @author https://github.com/SteffenHeu
+ * @see io.github.mzmine.gui.chartbasics.simplechart.providers.ExampleProvider
+ * @see ColoredXYDataset
+ * @see PlotXYDatasetProvider
+ */
 public class SimpleXYLineChart<T extends PlotXYDatasetProvider> extends
     EChartViewer /*implements LabelColorMatch*/ {
 

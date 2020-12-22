@@ -35,11 +35,13 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
  * For a more detailed description, one shall be referred to the interfaces listed below.
  *
  * @author https://github.com/SteffenHeu
+ *
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider
+ * @see ExampleProvider
  */
 public interface PlotXYDatasetProvider extends XYValueProvider, SeriesKeyProvider<Comparable<?>>,
     LabelTextProvider, ToolTipTextProvider, ColorProvider {
