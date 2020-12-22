@@ -16,22 +16,20 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.template.providers;
-
-import io.github.mzmine.datamodel.RawDataFile;
+package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 /**
- * The methods in this interface are used to set the <b>initial</b> dataset color. Note that the
- * dataset color is not bound to the original value. Therefore the color of the dataset can be
- * changed in the plot for better visualisation, without altering the color of e.g. the raw data
- * file (see {@link RawDataFile#getColorAWT()}
+ * This interface is used to generate labels for a dataset within a specific plot.
  *
  * @author https://github.com/SteffenHeu
  */
-public interface ColorProvider {
+public interface LabelTextProvider {
 
-  public java.awt.Color getAWTColor();
-
-  public javafx.scene.paint.Color getFXColor();
-
+  /**
+   * @param index The index of the value to provide a label for. E.g., in a TIC plot (Intensity vs.
+   *              time) you might want to provide the m/z value of the highest peak as a label.
+   * @return A String representing the data at the given index in a plot. Has to be concise enough
+   * to fit in the plot's area.
+   */
+  public String getLabel(int index);
 }

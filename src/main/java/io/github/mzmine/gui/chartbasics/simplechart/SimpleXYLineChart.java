@@ -16,12 +16,17 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.template;
+package io.github.mzmine.gui.chartbasics.simplechart;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.gui.chartbasics.template.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
+import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleXYLabelGenerator;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Paint;

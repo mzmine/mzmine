@@ -16,9 +16,10 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.template;
+package io.github.mzmine.gui.chartbasics.simplechart;
 
 import com.google.common.primitives.Ints;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

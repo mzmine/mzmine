@@ -16,9 +16,9 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.template;
+package io.github.mzmine.gui.chartbasics.simplechart;
 
-import io.github.mzmine.gui.chartbasics.template.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDatasetProvider;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javax.annotation.Nonnull;
