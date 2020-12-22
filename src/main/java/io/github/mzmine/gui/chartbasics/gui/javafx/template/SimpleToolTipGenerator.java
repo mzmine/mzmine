@@ -21,7 +21,6 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 
 public class SimpleToolTipGenerator implements XYToolTipGenerator {
