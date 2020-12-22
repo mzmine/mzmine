@@ -23,8 +23,9 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextP
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.XYValueProvider;
+import org.jfree.data.xy.XYZDataset;
 
-public class ColoredXYZDataset extends ColoredXYDataset {
+public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset {
 
   public ColoredXYZDataset(
       XYValueProvider XYValueProvider,
@@ -34,5 +35,30 @@ public class ColoredXYZDataset extends ColoredXYDataset {
       ColorProvider colorProvider) {
     super(XYValueProvider, seriesKeyProvider, labelTextProvider,
         toolTipTextProvider, colorProvider);
+  }
+
+
+  /**
+   * Returns the z-value for the specified series and item.
+   *
+   * @param series the series index (zero-based).
+   * @param item   the item index (zero-based).
+   * @return The z-value (possibly {@code null}).
+   */
+  @Override
+  public Number getZ(int series, int item) {
+    return null;
+  }
+
+  /**
+   * Returns the z-value (as a double primitive) for an item within a series.
+   *
+   * @param series the series (zero-based index).
+   * @param item   the item (zero-based index).
+   * @return The z-value.
+   */
+  @Override
+  public double getZValue(int series, int item) {
+    return 0;
   }
 }

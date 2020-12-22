@@ -20,19 +20,25 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
 import java.util.Objects;
 import javax.annotation.Nullable;
+import org.jfree.data.xy.XYDataset;
 
 /**
- * Contains information about the currently selected point
+ * Contains information about the currently selected point. The point is determined by the {@link
+ * org.jfree.chart.plot.XYPlot#getDomainCrosshairValue()} and {@link
+ * org.jfree.chart.plot.XYPlot#getRangeCrosshairValue()} methods. A listener can be added via the
+ * {@link SimpleXYLineChart#cursorPositionProperty()}.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public class PlotCursorPosition {
 
   final double rangeValue;
   final double domainValue;
-  final ColoredXYDataset dataset;
+  final XYDataset dataset;
   final int valueIndex;
 
   public PlotCursorPosition(double rangeVal, double domainVal,
-      int valueIndex, ColoredXYDataset dataset) {
+      int valueIndex, XYDataset dataset) {
     this.rangeValue = rangeVal;
     this.domainValue = domainVal;
     this.valueIndex = valueIndex;
@@ -58,7 +64,7 @@ public class PlotCursorPosition {
    * @return The dataset or null
    */
   @Nullable
-  public ColoredXYDataset getDataset() {
+  public XYDataset getDataset() {
     return dataset;
   }
 

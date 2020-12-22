@@ -18,7 +18,17 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
 
+/**
+ * Provides a dataset with an "series key". The series key is used to label the dataset in the
+ * legend of the chart.
+ *
+ * @param <ValueType> The type of the series Key. Most commonly a {@link String}.
+ * @author https://github.com/SteffenHeu
+ */
 public interface SeriesKeyProvider<ValueType extends Comparable<?>> {
 
+  /**
+   * @return The series key to label the dataset in the chart's legend.
+   */
   public ValueType getSeriesKey();
 }
