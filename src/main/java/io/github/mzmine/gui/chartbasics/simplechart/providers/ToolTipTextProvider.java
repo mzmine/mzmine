@@ -16,19 +16,22 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.template.providers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 /**
- * Provides a dataset with an "series key". The series key is used to label the dataset in the
- * legend of the chart.
+ * This interface is used to generate tool-tips based on the index of a value. A tooltip is only
+ * shown when the mouse is hovered over a datapoint within the chart, so it can be longer and more
+ * specific than a label.
  *
- * @param <ValueType> The type of the series Key. Most commonly a {@link String}.
  * @author https://github.com/SteffenHeu
  */
-public interface SeriesKeyProvider<ValueType extends Comparable<?>> {
+public interface ToolTipTextProvider {
 
   /**
-   * @return The series key to label the dataset in the chart's legend.
+   * @param itemIndex The index of the value to provide a tool tip for.
+   * @return A tool tip for the value at the given index. E.g., in a TIC plot (Intensity vs. time)
+   * you might want to provide the m/z value, the exact retention time, the intensity of the highest
+   * peak and maybe even the scan number as a tooltip.
    */
-  public ValueType getSeriesKey();
+  public String getToolTipText(int itemIndex);
 }

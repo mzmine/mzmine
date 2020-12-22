@@ -16,20 +16,19 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.template.providers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 /**
- * This interface is used to generate labels for a dataset within a specific plot.
+ * Provides a dataset with an "series key". The series key is used to label the dataset in the
+ * legend of the chart.
  *
+ * @param <ValueType> The type of the series Key. Most commonly a {@link String}.
  * @author https://github.com/SteffenHeu
  */
-public interface LabelTextProvider {
+public interface SeriesKeyProvider<ValueType extends Comparable<?>> {
 
   /**
-   * @param index The index of the value to provide a label for. E.g., in a TIC plot (Intensity vs.
-   *              time) you might want to provide the m/z value of the highest peak as a label.
-   * @return A String representing the data at the given index in a plot. Has to be concise enough
-   * to fit in the plot's area.
+   * @return The series key to label the dataset in the chart's legend.
    */
-  public String getLabel(int index);
+  public ValueType getSeriesKey();
 }

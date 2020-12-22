@@ -16,22 +16,22 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.template.providers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers;
+
+import io.github.mzmine.datamodel.RawDataFile;
 
 /**
- * This interface is used to generate tool-tips based on the index of a value. A tooltip is only
- * shown when the mouse is hovered over a datapoint within the chart, so it can be longer and more
- * specific than a label.
+ * The methods in this interface are used to set the <b>initial</b> dataset color. Note that the
+ * dataset color is not bound to the original value. Therefore the color of the dataset can be
+ * changed in the plot for better visualisation, without altering the color of e.g. the raw data
+ * file (see {@link RawDataFile#getColorAWT()}
  *
  * @author https://github.com/SteffenHeu
  */
-public interface ToolTipTextProvider {
+public interface ColorProvider {
 
-  /**
-   * @param itemIndex The index of the value to provide a tool tip for.
-   * @return A tool tip for the value at the given index. E.g., in a TIC plot (Intensity vs. time)
-   * you might want to provide the m/z value, the exact retention time, the intensity of the highest
-   * peak and maybe even the scan number as a tooltip.
-   */
-  public String getToolTipText(int itemIndex);
+  public java.awt.Color getAWTColor();
+
+  public javafx.scene.paint.Color getFXColor();
+
 }

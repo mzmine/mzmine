@@ -1,4 +1,4 @@
-package io.github.mzmine.gui.chartbasics.template;
+package io.github.mzmine.gui.chartbasics.simplechart;
 
 import java.util.Map;
 import org.jfree.data.xy.XYDataset;

@@ -16,8 +16,9 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.template;
+package io.github.mzmine.gui.chartbasics.simplechart;
 
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import org.jfree.data.xy.XYDataset;

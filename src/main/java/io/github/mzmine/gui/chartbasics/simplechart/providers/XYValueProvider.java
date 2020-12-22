@@ -16,8 +16,9 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.template.providers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import java.util.List;
 
 /**
@@ -25,7 +26,7 @@ import java.util.List;
  * to be equal and is checked via the {@link List#size()} method.
  * <p></p>
  * The values are not grabbed during the creation of the dataset. After initialising the dataset
- * (e.g. {@link io.github.mzmine.gui.chartbasics.template.ColoredXYDataset}) a thread is
+ * (e.g. {@link ColoredXYDataset}) a thread is
  * started where the values of the dataset can be calculated or loaded from disk. For that
  * operation, the {@link XYValueProvider#computeValues()} method is used. The implementing class can
  * supply information on the progress of the operation via the method {@link

@@ -16,20 +16,20 @@
  *  USA
  */
 
-package io.github.mzmine.gui.chartbasics.template.providers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import javafx.beans.property.ObjectProperty;
 
 /**
  * If a user-implemented dataset implements this interface, it's color in the plot can be controlled
- * via the {@link io.github.mzmine.gui.chartbasics.template.DatasetControlPane}.
+ * via the {@link io.github.mzmine.gui.chartbasics.simplechart.DatasetControlPane}.
  *
  * @author https://github.com/SteffenHeu
  */
 public interface ColorPropertyProvider extends ColorProvider {
 
   /**
-   * @return Color property to be bound to {@link io.github.mzmine.gui.chartbasics.template.DatasetControlPane}
+   * @return Color property to be bound to {@link io.github.mzmine.gui.chartbasics.simplechart.DatasetControlPane}
    */
   public ObjectProperty<javafx.scene.paint.Color> fxColorProperty();
 }
