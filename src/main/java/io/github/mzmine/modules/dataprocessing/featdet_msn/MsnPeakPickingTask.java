@@ -17,15 +17,15 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_msn;
 
-import org.apache.commons.lang3.ArrayUtils;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -47,6 +47,7 @@ public class MsnPeakPickingTask extends AbstractTask {
   private final int msLevel;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
+  private final Scan[] scans;
 
   private final ModularFeatureList newFeatureList;
 
@@ -59,7 +60,7 @@ public class MsnPeakPickingTask extends AbstractTask {
     msLevel = parameters.getParameter(MsnPeakPickerParameters.msLevel).getValue();
     mzTolerance = parameters.getParameter(MsnPeakPickerParameters.mzDifference).getValue();
     rtTolerance = parameters.getParameter(MsnPeakPickerParameters.rtTolerance).getValue();
-
+    scans = scanSelection.getMatchingScans(dataFile);
     newFeatureList = new ModularFeatureList(dataFile.getName() + " MSn features", dataFile);
   }
 
@@ -199,37 +200,41 @@ public class MsnPeakPickingTask extends AbstractTask {
       return null;
     }
 
-    int[] fragmentScanNumbers = scan.getFragmentScanNumbers();
-
-    // Recursively search fragment scans for all scan numbers at MS level.
-    if (fragmentScanNumbers != null) {
-
-      // Return MSn fragment scans numbers if they exist.
-      if (scan.getMSLevel() + 1 == msLevel) {
-        return fragmentScanNumbers;
-      } else {
-
-        // Array for all MSn scan numbers.
-        int[] msnScanNumbers = {};
-
-        // Recursively search fragment scan chain.
-        for (int fScanNum : fragmentScanNumbers) {
-
-          Scan fragmentScan = dataFile.getScan(fScanNum);
-
-          int[] foundScanNumbers = getMSnScanNumbers(fragmentScan);
-
-          if (foundScanNumbers != null) {
-
-            msnScanNumbers = ArrayUtils.addAll(msnScanNumbers, foundScanNumbers);
-          } else {
-            return null;
-          }
-        }
-
-        return msnScanNumbers;
-      }
+    if (scan.getPrecursorMZ() == 0) {
+      return null;
     }
+
+    // int[] fragmentScanNumbers = scan.getFragmentScanNumbers();
+    //
+    // // Recursively search fragment scans for all scan numbers at MS level.
+    // if (fragmentScanNumbers != null) {
+    //
+    // // Return MSn fragment scans numbers if they exist.
+    // if (scan.getMSLevel() + 1 == msLevel) {
+    // return fragmentScanNumbers;
+    // } else {
+    //
+    // // Array for all MSn scan numbers.
+    // int[] msnScanNumbers = {};
+    //
+    // // Recursively search fragment scan chain.
+    // for (int fScanNum : fragmentScanNumbers) {
+    //
+    // Scan fragmentScan = dataFile.getScan(fScanNum);
+    //
+    // int[] foundScanNumbers = getMSnScanNumbers(fragmentScan);
+    //
+    // if (foundScanNumbers != null) {
+    //
+    // msnScanNumbers = ArrayUtils.addAll(msnScanNumbers, foundScanNumbers);
+    // } else {
+    // return null;
+    // }
+    // }
+    //
+    // return msnScanNumbers;
+    // }
+    // }
 
     // No fragment scans found.
     return null;
