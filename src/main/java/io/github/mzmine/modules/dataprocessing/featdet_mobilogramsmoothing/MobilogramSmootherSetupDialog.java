@@ -21,8 +21,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.MIN_RELATIVE_HEIGHT;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.ColoredXYShapeRenderer;
+import io.github.mzmine.gui.chartbasics.template.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.template.ColoredXYShapeRenderer;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.SimpleMobilogram;
