@@ -15,7 +15,6 @@ public class ImageDataPoint implements DataPoint {
 
   public ImageDataPoint(double mz, double intensity, int scanNumber, double xWorld, double yWorld,
       double zWorld, double dataPointHeigth, double dataPointWidth) {
-    super();
     this.mz = mz;
     this.intensity = intensity;
     this.scanNumber = scanNumber;

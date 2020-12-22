@@ -23,17 +23,17 @@ import com.alanmrace.jimzmlparser.mzml.ScanSettingsList;
 
 public class ImagingParameters {
 
-  public static enum VerticalStart {
+  public enum VerticalStart {
     TOP, BOTTOM;
   }
 
-  public static enum HorizontalStart {
+  public enum HorizontalStart {
     LEFT, RIGHT;
   }
-  public static enum Pattern {
+  public enum Pattern {
     MEANDER, FLY_BACK, RANDOM
   }
-  public static enum ScanDirection {
+  public enum ScanDirection {
     HORIZONTAL, VERTICAL
   }
 
