@@ -1,23 +1,41 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.util.color.ColorsFX;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.Node;
-import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.util.color.ColorsFX;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 
 public class FeatureShapeChart extends StackPane {
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -28,7 +46,7 @@ public class FeatureShapeChart extends StackPane {
       final NumberAxis yAxis = new NumberAxis();
       final LineChart<Number, Number> bc = new LineChart<>(xAxis, yAxis);
 
-      //DataPoint max = null;
+      // DataPoint max = null;
       double minRT = Double.MAX_VALUE, maxRT = 0;
       int size = row.getFilesFeatures().size();
       int fi = 0;
@@ -44,14 +62,13 @@ public class FeatureShapeChart extends StackPane {
           double intensity = dp == null ? 0 : dp.getIntensity();
           data.getData().add(new XYChart.Data<>(retentionTime, intensity));
           /*
-          if (dp != null && (max == null || max.getIntensity() < dp.getIntensity())) {
-            max = dp;
-          }
+           * if (dp != null && (max == null || max.getIntensity() < dp.getIntensity())) { max = dp;
+           * }
            */
-          if(retentionTime > maxRT) {
+          if (retentionTime > maxRT) {
             maxRT = retentionTime;
           }
-          if(retentionTime < minRT) {
+          if (retentionTime < minRT) {
             minRT = retentionTime;
           }
           if (progress != null)
@@ -63,7 +80,7 @@ public class FeatureShapeChart extends StackPane {
         // set series color according to the rawDataFile color
         Node line = data.getNode().lookup(".chart-series-line");
         Color fileColor = raw.getColor();
-        if(fileColor == null) {
+        if (fileColor == null) {
           fileColor = Color.DARKORANGE;
         }
         line.setStyle("-fx-stroke: " + ColorsFX.toHexString(fileColor) + ";");
