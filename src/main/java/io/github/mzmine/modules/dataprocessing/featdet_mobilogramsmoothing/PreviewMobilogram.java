@@ -21,7 +21,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
@@ -47,9 +46,8 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetPr
   private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
   private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
-
-  private List<MobilityDataPoint> sortedDps;
   private final Mobilogram originalMobilogram;
+  private List<MobilityDataPoint> sortedDps;
   private double finishedPercentage;
 
 
