@@ -19,7 +19,8 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorPropertyProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotXYDatasetProvider;
 import io.github.mzmine.util.components.ButtonCell;
 import io.github.mzmine.util.components.ColorTableCell;
 import java.util.Map;
@@ -36,7 +37,12 @@ import javafx.util.Callback;
 import org.controlsfx.glyphfont.Glyph;
 import org.jfree.data.xy.XYDataset;
 
-public class DatasetControlPane<T extends PlotDatasetProvider> extends AnchorPane {
+/**
+ * Can be bound to a {@link SimpleXYLineChart} to control the color and visibility of datasets.
+ *
+ * @param <T>
+ */
+public class DatasetControlPane<T extends PlotXYDatasetProvider> extends AnchorPane {
 
   private final TableView<XYDataset> tvOverview;
   private final TableColumn<XYDataset, Boolean> colShow;
@@ -79,7 +85,7 @@ public class DatasetControlPane<T extends PlotDatasetProvider> extends AnchorPan
         new Callback<CellDataFeatures<XYDataset, Color>, ObservableValue<Color>>() {
           @Override
           public ObservableValue<Color> call(CellDataFeatures<XYDataset, Color> param) {
-            if (param.getValue() instanceof ColoredXYDataset) {
+            if (param.getValue() instanceof ColorPropertyProvider) {
               return ((ColoredXYDataset) param.getValue()).fxColorProperty();
             }
             return null;
@@ -88,7 +94,7 @@ public class DatasetControlPane<T extends PlotDatasetProvider> extends AnchorPan
     colColor.setOnEditCommit(new EventHandler<CellEditEvent<XYDataset, Color>>() {
       @Override
       public void handle(CellEditEvent<XYDataset, Color> event) {
-        ((ColoredXYDataset)event.getRowValue()).setFxColor(event.getNewValue());
+        ((ColorPropertyProvider) event.getRowValue()).fxColorProperty().set(event.getNewValue());
         chart.getChart().fireChartChanged();
       }
     });

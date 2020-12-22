@@ -18,11 +18,12 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotXYDatasetProvider;
+import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javax.annotation.Nonnull;
 
-public class SimpleXYLineChartWithDatasetView<T extends PlotDatasetProvider> extends SplitPane {
+public class SimpleXYLineChartWithDatasetView<T extends PlotXYDatasetProvider> extends SplitPane {
 
   private final SimpleXYLineChart<T> chart;
 
@@ -30,10 +31,12 @@ public class SimpleXYLineChartWithDatasetView<T extends PlotDatasetProvider> ext
 
   public SimpleXYLineChartWithDatasetView(@Nonnull SimpleXYLineChart<T> chart) {
     super();
+    setOrientation(Orientation.VERTICAL);
     this.chart = chart;
     datasetPane = new DatasetControlPane<>(chart);
     chart.addDatasetsChangedListener(datasetPane::onDatasetChanged);
-    getChildren().addAll(chart, datasetPane);
+    this.getChildren().add(chart);
+    this.getChildren().add(datasetPane);
     setDividerPositions(0.7);
     setVisible(true);
   }

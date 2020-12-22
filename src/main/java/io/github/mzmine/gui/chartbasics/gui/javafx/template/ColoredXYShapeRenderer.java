@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider;
 import java.awt.AlphaComposite;
 import java.awt.Composite;
 import java.awt.Graphics2D;
@@ -33,6 +34,12 @@ import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.xy.XYDataset;
 
+/**
+ * The standard shape renderer for {@link SimpleXYLineChart}s.
+ * <p></p>
+ * This renderer has been modified to draw a dataset, generate labels and legend items based on the
+ * color specified by the dataset.
+ */
 public class ColoredXYShapeRenderer extends XYAreaRenderer {
 
   /**
@@ -90,8 +97,8 @@ public class ColoredXYShapeRenderer extends XYAreaRenderer {
               dataset, series);
         }
         Paint paint = lookupSeriesPaint(series);
-        if(dataset instanceof ColoredXYDataset) {
-          paint = ((ColoredXYDataset) dataset).getAWTColor();
+        if (dataset instanceof ColorProvider) {
+          paint = ((ColorProvider) dataset).getAWTColor();
         }
         result = new LegendItem(label, description, toolTipText,
             urlText, super.getLegendArea(), paint);
@@ -112,7 +119,7 @@ public class ColoredXYShapeRenderer extends XYAreaRenderer {
 
   @Override
   public Paint getItemPaint(int row, int column) {
-    if(currentDataset instanceof ColoredXYDataset) {
+    if (currentDataset instanceof ColoredXYDataset) {
       return ((ColoredXYDataset) currentDataset).getAWTColor();
     }
     return lookupSeriesPaint(row);

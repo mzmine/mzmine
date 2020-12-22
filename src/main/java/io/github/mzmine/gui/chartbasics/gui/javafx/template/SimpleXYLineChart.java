@@ -20,7 +20,7 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotXYDatasetProvider;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
@@ -55,7 +55,7 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
-public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
+public class SimpleXYLineChart<T extends PlotXYDatasetProvider> extends
     EChartViewer /*implements LabelColorMatch*/ {
 
   private static final double AXIS_MARGINS = 0.001;
@@ -116,7 +116,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     xAxis.setLowerMargin(AXIS_MARGINS);
 
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
-    initializeChromatogramMouseListener();
+    initializeMouseListener();
 
     ZoomHistory history = getZoomHistory();
     if (history != null) {
@@ -280,7 +280,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   /**
    * Listens to clicks in the chromatogram plot and updates the selected raw data file accordingly.
    */
-  private void initializeChromatogramMouseListener() {
+  private void initializeMouseListener() {
     getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
@@ -306,6 +306,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
     double domainValue = getXYPlot().getDomainCrosshairValue();
     double rangeValue = getXYPlot().getRangeCrosshairValue();
 
+    // mabye there is a more efficient way of searching for the selected value index.
     int index = -1;
     int datasetIndex = -1;
     for (int i = 0; i < nextDataSetNum; i++) {
@@ -321,7 +322,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
 
     return (index != -1) ?
         new PlotCursorPosition(domainValue, rangeValue, index,
-            (ColoredXYDataset) plot.getDataset(datasetIndex)) :
+            plot.getDataset(datasetIndex)) :
         new PlotCursorPosition(domainValue,
             rangeValue, index, null);
   }
@@ -347,7 +348,7 @@ public class SimpleXYLineChart<T extends PlotDatasetProvider> extends
   private void notifyDatasetsChangedListeners() {
     Map<Integer, XYDataset> datasets = getAllDatasets();
 
-    for(DatasetsChangedListener listener : datasetListeners) {
+    for (DatasetsChangedListener listener : datasetListeners) {
       listener.datasetsChanged(datasets);
     }
   }

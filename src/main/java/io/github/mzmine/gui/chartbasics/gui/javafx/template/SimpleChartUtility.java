@@ -25,10 +25,12 @@ import java.util.Collections;
 import java.util.List;
 import org.jfree.data.xy.XYDataset;
 
+/**
+ * Contains utility methods for {@link SimpleXYLineChart}.
+ */
 public class SimpleChartUtility {
 
   private SimpleChartUtility() {
-
   }
 
   /**

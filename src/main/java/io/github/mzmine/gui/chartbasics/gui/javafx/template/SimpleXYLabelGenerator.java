@@ -24,8 +24,23 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 
+/**
+ * Default tooltip generator. Generates tooltips based on {@link io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider#getLabel(int)}.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
 
+  /*
+   * Number of screen pixels to reserve for each label, so that the labels do not overlap
+   */
+  public static final int POINTS_RESERVE_X = 100;
+  public static final int POINTS_RESERVE_Y = 100;
+  /*
+   * Only data points which have intensity >= (dataset minimum value * THRESHOLD_FOR_ANNOTATION)
+   * will be annotated
+   */
+  public static final double THRESHOLD_FOR_ANNOTATION = 2;
   private final EChartViewer chart;
   private final XYPlot plot;
 
@@ -37,21 +52,9 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
     }
   }
 
-  /*
-   * Number of screen pixels to reserve for each label, so that the labels do not overlap
-   */
-  public static final int POINTS_RESERVE_X = 100;
-  public static final int POINTS_RESERVE_Y = 100;
-
-  /*
-   * Only data points which have intensity >= (dataset minimum value * THRESHOLD_FOR_ANNOTATION)
-   * will be annotated
-   */
-  public static final double THRESHOLD_FOR_ANNOTATION = 2;
-
   public String generateLabel(XYDataset dataSet, int series, int item) {
 
-    // dataSet should be actually TICDataSet
+    // dataSet should be actually
     if (!(dataSet instanceof ColoredXYDataset)) {
       return null;
     }
@@ -113,10 +116,6 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
         }
       }
     }
-
-    // Prepare the label
-//    double mz = coloredXYDataset.getZ(0, item).doubleValue();
-//    String label = MZmineCore.getConfiguration().getMZFormat().format(mz);
 
     return coloredXYDataset.getLabel(item);
   }

@@ -19,9 +19,17 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
 
 /**
+ * This interface is used to generate labels for a dataset within a specific plot.
  *
+ * @author https://github.com/SteffenHeu
  */
 public interface LabelTextProvider {
 
+  /**
+   * @param index The index of the value to provide a label for. E.g., in a TIC plot (Intensity vs.
+   *              time) you might want to provide the m/z value of the highest peak as a label.
+   * @return A String representing the data at the given index in a plot. Has to be concise enough
+   * to fit in the plot's area.
+   */
   public String getLabel(int index);
 }

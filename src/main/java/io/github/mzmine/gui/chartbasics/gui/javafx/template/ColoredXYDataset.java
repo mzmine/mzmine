@@ -18,9 +18,10 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotXYDatasetProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.XYValueProvider;
@@ -39,15 +40,19 @@ import javax.annotation.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
 
 /**
- * Intended for values that don't have to be calculated or have already been. Otherwise it might
- * crash the gui.
+ * Default dataset class for {@link SimpleXYLineChart}. Any class implementing {@link
+ * PlotXYDatasetProvider} can be used to construct this dataset. The dataset implements the
+ * interfaces, too, because the default renderers can then generate labels and tooltips based on the
+ * interface methods and therefore be more reusable.
+ *
+ * @author https://github.com/SteffenHeu
  */
-public class ColoredXYDataset extends AbstractXYDataset implements Task {
+public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesKeyProvider,
+    LabelTextProvider, ToolTipTextProvider, ColorPropertyProvider {
 
   private static Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
   // dataset stuff
   private final int seriesCount = 1;
-  private final ColorProvider colorProvider;
   private final XYValueProvider xyValueProvider;
   private final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   private final LabelTextProvider labelTextProvider;
@@ -73,7 +78,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task {
     errorMessage = "";
 
     // dataset stuff
-    this.colorProvider = colorProvider;
     this.xyValueProvider = xyValueProvider;
     this.seriesKeyProvider = seriesKeyProvider;
     this.labelTextProvider = labelTextProvider;
@@ -92,7 +96,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task {
     MZmineCore.getTaskController().addTask(this);
   }
 
-  public ColoredXYDataset(PlotDatasetProvider datasetProvider) {
+  public ColoredXYDataset(PlotXYDatasetProvider datasetProvider) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
         datasetProvider);
   }
@@ -109,6 +113,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task {
     return fxColor.getValue();
   }
 
+  @Override
   public ObjectProperty<javafx.scene.paint.Color> fxColorProperty() {
     return fxColor;
   }
@@ -120,6 +125,11 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task {
   @Override
   public int getSeriesCount() {
     return seriesCount;
+  }
+
+  @Override
+  public Comparable<?> getSeriesKey() {
+    return seriesKeyProvider.getSeriesKey();
   }
 
   @Override
@@ -175,6 +185,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task {
     return seriesKeyProvider;
   }
 
+  @Override
   @Nullable
   public String getLabel(final int itemIndex) {
     if (itemIndex > getItemCount(1)) {
@@ -186,8 +197,9 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task {
     return String.valueOf(getYValue(1, itemIndex));
   }
 
+  @Override
   @Nullable
-  public String getToolTip(final int itemIndex) {
+  public String getToolTipText(final int itemIndex) {
     if (itemIndex > getItemCount(1) || toolTipTextProvider == null) {
       return null;
     }
@@ -218,8 +230,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task {
       return;
     }
 
-    if (xyValueProvider.getDomainValues().size() != xyValueProvider.getValueCount()
-        || xyValueProvider.getRangeValues().size() != xyValueProvider.getValueCount()) {
+    if (xyValueProvider.getDomainValues().size() != xyValueProvider.getRangeValues().size()) {
       throw new IllegalArgumentException(
           "Number of domain values does not match number of range values.");
     }

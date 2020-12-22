@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -36,6 +37,11 @@ import org.jfree.data.xy.XYDataset;
 
 
 /**
+ * The standard line renderer for {@link SimpleXYLineChart}s.
+ * <p></p>
+ * This renderer has been modified to draw a dataset, generate labels and legend items based on the
+ * color specified by the dataset.
+ *
  * @author https://github.com/SteffenHeu
  */
 public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
@@ -118,8 +124,8 @@ public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
    */
   @Override
   public Paint getItemFillPaint(int row, int column) {
-    if (currentDataset instanceof ColoredXYDataset) {
-      return ((ColoredXYDataset) currentDataset).getAWTColor();
+    if (currentDataset instanceof ColorProvider) {
+      return ((ColorProvider) currentDataset).getAWTColor();
     }
     return super.getItemFillPaint(row, column);
   }
@@ -164,8 +170,8 @@ public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
     boolean shapeIsFilled = getItemShapeFilled(series, 0);
     Paint fillPaint = (super.getUseFillPaint() ? lookupSeriesFillPaint(series)
         : lookupSeriesPaint(series));
-    fillPaint = (dataset instanceof ColoredXYDataset) ?
-        ((ColoredXYDataset) dataset).getAWTColor() : fillPaint;
+    fillPaint = (dataset instanceof ColorProvider) ?
+        ((ColorProvider) dataset).getAWTColor() : fillPaint;
 
     boolean shapeOutlineVisible = super.getDrawOutlines();
     Paint outlinePaint = (super.getUseOutlinePaint() ? lookupSeriesOutlinePaint(
@@ -175,10 +181,10 @@ public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
     boolean lineVisible = getItemLineVisible(series, 0);
     Stroke lineStroke = lookupSeriesStroke(series);
     Paint linePaint = lookupSeriesPaint(series);
-    linePaint = (dataset instanceof ColoredXYDataset) ?
-        ((ColoredXYDataset) dataset).getAWTColor() : linePaint;
+    linePaint = (dataset instanceof ColorProvider) ?
+        ((ColorProvider) dataset).getAWTColor() : linePaint;
 
-        LegendItem result = new LegendItem(label, description, toolTipText,
+    LegendItem result = new LegendItem(label, description, toolTipText,
         urlText, shapeIsVisible, shape, shapeIsFilled, fillPaint,
         shapeOutlineVisible, outlinePaint, outlineStroke, lineVisible,
         super.getLegendLine(), lineStroke, linePaint);
@@ -198,8 +204,8 @@ public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
 
   @Override
   public Paint getItemPaint(int row, int column) {
-    if (currentDataset instanceof ColoredXYDataset) {
-      return ((ColoredXYDataset) currentDataset).getAWTColor();
+    if (currentDataset instanceof ColorProvider) {
+      return ((ColorProvider) currentDataset).getAWTColor();
     }
     return lookupSeriesPaint(row);
   }
