@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template;
+package io.github.mzmine.gui.chartbasics.template;
 
 import com.google.common.primitives.Ints;
 import java.util.ArrayList;

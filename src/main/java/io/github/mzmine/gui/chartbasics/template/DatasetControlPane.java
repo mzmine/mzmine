@@ -16,11 +16,11 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template;
+package io.github.mzmine.gui.chartbasics.template;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorPropertyProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.ColorPropertyProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.PlotXYDatasetProvider;
 import io.github.mzmine.util.components.ButtonCell;
 import io.github.mzmine.util.components.ColorTableCell;
 import java.util.Map;

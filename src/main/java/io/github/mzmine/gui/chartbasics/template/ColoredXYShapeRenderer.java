@@ -16,9 +16,9 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template;
+package io.github.mzmine.gui.chartbasics.template;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.ColorProvider;
 import java.awt.AlphaComposite;
 import java.awt.Composite;
 import java.awt.Graphics2D;

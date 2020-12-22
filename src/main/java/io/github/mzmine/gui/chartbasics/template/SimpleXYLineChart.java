@@ -16,12 +16,12 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template;
+package io.github.mzmine.gui.chartbasics.template;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotXYDatasetProvider;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.gui.chartbasics.template.providers.PlotXYDatasetProvider;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Paint;
