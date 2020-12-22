@@ -7,7 +7,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javax.annotation.Nonnull;
 
-public class SimpleXYLineChartWithDatasetView<T extends PlotDatasetProvider> extends SplitPane {
+/*public class SimpleXYLineChartWithDatasetView<T extends PlotDatasetProvider> extends SplitPane {
 
   private final SimpleXYLineChart<T> chart;
   private DatasetControlPaneController datasetPaneController;
@@ -44,4 +44,4 @@ public class SimpleXYLineChartWithDatasetView<T extends PlotDatasetProvider> ext
   public DatasetControlPaneController getDatasetPaneController() {
     return datasetPaneController;
   }
-}
+}*/
