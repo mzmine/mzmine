@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -49,7 +50,8 @@ public class DataTypeUtils {
           new RowBinding(new AreaType(), BindingsType.MAX)*/,
           new RowBinding(new RTRangeType(), BindingsType.RANGE),
           new RowBinding(new MZRangeType(), BindingsType.RANGE));
-  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(/*new RTType(),
+  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(new ManualAnnotationType()
+          /*new RTType(),
       new MZType(),*/ /*new HeightType(), new AreaType()*//*, new RTRangeType(), new MZRangeType()*/);
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
       List.of(new ScanNumbersType(), new RawFileType(), new DetectionType(), new MZType(),

@@ -41,10 +41,12 @@ public class ModularFeatureList implements FeatureList {
   // using LinkedHashMaps to save columns order according to the constructor
   private final LinkedHashMap<Class<? extends DataType>, DataType> rowTypesLinkedMap =
       new LinkedHashMap<>();
+  // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
   private ObservableMap<Class<? extends DataType>, DataType> rowTypes;
 
   private final LinkedHashMap<Class<? extends DataType>, DataType> featureTypesLinkedMap =
       new LinkedHashMap<>();
+  // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
   private ObservableMap<Class<? extends DataType>, DataType> featureTypes;
 
   // bindings for values
