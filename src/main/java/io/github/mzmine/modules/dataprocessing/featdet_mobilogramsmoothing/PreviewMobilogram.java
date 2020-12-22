@@ -49,16 +49,18 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetPr
   private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
 
   private List<MobilityDataPoint> sortedDps;
+  private final Mobilogram originalMobilogram;
+  private double finishedPercentage;
 
 
-  public PreviewMobilogram(Mobilogram mobilogram, final String seriesKey) {
-    super(mobilogram.getMobilityType(), mobilogram.getRawDataFile());
+  public PreviewMobilogram(Mobilogram originalMobilogram, final String seriesKey) {
+    super(originalMobilogram.getMobilityType(), originalMobilogram.getRawDataFile());
+    this.originalMobilogram = originalMobilogram;
     this.awt = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
     this.seriesKey = seriesKey;
-    mobilogram.getDataPoints().forEach(this::addDataPoint);
     yValues = new ArrayList<>();
     xValues = new ArrayList<>();
-    calc();
+    finishedPercentage = 0d;
   }
 
   @Override
@@ -93,15 +95,6 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetPr
   @Override
   public void calc() {
     super.calc();
-
-    sortedDps = getDataPoints().stream()
-        .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility))
-        .collect(Collectors.toList());
-
-    for (MobilityDataPoint dp : sortedDps) {
-      xValues.add(dp.getMobility());
-      yValues.add(dp.getIntensity());
-    }
   }
 
   @Override
@@ -112,6 +105,29 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotDatasetPr
   @Override
   public List<Double> getRangeValues() {
     return yValues;
+  }
+
+  @Override
+  public void computeValues() {
+    originalMobilogram.getDataPoints().forEach(this::addDataPoint);
+    finishedPercentage = 0.5;
+    calc();
+    finishedPercentage = 0.6;
+    sortedDps = getDataPoints().stream()
+        .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility))
+        .collect(Collectors.toList());
+
+    for (MobilityDataPoint dp : sortedDps) {
+      xValues.add(dp.getMobility());
+      yValues.add(dp.getIntensity());
+    }
+
+    finishedPercentage = 1.d;
+  }
+
+  @Override
+  public double getComputationFinishedPercentage() {
+    return finishedPercentage;
   }
 
   @Override
