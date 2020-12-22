@@ -32,6 +32,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+/*
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class ImageBuilderModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Image builder";

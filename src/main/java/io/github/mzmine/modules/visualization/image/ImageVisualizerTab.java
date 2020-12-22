@@ -1,23 +1,51 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ * 
+ * This file is part of MZmine 3.
+ * 
+ * MZmine 3 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 3; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.visualization.image;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nonnull;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
+import org.jfree.chart.plot.XYPlot;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.parameters.ParameterSet;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
+/*
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class ImageVisualizerTab extends MZmineTab {
   private final ImageVisualizerPaneController controller;
 
@@ -40,9 +68,42 @@ public class ImageVisualizerTab extends MZmineTab {
     controller.initialize(parameters);
     BorderPane plotPane = controller.getPlotPane();
     plotPane.setCenter(chartViewer);
+    addListenerToImage(chartViewer, rawDataFile);
     addRawDataInfo(rawDataFile);
     addImagingInfo(imagingParameters);
     setContent(root);
+  }
+
+  private void addListenerToImage(EChartViewer imageHeatMapPlot, ImagingRawDataFile rawDataFile) {
+    imageHeatMapPlot.addChartMouseListener(new ChartMouseListenerFX() {
+
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {}
+
+      @Override
+      public void chartMouseClicked(ChartMouseEventFX event) {
+        XYPlot plot = (XYPlot) imageHeatMapPlot.getChart().getPlot();
+        double xValue = plot.getDomainCrosshairValue();
+        double yValue = plot.getRangeCrosshairValue();
+        if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))) {
+          Scan selectedScan = rawDataFile.getScan(xValue, yValue);
+          AnchorPane pane = controller.getSpectrumPlotPane();
+          Node spectrum = addSpectra(rawDataFile, selectedScan);
+          AnchorPane.setTopAnchor(spectrum, 0.0);
+          AnchorPane.setRightAnchor(spectrum, 0.0);
+          AnchorPane.setLeftAnchor(spectrum, 0.0);
+          AnchorPane.setBottomAnchor(spectrum, 0.0);
+          pane.getChildren().add(spectrum);
+        }
+      }
+    });
+  }
+
+
+  private Node addSpectra(ImagingRawDataFile rawDataFile, Scan selectedScan) {
+    SpectraVisualizerTab spectraTab = new SpectraVisualizerTab(rawDataFile);
+    spectraTab.loadRawData(selectedScan);
+    return spectraTab.getContent();
   }
 
   private void addRawDataInfo(ImagingRawDataFile rawDataFile) {

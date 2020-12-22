@@ -35,7 +35,7 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
   }
 
   @Override
-  public Scan getScan(float x, float y) {
+  public Scan getScan(double x, double y) {
     //
     int[][][] numbers = getXYZScanNumbers();
     // yline:

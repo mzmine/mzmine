@@ -27,15 +27,22 @@ import io.github.mzmine.parameters.ParameterSet;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
+/*
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class ImageVisualizerPaneController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   @FXML
   private BorderPane plotPane;
+
+  @FXML
+  private AnchorPane spectrumPlotPane;
 
   @FXML
   private GridPane rawDataInfoGridPane;
@@ -49,12 +56,14 @@ public class ImageVisualizerPaneController {
   @FXML
   private Button backgroundButton;
 
-  public void initialize(ParameterSet parameters) {}
+  public void initialize(ParameterSet parameters) {
+    // add mouse listener to HeatMapPlot
+  }
 
   @FXML
   void toggleBackColor(ActionEvent event) {
     logger.finest("Toggle background");
-    XYPlot plot = getChart().getXYPlot();
+    XYPlot plot = getImageChart().getXYPlot();
     if (plot.getBackgroundPaint() == Color.WHITE) {
       plot.setBackgroundPaint(Color.BLACK);
     } else {
@@ -94,7 +103,15 @@ public class ImageVisualizerPaneController {
     this.plotSettingsInfoGridPane = plotSettingsInfoGridPane;
   }
 
-  private JFreeChart getChart() {
+  public AnchorPane getSpectrumPlotPane() {
+    return spectrumPlotPane;
+  }
+
+  public void setSpectrumPlotPane(AnchorPane spectrumPlotPane) {
+    this.spectrumPlotPane = spectrumPlotPane;
+  }
+
+  private JFreeChart getImageChart() {
     if (plotPane.getChildren().get(0) instanceof EChartViewer) {
       EChartViewer viewer = (EChartViewer) plotPane.getChildren().get(0);
       return viewer.getChart();

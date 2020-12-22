@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.BorderPane;
 
@@ -47,7 +47,6 @@ public class RawDataOverviewPane extends MZmineTab {
       setContent(root);
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Could not load RawDataOverview.fxml", e);
-      return;
     }
   }
 
@@ -81,8 +80,7 @@ public class RawDataOverviewPane extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featurelists) {
     return;
   }
 }

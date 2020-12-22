@@ -16,7 +16,7 @@ public interface ImagingRawDataFile extends RawDataFile {
 
   public ImagingParameters getImagingParam();
 
-  public Scan getScan(float x, float y);
+  public Scan getScan(double x, double y);
 
   /**
    * all scans in this area

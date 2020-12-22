@@ -15,7 +15,6 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  *
- * Edited and modified by Owen Myers (Oweenm@gmail.com)
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
@@ -50,7 +49,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
 
-
+/*
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class ImageBuilderTask extends AbstractTask {
 
   private static Logger logger = Logger.getLogger(ImageBuilderTask.class.getName());

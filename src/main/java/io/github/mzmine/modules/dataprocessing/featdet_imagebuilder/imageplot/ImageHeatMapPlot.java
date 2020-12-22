@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ * 
+ * This file is part of MZmine 3.
+ * 
+ * MZmine 3 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 3; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot;
 
 import java.awt.Color;
@@ -17,11 +35,15 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 
+/*
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class ImageHeatMapPlot extends EChartViewer {
 
   private final XYPlot plot;
@@ -32,14 +54,13 @@ public class ImageHeatMapPlot extends EChartViewer {
   private double dataPointWidth;
 
   public ImageHeatMapPlot(XYZDataset dataset, String paintScaleStyle, double dataPointWidth,
-      double dataPointHeight) {
+      double dataPointHeight, ImagingRawDataFile rawDataFile) {
 
     super(ChartFactory.createScatterPlot("", "[\u00B5m]", "[\u00B5m]", dataset,
         PlotOrientation.VERTICAL, true, true, true));
 
     this.dataPointWidth = dataPointWidth;
     this.dataPointHeight = dataPointHeight;
-
     JFreeChart chart = getChart();
     // copy and sort z-Values for min and max of the paint scale
     double[] copyZValues = new double[dataset.getItemCount(0)];
@@ -84,7 +105,6 @@ public class ImageHeatMapPlot extends EChartViewer {
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
     chart.addSubtitle(legend);
-
   }
 
   private void setPixelRenderer() {
@@ -113,4 +133,5 @@ public class ImageHeatMapPlot extends EChartViewer {
   public XYPlot getPlot() {
     return plot;
   }
+
 }

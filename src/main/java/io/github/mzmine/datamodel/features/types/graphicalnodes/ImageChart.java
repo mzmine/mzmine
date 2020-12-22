@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import org.jfree.data.xy.XYZDataset;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageDataPoint;
@@ -32,6 +33,7 @@ public class ImageChart extends StackPane {
       int size = row.getFilesFeatures().size();
       int fi = 0;
       for (Feature f : row.getFeatures()) {
+        ImagingRawDataFile rawDataFile = (ImagingRawDataFile) f.getRawDataFile();
         List<DataPoint> dps = f.getDataPoints();
         List<ImageDataPoint> dataPoints = new ArrayList<>();
         dataPoints.addAll((Collection<? extends ImageDataPoint>) dps);
@@ -59,11 +61,11 @@ public class ImageChart extends StackPane {
 
         if (progress != null)
           progress.set((double) fi / size);
+        XYZDataset dataset = new ImageXYZDataset(xValues, yValues, zValues, "Test");
+        ImageHeatMapPlot retentionTimeMobilityHeatMapPlot =
+            new ImageHeatMapPlot(dataset, "Rainbow", dataPointWidth, dataPointHeight, rawDataFile);
+        this.getChildren().add(retentionTimeMobilityHeatMapPlot);
       }
-      XYZDataset dataset = new ImageXYZDataset(xValues, yValues, zValues, "Test");
-      ImageHeatMapPlot retentionTimeMobilityHeatMapPlot =
-          new ImageHeatMapPlot(dataset, "Rainbow", dataPointWidth, dataPointHeight);
-      this.getChildren().add(retentionTimeMobilityHeatMapPlot);
     } catch (Exception ex) {
       logger.log(Level.WARNING, "error in DP", ex);
     }
