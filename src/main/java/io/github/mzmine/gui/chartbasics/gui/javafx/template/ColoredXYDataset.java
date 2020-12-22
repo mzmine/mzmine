@@ -28,10 +28,13 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTex
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.awt.Color;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -41,6 +44,8 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider {
 
+  private static Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
+
   private final int seriesCount = 1;
   private final ColorProvider colorProvider;
   private final DomainValueProvider domainValueProvider;
@@ -49,12 +54,9 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   private final LabelTextProvider labelTextProvider;
   private final ToolTipTextProvider toolTipTextProvider;
   private final int itemCount;
-  private Color color;
-  private javafx.scene.paint.Color colorfx;
-
+  private ObjectProperty<javafx.scene.paint.Color> fxColor;
   private List<Double> domainValues;
   private List<Double> rangeValues;
-
   private Double minRangeValue;
 
   public ColoredXYDataset(DomainValueProvider domainValueProvider,
@@ -76,8 +78,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
     this.labelTextProvider = labelTextProvider;
     this.toolTipTextProvider = toolTipTextProvider;
 
-    this.color = colorProvider.getAWTColor();
-    this.colorfx = colorProvider.getFXColor();
+    this.fxColor = new SimpleObjectProperty<>(colorProvider.getFXColor());
 
     minRangeValue = Double.MAX_VALUE;
 
@@ -87,6 +88,10 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
       compute();
       return 1;
     }));
+
+    fxColorProperty().addListener(((observable, oldValue, newValue) -> {
+      fireDatasetChanged();
+    }));
   }
 
   public ColoredXYDataset(PlotDatasetProvider datasetProvider) {
@@ -95,13 +100,25 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
   }
 
   @Override
-  public Color getAWTColor() {
-    return color;
+  public java.awt.Color getAWTColor() {
+    return FxColorUtil.fxColorToAWT(fxColor.getValue());
+  }
+
+  public void setAWTColor(java.awt.Color color) {
+    this.fxColor.set(FxColorUtil.awtColorToFX(color));
   }
 
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return colorfx;
+    return fxColor.getValue();
+  }
+
+  public ObjectProperty<javafx.scene.paint.Color> fxColorProperty() {
+    return fxColor;
+  }
+
+  public void setFxColor(javafx.scene.paint.Color colorfx) {
+    this.fxColor.set(colorfx);
   }
 
   @Override

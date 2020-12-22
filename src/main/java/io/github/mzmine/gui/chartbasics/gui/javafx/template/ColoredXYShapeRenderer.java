@@ -21,8 +21,11 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 import java.awt.AlphaComposite;
 import java.awt.Composite;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.geom.Rectangle2D;
+import org.jfree.chart.LegendItem;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.labels.XYSeriesLabelGenerator;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
@@ -38,6 +41,8 @@ public class ColoredXYShapeRenderer extends XYAreaRenderer {
   private static final long serialVersionUID = 1L;
   private static final float OPACITY = 0.45f;
 
+  private XYDataset currentDataset;
+
   private static Composite makeComposite(final float alpha) {
 
     return AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
@@ -49,13 +54,68 @@ public class ColoredXYShapeRenderer extends XYAreaRenderer {
       final ValueAxis domainAxis, final ValueAxis rangeAxis, final XYDataset dataSet,
       final int series, final int item, final CrosshairState crosshairState, final int pass) {
 
+    currentDataset = dataSet;
+
+    /*Paint seriesColor = (dataSet instanceof ColoredXYDataset) ?
+        ((ColoredXYDataset) dataSet).getAWTColor() : getItemPaint(series, item);
+    System.out.println(
+        "Drawing dataset " + dataSet.getSeriesKey(0) + "with color " + seriesColor.toString());
+
+    g2.setPaint(seriesColor);*/
+
     g2.setComposite(makeComposite(OPACITY));
-//    Paint seriesColor = (dataSet instanceof ColoredXYDataset) ?
-//        ((ColoredXYDataset) dataSet).getAWTColor() : getItemPaint(series, item);
-//    g2.setPaint(seriesColor);
 
     super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis, dataSet, series, item,
         crosshairState, pass);
+  }
+
+  @Override
+  public LegendItem getLegendItem(int datasetIndex, int series) {
+    LegendItem result = null;
+    XYPlot xyplot = getPlot();
+    if (xyplot != null) {
+      XYDataset dataset = xyplot.getDataset(datasetIndex);
+      if (dataset != null) {
+        XYSeriesLabelGenerator lg = getLegendItemLabelGenerator();
+        String label = lg.generateLabel(dataset, series);
+        String description = label;
+        String toolTipText = null;
+        if (getLegendItemToolTipGenerator() != null) {
+          toolTipText = getLegendItemToolTipGenerator().generateLabel(
+              dataset, series);
+        }
+        String urlText = null;
+        if (getLegendItemURLGenerator() != null) {
+          urlText = getLegendItemURLGenerator().generateLabel(
+              dataset, series);
+        }
+        Paint paint = lookupSeriesPaint(series);
+        if(dataset instanceof ColoredXYDataset) {
+          paint = ((ColoredXYDataset) dataset).getAWTColor();
+        }
+        result = new LegendItem(label, description, toolTipText,
+            urlText, super.getLegendArea(), paint);
+        result.setLabelFont(lookupLegendTextFont(series));
+        Paint labelPaint = lookupLegendTextPaint(series);
+        if (labelPaint != null) {
+          result.setLabelPaint(labelPaint);
+        }
+        result.setDataset(dataset);
+        result.setDatasetIndex(datasetIndex);
+        result.setSeriesKey(dataset.getSeriesKey(series));
+        result.setSeriesIndex(series);
+      }
+    }
+
+    return result;
+  }
+
+  @Override
+  public Paint getItemPaint(int row, int column) {
+    if(currentDataset instanceof ColoredXYDataset) {
+      return ((ColoredXYDataset) currentDataset).getAWTColor();
+    }
+    return lookupSeriesPaint(row);
   }
 
 }
