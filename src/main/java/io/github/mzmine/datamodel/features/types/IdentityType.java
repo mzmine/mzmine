@@ -20,11 +20,12 @@ package io.github.mzmine.datamodel.features.types;
 
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
 
-public class IdentityType extends ListDataType<FeatureIdentity> {
+public class IdentityType extends ListDataType<FeatureIdentity> implements AnnotationType {
 
   @Override
   public String getHeaderString() {

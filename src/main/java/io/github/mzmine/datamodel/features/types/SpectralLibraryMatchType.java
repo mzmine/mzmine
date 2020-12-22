@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.CosineScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
@@ -48,7 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SpectralLibraryMatchType extends ModularType {
+public class SpectralLibraryMatchType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
   private final List<DataType> subTypes = List.of(new CompoundNameType(), new FormulaType(), new SmilesStructureType(),

@@ -18,12 +18,13 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import javafx.collections.ObservableMap;
 
 import java.util.List;
 
-public class ManualAnnotationType extends ModularType {
+public class ManualAnnotationType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
   private final List<DataType> subTypes = List.of(new CommentType(), new CompoundNameType(), new IonAdductType(),

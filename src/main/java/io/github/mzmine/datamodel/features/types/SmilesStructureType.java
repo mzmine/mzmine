@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import javafx.beans.property.SimpleStringProperty;
@@ -26,7 +27,7 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 
 public class SmilesStructureType extends DataType<StringProperty>
-    implements EditableColumnType, StringParser<String> {
+    implements EditableColumnType, StringParser<String>, AnnotationType {
 
   private StringConverter<String> converter = new DefaultStringConverter();
 
