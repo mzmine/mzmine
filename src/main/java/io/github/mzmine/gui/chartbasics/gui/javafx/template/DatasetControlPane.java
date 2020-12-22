@@ -111,7 +111,7 @@ public class DatasetControlPane<T extends PlotDatasetProvider> extends AnchorPan
           @Override
           public ObservableValue<String> call(CellDataFeatures<XYDataset, String> param) {
             if (param.getValue() instanceof ColoredXYDataset) {
-              String name = ((ColoredXYDataset) param.getValue()).getRangeValueProvider().getClass()
+              String name = ((ColoredXYDataset) param.getValue()).getValueProvider().getClass()
                   .getName();
               return new SimpleStringProperty(name.substring(name.lastIndexOf(".") + 1));
             } else {

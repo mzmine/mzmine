@@ -20,7 +20,13 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
 
 import java.util.List;
 
-public interface RangeValueProvider extends ValueCountProvider {
+public interface XYValueProvider extends ValueCountProvider {
+
+  public List<Double> getDomainValues();
 
   public List<Double> getRangeValues();
+
+  public void computeValues();
+
+  public double getComputationFinishedPercentage();
 }

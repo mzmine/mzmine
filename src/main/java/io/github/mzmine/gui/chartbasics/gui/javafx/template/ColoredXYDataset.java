@@ -19,20 +19,23 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.DomainValueProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.RangeValueProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.XYValueProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import java.lang.management.PlatformLoggingMXBean;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nullable;
@@ -42,64 +45,61 @@ import org.jfree.data.xy.AbstractXYDataset;
  * Intended for values that don't have to be calculated or have already been. Otherwise it might
  * crash the gui.
  */
-public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider {
+public class ColoredXYDataset extends AbstractXYDataset implements Task {
 
   private static Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
-
+  // dataset stuff
   private final int seriesCount = 1;
   private final ColorProvider colorProvider;
-  private final DomainValueProvider domainValueProvider;
-  private final RangeValueProvider rangeValueProvider;
+  private final XYValueProvider xyValueProvider;
   private final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   private final LabelTextProvider labelTextProvider;
   private final ToolTipTextProvider toolTipTextProvider;
-  private final int itemCount;
   private ObjectProperty<javafx.scene.paint.Color> fxColor;
   private List<Double> domainValues;
   private List<Double> rangeValues;
   private Double minRangeValue;
 
-  public ColoredXYDataset(DomainValueProvider domainValueProvider,
-      RangeValueProvider rangeValueProvider,
+  // task stuff
+  private TaskStatus status;
+  private String errorMessage;
+  private boolean computed;
+  private int computedItemCount;
+
+  public ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
       ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider) {
 
-    if (domainValueProvider.getValueCount() != rangeValueProvider.getValueCount()) {
-      throw new IllegalArgumentException(
-          "Number of domain values does not match number of range values.");
+    // Task stuff
+    this.computed = false;
+    status = TaskStatus.WAITING;
+    errorMessage = "";
 
-    }
-    this.itemCount = domainValueProvider.getValueCount();
-
+    // dataset stuff
     this.colorProvider = colorProvider;
-    this.domainValueProvider = domainValueProvider;
-    this.rangeValueProvider = rangeValueProvider;
+    this.xyValueProvider = xyValueProvider;
     this.seriesKeyProvider = seriesKeyProvider;
     this.labelTextProvider = labelTextProvider;
     this.toolTipTextProvider = toolTipTextProvider;
-
     this.fxColor = new SimpleObjectProperty<>(colorProvider.getFXColor());
 
     minRangeValue = Double.MAX_VALUE;
-
-    domainValues = domainValueProvider.getDomainValues();
-    rangeValues = rangeValueProvider.getRangeValues();
-    MZmineCore.getTaskController().addTask(new ValueComputing(() -> {
-      compute();
-      return 1;
-    }));
+    domainValues = Collections.emptyList();
+    rangeValues = Collections.emptyList();
+    this.computedItemCount = 0;
 
     fxColorProperty().addListener(((observable, oldValue, newValue) -> {
       fireDatasetChanged();
     }));
+
+    MZmineCore.getTaskController().addTask(this);
   }
 
   public ColoredXYDataset(PlotDatasetProvider datasetProvider) {
-    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider, datasetProvider,
+    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
         datasetProvider);
   }
 
-  @Override
   public java.awt.Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(fxColor.getValue());
   }
@@ -108,7 +108,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
     this.fxColor.set(FxColorUtil.awtColorToFX(color));
   }
 
-  @Override
   public javafx.scene.paint.Color getFXColor() {
     return fxColor.getValue();
   }
@@ -133,16 +132,22 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
 
   @Override
   public int getItemCount(int series) {
-    return itemCount;
+    return computedItemCount;
   }
 
   @Override
   public Number getX(int series, int item) {
+    if (!computed) {
+      return 0.d;
+    }
     return domainValues.get(item);
   }
 
   @Override
   public Number getY(int series, int item) {
+    if (!computed) {
+      return 0.d;
+    }
     return rangeValues.get(item);
   }
 
@@ -156,7 +161,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
 
   public int getValueIndex(final double domainValue, final double rangeValue) {
     // todo binary search somehow here
-    for (int i = 0; i < itemCount; i++) {
+    for (int i = 0; i < computedItemCount; i++) {
       if (Double.compare(domainValue, getX(0, i).doubleValue()) == 0
           && Double.compare(rangeValue, getY(0, i).doubleValue()) == 0) {
         return i;
@@ -165,21 +170,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
     return -1;
   }
 
-  /**
-   * Note: does not return the original color provider but <b>this</b>dataset.
-   *
-   * @return
-   */
-  public ColorProvider getColorProvider() {
-    return this;
-  }
-
-  public DomainValueProvider getDomainValueProvider() {
-    return domainValueProvider;
-  }
-
-  public RangeValueProvider getRangeValueProvider() {
-    return rangeValueProvider;
+  public XYValueProvider getValueProvider() {
+    return xyValueProvider;
   }
 
   public SeriesKeyProvider<Comparable<?>> getSeriesKeyProvider() {
@@ -205,7 +197,38 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
     return toolTipTextProvider.getToolTipText(itemIndex);
   }
 
-  public void compute() {
+  public Double getMinimumRangeValue() {
+    return minRangeValue;
+  }
+
+  /**
+   * When an object implementing interface {@code Runnable} is used to create a thread, starting the
+   * thread causes the object's {@code run} method to be called in that separately executing
+   * thread.
+   * <p>
+   * The general contract of the method {@code run} is that it may take any action whatsoever.
+   *
+   * @see Thread#run()
+   */
+  @Override
+  public void run() {
+
+    status = TaskStatus.PROCESSING;
+
+    xyValueProvider.computeValues();
+
+    if (status == TaskStatus.CANCELED) {
+      return;
+    }
+
+    if (xyValueProvider.getDomainValues().size() != xyValueProvider.getValueCount()
+        || xyValueProvider.getRangeValues().size() != xyValueProvider.getValueCount()) {
+      throw new IllegalArgumentException(
+          "Number of domain values does not match number of range values.");
+    }
+
+    rangeValues = xyValueProvider.getRangeValues();
+    domainValues = xyValueProvider.getDomainValues();
 
     for (Double rangeValue : rangeValues) {
       if (rangeValue.doubleValue() < minRangeValue.doubleValue()) {
@@ -213,38 +236,48 @@ public class ColoredXYDataset extends AbstractXYDataset implements ColorProvider
       }
     }
 
+    computedItemCount = domainValues.size();
+
+    computed = true;
+    status = TaskStatus.FINISHED;
+    Platform.runLater(this::fireDatasetChanged);
   }
 
-  public Double getMinimumRangeValue() {
-    return minRangeValue;
+  @Override
+  public String getTaskDescription() {
+    return "Computing values for dataset " + seriesKeyProvider.getSeriesKey();
   }
 
-  private static class ValueComputing extends AbstractTask {
-
-    final Supplier<Integer> computationMethod;
-
-    public ValueComputing(Supplier<Integer> computationMethod) {
-      this.computationMethod = computationMethod;
-      setStatus(TaskStatus.WAITING);
-    }
-
-    @Override
-    public String getTaskDescription() {
-      return "Processing values for dataset.";
-    }
-
-    @Override
-    public double getFinishedPercentage() {
-      return 0;
-    }
-
-    @Override
-    public void run() {
-      setStatus(TaskStatus.PROCESSING);
-      computationMethod.get();
-      setStatus(TaskStatus.FINISHED);
-    }
-
+  @Override
+  public double getFinishedPercentage() {
+    return xyValueProvider.getComputationFinishedPercentage();
   }
 
+  @Override
+  public TaskStatus getStatus() {
+    return status;
+  }
+
+  @Override
+  public String getErrorMessage() {
+    return errorMessage;
+  }
+
+  /**
+   * The standard TaskPriority assign to this task
+   *
+   * @return
+   */
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
+
+  /**
+   * Cancel a running task by user request.
+   */
+  @Override
+  public void cancel() {
+    status = TaskStatus.CANCELED;
+  }
 }

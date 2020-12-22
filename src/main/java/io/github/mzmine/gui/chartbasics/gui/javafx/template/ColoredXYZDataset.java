@@ -19,23 +19,20 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx.template;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.DomainValueProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotDatasetProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.RangeValueProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.XYValueProvider;
 
 public class ColoredXYZDataset extends ColoredXYDataset {
 
   public ColoredXYZDataset(
-      DomainValueProvider domainValueProvider,
-      RangeValueProvider rangeValueProvider,
+      XYValueProvider XYValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider,
       LabelTextProvider labelTextProvider,
       ToolTipTextProvider toolTipTextProvider,
       ColorProvider colorProvider) {
-    super(domainValueProvider, rangeValueProvider, seriesKeyProvider, labelTextProvider,
+    super(XYValueProvider, seriesKeyProvider, labelTextProvider,
         toolTipTextProvider, colorProvider);
   }
 }
