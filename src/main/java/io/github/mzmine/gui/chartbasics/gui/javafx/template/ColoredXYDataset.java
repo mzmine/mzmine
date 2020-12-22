@@ -25,15 +25,12 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyP
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.XYValueProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
-import java.lang.management.PlatformLoggingMXBean;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
