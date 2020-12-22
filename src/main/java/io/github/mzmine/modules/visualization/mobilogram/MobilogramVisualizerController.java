@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.template.SimpleXYLineChart;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYLineChart;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
-import io.github.mzmine.gui.chartbasics.template.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDatasetProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
