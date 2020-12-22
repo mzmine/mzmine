@@ -24,6 +24,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
  * specific than a label.
  *
  * @author https://github.com/SteffenHeu
+ * @see ExampleProvider
  */
 public interface ToolTipTextProvider {
 

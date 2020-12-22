@@ -26,11 +26,11 @@ import java.util.List;
  * to be equal and is checked via the {@link List#size()} method.
  * <p></p>
  * The values are not grabbed during the creation of the dataset. After initialising the dataset
- * (e.g. {@link ColoredXYDataset}) a thread is
- * started where the values of the dataset can be calculated or loaded from disk. For that
- * operation, the {@link XYValueProvider#computeValues()} method is used. The implementing class can
- * supply information on the progress of the operation via the method {@link
- * XYValueProvider#getComputationFinishedPercentage()}, which will be represented in the task bar.
+ * (e.g. {@link ColoredXYDataset}) a thread is started where the values of the dataset can be
+ * calculated or loaded from disk. For that operation, the {@link XYValueProvider#computeValues()}
+ * method is used. The implementing class can supply information on the progress of the operation
+ * via the method {@link XYValueProvider#getComputationFinishedPercentage()}, which will be
+ * represented in the task bar.
  * <p></p>
  * When the computation ({@link XYValueProvider#computeValues} has finished, the values are loaded
  * into the dataset via the {@link XYValueProvider#getDomainValues()} and {@link

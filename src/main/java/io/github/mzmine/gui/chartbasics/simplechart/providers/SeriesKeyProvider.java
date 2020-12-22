@@ -24,6 +24,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
  *
  * @param <ValueType> The type of the series Key. Most commonly a {@link String}.
  * @author https://github.com/SteffenHeu
+ * @see ExampleProvider
  */
 public interface SeriesKeyProvider<ValueType extends Comparable<?>> {
 
