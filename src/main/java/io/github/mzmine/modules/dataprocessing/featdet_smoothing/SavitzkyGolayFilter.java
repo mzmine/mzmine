@@ -99,4 +99,35 @@ public class SavitzkyGolayFilter {
 
     return weights;
   }
+
+  /**
+   * Convolve a set of weights with a set of intensities.
+   *
+   * @param intensities the intensities.
+   * @param weights the filter weights.
+   * @return the convolution results.
+   */
+  public static double[] convolve(final double[] intensities, final double[] weights) {
+
+    // Initialise.
+    final int fullWidth = weights.length;
+    final int halfWidth = (fullWidth - 1) / 2;
+    final int numPoints = intensities.length;
+
+    // Convolve.
+    final double[] convolved = new double[numPoints];
+    for (int i = 0; i < numPoints; i++) {
+
+      double sum = 0.0;
+      final int k = i - halfWidth;
+      for (int j = Math.max(0, -k); j < Math.min(fullWidth, numPoints - k); j++) {
+        sum += intensities[k + j] * weights[j];
+      }
+
+      // Set the result.
+      convolved[i] = sum;
+    }
+
+    return convolved;
+  }
 }
