@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.template.SimpleXYLineChart;
+import io.github.mzmine.gui.chartbasics.gui.javafx.template.SimpleXYLineChartWithDatasetView;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
@@ -27,6 +28,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import javax.annotation.Nullable;
@@ -35,9 +37,9 @@ public class MobilogramVisualizerController {
 
   private static final Logger logger =
       Logger.getLogger(MobilogramVisualizerController.class.getName());
-
+  @FXML
+  public BorderPane borderPane;
   private List<MobilogramChangeListener> mobilogramListeners;
-
   @FXML
   private SimpleXYLineChart<PreviewMobilogram> mobilogramChart;
 
@@ -84,6 +86,10 @@ public class MobilogramVisualizerController {
       }
     });
     mobilogramChart.getContextMenu().getItems().add(showSpectrum);
+    mobilogramChart.setDomainAxisLabel("Ion mobility");
+    UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
+    String yLabel = unitFormat.format("Intensity", "cps");
+    mobilogramChart.setRangeAxisLabel(yLabel);
   }
 
   public void onRawDataFileSelectionChanged(ActionEvent actionEvent) {
@@ -95,10 +101,9 @@ public class MobilogramVisualizerController {
 
     UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     MobilityType type = ((IMSRawDataFile) selectedFile).getMobilityType();
-    String xLabel = unitFormat.format(type.getAxisLabel(), type.getUnit());
-    String yLabel = unitFormat.format("Intensity", "cps");
+    String xLabel = "Ion mobility " + unitFormat.format("(" + type.getAxisLabel() + ")",
+        type.getUnit());
     mobilogramChart.setDomainAxisLabel(xLabel);
-    mobilogramChart.setRangeAxisLabel(yLabel);
     frameSelector.getItems().addAll(((IMSRawDataFile) selectedFile).getFrames());
   }
 

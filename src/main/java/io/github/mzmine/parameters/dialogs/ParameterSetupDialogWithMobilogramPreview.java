@@ -21,21 +21,15 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.DatasetControlPane;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramChangeListener;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.PreviewMobilogram;
 import io.github.mzmine.modules.visualization.mobilogram.MobilogramVisualizerController;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.IOException;
 import java.util.logging.Level;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Orientation;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 
 public abstract class ParameterSetupDialogWithMobilogramPreview extends ParameterSetupDialog {
@@ -57,20 +51,12 @@ public abstract class ParameterSetupDialogWithMobilogramPreview extends Paramete
       controller = loader.getController();
       controller.setRawDataFiles(MZmineCore.getProjectManager().getCurrentProject()
           .getRawDataFiles());
-//      mainPane.setRight(visualiserPane);
-      DatasetControlPane<PreviewMobilogram> controlPane =
-          new DatasetControlPane<>(controller.getMobilogramChart());
-      SplitPane split = new SplitPane(visualiserPane, controlPane);
-      split.setOrientation(Orientation.VERTICAL);
-      split.setDividerPosition(0, 0.7);
-      mainPane.setRight(split);
+      mainPane.setRight(visualiserPane);
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Could not load MobilogramVisualizerPane.fxml", e);
     }
 
     cbShowPreview = new CheckBox();
-//    cbShowPreview.selectedProperty()
-//        .addListener((observable, oldValue, newValue) -> visualiserPane.setVisible(newValue));
     cbShowPreview.selectedProperty().bindBidirectional(visualiserPane.visibleProperty());
 
     paramsPane.add(new Label("Show preview"), 0, getNumberOfParameters() + 1);
