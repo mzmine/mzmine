@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
+package io.github.mzmine.gui.chartbasics.template.providers;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.main.MZmineCore;

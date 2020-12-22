@@ -16,15 +16,15 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template;
+package io.github.mzmine.gui.chartbasics.template;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorPropertyProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.PlotXYDatasetProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.XYValueProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.ColorPropertyProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.ColorProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.LabelTextProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.SeriesKeyProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.ToolTipTextProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.XYValueProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;

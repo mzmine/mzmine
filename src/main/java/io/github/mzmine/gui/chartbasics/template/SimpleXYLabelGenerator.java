@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template;
+package io.github.mzmine.gui.chartbasics.template;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * Default tooltip generator. Generates tooltips based on {@link io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider#getLabel(int)}.
+ * Default tooltip generator. Generates tooltips based on {@link io.github.mzmine.gui.chartbasics.template.providers.LabelTextProvider#getLabel(int)}.
  *
  * @author https://github.com/SteffenHeu
  */

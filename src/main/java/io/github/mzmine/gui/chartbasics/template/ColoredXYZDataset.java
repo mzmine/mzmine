@@ -16,13 +16,13 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template;
+package io.github.mzmine.gui.chartbasics.template;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider;
-import io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.XYValueProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.ColorProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.LabelTextProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.SeriesKeyProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.ToolTipTextProvider;
+import io.github.mzmine.gui.chartbasics.template.providers.XYValueProvider;
 import org.jfree.data.xy.XYZDataset;
 
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset {

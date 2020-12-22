@@ -16,22 +16,20 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
+package io.github.mzmine.gui.chartbasics.template.providers;
 
 /**
- * This interface is used to generate tool-tips based on the index of a value. A tooltip is only
- * shown when the mouse is hovered over a datapoint within the chart, so it can be longer and more
- * specific than a label.
+ * This interface is used to generate labels for a dataset within a specific plot.
  *
  * @author https://github.com/SteffenHeu
  */
-public interface ToolTipTextProvider {
+public interface LabelTextProvider {
 
   /**
-   * @param itemIndex The index of the value to provide a tool tip for.
-   * @return A tool tip for the value at the given index. E.g., in a TIC plot (Intensity vs. time)
-   * you might want to provide the m/z value, the exact retention time, the intensity of the highest
-   * peak and maybe even the scan number as a tooltip.
+   * @param index The index of the value to provide a label for. E.g., in a TIC plot (Intensity vs.
+   *              time) you might want to provide the m/z value of the highest peak as a label.
+   * @return A String representing the data at the given index in a plot. Has to be concise enough
+   * to fit in the plot's area.
    */
-  public String getToolTipText(int itemIndex);
+  public String getLabel(int index);
 }

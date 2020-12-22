@@ -16,22 +16,19 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
-
-import io.github.mzmine.datamodel.RawDataFile;
+package io.github.mzmine.gui.chartbasics.template.providers;
 
 /**
- * The methods in this interface are used to set the <b>initial</b> dataset color. Note that the
- * dataset color is not bound to the original value. Therefore the color of the dataset can be
- * changed in the plot for better visualisation, without altering the color of e.g. the raw data
- * file (see {@link RawDataFile#getColorAWT()}
+ * Provides a dataset with an "series key". The series key is used to label the dataset in the
+ * legend of the chart.
  *
+ * @param <ValueType> The type of the series Key. Most commonly a {@link String}.
  * @author https://github.com/SteffenHeu
  */
-public interface ColorProvider {
+public interface SeriesKeyProvider<ValueType extends Comparable<?>> {
 
-  public java.awt.Color getAWTColor();
-
-  public javafx.scene.paint.Color getFXColor();
-
+  /**
+   * @return The series key to label the dataset in the chart's legend.
+   */
+  public ValueType getSeriesKey();
 }

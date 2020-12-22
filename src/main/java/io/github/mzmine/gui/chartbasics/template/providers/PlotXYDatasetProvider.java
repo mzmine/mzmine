@@ -16,14 +16,14 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
+package io.github.mzmine.gui.chartbasics.template.providers;
 
 /**
  * Combines all necessary interfaces of a given dataset to be plotted in an XY-Chart. Check the
  * specific interfaces for a detailed desription.
  * <p></p>
  * Basically, any class implementing this interface can be conveniently plotted in a {@link
- * io.github.mzmine.gui.chartbasics.gui.javafx.template.SimpleXYLineChart} without the need to
+ * io.github.mzmine.gui.chartbasics.template.SimpleXYLineChart} without the need to
  * create a specific {@link org.jfree.chart.JFreeChart} plot class, dataset, renderer, label
  * generator or tooltip generator.
  * <p></p>
@@ -35,11 +35,11 @@ package io.github.mzmine.gui.chartbasics.gui.javafx.template.providers;
  * For a more detailed description, one shall be referred to the interfaces listed below.
  *
  * @author https://github.com/SteffenHeu
- * @see io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ColorProvider
- * @see io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.LabelTextProvider
- * @see io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.SeriesKeyProvider
- * @see io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.ToolTipTextProvider
- * @see io.github.mzmine.gui.chartbasics.gui.javafx.template.providers.XYValueProvider
+ * @see io.github.mzmine.gui.chartbasics.template.providers.ColorProvider
+ * @see io.github.mzmine.gui.chartbasics.template.providers.LabelTextProvider
+ * @see io.github.mzmine.gui.chartbasics.template.providers.SeriesKeyProvider
+ * @see io.github.mzmine.gui.chartbasics.template.providers.ToolTipTextProvider
+ * @see io.github.mzmine.gui.chartbasics.template.providers.XYValueProvider
  */
 public interface PlotXYDatasetProvider extends XYValueProvider, SeriesKeyProvider<Comparable<?>>,
     LabelTextProvider, ToolTipTextProvider, ColorProvider {

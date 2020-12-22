@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.gui.javafx.template;
+package io.github.mzmine.gui.chartbasics.template;
 
 import java.util.Objects;
 import javax.annotation.Nullable;
