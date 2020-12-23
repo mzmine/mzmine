@@ -21,6 +21,7 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDatasetProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
@@ -42,7 +43,7 @@ import org.jfree.chart.ui.RectangleInsets;
 /**
  * @author https://github.com/SteffenHeu & https://github.com/Annexhc
  */
-public class SimpleXYZScatterPlot<T> extends EChartViewer {
+public class SimpleXYZScatterPlot<T extends PlotXYZDatasetProvider> extends EChartViewer {
 
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   protected final JFreeChart chart;
@@ -50,7 +51,6 @@ public class SimpleXYZScatterPlot<T> extends EChartViewer {
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
   protected ColoredXYSmallBlockRenderer blockRenderer;
-  private PaintScaleLegend legend;
 
   public SimpleXYZScatterPlot(@Nonnull String title) {
 
@@ -71,20 +71,21 @@ public class SimpleXYZScatterPlot<T> extends EChartViewer {
     theme.apply(chart);
   }
 
-  private void prepareLegend(double min, double max, LookupPaintScale scale) {
+  private PaintScaleLegend prepareLegend(double min, double max, LookupPaintScale scale) {
     NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
-    legend = new PaintScaleLegend(scale, scaleAxis);
-    legend.setPadding(5, 0, 5, 0);
-    legend.setStripOutlineVisible(false);
-    legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-    legend.setAxisOffset(5.0);
-    legend.setSubdivisionCount(500);
-    legend.setPosition(RectangleEdge.RIGHT);
-    legend.getAxis().setLabelFont(legendFont);
-    legend.getAxis().setTickLabelFont(legendFont);
+    PaintScaleLegend newLegend = new PaintScaleLegend(scale, scaleAxis);
+    newLegend.setPadding(5, 0, 5, 0);
+    newLegend.setStripOutlineVisible(false);
+    newLegend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+    newLegend.setAxisOffset(5.0);
+    newLegend.setSubdivisionCount(500);
+    newLegend.setPosition(RectangleEdge.RIGHT);
+    newLegend.getAxis().setLabelFont(legendFont);
+    newLegend.getAxis().setTickLabelFont(legendFont);
+    return newLegend;
   }
 
   public XYPlot getPlot() {
@@ -104,9 +105,22 @@ public class SimpleXYZScatterPlot<T> extends EChartViewer {
     plot.setRenderer(blockRenderer);
     blockRenderer.setBlockHeight(dataset.getBoxHeight());
     blockRenderer.setBlockWidth(dataset.getBoxWidth());
-    blockRenderer.setPaintScale(dataset.getPaintScale());
-    prepareLegend(dataset.getMinZValue(), dataset.getMaxZValue(), dataset.getPaintScale());
+    PaintScaleLegend legend = null;
+    if (dataset.getPaintScale() == null) {
+      LookupPaintScale ps = new LookupPaintScale(0, 10000, Color.RED);
+      blockRenderer.setPaintScale(ps);
+      legend = prepareLegend(0, 1000, ps);
+    } else {
+      blockRenderer.setPaintScale(dataset.getPaintScale());
+      legend = prepareLegend(dataset.getMinZValue(), dataset.getMaxZValue(),
+          dataset.getPaintScale());
+    }
     chart.clearSubtitles();
     chart.addSubtitle(legend);
+  }
+
+  public void setDataset(T datasetProvider) {
+    ColoredXYZDataset dataset = new ColoredXYZDataset(datasetProvider);
+    setDataset(dataset);
   }
 }

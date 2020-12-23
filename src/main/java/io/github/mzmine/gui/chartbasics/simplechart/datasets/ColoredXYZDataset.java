@@ -48,7 +48,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   protected LookupPaintScale paintScale;
 
   protected double boxWidth;
-
   protected double boxHeight;
   protected AbstractXYItemRenderer renderer;
 
@@ -69,11 +68,17 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
   @Override
   public Number getZ(int series, int item) {
+    if (item > computedItemCount) {
+      return 0;
+    }
     return zValues.get(item);
   }
 
   @Override
   public double getZValue(int series, int item) {
+    if (item > computedItemCount) {
+      return 0;
+    }
     return zValues.get(item);
   }
 
@@ -161,6 +166,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     computedItemCount = domainValues.size();
     computed = true;
     status = TaskStatus.FINISHED;
+
     Platform.runLater(this::fireDatasetChanged);
   }
 }
