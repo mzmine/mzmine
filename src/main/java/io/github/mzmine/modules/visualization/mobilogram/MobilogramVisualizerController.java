@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYLineChart;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
@@ -57,7 +57,7 @@ public class MobilogramVisualizerController {
   public BorderPane borderPane;
   private List<MobilogramChangeListener> mobilogramListeners;
   @FXML
-  private SimpleXYLineChart<PreviewMobilogram> mobilogramChart;
+  private SimpleXYChart<PreviewMobilogram> mobilogramChart;
 
   @FXML
   private ComboBox<RawDataFile> rawDataFileSelector;
@@ -245,7 +245,7 @@ public class MobilogramVisualizerController {
     return rawDataFileSelector.getValue();
   }
 
-  public SimpleXYLineChart<PreviewMobilogram> getMobilogramChart() {
+  public SimpleXYChart<PreviewMobilogram> getMobilogramChart() {
     return mobilogramChart;
   }
 

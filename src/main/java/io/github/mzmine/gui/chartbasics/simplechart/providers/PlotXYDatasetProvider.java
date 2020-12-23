@@ -18,17 +18,14 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-
 /**
  * Combines all necessary interfaces of a given dataset to be plotted in an XY-Chart. Check the
  * specific interfaces for a detailed desription.
  * <p></p>
  * Basically, any class implementing this interface can be conveniently plotted in a {@link
- * io.github.mzmine.gui.chartbasics.simplechart.SimpleXYLineChart} without the need to
- * SimpleXYChart} without the need to
- * create a specific {@link org.jfree.chart.JFreeChart} plot class, dataset, renderer, label
- * generator or tooltip generator.
+ * io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart} without the need to create a specific
+ * {@link org.jfree.chart.JFreeChart} plot class, dataset, renderer, label generator or tooltip
+ * generator.
  * <p></p>
  * Since some datasets require a computation of their values, the {@link XYValueProvider} interface
  * offers the {@link XYValueProvider#computeValues()} method to move these computations to a
@@ -38,7 +35,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
  * For a more detailed description, one shall be referred to the interfaces listed below.
  *
  * @author https://github.com/SteffenHeu
- *
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider

@@ -18,7 +18,7 @@
   ~  USA
   -->
 
-<?import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYLineChart?>
+<?import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
@@ -34,7 +34,7 @@
       prefWidth="600.0"
       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <center>
-        <SimpleXYLineChart fx:id="mobilogramChart"/>
+        <SimpleXYChart fx:id="mobilogramChart"/>
       </center>
          <bottom>
         <VBox alignment="CENTER_LEFT" BorderPane.alignment="CENTER">
