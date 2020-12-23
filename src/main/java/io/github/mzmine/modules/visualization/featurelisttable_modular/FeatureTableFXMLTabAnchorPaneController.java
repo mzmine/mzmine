@@ -27,6 +27,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.text.NumberFormat;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -176,21 +177,25 @@ public class FeatureTableFXMLTabAnchorPaneController {
     if(featureList==null) {
       return;
     }
+    try {
+      // Fill filters text fields with a prompt values
+      NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+      Range<Double> mzRange = featureList.getRowsMZRange();
+      if(mzRange!=null)
+        mzSearchField.setPromptText(mzFormat.format(mzRange.lowerEndpoint()) + " - "
+                + mzFormat.format(mzRange.upperEndpoint()));
+      mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
 
-    // Fill filters text fields with a prompt values
-    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    Range<Double> mzRange = featureList.getRowsMZRange();
-    if(mzRange!=null)
-      mzSearchField.setPromptText(mzFormat.format(mzRange.lowerEndpoint()) + " - "
-        + mzFormat.format(mzRange.upperEndpoint()));
-    mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
-
-    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-    Range<Float> rtRange = featureTable.getFeatureList().getRowsRTRange();
-    if(rtRange!=null)
-      rtSearchField.setPromptText(rtFormat.format(rtRange.lowerEndpoint()) + " - "
-        + rtFormat.format(rtRange.upperEndpoint()));
-    rtSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
+      NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+      Range<Float> rtRange = featureList.getRowsRTRange();
+      if(rtRange!=null) {
+        rtSearchField.setPromptText(rtFormat.format(rtRange.lowerEndpoint()) + " - "
+                + rtFormat.format(rtRange.upperEndpoint()));
+      }
+      rtSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Error in table visualization", ex);
+    }
   }
 
   void selectedRowChanged() {
