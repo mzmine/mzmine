@@ -152,36 +152,43 @@ public class ModularFeature implements Feature, ModularDataModel {
    */
   public ModularFeature(@Nonnull ModularFeatureList flist, Feature f) {
     this(flist);
-    // add values to feature
-    set(ScanNumbersType.class, f.getScanNumbers());
-    set(RawFileType.class, (f.getRawDataFile()));
-    set(DetectionType.class, (f.getFeatureStatus()));
-    set(MZType.class, (f.getMZ()));
-    set(RTType.class, (f.getRT()));
-    set(HeightType.class, (f.getHeight()));
-    set(AreaType.class, (f.getArea()));
-    set(BestScanNumberType.class, (f.getRepresentativeScanNumber()));
-
-    // datapoints of feature
-    set(DataPointsType.class, f.getDataPoints());
-
-    // ranges
-    set(MZRangeType.class, f.getRawDataPointsMZRange());
-    set(RTRangeType.class, f.getRawDataPointsRTRange());
-    set(IntensityRangeType.class, f.getRawDataPointsIntensityRange());
-
-    // quality parameters
-    float fwhm = f.getFWHM();
-    if(!Float.isNaN(fwhm)) {
-      set(FwhmType.class, fwhm);
+    if(f instanceof ModularFeature) {
+      ((ModularFeature) f).stream().forEach(entry -> this.set(entry.getKey(), entry.getValue()));
     }
-    float tf = f.getTailingFactor();
-    if(!Float.isNaN(tf)) {
-      set(TailingFactorType.class, tf);
-    }
-    float af = f.getAsymmetryFactor();
-    if(!Float.isNaN(af)) {
-      set(AsymmetryFactorType.class, af);
+    else {
+      // add values to feature
+      set(ScanNumbersType.class, f.getScanNumbers());
+      set(RawFileType.class, (f.getRawDataFile()));
+      set(DetectionType.class, (f.getFeatureStatus()));
+      set(MZType.class, (f.getMZ()));
+      set(RTType.class, (f.getRT()));
+      set(HeightType.class, (f.getHeight()));
+      set(AreaType.class, (f.getArea()));
+      set(BestScanNumberType.class, (f.getRepresentativeScanNumber()));
+      set(BestFragmentScanNumberType.class, (f.getMostIntenseFragmentScanNumber()));
+      set(FragmentScanNumbersType.class, (f.getAllMS2FragmentScanNumbers()));
+
+      // datapoints of feature
+      set(DataPointsType.class, f.getDataPoints());
+
+      // ranges
+      set(MZRangeType.class, f.getRawDataPointsMZRange());
+      set(RTRangeType.class, f.getRawDataPointsRTRange());
+      set(IntensityRangeType.class, f.getRawDataPointsIntensityRange());
+
+      // quality parameters
+      float fwhm = f.getFWHM();
+      if (!Float.isNaN(fwhm)) {
+        set(FwhmType.class, fwhm);
+      }
+      float tf = f.getTailingFactor();
+      if (!Float.isNaN(tf)) {
+        set(TailingFactorType.class, tf);
+      }
+      float af = f.getAsymmetryFactor();
+      if (!Float.isNaN(af)) {
+        set(AsymmetryFactorType.class, af);
+      }
     }
   }
 
