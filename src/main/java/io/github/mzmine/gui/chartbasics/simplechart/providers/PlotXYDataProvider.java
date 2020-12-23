@@ -45,7 +45,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider
  * @see ExampleProvider
  */
-public interface PlotXYDatasetProvider extends XYValueProvider, SeriesKeyProvider<Comparable<?>>,
+public interface PlotXYDataProvider extends XYValueProvider, SeriesKeyProvider<Comparable<?>>,
     LabelTextProvider, ToolTipTextProvider, ColorProvider {
 
 }

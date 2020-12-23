@@ -30,11 +30,11 @@ import java.util.stream.Collectors;
 
 /**
  * Example implementation of a PlotXYDatasetProvider. This can be your usual data-class, you just
- * need to implement the methods described in {@link PlotXYDatasetProvider}.
+ * need to implement the methods described in {@link PlotXYDataProvider}.
  *
  * @author https://github.com/SteffenHeu
  */
-public class ExampleProvider implements PlotXYDatasetProvider {
+public class ExampleProvider implements PlotXYDataProvider {
 
   private final String seriesKey;
   private final Color awt;

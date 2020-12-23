@@ -24,7 +24,7 @@ import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleXYLabelGenerator;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
@@ -62,15 +62,15 @@ import org.jfree.data.xy.XYDataset;
 
 /**
  * Generic plot class that can be used to plot everything that implements the {@link
- * PlotXYDatasetProvider} interface or is a {@link ColoredXYDataset}.
+ * PlotXYDataProvider} interface or is a {@link ColoredXYDataset}.
  *
  * @param <T>
  * @author https://github.com/SteffenHeu
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.ExampleProvider
  * @see ColoredXYDataset
- * @see PlotXYDatasetProvider
+ * @see PlotXYDataProvider
  */
-public class SimpleXYChart<T extends PlotXYDatasetProvider> extends
+public class SimpleXYChart<T extends PlotXYDataProvider> extends
     EChartViewer /*implements LabelColorMatch*/ {
 
   private static final double AXIS_MARGINS = 0.001;

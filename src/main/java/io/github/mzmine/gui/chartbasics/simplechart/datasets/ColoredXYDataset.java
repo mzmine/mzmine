@@ -22,7 +22,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
@@ -37,14 +37,15 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * Default dataset class for {@link SimpleXYChart}. Any class implementing {@link
- * PlotXYDatasetProvider} can be used to construct this dataset. The dataset implements the
- * interfaces, too, because the default renderers can then generate labels and tooltips based on the
- * interface methods and therefore be more reusable.
+ * PlotXYDataProvider} can be used to construct this dataset. The dataset implements the interfaces,
+ * too, because the default renderers can then generate labels and tooltips based on the interface
+ * methods and therefore be more reusable.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -54,24 +55,24 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
   private static Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
   // dataset stuff
   private final int seriesCount = 1;
-  private final XYValueProvider xyValueProvider;
-  private final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
-  private final LabelTextProvider labelTextProvider;
-  private final ToolTipTextProvider toolTipTextProvider;
-  private ObjectProperty<javafx.scene.paint.Color> fxColor;
-  private List<Double> domainValues;
-  private List<Double> rangeValues;
-  private Double minRangeValue;
+  protected final XYValueProvider xyValueProvider;
+  protected final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
+  protected final LabelTextProvider labelTextProvider;
+  protected final ToolTipTextProvider toolTipTextProvider;
+  protected ObjectProperty<javafx.scene.paint.Color> fxColor;
+  protected List<Double> domainValues;
+  protected List<Double> rangeValues;
+  protected Double minRangeValue;
 
   // task stuff
-  private TaskStatus status;
-  private String errorMessage;
-  private boolean computed;
-  private int computedItemCount;
+  protected TaskStatus status;
+  protected String errorMessage;
+  protected boolean computed;
+  protected int computedItemCount;
 
-  public ColoredXYDataset(XYValueProvider xyValueProvider,
+  private ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
-      ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider) {
+      ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider, boolean autocompute) {
 
     // Task stuff
     this.computed = false;
@@ -94,12 +95,28 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
       fireDatasetChanged();
     }));
 
-    MZmineCore.getTaskController().addTask(this);
+    if (autocompute) {
+      MZmineCore.getTaskController().addTask(this);
+    }
   }
 
-  public ColoredXYDataset(PlotXYDatasetProvider datasetProvider) {
+  /**
+   * Can be called by extending classes to not start the computation thread before their constructor
+   * finished.
+   * <p></p>
+   * Note: Computation task has to be started by the respective extending class.
+   *
+   * @param datasetProvider
+   * @param autocompute
+   */
+  protected ColoredXYDataset(PlotXYDataProvider datasetProvider, boolean autocompute) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider);
+        datasetProvider, autocompute);
+  }
+
+  public ColoredXYDataset(@Nonnull PlotXYDataProvider datasetProvider) {
+    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
+        datasetProvider, true);
   }
 
   public java.awt.Color getAWTColor() {

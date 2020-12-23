@@ -18,12 +18,12 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javax.annotation.Nonnull;
 
-public class SimpleXYChartWithDatasetView<T extends PlotXYDatasetProvider> extends SplitPane {
+public class SimpleXYChartWithDatasetView<T extends PlotXYDataProvider> extends SplitPane {
 
   private final SimpleXYChart<T> chart;
 
