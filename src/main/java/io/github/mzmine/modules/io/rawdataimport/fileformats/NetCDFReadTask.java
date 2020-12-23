@@ -354,9 +354,6 @@ public class NetCDFReadTask extends AbstractTask {
 
   }
 
-  /**
-   * @see io.github.mzmine.io.RawDataFileReader#finishReading()
-   */
   public void finishReading() throws IOException {
     inputFile.close();
   }
@@ -389,9 +386,9 @@ public class NetCDFReadTask extends AbstractTask {
     if (scanLength[0] == 0) {
       scanNum++;
 
-      return new SimpleScan(null, scanNum, 1, retentionTime, 0.0,
-              0, 0, null, new DataPoint[0], MassSpectrumType.CENTROIDED,
-              PolarityType.UNKNOWN, "", null);
+      return new SimpleScan(null, scanNum, 1, retentionTime,
+          0, 0, new DataPoint[0], MassSpectrumType.CENTROIDED,
+          PolarityType.UNKNOWN, "", null);
     }
 
     // Is there any way how to extract polarity from netcdf?
@@ -435,8 +432,8 @@ public class NetCDFReadTask extends AbstractTask {
     MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
     SimpleScan buildingScan = new SimpleScan(null, scanNum, 1, retentionTime,
-            0.0, 0,0,null,dataPoints, spectrumType, polarity,
-            scanDefinition, null);
+        0, 0, dataPoints, spectrumType, polarity,
+        scanDefinition, null);
 
     return buildingScan;
 

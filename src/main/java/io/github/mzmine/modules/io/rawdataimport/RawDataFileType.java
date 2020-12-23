@@ -32,6 +32,7 @@ public enum RawDataFileType {
     WATERS_RAW, //
     ZIP, //
     GZIP, //
-    ICPMSMS_CSV
+    ICPMSMS_CSV, //
+    BRUKER_TDF
 
 }

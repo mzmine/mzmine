@@ -18,6 +18,15 @@
 
 package io.github.mzmine.project.impl;
 
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataFileWriter;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.io.File;
@@ -30,6 +39,7 @@ import java.nio.FloatBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -38,22 +48,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import java.util.EnumSet;
-import java.util.stream.Collectors;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -66,6 +66,8 @@ import java.util.stream.Collectors;
  * - only data points referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
  */
 public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
+
+  public static final String SAVE_IDENTIFIER = "Raw data file";
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -95,24 +97,25 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * Scans
    */
-  private final Hashtable<Integer, StorableScan> scans;
+  protected final Hashtable<Integer, StorableScan> scans;
 
   public RawDataFileImpl(String dataFileName) throws IOException {
 
     this.dataFileName = dataFileName;
 
     // Prepare the hashtables for scan numbers and data limits.
-    scanNumbersCache = new Hashtable<Integer, int[]>();
-    dataMZRange = new Hashtable<Integer, Range<Double>>();
-    dataRTRange = new Hashtable<Integer, Range<Float>>();
-    dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
-    dataMaxTIC = new Hashtable<Integer, Double>();
-    scans = new Hashtable<Integer, StorableScan>();
-    dataPointsOffsets = new TreeMap<Integer, Long>();
-    dataPointsLengths = new TreeMap<Integer, Integer>();
+    scanNumbersCache = new Hashtable<>();
+    dataMZRange = new Hashtable<>();
+    dataRTRange = new Hashtable<>();
+    dataMaxBasePeakIntensity = new Hashtable<>();
+    dataMaxTIC = new Hashtable<>();
+    scans = new Hashtable<>();
+    dataPointsOffsets = new TreeMap<>();
+    dataPointsLengths = new TreeMap<>();
 
     color = new SimpleObjectProperty<>();
     color.setValue(MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
+
   }
 
   @Override
@@ -252,7 +255,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, double, double)
+   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
    */
   @Override
   public @Nonnull
@@ -262,7 +265,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     ArrayList<Integer> eligibleScanNumbers = new ArrayList<Integer>();
 
-    Enumeration<StorableScan> scansEnum = scans.elements();
+    Enumeration<? extends StorableScan> scansEnum = scans.elements();
     while (scansEnum.hasMoreElements()) {
       Scan scan = scansEnum.nextElement();
 
@@ -284,7 +287,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   @Nonnull
   public int[] getScanNumbers() {
 
-    if (scanNumbersCache.containsKey(0)) {
+    if (scanNumbersCache.containsKey(0) && scanNumbersCache.get(0).length == scans.size()) {
       return scanNumbersCache.get(0);
     }
 
@@ -307,7 +310,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     Set<Integer> msLevelsSet = new HashSet<Integer>();
 
-    Enumeration<StorableScan> scansEnum = scans.elements();
+    Enumeration<? extends StorableScan> scansEnum = scans.elements();
     while (scansEnum.hasMoreElements()) {
       Scan scan = scansEnum.nextElement();
       msLevelsSet.add(scan.getMSLevel());
@@ -320,7 +323,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxBasePeakIntensity()
+   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxBasePeakIntensity(int)
    */
   @Override
   public double getDataMaxBasePeakIntensity(int msLevel) {
@@ -332,7 +335,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     // find the value
-    Enumeration<StorableScan> scansEnum = scans.elements();
+    Enumeration<? extends StorableScan> scansEnum = scans.elements();
     while (scansEnum.hasMoreElements()) {
       Scan scan = scansEnum.nextElement();
 
@@ -365,7 +368,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxTotalIonCurrent()
+   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxTotalIonCurrent(int)
    */
   @Override
   public double getDataMaxTotalIonCurrent(int msLevel) {
@@ -377,7 +380,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     // find the value
-    Enumeration<StorableScan> scansEnum = scans.elements();
+    Enumeration<? extends StorableScan> scansEnum = scans.elements();
     while (scansEnum.hasMoreElements()) {
       Scan scan = scansEnum.nextElement();
 
@@ -448,7 +451,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     dataPointsLengths.put(currentID, numOfDataPoints);
 
     return currentID;
-
   }
 
   public synchronized DataPoint[] readDataPoints(int ID) throws IOException {
@@ -493,13 +495,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   @Override
-  public synchronized void addScan(Scan newScan) throws IOException {
+  public synchronized Scan addScan(Scan newScan) throws IOException {
 
     // When we are loading the project, scan data file is already prepare
     // and we just need store the reference
     if (newScan instanceof StorableScan) {
       scans.put(newScan.getScanNumber(), (StorableScan) newScan);
-      return;
+      return newScan;
     }
 
     DataPoint dataPoints[] = newScan.getDataPoints();
@@ -507,8 +509,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     StorableScan storedScan = new StorableScan(newScan, this, dataPoints.length, storageID);
 
-    scans.put(newScan.getScanNumber(), storedScan);
+    if(scans.put(newScan.getScanNumber(), storedScan) != null) {
+      logger.info("scan " + newScan.getScanNumber() + " already existed");
+    };
 
+    return storedScan;
   }
 
   /**
@@ -572,11 +577,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return getDataRTRange(0);
   }
 
-  @Nonnull
-  @Override
-  public Range<Double> getDataMobilityRange() {
-    return null;
-  }
+//  @Nonnull
+//  @Override
+//  public Range<Double> getDataMobilityRange() {
+//    return null;
+//  }
 
   @Nonnull
   @Override
@@ -616,11 +621,17 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return rtRange;
   }
 
-  @Nonnull
-  @Override
-  public Range<Double> getDataMobilityRange(int msLevel) {
-    return null;
-  }
+//  @Nonnull
+//  @Override
+//  public Range<Double> getDataMobilityRange(int msLevel) {
+//    return mobilityRange;
+//  }
+//
+//  @Nonnull
+//  @Override
+//  public MobilityType getMobilityType() {
+//    return mobilityType;
+//  }
 
   public void setRTRange(int msLevel, Range<Float> rtRange) {
     dataRTRange.put(msLevel, rtRange);

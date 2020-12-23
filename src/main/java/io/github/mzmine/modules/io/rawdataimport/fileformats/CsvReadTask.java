@@ -152,7 +152,7 @@ public class CsvReadTask extends AbstractTask {
           dataPoints[i] = new SimpleDataPoint(mzs[i], Double.valueOf(intensity));
         }
 
-        Scan scan = new SimpleScan(null, scanNumber, 1, rt, 0.0, 0.0, 1, null, dataPoints,
+        Scan scan = new SimpleScan(null, scanNumber, 1, rt, 0.0, 1, dataPoints,
                 MassSpectrumType.CENTROIDED, PolarityType.POSITIVE,
                 "ICP-" + mstype + " " + ions.substring(0, ions.length() - 2), mzRange);
 

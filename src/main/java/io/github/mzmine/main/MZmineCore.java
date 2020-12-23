@@ -18,6 +18,7 @@
 
 package io.github.mzmine.main;
 
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -234,6 +235,10 @@ public final class MZmineCore {
 
   public static RawDataFileWriter createNewFile(String name) throws IOException {
     return new RawDataFileImpl(name);
+  }
+
+  public static RawDataFileWriter createNewIMSFile(String name) throws IOException {
+    return new IMSRawDataFileImpl(name);
   }
 
   @Nonnull

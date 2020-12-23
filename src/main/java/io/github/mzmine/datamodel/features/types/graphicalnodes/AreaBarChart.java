@@ -1,23 +1,41 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import io.github.mzmine.util.color.ColorsFX;
 import java.util.Map.Entry;
-import javafx.beans.value.ChangeListener;
-import javafx.scene.Node;
-import javafx.scene.chart.XYChart.Data;
-import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.util.color.ColorsFX;
 import javafx.beans.property.Property;
+import javafx.beans.value.ChangeListener;
+import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Data;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 
 public class AreaBarChart extends StackPane {
 
@@ -28,7 +46,8 @@ public class AreaBarChart extends StackPane {
     for (Entry<RawDataFile, ModularFeature> entry : row.getFilesFeatures().entrySet()) {
       Property<Float> areaProperty = entry.getValue().get(AreaType.class);
       // set bar color according to the raw data file
-      Data newData = new XYChart.Data("" + i, areaProperty.getValue() == null ? 0f : areaProperty.getValue());
+      Data newData =
+          new XYChart.Data("" + i, areaProperty.getValue() == null ? 0f : areaProperty.getValue());
       newData.nodeProperty().addListener((ChangeListener<Node>) (ov, oldNode, newNode) -> {
         if (newNode != null) {
           Node node = newData.getNode();

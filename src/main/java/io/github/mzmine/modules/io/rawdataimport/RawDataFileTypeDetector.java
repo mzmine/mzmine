@@ -55,11 +55,15 @@ public class RawDataFileTypeDetector {
 
   // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
   private static final String THERMO_HEADER = String.valueOf(
-      new char[] {0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
+      new char[]{0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
 
-  private static final String GZIP_HEADER = String.valueOf(new char[] {0x1f, 0x8b});
+  private static final String GZIP_HEADER = String.valueOf(new char[]{0x1f, 0x8b});
 
-  private static final String ZIP_HEADER = String.valueOf(new char[] {'P', 'K', 0x03, 0x04});
+  private static final String ZIP_HEADER = String.valueOf(new char[]{'P', 'K', 0x03, 0x04});
+
+  private static final String TDF_SUFFIX = ".tdf";
+  private static final String TDF_BIN_SUFFIX = ".tdf_bin";
+  private static final String BRUKER_FOLDER_SUFFIX = ".d";
 
   /**
    * @return Detected file type or null if the file is not of any supported type
@@ -67,69 +71,88 @@ public class RawDataFileTypeDetector {
   public static RawDataFileType detectDataFileType(File fileName) {
 
     if (fileName.isDirectory()) {
+      if (fileName.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
+        return RawDataFileType.BRUKER_TDF;
+      }
+
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
-        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT"))
+        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
           return RawDataFileType.WATERS_RAW;
+        }
+        if (f.isFile()
+            && (f.getName().contains(TDF_SUFFIX) || f.getName().contains(TDF_BIN_SUFFIX))) {
+          return RawDataFileType.BRUKER_TDF;
+        }
       }
-      // We don't recognize any other directory type than Waters
+      // We don't recognize any other directory type than Waters and Bruker
       return null;
     }
 
-    try {
+    if (fileName.isFile()) {
 
-      // Read the first 1kB of the file into a String
-      InputStreamReader reader =
-          new InputStreamReader(new FileInputStream(fileName), StandardCharsets.ISO_8859_1);
-      char buffer[] = new char[1024];
-      reader.read(buffer);
-      reader.close();
-      String fileHeader = new String(buffer);
+      if (fileName.getName().contains(TDF_SUFFIX) || fileName.getName().contains(TDF_BIN_SUFFIX)) {
+        return RawDataFileType.BRUKER_TDF;
+      }
 
-      if (fileName.getName().toLowerCase().endsWith(".csv")) {
-        if (fileHeader.contains(":") && fileHeader.contains("\\")
-            && !fileHeader.contains("file name")) {
-          logger.fine("ICP raw file detected");
-          return RawDataFileType.ICPMSMS_CSV;
+      try {
+
+        // Read the first 1kB of the file into a String
+        InputStreamReader reader =
+            new InputStreamReader(new FileInputStream(fileName), StandardCharsets.ISO_8859_1);
+        char buffer[] = new char[1024];
+        reader.read(buffer);
+        reader.close();
+        String fileHeader = new String(buffer);
+
+        if (fileName.getName().toLowerCase().endsWith(".csv")) {
+          if (fileHeader.contains(":") && fileHeader.contains("\\")
+              && !fileHeader.contains("file name")) {
+            logger.fine("ICP raw file detected");
+            return RawDataFileType.ICPMSMS_CSV;
+          }
+          logger.fine("Agilent raw detected");
+          return RawDataFileType.AGILENT_CSV;
         }
-        logger.fine("Agilent raw detected");
-        return RawDataFileType.AGILENT_CSV;
+
+        if (fileHeader.startsWith(THERMO_HEADER)) {
+          return RawDataFileType.THERMO_RAW;
+        }
+
+        if (fileHeader.startsWith(GZIP_HEADER)) {
+          return RawDataFileType.GZIP;
+        }
+
+        if (fileHeader.startsWith(ZIP_HEADER)) {
+          return RawDataFileType.ZIP;
+        }
+
+        /*
+         * Remove specials (Unicode block) from header if any
+         * https://en.wikipedia.org/wiki/Specials_(Unicode_block)
+         */
+        fileHeader = fileHeader.replaceAll("[^\\x00-\\x7F]", "");
+
+        if (fileHeader.startsWith(CDF_HEADER) || fileHeader.startsWith(HDF_HEADER)) {
+
+          return RawDataFileType.NETCDF;
+        }
+
+        if (fileHeader.contains(MZML_HEADER)) {
+          return RawDataFileType.MZML;
+        }
+
+        if (fileHeader.contains(MZDATA_HEADER)) {
+          return RawDataFileType.MZDATA;
+        }
+
+        if (fileHeader.contains(MZXML_HEADER)) {
+          return RawDataFileType.MZXML;
+        }
+
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-
-      if (fileHeader.startsWith(THERMO_HEADER)) {
-        return RawDataFileType.THERMO_RAW;
-      }
-
-      if (fileHeader.startsWith(GZIP_HEADER)) {
-        return RawDataFileType.GZIP;
-      }
-
-      if (fileHeader.startsWith(ZIP_HEADER)) {
-        return RawDataFileType.ZIP;
-      }
-
-      /*
-       * Remove specials (Unicode block) from header if any
-       * https://en.wikipedia.org/wiki/Specials_(Unicode_block)
-       */
-      fileHeader = fileHeader.replaceAll("[^\\x00-\\x7F]", "");
-
-      if (fileHeader.startsWith(CDF_HEADER) || fileHeader.startsWith(HDF_HEADER)) {
-
-        return RawDataFileType.NETCDF;
-      }
-
-      if (fileHeader.contains(MZML_HEADER))
-        return RawDataFileType.MZML;
-
-      if (fileHeader.contains(MZDATA_HEADER))
-        return RawDataFileType.MZDATA;
-
-      if (fileHeader.contains(MZXML_HEADER))
-        return RawDataFileType.MZXML;
-
-    } catch (Exception e) {
-      e.printStackTrace();
     }
 
     return null;

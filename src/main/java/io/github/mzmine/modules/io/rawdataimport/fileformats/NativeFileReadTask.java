@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -68,7 +68,7 @@ public class NativeFileReadTask extends AbstractTask {
    * These variables are used during parsing of the RAW dump.
    */
   private int scanNumber = 0, msLevel = 0, precursorCharge = 0, numOfDataPoints;
-  private double mobility = 0.0;
+  private double mobility = 0.0; // TODO add support!
   private String scanId;
   private PolarityType polarity;
   private Range<Double> mzRange;
@@ -117,9 +117,9 @@ public class NativeFileReadTask extends AbstractTask {
     String cmdLine[];
 
     if (osName.toUpperCase().contains("WINDOWS")) {
-      cmdLine = new String[] {rawDumpPath, file.getPath()};
+      cmdLine = new String[]{rawDumpPath, file.getPath()};
     } else {
-      cmdLine = new String[] {"wine", rawDumpPath, file.getPath()};
+      cmdLine = new String[]{"wine", rawDumpPath, file.getPath()};
     }
 
     try {
@@ -159,8 +159,9 @@ public class NativeFileReadTask extends AbstractTask {
 
       e.printStackTrace();
 
-      if (dumper != null)
+      if (dumper != null) {
         dumper.destroy();
+      }
 
       if (getStatus() == TaskStatus.PROCESSING) {
         setStatus(TaskStatus.ERROR);
@@ -217,12 +218,13 @@ public class NativeFileReadTask extends AbstractTask {
       }
 
       if (line.startsWith("POLARITY: ")) {
-        if (line.contains("-"))
+        if (line.contains("-")) {
           polarity = PolarityType.NEGATIVE;
-        else if (line.contains("+"))
+        } else if (line.contains("+")) {
           polarity = PolarityType.POSITIVE;
-        else
+        } else {
           polarity = PolarityType.UNKNOWN;
+        }
 
         // For Thermo RAW files, the polarity is sometimes not
         // recognized.
@@ -230,10 +232,11 @@ public class NativeFileReadTask extends AbstractTask {
         // (scanId).
         if ((polarity == PolarityType.UNKNOWN) && (fileType == RawDataFileType.THERMO_RAW)
             && (!Strings.isNullOrEmpty(scanId))) {
-          if (scanId.startsWith("-"))
+          if (scanId.startsWith("-")) {
             polarity = PolarityType.NEGATIVE;
-          else if (scanId.startsWith("+"))
+          } else if (scanId.startsWith("+")) {
             polarity = PolarityType.POSITIVE;
+          }
         }
 
       }
@@ -275,27 +278,31 @@ public class NativeFileReadTask extends AbstractTask {
       if (line.startsWith("MASS VALUES: ")) {
         Pattern p = Pattern.compile("MASS VALUES: (\\d+) x (\\d+) BYTES");
         Matcher m = p.matcher(line);
-        if (!m.matches())
+        if (!m.matches()) {
           throw new IOException("Could not parse line " + line);
+        }
         numOfDataPoints = Integer.parseInt(m.group(1));
         final int byteSize = Integer.parseInt(m.group(2));
 
         final int numOfBytes = numOfDataPoints * byteSize;
-        if (byteBuffer.length < numOfBytes)
+        if (byteBuffer.length < numOfBytes) {
           byteBuffer = new byte[numOfBytes * 2];
+        }
         dumpStream.read(byteBuffer, 0, numOfBytes);
 
         ByteBuffer mzByteBuffer =
             ByteBuffer.wrap(byteBuffer, 0, numOfBytes).order(ByteOrder.LITTLE_ENDIAN);
-        if (mzValuesBuffer.length < numOfDataPoints)
+        if (mzValuesBuffer.length < numOfDataPoints) {
           mzValuesBuffer = new double[numOfDataPoints * 2];
+        }
 
         for (int i = 0; i < numOfDataPoints; i++) {
           double newValue;
-          if (byteSize == 8)
+          if (byteSize == 8) {
             newValue = mzByteBuffer.getDouble();
-          else
+          } else {
             newValue = mzByteBuffer.getFloat();
+          }
           mzValuesBuffer[i] = newValue;
         }
 
@@ -304,8 +311,9 @@ public class NativeFileReadTask extends AbstractTask {
       if (line.startsWith("INTENSITY VALUES: ")) {
         Pattern p = Pattern.compile("INTENSITY VALUES: (\\d+) x (\\d+) BYTES");
         Matcher m = p.matcher(line);
-        if (!m.matches())
+        if (!m.matches()) {
           throw new IOException("Could not parse line " + line);
+        }
         // numOfDataPoints must be same for MASS VALUES and INTENSITY
         // VALUES
         if (numOfDataPoints != Integer.parseInt(m.group(1))) {
@@ -315,20 +323,23 @@ public class NativeFileReadTask extends AbstractTask {
         final int byteSize = Integer.parseInt(m.group(2));
 
         final int numOfBytes = numOfDataPoints * byteSize;
-        if (byteBuffer.length < numOfBytes)
+        if (byteBuffer.length < numOfBytes) {
           byteBuffer = new byte[numOfBytes * 2];
+        }
         dumpStream.read(byteBuffer, 0, numOfBytes);
 
         ByteBuffer intensityByteBuffer =
             ByteBuffer.wrap(byteBuffer, 0, numOfBytes).order(ByteOrder.LITTLE_ENDIAN);
-        if (intensityValuesBuffer.length < numOfDataPoints)
+        if (intensityValuesBuffer.length < numOfDataPoints) {
           intensityValuesBuffer = new double[numOfDataPoints * 2];
+        }
         for (int i = 0; i < numOfDataPoints; i++) {
           double newValue;
-          if (byteSize == 8)
+          if (byteSize == 8) {
             newValue = intensityByteBuffer.getDouble();
-          else
+          } else {
             newValue = intensityByteBuffer.getFloat();
+          }
           intensityValuesBuffer[i] = newValue;
         }
 
@@ -343,8 +354,8 @@ public class NativeFileReadTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-        SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, mobility, precursorMZ,
-            precursorCharge, null, dataPoints, spectrumType, polarity, scanId, mzRange);
+        SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMZ,
+            precursorCharge, dataPoints, spectrumType, polarity, scanId, mzRange);
         newMZmineFile.addScan(newScan);
 
         parsedScans++;

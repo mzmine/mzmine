@@ -25,7 +25,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
@@ -33,15 +32,14 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.color.Vision;
-import javafx.collections.FXCollections;
 
 public class MZminePreferences extends SimpleParameterSet {
 
-//  public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
-//      "Color palettes (color blindness mode)",
-//      "Some modules use the color blindness aware palettes for a higher contrast. Think about using this mode even with \"normal vision\" to reach everyone.",
-//      FXCollections.observableArrayList(Vision.values()), Vision.DEUTERANOPIA);
+  // public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
+  // "Color palettes (color blindness mode)",
+  // "Some modules use the color blindness aware palettes for a higher contrast. Think about using
+  // this mode even with \"normal vision\" to reach everyone.",
+  // FXCollections.observableArrayList(Vision.values()), Vision.DEUTERANOPIA);
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
@@ -50,11 +48,14 @@ public class MZminePreferences extends SimpleParameterSet {
       new NumberFormatParameter("Retention time value format", "Format of retention time values",
           false, new DecimalFormat("0.00"));
 
+  public static final NumberFormatParameter mobilityFormat = new NumberFormatParameter(
+      "Mobility value format", "Format of mobility values", false, new DecimalFormat("0.000"));
+
   public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
       "Intensity format", "Format of intensity values", true, new DecimalFormat("0.0E0"));
 
-  public static final NumberFormatParameter ppmFormat = new NumberFormatParameter(
-      "PPM format", "Format used for PPM values such as mass errors", true, new DecimalFormat("0.0000"));
+  public static final NumberFormatParameter ppmFormat = new NumberFormatParameter("PPM format",
+      "Format used for PPM values such as mass errors", true, new DecimalFormat("0.0000"));
 
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
@@ -83,11 +84,12 @@ public class MZminePreferences extends SimpleParameterSet {
       new ParameterSetParameter("Chart parameters",
           "The default chart parameters to be used trhoughout MZmine", new ChartThemeParameters());
 
-  public static final BooleanParameter darkMode = new BooleanParameter("Dark mode", "Enables dark mode throughout MZmine.", false);
-  
+  public static final BooleanParameter darkMode =
+      new BooleanParameter("Dark mode", "Enables dark mode throughout MZmine.", false);
+
   public MZminePreferences() {
-    super(new Parameter[]{mzFormat, rtFormat, intensityFormat, ppmFormat, numOfThreads,
-        proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
+    super(new Parameter[] {mzFormat, rtFormat, mobilityFormat, intensityFormat, ppmFormat,
+        numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
         stdColorPalette, chartParam});
   }
 

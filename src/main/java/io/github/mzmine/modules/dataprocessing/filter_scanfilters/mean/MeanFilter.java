@@ -91,21 +91,23 @@ public class MeanFilter implements ScanFilter {
 
     // Create filtered scan
     Scan newScan = new SimpleScan(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(),
-        sc.getRetentionTime(), sc.getMobility(),  sc.getPrecursorMZ(), sc.getPrecursorCharge(),
-        sc.getFragmentScanNumbers(), newDataPoints, MassSpectrumType.CENTROIDED, sc.getPolarity(),
-        sc.getScanDefinition(), sc.getScanningMZRange());
+        sc.getRetentionTime(), sc.getPrecursorMZ(), sc.getPrecursorCharge(), newDataPoints,
+        MassSpectrumType.CENTROIDED, sc.getPolarity(), sc.getScanDefinition(),
+        sc.getScanningMZRange(), sc.getMobility(), sc.getMobilityType());
 
     return newScan;
 
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @Nonnull
+  String getName() {
     return "Mean filter";
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @Nonnull
+  Class<? extends ParameterSet> getParameterSetClass() {
     return MeanFilterParameters.class;
   }
 }

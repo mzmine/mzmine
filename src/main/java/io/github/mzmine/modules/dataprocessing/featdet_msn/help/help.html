@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <title>Peak detection - MSn feature list builder</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+    <body>
+
+        <h1>MSn feature list builder</h1>
+
+        <h2>Description</h2>
+
+        <p>
+            The MSn feature list builder detects MS1 precursor signals which possess an MSn scan.
+            The modules scans the raw data looking for MSn scans and builds a
+            chromatographic feature for each MS1 precursor ion with a corresponding MSn scan.
+        </p><p>
+            Precursor ion signals are detected through fragment scan tracing. Starting with all MS2
+            scans in range, MSn scans are recursively detected by tracing through each fragment scan
+            associated with each previous MS level. If a scan at the specified <i>MS Level</i> is detected,
+            the precursor m/z recorded in the MS2 scan is utilized to build a chromatogram feature.
+        </p><p>
+            The feature list of precursor signals is constructed using the specified <i>mass and
+            retention time tolerances</i>. For each detected MSn-containing precursor signal, a targeted chromatogram
+            in the retention time range is built using all MS1 basepeaks within the mass range. 
+        </p><p>
+            If more than one peak is detected in the range or more precise peak integration
+            is required, the feature list may be deconvoluted via the <b>Chromatogram Deconvolution</b> tool.
+        </p>
+
+        <h4>Method parameters</h4>
+        <dl>
+            <dt>MS level</dt>
+            <dd>The MS level for precursor feature building. All fragment scans corresponding to this MS level
+                are detected and traced back to their MS1 precursor ion origin. <i>Do not set MS Level in the
+                Scan Selection field - all MSn levels are required to trace MSn precursor origins.</i></dd>
+            <dt>m/z Tolerance</dt>
+            <dd>Precursor ion (MS1) mass tolerance for feature building. All MS1 base peaks within this mass range will be
+            use to build a targeted chromatogram feature.</dd>
+            <dt>Retention time tolerance</dt>
+            <dd>Precursor ion (MS1) retention time tolerance for feature building. All MS1 base peaks with this retention time range
+            will be used to build a targeted chromatogram feature.</dd>
+        </dl>
+
+        <br>
+
+    </body>
+</html>

@@ -335,8 +335,9 @@ public class SpectraVisualizerTab extends MZmineTab {
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
+    // TODO: Search fragment scans
     // Add all fragment scans to MS/MS selector combo
-    int fragmentScans[] = currentScan.getFragmentScanNumbers();
+    int fragmentScans[] = null; // currentScan.getFragmentScanNumbers();
     if (fragmentScans != null) {
       for (int fragment : fragmentScans) {
         Scan fragmentScan = dataFile.getScan(fragment);

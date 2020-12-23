@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.DoubleSummaryStatistics;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
@@ -273,7 +274,7 @@ public class ModularFeatureList implements FeatureList {
       Range<Double> mzRange) {
     // TODO handle if mz or rt is not present
     return modularStream().filter(
-        row -> rtRange.contains(row.getRT()) && mzRange.contains(row.getMZ()))
+        row -> rtRange.contains(row.getAverageRT()) && mzRange.contains(row.getAverageMZ()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
   }
 
@@ -456,16 +457,30 @@ public class ModularFeatureList implements FeatureList {
     this.dateCreated = date;
   }
 
+  // TODO: if this method would be called frequently, then store and update whole mz range in
+  //  a private variable during rows initialization
   @Override
   public Range<Double> getRowsMZRange() {
     updateMaxIntensity(); // Update range before returning value
-    return mzRange;
+
+    DoubleSummaryStatistics mzStatistics = getRows().stream()
+        .map(FeatureListRow::getAverageMZ)
+        .collect(Collectors.summarizingDouble((Double::doubleValue)));
+
+    return Range.closed(mzStatistics.getMin(), mzStatistics.getMax());
   }
 
+  // TODO: if this method would be called frequently, then store and update whole rt range in
+  //  a private variable during rows initialization
   @Override
   public Range<Float> getRowsRTRange() {
     updateMaxIntensity(); // Update range before returning value
-    return rtRange;
+
+    DoubleSummaryStatistics rtStatistics = getRows().stream()
+        .map(row -> (double) (row).getAverageRT())
+        .collect(Collectors.summarizingDouble((Double::doubleValue)));
+
+    return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
   }
 
 }
