@@ -22,7 +22,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
@@ -43,9 +43,9 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * Default dataset class for {@link SimpleXYChart}. Any class implementing {@link
- * PlotXYDatasetProvider} can be used to construct this dataset. The dataset implements the
- * interfaces, too, because the default renderers can then generate labels and tooltips based on the
- * interface methods and therefore be more reusable.
+ * PlotXYDataProvider} can be used to construct this dataset. The dataset implements the interfaces,
+ * too, because the default renderers can then generate labels and tooltips based on the interface
+ * methods and therefore be more reusable.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -109,12 +109,12 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
    * @param datasetProvider
    * @param autocompute
    */
-  protected ColoredXYDataset(PlotXYDatasetProvider datasetProvider, boolean autocompute) {
+  protected ColoredXYDataset(PlotXYDataProvider datasetProvider, boolean autocompute) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
         datasetProvider, autocompute);
   }
 
-  public ColoredXYDataset(@Nonnull PlotXYDatasetProvider datasetProvider) {
+  public ColoredXYDataset(@Nonnull PlotXYDataProvider datasetProvider) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
         datasetProvider, true);
   }

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
@@ -31,7 +31,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDatasetProvider {
+public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataProvider {
 
   private final String seriesKey;
   private final Color awt;
