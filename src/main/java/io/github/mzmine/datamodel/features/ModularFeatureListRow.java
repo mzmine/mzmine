@@ -24,11 +24,14 @@ import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.*;
+import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -170,6 +173,26 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   public ObservableMap<DataType, Property<?>> getMap() {
     return map;
   }
+
+
+  @Override
+  public <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, Object value) {
+    // type in defined columns?
+    if (!getTypes().containsKey(tclass)) {
+      try {
+        DataType newType = tclass.getConstructor().newInstance();
+        ModularFeatureList flist = (ModularFeatureList) getFeatureList();
+        flist.addRowType(newType);
+        setProperty(newType, newType.createProperty());
+      } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+        e.printStackTrace();
+        return;
+      }
+    }
+    // access default method
+    ModularDataModel.super.set(tclass, value);
+  }
+
 
   public Stream<Feature> streamFeatures() {
     return this.getFeatures().stream().filter(Objects::nonNull);

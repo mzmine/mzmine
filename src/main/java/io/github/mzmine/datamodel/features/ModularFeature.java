@@ -20,13 +20,13 @@ package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
-import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.*;
+import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
+import io.github.mzmine.datamodel.features.types.numbers.*;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
+
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
@@ -37,17 +37,6 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DetectionType;
-import io.github.mzmine.datamodel.features.types.RawFileType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -67,16 +56,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   private final ObservableMap<DataType, Property<?>> map =
       FXCollections.observableMap(new HashMap<>());
 
-  // TODO: private variables to data types
-  private SimpleFeatureInformation featureInfo;
-  private int representiveScanNumber;
-  private int charge;
-  private int fragmentScanNumber;
-  private ObservableList<Integer> allMS2FragmentScanNumbers;
-
-  // Isotope pattern. Null by default but can be set later by deisotoping
-  // method.
-  private IsotopePattern isotopePattern;
 
   public ModularFeature(@Nonnull ModularFeatureList flist) {
     this.flist = flist;
@@ -109,8 +88,8 @@ public class ModularFeature implements Feature, ModularDataModel {
       throw new IllegalArgumentException("Cannot create a ModularFeature instance with no data points");
     }
 
-    this.fragmentScanNumber = fragmentScanNumber;
-    this.representiveScanNumber = representativeScan;
+    setFragmentScanNumber(fragmentScanNumber);
+    setRepresentativeScanNumber(representativeScan);
     // add values to feature
     set(ScanNumbersType.class, IntStream.of(scanNumbers).boxed().collect(Collectors.toList()));
     set(RawFileType.class, dataFile);
@@ -129,8 +108,8 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
-    this.allMS2FragmentScanNumbers = IntStream.of(allMS2FragmentScanNumbers).boxed()
-        .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    set(FragmentScanNumbersType.class, IntStream.of(allMS2FragmentScanNumbers).boxed()
+        .collect(Collectors.toCollection(FXCollections::observableArrayList)));
 
     float fwhm = QualityParameters.calculateFWHM(this);
     if(!Float.isNaN(fwhm)) {
@@ -206,6 +185,25 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
+  public <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, Object value) {
+    // type in defined columns?
+    if (!getTypes().containsKey(tclass)) {
+      try {
+        DataType newType = tclass.getConstructor().newInstance();
+        ModularFeatureList flist = (ModularFeatureList) getFeatureList();
+        flist.addFeatureType(newType);
+        setProperty(newType, newType.createProperty());
+      } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+        e.printStackTrace();
+        return;
+      }
+    }
+    // access default method
+    ModularDataModel.super.set(tclass, value);
+  }
+
+
+  @Override
   public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
     return flist.getFeatureTypes();
   }
@@ -243,43 +241,44 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public int getMostIntenseFragmentScanNumber() {
-    return fragmentScanNumber;
+    return get(BestFragmentScanNumberType.class).getValue();
   }
 
   @Override
   public void setFragmentScanNumber(int fragmentScanNumber) {
-    this.fragmentScanNumber = fragmentScanNumber;
+    set(BestFragmentScanNumberType.class, fragmentScanNumber);
   }
 
   @Override
   public ObservableList<Integer> getAllMS2FragmentScanNumbers() {
-    return allMS2FragmentScanNumbers;
+    return get(FragmentScanNumbersType.class).getValue();
   }
 
   @Override
   public void setAllMS2FragmentScanNumbers(ObservableList<Integer> allMS2FragmentScanNumbers) {
-    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
+    set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
   }
 
   @Nullable
   @Override
   public IsotopePattern getIsotopePattern() {
-    return isotopePattern;
+    return get(IsotopePatternType.class).getValue();
   }
 
   @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
-    this.isotopePattern = isotopePattern;
+    set(IsotopePatternType.class, isotopePattern);
   }
 
   @Override
   public int getCharge() {
-    return charge;
+    Integer charge = get(ChargeType.class).getValue();
+    return charge==null? 0 : charge;
   }
 
   @Override
   public void setCharge(int charge) {
-    this.charge = charge;
+    set(ChargeType.class, charge);
   }
 
   @Override
@@ -348,12 +347,12 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public void setFeatureInformation(SimpleFeatureInformation featureInfo) {
-    this.featureInfo = featureInfo;
+    set(FeatureInformationType.class, featureInfo);
   }
 
   @Override
   public SimpleFeatureInformation getFeatureInformation() {
-    return featureInfo;
+    return get(FeatureInformationType.class).getValue();
   }
 
   @Nullable
@@ -406,12 +405,12 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public void setRepresentativeScanNumber(int representiveScanNumber) {
-    this.representiveScanNumber = representiveScanNumber;
+    set(BestScanNumberType.class, representiveScanNumber);
   }
 
   @Override
   public int getRepresentativeScanNumber() {
-    return representiveScanNumber;
+    return get(BestScanNumberType.class).getValue();
   }
 
   @Override
