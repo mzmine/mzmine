@@ -26,9 +26,9 @@ public interface XYZValueProvider extends XYValueProvider {
 
   /**
    * Supplies the dataset with box width information. Is called after {@link
-   * PlotXYZDatasetProvider#computeValues()} when values have been loaded, so member variables of
-   * the provider can be used. Can be calculated when this method is called or during {@link
-   * PlotXYZDatasetProvider#computeValues()}
+   * PlotXYZDataProvider#computeValues()} when values have been loaded, so member variables of the
+   * provider can be used. Can be calculated when this method is called or during {@link
+   * PlotXYZDataProvider#computeValues()}
    *
    * @return The box width.
    */
@@ -36,9 +36,9 @@ public interface XYZValueProvider extends XYValueProvider {
 
   /**
    * Supplies the dataset with box width information. Is called after {@link
-   * PlotXYZDatasetProvider#computeValues()} when values have been loaded, so member variables of
-   * the provider can be used. Can be calculated when this method is called or during {@link
-   * PlotXYZDatasetProvider#computeValues()}
+   * PlotXYZDataProvider#computeValues()} when values have been loaded, so member variables of the
+   * provider can be used. Can be calculated when this method is called or during {@link
+   * PlotXYZDataProvider#computeValues()}
    *
    * @return The box height.
    */

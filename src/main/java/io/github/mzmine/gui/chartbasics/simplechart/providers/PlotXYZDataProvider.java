@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-public interface PlotXYZDatasetProvider extends PlotXYDatasetProvider, XYZValueProvider,
+public interface PlotXYZDataProvider extends PlotXYDataProvider, XYZValueProvider,
     PaintScaleProvider {
 
 }

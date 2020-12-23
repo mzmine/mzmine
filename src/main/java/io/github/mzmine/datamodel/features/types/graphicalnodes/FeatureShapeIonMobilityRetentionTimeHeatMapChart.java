@@ -6,7 +6,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -133,7 +133,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     dataPointWidth = medianRt;
   }
 
-  private static class DatasetCalc implements PlotXYZDatasetProvider {
+  private static class DatasetCalc implements PlotXYZDataProvider {
 
     private final ModularFeatureListRow row;
     private final List<Double> xValuesSet;

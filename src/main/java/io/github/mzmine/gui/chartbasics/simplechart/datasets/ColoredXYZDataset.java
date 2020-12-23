@@ -22,7 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYZValueProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -51,7 +51,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   protected double boxHeight;
   protected AbstractXYItemRenderer renderer;
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDatasetProvider datasetProvider) {
+  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider datasetProvider) {
     super(datasetProvider, false);
     this.xyzValueProvider = datasetProvider;
     zValues = Collections.emptyList();

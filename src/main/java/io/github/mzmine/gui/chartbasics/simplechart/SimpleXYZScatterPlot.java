@@ -21,7 +21,7 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDatasetProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
@@ -43,7 +43,7 @@ import org.jfree.chart.ui.RectangleInsets;
 /**
  * @author https://github.com/SteffenHeu & https://github.com/Annexhc
  */
-public class SimpleXYZScatterPlot<T extends PlotXYZDatasetProvider> extends EChartViewer {
+public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartViewer {
 
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   protected final JFreeChart chart;
