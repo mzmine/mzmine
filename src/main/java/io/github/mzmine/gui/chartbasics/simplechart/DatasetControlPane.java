@@ -83,44 +83,30 @@ public class DatasetControlPane<T extends PlotXYDataProvider> extends AnchorPane
 
     colColor.setCellFactory(ColorTableCell::new);
     colColor.setCellValueFactory(
-        new Callback<CellDataFeatures<XYDataset, Color>, ObservableValue<Color>>() {
-          @Override
-          public ObservableValue<Color> call(CellDataFeatures<XYDataset, Color> param) {
-            if (param.getValue() instanceof ColorPropertyProvider) {
-              return ((ColoredXYDataset) param.getValue()).fxColorProperty();
-            }
-            return null;
+        param -> {
+          if (param.getValue() instanceof ColorPropertyProvider) {
+            return ((ColoredXYDataset) param.getValue()).fxColorProperty();
           }
+          return null;
         });
-    colColor.setOnEditCommit(new EventHandler<CellEditEvent<XYDataset, Color>>() {
-      @Override
-      public void handle(CellEditEvent<XYDataset, Color> event) {
-        ((ColorPropertyProvider) event.getRowValue()).fxColorProperty().set(event.getNewValue());
-        chart.getChart().fireChartChanged();
-      }
+    colColor.setOnEditCommit(event -> {
+      ((ColorPropertyProvider) event.getRowValue()).fxColorProperty().set(event.getNewValue());
+      chart.getChart().fireChartChanged();
     });
 
     colShow.setCellFactory(column -> new ButtonCell<>(column, new Glyph("FontAwesome", "EYE"),
         new Glyph("FontAwesome", "EYE_SLASH")));
     colDatasetName.setCellValueFactory(
-        new Callback<CellDataFeatures<XYDataset, String>, ObservableValue<String>>() {
-          @Override
-          public ObservableValue<String> call(CellDataFeatures<XYDataset, String> param) {
-            return new SimpleStringProperty(
-                String.valueOf((param.getValue()).getSeriesKey(1)));
-          }
-        });
+        param -> new SimpleStringProperty(
+            String.valueOf((param.getValue()).getSeriesKey(1))));
     colDatasetType.setCellValueFactory(
-        new Callback<CellDataFeatures<XYDataset, String>, ObservableValue<String>>() {
-          @Override
-          public ObservableValue<String> call(CellDataFeatures<XYDataset, String> param) {
-            if (param.getValue() instanceof ColoredXYDataset) {
-              String name = ((ColoredXYDataset) param.getValue()).getValueProvider().getClass()
-                  .getName();
-              return new SimpleStringProperty(name.substring(name.lastIndexOf(".") + 1));
-            } else {
-              return new SimpleStringProperty(param.getValue().getClass().getTypeName());
-            }
+        param -> {
+          if (param.getValue() instanceof ColoredXYDataset) {
+            String name = ((ColoredXYDataset) param.getValue()).getValueProvider().getClass()
+                .getName();
+            return new SimpleStringProperty(name.substring(name.lastIndexOf(".") + 1));
+          } else {
+            return new SimpleStringProperty(param.getValue().getClass().getTypeName());
           }
         });
   }
