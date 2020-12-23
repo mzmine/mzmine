@@ -1,12 +1,30 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -29,7 +47,7 @@ public class AreaShareChart extends StackPane {
       Property<Float> areaProperty = entry.getValue().get(AreaType.class);
       if (areaProperty.getValue() != null) {
         // color from sample
-        //Color color = entry.getValue().get(RawColorType.class).getValue();
+        // Color color = entry.getValue().get(RawColorType.class).getValue();
         Color fileColor = entry.getKey().getColor();
         if (fileColor == null) {
           fileColor = Color.DARKORANGE;
