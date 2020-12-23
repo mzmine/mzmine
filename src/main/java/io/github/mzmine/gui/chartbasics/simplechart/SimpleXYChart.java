@@ -24,6 +24,7 @@ import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleXYLabelGenerator;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ExampleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
@@ -67,7 +68,7 @@ import org.jfree.data.xy.XYDataset;
  *
  * @param <T>
  * @author https://github.com/SteffenHeu
- * @see io.github.mzmine.gui.chartbasics.simplechart.providers.ExampleProvider
+ * @see ExampleXYProvider
  * @see ColoredXYDataset
  * @see PlotXYDataProvider
  */

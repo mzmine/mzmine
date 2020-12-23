@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  *
  * @author https://github.com/SteffenHeu
  */
-public class ExampleProvider implements PlotXYDataProvider {
+public class ExampleXYProvider implements PlotXYDataProvider {
 
   private final String seriesKey;
   private final Color awt;
@@ -58,7 +58,7 @@ public class ExampleProvider implements PlotXYDataProvider {
   private double finishedPercentage;
 
 
-  public ExampleProvider(List<DataPoint> originalDataPoints) {
+  public ExampleXYProvider(List<DataPoint> originalDataPoints) {
     this.seriesKey = "Some series key";
     this.awt = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
 

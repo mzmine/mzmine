@@ -40,7 +40,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider
- * @see ExampleProvider
+ * @see ExampleXYProvider
  */
 public interface PlotXYDataProvider extends XYValueProvider, SeriesKeyProvider<Comparable<?>>,
     LabelTextProvider, ToolTipTextProvider, ColorProvider {

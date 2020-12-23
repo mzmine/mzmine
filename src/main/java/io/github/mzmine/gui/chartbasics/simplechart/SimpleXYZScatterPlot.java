@@ -20,7 +20,6 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
@@ -201,25 +200,27 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @return current cursor position or null
    */
   private PlotCursorPosition getCurrentCursorPosition() {
-    double domainValue = getXYPlot().getDomainCrosshairValue();
-    double rangeValue = getXYPlot().getRangeCrosshairValue();
+    final double domainValue = getXYPlot().getDomainCrosshairValue();
+    final double rangeValue = getXYPlot().getRangeCrosshairValue();
+    double zValue = PlotCursorPosition.DEFAULT_Z_VALUE;
 
     // mabye there is a more efficient way of searching for the selected value index.
     int index = -1;
     int datasetIndex = -1;
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataset = plot.getDataset(i);
-      if (dataset instanceof ColoredXYDataset) {
-        index = ((ColoredXYDataset) dataset).getValueIndex(domainValue, rangeValue);
+      if (dataset instanceof ColoredXYZDataset) {
+        index = ((ColoredXYZDataset) dataset).getValueIndex(domainValue, rangeValue);
       }
       if (index != -1) {
         datasetIndex = i;
+        zValue = ((ColoredXYZDataset) dataset).getZValue(0, index);
         break;
       }
     }
 
     return (index != -1) ?
-        new PlotCursorPosition(domainValue, rangeValue, index,
+        new PlotCursorPosition(domainValue, rangeValue, zValue, index,
             plot.getDataset(datasetIndex)) :
         new PlotCursorPosition(domainValue,
             rangeValue, index, null);

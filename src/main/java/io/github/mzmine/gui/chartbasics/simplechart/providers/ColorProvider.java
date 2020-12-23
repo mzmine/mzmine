@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.RawDataFile;
  * file (see {@link RawDataFile#getColorAWT()}
  *
  * @author https://github.com/SteffenHeu
- * @see ExampleProvider
+ * @see ExampleXYProvider
  */
 public interface ColorProvider {
 

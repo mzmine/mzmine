@@ -128,6 +128,17 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return boxHeight;
   }
 
+  public int getValueIndex(final double domainValue, final double rangeValue) {
+    // todo binary search somehow here
+    for (int i = 0; i < computedItemCount; i++) {
+      if (Double.compare(domainValue, getX(0, i).doubleValue()) == 0
+          && Double.compare(rangeValue, getY(0, i).doubleValue()) == 0) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   @Override
   public void run() {
     status = TaskStatus.PROCESSING;
