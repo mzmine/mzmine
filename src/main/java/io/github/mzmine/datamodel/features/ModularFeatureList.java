@@ -72,27 +72,6 @@ public class ModularFeatureList implements FeatureList {
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
 
-    // Type columns will be ordered in the order of types initialization
-    addRowType(new IDType());
-    addRowType(new MZType());
-    addRowType(new MZRangeType());
-    addRowType(new RTType());
-    addRowType(new RTRangeType());
-    DataTypeUtils.addDefaultChromatographicTypeColumns(this);
-
-    addRowType(new FeatureShapeType());
-    addRowType(new AreaBarType());
-    addRowType(new AreaShareType());
-    // has raw files - add column to row and feature
-    if (!dataFiles.isEmpty()) {
-      addRowType(new FeaturesType());
-      addFeatureType(new RawFileType());
-      addFeatureType(new FwhmType());
-      addFeatureType(new TailingFactorType());
-      addFeatureType(new AsymmetryFactorType());
-    }
-    addRowType(new CommentType());
-
     // add standard row bindings even if data types are missing
     addRowBinding(new RowBinding(new MZType(), BindingsType.AVERAGE));
     addRowBinding(new RowBinding(new RTType(), BindingsType.AVERAGE));

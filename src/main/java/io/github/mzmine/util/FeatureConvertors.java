@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import javax.annotation.Nonnull;
 
 public class FeatureConvertors {
@@ -74,7 +76,8 @@ public class FeatureConvertors {
 
     modularFeature.set(BestFragmentScanNumberType.class, chromatogram.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, chromatogram.getRepresentativeScanNumber());
-    modularFeature.set(IsotopePatternType.class, chromatogram.getIsotopePattern());
+    if(chromatogram.getIsotopePattern()!=null)
+      modularFeature.set(IsotopePatternType.class, chromatogram.getIsotopePattern());
     modularFeature.set(ChargeType.class, chromatogram.getCharge());
 
     modularFeature.set(RawFileType.class, chromatogram.getDataFile());
@@ -104,9 +107,10 @@ public class FeatureConvertors {
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
 
-    modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
-        .findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange)).boxed()
-        .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+    ObservableList<Integer> allMS2 = IntStream.of(ScanUtils
+            .findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange)).boxed()
+            .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    modularFeature.setAllMS2FragmentScanNumbers(allMS2);
 
     // Quality parameters
     float fwhm = QualityParameters.calculateFWHM(modularFeature);

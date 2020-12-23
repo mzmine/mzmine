@@ -37,7 +37,7 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
 
   @Override
   public String getHeaderString() {
-    return "Manual Annotation";
+    return "Manual annotation";
   }
 
 }
