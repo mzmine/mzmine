@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYLineChart;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider;
 import java.awt.AlphaComposite;
@@ -37,7 +37,7 @@ import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * The standard shape renderer for {@link SimpleXYLineChart}s.
+ * The standard shape renderer for {@link SimpleXYChart}s.
  * <p></p>
  * This renderer has been modified to draw a dataset, generate labels and legend items based on the
  * color specified by the dataset.

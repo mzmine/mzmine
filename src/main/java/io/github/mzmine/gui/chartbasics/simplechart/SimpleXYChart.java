@@ -70,11 +70,11 @@ import org.jfree.data.xy.XYDataset;
  * @see ColoredXYDataset
  * @see PlotXYDatasetProvider
  */
-public class SimpleXYLineChart<T extends PlotXYDatasetProvider> extends
+public class SimpleXYChart<T extends PlotXYDatasetProvider> extends
     EChartViewer /*implements LabelColorMatch*/ {
 
   private static final double AXIS_MARGINS = 0.001;
-  private static Logger logger = Logger.getLogger(SimpleXYLineChart.class.getName());
+  private static Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
   protected final JFreeChart chart;
   private final XYPlot plot;
   private final TextTitle chartTitle;
@@ -92,22 +92,22 @@ public class SimpleXYLineChart<T extends PlotXYDatasetProvider> extends
   private int nextDataSetNum;
   private int labelsVisible;
 
-  public SimpleXYLineChart() {
+  public SimpleXYChart() {
     this("x", "y");
   }
 
-  public SimpleXYLineChart(@NamedArg("xlabel") String xLabel,
+  public SimpleXYChart(@NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel) {
     this("", xLabel, yLabel);
   }
 
-  public SimpleXYLineChart(@NamedArg("title") @Nonnull String title,
+  public SimpleXYChart(@NamedArg("title") @Nonnull String title,
       @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel) {
     this(title, xLabel, yLabel, PlotOrientation.VERTICAL, true, true);
   }
 
-  public SimpleXYLineChart(@NamedArg("title") @Nonnull String title,
+  public SimpleXYChart(@NamedArg("title") @Nonnull String title,
       @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel, @NamedArg("orientation") PlotOrientation orientation,
       @NamedArg("legend") boolean createLegend, @NamedArg("tooltips") boolean showTooltips) {

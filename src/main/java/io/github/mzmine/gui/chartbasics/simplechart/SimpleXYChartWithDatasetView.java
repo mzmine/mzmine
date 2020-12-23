@@ -23,13 +23,13 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javax.annotation.Nonnull;
 
-public class SimpleXYLineChartWithDatasetView<T extends PlotXYDatasetProvider> extends SplitPane {
+public class SimpleXYChartWithDatasetView<T extends PlotXYDatasetProvider> extends SplitPane {
 
-  private final SimpleXYLineChart<T> chart;
+  private final SimpleXYChart<T> chart;
 
   private final DatasetControlPane<T> datasetPane;
 
-  public SimpleXYLineChartWithDatasetView(@Nonnull SimpleXYLineChart<T> chart) {
+  public SimpleXYChartWithDatasetView(@Nonnull SimpleXYChart<T> chart) {
     super();
     setOrientation(Orientation.VERTICAL);
     this.chart = chart;
@@ -41,7 +41,7 @@ public class SimpleXYLineChartWithDatasetView<T extends PlotXYDatasetProvider> e
     setVisible(true);
   }
 
-  public SimpleXYLineChart<T> getSimpleXYLineChart() {
+  public SimpleXYChart<T> getSimpleXYChart() {
     return chart;
   }
 

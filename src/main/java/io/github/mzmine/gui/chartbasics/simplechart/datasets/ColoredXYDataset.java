@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYLineChart;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider;
@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
 
 /**
- * Default dataset class for {@link SimpleXYLineChart}. Any class implementing {@link
+ * Default dataset class for {@link SimpleXYChart}. Any class implementing {@link
  * PlotXYDatasetProvider} can be used to construct this dataset. The dataset implements the
  * interfaces, too, because the default renderers can then generate labels and tooltips based on the
  * interface methods and therefore be more reusable.

@@ -27,7 +27,7 @@ import org.jfree.data.xy.XYDataset;
  * Contains information about the currently selected point. The point is determined by the {@link
  * org.jfree.chart.plot.XYPlot#getDomainCrosshairValue()} and {@link
  * org.jfree.chart.plot.XYPlot#getRangeCrosshairValue()} methods. A listener can be added via the
- * {@link SimpleXYLineChart#cursorPositionProperty()}.
+ * {@link SimpleXYChart#cursorPositionProperty()}.
  *
  * @author https://github.com/SteffenHeu
  */

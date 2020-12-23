@@ -27,7 +27,7 @@ import java.util.List;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * Contains utility methods for {@link SimpleXYLineChart}.
+ * Contains utility methods for {@link SimpleXYChart}.
  */
 public class SimpleChartUtility {
 
