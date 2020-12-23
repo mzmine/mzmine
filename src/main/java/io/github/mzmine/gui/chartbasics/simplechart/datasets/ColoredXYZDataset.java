@@ -167,6 +167,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     computed = true;
     status = TaskStatus.FINISHED;
 
+
     Platform.runLater(this::fireDatasetChanged);
   }
 }

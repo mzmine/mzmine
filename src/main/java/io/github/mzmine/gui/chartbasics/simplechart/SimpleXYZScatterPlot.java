@@ -26,11 +26,14 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBloc
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Font;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.event.ChartChangeEvent;
+import org.jfree.chart.event.ChartChangeListener;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -45,7 +48,9 @@ import org.jfree.chart.ui.RectangleInsets;
  */
 public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartViewer {
 
-  static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
+  protected static final Logger logger = Logger.getLogger(SimpleXYZScatterPlot.class.getName());
+
+  protected static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   protected final JFreeChart chart;
   private final XYPlot plot;
   private final TextTitle chartTitle;
@@ -66,6 +71,13 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     blockRenderer = new ColoredXYSmallBlockRenderer();
     initializePlot();
+
+    chart.addChangeListener(new ChartChangeListener() {
+      @Override
+      public void chartChanged(ChartChangeEvent event) {
+        logger.info("Chart changed: " + event.getSource().toString());
+      }
+    });
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);

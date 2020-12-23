@@ -48,7 +48,11 @@ public class SimpleMobilityScan implements MobilityScan {
     this.dataPoints = dataPoints;
     ScanUtils.sortDataPointsByMz(this.dataPoints);
     this.totalIonCount = ScanUtils.getTIC(dataPoints, 0.d);
-    this.highestDataPoint = ScanUtils.findTopDataPoint(dataPoints);
+    if(dataPoints.length == 0) {
+      highestDataPoint = null;
+    } else {
+      this.highestDataPoint = ScanUtils.findTopDataPoint(dataPoints);
+    }
     this.mobilityScamNumber = mobilityScamNumber;
   }
 
