@@ -39,7 +39,7 @@ import org.controlsfx.glyphfont.Glyph;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * Can be bound to a {@link SimpleXYLineChart} to control the color and visibility of datasets.
+ * Can be bound to a {@link SimpleXYChart} to control the color and visibility of datasets.
  *
  * @param <T>
  */
@@ -50,9 +50,9 @@ public class DatasetControlPane<T extends PlotXYDatasetProvider> extends AnchorP
   private final TableColumn<XYDataset, String> colDatasetType;
   private final TableColumn<XYDataset, String> colDatasetName;
   private final TableColumn<XYDataset, Color> colColor;
-  private final SimpleXYLineChart<T> chart;
+  private final SimpleXYChart<T> chart;
 
-  public DatasetControlPane(final SimpleXYLineChart<T> chart) {
+  public DatasetControlPane(final SimpleXYChart<T> chart) {
     this.chart = chart;
     tvOverview = new TableView<>();
     tvOverview.setEditable(true);
