@@ -49,7 +49,10 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   protected Double maxZValue;
   protected LookupPaintScale paintScale;
 
+  protected String paintScaleString;
+
   protected Double boxWidth;
+
   protected Double boxHeight;
   protected AbstractXYItemRenderer renderer;
 
@@ -116,23 +119,13 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return maxZValue;
   }
 
-  private LookupPaintScale computePaintScale(double min, double max) {
-    // get index in accordance to percentile windows
-    Color[] contourColors = XYBlockPixelSizePaintScales
-        .getPaintColors("", Range.closed(min, max), FALLBACK_PAINTSCALE_STYLE);
-    contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
-    LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
-
-    double[] scaleValues = new double[contourColors.length];
-    double delta = (max - min) / (contourColors.length - 1);
-    double value = min;
-    for (int i = 0; i < contourColors.length; i++) {
-      scaleValues[i] = value;
-      scale.add(value, contourColors[i]);
-      value = value + delta;
-    }
-
-    return scale;
+  /**
+   * see {@link XYBlockPixelSizePaintScales}
+   *
+   * @param paintScaleString
+   */
+  public void setPaintScaleString(String paintScaleString) {
+    this.paintScaleString = paintScaleString;
   }
 
   /**
@@ -225,6 +218,34 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     boxWidth = medianX;
   }
 
+  private LookupPaintScale computePaintScale(double min, double max) {
+    if (paintScaleString == null || paintScaleString.isEmpty()) {
+      paintScaleString = FALLBACK_PAINTSCALE_STYLE;
+    }
+
+    // get index in accordance to percentile windows
+    Color[] contourColors = XYBlockPixelSizePaintScales
+        .getPaintColors("", Range.closed(min, max), paintScaleString);
+    if (contourColors == null) {
+      contourColors = XYBlockPixelSizePaintScales
+          .getPaintColors("", Range.closed(min, max), FALLBACK_PAINTSCALE_STYLE);
+    }
+    if (useAlphaInPaintscale) {
+      contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
+    }
+    LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
+
+    double[] scaleValues = new double[contourColors.length];
+    double delta = (max - min) / (contourColors.length - 1);
+    double value = min;
+    for (int i = 0; i < contourColors.length; i++) {
+      scaleValues[i] = value;
+      scale.add(value, contourColors[i]);
+      value = value + delta;
+    }
+
+    return scale;
+  }
 
   @Override
   public void run() {
