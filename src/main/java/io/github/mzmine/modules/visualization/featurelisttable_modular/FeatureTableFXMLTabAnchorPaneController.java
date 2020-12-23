@@ -173,16 +173,22 @@ public class FeatureTableFXMLTabAnchorPaneController {
   public void setFeatureList(FeatureList featureList) {
     featureTable.addData(featureList);
 
+    if(featureList==null) {
+      return;
+    }
+
     // Fill filters text fields with a prompt values
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    Range<Double> mzRange = featureTable.getFeatureList().getRowsMZRange();
-    mzSearchField.setPromptText(mzFormat.format(mzRange.lowerEndpoint()) + " - "
+    Range<Double> mzRange = featureList.getRowsMZRange();
+    if(mzRange!=null)
+      mzSearchField.setPromptText(mzFormat.format(mzRange.lowerEndpoint()) + " - "
         + mzFormat.format(mzRange.upperEndpoint()));
     mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
 
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     Range<Float> rtRange = featureTable.getFeatureList().getRowsRTRange();
-    rtSearchField.setPromptText(rtFormat.format(rtRange.lowerEndpoint()) + " - "
+    if(rtRange!=null)
+      rtSearchField.setPromptText(rtFormat.format(rtRange.lowerEndpoint()) + " - "
         + rtFormat.format(rtRange.upperEndpoint()));
     rtSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
   }

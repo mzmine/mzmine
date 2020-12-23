@@ -23,9 +23,7 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.types.AreaBarType;
-import io.github.mzmine.datamodel.features.types.AreaShareType;
-import io.github.mzmine.datamodel.features.types.FeatureShapeType;
+import io.github.mzmine.datamodel.features.types.*;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.util.FeatureSorter;
@@ -39,13 +37,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
+
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DetectionType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -393,6 +390,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     if ((preferredIdentity == null) || (preferred)) {
       setPreferredFeatureIdentity(identity);
     }
+  }
+
+  @Override
+  public void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
+    // add column first if needed
+    get(SpectralLibraryMatchType.class).get(SpectralLibMatchSummaryType.class).add(id);
   }
 
   @Override

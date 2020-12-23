@@ -18,14 +18,13 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.collections.ObservableMap;
 
 public class ModularTypeProperty extends SimpleMapProperty<DataType, Property<?>> implements ModularDataModel {
 
-    private ModularType parentType;
+    protected ModularType parentType;
 
     public ModularTypeProperty(ObservableMap<DataType, Property<?>> map, ModularType parentType) {
         super(map);

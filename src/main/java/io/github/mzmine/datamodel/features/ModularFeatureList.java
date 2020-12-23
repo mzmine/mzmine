@@ -463,6 +463,9 @@ public class ModularFeatureList implements FeatureList {
   //  a private variable during rows initialization
   @Override
   public Range<Double> getRowsMZRange() {
+    if(getRows().isEmpty())
+      return Range.singleton(0d);
+
     updateMaxIntensity(); // Update range before returning value
 
     DoubleSummaryStatistics mzStatistics = getRows().stream()
@@ -476,6 +479,9 @@ public class ModularFeatureList implements FeatureList {
   //  a private variable during rows initialization
   @Override
   public Range<Float> getRowsRTRange() {
+    if(getRows().isEmpty())
+      return Range.singleton(0f);
+
     updateMaxIntensity(); // Update range before returning value
 
     DoubleSummaryStatistics rtStatistics = getRows().stream()

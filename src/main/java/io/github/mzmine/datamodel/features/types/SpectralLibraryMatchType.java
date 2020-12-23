@@ -28,13 +28,20 @@ import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.CosineScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -52,8 +59,10 @@ import java.util.stream.Collectors;
 public class SpectralLibraryMatchType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List.of(new CompoundNameType(), new FormulaType(), new SmilesStructureType(),
-          new NeutralMassType(), new CosineScoreType());
+  private final List<DataType> subTypes = List.of(new SpectralLibMatchSummaryType(),
+          new CompoundNameType(), new IonAdductType(),
+          new FormulaType(), new SmilesStructureType(), new InChIStructureType(),
+          new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(), new MatchingSignalsType());
 
   @Override
   public List<DataType> getSubDataTypes() {
@@ -65,4 +74,49 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
     return "Spectral Library Match";
   }
 
+  @Override
+  public ModularTypeProperty createProperty() {
+    ModularTypeProperty property = super.createProperty();
+
+    // add bindings: If first element in summary column changes - update all other columns based on this object
+    ListProperty<SpectralDBFeatureIdentity> summaryProperty = property.get(SpectralLibMatchSummaryType.class);
+    summaryProperty.addListener((ListChangeListener<SpectralDBFeatureIdentity>) change -> {
+      boolean firstElementChanged = false;
+      while (change.next()) {
+        firstElementChanged = firstElementChanged || change.getFrom() == 0;
+      }
+      if(firstElementChanged) {
+        // first list elements has changed - set all other fields
+        setCurrentElement(property, !summaryProperty.isEmpty()? null : summaryProperty.get(0));
+      }
+    });
+
+    return property;
+  }
+
+
+  private void setCurrentElement(ModularTypeProperty data, SpectralDBFeatureIdentity match) {
+    if(match==null) {
+      for (DataType type : this.getSubDataTypes()) {
+        if (!(type instanceof SpectralLibMatchSummaryType)) {
+          data.set(type, null);
+        }
+      }
+    }
+    else {
+      SpectralDBEntry entry = match.getEntry();
+      SpectralSimilarity score = match.getSimilarity();
+
+      // update selected values
+      data.set(CompoundNameType.class, entry.getField(DBEntryField.NAME));
+      data.set(FormulaType.class, entry.getField(DBEntryField.FORMULA));
+      data.set(IonAdductType.class, entry.getField(DBEntryField.ION_TYPE));
+      data.set(SmilesStructureType.class, entry.getField(DBEntryField.SMILES));
+      data.set(InChIStructureType.class, entry.getField(DBEntryField.INCHI));
+      data.set(CosineScoreType.class, score.getScore());
+      data.set(MatchingSignalsType.class, score.getOverlap());
+      data.set(PrecursorMZType.class, entry.getField(DBEntryField.MZ));
+      data.set(NeutralMassType.class, entry.getField(DBEntryField.EXACT_MASS));
+    }
+  }
 }
