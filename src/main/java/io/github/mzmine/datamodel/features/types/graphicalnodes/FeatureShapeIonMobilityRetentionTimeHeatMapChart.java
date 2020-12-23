@@ -56,7 +56,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
       double minMobility = Double.MAX_VALUE, maxMobility = 0;
       double minRt = Double.MAX_VALUE, maxRt = 0;
       for (Feature f : row.getFeatures()) {
-        List<DataPoint> dps = f.getDataPoints();
+        List<? extends DataPoint> dps = f.getDataPoints();
         List<RetentionTimeMobilityDataPoint> dataPoints = new ArrayList<>();
         dataPoints.addAll((Collection<? extends RetentionTimeMobilityDataPoint>) dps);
         calculateDataPointSizeForPlots(dataPoints);
