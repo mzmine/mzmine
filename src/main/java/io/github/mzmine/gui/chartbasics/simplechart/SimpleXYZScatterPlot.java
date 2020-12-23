@@ -50,6 +50,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
@@ -65,7 +66,8 @@ import org.jfree.data.xy.XYZDataset;
 /**
  * @author https://github.com/SteffenHeu & https://github.com/Annexhc
  */
-public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartViewer {
+public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartViewer implements
+    SimpleChart {
 
   protected static final Logger logger = Logger.getLogger(SimpleXYZScatterPlot.class.getName());
 
@@ -126,12 +128,19 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     setDataset(dataset);
   }
 
+  @Override
   public void switchLegendVisible() {
     // Toggle legend visibility.
     final LegendTitle legend = getChart().getLegend();
     legend.setVisible(!legend.isVisible());
   }
 
+  @Override
+  public void switchItemLabelsVisible() {
+    // no items in standard xyz plot.
+  }
+
+  @Override
   public void switchBackground() {
     // Toggle background color
     final Paint color = getChart().getPlot().getBackgroundPaint();
@@ -148,10 +157,12 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     getChart().getXYPlot().setRangeGridlinePaint(liColor);
   }
 
+  @Override
   public PlotCursorPosition getCursorPosition() {
     return cursorPositionProperty.get();
   }
 
+  @Override
   public void setCursorPosition(PlotCursorPosition cursorPosition) {
     if (cursorPosition.equals(cursorPositionProperty().get())) {
       return;
@@ -159,6 +170,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     this.cursorPositionProperty.set(cursorPosition);
   }
 
+  @Override
   public ObjectProperty<PlotCursorPosition> cursorPositionProperty() {
     return cursorPositionProperty;
   }
@@ -213,40 +225,53 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
             rangeValue, index, null);
   }
 
+  @Override
+  public Plot getPlot() {
+    return plot;
+  }
+
   public XYPlot getXYPlot() {
     return plot;
   }
 
+  @Override
   public void setDomainAxisLabel(String label) {
     plot.getDomainAxis().setLabel(label);
   }
 
+  @Override
   public void setRangeAxisLabel(String label) {
     plot.getRangeAxis().setLabel(label);
   }
 
+  @Override
   public void setDomainAxisNumberFormatOverride(NumberFormat format) {
     ((NumberAxis) plot.getDomainAxis()).setNumberFormatOverride(format);
   }
 
+  @Override
   public void setRangeAxisNumberFormatOverride(NumberFormat format) {
     ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(format);
   }
 
+  @Override
   public void addContextMenuItem(String title, EventHandler<ActionEvent> ai) {
     logger.info("call");
     addMenuItem(getContextMenu(), title, ai);
   }
 
 
+  @Override
   public void addDatasetsChangedListener(DatasetsChangedListener listener) {
     datasetListeners.add(listener);
   }
 
+  @Override
   public void removeDatasetsChangedListener(DatasetsChangedListener listener) {
     datasetListeners.remove(listener);
   }
 
+  @Override
   public void clearDatasetsChangedListeners(DatasetChangeListener listener) {
     datasetListeners.clear();
   }
@@ -304,6 +329,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   /**
    * @return Mapping of datasetIndex -> Dataset
    */
+  @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
     final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
 

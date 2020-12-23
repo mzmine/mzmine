@@ -21,6 +21,9 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 import java.util.Map;
 import org.jfree.data.xy.XYDataset;
 
+/**
+ * Called when a dataset is added or removed from a {@link SimpleChart}.
+ */
 @FunctionalInterface
 public interface DatasetsChangedListener {
 

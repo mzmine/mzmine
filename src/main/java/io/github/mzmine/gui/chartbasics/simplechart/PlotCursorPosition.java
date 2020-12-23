@@ -33,17 +33,26 @@ import org.jfree.data.xy.XYDataset;
  */
 public class PlotCursorPosition {
 
+  public static final double DEFAULT_Z_VALUE = -1.0d;
+
   final double rangeValue;
   final double domainValue;
+  final double zValue;
   final XYDataset dataset;
   final int valueIndex;
 
-  public PlotCursorPosition(double rangeVal, double domainVal,
-      int valueIndex, XYDataset dataset) {
+  public PlotCursorPosition(final double rangeVal, final double domainVal, final double zValue,
+      final int valueIndex, final XYDataset dataset) {
     this.rangeValue = rangeVal;
     this.domainValue = domainVal;
     this.valueIndex = valueIndex;
+    this.zValue = zValue;
     this.dataset = dataset;
+  }
+
+  public PlotCursorPosition(final double rangeVal, final double domainVal, final int valueIndex,
+      final XYDataset dataset) {
+    this(rangeVal, domainVal, DEFAULT_Z_VALUE, valueIndex, dataset);
   }
 
   public double getRangeValue() {
@@ -52,6 +61,13 @@ public class PlotCursorPosition {
 
   public double getDomainValue() {
     return domainValue;
+  }
+
+  /**
+   * @return The z value or {@link PlotCursorPosition#DEFAULT_Z_VALUE} if no z value was set.
+   */
+  public double getzValue() {
+    return zValue;
   }
 
   /**

@@ -52,6 +52,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -71,7 +72,7 @@ import org.jfree.data.xy.XYDataset;
  * @see PlotXYDataProvider
  */
 public class SimpleXYChart<T extends PlotXYDataProvider> extends
-    EChartViewer /*implements LabelColorMatch*/ {
+    EChartViewer implements SimpleChart {
 
   private static final double AXIS_MARGINS = 0.001;
   private static Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
@@ -211,9 +212,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     notifyDatasetsChangedListeners();
   }
 
-  /**
-   * @return Mapping of datasetIndex -> Dataset
-   */
+  @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
     final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
 
@@ -226,28 +225,34 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     return datasetMap;
   }
 
+  @Override
   public void setDomainAxisLabel(String label) {
     plot.getDomainAxis().setLabel(label);
   }
 
+  @Override
   public void setRangeAxisLabel(String label) {
     plot.getRangeAxis().setLabel(label);
   }
 
+  @Override
   public void setDomainAxisNumberFormatOverride(NumberFormat format) {
     ((NumberAxis) plot.getDomainAxis()).setNumberFormatOverride(format);
   }
 
+  @Override
   public void setRangeAxisNumberFormatOverride(NumberFormat format) {
     ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(format);
   }
 
+  @Override
   public void switchLegendVisible() {
     // Toggle legend visibility.
     final LegendTitle legend = getChart().getLegend();
     legend.setVisible(!legend.isVisible());
   }
 
+  @Override
   public void switchItemLabelsVisible() {
     labelsVisible = (labelsVisible == 1) ? 0 : 1;
     final int dataSetCount = plot.getDatasetCount();
@@ -257,6 +262,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     }
   }
 
+  @Override
   public void switchBackground() {
     // Toggle background color
     final Paint color = getChart().getPlot().getBackgroundPaint();
@@ -277,10 +283,17 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     return plot;
   }
 
+  @Override
+  public Plot getPlot() {
+    return plot;
+  }
+
+  @Override
   public PlotCursorPosition getCursorPosition() {
     return cursorPositionProperty.get();
   }
 
+  @Override
   public void setCursorPosition(PlotCursorPosition cursorPosition) {
     if (cursorPosition.equals(cursorPositionProperty().get())) {
       return;
@@ -288,6 +301,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     this.cursorPositionProperty.set(cursorPosition);
   }
 
+  @Override
   public ObjectProperty<PlotCursorPosition> cursorPositionProperty() {
     return cursorPositionProperty;
   }
@@ -314,9 +328,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     });
   }
 
-  /**
-   * @return current cursor position or null
-   */
   private PlotCursorPosition getCurrentCursorPosition() {
     double domainValue = getXYPlot().getDomainCrosshairValue();
     double rangeValue = getXYPlot().getRangeCrosshairValue();
@@ -337,25 +348,26 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
 
     return (index != -1) ?
         new PlotCursorPosition(domainValue, rangeValue, index,
-            plot.getDataset(datasetIndex)) :
-        new PlotCursorPosition(domainValue,
-            rangeValue, index, null);
+            plot.getDataset(datasetIndex)) : null;
   }
 
+  @Override
   public void addContextMenuItem(String title, EventHandler<ActionEvent> ai) {
     logger.info("call");
     addMenuItem(getContextMenu(), title, ai);
   }
 
-
+  @Override
   public void addDatasetsChangedListener(DatasetsChangedListener listener) {
     datasetListeners.add(listener);
   }
 
+  @Override
   public void removeDatasetsChangedListener(DatasetsChangedListener listener) {
     datasetListeners.remove(listener);
   }
 
+  @Override
   public void clearDatasetsChangedListeners(DatasetChangeListener listener) {
     datasetListeners.clear();
   }
