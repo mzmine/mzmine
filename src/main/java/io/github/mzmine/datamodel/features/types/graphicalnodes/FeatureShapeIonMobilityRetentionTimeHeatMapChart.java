@@ -309,7 +309,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
       for (RetentionTimeMobilityDataPoint dp : dataPointsSortedByRt) {
         if (dpA == null) {
           dpA = dp;
-          dataPointHeight = dp.getMobilityWidth();
+          dataPointHeight = Math.abs(dp.getMobilityWidth());
         } else if (!(dpA.getRetentionTime().equals(dp.getRetentionTime()))) {
           rtDeltas.add(dpA.getRetentionTime() - dp.getRetentionTime());
           dpA = dp;
@@ -327,7 +327,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
           medianRt = rtDeltas.get(index);
         }
       }
-      dataPointWidth = medianRt;
+      dataPointWidth = Math.abs(medianRt);
     }
   }
 

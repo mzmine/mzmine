@@ -20,28 +20,47 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Paint;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.Cursor;
+import javafx.scene.input.MouseButton;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.event.ChartChangeEvent;
-import org.jfree.chart.event.ChartChangeListener;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYZDataset;
 
 /**
  * @author https://github.com/SteffenHeu & https://github.com/Annexhc
@@ -57,10 +76,13 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   private final TextTitle chartSubTitle;
   protected ColoredXYSmallBlockRenderer blockRenderer;
 
+  private final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
+  private final List<DatasetsChangedListener> datasetListeners;
+
   public SimpleXYZScatterPlot(@Nonnull String title) {
 
     super(ChartFactory.createScatterPlot("", "x", "y", null,
-        PlotOrientation.VERTICAL, true, false, true));
+        PlotOrientation.VERTICAL, true, false, true), true, true, true, true, true);
 
     chart = getChart();
     chartTitle = new TextTitle(title);
@@ -70,20 +92,237 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot = chart.getXYPlot();
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     blockRenderer = new ColoredXYSmallBlockRenderer();
-    initializePlot();
+    setCursor(Cursor.DEFAULT);
 
-    chart.addChangeListener(new ChartChangeListener() {
-      @Override
-      public void chartChanged(ChartChangeEvent event) {
-        logger.info("Chart changed: " + event.getSource().toString());
-      }
-    });
+    cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
+    initializeMouseListener();
+    datasetListeners = new ArrayList<>();
+
+    plot.setRenderer(blockRenderer);
+    initializePlot();
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
   }
 
-  private PaintScaleLegend prepareLegend(double min, double max, LookupPaintScale scale) {
+  /**
+   * @param dataset the dataset. null to clear the plot.
+   */
+  public void setDataset(@Nullable ColoredXYZDataset dataset) {
+    plot.setDataset(dataset);
+    onDatasetChanged(dataset);
+    if (dataset != null) {
+      dataset.addChangeListener(event -> onDatasetChanged((XYZDataset) event.getSource()));
+    }
+  }
+
+  /**
+   * Creates a dataset and sets it as the chart's main data set.
+   *
+   * @param dataProvider The data provider
+   */
+  public void setDataset(T dataProvider) {
+    ColoredXYZDataset dataset = new ColoredXYZDataset(dataProvider);
+    setDataset(dataset);
+  }
+
+  public void switchLegendVisible() {
+    // Toggle legend visibility.
+    final LegendTitle legend = getChart().getLegend();
+    legend.setVisible(!legend.isVisible());
+  }
+
+  public void switchBackground() {
+    // Toggle background color
+    final Paint color = getChart().getPlot().getBackgroundPaint();
+    Color bgColor, liColor;
+    if (color.equals(Color.darkGray)) {
+      bgColor = Color.white;
+      liColor = Color.darkGray;
+    } else {
+      bgColor = Color.darkGray;
+      liColor = Color.white;
+    }
+    getChart().getPlot().setBackgroundPaint(bgColor);
+    getChart().getXYPlot().setDomainGridlinePaint(liColor);
+    getChart().getXYPlot().setRangeGridlinePaint(liColor);
+  }
+
+  public PlotCursorPosition getCursorPosition() {
+    return cursorPositionProperty.get();
+  }
+
+  public void setCursorPosition(PlotCursorPosition cursorPosition) {
+    if (cursorPosition.equals(cursorPositionProperty().get())) {
+      return;
+    }
+    this.cursorPositionProperty.set(cursorPosition);
+  }
+
+  public ObjectProperty<PlotCursorPosition> cursorPositionProperty() {
+    return cursorPositionProperty;
+  }
+
+  /**
+   * Listens to clicks in the chromatogram plot and updates the selected raw data file accordingly.
+   */
+  private void initializeMouseListener() {
+    getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
+      @Override
+      public void chartMouseClicked(ChartMouseEventFX event) {
+        if (event.getTrigger().getButton() == MouseButton.PRIMARY) {
+          PlotCursorPosition pos = getCurrentCursorPosition();
+          if (pos != null) {
+            setCursorPosition(pos);
+          }
+        }
+      }
+
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {
+        // currently not in use
+      }
+    });
+  }
+
+  /**
+   * @return current cursor position or null
+   */
+  private PlotCursorPosition getCurrentCursorPosition() {
+    double domainValue = getXYPlot().getDomainCrosshairValue();
+    double rangeValue = getXYPlot().getRangeCrosshairValue();
+
+    // mabye there is a more efficient way of searching for the selected value index.
+    int index = -1;
+    int datasetIndex = -1;
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      XYDataset dataset = plot.getDataset(i);
+      if (dataset instanceof ColoredXYDataset) {
+        index = ((ColoredXYDataset) dataset).getValueIndex(domainValue, rangeValue);
+      }
+      if (index != -1) {
+        datasetIndex = i;
+        break;
+      }
+    }
+
+    return (index != -1) ?
+        new PlotCursorPosition(domainValue, rangeValue, index,
+            plot.getDataset(datasetIndex)) :
+        new PlotCursorPosition(domainValue,
+            rangeValue, index, null);
+  }
+
+  public XYPlot getXYPlot() {
+    return plot;
+  }
+
+  public void setDomainAxisLabel(String label) {
+    plot.getDomainAxis().setLabel(label);
+  }
+
+  public void setRangeAxisLabel(String label) {
+    plot.getRangeAxis().setLabel(label);
+  }
+
+  public void setDomainAxisNumberFormatOverride(NumberFormat format) {
+    ((NumberAxis) plot.getDomainAxis()).setNumberFormatOverride(format);
+  }
+
+  public void setRangeAxisNumberFormatOverride(NumberFormat format) {
+    ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(format);
+  }
+
+  public void addContextMenuItem(String title, EventHandler<ActionEvent> ai) {
+    logger.info("call");
+    addMenuItem(getContextMenu(), title, ai);
+  }
+
+
+  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
+    datasetListeners.add(listener);
+  }
+
+  public void removeDatasetsChangedListener(DatasetsChangedListener listener) {
+    datasetListeners.remove(listener);
+  }
+
+  public void clearDatasetsChangedListeners(DatasetChangeListener listener) {
+    datasetListeners.clear();
+  }
+
+  private void notifyDatasetsChangedListeners() {
+    Map<Integer, XYDataset> datasets = getAllDatasets();
+
+    for (DatasetsChangedListener listener : datasetListeners) {
+      listener.datasetsChanged(datasets);
+    }
+  }
+
+  private void initializePlot() {
+    plot.setBackgroundPaint(Color.black);
+    plot.setRangeGridlinePaint(Color.black);
+    plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
+    plot.setOutlinePaint(Color.black);
+  }
+
+  /**
+   * @param dataset
+   * @return Paint scale based on the datasets min and max values.
+   */
+  private LookupPaintScale makePaintScale(XYZDataset dataset) {
+    if (!(dataset instanceof ColoredXYZDataset)
+        || ((ColoredXYZDataset) dataset).getPaintScale() == null
+        || ((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
+      LookupPaintScale ps = new LookupPaintScale(0, 10000, Color.BLACK);
+      return ps;
+    } else {
+      ColoredXYZDataset xyz = (ColoredXYZDataset) dataset;
+      return xyz.getPaintScale();
+    }
+  }
+
+  /**
+   * @param dataset Called when the dataset is changed, e.g. when the calculation finished.
+   */
+  private void onDatasetChanged(XYZDataset dataset) {
+    if (dataset == null) {
+      return;
+    }
+    LookupPaintScale paintScale = makePaintScale(dataset);
+    updateRenderer(paintScale);
+    if (dataset instanceof ColoredXYZDataset
+        && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
+      PaintScaleLegend legend = generateLegend(((ColoredXYZDataset) dataset).getMinZValue(),
+          ((ColoredXYZDataset) dataset).getMaxZValue(), paintScale);
+      chart.clearSubtitles();
+      chart.addSubtitle(legend);
+    }
+    chart.fireChartChanged();
+  }
+
+  /**
+   * @return Mapping of datasetIndex -> Dataset
+   */
+  public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
+    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
+
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      XYDataset dataset = plot.getDataset(i);
+      if (dataset != null) {
+        datasetMap.put(i, dataset);
+      }
+    }
+    return datasetMap;
+  }
+
+  /**
+   * @param min
+   * @param max
+   * @param scale
+   * @return Legend based on the {@link LookupPaintScale}.
+   */
+  private PaintScaleLegend generateLegend(double min, double max, @Nonnull LookupPaintScale scale) {
     NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
@@ -100,39 +339,23 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     return newLegend;
   }
 
-  public XYPlot getPlot() {
-    return plot;
-  }
-
-  private void initializePlot() {
-    plot.setBackgroundPaint(Color.black);
-    plot.setRangeGridlinePaint(Color.black);
-    plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
-    plot.setOutlinePaint(Color.black);
-  }
-
-  public void setDataset(ColoredXYZDataset dataset) {
-    plot.setDataset(dataset);
-
-    plot.setRenderer(blockRenderer);
-    blockRenderer.setBlockHeight(dataset.getBoxHeight());
-    blockRenderer.setBlockWidth(dataset.getBoxWidth());
-    PaintScaleLegend legend = null;
-    if (dataset.getPaintScale() == null) {
-      LookupPaintScale ps = new LookupPaintScale(0, 10000, Color.RED);
-      blockRenderer.setPaintScale(ps);
-      legend = prepareLegend(0, 1000, ps);
-    } else {
-      blockRenderer.setPaintScale(dataset.getPaintScale());
-      legend = prepareLegend(dataset.getMinZValue(), dataset.getMaxZValue(),
-          dataset.getPaintScale());
+  /**
+   * updates the renderer to the block sizes & paint scale provided by the dataset.
+   *
+   * @param paintScale
+   */
+  private void updateRenderer(LookupPaintScale paintScale) {
+    XYDataset dataset = plot.getDataset();
+    if (!(dataset instanceof XYZDataset)) {
+      // maybe add a case for that later
+      return;
     }
-    chart.clearSubtitles();
-    chart.addSubtitle(legend);
-  }
-
-  public void setDataset(T datasetProvider) {
-    ColoredXYZDataset dataset = new ColoredXYZDataset(datasetProvider);
-    setDataset(dataset);
+    if (!(dataset instanceof ColoredXYZDataset)) {
+      return;
+    }
+    ColoredXYZDataset xyz = (ColoredXYZDataset) dataset;
+    blockRenderer.setBlockHeight(xyz.getBoxHeight());
+    blockRenderer.setBlockWidth(xyz.getBoxWidth());
+    blockRenderer.setPaintScale(paintScale);
   }
 }

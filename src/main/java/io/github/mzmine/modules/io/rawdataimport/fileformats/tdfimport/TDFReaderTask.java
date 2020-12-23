@@ -173,6 +173,10 @@ public class TDFReaderTask extends AbstractTask {
         Frame storedFrame = (Frame) newMZmineFile.addScan(frame);
         frames.add(storedFrame);
         frameId++;
+
+        if(isCanceled()) {
+          return;
+        }
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -293,6 +297,11 @@ public class TDFReaderTask extends AbstractTask {
       for (MobilityScan spectrum : spectra) {
         ((StorableFrame) frame).addMobilityScan(spectrum);
       }
+
+      if(isCanceled()) {
+        return;
+      }
+
       loadedFrames++;
     }
   }

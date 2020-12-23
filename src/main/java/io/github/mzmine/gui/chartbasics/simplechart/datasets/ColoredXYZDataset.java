@@ -90,11 +90,11 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return maxZValue;
   }
 
-  private PaintScale computePaintScale(double min, double max) {
+  private LookupPaintScale computePaintScale(double min, double max) {
     // get index in accordance to percentile windows
     Color[] contourColors = XYBlockPixelSizePaintScales
         .getPaintColors("", Range.closed(min, max), FALLBACK_PAITNSCALE_STYLE);
-    // contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
+    contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
     LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
 
     double[] scaleValues = new double[contourColors.length];
@@ -161,12 +161,12 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
     boxHeight = xyzValueProvider.getBoxHeight();
     boxWidth = xyzValueProvider.getBoxWidth();
-    computePaintScale(minZValue, maxZValue);
+
+    this.paintScale = computePaintScale(minZValue, maxZValue);
 
     computedItemCount = domainValues.size();
     computed = true;
     status = TaskStatus.FINISHED;
-
 
     Platform.runLater(this::fireDatasetChanged);
   }
