@@ -115,6 +115,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     if (dataset != null) {
       dataset.addChangeListener(event -> onDatasetChanged((XYZDataset) event.getSource()));
     }
+    notifyDatasetsChangedListeners();
   }
 
   /**
@@ -380,9 +381,13 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     if (!(dataset instanceof ColoredXYZDataset)) {
       return;
     }
+    if(((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
+      return;
+    }
     ColoredXYZDataset xyz = (ColoredXYZDataset) dataset;
     blockRenderer.setBlockHeight(xyz.getBoxHeight());
     blockRenderer.setBlockWidth(xyz.getBoxWidth());
     blockRenderer.setPaintScale(paintScale);
   }
+
 }

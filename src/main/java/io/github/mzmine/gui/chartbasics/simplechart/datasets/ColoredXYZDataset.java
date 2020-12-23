@@ -27,8 +27,10 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.XYZValueProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,7 +41,7 @@ import org.jfree.data.xy.XYZDataset;
 
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
-  private static final String FALLBACK_PAITNSCALE_STYLE = "Rainbow";
+  private static final String FALLBACK_PAINTSCALE_STYLE = "Rainbow";
 
   private final XYZValueProvider xyzValueProvider;
   protected List<Double> zValues;
@@ -47,18 +49,42 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   protected Double maxZValue;
   protected LookupPaintScale paintScale;
 
-  protected double boxWidth;
-  protected double boxHeight;
+  protected Double boxWidth;
+  protected Double boxHeight;
   protected AbstractXYItemRenderer renderer;
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider datasetProvider) {
-    super(datasetProvider, false);
-    this.xyzValueProvider = datasetProvider;
+  public void setBoxWidth(double boxWidth) {
+    this.boxWidth = boxWidth;
+  }
+
+  public void setBoxHeight(double boxHeight) {
+    this.boxHeight = boxHeight;
+  }
+
+  public boolean isUseAlphaInPaintscale() {
+    return useAlphaInPaintscale;
+  }
+
+  public void setUseAlphaInPaintscale(boolean useAlphaInPaintscale) {
+    this.useAlphaInPaintscale = useAlphaInPaintscale;
+  }
+
+  protected boolean useAlphaInPaintscale;
+
+  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider) {
+    this(dataProvider, true);
+  }
+
+  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
+      final boolean useAlphaInPaintscale) {
+    super(dataProvider, false);
+    this.xyzValueProvider = dataProvider;
     zValues = Collections.emptyList();
     minZValue = Double.MAX_VALUE;
     maxZValue = Double.MIN_VALUE;
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
+    this.useAlphaInPaintscale = useAlphaInPaintscale;
     MZmineCore.getTaskController().addTask(this);
   }
 
@@ -93,7 +119,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   private LookupPaintScale computePaintScale(double min, double max) {
     // get index in accordance to percentile windows
     Color[] contourColors = XYBlockPixelSizePaintScales
-        .getPaintColors("", Range.closed(min, max), FALLBACK_PAITNSCALE_STYLE);
+        .getPaintColors("", Range.closed(min, max), FALLBACK_PAINTSCALE_STYLE);
     contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
     LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
 
@@ -120,11 +146,11 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return paintScale;
   }
 
-  public double getBoxWidth() {
+  public Double getBoxWidth() {
     return boxWidth;
   }
 
-  public double getBoxHeight() {
+  public Double getBoxHeight() {
     return boxHeight;
   }
 
@@ -138,6 +164,67 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     }
     return -1;
   }
+
+  private void calculateDefaultBoxHeightForPlots() {
+    List<Double> yValuesSorted = getYValues().stream().sorted(Double::compareTo)
+        .collect(Collectors.toList());
+
+    List<Double> ydeltas = new ArrayList<>();
+    Double yA = null;
+
+    for (Double y : yValuesSorted) {
+      if (yA == null) {
+        yA = y;
+      } else if (!(yA).equals(y)) {
+        ydeltas.add(yA - y);
+        yA = y;
+      }
+    }
+    Collections.sort(ydeltas);
+    Double medianY = 0.d;
+    if (ydeltas.size() >= 2) {
+      if (ydeltas.size() % 2 == 0) {
+        int indexA = ydeltas.size() / 2;
+        int indexB = ydeltas.size() / 2 - 1;
+        medianY = (ydeltas.get(indexA) + ydeltas.get(indexB)) / 2;
+      } else {
+        int index = ydeltas.size() / 2;
+        medianY = ydeltas.get(index);
+      }
+    }
+    boxHeight = medianY;
+  }
+
+
+  private void calculateDefaultBoxWidthForPlots() {
+    List<Double> xValuesSorted = getXValues().stream().sorted(Double::compareTo)
+        .collect(Collectors.toList());
+    List<Double> xdeltas = new ArrayList<>();
+    Double xA = null;
+    Collections.sort(xdeltas);
+    Double medianX = 0.d;
+    for (Double x : xValuesSorted) {
+      if (xA == null) {
+        xA = x;
+      } else if (!(xA).equals(x)) {
+        xdeltas.add(xA - x);
+        xA = x;
+      }
+    }
+    if (xdeltas.size() >= 2) {
+      if (xdeltas.size() % 2 == 0) {
+        int indexA = xdeltas.size() / 2;
+        int indexB = xdeltas.size() / 2 - 1;
+        medianX = (xdeltas.get(indexA) + xdeltas.get(indexB)) / 2;
+      } else {
+        int index = xdeltas.size() / 2;
+        medianX = xdeltas.get(index);
+      }
+    }
+
+    boxWidth = medianX;
+  }
+
 
   @Override
   public void run() {
@@ -172,6 +259,12 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
     boxHeight = xyzValueProvider.getBoxHeight();
     boxWidth = xyzValueProvider.getBoxWidth();
+    if (boxHeight == null) {
+      calculateDefaultBoxHeightForPlots();
+    }
+    if (boxWidth == null) {
+      calculateDefaultBoxWidthForPlots();
+    }
 
     this.paintScale = computePaintScale(minZValue, maxZValue);
 

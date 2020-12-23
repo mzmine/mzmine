@@ -140,12 +140,12 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public double getBoxHeight() {
+  public Double getBoxHeight() {
     return dataPointHeight;
   }
 
   @Override
-  public double getBoxWidth() {
+  public Double getBoxWidth() {
     return dataPointWidth;
   }
 

@@ -19,6 +19,7 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import java.util.List;
+import javax.annotation.Nullable;
 
 public interface XYZValueProvider extends XYValueProvider {
 
@@ -30,9 +31,10 @@ public interface XYZValueProvider extends XYValueProvider {
    * provider can be used. Can be calculated when this method is called or during {@link
    * PlotXYZDataProvider#computeValues()}
    *
-   * @return The box width.
+   * @return The box width or null if a default shall be calculated based on median y values.
    */
-  public double getBoxHeight();
+  @Nullable
+  public Double getBoxHeight();
 
   /**
    * Supplies the dataset with box width information. Is called after {@link
@@ -40,7 +42,8 @@ public interface XYZValueProvider extends XYValueProvider {
    * provider can be used. Can be calculated when this method is called or during {@link
    * PlotXYZDataProvider#computeValues()}
    *
-   * @return The box height.
+   * @return The box height or null if a default shall be calculated based on median x values.
    */
-  public double getBoxWidth();
+  @Nullable
+  public Double getBoxWidth();
 }
