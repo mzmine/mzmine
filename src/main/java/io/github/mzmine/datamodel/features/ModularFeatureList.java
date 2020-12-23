@@ -3,13 +3,8 @@ package io.github.mzmine.datamodel.features;
 import io.github.mzmine.datamodel.features.types.AreaBarType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
-import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
-import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.datamodel.features.types.numbers.*;
 import io.github.mzmine.util.DataTypeUtils;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -30,7 +25,6 @@ import io.github.mzmine.datamodel.features.types.CommentType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
-import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
@@ -98,6 +92,16 @@ public class ModularFeatureList implements FeatureList {
       addFeatureType(new AsymmetryFactorType());
     }
     addRowType(new CommentType());
+
+    // add standard row bindings even if data types are missing
+    addRowBinding(new RowBinding(new MZType(), BindingsType.AVERAGE));
+    addRowBinding(new RowBinding(new RTType(), BindingsType.AVERAGE));
+    addRowBinding(new RowBinding(new HeightType(), BindingsType.MAX));
+    addRowBinding(new RowBinding(new AreaType(), BindingsType.MAX));
+    addRowBinding(new RowBinding(new RTRangeType(), BindingsType.RANGE));
+    addRowBinding(new RowBinding(new MZRangeType(), BindingsType.RANGE));
+    addRowBinding(new RowBinding(new IntensityRangeType(), BindingsType.RANGE));
+    addRowBinding(new RowBinding(new ChargeType(), BindingsType.CONSENSUS));
   }
 
   @Override

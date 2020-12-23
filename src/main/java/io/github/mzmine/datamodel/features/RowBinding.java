@@ -40,7 +40,9 @@ public class RowBinding {
   }
 
   public void apply(ModularFeatureListRow row) {
-    ObjectBinding<?> binding = featureType.createBinding(bindingType, row);
-    row.get(rowType).bind(binding);
+    if(row.get(rowType)!=null) {
+      ObjectBinding<?> binding = featureType.createBinding(bindingType, row);
+      row.get(rowType).bind(binding);
+    }
   }
 }

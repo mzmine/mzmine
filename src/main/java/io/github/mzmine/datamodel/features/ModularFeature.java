@@ -29,6 +29,7 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -224,23 +225,31 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nonnull
   @Override
   public Range<Float> getRawDataPointsRTRange() {
+    if(!hasTypeColumn(RTRangeType.class))
+      return Range.singleton(0f);
     return get(RTRangeType.class).getValue();
   }
 
   @Nonnull
   @Override
   public Range<Double> getRawDataPointsMZRange() {
+    if(!hasTypeColumn(MZRangeType.class))
+      return Range.singleton(0d);
     return get(MZRangeType.class).getValue();
   }
 
   @Nonnull
   @Override
   public Range<Float> getRawDataPointsIntensityRange() {
+    if(!hasTypeColumn(IntensityRangeType.class))
+      return Range.singleton(0f);
     return get(IntensityRangeType.class).getValue();
   }
 
   @Override
   public int getMostIntenseFragmentScanNumber() {
+    if(!hasTypeColumn(BestFragmentScanNumberType.class))
+      return -1;
     return get(BestFragmentScanNumberType.class).getValue();
   }
 
@@ -251,6 +260,8 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public ObservableList<Integer> getAllMS2FragmentScanNumbers() {
+    if(!hasTypeColumn(FragmentScanNumbersType.class))
+      return FXCollections.emptyObservableList();
     return get(FragmentScanNumbersType.class).getValue();
   }
 
@@ -262,6 +273,8 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nullable
   @Override
   public IsotopePattern getIsotopePattern() {
+    if(!hasTypeColumn(IsotopePatternType.class))
+      return null;
     return get(IsotopePatternType.class).getValue();
   }
 
@@ -352,6 +365,8 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public SimpleFeatureInformation getFeatureInformation() {
+    if(!hasTypeColumn(FeatureInformationType.class))
+      return null;
     return get(FeatureInformationType.class).getValue();
   }
 
@@ -400,6 +415,8 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nonnull
   @Override
   public ObservableList<Integer> getScanNumbers() {
+    if(!hasTypeColumn(ScanNumbersType.class))
+      return FXCollections.emptyObservableList();
     return get(ScanNumbersType.class).getValue();
   }
 
@@ -410,33 +427,47 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public int getRepresentativeScanNumber() {
+    if(!hasTypeColumn(BestScanNumberType.class))
+      return -1;
     return get(BestScanNumberType.class).getValue();
   }
 
   @Override
   public ObservableList<DataPoint> getDataPoints() {
+    if(!hasTypeColumn(DataPointsType.class))
+      return FXCollections.emptyObservableList();
     return get(DataPointsType.class).getValue();
   }
 
   public float getRT() {
+    if(!hasTypeColumn(RTType.class))
+      return Float.NaN;
     return get(RTType.class).getValue();
   }
 
   @Nonnull
   @Override
   public FeatureStatus getFeatureStatus() {
+    if(!hasTypeColumn(RTType.class))
+      return FeatureStatus.UNKNOWN;
     return get(DetectionType.class).getValue();
   }
 
   public double getMZ() {
+    if(!hasTypeColumn(MZType.class))
+      return Double.NaN;
     return get(MZType.class).getValue();
   }
 
   public float getHeight() {
+    if(!hasTypeColumn(HeightType.class))
+      return Float.NaN;
     return get(HeightType.class).getValue();
   }
 
   public float getArea() {
+    if(!hasTypeColumn(AreaType.class))
+      return Float.NaN;
     return get(AreaType.class).getValue();
   }
 }
