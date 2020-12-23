@@ -28,6 +28,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -77,8 +78,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   private final TextTitle chartSubTitle;
   protected ColoredXYSmallBlockRenderer blockRenderer;
 
-  private final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
-  private final List<DatasetsChangedListener> datasetListeners;
+  protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
+  protected final List<DatasetsChangedListener> datasetListeners;
+  protected NumberFormat legendAxisFormat;
 
   public SimpleXYZScatterPlot(@Nonnull String title) {
 
@@ -93,6 +95,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot = chart.getXYPlot();
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     blockRenderer = new ColoredXYSmallBlockRenderer();
+    legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
 
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
@@ -256,6 +259,11 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(format);
   }
 
+  public void setLegendNumberFormatOverride(NumberFormat format) {
+    this.legendAxisFormat = format;
+    onDatasetChanged((XYZDataset) getXYPlot().getDataset());
+  }
+
   @Override
   public void addContextMenuItem(String title, EventHandler<ActionEvent> ai) {
     logger.info("call");
@@ -355,6 +363,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
+    scaleAxis.setNumberFormatOverride(legendAxisFormat);
     PaintScaleLegend newLegend = new PaintScaleLegend(scale, scaleAxis);
     newLegend.setPadding(5, 0, 5, 0);
     newLegend.setStripOutlineVisible(false);
@@ -381,7 +390,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     if (!(dataset instanceof ColoredXYZDataset)) {
       return;
     }
-    if(((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
+    if (((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
       return;
     }
     ColoredXYZDataset xyz = (ColoredXYZDataset) dataset;
