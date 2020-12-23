@@ -160,6 +160,7 @@ public class TDFReaderTask extends AbstractTask {
 
     identifySegments((IMSRawDataFileImpl) newMZmineFile);
 
+    loadedFrames = 0;
     // collect average spectra for each frame
     int frameId = frameTable.getFrameIdColumn().get(0).intValue();
     Set<Frame> frames = new LinkedHashSet<>();
@@ -173,8 +174,8 @@ public class TDFReaderTask extends AbstractTask {
         Frame storedFrame = (Frame) newMZmineFile.addScan(frame);
         frames.add(storedFrame);
         frameId++;
-
-        if(isCanceled()) {
+        loadedFrames++;
+        if (isCanceled()) {
           return;
         }
       }
@@ -289,8 +290,9 @@ public class TDFReaderTask extends AbstractTask {
 
     for (Frame frame : frames) {
       setDescription(
-          "Importing " + rawDataFileName + ": Frame " + frame.getFrameId() + "/" + numFrames);
-      finishedPercentage = 0.1 + 0.9 * loadedFrames / numFrames;
+          "Loading mobility scans of " + rawDataFileName + ": Frame " + frame.getFrameId() + "/"
+              + numFrames);
+      finishedPercentage = 0.1 + (0.9 * ((double) loadedFrames / numFrames));
       final Set<MobilityScan> spectra = TDFUtils
           .loadSpectraForTIMSFrame(handle, frame.getFrameId(), frame, frameTable);
 
@@ -298,12 +300,12 @@ public class TDFReaderTask extends AbstractTask {
         ((StorableFrame) frame).addMobilityScan(spectrum);
       }
 
-      if(isCanceled()) {
+      if (isCanceled()) {
         return;
       }
-
       loadedFrames++;
     }
+
   }
 
   private void appendScansFromMaldiTimsSegment(@Nonnull final RawDataFileWriter rawDataFile,
