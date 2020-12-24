@@ -57,7 +57,7 @@ public class DoubleRangeComponent extends HBox {
 
     getChildren().addAll(minTxtField, minusLabel, maxTxtField);
 
-    setMinWidth(600.0);
+    setMinWidth(200.0);
     // setStyle("-fx-border-color: red");
 
     setNumberFormat(format);

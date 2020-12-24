@@ -24,6 +24,8 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.SUFFIX;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.mzRangeMSMS;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -31,19 +33,17 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureConvertors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DeconvolutionTask extends AbstractTask {
 
@@ -74,7 +74,7 @@ public class DeconvolutionTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list feature list to operate on.
+   * @param list         feature list to operate on.
    * @param parameterSet task parameters.
    */
   public DeconvolutionTask(final MZmineProject project, final FeatureList list,
@@ -163,8 +163,9 @@ public class DeconvolutionTask extends AbstractTask {
             logger.info("Finished peak recognition on " + originalPeakList);
           }
           // Turn off R instance.
-          if (this.rSession != null)
+          if (this.rSession != null) {
             this.rSession.close(false);
+          }
 
         } catch (RSessionWrapperException e) {
           errorMsg = "'R computing error' during CentWave detection. \n" + e.getMessage();
@@ -179,8 +180,9 @@ public class DeconvolutionTask extends AbstractTask {
 
         // Turn off R instance, once task ended UNgracefully.
         try {
-          if (this.rSession != null && !isCanceled())
+          if (this.rSession != null && !isCanceled()) {
             rSession.close(isCanceled());
+          }
         } catch (RSessionWrapperException e) {
           if (!isCanceled()) {
             // Do not override potential previous error message.
@@ -204,7 +206,7 @@ public class DeconvolutionTask extends AbstractTask {
   /**
    * Deconvolve a chromatogram into separate peaks.
    *
-   * @param peakList holds the chromatogram to deconvolve.
+   * @param peakList          holds the chromatogram to deconvolve.
    * @param mzCenterFunction2
    * @return a new feature list holding the resolved peaks.
    * @throws RSessionWrapperException
@@ -220,21 +222,24 @@ public class DeconvolutionTask extends AbstractTask {
         parameters.getParameter(PEAK_RESOLVER).getValue();
     // set msms pairing range
     this.setMSMSRange = parameters.getParameter(mzRangeMSMS).getValue();
-    if (setMSMSRange)
+    if (setMSMSRange) {
       this.msmsRange = parameters.getParameter(mzRangeMSMS).getEmbeddedParameter().getValue();
-    else
+    } else {
       this.msmsRange = 0;
+    }
 
     this.setMSMSRT = parameters.getParameter(RetentionTimeMSMS).getValue();
-    if (setMSMSRT)
+    if (setMSMSRT) {
       this.RTRangeMSMS =
           parameters.getParameter(RetentionTimeMSMS).getEmbeddedParameter().getValue().floatValue();
-    else
+    } else {
       this.RTRangeMSMS = 0;
+    }
 
     // Create new feature list.
     final FeatureList resolvedPeaks =
-        new ModularFeatureList(peakList + " " + parameters.getParameter(SUFFIX).getValue(), dataFile);
+        new ModularFeatureList(peakList + " " + parameters.getParameter(SUFFIX).getValue(),
+            dataFile);
 
     // Load previous applied methods.
     for (final FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
@@ -270,7 +275,8 @@ public class DeconvolutionTask extends AbstractTask {
 
         peak.setParentChromatogramRowID(currentRow.getID());
 
-        final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) resolvedPeaks, peakId++);
+        final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) resolvedPeaks,
+            peakId++);
         newRow.addFeature(dataFile, FeatureConvertors.ResolvedPeakToMoularFeature(peak));
         newRow.setFeatureInformation(peak.getPeakInformation());
         resolvedPeaks.addRow(newRow);
@@ -288,10 +294,13 @@ public class DeconvolutionTask extends AbstractTask {
     super.cancel();
     // Turn off R instance, if already existing.
     try {
-      if (this.rSession != null)
+      if (this.rSession != null) {
         this.rSession.close(true);
+      }
     } catch (RSessionWrapperException e) {
       // Silent, always...
     }
   }
+
+
 }

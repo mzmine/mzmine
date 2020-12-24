@@ -85,7 +85,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
    * Create the dialog.
    *
    * @param resolverParameters resolver parameters.
-   * @param resolverClass resolver class.
+   * @param resolverClass      resolver class.
    */
   public PeakResolverSetupDialog(boolean valueCheckRequired, final ParameterSet resolverParameters,
       final Class<? extends PeakResolver> resolverClass) {
@@ -102,6 +102,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
       final Class<? extends PeakResolver> resolverClass, String message) {
 
     super(valueCheckRequired, resolverParameters, message);
+    paramsPane.setGridLinesVisible(true);
 
     // Instantiate resolver.
     try {
@@ -128,7 +129,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the preview
         // component will consume most of the extra available space.
-        paramsPane.add(pnlPlotXY, 3, 0);
+        paramsPane.add(pnlPlotXY, 3, 0, 1, 200);
         pnlVisible.setCenter(pnlLabelsFields);
         // updateMinimumSize();
         // pack();
@@ -147,6 +148,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         paramsPane.getChildren().remove(pnlPlotXY);
         pnlVisible.getChildren().remove(pnlLabelsFields);
       }
+      mainPane.getScene().getWindow().sizeToScene();
     });
     // preview.setHorizontalAlignment(SwingConstants.CENTER);
     preview.setDisable(peakLists.length == 0);
@@ -162,7 +164,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     // comboPeakList.setFont(COMBO_FONT);
     for (
 
-    final FeatureList peakList : peakLists) {
+        final FeatureList peakList : peakLists) {
       if (peakList.getNumberOfRawDataFiles() == 1) {
         comboPeakList.getItems().add(peakList);
       }
@@ -200,7 +202,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
       };
     });
 
-
     // comboPeak.setPreferredSize(
     // new Dimension(PREFERRED_PEAK_COMBO_WIDTH, comboPeak.getPreferredSize().height));
 
@@ -229,13 +230,10 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     // pnlPlotXY.setRight(toolBar);
     // GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
 
-    paramsPane.add(pnlVisible, 0,
-
-        getNumberOfParameters() + 3);
+    paramsPane.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1);
 
 
   }
-
 
 
   @Override
@@ -295,8 +293,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
               peakResolver.resolvePeaks(previewPeak, parameters, rSession, mzCenterFunction, 0, 0);
 
           // Turn off R instance.
-          if (rSession != null)
+          if (rSession != null) {
             rSession.close(false);
+          }
 
         } catch (RSessionWrapperException e) {
 
@@ -328,7 +327,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
     }
   }
-
 
 
 }

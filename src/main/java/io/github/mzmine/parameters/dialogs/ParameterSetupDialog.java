@@ -18,10 +18,6 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import com.google.common.base.Strings;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
@@ -30,6 +26,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.util.ExitCode;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -48,6 +48,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -137,6 +138,8 @@ public class ParameterSetupDialog extends Stage {
     // paramsPane.setStyle("-fx-border-color: blue;");
 
     ColumnConstraints column1 = new ColumnConstraints();
+    column1.setHgrow(Priority.NEVER);
+//    column1.setMinWidth(100);
 
     /*
      * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
@@ -144,10 +147,12 @@ public class ParameterSetupDialog extends Stage {
      * content's size preferences and constraints.
      */
     ColumnConstraints column2 = new ColumnConstraints();
-    // column2.setHgrow(Priority.ALWAYS);
-    // paramsPane.getColumnConstraints().addAll(column1, column2);
-    // paramsPane.setMinWidth(500.0);
-    // paramsPane.setPrefWidth(800.0);
+     column2.setHgrow(Priority.SOMETIMES);
+     column2.setFillWidth(true);
+     column2.setMinWidth(300);
+     paramsPane.getColumnConstraints().addAll(column1, column2);
+     paramsPane.setMinWidth(300.0);
+     paramsPane.setPrefWidth(500.0);
 
     mainScrollPane = new ScrollPane(paramsPane);
     // mainScrollPane.setStyle("-fx-border-color: red;");

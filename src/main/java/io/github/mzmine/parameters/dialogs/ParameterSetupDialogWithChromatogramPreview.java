@@ -39,7 +39,7 @@ import javafx.scene.layout.FlowPane;
 /**
  * This class extends ParameterSetupDialog class, including a TICPlot. This is used to preview how
  * the selected raw data filters work.
- *
+ * <p>
  * Slightly modified to add the possibility of switching to TIC (versus Base Peak) preview.
  */
 public abstract class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupDialog {
@@ -75,14 +75,15 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
 
       RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
 
-      if (selectedFiles.length > 0)
+      if (selectedFiles.length > 0) {
         previewDataFile = selectedFiles[0];
-      else
+      } else {
         previewDataFile = dataFiles[0];
+      }
     }
 
-    previewCheckBox.setOnAction(e -> {
-      if (previewCheckBox.isSelected()) {
+    previewCheckBox.selectedProperty().addListener((obs, o, n) -> {
+      if (n == true) {
         showPreview();
       } else {
         hidePreview();
@@ -124,7 +125,9 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     ticViewComboBox.setOnAction(e -> parametersChanged());
 
     // TODO: FloatRangeComponent
-    rtRangeBox.setValue(Range.closed(previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue(), previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue()));
+    rtRangeBox.setValue(Range
+        .closed(previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue(),
+            previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue()));
     mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
 
     pnlFlds.getChildren().add(comboDataFileName);
@@ -146,8 +149,38 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
 
     paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3);
 
+//    previewCheckBox.selectedProperty().addListener(((observable, oldValue, newValue) -> {
+//      if (newValue == true) {
+//        mainPane.setCenter(ticPlot);
+//        mainPane.setLeft(mainScrollPane);
+//        mainPane.autosize();
+//        mainPane.getScene().getWindow().sizeToScene();
+//        parametersChanged();
+//      } else {
+//        mainPane.setLeft(null);
+//        mainPane.setCenter(mainScrollPane);
+//        mainPane.autosize();
+//        mainPane.getScene().getWindow().sizeToScene();
+//      }
+//    }));
 
+  }
 
+  protected void showPreview() {
+    mainPane.setCenter(ticPlot);
+    mainPane.setLeft(mainScrollPane);
+    mainPane.autosize();
+    mainPane.getScene().getWindow().sizeToScene();
+    pnlPreviewFields.setVisible(true);
+    parametersChanged();
+  }
+
+  protected void hidePreview() {
+    mainPane.setLeft(null);
+    mainPane.setCenter(mainScrollPane);
+    mainPane.autosize();
+    mainPane.getScene().getWindow().sizeToScene();
+    pnlPreviewFields.setVisible(false);
   }
 
   /**
@@ -176,29 +209,6 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     ticPlot.setTitle(previewDataFile.getName(), title);
   }
 
-
-
-  public void showPreview() {
-    // Set the height of the preview to 200 cells, so it will span
-    // the whole vertical length of the dialog (buttons are at row
-    // no 100). Also, we set the weight to 10, so the preview
-    // component will consume most of the extra available space.
-    paramsPane.add(ticPlot, 3, 0, 1, 200);
-    pnlPreviewFields.setVisible(true);
-    // updateMinimumSize();
-    // pack();
-    parametersChanged();
-    // previewCheckBox.setSelected(true);
-  }
-
-  public void hidePreview() {
-    paramsPane.getChildren().remove(ticPlot);
-    pnlPreviewFields.setVisible(false);
-    // updateMinimumSize();
-    // pack();
-    previewCheckBox.setSelected(false);
-  }
-
   public TICPlotType getPlotType() {
     return (ticViewComboBox.getSelectionModel().getSelectedItem());
   }
@@ -215,8 +225,9 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
   protected void parametersChanged() {
 
     // Update preview as parameters have changed
-    if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
+    if ((previewCheckBox == null) || (!previewCheckBox.isSelected())) {
       return;
+    }
 
     Range<Float> rtRange = RangeUtils.toFloatRange(rtRangeBox.getValue());
     Range<Double> mzRange = mzRangeBox.getValue();
