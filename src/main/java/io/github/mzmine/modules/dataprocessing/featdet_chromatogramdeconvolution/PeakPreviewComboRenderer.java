@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.FeatureConvertors;
-import io.github.mzmine.util.components.PeakXICComponent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 
@@ -41,10 +40,10 @@ public class PeakPreviewComboRenderer extends BorderPane {
         + MZmineCore.getConfiguration().getMZFormat().format(row.getAverageMZ()) + " m/z ";
     Label textComponent = new Label(labelText);
     //
-    PeakXICComponent shapeComponent = new PeakXICComponent(peak);
+    //PeakXICComponent shapeComponent = new PeakXICComponent(peak);
 
     setLeft(textComponent);
-    setCenter(shapeComponent);
+    //setCenter(shapeComponent);
 
   }
 

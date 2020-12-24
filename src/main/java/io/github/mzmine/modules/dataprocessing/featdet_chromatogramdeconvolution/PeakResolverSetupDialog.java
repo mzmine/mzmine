@@ -123,34 +123,26 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     // Elements of panel.
     preview = new CheckBox("Show preview");
     preview.setOnAction(e -> {
-
       if (preview.isSelected()) {
         // Set the height of the preview to 200 cells, so it will span
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the preview
         // component will consume most of the extra available space.
-        paramsPane.add(pnlPlotXY, 3, 0, 1, 200);
+        paramsPane.add(pnlPlotXY, 3, 0, 1, getNumberOfParameters() + 2);
         pnlVisible.setCenter(pnlLabelsFields);
-        // updateMinimumSize();
-        // pack();
-
         // Set selections.
         final FeatureList[] selected = MZmineCore.getDesktop().getSelectedPeakLists();
         if (selected.length > 0) {
           comboPeakList.getSelectionModel().select(selected[0]);
         } else {
-
           comboPeakList.getSelectionModel().select(0);
         }
-        // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
       } else {
-
         paramsPane.getChildren().remove(pnlPlotXY);
         pnlVisible.getChildren().remove(pnlLabelsFields);
       }
       mainPane.getScene().getWindow().sizeToScene();
     });
-    // preview.setHorizontalAlignment(SwingConstants.CENTER);
     preview.setDisable(peakLists.length == 0);
 
     // Preview panel.
@@ -162,37 +154,42 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     // Feature list combo-box.
     comboPeakList = new ComboBox<FeatureList>();
     // comboPeakList.setFont(COMBO_FONT);
-    for (
-
-        final FeatureList peakList : peakLists) {
+    for (final FeatureList peakList : peakLists) {
       if (peakList.getNumberOfRawDataFiles() == 1) {
         comboPeakList.getItems().add(peakList);
       }
     }
-    comboPeakList.setOnAction(e -> {
+    comboPeakList.valueProperty().addListener((obs, old, newVal) -> {
       // Remove current peaks (suspend listener).
-
+      if (newVal == null) {
+        return;
+      }
       ObservableList<FeatureListRow> newItems = FXCollections
-          .observableArrayList(comboPeakList.getSelectionModel().getSelectedItem().getRows());
+          .observableArrayList(newVal.getRows());
       comboPeak.setItems(newItems);
-
-      // Select first item.
       if (newItems.size() > 0) {
-
         comboPeak.getSelectionModel().select(0);
       }
     });
 
     // Peaks combo box.
     comboPeak = new ComboBox<FeatureListRow>();
-    // comboPeak.setFont(COMBO_FONT);
-
+    comboPeak.setButtonCell(new ListCell<>() {
+      @Override
+      protected void updateItem(FeatureListRow item, boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null || empty) {
+          setGraphic(null);
+        } else {
+          setGraphic(new PeakPreviewComboRenderer(item));
+        }
+      }
+    });
     comboPeak.setCellFactory(p -> {
       return new ListCell<FeatureListRow>() {
         @Override
         protected void updateItem(FeatureListRow item, boolean empty) {
           super.updateItem(item, empty);
-
           if (item == null || empty) {
             setGraphic(null);
           } else {
@@ -201,6 +198,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         }
       };
     });
+    comboPeak.valueProperty().addListener(((observable, oldValue, newValue) -> {
+      parametersChanged();
+    }));
 
     // comboPeak.setPreferredSize(
     // new Dimension(PREFERRED_PEAK_COMBO_WIDTH, comboPeak.getPreferredSize().height));
@@ -217,6 +217,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
     // TIC plot.
     ticPlot = new TICPlot();
+    ticPlot.setMinSize(400, 300);
     // ticPlot.setMinimumSize(MINIMUM_TIC_DIMENSIONS);
 
     // Tool bar.
@@ -230,9 +231,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     // pnlPlotXY.setRight(toolBar);
     // GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
 
-    paramsPane.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1);
-
-
+    paramsPane.add(pnlVisible, 0, getNumberOfParameters() + 3, 4, 1);
   }
 
 

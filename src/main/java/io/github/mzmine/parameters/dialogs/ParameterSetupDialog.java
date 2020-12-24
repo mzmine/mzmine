@@ -48,7 +48,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -138,21 +137,13 @@ public class ParameterSetupDialog extends Stage {
     // paramsPane.setStyle("-fx-border-color: blue;");
 
     ColumnConstraints column1 = new ColumnConstraints();
-    column1.setHgrow(Priority.NEVER);
-//    column1.setMinWidth(100);
-
     /*
      * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
      * constraints, leaving the GridPane to compute the column's layout based solely on its
      * content's size preferences and constraints.
      */
     ColumnConstraints column2 = new ColumnConstraints();
-     column2.setHgrow(Priority.SOMETIMES);
-     column2.setFillWidth(true);
-     column2.setMinWidth(300);
-     paramsPane.getColumnConstraints().addAll(column1, column2);
-     paramsPane.setMinWidth(300.0);
-     paramsPane.setPrefWidth(500.0);
+    paramsPane.getColumnConstraints().addAll(column1, column2);
 
     mainScrollPane = new ScrollPane(paramsPane);
     // mainScrollPane.setStyle("-fx-border-color: red;");
