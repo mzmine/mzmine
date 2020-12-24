@@ -18,9 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.util.FeatureConvertors;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -242,11 +244,16 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
       final FeatureListRow previewRow = comboPeak.getSelectionModel().getSelectedItem();
       if (previewRow != null) {
+        // Load the intensities and RTs into array.
+        final Feature previewPeak =
+            (previewRow.getFeatures().get(0).getRawDataFile() instanceof IMSRawDataFile)
+                ? FeatureConvertors.collapseMobilityDimensionOfModularFeature(
+                (ModularFeature) previewRow.getFeatures().get(0)) : previewRow.getFeatures().get(0);
 
         logger.finest("Loading new preview peak " + previewRow);
 
         ticPlot.removeAllDataSets();
-        ticPlot.addDataSet(new ChromatogramTICDataSet(previewRow.getFeatures().get(0)));
+        ticPlot.addDataSet(new ChromatogramTICDataSet(previewPeak));
 
         // Auto-range to axes.
         ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
@@ -263,9 +270,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
           logger.fine("Illegal parameter value: " + errors);
           return;
         }
-
-        // Load the intensities and RTs into array.
-        final Feature previewPeak = previewRow.getFeatures().get(0);
 
         // Resolve peaks.
         ResolvedPeak[] resolvedPeaks = {};
@@ -297,10 +301,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
           }
 
         } catch (RSessionWrapperException e) {
-
           throw new IllegalStateException(e.getMessage());
         } catch (Throwable t) {
-
+          t.printStackTrace();
           logger.log(Level.SEVERE, "Peak deconvolution error", t);
           MZmineCore.getDesktop().displayErrorMessage(t.toString());
         }

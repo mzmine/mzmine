@@ -540,6 +540,7 @@ public class FeatureConvertors {
       entry.add(dp);
     }
 
+    double maxIntensity = 0;
     // sum intensity over mobility dimension
     for (Entry<Integer, Set<RetentionTimeMobilityDataPoint>> entry : sortedDataPoints.entrySet()) {
       int frameNumber = entry.getKey();
@@ -548,11 +549,23 @@ public class FeatureConvertors {
       for (RetentionTimeMobilityDataPoint dp : entry.getValue()) {
         mz += dp.getMZ();
         intensity += dp.getIntensity();
+        if (intensity > maxIntensity) {
+          maxIntensity = intensity;
+        }
       }
-      DataPoint summedDataPoint = new SimpleDataPoint(mz, intensity);
+      DataPoint summedDataPoint = new SimpleDataPoint(mz / entry.getValue().size(), intensity);
       newFeature.getScanNumbers().add(frameNumber);
       newFeature.getDataPoints().add(summedDataPoint);
     }
+    newFeature.setHeight((float) maxIntensity);
+
+    double mz = 0;
+    final double totalIntensity = newFeature.getDataPoints().stream()
+        .mapToDouble(DataPoint::getIntensity).sum();
+    for(DataPoint dp : newFeature.getDataPoints()) {
+      mz += dp.getMZ() * (dp.getIntensity() / totalIntensity);
+    }
+    newFeature.setMZ(mz);
 
     // i don't think we need anything else to rt-resolve a feature
     return newFeature;
