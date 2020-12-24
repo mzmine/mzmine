@@ -194,7 +194,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
         .collect(Collectors.toList());
     List<Double> xdeltas = new ArrayList<>();
     Double xA = null;
-    Collections.sort(xdeltas);
     Double medianX = 0.d;
     for (Double x : xValuesSorted) {
       if (xA == null) {
@@ -204,6 +203,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
         xA = x;
       }
     }
+    Collections.sort(xdeltas);
     if (xdeltas.size() >= 2) {
       if (xdeltas.size() % 2 == 0) {
         int indexA = xdeltas.size() / 2;
