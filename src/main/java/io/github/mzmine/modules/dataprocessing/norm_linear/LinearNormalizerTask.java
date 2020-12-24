@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
+import javafx.collections.ObservableList;
 
 class LinearNormalizerTask extends AbstractTask {
 
@@ -45,7 +46,7 @@ class LinearNormalizerTask extends AbstractTask {
   static final float maximumOverallFeatureHeightAfterNormalization = 100000.0f;
 
   private final MZmineProject project;
-  private FeatureList originalFeatureList, normalizedFeatureList;
+  private ModularFeatureList originalFeatureList, normalizedFeatureList;
 
   private int processedDataFiles, totalDataFiles;
 
@@ -58,7 +59,7 @@ class LinearNormalizerTask extends AbstractTask {
   public LinearNormalizerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
 
     this.project = project;
-    this.originalFeatureList = featureList;
+    this.originalFeatureList = (ModularFeatureList) featureList;
     this.parameters = parameters;
 
     totalDataFiles = originalFeatureList.getNumberOfRawDataFiles();
@@ -189,7 +190,9 @@ class LinearNormalizerTask extends AbstractTask {
           normalizationFactor * maxNormalizedHeight / maximumOverallFeatureHeightAfterNormalization;
 
       // Normalize all peak intenisities using the normalization factor
-      for (FeatureListRow originalFeatureListRow : originalFeatureList.getRows()) {
+      ObservableList<FeatureListRow> rows = originalFeatureList.getRows();
+      for (int i = 0, rowsSize = rows.size(); i < rowsSize; i++) {
+        ModularFeatureListRow originalFeatureListRow = (ModularFeatureListRow) rows.get(i);
 
         // Cancel?
         if (isCanceled()) {
@@ -199,8 +202,7 @@ class LinearNormalizerTask extends AbstractTask {
         Feature originalFeature = originalFeatureListRow.getFeature(file);
         if (originalFeature != null) {
 
-          ModularFeature normalizedFeature = new ModularFeature(originalFeature);
-          FeatureUtils.copyFeatureProperties(originalFeature, normalizedFeature);
+          ModularFeature normalizedFeature = new ModularFeature(normalizedFeatureList, originalFeature);
 
           float normalizedHeight = originalFeature.getHeight() / normalizationFactor;
           float normalizedArea = originalFeature.getArea() / normalizationFactor;
@@ -211,10 +213,8 @@ class LinearNormalizerTask extends AbstractTask {
 
           if (normalizedRow == null) {
 
-            normalizedRow = new ModularFeatureListRow(
-                (ModularFeatureList) originalFeatureListRow.getFeatureList(), originalFeatureListRow.getID());
-
-            FeatureUtils.copyFeatureListRowProperties(originalFeatureListRow, normalizedRow);
+            normalizedRow = new ModularFeatureListRow((ModularFeatureList) originalFeatureListRow.getFeatureList(),
+                    originalFeatureListRow, false);
 
             rowMap.put(originalFeatureListRow, normalizedRow);
           }

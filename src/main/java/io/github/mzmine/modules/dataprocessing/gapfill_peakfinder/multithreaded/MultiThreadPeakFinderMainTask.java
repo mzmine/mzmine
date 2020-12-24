@@ -49,7 +49,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
   private final MZmineProject project;
   private ParameterSet parameters;
-  private FeatureList peakList, processedPeakList;
+  private ModularFeatureList peakList, processedPeakList;
   private String suffix;
   private boolean removeOriginal;
 
@@ -66,7 +66,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
   public MultiThreadPeakFinderMainTask(MZmineProject project, FeatureList peakList,
       ParameterSet parameters, Collection<Task> batchTasks) {
     this.project = project;
-    this.peakList = peakList;
+    this.peakList = (ModularFeatureList) peakList;
     this.parameters = parameters;
     this.batchTasks = batchTasks;
 
@@ -80,7 +80,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     logger.info("Running multithreaded gap filler on " + peakList);
 
     // Create new results feature list
-    processedPeakList = createResultsPeakList();
+    processedPeakList = peakList.createCopy(peakList + " " + suffix);
     progress = 0.5;
 
     // split raw data files into groups for each thread (task)
@@ -88,11 +88,11 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     // as this task uses one thread
     int maxRunningThreads = getMaxThreads();
     // raw files
-    int raw = peakList.getNumberOfRawDataFiles();
+    int raw = processedPeakList.getNumberOfRawDataFiles();
 
     // create consumer of resultpeaklist
     SubTaskFinishListener listener =
-        new SubTaskFinishListener(project, parameters, peakList, removeOriginal, maxRunningThreads);
+        new SubTaskFinishListener(project, parameters, processedPeakList, removeOriginal, maxRunningThreads);
 
     // Submit the tasks to the task controller for processing
     Task[] tasks = createSubTasks(raw, maxRunningThreads, listener);
@@ -135,26 +135,6 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private FeatureList createResultsPeakList() {
-    ModularFeatureList processedPeakList =
-        new ModularFeatureList(peakList + " " + suffix, peakList.getRawDataFiles());
-
-    // Fill new feature list with empty rows
-    for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-      FeatureListRow sourceRow = peakList.getRow(row);
-      FeatureListRow newRow = new ModularFeatureListRow(processedPeakList, sourceRow.getID());
-      newRow.setComment(sourceRow.getComment());
-      for (FeatureIdentity ident : sourceRow.getPeakIdentities()) {
-        newRow.addFeatureIdentity(ident, false);
-      }
-      if (sourceRow.getPreferredFeatureIdentity() != null) {
-        newRow.setPreferredFeatureIdentity(sourceRow.getPreferredFeatureIdentity());
-      }
-      processedPeakList.addRow(newRow);
-    }
-    return processedPeakList;
-  }
-
   private int getMaxThreads() {
     int maxRunningThreads = 1;
     NumOfThreadsParameter parameter =
@@ -175,7 +155,6 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
   /**
    * Distributes the RawDataFiles on different tasks
    * 
-   * @param lock
    * @param raw
    * @param maxRunningThreads
    * @param listener

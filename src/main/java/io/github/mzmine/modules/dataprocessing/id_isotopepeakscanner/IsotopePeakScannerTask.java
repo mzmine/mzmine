@@ -88,7 +88,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private double mergeWidth;
   private String message;
   private int totalRows, finishedRows;
-  private FeatureList resultPeakList;
+  private ModularFeatureList resultPeakList;
   private MZmineProject project;
   private FeatureList peakList;
   private boolean checkRT;
@@ -124,8 +124,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
    *
    * @param parameters
    * @param peakList
-   * @param peakListRow
-   * @param peak
    */
   IsotopePeakScannerTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
     this.parameters = parameters;
@@ -439,11 +437,11 @@ public class IsotopePeakScannerTask extends AbstractTask {
       boolean allPeaksAddable = true;
       List<FeatureListRow> rowBuffer = new ArrayList<FeatureListRow>();
 
-      FeatureListRow original = getRowFromCandidate(candidates, bestPatternIndex, 0, plh);
+      ModularFeatureListRow original = getRowFromCandidate(candidates, bestPatternIndex, 0, plh);
       if (original == null)
         continue;
 
-      FeatureListRow parent = copyPeakRow(original);
+      ModularFeatureListRow parent = new ModularFeatureListRow(resultPeakList, original, true);
 
       if (resultMap.containsID(parent.getID())) // if we can assign this
                                                 // row multiple times we
@@ -482,13 +480,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
                                                                     // groupedPeaks[0]/
       // ==candidates.get(0) which we added before
       {
-        FeatureListRow originalChild = getRowFromCandidate(candidates, bestPatternIndex, k, plh);
+        ModularFeatureListRow originalChild = getRowFromCandidate(candidates, bestPatternIndex, k, plh);
 
         if (originalChild == null) {
           allPeaksAddable = false;
           continue;
         }
-        FeatureListRow child = copyPeakRow(originalChild);
+        ModularFeatureListRow child = new ModularFeatureListRow(resultPeakList, originalChild, true);
 
         if (accurateAvgIntensity) {
           dp[k] = new SimpleDataPoint(child.getAverageMZ(),
@@ -586,7 +584,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @return null if no peak with the given parameters exists, the specified feature list row
    *         otherwise.
    */
-  private @Nullable FeatureListRow getRowFromCandidate(@Nonnull Candidates[] candidates,
+  private @Nullable ModularFeatureListRow getRowFromCandidate(@Nonnull Candidates[] candidates,
       int bestPatternIndex, int peakIndex, @Nonnull PeakListHandler plh) {
 
     if (bestPatternIndex >= candidates.length)
@@ -600,7 +598,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
     if (cand != null) {
       int id = cand.getCandID();
       FeatureListRow original = plh.getRowByID(id);
-      return original;
+      return (ModularFeatureListRow) original;
     }
     return null;
   }
@@ -709,7 +707,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
    *
    * @param pL
    * @param parentIndex index of possible parent peak
-   * @param maxMass
    * @return will return ArrayList<PeakListRow> of all peaks within the range of pL[parentIndex].mz
    *         -> pL[parentIndex].mz+maxMass
    */
@@ -749,28 +746,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
       buf.add(pL[i]);
     }
     return buf;
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static FeatureListRow copyPeakRow(final FeatureListRow row) {
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) row.getFeatureList(), row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the peaks.
-    for (final Feature peak : row.getFeatures()) {
-      final Feature newPeak = new ModularFeature(peak);
-      FeatureUtils.copyFeatureProperties(peak, newPeak);
-      newRow.addFeature(peak.getRawDataFile(), newPeak);
-    }
-
-    return newRow;
   }
 
   /**

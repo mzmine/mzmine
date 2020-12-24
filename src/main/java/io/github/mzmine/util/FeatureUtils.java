@@ -30,12 +30,14 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
@@ -147,50 +149,6 @@ public class FeatureUtils {
   }
 
   /**
-   * Copies properties such as identification results and comments from the source row to the target
-   * row.
-   */
-  public static void copyFeatureListRowProperties(FeatureListRow source, FeatureListRow target) {
-
-    // Combine the comments
-    String targetComment = target.getComment();
-    if ((targetComment == null) || (targetComment.trim().length() == 0)) {
-      targetComment = source.getComment();
-    } else {
-      if ((source.getComment() != null) && (source.getComment().trim().length() > 0))
-        targetComment += "; " + source.getComment();
-    }
-    target.setComment(targetComment);
-
-    // Copy all feature identities, if these are not already present
-    for (FeatureIdentity identity : source.getPeakIdentities()) {
-      if (!containsIdentity(target, identity))
-        target.addFeatureIdentity(identity, false);
-    }
-
-
-    // Set the preferred identity
-    target.setPreferredFeatureIdentity(source.getPreferredFeatureIdentity());
-
-  }
-
-  /**
-   * Copies properties such as isotope pattern and charge from the source feature to the target feature
-   */
-  public static void copyFeatureProperties(Feature source, Feature target) {
-
-    // Copy isotope pattern
-    IsotopePattern originalPattern = source.getIsotopePattern();
-    if (originalPattern != null)
-      target.setIsotopePattern(originalPattern);
-
-    // Copy charge
-    int charge = source.getCharge();
-    target.setCharge(charge);
-
-  }
-
-  /**
    * Finds a combined m/z range that covers all given features
    */
   public static Range<Double> findMZRange(Feature features[]) {
@@ -298,18 +256,29 @@ public class FeatureUtils {
    * @param row A row.
    * @return A copy of row.
    */
-  public static FeatureListRow copyFeatureRow(final FeatureListRow row) {
-    // TODO: generalize beyond modular
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) row.getFeatureList());
-    copyFeatureListRowProperties(row, newRow);
+  public static ModularFeatureListRow copyFeatureRow(final ModularFeatureListRow row) {
+    return copyFeatureRow((ModularFeatureList)row.getFeatureList(), row, true);
+  }
 
-    // Copy the features.
-    for (final Feature feature : row.getFeatures()) {
-      final Feature newFeature = new ModularFeature((ModularFeatureList) feature.getFeatureList());
-      copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getRawDataFile(), newFeature);
-    }
+  /**
+   * Create a copy of a feature list row.
+   *
+   *
+   * @param newFeatureList
+   * @param row the row to copy.
+   * @return the newly created copy.
+   */
+  private static ModularFeatureListRow copyFeatureRow(ModularFeatureList newFeatureList, final ModularFeatureListRow row,
+                                               boolean copyFeatures) {
+    // Copy the feature list row.
+    final ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, row, copyFeatures);
+
+    // TODO this should actually be already copied in the feature list row constructor (all DataTypes are)
+//     if (row.getFeatureInformation() != null) {
+//      SimpleFeatureInformation information =
+//              new SimpleFeatureInformation(new HashMap<>(row.getFeatureInformation().getAllProperties()));
+//      newRow.setFeatureInformation(information);
+//    }
 
     return newRow;
   }
@@ -320,14 +289,29 @@ public class FeatureUtils {
    * @param rows The rows to be copied.
    * @return A copy of rows.
    */
-  public static FeatureListRow[] copyFeatureRows(final FeatureListRow[] rows) {
-    FeatureListRow[] newRows = new FeatureListRow[rows.length];
-
+  public static ModularFeatureListRow[] copyFeatureRows(final ModularFeatureListRow[] rows) {
+    ModularFeatureListRow[] newRows = new ModularFeatureListRow[rows.length];
     for (int i = 0; i < newRows.length; i++) {
       newRows[i] = copyFeatureRow(rows[i]);
     }
-
     return newRows;
+  }
+
+  public static ModularFeatureListRow[] copyFeatureRows(ModularFeatureList newFeatureList, final ModularFeatureListRow[] rows, boolean copyFeatures) {
+    ModularFeatureListRow[] newRows = new ModularFeatureListRow[rows.length];
+    for (int i = 0; i < newRows.length; i++) {
+      newRows[i] = copyFeatureRow(newFeatureList, rows[i], copyFeatures);
+    }
+    return newRows;
+  }
+
+  public static List<ModularFeatureListRow> copyFeatureRows(final List<ModularFeatureListRow> rows) {
+    return rows.stream().map(row -> copyFeatureRow(row)).collect(Collectors.toList());
+  }
+
+  public static List<ModularFeatureListRow> copyFeatureRows(ModularFeatureList newFeatureList, final List<ModularFeatureListRow> rows,
+                                                            boolean copyFeatures) {
+    return rows.stream().map(row -> copyFeatureRow(newFeatureList, row, copyFeatures)).collect(Collectors.toList());
   }
 
   /**

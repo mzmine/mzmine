@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import io.github.mzmine.util.FeatureUtils;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
@@ -33,15 +35,13 @@ public class ModularFeatureList implements FeatureList {
 
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
-  private final LinkedHashMap<Class<? extends DataType>, DataType> rowTypesLinkedMap =
-      new LinkedHashMap<>();
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private ObservableMap<Class<? extends DataType>, DataType> rowTypes;
+  private ObservableMap<Class<? extends DataType>, DataType> rowTypes =
+          FXCollections.observableMap(new LinkedHashMap<>());
 
-  private final LinkedHashMap<Class<? extends DataType>, DataType> featureTypesLinkedMap =
-      new LinkedHashMap<>();
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private ObservableMap<Class<? extends DataType>, DataType> featureTypes;
+  private ObservableMap<Class<? extends DataType>, DataType> featureTypes =
+          FXCollections.observableMap(new LinkedHashMap<>());
 
   // bindings for values
   private final List<RowBinding> rowBindings = new ArrayList<>();
@@ -130,13 +130,12 @@ public class ModularFeatureList implements FeatureList {
 
   public void addFeatureType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
-      if (!featureTypesLinkedMap.containsKey(type.getClass())) {
-        featureTypesLinkedMap.put(type.getClass(), type);
+      if (!featureTypes.containsKey(type.getClass())) {
+        featureTypes.put(type.getClass(), type);
         // add to maps
         modularStreamFeatures().forEach(f -> {
           f.setProperty(type, type.createProperty());
         });
-        featureTypes = FXCollections.observableMap(featureTypesLinkedMap);
       }
     }
   }
@@ -147,13 +146,12 @@ public class ModularFeatureList implements FeatureList {
 
   public void addRowType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
-      if (!rowTypesLinkedMap.containsKey(type.getClass())) {
-        rowTypesLinkedMap.put(type.getClass(), type);
+      if (!rowTypes.containsKey(type.getClass())) {
+        rowTypes.put(type.getClass(), type);
         // add type columns to maps
         modularStream().forEach(row -> {
           row.setProperty(type, type.createProperty());
         });
-        rowTypes = FXCollections.observableMap(rowTypesLinkedMap);
       }
     }
   }
@@ -474,4 +472,21 @@ public class ModularFeatureList implements FeatureList {
     return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
   }
 
+  /**
+   * create copy of all feature list rows and features
+   * @param title
+   * @return
+   */
+    public ModularFeatureList createCopy(String title) {
+      ModularFeatureList flist = new ModularFeatureList(title, this.getRawDataFiles());
+      // copy all rows and features
+      this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row,true))
+              .forEach(newRow -> flist.addRow(newRow));
+
+      // Load previous applied methods
+      for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
+        flist.addDescriptionOfAppliedTask(proc);
+      }
+      return flist;
+    }
 }

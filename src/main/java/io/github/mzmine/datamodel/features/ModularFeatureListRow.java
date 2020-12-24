@@ -107,6 +107,18 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
   }
 
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, ModularFeatureListRow row, boolean copyFeatures) {
+    this(flist);
+    // copy all but features
+    row.stream().filter(e -> !(e.getKey() instanceof FeaturesType)).forEach(entry -> this.set(entry.getKey(), entry.getValue()));
+    if(copyFeatures) {
+      // Copy the features.
+      for (final Feature feature : row.getFeatures()) {
+        this.addFeature(feature.getRawDataFile(), new ModularFeature(flist, feature));
+      }
+    }
+  }
+
   /**
    * Constructor for row with only one raw data file.
    *
@@ -203,6 +215,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   public ObservableList<Feature> getFeatures() {
+    // TODO remove features object - not always do we have features
+    // FeaturesType creates an empty ListProperty for that
     //return FXCollections.observableArrayList(get(FeaturesType.class).getValue().values());
     return FXCollections.observableArrayList(features.values());
   }

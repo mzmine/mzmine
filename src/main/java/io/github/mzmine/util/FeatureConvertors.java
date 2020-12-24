@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangePeak;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogram;
+import io.github.mzmine.modules.io.rawdataexport.RawDataFileType;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
@@ -394,7 +395,6 @@ public class FeatureConvertors {
     modularFeature.set(HeightType.class, (float) resolvedPeak.getHeight());
     modularFeature.set(AreaType.class, (float) resolvedPeak.getArea());
     modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
-
 
     // Data points of feature
     List<DataPoint> dps = new ArrayList<>();

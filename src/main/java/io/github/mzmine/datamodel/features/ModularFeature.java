@@ -72,13 +72,12 @@ public class ModularFeature implements Feature, ModularDataModel {
    * Initializes a new feature using given values
    *
    */
-  public ModularFeature(RawDataFile dataFile, double mz, float rt, float height, float area,
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt, float height, float area,
       int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
       int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
       @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
       @Nonnull Range<Float> intensityRange) {
-
-    this(new ModularFeatureList("", dataFile));
+    this(flist);
 
     assert dataFile != null;
     assert scanNumbers != null;
@@ -127,25 +126,11 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
-   * Initializes a new feature using given feature list and values
-   *
-   */
-  public ModularFeature(@Nonnull ModularFeatureList featureList, RawDataFile dataFile, double mz, float rt,
-      float height, float area, int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
-      int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
-      @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
-      @Nonnull Range<Float> intensityRange) {
-    this(dataFile, mz, rt, height, area, scanNumbers, dataPointsPerScan, featureStatus, representativeScan,
-        fragmentScanNumber, allMS2FragmentScanNumbers, rtRange, mzRange, intensityRange);
-    setFeatureList(featureList);
-  }
-
-  /**
    * Copy constructor
    */
-  public ModularFeature(@Nonnull Feature f) {
-    this((ModularFeatureList) Objects.requireNonNull(f.getFeatureList()), f);
-  }
+//  public ModularFeature(@Nonnull Feature f) {
+//    this((ModularFeatureList) Objects.requireNonNull(f.getFeatureList()), f);
+//  }
 
   /**
    * Copy constructor with custom feature list
@@ -396,10 +381,12 @@ public class ModularFeature implements Feature, ModularDataModel {
     return get(DataPointsType.class);
   }
 
-  @Nonnull
+  @Nullable
   @Override
   public RawDataFile getRawDataFile() {
     ObjectProperty<RawDataFile> raw = get(RawFileType.class);
+    if(raw==null)
+      return null;
     return raw.getValue();
   }
 

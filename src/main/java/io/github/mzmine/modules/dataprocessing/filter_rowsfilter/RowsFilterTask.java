@@ -198,13 +198,13 @@ public class RowsFilterTask extends AbstractTask {
     int intMinCount = minCount.intValue();
 
     // Filter rows.
-    final FeatureListRow[] rows = featureList.getRows().toArray(FeatureListRow[]::new);
+    final ModularFeatureListRow[] rows = featureList.getRows().toArray(ModularFeatureListRow[]::new);
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
 
       filterRowCriteriaFailed = false;
 
-      final FeatureListRow row = rows[processedRows];
+      final ModularFeatureListRow row = rows[processedRows];
 
       final int featureCount = getFeatureCount(row, groupingParameter);
 
@@ -415,7 +415,7 @@ public class RowsFilterTask extends AbstractTask {
       if (!filterRowCriteriaFailed && !removeRow) {
         // Only add the row if none of the criteria have failed.
         rowsCount++;
-        FeatureListRow resetRow = copyFeatureRow(newFeatureList,row);
+        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList, row, true);
         if (renumber) {
           resetRow.setID(rowsCount);
         }
@@ -426,7 +426,7 @@ public class RowsFilterTask extends AbstractTask {
         // Only remove rows that match *all* of the criteria, so add
         // rows that fail any of the criteria.
         rowsCount++;
-        FeatureListRow resetRow = copyFeatureRow(newFeatureList, row);
+        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList, row, true);
         if (renumber) {
           resetRow.setID(rowsCount);
         }
@@ -436,37 +436,6 @@ public class RowsFilterTask extends AbstractTask {
     }
 
     return newFeatureList;
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   *
-   *
-   * @param newFeatureList
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static FeatureListRow copyFeatureRow(ModularFeatureList newFeatureList, final FeatureListRow row) {
-
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow(newFeatureList, row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the features.
-    for (final Feature feature : row.getFeatures()) {
-      final Feature newFeature = new ModularFeature(newFeatureList,feature);
-      FeatureUtils.copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getRawDataFile(), newFeature);
-    }
-
-    // Add FeatureInformation
-    if (row.getFeatureInformation() != null) {
-      SimpleFeatureInformation information =
-          new SimpleFeatureInformation(new HashMap<>(row.getFeatureInformation().getAllProperties()));
-      newRow.setFeatureInformation(information);
-    }
-
-    return newRow;
   }
 
   private int getFeatureCount(FeatureListRow row, String groupingParameter) {
