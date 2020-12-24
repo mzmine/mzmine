@@ -23,22 +23,23 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.util.FeatureConvertors;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.util.FeatureConvertorIonMobility;
+import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBox;
@@ -247,7 +248,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         // Load the intensities and RTs into array.
         final Feature previewPeak =
             (previewRow.getFeatures().get(0).getRawDataFile() instanceof IMSRawDataFile)
-                ? FeatureConvertors.collapseMobilityDimensionOfModularFeature(
+                ? FeatureConvertorIonMobility.collapseMobilityDimensionOfModularFeature(
                 (ModularFeature) previewRow.getFeatures().get(0)) : previewRow.getFeatures().get(0);
 
         logger.finest("Loading new preview peak " + previewRow);

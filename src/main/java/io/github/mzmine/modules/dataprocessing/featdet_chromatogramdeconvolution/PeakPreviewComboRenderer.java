@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.FeatureConvertorIonMobility;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 
@@ -33,7 +33,7 @@ public class PeakPreviewComboRenderer extends BorderPane {
 
     Feature peak = row.getFeatures().get(0);
     if(peak instanceof ModularFeature && peak.getRawDataFile() instanceof IMSRawDataFile) {
-      peak = FeatureConvertors.collapseMobilityDimensionOfModularFeature((ModularFeature) peak);
+      peak = FeatureConvertorIonMobility.collapseMobilityDimensionOfModularFeature((ModularFeature) peak);
     }
 
     String labelText = "#" + row.getID() + " "

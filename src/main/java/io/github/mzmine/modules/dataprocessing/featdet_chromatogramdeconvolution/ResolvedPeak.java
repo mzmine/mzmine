@@ -145,7 +145,6 @@ public class ResolvedPeak{
         height = dp.getIntensity();
         rt = dataFile.getScan(scanNumbers[i]).getRetentionTime();
         representativeScan = scanNumbers[i];
-
       }
     }
 
