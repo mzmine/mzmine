@@ -48,7 +48,7 @@ public class StorableScan implements Scan {
   protected RawDataFile rawDataFile;
   protected MobilityType mobilityType;
   private Logger logger = Logger.getLogger(this.getClass().getName());
-  private int scanNumber, msLevel, fragmentScans[];
+  private int scanNumber, msLevel;
   private double precursorMZ;
   private int precursorCharge;
   private float retentionTime;
@@ -80,7 +80,6 @@ public class StorableScan implements Scan {
     this.retentionTime = originalScan.getRetentionTime();
     this.precursorMZ = originalScan.getPrecursorMZ();
     this.precursorCharge = originalScan.getPrecursorCharge();
-    this.fragmentScans = originalScan.getFragmentScanNumbers();
     this.spectrumType = originalScan.getSpectrumType();
     this.mzRange = originalScan.getDataPointMZRange();
     this.basePeak = originalScan.getHighestDataPoint();
@@ -96,19 +95,18 @@ public class StorableScan implements Scan {
 
   public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
       int scanNumber, int msLevel, float retentionTime, double precursorMZ, int precursorCharge,
-      int fragmentScans[], MassSpectrumType spectrumType, PolarityType polarity,
-      String scanDefinition, Range<Double> scanMZRange) {
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      Range<Double> scanMZRange) {
 
     this(rawDataFile, storageID, numberOfDataPoints, scanNumber, msLevel, retentionTime,
-        precursorMZ, precursorCharge, fragmentScans, spectrumType, polarity, scanDefinition,
-        scanMZRange, -1.0d, MobilityType.NONE);
+        precursorMZ, precursorCharge, spectrumType, polarity, scanDefinition, scanMZRange, -1.0d,
+        MobilityType.NONE);
   }
 
   public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
       int scanNumber, int msLevel, float retentionTime, double precursorMZ, int precursorCharge,
-      int fragmentScans[], MassSpectrumType spectrumType, PolarityType polarity,
-      String scanDefinition, Range<Double> scanMZRange, double mobility,
-      MobilityType mobilityType) {
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      Range<Double> scanMZRange, double mobility, MobilityType mobilityType) {
 
     this.rawDataFile = rawDataFile;
     this.numberOfDataPoints = numberOfDataPoints;
@@ -120,7 +118,6 @@ public class StorableScan implements Scan {
     this.precursorMZ = precursorMZ;
     this.mobility = mobility;
     this.precursorCharge = precursorCharge;
-    this.fragmentScans = fragmentScans;
     this.spectrumType = spectrumType;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
@@ -312,21 +309,6 @@ public class StorableScan implements Scan {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Scan#getFragmentScanNumbers()
-   */
-  @Override
-  public int[] getFragmentScanNumbers() {
-    return fragmentScans;
-  }
-
-  /**
-   * @param fragmentScans The fragmentScans to set.
-   */
-  void setFragmentScanNumbers(int[] fragmentScans) {
-    this.fragmentScans = fragmentScans;
-  }
-
-  /**
    * @see io.github.mzmine.datamodel.Scan#getSpectrumType()
    */
   @Override
@@ -395,12 +377,6 @@ public class StorableScan implements Scan {
       storableMassList.removeStoredData();
     }
 
-  }
-
-  @Override
-  public void addFragmentScan(int scanNumber) {
-    throw new UnsupportedOperationException(
-        "adding fragment scans is not supported by " + this.getClass().getName());
   }
 
   @Override

@@ -49,6 +49,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.A
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.IImage;
+import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IIonMobilityTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangePeak;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
@@ -133,6 +134,73 @@ public class FeatureConvertors {
     return modularFeature;
   }
 
+  public static ModularFeature IonMobilityIonTraceToModularFeature(
+      @Nonnull IIonMobilityTrace ionTrace, RawDataFile rawDataFile) {
+
+    if (ionTrace.getFeatureList() == null) {
+      throw new NullPointerException("Feature list of the ion trace is null.");
+    }
+
+    if (!(ionTrace.getFeatureList() instanceof ModularFeatureList)) {
+      throw new IllegalArgumentException(
+          "Can not create modular feature from ion trace of non-modular feature list.");
+    }
+
+    ModularFeature modularFeature =
+        new ModularFeature((ModularFeatureList) ionTrace.getFeatureList());
+
+    // TODO
+    modularFeature.setFragmentScanNumber(-1);
+    modularFeature.setRepresentativeScanNumber(-1);
+    // Add values to feature
+    modularFeature.set(ScanNumbersType.class, new ArrayList<>(ionTrace.getScanNumbers()));
+    modularFeature.set(RawFileType.class, rawDataFile);
+    modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
+    modularFeature.set(MZType.class, ionTrace.getMz());
+    modularFeature.set(RTType.class, (float) ionTrace.getRetentionTime());
+
+    modularFeature.set(HeightType.class, (float) ionTrace.getMaximumIntensity());
+    // TODO
+    modularFeature.set(AreaType.class, (float) 0);
+    // TODO
+    modularFeature.set(BestScanNumberType.class, -1);
+
+    // Data points of feature
+    List<DataPoint> dps = new ArrayList<>(ionTrace.getDataPoints());
+    modularFeature.set(DataPointsType.class, dps);
+
+    // Ranges
+    Range<Float> rtRange = Range.closed(ionTrace.getRetentionTimeRange().lowerEndpoint(),
+        ionTrace.getRetentionTimeRange().upperEndpoint());
+    Range<Double> mzRange =
+        Range.closed(ionTrace.getMzRange().lowerEndpoint(), ionTrace.getMzRange().upperEndpoint());
+    Range<Float> intensityRange =
+        Range.closed(ionTrace.getIntensityRange().lowerEndpoint().floatValue(),
+            ionTrace.getIntensityRange().upperEndpoint().floatValue());
+    modularFeature.set(MZRangeType.class, mzRange);
+    modularFeature.set(RTRangeType.class, rtRange);
+    modularFeature.set(IntensityRangeType.class, intensityRange);
+    // modularFeature.setAllMS2FragmentScanNumbers(IntStream
+    // .of(ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange)).boxed()
+    // .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+
+    // Quality parameters
+    // float fwhm = QualityParameters.calculateFWHM(modularFeature);
+    // if (!Float.isNaN(fwhm)) {
+    modularFeature.set(FwhmType.class, -1);
+    // }
+    // float tf = QualityParameters.calculateTailingFactor(modularFeature);
+    // if (!Float.isNaN(tf)) {
+    modularFeature.set(TailingFactorType.class, -1);
+    // }
+    // float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
+    // if (!Float.isNaN(af)) {
+    modularFeature.set(AsymmetryFactorType.class, -1);
+    // }
+
+    return modularFeature;
+  }
+
   public static ModularFeature ImageToModularFeature(@Nonnull IImage image,
       RawDataFile rawDataFile) {
 
@@ -197,6 +265,7 @@ public class FeatureConvertors {
 
     return modularFeature;
   }
+
 
   /**
    * Creates a ModularFeature on the basis of manually picked feature

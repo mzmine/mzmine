@@ -40,7 +40,6 @@ public class SimpleScan implements Scan {
   private RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
-  private int fragmentScans[];
   private DataPoint dataPoints[];
   private double precursorMZ;
   private int precursorCharge;
@@ -61,7 +60,7 @@ public class SimpleScan implements Scan {
    */
   public SimpleScan(Scan sc) {
     this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
-        sc.getPrecursorMZ(), sc.getPrecursorCharge(), sc.getFragmentScanNumbers(),
+        sc.getPrecursorMZ(), sc.getPrecursorCharge(),
         sc.getDataPoints(), sc.getSpectrumType(), sc.getPolarity(), sc.getScanDefinition(),
         sc.getScanningMZRange(), sc.getMobility(), sc.getMobilityType());
   }
@@ -70,11 +69,11 @@ public class SimpleScan implements Scan {
    * Constructor for creating scan with given data
    */
   public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
+      double precursorMZ, int precursorCharge, DataPoint[] dataPoints,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
 
-    this(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, fragmentScans,
+    this(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
         dataPoints, spectrumType, polarity, scanDefinition, scanMZRange, -1.d, MobilityType.NONE);
   }
 
@@ -82,7 +81,7 @@ public class SimpleScan implements Scan {
    * Constructor for creating scan with given data
    */
   public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
+      double precursorMZ, int precursorCharge, DataPoint[] dataPoints,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, double mobility, MobilityType mobilityType) {
 
@@ -92,7 +91,6 @@ public class SimpleScan implements Scan {
     this.msLevel = msLevel;
     this.retentionTime = retentionTime;
     this.precursorMZ = precursorMZ;
-    this.fragmentScans = fragmentScans;
     this.spectrumType = spectrumType;
     this.precursorCharge = precursorCharge;
     this.polarity = polarity;
@@ -293,31 +291,6 @@ public class SimpleScan implements Scan {
    */
   public DataPoint getHighestDataPoint() {
     return basePeak;
-  }
-
-  /**
-   * @see io.github.mzmine.datamodel.Scan#getFragmentScanNumbers()
-   */
-  public int[] getFragmentScanNumbers() {
-    return fragmentScans;
-  }
-
-  /**
-   * @param fragmentScans The fragmentScans to set.
-   */
-  public void setFragmentScanNumbers(int[] fragmentScans) {
-    this.fragmentScans = fragmentScans;
-  }
-
-  public void addFragmentScan(int fragmentScan) {
-    TreeSet<Integer> fragmentsSet = new TreeSet<Integer>();
-    if (fragmentScans != null) {
-      for (int frag : fragmentScans) {
-        fragmentsSet.add(frag);
-      }
-    }
-    fragmentsSet.add(fragmentScan);
-    fragmentScans = Ints.toArray(fragmentsSet);
   }
 
   /**

@@ -18,28 +18,7 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.util.Base64;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.logging.Logger;
-import java.util.zip.DataFormatException;
-
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
-import com.google.common.collect.Range;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
 import com.google.common.base.Strings;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -53,6 +32,22 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CompressionUtils;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.logging.Logger;
+import java.util.zip.DataFormatException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  *
@@ -238,20 +233,20 @@ public class MzXMLReadTask extends AbstractTask {
           throw new SAXException("The value of msLevel is bigger than 10");
         }
 
-        if (msLevel > 1) {
+        /*if (msLevel > 1) {
           parentScan = parentTreeValue[msLevel - 1];
           for (SimpleScan p : parentStack) {
             if (p.getScanNumber() == parentScan) {
               p.addFragmentScan(scanNumber);
             }
           }
-        }
+        }*/
 
         // Setting the level of fragment of scan and parent scan number
         msLevelTree++;
         parentTreeValue[msLevel] = scanNumber;
 
-        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, 0, 0, null,
+        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, 0, 0,
             new DataPoint[0], null, polarity, scanId, null);
 
       }

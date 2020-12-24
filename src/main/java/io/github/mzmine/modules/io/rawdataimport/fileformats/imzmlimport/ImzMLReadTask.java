@@ -142,15 +142,10 @@ public class ImzMLReadTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-        SimpleImagingScan scan = new SimpleImagingScan(null, scanNumber, msLevel, retentionTime,
-            precursorMz, precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition,
-            null, coord);
+        SimpleImagingScan scan =
+            new SimpleImagingScan(null, scanNumber, msLevel, retentionTime, precursorMz,
+                precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null, coord);
 
-        for (io.github.mzmine.datamodel.Scan s : parentStack) {
-          if (s.getScanNumber() == parentScan) {
-            s.addFragmentScan(scanNumber);
-          }
-        }
 
         /*
          * Verify the size of parentStack. The actual size of the window to cover possible

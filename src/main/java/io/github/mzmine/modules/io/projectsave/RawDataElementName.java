@@ -27,8 +27,8 @@ enum RawDataElementName {
   SCAN("scan"), //
   SCAN_ID("id"), //
   MS_LEVEL("mslevel"), //
-  QUANTITY_FRAGMENT_SCAN("fragmentscans"), //
-  FRAGMENT_SCAN("fragmentscan"), //
+//  QUANTITY_FRAGMENT_SCAN("fragmentscans"),
+//  FRAGMENT_SCAN("fragmentscan"), //
   QUANTITY("quantity"), //
   PARENT_SCAN("parent"), //
   PRECURSOR_MZ("precursor_mz"), //

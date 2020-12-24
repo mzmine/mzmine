@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public enum BrukerScanMode {
 
   MS(0, "MS"), //

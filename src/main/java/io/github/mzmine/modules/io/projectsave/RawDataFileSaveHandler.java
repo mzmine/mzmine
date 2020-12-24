@@ -240,18 +240,18 @@ class RawDataFileSaveHandler {
           return;
         }
 
-        StorableFrame frame = (StorableFrame) imsFile.getFrame(frameNum);
-        int storageID = frame.getStorageID();
-        atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
-            String.valueOf(storageID));
-        hd.startElement("", "", RawDataElementName.FRAME.getElementName(), atts);
-        fillScanElement(frame, hd);
-        fillFrameElement(frame, hd);
-        hd.endElement("", "", RawDataElementName.FRAME.getElementName());
-        atts.clear();
-
-        completedFrames++;
-        progress = 0.9 + (0.1 * ((double) completedFrames / numOfFrames));
+//        StorableFrame frame = (StorableFrame) imsFile.getFrame(frameNum);
+//        int storageID = frame.getStorageID();
+//        atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+//            String.valueOf(storageID));
+//        hd.startElement("", "", RawDataElementName.FRAME.getElementName(), atts);
+//        fillScanElement(frame, hd);
+//        fillFrameElement(frame, hd);
+//        hd.endElement("", "", RawDataElementName.FRAME.getElementName());
+//        atts.clear();
+//
+//        completedFrames++;
+//        progress = 0.9 + (0.1 * ((double) completedFrames / numOfFrames));
       }
     }
 
@@ -315,7 +315,7 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.QUANTITY_DATAPOINTS.getElementName());
 
     // <FRAGMENT_SCAN>
-    if (scan.getFragmentScanNumbers() != null) {
+    /*if (scan.getFragmentScanNumbers() != null) {
       int[] fragmentScans = scan.getFragmentScanNumbers();
       atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
           String.valueOf(fragmentScans.length));
@@ -328,7 +328,7 @@ class RawDataFileSaveHandler {
       }
       hd.endElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
 
-    }
+    }*/
 
     // <MASS_LIST>
     MassList massLists[] = scan.getMassLists();

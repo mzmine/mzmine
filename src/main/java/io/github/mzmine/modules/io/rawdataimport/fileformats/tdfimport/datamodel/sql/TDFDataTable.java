@@ -30,6 +30,9 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public abstract class TDFDataTable<EntryKeyType> {
 
   private static final Logger logger = Logger.getLogger(TDFDataTable.class.getName());

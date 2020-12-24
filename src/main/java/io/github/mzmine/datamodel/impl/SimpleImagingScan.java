@@ -16,11 +16,11 @@ public class SimpleImagingScan extends SimpleScan implements ImagingScan {
   private Coordinates coordinates;
 
   public SimpleImagingScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, int[] fragmentScans, DataPoint[] dataPoints,
+      double precursorMZ, int precursorCharge, DataPoint[] dataPoints,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, Coordinates coordinates) {
-    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, fragmentScans,
-        dataPoints, spectrumType, polarity, scanDefinition, scanMZRange, -1.d, MobilityType.NONE);
+    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, dataPoints,
+        spectrumType, polarity, scanDefinition, scanMZRange, -1.d, MobilityType.NONE);
     this.setCoordinates(coordinates);
   }
 
