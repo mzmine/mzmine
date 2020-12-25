@@ -80,12 +80,21 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   private final Map<String, Node> buffertColCharts = new HashMap<>();
 
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist) {
+    this(flist, null, false);
+  }
+
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, ModularFeatureListRow row, boolean copyFeatures) {
     this.flist = flist;
     // add type property columns to maps
     flist.getRowTypes().values().forEach(type -> {
       this.setProperty(type, type.createProperty());
     });
+    // copy all but features
+    if(row!=null)
+      row.stream().filter(e -> !(e.getKey() instanceof FeaturesType))
+              .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
 
+    // features
     List<RawDataFile> raws = flist.getRawDataFiles();
     if (!raws.isEmpty()) {
       // init FeaturesType map (is final)
@@ -93,24 +102,19 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       for (RawDataFile r : raws) {
         fmap.put(r, new ModularFeature(flist));
       }
-      features = FXCollections.observableMap(FXCollections.observableMap(fmap));
+      features = (FXCollections.observableMap(fmap));
       // set
       set(FeaturesType.class, features);
 
       // TODO: MapProperty/Map? change DataTypeCellValueFactory? Bind to features?
       //set(FeatureShapeType.class, getFeatures());
-      set(FeatureShapeType.class, getFeaturesProperty());
-      set(AreaBarType.class, getFeaturesProperty());
-      set(AreaShareType.class, getFeaturesProperty());
+//      set(FeatureShapeType.class, getFeaturesProperty());
+//      set(AreaBarType.class, getFeaturesProperty());
+//      set(AreaShareType.class, getFeaturesProperty());
     } else {
       features = Collections.emptyMap();
     }
-  }
 
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, ModularFeatureListRow row, boolean copyFeatures) {
-    this(flist);
-    // copy all but features
-    row.stream().filter(e -> !(e.getKey() instanceof FeaturesType)).forEach(entry -> this.set(entry.getKey(), entry.getValue()));
     if(copyFeatures) {
       // Copy the features.
       for (final Feature feature : row.getFeatures()) {
@@ -235,28 +239,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       throw new IllegalArgumentException("Cannot add non-modular feature to modular feature list row.");
     }
     ModularFeature modularFeature = (ModularFeature) feature;
-
-    /*
-    if (Objects.equals(modularFeature.getFeatureList(), getFeatureList())) {
-      // features are final - replace all values for all data types
-      // keep old feature
-      ModularFeature old = getFilesFeatures().get(raw);
-      for (DataType type : flist.getFeatureTypes().values()) {
-        old.set(type, modularFeature.get(type).getValue());
-      }
-    } else {
-      features.put(raw, modularFeature);
-    }
-    */
-    if(hasFeature(raw)) {
-      ModularFeature old = getFeature(raw);
-      for (DataType<?> type : flist.getFeatureTypes().values()) {
-        old.set(type, modularFeature.get(type).getValue());
-      }
-    } else {
-      features.put(raw, modularFeature);
-    }
-
+    features.put(raw, modularFeature);
+    // should already be set
     modularFeature.setFeatureList(flist);
   }
 

@@ -213,6 +213,8 @@ public interface ModularDataModel {
       property = realType.createProperty();
       setProperty(realType, property);
     }
+    if(value instanceof Property)
+      value = ((Property)value).getValue();
 
     // lists need to be ObservableList
     if (value instanceof List && !(value instanceof ObservableList))
