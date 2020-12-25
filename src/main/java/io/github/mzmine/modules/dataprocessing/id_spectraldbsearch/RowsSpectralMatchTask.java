@@ -318,8 +318,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   private boolean checkRT(FeatureListRow row, SpectralDBEntry ident) {
+    if(!useRT)
+      return true;
     Float rt = (Float) ident.getField(DBEntryField.RT).orElse(null);
-    return (!useRT || rt == null || rtTolerance.checkWithinTolerance(rt, row.getAverageRT()));
+    return (rt == null || rtTolerance.checkWithinTolerance(rt, row.getAverageRT()));
   }
 
   /**

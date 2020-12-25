@@ -79,15 +79,15 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
     ModularTypeProperty property = super.createProperty();
 
     // add bindings: If first element in summary column changes - update all other columns based on this object
-    ListProperty<SpectralDBFeatureIdentity> summaryProperty = property.get(SpectralLibMatchSummaryType.class);
-    summaryProperty.addListener((ListChangeListener<SpectralDBFeatureIdentity>) change -> {
+    property.get(SpectralLibMatchSummaryType.class).addListener((ListChangeListener<SpectralDBFeatureIdentity>) change -> {
+      ObservableList<? extends SpectralDBFeatureIdentity> summaryProperty = change.getList();
       boolean firstElementChanged = false;
       while (change.next()) {
         firstElementChanged = firstElementChanged || change.getFrom() == 0;
       }
       if(firstElementChanged) {
         // first list elements has changed - set all other fields
-        setCurrentElement(property, !summaryProperty.isEmpty()? null : summaryProperty.get(0));
+        setCurrentElement(property, summaryProperty.isEmpty()? null : summaryProperty.get(0));
       }
     });
 
@@ -108,15 +108,17 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
       SpectralSimilarity score = match.getSimilarity();
 
       // update selected values
-      data.set(CompoundNameType.class, entry.getField(DBEntryField.NAME));
-      data.set(FormulaType.class, entry.getField(DBEntryField.FORMULA));
-      data.set(IonAdductType.class, entry.getField(DBEntryField.ION_TYPE));
-      data.set(SmilesStructureType.class, entry.getField(DBEntryField.SMILES));
-      data.set(InChIStructureType.class, entry.getField(DBEntryField.INCHI));
+      data.set(CompoundNameType.class, entry.getField(DBEntryField.NAME).orElse(""));
+      data.set(FormulaType.class, entry.getField(DBEntryField.FORMULA).orElse(""));
+      data.set(IonAdductType.class, entry.getField(DBEntryField.ION_TYPE).orElse(""));
+      data.set(SmilesStructureType.class, entry.getField(DBEntryField.SMILES).orElse(""));
+      data.set(InChIStructureType.class, entry.getField(DBEntryField.INCHI).orElse(""));
       data.set(CosineScoreType.class, score.getScore());
       data.set(MatchingSignalsType.class, score.getOverlap());
-      data.set(PrecursorMZType.class, entry.getField(DBEntryField.MZ));
-      data.set(NeutralMassType.class, entry.getField(DBEntryField.EXACT_MASS));
+      if(entry.getField(DBEntryField.MZ).isPresent())
+        data.set(PrecursorMZType.class, entry.getField(DBEntryField.MZ).get());
+      if(entry.getField(DBEntryField.EXACT_MASS).isPresent())
+        data.set(NeutralMassType.class, entry.getField(DBEntryField.EXACT_MASS).get());
     }
   }
 }

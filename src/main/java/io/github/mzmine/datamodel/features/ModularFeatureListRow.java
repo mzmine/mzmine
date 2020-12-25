@@ -181,7 +181,6 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
         DataType newType = tclass.getConstructor().newInstance();
         ModularFeatureList flist = (ModularFeatureList) getFeatureList();
         flist.addRowType(newType);
-        setProperty(newType, newType.createProperty());
       } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
         e.printStackTrace();
         return;

@@ -118,7 +118,9 @@ public class GnpsJsonParser extends SpectralDBParser {
             if (o instanceof JsonNumber) {
               if (f.getObjectClass().equals(Integer.class)) {
                 o = ((JsonNumber) o).intValue();
-              } else {
+              } else if(f.getObjectClass().equals(Float.class)){
+                o = (float) ((JsonNumber) o).doubleValue();
+              }else {
                 o = ((JsonNumber) o).doubleValue();
               }
             }

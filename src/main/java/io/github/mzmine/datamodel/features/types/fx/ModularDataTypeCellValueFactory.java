@@ -77,7 +77,7 @@ public class ModularDataTypeCellValueFactory implements
       MapProperty<DataType, Property<?>> parentMap = map.get(modularParentType);
       return (ObservableValue<Object>) parentMap.get(subType);
     }catch (Exception ex) {
-      logger.warning("Cannot get sub type of ModularType");
+      logger.log(Level.WARNING, "Cannot get sub type of ModularType", ex);
       return null;
     }
   }
