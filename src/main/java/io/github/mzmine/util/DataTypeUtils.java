@@ -39,8 +39,10 @@ public class DataTypeUtils {
           new RowBinding(new RTRangeType(), BindingsType.RANGE),
           new RowBinding(new MZRangeType(), BindingsType.RANGE));
 
-  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(new RTType(), new MZType(),
-          new HeightType(), new AreaType(), new RTRangeType(), new MZRangeType(), new ManualAnnotationType(),
+  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(
+          new RTType(), new RTRangeType(), // needed next to each other for switching between RTType and RTRangeType
+          new MZType(), new MZRangeType(), //
+          new HeightType(), new AreaType(), new ManualAnnotationType(),
           new FeatureShapeType(), new FeaturesType());
 
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
