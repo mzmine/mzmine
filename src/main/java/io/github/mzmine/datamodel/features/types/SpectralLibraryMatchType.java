@@ -56,6 +56,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This type has multiple sub columns. The first is a list of complex objects
+ * ({@link SpectralLibMatchSummaryType}). The first object in this list defines all the other sub
+ * columns.
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
 public class SpectralLibraryMatchType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
@@ -94,7 +101,11 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
     return property;
   }
 
-
+  /**
+   * On change of the first list element, change all the other sub types.
+   * @param data
+   * @param match
+   */
   private void setCurrentElement(ModularTypeProperty data, SpectralDBFeatureIdentity match) {
     if(match==null) {
       for (DataType type : this.getSubDataTypes()) {

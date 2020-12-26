@@ -37,6 +37,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * ModularType offers a main column for multiple sub columns (DataTypes) that are stored in a {@link ModularTypeProperty}
+ * An example implementation is given by {@link SpectralLibraryMatchType}, which is extending the scope with one column
+ * (type) that defines all the other columns.
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
 public abstract class ModularType extends DataType<ModularTypeProperty>
         implements SubColumnsFactory<ModularTypeProperty> {
 
@@ -95,7 +102,12 @@ public abstract class ModularType extends DataType<ModularTypeProperty>
     return cols;
   }
 
-
+  /**
+   * Sub DataType is the sub column at index (see {@link #getSubDataTypes()#})
+   *
+   * @param index
+   * @return
+   */
   public DataType getSubTypeAt(int index) {
     return index>=0 && index<getSubDataTypes().size()? getSubDataTypes().get(index) : null;
   }

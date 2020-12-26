@@ -22,6 +22,12 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.collections.ObservableMap;
 
+/**
+ * Used in {@link ModularType} as an observable property. The parentType is the main column and all DataTypes in this
+ * map are the sub columns
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
 public class ModularTypeProperty extends SimpleMapProperty<DataType, Property<?>> implements ModularDataModel {
 
     protected ModularType parentType;
