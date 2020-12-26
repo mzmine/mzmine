@@ -53,12 +53,12 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
     LabelTextProvider, ToolTipTextProvider, ColorPropertyProvider {
 
   private static Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
-  // dataset stuff
-  private final int seriesCount = 1;
   protected final XYValueProvider xyValueProvider;
   protected final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   protected final LabelTextProvider labelTextProvider;
   protected final ToolTipTextProvider toolTipTextProvider;
+  // dataset stuff
+  private final int seriesCount = 1;
   protected ObjectProperty<javafx.scene.paint.Color> fxColor;
   protected List<Double> domainValues;
   protected List<Double> rangeValues;
@@ -255,13 +255,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
 
     rangeValues = xyValueProvider.getRangeValues();
     domainValues = xyValueProvider.getDomainValues();
-
-    for (Double rangeValue : rangeValues) {
-      if (rangeValue.doubleValue() < minRangeValue.doubleValue()) {
-        minRangeValue = rangeValue;
-      }
-    }
-
+    minRangeValue = Collections.min(rangeValues);
     computedItemCount = domainValues.size();
 
     computed = true;

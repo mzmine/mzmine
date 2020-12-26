@@ -24,7 +24,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
@@ -37,7 +36,7 @@ public class MobilogramVisualizerModule implements MZmineRunnableModule {
   @Nonnull
   @Override
   public String getDescription() {
-    return "Visualizes mobilograms of frames";
+    return "Visualizes mobilograms of ion mobility frames";
   }
 
   @Nonnull

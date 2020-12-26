@@ -135,18 +135,13 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
         originalMobilogram.getDataPoints().stream()
             .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility)).collect(
             Collectors.toList());
-    logger.info("-----");
     for (Collection<Integer> indicesSet : resolved) {
-      logger.info("Number of deconvolved mobilograms size: " + indicesSet.size());
-
       if (indicesSet.isEmpty()) {
         continue;
       }
 
       Set<MobilityDataPoint> newDps = new HashSet<>();
       indicesSet.forEach(index -> newDps.add(originalDataPoints.get(index)));
-//          originalDataPoints.stream().filter(dp -> scanNumbers.contains(dp.getScanNum())).collect(
-//              Collectors.toSet());
 
       List<MobilityDataPoint> sortedDps = newDps.stream().sorted(Comparator.comparingInt(
           MobilityDataPoint::getScanNum)).collect(Collectors.toList());

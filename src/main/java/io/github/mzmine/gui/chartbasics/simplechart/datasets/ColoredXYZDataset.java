@@ -39,6 +39,12 @@ import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.data.xy.XYZDataset;
 
+/**
+ * Used to plot XYZ datasets in a scatterplot-type of plot. Used to display spatial distribution in
+ * imaging and ion mobility heatmaps.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
   private static final String FALLBACK_PAINTSCALE_STYLE = "Rainbow";
@@ -55,23 +61,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
   protected Double boxHeight;
   protected AbstractXYItemRenderer renderer;
-
-  public void setBoxWidth(double boxWidth) {
-    this.boxWidth = boxWidth;
-  }
-
-  public void setBoxHeight(double boxHeight) {
-    this.boxHeight = boxHeight;
-  }
-
-  public boolean isUseAlphaInPaintscale() {
-    return useAlphaInPaintscale;
-  }
-
-  public void setUseAlphaInPaintscale(boolean useAlphaInPaintscale) {
-    this.useAlphaInPaintscale = useAlphaInPaintscale;
-  }
-
   protected boolean useAlphaInPaintscale;
 
   public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider) {
@@ -89,6 +78,14 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     paintScale = null;
     this.useAlphaInPaintscale = useAlphaInPaintscale;
     MZmineCore.getTaskController().addTask(this);
+  }
+
+  public boolean isUseAlphaInPaintscale() {
+    return useAlphaInPaintscale;
+  }
+
+  public void setUseAlphaInPaintscale(boolean useAlphaInPaintscale) {
+    this.useAlphaInPaintscale = useAlphaInPaintscale;
   }
 
   public XYZValueProvider getXyzValueProvider() {
@@ -143,8 +140,16 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return boxWidth;
   }
 
+  public void setBoxWidth(double boxWidth) {
+    this.boxWidth = boxWidth;
+  }
+
   public Double getBoxHeight() {
     return boxHeight;
+  }
+
+  public void setBoxHeight(double boxHeight) {
+    this.boxHeight = boxHeight;
   }
 
   public int getValueIndex(final double domainValue, final double rangeValue) {
@@ -264,19 +269,9 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     domainValues = xyzValueProvider.getDomainValues();
     zValues = xyzValueProvider.getZValues();
 
-    for (Double rangeValue : rangeValues) {
-      if (rangeValue < minRangeValue) {
-        minRangeValue = rangeValue;
-      }
-    }
-    for (Double zValue : zValues) {
-      if (zValue < minZValue) {
-        minZValue = zValue;
-      }
-      if (zValue > maxZValue) {
-        maxZValue = zValue;
-      }
-    }
+    minRangeValue = Collections.min(rangeValues);
+    minZValue = Collections.min(zValues);
+    maxZValue = Collections.max(zValues);
 
     boxHeight = xyzValueProvider.getBoxHeight();
     boxWidth = xyzValueProvider.getBoxWidth();

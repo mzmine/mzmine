@@ -19,7 +19,6 @@
 package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MobilityType;
 
 /**
  * RTTolerance allows specifying retention time tolerance it is either absolute (seconds or minutes)
@@ -30,40 +29,26 @@ import io.github.mzmine.datamodel.MobilityType;
 public class MobilityTolerance {
 
   private final double tolerance;
-  private final MobilityType mobilityType;
 
-  public MobilityTolerance(final double tolerance, MobilityType unit) {
+  public MobilityTolerance(final double tolerance) {
     this.tolerance = tolerance;
-    this.mobilityType = unit;
   }
 
   public double getTolerance() {
     return tolerance;
   }
 
-  public MobilityType getMobilityType() {
-    return mobilityType;
-  }
-
   public Range<Double> getToleranceRange(final double mobility) {
-    return getToleranceRange(mobility, this.mobilityType);
-  }
-
-  public Range<Double> getToleranceRange(final double mobility, MobilityType mobilityType) {
-    if (mobilityType != this.mobilityType) {
-      throw new IllegalArgumentException(
-          "Argument mobilityType does match the mobility type of this tolerance!");
-    }
     return Range.closed(mobility - tolerance, mobility + tolerance);
   }
 
   public boolean checkWithinTolerance(final double mobility1, final double mobility2) {
-    return getToleranceRange(mobility1, this.mobilityType).contains(mobility2);
+    return getToleranceRange(mobility1).contains(mobility2);
   }
 
   @Override
   public String toString() {
-    return tolerance + " " + mobilityType.toString();
+    return "Mobility tolerance: " + tolerance;
   }
 
 }

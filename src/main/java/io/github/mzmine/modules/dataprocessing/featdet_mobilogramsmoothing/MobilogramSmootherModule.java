@@ -41,7 +41,7 @@ public class MobilogramSmootherModule implements MZmineRunnableModule {
   @Nonnull
   @Override
   public String getDescription() {
-    return null;
+    return "Mobilogram smoothing";
   }
 
   @Nonnull

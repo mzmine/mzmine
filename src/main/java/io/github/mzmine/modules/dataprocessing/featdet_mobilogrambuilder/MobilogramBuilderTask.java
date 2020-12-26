@@ -74,7 +74,7 @@ public class MobilogramBuilderTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Detecting mobilograms for frames. " + processedFrames + "/" + totalFrames;
+    return "Detecting mobilograms for frames " + processedFrames + "/" + totalFrames;
   }
 
   @Override

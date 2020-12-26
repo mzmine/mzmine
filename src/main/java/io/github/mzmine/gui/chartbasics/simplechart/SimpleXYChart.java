@@ -354,7 +354,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
 
   @Override
   public void addContextMenuItem(String title, EventHandler<ActionEvent> ai) {
-    logger.info("call");
     addMenuItem(getContextMenu(), title, ai);
   }
 

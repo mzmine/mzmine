@@ -18,7 +18,6 @@
 
 package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
 
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import org.w3c.dom.Element;
@@ -85,16 +84,11 @@ public class MobilityToleranceParameter implements UserParameter<MobilityToleran
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    String unitAttr = xmlElement.getAttribute("unit");
-    if (unitAttr == null || unitAttr.isEmpty()) {
-      return;
-    }
-    MobilityType toleranceUnit = MobilityType.valueOf(unitAttr);
     String toleranceNum = xmlElement.getTextContent();
     if (toleranceNum.length() == 0)
       return;
     double tolerance = Double.parseDouble(toleranceNum);
-    this.value = new MobilityTolerance(tolerance, toleranceUnit);
+    this.value = new MobilityTolerance(tolerance);
   }
 
   @Override
@@ -102,7 +96,6 @@ public class MobilityToleranceParameter implements UserParameter<MobilityToleran
     if (value == null) {
       return;
     }
-    xmlElement.setAttribute("unit", value.getMobilityType().name());
     double tolerance = value.getTolerance();
     String toleranceNum = String.valueOf(tolerance);
     xmlElement.setTextContent(toleranceNum);

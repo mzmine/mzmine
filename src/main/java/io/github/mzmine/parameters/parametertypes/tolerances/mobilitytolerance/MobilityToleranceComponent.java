@@ -17,11 +17,6 @@
  */
 package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
 
-import io.github.mzmine.datamodel.MobilityType;
-import java.util.Arrays;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
@@ -32,37 +27,23 @@ import javafx.scene.layout.BorderPane;
 public class MobilityToleranceComponent extends BorderPane {
 
   // the same order that the unit enum in RTTolerance is defined in
-  private static final ObservableList<MobilityType> toleranceTypes =
-      FXCollections.observableArrayList(Arrays.asList(MobilityType.values()));
   private final TextField toleranceField;
-  private final ComboBox<MobilityType> toleranceType;
 
   public MobilityToleranceComponent() {
-
     toleranceField = new TextField();
     toleranceField.setPrefColumnCount(6);
-
-    toleranceType = new ComboBox<>(toleranceTypes);
-    toleranceType.getSelectionModel().select(MobilityType.TIMS);
-
     setCenter(toleranceField);
-    setRight(toleranceType);
   }
 
   public MobilityTolerance getValue() {
-
-    final MobilityType toleranceUnit = toleranceType.getValue();
-
     final String valueString = toleranceField.getText();
     final Number toleranceValue = Double.parseDouble(valueString);
-    final double toleranceFloat = toleranceValue.doubleValue();
-
-    return new MobilityTolerance(toleranceFloat, toleranceUnit);
+    final double tolerance = toleranceValue.doubleValue();
+    return new MobilityTolerance(tolerance);
   }
 
   public void setValue(MobilityTolerance value) {
     double tolerance = value.getTolerance();
-    toleranceType.getSelectionModel().select(value.getMobilityType());
     String valueString = String.valueOf(tolerance);
     toleranceField.setText(valueString);
   }

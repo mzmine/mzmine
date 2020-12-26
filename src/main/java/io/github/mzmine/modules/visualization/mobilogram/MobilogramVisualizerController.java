@@ -192,10 +192,8 @@ public class MobilogramVisualizerController {
 
   private void initFrameBox() {
     Callback<ListView<Frame>, ListCell<Frame>> listViewListCellCallback =
-        new Callback<>() {
-          @Override
-          public ListCell<Frame> call(ListView<Frame> param) {
-            return new ListCell<Frame>() {
+        (ListView<Frame> param) ->
+            new ListCell<>() {
               @Override
               protected void updateItem(Frame item, boolean empty) {
                 super.updateItem(item, empty);
@@ -208,10 +206,8 @@ public class MobilogramVisualizerController {
                 }
               }
             };
-          }
-        };
 
-    frameSelector.setConverter(new StringConverter<Frame>() {
+    frameSelector.setConverter(new StringConverter<>() {
       @Override
       public String toString(Frame item) {
         if (item == null) {

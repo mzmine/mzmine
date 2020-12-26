@@ -132,8 +132,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
         }
       }
     } catch (Exception ex) {
-//        logger.log(Level.WARNING, "error in DP", ex);
-      System.out.println("error in DP");
+      ex.printStackTrace();
     }
   }
 

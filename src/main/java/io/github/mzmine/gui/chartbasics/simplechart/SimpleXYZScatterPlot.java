@@ -64,6 +64,9 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
 /**
+ * Used to plot XYZ datasets in a scatterplot-type of plot. Used to display spatial distribution in
+ * imaging and ion mobility heatmaps.
+ *
  * @author https://github.com/SteffenHeu & https://github.com/Annexhc
  */
 public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartViewer implements
@@ -73,13 +76,12 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   protected static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   protected final JFreeChart chart;
+  protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
+  protected final List<DatasetsChangedListener> datasetListeners;
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
   protected ColoredXYSmallBlockRenderer blockRenderer;
-
-  protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
-  protected final List<DatasetsChangedListener> datasetListeners;
   protected NumberFormat legendAxisFormat;
 
   public SimpleXYZScatterPlot(@Nonnull String title) {
@@ -266,7 +268,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   @Override
   public void addContextMenuItem(String title, EventHandler<ActionEvent> ai) {
-    logger.info("call");
     addMenuItem(getContextMenu(), title, ai);
   }
 
