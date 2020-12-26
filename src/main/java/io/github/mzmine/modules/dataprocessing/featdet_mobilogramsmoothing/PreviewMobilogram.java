@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.impl.SimpleMobilogram;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -103,7 +104,7 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
   }
 
   @Override
-  public void computeValues() {
+  public void computeValues(TaskStatus status) {
     originalMobilogram.getDataPoints().forEach(this::addDataPoint);
     finishedPercentage = 0.5;
     calc();

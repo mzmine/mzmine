@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -88,7 +89,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public void computeValues() {
+  public void computeValues(TaskStatus status) {
 
     try {
       Float[] xValues = null;

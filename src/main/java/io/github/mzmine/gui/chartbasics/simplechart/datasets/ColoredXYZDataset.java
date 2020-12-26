@@ -255,9 +255,9 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   @Override
   public void run() {
     status = TaskStatus.PROCESSING;
-    xyValueProvider.computeValues();
+    xyValueProvider.computeValues(status);
 
-    if (status == TaskStatus.CANCELED) {
+    if (status != TaskStatus.PROCESSING) {
       return;
     }
     if (xyzValueProvider.getDomainValues().size() != xyzValueProvider.getRangeValues().size()

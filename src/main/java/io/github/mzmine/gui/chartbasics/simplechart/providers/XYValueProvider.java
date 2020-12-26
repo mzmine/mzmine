@@ -19,6 +19,7 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.List;
 
 /**
@@ -46,8 +47,13 @@ public interface XYValueProvider {
   /**
    * Called in a seperate thread to compute values or load them from disk after the dataset has been
    * created.
+   *
+   * @param status The task status of the task executing this calculation. Long calculations should
+   *               repeatedly check this value and cancel their computation if the status has
+   *               changed to {@link TaskStatus#CANCELED}. Implementing classes can also make use of
+   *               CANCELED or ERROR to stop the task from continuing, if an error occurred.
    */
-  public void computeValues();
+  public void computeValues(TaskStatus status);
 
   /**
    * @return A sorted list of domain values. Index has to match the range value indices.

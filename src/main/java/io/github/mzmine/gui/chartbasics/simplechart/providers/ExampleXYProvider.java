@@ -20,6 +20,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -108,7 +109,7 @@ public class ExampleXYProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues() {
+  public void computeValues(TaskStatus status) {
     // here we can load and sort our data. remember to store the sorted data, so we can generate
     // labels based on the indices.
     sortedDps = originalDatapoints.stream().sorted(Comparator.comparingDouble(DataPoint::getMZ))

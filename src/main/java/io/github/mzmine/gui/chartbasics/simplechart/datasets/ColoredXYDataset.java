@@ -242,9 +242,9 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
 
     status = TaskStatus.PROCESSING;
 
-    xyValueProvider.computeValues();
+    xyValueProvider.computeValues(status);
 
-    if (status == TaskStatus.CANCELED) {
+    if (status != TaskStatus.PROCESSING) {
       return;
     }
 
