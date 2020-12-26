@@ -33,7 +33,7 @@ public class FeatureInformationType extends DataType<ObjectProperty<SimpleFeatur
   @Override
   @Nonnull
   public String getHeaderString() {
-    return "Isotopes";
+    return "Feature information";
   }
 
   @Override
