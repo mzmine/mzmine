@@ -16,10 +16,20 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types.modifiers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-public enum BindingsType {
+/**
+ * Provides a dataset with an "series key". The series key is used to label the dataset in the
+ * legend of the chart.
+ *
+ * @param <ValueType> The type of the series Key. Most commonly a {@link String}.
+ * @author https://github.com/SteffenHeu
+ * @see ExampleProvider
+ */
+public interface SeriesKeyProvider<ValueType extends Comparable<?>> {
 
-  AVERAGE, SUM, MIN, MAX, COUNT, RANGE, CONSENSUS;
-
+  /**
+   * @return The series key to label the dataset in the chart's legend.
+   */
+  public ValueType getSeriesKey();
 }

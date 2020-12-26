@@ -16,10 +16,23 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types.modifiers;
+package io.github.mzmine.util.deconvolution;
 
-public enum BindingsType {
+import java.util.Collection;
 
-  AVERAGE, SUM, MIN, MAX, COUNT, RANGE, CONSENSUS;
+/**
+ *
+ * @param <X> X-value type
+ * @param <Y> Y-value type
+ */
+public interface IndexBasedXYResolver<X, Y> {
 
+  /**
+   * See implementing classes for more detailed information on possible restrictions on x and y data
+   * such as ordering.
+   *
+   * @param x domain values of the data to be resolved.
+   * @param y range values of the data to be resolved.
+   */
+  public Collection<? extends Collection<Integer>> resolveToIndices(X x, Y y, int[] indices);
 }

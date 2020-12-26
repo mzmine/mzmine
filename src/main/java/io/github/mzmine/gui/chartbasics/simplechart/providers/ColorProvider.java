@@ -16,10 +16,23 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types.modifiers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-public enum BindingsType {
+import io.github.mzmine.datamodel.RawDataFile;
 
-  AVERAGE, SUM, MIN, MAX, COUNT, RANGE, CONSENSUS;
+/**
+ * The methods in this interface are used to set the <b>initial</b> dataset color. Note that the
+ * dataset color is not bound to the original value. Therefore the color of the dataset can be
+ * changed in the plot for better visualisation, without altering the color of e.g. the raw data
+ * file (see {@link RawDataFile#getColorAWT()}
+ *
+ * @author https://github.com/SteffenHeu
+ * @see ExampleProvider
+ */
+public interface ColorProvider {
+
+  public java.awt.Color getAWTColor();
+
+  public javafx.scene.paint.Color getFXColor();
 
 }

@@ -16,10 +16,13 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types.modifiers;
+package io.github.mzmine.gui.chartbasics.simplechart;
 
-public enum BindingsType {
+import java.util.Map;
+import org.jfree.data.xy.XYDataset;
 
-  AVERAGE, SUM, MIN, MAX, COUNT, RANGE, CONSENSUS;
+@FunctionalInterface
+public interface DatasetsChangedListener {
 
+  public void datasetsChanged(Map<Integer, XYDataset> newDatasets);
 }
