@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.SimpleMobilogram;
+import io.github.mzmine.datamodel.Mobilogram;
+import io.github.mzmine.datamodel.impl.MobilityDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleMobilogram;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SavitzkyGolayFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;

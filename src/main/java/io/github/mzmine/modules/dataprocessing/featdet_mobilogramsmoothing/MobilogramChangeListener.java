@@ -21,7 +21,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
+import io.github.mzmine.datamodel.Mobilogram;
 
 @FunctionalInterface
 public interface MobilogramChangeListener {

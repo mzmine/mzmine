@@ -18,8 +18,8 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.datamodel.Mobilogram;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
 import io.github.mzmine.modules.visualization.mobilogram.MobilogramVisualizerController;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.IOException;

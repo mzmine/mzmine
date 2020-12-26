@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
+import io.github.mzmine.datamodel.Mobilogram;
+import io.github.mzmine.datamodel.impl.MobilityDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleMobilogram;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.SimpleMobilogram;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;

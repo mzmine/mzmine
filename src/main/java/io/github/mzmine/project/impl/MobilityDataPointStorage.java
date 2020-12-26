@@ -18,7 +18,7 @@
 
 package io.github.mzmine.project.impl;
 
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
+import io.github.mzmine.datamodel.impl.MobilityDataPoint;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;

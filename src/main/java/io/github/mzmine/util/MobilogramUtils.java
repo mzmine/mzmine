@@ -18,9 +18,9 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilityDataPoint;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.Mobilogram;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.SimpleMobilogram;
+import io.github.mzmine.datamodel.Mobilogram;
+import io.github.mzmine.datamodel.impl.MobilityDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleMobilogram;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
