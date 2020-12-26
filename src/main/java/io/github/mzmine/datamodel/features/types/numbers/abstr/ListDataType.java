@@ -52,6 +52,6 @@ public abstract class ListDataType<T> extends DataType<ListProperty<T>> {
   @Nonnull
   @Override
   public String getFormattedString(@Nonnull ListProperty<T> property) {
-    return property.stream().map(Object::toString).findFirst().orElse(null);
+    return property.stream().map(Object::toString).findFirst().orElse("");
   }
 }
