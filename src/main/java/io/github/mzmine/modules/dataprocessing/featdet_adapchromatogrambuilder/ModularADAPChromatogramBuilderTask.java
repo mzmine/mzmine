@@ -21,6 +21,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 
+import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.util.FeatureConvertors;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -394,6 +395,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(finishedFeature);
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(newFeatureList, newFeatureID, dataFile, modular);
+      newRow.set(FeatureShapeType.class, newRow.getFeaturesProperty());
       newFeatureList.addRow(newRow);
       newFeatureID++;
     }
