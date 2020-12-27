@@ -62,11 +62,17 @@ public class ImageHeatMapPlot extends EChartViewer {
     this.dataPointHeight = dataPointHeight;
     this.paintScale = paintScale;
     JFreeChart chart = getChart();
-    // copy and sort z-Values for min and max of the paint scale
+    // copy and sort z-Values for min and max of the paint scale and axis
+    double[] copyXValues = new double[dataset.getItemCount(0)];
+    double[] copyYValues = new double[dataset.getItemCount(0)];
     double[] copyZValues = new double[dataset.getItemCount(0)];
     for (int i = 0; i < dataset.getItemCount(0); i++) {
+      copyXValues[i] = dataset.getXValue(0, i);
+      copyYValues[i] = dataset.getYValue(0, i);
       copyZValues[i] = dataset.getZValue(0, i);
     }
+    Arrays.sort(copyXValues);
+    Arrays.sort(copyYValues);
     Arrays.sort(copyZValues);
     double min = copyZValues[0];
     double max = copyZValues[copyZValues.length - 1];
@@ -74,15 +80,19 @@ public class ImageHeatMapPlot extends EChartViewer {
     updatePaintScale(paintScale);
     PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
     paintScaleFactoy.createColorsForPaintScale(paintScale);
-    // contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
 
     plot = chart.getXYPlot();
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
     ((NumberAxis) chart.getXYPlot().getRangeAxis())
         .setNumberFormatOverride(new DecimalFormat("0.0E0"));
+    ((NumberAxis) chart.getXYPlot().getRangeAxis()).setRange(0,
+        copyYValues[copyYValues.length - 1]);
     ((NumberAxis) chart.getXYPlot().getDomainAxis())
         .setNumberFormatOverride(new DecimalFormat("0.0E0"));
+    ((NumberAxis) chart.getXYPlot().getDomainAxis()).setRange(0,
+        copyXValues[copyXValues.length - 1]);
+
     setPixelRenderer();
     prepareLegend(min, max);
 
