@@ -61,7 +61,7 @@ public class ImageVisualizerTask extends AbstractTask {
   private double pixelWidth;
   private double pixelHeight;
   private double progress = 0.0;
-  private String taskDescription = "";
+  private String taskDescription = "Building image";
 
 
   public ImageVisualizerTask(RawDataFile rawDataFile, ParameterSet parameters) {

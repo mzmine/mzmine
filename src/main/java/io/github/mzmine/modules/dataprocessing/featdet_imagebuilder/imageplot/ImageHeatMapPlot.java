@@ -28,11 +28,11 @@ import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYZDataset;
+import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockRendererSmallBlocks;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
@@ -51,15 +51,16 @@ public class ImageHeatMapPlot extends EChartViewer {
   private XYBlockRendererSmallBlocks blockRenderer;
   private double dataPointHeight;
   private double dataPointWidth;
+  private PaintScale paintScale;
 
   public ImageHeatMapPlot(XYZDataset dataset, PaintScale paintScale, double dataPointWidth,
       double dataPointHeight) {
 
     super(ChartFactory.createScatterPlot("", "[\u00B5m]", "[\u00B5m]", dataset,
         PlotOrientation.VERTICAL, true, true, true));
-
     this.dataPointWidth = dataPointWidth;
     this.dataPointHeight = dataPointHeight;
+    this.paintScale = paintScale;
     JFreeChart chart = getChart();
     // copy and sort z-Values for min and max of the paint scale
     double[] copyZValues = new double[dataset.getItemCount(0)];
@@ -70,6 +71,7 @@ public class ImageHeatMapPlot extends EChartViewer {
     double min = copyZValues[0];
     double max = copyZValues[copyZValues.length - 1];
 
+    updatePaintScale(paintScale);
     PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
     paintScaleFactoy.createColorsForPaintScale(paintScale);
     // contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
@@ -82,7 +84,7 @@ public class ImageHeatMapPlot extends EChartViewer {
     ((NumberAxis) chart.getXYPlot().getDomainAxis())
         .setNumberFormatOverride(new DecimalFormat("0.0E0"));
     setPixelRenderer();
-    prepareLegend(min, max, paintScale);
+    prepareLegend(min, max);
 
     blockRenderer.setPaintScale(paintScale);
     plot.setRenderer(blockRenderer);
@@ -99,13 +101,13 @@ public class ImageHeatMapPlot extends EChartViewer {
     blockRenderer.setBlockWidth(dataPointWidth);
   }
 
-  private void prepareLegend(double min, double max, LookupPaintScale scale) {
+  private void prepareLegend(double min, double max) {
     NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setNumberFormatOverride(new DecimalFormat("0.0E0"));
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
-    legend = new PaintScaleLegend(scale, scaleAxis);
+    legend = new PaintScaleLegend(paintScale, scaleAxis);
     legend.setPadding(5, 0, 5, 0);
     legend.setStripOutlineVisible(false);
     legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
@@ -120,4 +122,36 @@ public class ImageHeatMapPlot extends EChartViewer {
     return plot;
   }
 
+  public double getDataPointHeight() {
+    return dataPointHeight;
+  }
+
+  public void setDataPointHeight(double dataPointHeight) {
+    this.dataPointHeight = dataPointHeight;
+  }
+
+  public double getDataPointWidth() {
+    return dataPointWidth;
+  }
+
+  public void setDataPointWidth(double dataPointWidth) {
+    this.dataPointWidth = dataPointWidth;
+  }
+
+  public PaintScale getPaintScale() {
+    return paintScale;
+  }
+
+  public void setPaintScale(PaintScale paintScale) {
+    this.paintScale = paintScale;
+  }
+
+  public void updatePaintScale(PaintScale paintScaleParameters) {
+    PaintScale newPaintScale = new PaintScale(paintScaleParameters.getPaintScaleColorStyle(),
+        paintScaleParameters.getPaintScaleBoundStyle(),
+        Range.closed(paintScale.getLowerBound(), paintScale.getUpperBound()));
+    PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
+    paintScaleFactoy.createColorsForPaintScale(newPaintScale);
+    paintScale = newPaintScale;
+  }
 }

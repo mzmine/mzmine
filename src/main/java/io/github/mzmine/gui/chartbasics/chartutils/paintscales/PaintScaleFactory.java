@@ -45,6 +45,8 @@ public class PaintScaleFactory {
         return getGreenScale(paintScaleBoundStyle);
       case RAINBOW:
         return getRainbowScale(paintScaleBoundStyle);
+      case GRREN_YELLOW_RED:
+        return getGreenYellowRedScale(paintScaleBoundStyle);
       case RED:
         return getRedScale(paintScaleBoundStyle);
       case YELLOW:
@@ -74,7 +76,7 @@ public class PaintScaleFactory {
       cyanScale[i] = new Color(244, 66, 223);
     }
 
-    return scaleAlphaForPaintScale(cyanScale);
+    return cyanScale;
   }
 
   /*
@@ -96,7 +98,7 @@ public class PaintScaleFactory {
       greenScale[i] = new Color(244, 66, 223);
     }
 
-    return scaleAlphaForPaintScale(greenScale);
+    return greenScale;
   }
 
   /*
@@ -126,6 +128,28 @@ public class PaintScaleFactory {
   }
 
   /*
+   * returns an array with rainbow colors
+   */
+  private Color[] getGreenYellowRedScale(PaintScaleBoundStyle paintScaleBoundStyle) {
+    int ncolor = 100;
+    Color[] scale = new Color[ncolor];
+    int adjustedLowerBound = adjustLowerBound(paintScaleBoundStyle);
+    int adjustedUpperBound = adjustUpperBound(paintScaleBoundStyle);
+
+    for (int i = 0; i < adjustedLowerBound; i++) {
+      scale[i] = new Color(0, 0, 0);
+    }
+    for (int i = adjustedLowerBound; i < scale.length - adjustedLowerBound; i++) {
+      scale[i] = new Color((255 * i / 100), ((255 * (100 - i)) / 100), 0);
+    }
+    for (int i = scale.length - adjustedUpperBound; i < scale.length; i++) {
+      scale[i] = new Color(244, 66, 223);
+    }
+
+    return scale;
+  }
+
+  /*
    * returns an array with red colors
    */
   public Color[] getRedScale(PaintScaleBoundStyle paintScaleBoundStyle) {
@@ -144,7 +168,7 @@ public class PaintScaleFactory {
       redScale[i] = new Color(244, 66, 223);
     }
 
-    return scaleAlphaForPaintScale(redScale);
+    return redScale;
   }
 
   /*
@@ -166,7 +190,7 @@ public class PaintScaleFactory {
       yellowScale[i] = new Color(244, 66, 223);
     }
 
-    return scaleAlphaForPaintScale(yellowScale);
+    return yellowScale;
   }
 
   private int adjustLowerBound(PaintScaleBoundStyle paintScaleBoundStyle) {

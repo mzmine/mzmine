@@ -18,13 +18,7 @@
 
 package io.github.mzmine.modules.visualization.image;
 
-import java.awt.Color;
 import java.util.logging.Logger;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.XYPlot;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.parameters.ParameterSet;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
@@ -55,21 +49,6 @@ public class ImageVisualizerPaneController {
 
   @FXML
   private Button backgroundButton;
-
-  public void initialize(ParameterSet parameters) {
-    // add mouse listener to HeatMapPlot
-  }
-
-  @FXML
-  void toggleBackColor(ActionEvent event) {
-    logger.finest("Toggle background");
-    XYPlot plot = getImageChart().getXYPlot();
-    if (plot.getBackgroundPaint() == Color.WHITE) {
-      plot.setBackgroundPaint(Color.BLACK);
-    } else {
-      plot.setBackgroundPaint(Color.WHITE);
-    }
-  }
 
   public BorderPane getPlotPane() {
     return plotPane;
@@ -109,14 +88,6 @@ public class ImageVisualizerPaneController {
 
   public void setSpectrumPlotPane(AnchorPane spectrumPlotPane) {
     this.spectrumPlotPane = spectrumPlotPane;
-  }
-
-  private JFreeChart getImageChart() {
-    if (plotPane.getChildren().get(0) instanceof EChartViewer) {
-      EChartViewer viewer = (EChartViewer) plotPane.getChildren().get(0);
-      return viewer.getChart();
-    }
-    return null;
   }
 
 }

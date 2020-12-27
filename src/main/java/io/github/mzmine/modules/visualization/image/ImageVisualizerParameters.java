@@ -51,6 +51,8 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
           new PaintScale[] {
               new PaintScale(PaintScaleColorStyle.RAINBOW, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),
+              new PaintScale(PaintScaleColorStyle.GRREN_YELLOW_RED, PaintScaleBoundStyle.NONE,
+                  Range.closed(0.0, 100.0)),
               new PaintScale(PaintScaleColorStyle.RED, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),
               new PaintScale(PaintScaleColorStyle.GREEN, PaintScaleBoundStyle.NONE,

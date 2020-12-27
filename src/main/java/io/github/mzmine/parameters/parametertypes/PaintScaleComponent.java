@@ -51,7 +51,7 @@ public class PaintScaleComponent extends GridPane {
     });
     add(comboBox, 0, 0);
     swingNode = new SwingNode();
-    swingNode.prefWidth(100);
+    swingNode.prefWidth(comboBox.getPrefWidth());
     swingNode.prefHeight(10);
     drawLegendInSwingNode();
     add(swingNode, 0, 1);
@@ -64,11 +64,13 @@ public class PaintScaleComponent extends GridPane {
       public void paintComponent(Graphics g) {
         super.paintComponent(g);
         PaintScale selectedPaintScale = comboBox.getSelectionModel().getSelectedItem();
-        PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
-        paintScaleFactoy.createColorsForPaintScale(selectedPaintScale);
-        for (int i = 0; i < 100; i++) {
-          g.setColor((Color) selectedPaintScale.getPaint(i));
-          g.drawRect(0 + i, 1, 1, 10);
+        if (selectedPaintScale != null) {
+          PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
+          paintScaleFactoy.createColorsForPaintScale(selectedPaintScale);
+          for (int i = 0; i < 100; i++) {
+            g.setColor((Color) selectedPaintScale.getPaint(i));
+            g.drawRect(0 + i, 1, 1, 10);
+          }
         }
       }
     };
