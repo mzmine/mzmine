@@ -20,6 +20,8 @@ package io.github.mzmine.datamodel.features.types.fx;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
@@ -32,6 +34,8 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.Property;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -55,6 +59,7 @@ public class EditComboCellFactory implements
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private RawDataFile raw;
   private DataType<?> type;
+  private DataType modularParentType;
   private int subcolumn = -1;
 
 
@@ -63,8 +68,15 @@ public class EditComboCellFactory implements
   }
 
   public EditComboCellFactory(RawDataFile raw, DataType<?> type, int subcolumn) {
+    this(raw, type, null, subcolumn);
+  }
+  public EditComboCellFactory(RawDataFile raw, DataType<?> type, DataType modularParentType) {
+    this(raw, type, modularParentType, -1);
+  }
+  public EditComboCellFactory(RawDataFile raw, DataType<?> type, DataType modularParentType, int subcolumn) {
     this.type = type;
     this.raw = raw;
+    this.modularParentType = modularParentType;
     this.subcolumn = subcolumn;
   }
 
@@ -75,19 +87,29 @@ public class EditComboCellFactory implements
 
       @Override
       public void startEdit() {
-        ObservableList<FeatureIdentity> peakIdentities = getTreeTableRow().getItem().get(
-            ManualAnnotationType.class).get(IdentityType.class).get();
-        getItems().clear();
-        getItems().addAll(peakIdentities);
-        // create element that triggers the add element dialog on selection
-        if(type instanceof AddElementDialog) {
-          getItems().add(AddElementDialog.BUTTON_TEXT);
+        ModularFeatureListRow row = getTreeTableRow().getItem();
+        ModularDataModel model = raw==null? row : row.getFeature(raw);
+        if(modularParentType !=null)
+          model = (ModularDataModel) model.get(modularParentType);
+
+        Property<?> list =  model.get(type);
+        if(list instanceof ListProperty) {
+          getItems().clear();
+          getItems().addAll(((ListProperty)list).getValue());
+          // create element that triggers the add element dialog on selection
+          if(type instanceof AddElementDialog) {
+            getItems().add(AddElementDialog.BUTTON_TEXT);
+          }
+          super.startEdit();
+          if (isEditing() && getGraphic() instanceof ComboBox) {
+            // needs focus for proper working of esc/enter
+            getGraphic().requestFocus();
+            ((ComboBox<?>) getGraphic()).show();
+          }
         }
-        super.startEdit();
-        if (isEditing() && getGraphic() instanceof ComboBox) {
-          // needs focus for proper working of esc/enter
-          getGraphic().requestFocus();
-          ((ComboBox<?>) getGraphic()).show();
+        else {
+          throw new UnsupportedOperationException("Unhandled data type in edit combo CellFactory: "
+              +type.getHeaderString());
         }
       }
 

@@ -128,11 +128,8 @@ public abstract class DataType<T extends Property<?>> {
       }
       // value representation
       if (this instanceof EditableColumnType) {
-        col.setCellFactory(getEditableCellFactory(col, raw));
+        col.setCellFactory(getEditableCellFactory(col, raw, modularParentType));
         col.setEditable(true);
-        col.setOnEditStart(event -> {
-
-        });
         col.setOnEditCommit(event -> {
           Object data = event.getNewValue();
           if (data != null) {
@@ -175,9 +172,9 @@ public abstract class DataType<T extends Property<?>> {
   protected Callback<TreeTableColumn<ModularFeatureListRow, Object>,
       TreeTableCell<ModularFeatureListRow, Object>> getEditableCellFactory(
       TreeTableColumn<ModularFeatureListRow, Object> col,
-      RawDataFile raw) {
+      RawDataFile raw, ModularType modularParentType) {
     if(this instanceof ListDataType)
-      return new EditComboCellFactory(raw, this);
+      return new EditComboCellFactory(raw, this, modularParentType);
     else if(this instanceof StringParser<?>)
       return new EditableDataTypeCellFactory(raw, this);
     else {
