@@ -19,7 +19,6 @@
 package io.github.mzmine.project.impl;
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -43,9 +42,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * @see io.github.mzmine.datamodel.IMSRawDataFile
- *
  * @author https://github.com/SteffenHeu
+ * @see io.github.mzmine.datamodel.IMSRawDataFile
  */
 public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFile {
 
@@ -82,43 +80,40 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Override
   public synchronized Scan addScan(Scan newScan) throws IOException {
 
+    if (!(newScan instanceof Frame)) {
+      throw new UnsupportedOperationException("Cannot add " + newScan.getClass().getName()
+          + ". Only instances of Frame can be added to an IMSRawDataFile");
+    }
+    Frame newFrame = (Frame) newScan;
     // TODO: dirty hack - currently the frames are added to the scan and frame map
     if (this.mobilityType == MobilityType.NONE) {
-      this.mobilityType = newScan.getMobilityType();
+      this.mobilityType = newFrame.getMobilityType();
     }
-    if (newScan.getMobilityType() != mobilityType) {
-      throw new MSDKRuntimeException(
-          "The mobility type specified in scan (" + newScan.getMobilityType()
+    if (newFrame.getMobilityType() != mobilityType) {
+      throw new UnsupportedOperationException(
+          "The mobility type specified in scan (" + newFrame.getMobilityType()
               + ") does not match the mobility type of raw data file (" + getMobilityType() + ")");
     }
 
-    if (newScan instanceof Frame) {
-      Frame newFrame = (Frame) newScan;
-      if (newScan instanceof StorableFrame) {
-        scans.put(((StorableFrame) newScan).getFrameId(), (StorableFrame) newFrame);
-        frames.put(((StorableFrame) newScan).getFrameId(), (StorableFrame) newFrame);
-        return newFrame;
-      }
+    if (newFrame instanceof StorableFrame) {
+      throw new UnsupportedOperationException("Cannot add StorableFrame to an IMSRawDataFile");
+    }
 
-      Range<Integer> segmentKey = getSegmentKeyForFrame(((Frame) newScan).getScanNumber());
-      segmentMobilityRange.putIfAbsent(segmentKey, newFrame.getMobilities());
+    Range<Integer> segmentKey = getSegmentKeyForFrame((newFrame).getScanNumber());
+    segmentMobilityRange.putIfAbsent(segmentKey, newFrame.getMobilities());
 
-      final int storageId = storeDataPoints(newFrame.getDataPoints());
-      StorableFrame storedFrame = new StorableFrame(newFrame, this,
-          newFrame.getNumberOfDataPoints(), storageId);
-      scans.put(storedFrame.getFrameId(), storedFrame);
-      frames.put(storedFrame.getFrameId(), storedFrame);
-      return storedFrame;
-    } else {
-      logger.info("Only frames should be added to an IMSRawDataFile");
-      return super.addScan(newScan);
+    final int storageId = storeDataPoints(newFrame.getDataPoints());
+    StorableFrame storedFrame = new StorableFrame(newFrame, this,
+        newFrame.getNumberOfDataPoints(), storageId);
+    scans.put(storedFrame.getFrameId(), storedFrame);
+    frames.put(storedFrame.getFrameId(), storedFrame);
+    return storedFrame;
       /*if (mobilityRange == null) {
         mobilityRange = Range.singleton(newScan.getMobility());
       } else if (!mobilityRange.contains(newScan.getMobility())) {
         mobilityRange = mobilityRange.span(Range.singleton(newScan.getMobility()));
       }
       super.addScan(newScan);*/
-    }
   }
 
   @Nonnull
@@ -269,29 +264,28 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   }
 
   /**
-   *
-   * @param frameNumber The frame number
+   * @param frameNumber            The frame number
    * @param mobilitySpectrumNumber The mobility spectrum number with regard to the frame.
    * @return The mobility for the respective scan or {@link MobilityScan#DEFAULT_MOBILITY}.
    */
   @Override
   public double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber) {
     Map<Integer, Double> mobilities = getMobilitiesForFrame(frameNumber);
-    if(mobilities != null) {
+    if (mobilities != null) {
       return mobilities.getOrDefault(mobilitySpectrumNumber, MobilityScan.DEFAULT_MOBILITY);
     }
     return MobilityScan.DEFAULT_MOBILITY;
   }
 
   /**
-   *
    * @param frameNumber The frame number.
    * @return Map of mobility scan number <-> mobility or null for invalid frame numbers.
    */
   @Nullable
   @Override
   public Map<Integer, Double> getMobilitiesForFrame(int frameNumber) {
-    Optional<Entry<Range<Integer>, Map<Integer, Double>>> entry = segmentMobilityRange.entrySet().stream()
+    Optional<Entry<Range<Integer>, Map<Integer, Double>>> entry = segmentMobilityRange.entrySet()
+        .stream()
         .filter(e -> e.getKey().contains(frameNumber))
         .findFirst();
     return entry.map(Entry::getValue).orElse(null);
