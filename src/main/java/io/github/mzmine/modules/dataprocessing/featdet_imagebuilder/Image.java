@@ -22,6 +22,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 import java.util.Set;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
 
 /*
@@ -31,6 +32,7 @@ public class Image implements IImage {
 
   private double mz;
   private ImagingParameters imagingParameters;
+  private PaintScale paintScale;
   private double maximumIntensity;
   private Range<Double> mzRange;
   private Range<Double> intensityRange;
@@ -39,19 +41,22 @@ public class Image implements IImage {
   private String representativeString;
   private FeatureList featureList;
 
-  public Image(double mz, ImagingParameters imagingParameters, double maximumIntensity,
-      Range<Double> mzRange) {
+  public Image(double mz, ImagingParameters imagingParameters, PaintScale paintScale,
+      double maximumIntensity, Range<Double> mzRange) {
     this.mz = mz;
     this.imagingParameters = imagingParameters;
+    this.paintScale = paintScale;
     this.maximumIntensity = maximumIntensity;
     this.mzRange = mzRange;
   }
 
-  public Image(double mz, ImagingParameters imagingParameters, double maximumIntensity,
-      Range<Double> mzRange, Range<Double> intensityRange, Set<ImageDataPoint> dataPoints,
-      Set<Integer> scanNumbers, String representativeString, FeatureList featureList) {
+  public Image(double mz, ImagingParameters imagingParameters, PaintScale paintScale,
+      double maximumIntensity, Range<Double> mzRange, Range<Double> intensityRange,
+      Set<ImageDataPoint> dataPoints, Set<Integer> scanNumbers, String representativeString,
+      FeatureList featureList) {
     this.mz = mz;
     this.imagingParameters = imagingParameters;
+    this.paintScale = paintScale;
     this.maximumIntensity = maximumIntensity;
     this.mzRange = mzRange;
     this.intensityRange = intensityRange;
@@ -75,6 +80,14 @@ public class Image implements IImage {
 
   public void setImagingParameters(ImagingParameters imagingParameters) {
     this.imagingParameters = imagingParameters;
+  }
+
+  public PaintScale getPaintScale() {
+    return paintScale;
+  }
+
+  public void setPaintScale(PaintScale paintScale) {
+    this.paintScale = paintScale;
   }
 
   public double getMaximumIntensity() {

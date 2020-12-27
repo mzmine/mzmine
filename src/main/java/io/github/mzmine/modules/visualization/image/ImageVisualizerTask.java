@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageHeatMapPlot;
@@ -55,6 +56,7 @@ public class ImageVisualizerTask extends AbstractTask {
   private final ImagingParameters imagingParameters;
   private final ScanSelection scanSelection;
   private final Range<Double> mzRange;
+  private final PaintScale paintScaleParameter;
 
   private double pixelWidth;
   private double pixelHeight;
@@ -69,6 +71,8 @@ public class ImageVisualizerTask extends AbstractTask {
     this.scanSelection =
         parameters.getParameter(ImageVisualizerParameters.scanSelection).getValue();
     this.mzRange = parameters.getParameter(ImageVisualizerParameters.mzRange).getValue();
+    this.paintScaleParameter =
+        parameters.getParameter(ImageVisualizerParameters.paintScale).getValue();
     setStatus(TaskStatus.WAITING);
   }
 
@@ -132,7 +136,7 @@ public class ImageVisualizerTask extends AbstractTask {
       allDataPoints.add(new ImageDataPoint(0.0, intensitySum, scan.getScanNumber(),
           (((StorableImagingScan) scan).getCoordinates().getX() + 1) * pixelWidth,
           (((StorableImagingScan) scan).getCoordinates().getY() + 1) * pixelHeight, 1, pixelHeight,
-          pixelWidth));
+          pixelWidth, paintScaleParameter));
       progress = (processedScans / (double) scans.length);
       processedScans++;
     }
@@ -166,7 +170,16 @@ public class ImageVisualizerTask extends AbstractTask {
     zValues = new Double[zValuesSet.size()];
     zValues = zValuesSet.toArray(zValues);
 
-    XYZDataset dataset = new ImageXYZDataset(xValues, yValues, zValues, "Test");
-    return new ImageHeatMapPlot(dataset, "Rainbow", dataPointWidth, dataPointHeight, rawDataFile);
+    XYZDataset dataset = new ImageXYZDataset(xValues, yValues, zValues, "");
+    return new ImageHeatMapPlot(dataset, createPaintScale(zValues), dataPointWidth,
+        dataPointHeight);
+  }
+
+  private PaintScale createPaintScale(Double[] zValues) {
+    Double[] zValuesCopy = Arrays.copyOf(zValues, zValues.length);
+    Arrays.sort(zValuesCopy);
+    Range<Double> zValueRange = Range.closed(zValuesCopy[0], zValuesCopy[zValues.length - 1]);
+    return new PaintScale(paintScaleParameter.getPaintScaleColorStyle(),
+        paintScaleParameter.getPaintScaleBoundStyle(), zValueRange);
   }
 }

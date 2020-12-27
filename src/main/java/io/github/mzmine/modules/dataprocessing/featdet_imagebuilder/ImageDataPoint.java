@@ -20,6 +20,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -34,9 +35,11 @@ public class ImageDataPoint implements DataPoint {
   private final double zWorld;
   private final double dataPointHeigth;
   private final double dataPointWidth;
+  private final PaintScale paintScale;
 
   public ImageDataPoint(double mz, double intensity, int scanNumber, double xWorld, double yWorld,
-      double zWorld, double dataPointHeigth, double dataPointWidth) {
+      double zWorld, double dataPointHeigth, double dataPointWidth, PaintScale paintScale) {
+    super();
     this.mz = mz;
     this.intensity = intensity;
     this.scanNumber = scanNumber;
@@ -45,6 +48,7 @@ public class ImageDataPoint implements DataPoint {
     this.zWorld = zWorld;
     this.dataPointHeigth = dataPointHeigth;
     this.dataPointWidth = dataPointWidth;
+    this.paintScale = paintScale;
   }
 
   public double getMZ() {
@@ -77,6 +81,10 @@ public class ImageDataPoint implements DataPoint {
 
   public double getDataPointWidth() {
     return dataPointWidth;
+  }
+
+  public PaintScale getPaintScale() {
+    return paintScale;
   }
 
   @Override

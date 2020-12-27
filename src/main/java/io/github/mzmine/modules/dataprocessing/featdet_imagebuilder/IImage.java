@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
 
 /*
@@ -35,6 +36,10 @@ public interface IImage {
   void setMz(double mz);
 
   ImagingParameters getImagingParameters();
+
+  PaintScale getPaintScale();
+
+  void setPaintScale(PaintScale paintScale);
 
   void setImagingParameters(ImagingParameters imagingParameters);
 

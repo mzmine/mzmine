@@ -29,15 +29,14 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
-import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYZDataset;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
+import io.github.mzmine.gui.chartbasics.chartutils.XYBlockRendererSmallBlocks;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 
@@ -49,12 +48,12 @@ public class ImageHeatMapPlot extends EChartViewer {
   private final XYPlot plot;
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 8);
   private PaintScaleLegend legend;
-  private XYBlockRenderer blockRenderer;
+  private XYBlockRendererSmallBlocks blockRenderer;
   private double dataPointHeight;
   private double dataPointWidth;
 
-  public ImageHeatMapPlot(XYZDataset dataset, String paintScaleStyle, double dataPointWidth,
-      double dataPointHeight, ImagingRawDataFile rawDataFile) {
+  public ImageHeatMapPlot(XYZDataset dataset, PaintScale paintScale, double dataPointWidth,
+      double dataPointHeight) {
 
     super(ChartFactory.createScatterPlot("", "[\u00B5m]", "[\u00B5m]", dataset,
         PlotOrientation.VERTICAL, true, true, true));
@@ -74,19 +73,9 @@ public class ImageHeatMapPlot extends EChartViewer {
     int maxIndexScale = copyZValues.length - 1;
     double min = copyZValues[minIndexScale];
     double max = copyZValues[maxIndexScale];
-    Color[] contourColors =
-        XYBlockPixelSizePaintScales.getPaintColors("", Range.closed(min, max), paintScaleStyle);
+    PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
+    paintScaleFactoy.createColorsForPaintScale(paintScale);
     // contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
-    LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
-
-    double[] scaleValues = new double[contourColors.length];
-    double delta = (max - min) / (contourColors.length - 1);
-    double value = min;
-    for (int i = 0; i < contourColors.length; i++) {
-      scaleValues[i] = value;
-      scale.add(value, contourColors[i]);
-      value = value + delta;
-    }
 
     plot = chart.getXYPlot();
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
@@ -96,9 +85,9 @@ public class ImageHeatMapPlot extends EChartViewer {
     ((NumberAxis) chart.getXYPlot().getDomainAxis())
         .setNumberFormatOverride(new DecimalFormat("0.0E0"));
     setPixelRenderer();
-    prepareLegend(min, max, scale);
+    prepareLegend(min, max, paintScale);
 
-    blockRenderer.setPaintScale(scale);
+    blockRenderer.setPaintScale(paintScale);
     plot.setRenderer(blockRenderer);
     plot.setBackgroundPaint(Color.black);
     plot.setRangeGridlinePaint(Color.black);
@@ -108,7 +97,7 @@ public class ImageHeatMapPlot extends EChartViewer {
   }
 
   private void setPixelRenderer() {
-    blockRenderer = new XYBlockRenderer();
+    blockRenderer = new XYBlockRendererSmallBlocks();
     blockRenderer.setBlockHeight(dataPointHeight);
     blockRenderer.setBlockWidth(dataPointWidth);
   }

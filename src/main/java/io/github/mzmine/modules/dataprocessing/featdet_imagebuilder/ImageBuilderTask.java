@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.ImageType;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -67,6 +68,7 @@ public class ImageBuilderTask extends AbstractTask {
   private final int minTotalSignals;
   private final ScanSelection scanSelection;
   private final ImagingParameters imagingParameters;
+  private final PaintScale paintScaleParameter;
   private double pixelWidth;
   private double pixelHeight;
   private double progress = 0.0;
@@ -81,6 +83,8 @@ public class ImageBuilderTask extends AbstractTask {
     this.minTotalSignals =
         parameters.getParameter(ImageBuilderParameters.minTotalSignals).getValue();
     this.scanSelection = parameters.getParameter(ImageBuilderParameters.scanSelection).getValue();
+    this.paintScaleParameter =
+        parameters.getParameter(ImageBuilderParameters.paintScale).getValue();
     this.suffix = parameters.getParameter(ImageBuilderParameters.suffix).getValue();
     setStatus(TaskStatus.WAITING);
   }
@@ -145,7 +149,7 @@ public class ImageBuilderTask extends AbstractTask {
                 .add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(), scan.getScanNumber(),
                     ((StorableImagingScan) scan).getCoordinates().getX() * pixelWidth,
                     ((StorableImagingScan) scan).getCoordinates().getY() * pixelHeight, 1,
-                    pixelHeight, pixelWidth)));
+                    pixelHeight, pixelWidth, paintScaleParameter)));
       }
       progress = (processedScans / (double) scans.length) / 4;
       processedScans++;
@@ -200,7 +204,7 @@ public class ImageBuilderTask extends AbstractTask {
         if (toBeLowerBound < toBeUpperBound) {
           Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
           IImage newImage = new Image(imageDataPoint.getMZ(), imagingParameters,
-              imageDataPoint.getIntensity(), newRange);
+              paintScaleParameter, imageDataPoint.getIntensity(), newRange);
           Set<ImageDataPoint> dataPointsSetForImage = new HashSet<>();
           dataPointsSetForImage.add(imageDataPoint);
           newImage.setDataPoints(dataPointsSetForImage);
