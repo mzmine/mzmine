@@ -205,7 +205,13 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 //    logger.info("Adding columns to table");
     // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
-    ((ModularFeatureList) flist).getRowTypes().values().forEach(this::addColumn);
+    ModularFeatureList featureList = (ModularFeatureList) flist;
+    // add row types
+    featureList.getRowTypes().values().stream()
+        .filter(t -> !(t instanceof FeaturesType)).forEach(this::addColumn);
+    // add features
+    if(featureList.getRowTypes().containsKey(FeaturesType.class))
+      addColumn(featureList.getRowTypes().get(FeaturesType.class));
   }
 
   /**
