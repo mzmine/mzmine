@@ -18,8 +18,6 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import io.github.mzmine.util.RangeUtils;
-import java.text.NumberFormat;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -27,6 +25,8 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
+import io.github.mzmine.util.RangeUtils;
+import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.geometry.Orientation;
 import javafx.scene.control.CheckBox;
@@ -39,13 +39,10 @@ import javafx.scene.layout.FlowPane;
 /**
  * This class extends ParameterSetupDialog class, including a TICPlot. This is used to preview how
  * the selected raw data filters work.
- *
+ * <p>
  * Slightly modified to add the possibility of switching to TIC (versus Base Peak) preview.
  */
 public abstract class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupDialog {
-
-  private RawDataFile[] dataFiles;
-  private RawDataFile previewDataFile;
 
   // Dialog components
   private final BorderPane pnlPreviewFields = new BorderPane();
@@ -57,11 +54,11 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
   private final DoubleRangeComponent mzRangeBox =
       new DoubleRangeComponent(MZmineCore.getConfiguration().getMZFormat());
   private final CheckBox previewCheckBox = new CheckBox("Show preview");
-
   // Show as TIC
   private final ComboBox<TICPlotType> ticViewComboBox =
       new ComboBox<TICPlotType>(FXCollections.observableArrayList(TICPlotType.values()));
-
+  private RawDataFile[] dataFiles;
+  private RawDataFile previewDataFile;
   // XYPlot
   private TICPlot ticPlot;
 
@@ -75,10 +72,11 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
 
       RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
 
-      if (selectedFiles.length > 0)
+      if (selectedFiles.length > 0) {
         previewDataFile = selectedFiles[0];
-      else
+      } else {
         previewDataFile = dataFiles[0];
+      }
     }
 
     previewCheckBox.setOnAction(e -> {
@@ -124,7 +122,9 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     ticViewComboBox.setOnAction(e -> parametersChanged());
 
     // TODO: FloatRangeComponent
-    rtRangeBox.setValue(Range.closed(previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue(), previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue()));
+    rtRangeBox.setValue(Range
+        .closed(previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue(),
+            previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue()));
     mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
 
     pnlFlds.getChildren().add(comboDataFileName);
@@ -145,7 +145,6 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     // ticPlot.setMinimumSize(new Dimension(400, 300));
 
     paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3);
-
 
 
   }
@@ -175,7 +174,6 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     // update plot title
     ticPlot.setTitle(previewDataFile.getName(), title);
   }
-
 
 
   public void showPreview() {
@@ -215,8 +213,9 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
   protected void parametersChanged() {
 
     // Update preview as parameters have changed
-    if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
+    if ((previewCheckBox == null) || (!previewCheckBox.isSelected())) {
       return;
+    }
 
     Range<Float> rtRange = RangeUtils.toFloatRange(rtRangeBox.getValue());
     Range<Double> mzRange = mzRangeBox.getValue();
