@@ -131,11 +131,8 @@ public class ModularFeatureList implements FeatureList {
   public void addFeatureType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
       if (!featureTypes.containsKey(type.getClass())) {
+        // all {@link ModularFeature} will automatically add a default property to their data map
         featureTypes.put(type.getClass(), type);
-        // add to maps
-        modularStreamFeatures().forEach(f -> {
-          f.setProperty(type, type.createProperty());
-        });
       }
     }
   }
@@ -147,11 +144,9 @@ public class ModularFeatureList implements FeatureList {
   public void addRowType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
       if (!rowTypes.containsKey(type.getClass())) {
+        // add row type - all rows will automatically generate a default property for this type in
+        // their data map
         rowTypes.put(type.getClass(), type);
-        // add type columns to maps
-        modularStream().forEach(row -> {
-          row.setProperty(type, type.createProperty());
-        });
       }
     }
   }

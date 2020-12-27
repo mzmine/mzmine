@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
@@ -65,6 +66,20 @@ public class ModularFeature implements Feature, ModularDataModel {
     flist.getFeatureTypes().values().forEach(type -> {
       this.setProperty(type, type.createProperty());
     });
+
+    // register listener to types map to automatically generate default properties for new DataTypes
+    flist.getFeatureTypes().addListener(
+        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
+          if(change.wasAdded()) {
+            // add type columns to maps
+            DataType type = change.getValueAdded();
+            this.setProperty(type, type.createProperty());
+          } else if(change.wasRemoved()) {
+            // remove type columns to maps
+            DataType<Property<?>> type = change.getValueRemoved();
+            this.removeProperty((Class<DataType<Property<?>>>) type.getClass());
+          }
+        });
   }
 
   // NOT TESTED

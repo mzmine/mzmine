@@ -78,7 +78,7 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
 
   @Override
   public String getHeaderString() {
-    return "Spectral Library Match";
+    return "Spectral library match";
   }
 
   @Override

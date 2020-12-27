@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import javafx.beans.property.ObjectProperty;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -89,6 +90,21 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     flist.getRowTypes().values().forEach(type -> {
       this.setProperty(type, type.createProperty());
     });
+
+    // register listener to types map to automatically generate default properties for new DataTypes
+    flist.getRowTypes().addListener(
+        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
+            if(change.wasAdded()) {
+              // add type columns to maps
+              DataType type = change.getValueAdded();
+              this.setProperty(type, type.createProperty());
+            } else if(change.wasRemoved()) {
+              // remove type columns to maps
+              DataType<Property<?>> type = change.getValueRemoved();
+              this.removeProperty((Class<DataType<Property<?>>>) type.getClass());
+            }
+        });
+
     // copy all but features
     if(row!=null)
       row.stream().filter(e -> !(e.getKey() instanceof FeaturesType))
@@ -389,6 +405,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public void addFeatureIdentity(FeatureIdentity identity, boolean preferred) {
+    if(!hasTypeColumn(IdentityType.class)) {
+      getFeatureList().addRowType(new IdentityType());
+    }
     // Verify if exists already an identity with the same name
     ObservableList<FeatureIdentity> peakIdentities = getPeakIdentities();
     for (FeatureIdentity testId : peakIdentities) {

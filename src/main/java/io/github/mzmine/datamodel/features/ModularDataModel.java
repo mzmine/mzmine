@@ -228,8 +228,7 @@ public interface ModularDataModel {
   /**
    * Should only be called whenever a DataType column is removed from this model. To remove the
    * value of the underlying Property<?> call {@link ModularDataModel#set(DataType, Object)}
-   * 
-   * @param <T>
+   *  @param <T>
    * @param tclass
    */
   default <T extends Property<?>> void removeProperty(Class<? extends DataType<T>> tclass) {
