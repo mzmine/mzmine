@@ -56,7 +56,6 @@ public class ImageBuilderParameters extends SimpleParameterSet {
   public static final IntegerParameter minTotalSignals = new IntegerParameter(
       "Minimum total Signals", "Minimum number of signals (data points) to form an image", 200);
 
-
   public static final PaintScaleParameter paintScale =
       new PaintScaleParameter("Paint scale", "Select paint scale",
           new PaintScale[] {

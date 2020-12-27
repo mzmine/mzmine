@@ -67,12 +67,9 @@ public class ImageHeatMapPlot extends EChartViewer {
       copyZValues[i] = dataset.getZValue(0, i);
     }
     Arrays.sort(copyZValues);
+    double min = copyZValues[0];
+    double max = copyZValues[copyZValues.length - 1];
 
-    // get index in accordance to percentile windows
-    int minIndexScale = 0;
-    int maxIndexScale = copyZValues.length - 1;
-    double min = copyZValues[minIndexScale];
-    double max = copyZValues[maxIndexScale];
     PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
     paintScaleFactoy.createColorsForPaintScale(paintScale);
     // contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
