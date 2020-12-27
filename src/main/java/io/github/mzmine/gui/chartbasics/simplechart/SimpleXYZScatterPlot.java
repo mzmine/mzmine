@@ -54,6 +54,7 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
@@ -70,7 +71,7 @@ import org.jfree.data.xy.XYZDataset;
  * @author https://github.com/SteffenHeu & https://github.com/Annexhc
  */
 public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartViewer implements
-    SimpleChart {
+    SimpleChart<T> {
 
   protected static final Logger logger = Logger.getLogger(SimpleXYZScatterPlot.class.getName());
 
@@ -83,6 +84,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   private final TextTitle chartSubTitle;
   protected ColoredXYSmallBlockRenderer blockRenderer;
   protected NumberFormat legendAxisFormat;
+  private int nextDataSetNum;
 
   public SimpleXYZScatterPlot(@Nonnull String title) {
 
@@ -106,31 +108,74 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
     plot.setRenderer(blockRenderer);
     initializePlot();
+    nextDataSetNum = 0;
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
   }
 
   /**
-   * @param dataset the dataset. null to clear the plot.
+   * @param dataset the dataset. null to clear the plot. Removes all other datasets.
    */
   public void setDataset(@Nullable ColoredXYZDataset dataset) {
+    removeAllDatasets();
     plot.setDataset(dataset);
     onDatasetChanged(dataset);
     if (dataset != null) {
       dataset.addChangeListener(event -> onDatasetChanged((XYZDataset) event.getSource()));
     }
+    if (nextDataSetNum == 0) {
+      nextDataSetNum++;
+    }
     notifyDatasetsChangedListeners();
   }
 
   /**
-   * Creates a dataset and sets it as the chart's main data set.
+   * Creates a dataset and sets it as the chart's main data set. Removes all other datasets.
    *
    * @param dataProvider The data provider
    */
   public void setDataset(T dataProvider) {
     ColoredXYZDataset dataset = new ColoredXYZDataset(dataProvider);
     setDataset(dataset);
+  }
+
+  /**
+   * @param dataset
+   * @param renderer
+   * @return The dataset index.
+   */
+  public synchronized int addDataset(XYZDataset dataset, XYItemRenderer renderer) {
+    plot.setDataset(nextDataSetNum, dataset);
+    plot.setRenderer(nextDataSetNum, renderer);
+    nextDataSetNum++;
+    notifyDatasetsChangedListeners();
+    return nextDataSetNum - 1;
+  }
+
+  /**
+   * Adds a dataset with the default renderer.
+   *
+   * @param datasetProvider
+   * @return The dataset index
+   */
+  public synchronized int addDataset(T datasetProvider) {
+    if (datasetProvider instanceof XYZDataset) {
+      return addDataset((XYZDataset) datasetProvider, plot.getRenderer());
+    }
+    ColoredXYZDataset dataset = new ColoredXYZDataset(datasetProvider);
+    return addDataset(dataset, plot.getRenderer());
+  }
+
+  public synchronized void removeAllDatasets() {
+    chart.setNotify(false);
+    for (int i = 0; i < nextDataSetNum; i++) {
+      plot.setDataset(i, null);
+      plot.setRenderer(i, null);
+    }
+    chart.setNotify(true);
+    chart.fireChartChanged();
+    notifyDatasetsChangedListeners();
   }
 
   @Override

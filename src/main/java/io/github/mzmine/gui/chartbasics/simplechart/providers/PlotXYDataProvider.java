@@ -18,6 +18,8 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
+import io.github.mzmine.taskcontrol.TaskStatus;
+
 /**
  * Combines all necessary interfaces of a given dataset to be plotted in an XY-Chart. Check the
  * specific interfaces for a detailed desription.
@@ -28,7 +30,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
  * generator.
  * <p></p>
  * Since some datasets require a computation of their values, the {@link XYValueProvider} interface
- * offers the {@link XYValueProvider#computeValues()} method to move these computations to a
+ * offers the {@link XYValueProvider#computeValues(TaskStatus)} method to move these computations to a
  * different thread. The values are grabbed after the computation has finished and the plot is
  * updated automatically.
  * <p></p>

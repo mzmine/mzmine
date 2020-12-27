@@ -73,7 +73,7 @@ import org.jfree.data.xy.XYDataset;
  * @see PlotXYDataProvider
  */
 public class SimpleXYChart<T extends PlotXYDataProvider> extends
-    EChartViewer implements SimpleChart {
+    EChartViewer implements SimpleChart<T> {
 
   private static final double AXIS_MARGINS = 0.001;
   private static Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
@@ -162,6 +162,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     return nextDataSetNum - 1;
   }
 
+  @Override
   public synchronized int addDataset(T datasetProvider) {
     if (datasetProvider instanceof XYDataset) {
       return addDataset((XYDataset) datasetProvider);

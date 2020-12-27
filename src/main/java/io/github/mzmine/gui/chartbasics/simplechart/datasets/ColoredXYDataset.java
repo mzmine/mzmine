@@ -91,9 +91,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
     rangeValues = Collections.emptyList();
     this.computedItemCount = 0;
 
-    fxColorProperty().addListener(((observable, oldValue, newValue) -> {
-      fireDatasetChanged();
-    }));
+    fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
 
     if (autocompute) {
       MZmineCore.getTaskController().addTask(this);
@@ -136,8 +134,12 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
     return fxColor;
   }
 
-  public void setFxColor(javafx.scene.paint.Color colorfx) {
+  public void setFXColor(javafx.scene.paint.Color colorfx) {
     this.fxColor.set(colorfx);
+  }
+
+  public void setColor(java.awt.Color color) {
+    setFXColor(FxColorUtil.awtColorToFX(color));
   }
 
   @Override

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import java.text.NumberFormat;
 import java.util.LinkedHashMap;
 import javafx.beans.property.ObjectProperty;
@@ -30,7 +31,7 @@ import org.jfree.data.xy.XYDataset;
 /**
  * Defines methods supported by all simple charts.
  */
-public interface SimpleChart {
+public interface SimpleChart<T extends PlotXYDataProvider> {
 
   /**
    * @return Mapping of datasetIndex -> Dataset
@@ -52,6 +53,10 @@ public interface SimpleChart {
   public void switchBackground();
 
   public Plot getPlot();
+
+  public int addDataset(T datasetProvider);
+
+  public void removeAllDatasets();
 
   /**
    * @return current cursor position or null

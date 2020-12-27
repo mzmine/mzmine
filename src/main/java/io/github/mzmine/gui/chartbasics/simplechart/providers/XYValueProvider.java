@@ -28,7 +28,7 @@ import java.util.List;
  * <p></p>
  * The values are not grabbed during the creation of the dataset. After initialising the dataset
  * (e.g. {@link ColoredXYDataset}) a thread is started where the values of the dataset can be
- * calculated or loaded from disk. For that operation, the {@link XYValueProvider#computeValues()}
+ * calculated or loaded from disk. For that operation, the {@link XYValueProvider#computeValues(TaskStatus)}
  * method is used. The implementing class can supply information on the progress of the operation
  * via the method {@link XYValueProvider#getComputationFinishedPercentage()}, which will be
  * represented in the task bar.
