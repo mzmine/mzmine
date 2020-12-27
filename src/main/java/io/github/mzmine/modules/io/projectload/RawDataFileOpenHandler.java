@@ -21,17 +21,14 @@ package io.github.mzmine.modules.io.projectload;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.xml.sax.SAXException;
-
 import io.github.mzmine.datamodel.RawDataFile;
 
 public interface RawDataFileOpenHandler {
 
-  RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile)
-      throws IOException, ParserConfigurationException, SAXException;
+  RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile,
+      boolean isImagingRawDataFile) throws IOException, ParserConfigurationException, SAXException;
 
   void cancel();
 

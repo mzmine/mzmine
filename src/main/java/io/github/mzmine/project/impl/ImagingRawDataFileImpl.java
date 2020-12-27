@@ -12,6 +12,8 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Imaging
 
 public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRawDataFile {
 
+  public static final String SAVE_IDENTIFIER = "Imaging Raw data file";
+
   // imaging parameters
   private ImagingParameters param;
 
