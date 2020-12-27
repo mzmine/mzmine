@@ -49,7 +49,6 @@ public class PeptideScan implements Scan {
   private Range<Double> mzRange;
   private DataPoint basePeak;
   private double totalIonCurrent;
-  private double mobility;
 
   /**
    * This class represents the scan (collection of DataPoints) with MS level 2 or more, which
@@ -412,15 +411,4 @@ public class PeptideScan implements Scan {
     // TODO Auto-generated method stub
     return Range.all();
   }
-
-  @Override
-  public double getMobility(){
-    return mobility;
-  }
-
-  @Override
-  public MobilityType getMobilityType() {
-    return MobilityType.NONE;
-  }
-
 }

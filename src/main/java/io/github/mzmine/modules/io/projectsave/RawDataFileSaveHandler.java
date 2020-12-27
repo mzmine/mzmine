@@ -18,11 +18,15 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import io.github.mzmine.project.impl.StorableFrame;
+import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.project.impl.StorableMassList;
+import io.github.mzmine.project.impl.StorableScan;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -40,12 +44,6 @@ import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.project.impl.StorableMassList;
-import io.github.mzmine.project.impl.StorableScan;
 
 class RawDataFileSaveHandler {
 
@@ -363,16 +361,11 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName());
 
     // <MOBILITY>
-    hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
-    double mobility = scan.getMobility();
-    hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
-    hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
+    //hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
+    //double mobility = scan.getMobility();
+    //hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
+    //hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
 
-    // <MOBILITY_TYPE>
-    hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
-    MobilityType mobilityType = scan.getMobilityType();
-    hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
-    hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
   }
 
   private void fillFrameElement(Frame frame, TransformerHandler hd)
@@ -383,6 +376,12 @@ class RawDataFileSaveHandler {
     hd.startElement("", "", RawDataElementName.FRAME_ID.getElementName(), atts);
     hd.characters(frameId.toCharArray(), 0, frameId.length());
     hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
+
+    // <MOBILITY_TYPE>
+    //hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
+    //MobilityType mobilityType = scan.getMobilityType();
+    //hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
+    //hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
 
     hd.startElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName(), atts);
     hd.characters(frame.getMobilityRange().lowerEndpoint().toString().toCharArray(), 0,

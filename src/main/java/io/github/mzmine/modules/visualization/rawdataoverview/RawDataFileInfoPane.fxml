@@ -92,7 +92,6 @@
         <TableColumn fx:id="polarityColumn" editable="false" prefWidth="60.0" text="Polarity"/>
         <TableColumn fx:id="definitionColumn" minWidth="0.0" prefWidth="65.0"
           text="Scan definition" editable="false"/>
-        <TableColumn fx:id="mobilityColumn" editable="false" prefWidth="60.0" text="Mobility"/>
       </columns>
     </TableView>
   </center>

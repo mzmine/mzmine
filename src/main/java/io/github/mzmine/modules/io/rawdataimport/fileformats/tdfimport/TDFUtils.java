@@ -309,12 +309,12 @@ public class TDFUtils {
       }
       final double precursorMz = 0.d;
       final int precursorCharge = 0;
-      Scan scan = new SimpleScan(null,
+      /*Scan scan = new SimpleScan(null,
           Math.toIntExact(firstScanNum + i), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          precursorMz, precursorCharge, /*null,*/ dataPoints.get(i), MassSpectrumType.CENTROIDED,
+          precursorMz, precursorCharge, dataPoints.get(i), MassSpectrumType.CENTROIDED,
           polarity, scanDefinition, metaDataTable.getMzRange(), mobilities[i], MobilityType.TIMS);
-      scans.add(scan);
+      scans.add(scan);*/
     }
     return scans;
   }
