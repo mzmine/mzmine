@@ -38,7 +38,7 @@
                                           <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                        </padding>
                                     </Label>
-                                    <GridPane fx:id="rawDataInfoGridPane" VBox.vgrow="SOMETIMES">
+                                    <GridPane fx:id="rawDataInfoGridPane" vgap="2.0" VBox.vgrow="SOMETIMES">
                                       <columnConstraints>
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -50,6 +50,9 @@
                                        <VBox.margin>
                                           <Insets bottom="2.0" left="5.0" right="2.0" top="2.0" />
                                        </VBox.margin>
+                                       <padding>
+                                          <Insets left="5.0" />
+                                       </padding>
                                     </GridPane>
                                     <Label text="Imaging Parameters">
                                        <font>
@@ -62,7 +65,7 @@
                                           <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                        </padding>
                                     </Label>
-                                    <GridPane fx:id="imagingParameterInfoGridPane" VBox.vgrow="SOMETIMES">
+                                    <GridPane fx:id="imagingParameterInfoGridPane" vgap="2.0" VBox.vgrow="SOMETIMES">
                                       <columnConstraints>
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -77,6 +80,9 @@
                                        <VBox.margin>
                                           <Insets bottom="2.0" left="5.0" right="2.0" top="2.0" />
                                        </VBox.margin>
+                                       <padding>
+                                          <Insets left="5.0" />
+                                       </padding>
                                     </GridPane>
                                     <Label text="Plot Settings">
                                        <font>
@@ -89,7 +95,7 @@
                                           <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                        </padding>
                                     </Label>
-                                    <GridPane fx:id="plotSettingsInfoGridPane" VBox.vgrow="SOMETIMES">
+                                    <GridPane fx:id="plotSettingsInfoGridPane" vgap="2.0" VBox.vgrow="SOMETIMES">
                                       <columnConstraints>
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -102,6 +108,9 @@
                                        <VBox.margin>
                                           <Insets bottom="2.0" left="5.0" right="2.0" top="2.0" />
                                        </VBox.margin>
+                                       <padding>
+                                          <Insets left="5.0" />
+                                       </padding>
                                     </GridPane>
                                  </children>
                               </VBox>

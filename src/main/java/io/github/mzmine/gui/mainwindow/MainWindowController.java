@@ -18,41 +18,44 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.logging.Logger;
+import org.controlsfx.control.StatusBar;
+import com.google.common.collect.Ordering;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.util.FeatureTableFXUtil;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.logging.Logger;
-import javafx.application.Platform;
-import org.controlsfx.control.StatusBar;
-import com.google.common.collect.Ordering;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -257,7 +260,12 @@ public class MainWindowController {
     // Add mouse clicked event handler
     rawDataTree.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        handleShowChromatogram(event);
+        List<RawDataFile> selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+        if (selectedFiles.stream().anyMatch(f -> f instanceof ImagingRawDataFileImpl)) {
+          handleShowImage(event);
+        } else {
+          handleShowChromatogram(event);
+        }
       }
     });
 
@@ -334,22 +342,16 @@ public class MainWindowController {
     // TODO: aligned feature lists tree selection listener
 
     /*
-    // update if tab selection in main window changes
-    getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
-      if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) {
-        if (!((MZmineTab) val).getRawDataFiles()
-            .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
-            || ((MZmineTab) val).getRawDataFiles().size() != rawDataTree.getSelectionModel()
-                .getSelectedItems().size()) {
-          if (((MZmineTab) val).isUpdateOnSelection()) {
-            ((MZmineTab) val)
-                .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
-          }
-        }
-        // TODO: Add the same for feature lists
-      }
-    });
-    */
+     * // update if tab selection in main window changes
+     * getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
+     * if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) { if
+     * (!((MZmineTab) val).getRawDataFiles()
+     * .containsAll(rawDataTree.getSelectionModel().getSelectedItems()) || ((MZmineTab)
+     * val).getRawDataFiles().size() != rawDataTree.getSelectionModel() .getSelectedItems().size())
+     * { if (((MZmineTab) val).isUpdateOnSelection()) { ((MZmineTab) val)
+     * .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems()); } } //
+     * TODO: Add the same for feature lists } });
+     */
 
     // taskNameColumn.setPrefWidth(800.0);
     // taskNameColumn.setMinWidth(600.0);
@@ -500,6 +502,20 @@ public class MainWindowController {
     }
   }
 
+  public void handleShowImage(Event event) {
+    logger.finest("Activated Show image menu item");
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class);
+    parameters.getParameter(ImageVisualizerParameters.rawDataFiles).setValue(
+        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ExitCode exitCode = parameters.showSetupDialog(true);
+    if (exitCode == ExitCode.OK) {
+      MZmineCore.runMZmineModule(ImageVisualizerModule.class, parameters);
+    }
+  }
+
+
   public void handleShowMsMsPlot(Event event) {}
 
   public void handleSort(Event event) {
@@ -602,7 +618,7 @@ public class MainWindowController {
   public void handleOpenFeatureList(Event event) {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
-      //PeakListTableModule.showNewPeakListVisualizerWindow(fl);
+      // PeakListTableModule.showNewPeakListVisualizerWindow(fl);
       Platform.runLater(() -> {
         FeatureTableFXUtil.addFeatureTableTab(fl);
       });
