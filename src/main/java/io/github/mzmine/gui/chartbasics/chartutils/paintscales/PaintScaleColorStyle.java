@@ -24,7 +24,7 @@ package io.github.mzmine.gui.chartbasics.chartutils.paintscales;
  */
 public enum PaintScaleColorStyle {
   RAINBOW("rainbow"), //
-  GRREN_YELLOW_RED("green yellow red"), //
+  GRREN_RED("green red"), //
   RED("red"), //
   GREEN("green"), //
   YELLOW("yellow"), //

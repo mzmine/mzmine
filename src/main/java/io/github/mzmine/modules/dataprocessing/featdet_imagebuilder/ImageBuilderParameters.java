@@ -57,9 +57,11 @@ public class ImageBuilderParameters extends SimpleParameterSet {
       "Minimum total Signals", "Minimum number of signals (data points) to form an image", 200);
 
   public static final PaintScaleParameter paintScale =
-      new PaintScaleParameter("Paint scale", "Select paint scale",
+      new PaintScaleParameter("Color scale", "Select paint scale",
           new PaintScale[] {
               new PaintScale(PaintScaleColorStyle.RAINBOW, PaintScaleBoundStyle.NONE,
+                  Range.closed(0.0, 100.0)),
+              new PaintScale(PaintScaleColorStyle.GRREN_RED, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),
               new PaintScale(PaintScaleColorStyle.RED, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),

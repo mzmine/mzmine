@@ -63,11 +63,12 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
       new OptionalParameter<>(new StringParameter("Kendrick mass base for z-Axis",
           "Enter a sum formula for a Kendrick mass base to display a Kendrick mass defect in form of a heatmap"));
 
-
   public static final PaintScaleParameter paintScale =
-      new PaintScaleParameter("Paint scale", "Select paint scale",
+      new PaintScaleParameter("Color scale", "Select paint scale",
           new PaintScale[] {
               new PaintScale(PaintScaleColorStyle.RAINBOW, PaintScaleBoundStyle.NONE,
+                  Range.closed(0.0, 100.0)),
+              new PaintScale(PaintScaleColorStyle.GRREN_RED, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),
               new PaintScale(PaintScaleColorStyle.RED, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),

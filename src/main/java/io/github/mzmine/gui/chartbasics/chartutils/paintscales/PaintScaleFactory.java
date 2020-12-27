@@ -44,15 +44,15 @@ public class PaintScaleFactory {
       case GREEN:
         return getGreenScale(paintScaleBoundStyle);
       case RAINBOW:
-        return getRainbowScale(paintScaleBoundStyle);
-      case GRREN_YELLOW_RED:
+        return getRainbowScale();
+      case GRREN_RED:
         return getGreenYellowRedScale(paintScaleBoundStyle);
       case RED:
         return getRedScale(paintScaleBoundStyle);
       case YELLOW:
         return getYellowScale(paintScaleBoundStyle);
       default:
-        return getRainbowScale(paintScaleBoundStyle);
+        return getRainbowScale();
     }
 
   }
@@ -104,28 +104,51 @@ public class PaintScaleFactory {
   /*
    * returns an array with rainbow colors
    */
-  private Color[] getRainbowScale(PaintScaleBoundStyle paintScaleBoundStyle) {
-    int ncolor = 360;
-    Color[] readRainbow = new Color[ncolor];
-    Color[] rainbow = new Color[ncolor];
-    int adjustedLowerBound = adjustLowerBound(paintScaleBoundStyle);
-    int adjustedUpperBound = adjustUpperBound(paintScaleBoundStyle);
+  private Color[] getRainbowScale() {
+    Color[] rainbow = new Color[1500];
+    int r = 0;
+    int g = 0;
+    int b = 0;
+    for (int i = 0; i < 255; i++) {
+      b = i;
+      rainbow[i] = new Color(r, g, b);
+    }
 
-    float x = (float) (1. / (ncolor + 160));
-    for (int i = 0; i < rainbow.length; i++) {
-      readRainbow[i] = new Color(Color.HSBtoRGB((i) * x, 1.0F, 1.0F));
+    for (int i = 255; i < 510; i++) {
+      g = i - 255;
+      b = 255;
+      rainbow[i] = new Color(r, g, b);
     }
-    for (int i = 0; i < adjustedLowerBound; i++) {
-      rainbow[i] = new Color(0, 0, 0);
+
+    for (int i = 510; i < 735; i++) {
+      g = 255;
+      b = 735 - i;
+      rainbow[i] = new Color(r, g, b);
     }
-    for (int i = adjustedLowerBound; i < readRainbow.length - adjustedLowerBound; i++) {
-      rainbow[i] = readRainbow[readRainbow.length - i - 1];
+
+    for (int i = 735; i < 990; i++) {
+      r = i - 735;
+      g = 255;
+      b = 0;
+      rainbow[i] = new Color(r, g, b);
     }
-    for (int i = rainbow.length - adjustedUpperBound; i < rainbow.length; i++) {
-      rainbow[i] = new Color(244, 66, 223);
+
+    for (int i = 990; i < 1245; i++) {
+      r = 255;
+      g = 1245 - i;
+      rainbow[i] = new Color(r, g, b);
     }
+
+    for (int i = 1245; i < 1500; i++) {
+      r = 255;
+      g = 0;
+      b = i - 1245;
+      rainbow[i] = new Color(r, g, b);
+    }
+
     return rainbow;
   }
+
 
   /*
    * returns an array with rainbow colors

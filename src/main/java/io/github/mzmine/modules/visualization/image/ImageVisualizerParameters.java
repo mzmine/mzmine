@@ -47,11 +47,11 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
       new MZRangeParameter("m/z range", "Select m/z range");
 
   public static final PaintScaleParameter paintScale =
-      new PaintScaleParameter("Paint scale", "Select paint scale",
+      new PaintScaleParameter("Color scale", "Select paint scale",
           new PaintScale[] {
               new PaintScale(PaintScaleColorStyle.RAINBOW, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.GRREN_YELLOW_RED, PaintScaleBoundStyle.NONE,
+              new PaintScale(PaintScaleColorStyle.GRREN_RED, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),
               new PaintScale(PaintScaleColorStyle.RED, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),
