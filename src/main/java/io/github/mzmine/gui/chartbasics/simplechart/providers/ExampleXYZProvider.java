@@ -32,6 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
@@ -89,7 +90,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public void computeValues(TaskStatus status) {
+  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
 
     try {
       Float[] xValues = null;

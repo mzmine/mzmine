@@ -21,6 +21,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.List;
+import javafx.beans.property.SimpleObjectProperty;
 
 /**
  * This interface is used to provide a dataset with x and y values. The amount of x and y values has
@@ -53,7 +54,7 @@ public interface XYValueProvider {
    *               changed to {@link TaskStatus#CANCELED}. Implementing classes can also make use of
    *               CANCELED or ERROR to stop the task from continuing, if an error occurred.
    */
-  public void computeValues(TaskStatus status);
+  public void computeValues(SimpleObjectProperty<TaskStatus> status);
 
   /**
    * @return A sorted list of domain values. Index has to match the range value indices.
@@ -67,7 +68,7 @@ public interface XYValueProvider {
 
   /**
    * Helper method to provide the user with progress information during {@link
-   * XYValueProvider#computeValues()}.
+   * XYValueProvider#computeValues(SimpleObjectProperty)}.
    *
    * @return a finished percentage. (0.0-1.0)
    */

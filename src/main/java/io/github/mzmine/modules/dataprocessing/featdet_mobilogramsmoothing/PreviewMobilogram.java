@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleObjectProperty;
 
 public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataProvider {
 
@@ -104,7 +105,7 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
   }
 
   @Override
-  public void computeValues(TaskStatus status) {
+  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     originalMobilogram.getDataPoints().forEach(this::addDataPoint);
     finishedPercentage = 0.5;
     calc();

@@ -221,10 +221,10 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
   @Override
   public void run() {
-    status = TaskStatus.PROCESSING;
+    status.set(TaskStatus.PROCESSING);
     xyValueProvider.computeValues(status);
 
-    if (status != TaskStatus.PROCESSING) {
+    if (status.get() != TaskStatus.PROCESSING) {
       return;
     }
     if (xyzValueProvider.getDomainValues().size() != xyzValueProvider.getRangeValues().size()
@@ -253,7 +253,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
     computedItemCount = domainValues.size();
     computed = true;
-    status = TaskStatus.FINISHED;
+    status.set(TaskStatus.FINISHED);
 
     Platform.runLater(this::fireDatasetChanged);
   }

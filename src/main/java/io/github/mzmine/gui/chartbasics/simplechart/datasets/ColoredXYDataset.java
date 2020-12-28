@@ -65,7 +65,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
   protected Double minRangeValue;
 
   // task stuff
-  protected TaskStatus status;
+  protected SimpleObjectProperty<TaskStatus> status;
   protected String errorMessage;
   protected boolean computed;
   protected int computedItemCount;
@@ -76,7 +76,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
 
     // Task stuff
     this.computed = false;
-    status = TaskStatus.WAITING;
+    status.set(TaskStatus.WAITING);
     errorMessage = "";
 
     // dataset stuff
@@ -129,13 +129,13 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
     return fxColor.getValue();
   }
 
+  public void setFXColor(javafx.scene.paint.Color colorfx) {
+    this.fxColor.set(colorfx);
+  }
+
   @Override
   public ObjectProperty<javafx.scene.paint.Color> fxColorProperty() {
     return fxColor;
-  }
-
-  public void setFXColor(javafx.scene.paint.Color colorfx) {
-    this.fxColor.set(colorfx);
   }
 
   public void setColor(java.awt.Color color) {
@@ -242,11 +242,11 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
   @Override
   public void run() {
 
-    status = TaskStatus.PROCESSING;
+    status.set(TaskStatus.PROCESSING);
 
     xyValueProvider.computeValues(status);
 
-    if (status != TaskStatus.PROCESSING) {
+    if (status.get() != TaskStatus.PROCESSING) {
       return;
     }
 
@@ -261,7 +261,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
     computedItemCount = domainValues.size();
 
     computed = true;
-    status = TaskStatus.FINISHED;
+    status.set(TaskStatus.FINISHED);
     Platform.runLater(this::fireDatasetChanged);
   }
 
@@ -277,7 +277,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
 
   @Override
   public TaskStatus getStatus() {
-    return status;
+    return status.get();
   }
 
   @Override
@@ -300,6 +300,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
    */
   @Override
   public void cancel() {
-    status = TaskStatus.CANCELED;
+    status.set(TaskStatus.CANCELED);
   }
 }

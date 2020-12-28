@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleObjectProperty;
 
 /**
  * Example implementation of a PlotXYDatasetProvider. This can be your usual data-class, you just
@@ -109,7 +110,7 @@ public class ExampleXYProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(TaskStatus status) {
+  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     // here we can load and sort our data. remember to store the sorted data, so we can generate
     // labels based on the indices.
     sortedDps = originalDatapoints.stream().sorted(Comparator.comparingDouble(DataPoint::getMZ))
