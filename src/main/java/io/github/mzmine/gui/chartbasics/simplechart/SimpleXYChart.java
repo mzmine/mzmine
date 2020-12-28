@@ -50,6 +50,7 @@ import javax.annotation.Nonnull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -77,14 +78,15 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
 
   private static final double AXIS_MARGINS = 0.001;
   private static Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
+
   protected final JFreeChart chart;
+  protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
-
   private final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
   private final List<DatasetsChangedListener> datasetListeners;
-
   protected EStandardChartTheme theme;
   protected SimpleXYLabelGenerator defaultLabelGenerator;
   protected SimpleToolTipGenerator defaultToolTipGenerator;
@@ -96,6 +98,10 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
 
   public SimpleXYChart() {
     this("x", "y");
+  }
+
+  public SimpleXYChart(@NamedArg("title") String title) {
+    this(title, "x", "y");
   }
 
   public SimpleXYChart(@NamedArg("xlabel") String xLabel,
@@ -146,10 +152,15 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     defaultToolTipGenerator = new SimpleToolTipGenerator(this);
     defaultShapeRenderer = new ColoredXYShapeRenderer();
     defaultLineRenderer = new ColoredXYLineRenderer();
-    defaultLineRenderer.setDefaultItemLabelGenerator(defaultLabelGenerator);
-    defaultLineRenderer.setDefaultItemLabelsVisible(true);
-    defaultLineRenderer.setDefaultToolTipGenerator(defaultToolTipGenerator);
-    plot.setRenderer(defaultLineRenderer);
+    defaultRenderer = new SimpleObjectProperty<>();
+    defaultRenderer.addListener((obs, old, newValue) -> {
+      newValue.setDefaultItemLabelsVisible(true);
+      newValue.setDefaultToolTipGenerator(defaultToolTipGenerator);
+      newValue.setDefaultItemLabelGenerator(defaultLabelGenerator);
+      getXYPlot().rendererChanged(new RendererChangeEvent(newValue));
+    });
+    defaultRenderer.set(defaultLineRenderer);
+    plot.setRenderer(defaultRenderer.get());
 
     datasetListeners = new ArrayList<>();
   }
@@ -168,7 +179,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
       return addDataset((XYDataset) datasetProvider);
     }
     ColoredXYDataset dataset = new ColoredXYDataset(datasetProvider);
-    return addDataset(dataset, defaultLineRenderer);
+    return addDataset(dataset, defaultRenderer.get());
   }
 
   /**
@@ -176,7 +187,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    * @return the dataset index
    */
   public synchronized int addDataset(XYDataset dataset) {
-    return addDataset(dataset, defaultLineRenderer);
+    return addDataset(dataset, defaultRenderer.get());
   }
 
   public synchronized XYDataset removeDataSet(int index) {
@@ -281,6 +292,12 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     getChart().getXYPlot().setRangeGridlinePaint(liColor);
   }
 
+  @Override
+  public void setShowCrosshair(boolean show) {
+    getXYPlot().setDomainCrosshairVisible(show);
+    getXYPlot().setRangeCrosshairVisible(show);
+  }
+
   public XYPlot getXYPlot() {
     return plot;
   }
@@ -288,6 +305,18 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   @Override
   public Plot getPlot() {
     return plot;
+  }
+
+  public XYItemRenderer getDefaultRenderer() {
+    return defaultRenderer.get();
+  }
+
+  public void setDefaultRenderer(XYItemRenderer defaultRenderer) {
+    this.defaultRenderer.set(defaultRenderer);
+  }
+
+  public ObjectProperty<XYItemRenderer> defaultRendererProperty() {
+    return defaultRenderer;
   }
 
   @Override

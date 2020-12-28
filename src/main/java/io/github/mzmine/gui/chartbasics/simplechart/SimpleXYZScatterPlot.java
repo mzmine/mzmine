@@ -77,19 +77,27 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   protected static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   protected final JFreeChart chart;
+
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
   protected final List<DatasetsChangedListener> datasetListeners;
+  protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
+
   protected ColoredXYSmallBlockRenderer blockRenderer;
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
 
+  public SimpleXYZScatterPlot() {
+    this("");
+  }
+
   public SimpleXYZScatterPlot(@Nonnull String title) {
 
     super(ChartFactory.createScatterPlot("", "x", "y", null,
-        PlotOrientation.VERTICAL, true, false, true), true, true, true, true, true);
+        PlotOrientation.VERTICAL, true, false, true), true, true, true, true, false);
 
     chart = getChart();
     chartTitle = new TextTitle(title);
@@ -99,6 +107,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot = chart.getXYPlot();
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     blockRenderer = new ColoredXYSmallBlockRenderer();
+    defaultRenderer = new SimpleObjectProperty<>(blockRenderer);
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
 
@@ -106,7 +115,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     initializeMouseListener();
     datasetListeners = new ArrayList<>();
 
-    plot.setRenderer(blockRenderer);
+    plot.setRenderer(defaultRenderer.get());
     initializePlot();
     nextDataSetNum = 0;
 
@@ -120,6 +129,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   public void setDataset(@Nullable ColoredXYZDataset dataset) {
     removeAllDatasets();
     plot.setDataset(dataset);
+    plot.setRenderer(defaultRenderer.get());
     onDatasetChanged(dataset);
     if (dataset != null) {
       dataset.addChangeListener(event -> onDatasetChanged((XYZDataset) event.getSource()));
@@ -164,7 +174,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       return addDataset((XYZDataset) datasetProvider, plot.getRenderer());
     }
     ColoredXYZDataset dataset = new ColoredXYZDataset(datasetProvider);
-    return addDataset(dataset, plot.getRenderer());
+    return addDataset(dataset, defaultRenderer.get());
   }
 
   public synchronized void removeAllDatasets() {
@@ -205,6 +215,27 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     getChart().getPlot().setBackgroundPaint(bgColor);
     getChart().getXYPlot().setDomainGridlinePaint(liColor);
     getChart().getXYPlot().setRangeGridlinePaint(liColor);
+  }
+
+  @Override
+  public void setShowCrosshair(boolean show) {
+    getXYPlot().setDomainCrosshairVisible(show);
+    getXYPlot().setRangeCrosshairVisible(show);
+  }
+
+  @Override
+  public XYItemRenderer getDefaultRenderer() {
+    return defaultRenderer.get();
+  }
+
+  @Override
+  public void setDefaultRenderer(XYItemRenderer defaultRenderer) {
+    this.defaultRenderer.set(defaultRenderer);
+  }
+
+  @Override
+  public ObjectProperty<XYItemRenderer> defaultRendererProperty() {
+    return defaultRenderer;
   }
 
   @Override
@@ -444,5 +475,4 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     blockRenderer.setBlockWidth(xyz.getBoxWidth());
     blockRenderer.setPaintScale(paintScale);
   }
-
 }
