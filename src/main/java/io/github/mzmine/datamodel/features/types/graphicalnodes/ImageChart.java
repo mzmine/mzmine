@@ -19,14 +19,6 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
@@ -36,7 +28,15 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageHeatMapPlot;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageXYZDataset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.layout.StackPane;
+import javax.annotation.Nonnull;
+import org.jfree.data.xy.XYZDataset;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -58,7 +58,7 @@ public class ImageChart extends StackPane {
       int size = row.getFilesFeatures().size();
       int fi = 0;
       for (Feature f : row.getFeatures()) {
-        List<DataPoint> dps = f.getDataPoints();
+        List<? extends DataPoint> dps = f.getDataPoints();
         List<ImageDataPoint> dataPoints = new ArrayList<>();
         dataPoints.addAll((Collection<? extends ImageDataPoint>) dps);
         // add data points retention time -> intensity
