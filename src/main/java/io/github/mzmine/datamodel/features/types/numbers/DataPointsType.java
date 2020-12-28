@@ -19,14 +19,33 @@
 package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.features.ListRowBinding;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import java.util.List;
+import javax.annotation.Nonnull;
 
+/**
+ * Holds all data points of a {@link ModularFeature}. Change listener from {@link
+ * #createDefaultRowBindings()} will create and update the {@link FeatureShapeType}
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
 public class DataPointsType extends ListDataType<DataPoint> implements NullColumnType {
 
   @Override
   public String getHeaderString() {
     return "DPs";
+  }
+
+  @Nonnull
+  @Override
+  public List<RowBinding> createDefaultRowBindings() {
+    // listen to changes in DataPointsType for all ModularFeatures
+    return List.of(new ListRowBinding(new FeatureShapeType(), this));
   }
 
 }

@@ -18,18 +18,18 @@
 
 package io.github.mzmine.datamodel.features;
 
-import java.lang.reflect.InvocationTargetException;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javax.annotation.Nullable;
 
 public interface ModularDataModel {
 
@@ -124,6 +124,7 @@ public interface ModularDataModel {
    * @param type
    * @return
    */
+  @Nullable
   default <T extends Property<?>> T get(DataType<T> type) {
     return (T) getMap().get(type);
   }
@@ -135,6 +136,7 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
+  @Nullable
   default <T extends Property<?>> T get(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypeColumn(tclass);
     return get(type);

@@ -1,11 +1,8 @@
 package io.github.mzmine.datamodel.features;
 
-import io.github.mzmine.datamodel.features.types.AreaBarType;
-import io.github.mzmine.datamodel.features.types.AreaShareType;
-import io.github.mzmine.datamodel.features.types.FeatureShapeType;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import io.github.mzmine.datamodel.features.types.numbers.*;
-import io.github.mzmine.util.DataTypeUtils;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.types.DataType;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,18 +14,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import io.github.mzmine.util.FeatureUtils;
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.types.CommentType;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
-import io.github.mzmine.datamodel.features.types.RawFileType;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javax.annotation.Nonnull;
 
 
 public class ModularFeatureList implements FeatureList {
@@ -73,14 +62,14 @@ public class ModularFeatureList implements FeatureList {
     dateCreated = DATA_FORMAT.format(new Date());
 
     // add standard row bindings even if data types are missing
-    addRowBinding(new RowBinding(new MZType(), BindingsType.AVERAGE));
-    addRowBinding(new RowBinding(new RTType(), BindingsType.AVERAGE));
-    addRowBinding(new RowBinding(new HeightType(), BindingsType.MAX));
-    addRowBinding(new RowBinding(new AreaType(), BindingsType.MAX));
-    addRowBinding(new RowBinding(new RTRangeType(), BindingsType.RANGE));
-    addRowBinding(new RowBinding(new MZRangeType(), BindingsType.RANGE));
-    addRowBinding(new RowBinding(new IntensityRangeType(), BindingsType.RANGE));
-    addRowBinding(new RowBinding(new ChargeType(), BindingsType.CONSENSUS));
+//    addRowBinding(new RowBinding(new MZType(), BindingsType.AVERAGE));
+//    addRowBinding(new RowBinding(new RTType(), BindingsType.AVERAGE));
+//    addRowBinding(new RowBinding(new HeightType(), BindingsType.MAX));
+//    addRowBinding(new RowBinding(new AreaType(), BindingsType.MAX));
+//    addRowBinding(new RowBinding(new RTRangeType(), BindingsType.RANGE));
+//    addRowBinding(new RowBinding(new MZRangeType(), BindingsType.RANGE));
+//    addRowBinding(new RowBinding(new IntensityRangeType(), BindingsType.RANGE));
+//    addRowBinding(new RowBinding(new ChargeType(), BindingsType.CONSENSUS));
   }
 
   @Override
@@ -101,6 +90,8 @@ public class ModularFeatureList implements FeatureList {
   public void addRowBinding(@Nonnull List<RowBinding> bindings) {
     for (RowBinding b : bindings) {
       rowBindings.add(b);
+      // add missing row types, that are based on RowBindings
+      addRowType(b.getRowType());
       // apply to all rows
       modularStream().forEach(b::apply);
     }
@@ -133,6 +124,8 @@ public class ModularFeatureList implements FeatureList {
       if (!featureTypes.containsKey(type.getClass())) {
         // all {@link ModularFeature} will automatically add a default property to their data map
         featureTypes.put(type.getClass(), type);
+        // add row bindings
+        addRowBinding(type.createDefaultRowBindings());
       }
     }
   }
@@ -271,7 +264,6 @@ public class ModularFeatureList implements FeatureList {
     }
 
     featureListRows.add(modularRow);
-
     applyRowBindings(modularRow);
 
     // TODO solve with bindings
@@ -475,8 +467,8 @@ public class ModularFeatureList implements FeatureList {
     public ModularFeatureList createCopy(String title) {
       ModularFeatureList flist = new ModularFeatureList(title, this.getRawDataFiles());
       // copy all rows and features
-      this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row,true))
-              .forEach(newRow -> flist.addRow(newRow));
+      this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true))
+          .forEach(newRow -> flist.addRow(newRow));
 
       // Load previous applied methods
       for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
@@ -484,4 +476,8 @@ public class ModularFeatureList implements FeatureList {
       }
       return flist;
     }
+
+  public List<RowBinding> getRowBindings() {
+    return rowBindings;
+  }
 }

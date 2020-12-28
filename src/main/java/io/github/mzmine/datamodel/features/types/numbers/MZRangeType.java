@@ -18,13 +18,17 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
 import io.github.mzmine.main.MZmineCore;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.List;
+import javax.annotation.Nonnull;
 
 public class MZRangeType extends DoubleRangeType implements ExpandableType {
 
@@ -58,5 +62,11 @@ public class MZRangeType extends DoubleRangeType implements ExpandableType {
   @Override
   public Class<? extends DataType<?>> getHiddenTypeClass() {
     return MZType.class;
+  }
+
+  @Nonnull
+  @Override
+  public List<RowBinding> createDefaultRowBindings() {
+    return List.of(new SimpleRowBinding(this, BindingsType.RANGE));
   }
 }

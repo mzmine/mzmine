@@ -21,15 +21,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 
-import io.github.mzmine.datamodel.features.types.FeatureShapeType;
-import io.github.mzmine.util.FeatureConvertors;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
@@ -47,11 +38,19 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ADAPChromatogramSorter;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataTypeUtils;
-import io.github.mzmine.util.ADAPChromatogramSorter;
+import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 
 
 public class ModularADAPChromatogramBuilderTask extends AbstractTask {
@@ -395,7 +394,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(finishedFeature);
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(newFeatureList, newFeatureID, dataFile, modular);
-      newRow.set(FeatureShapeType.class, newRow.getFeaturesProperty());
       newFeatureList.addRow(newRow);
       newFeatureID++;
     }

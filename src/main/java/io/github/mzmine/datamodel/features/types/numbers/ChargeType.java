@@ -18,20 +18,20 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.Property;
-
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import javax.annotation.Nonnull;
 
 public class ChargeType extends IntegerType {
 
@@ -41,11 +41,18 @@ public class ChargeType extends IntegerType {
   }
 
 
+  @Nonnull
+  @Override
+  public List<RowBinding> createDefaultRowBindings() {
+    return List.of(new SimpleRowBinding(this, BindingsType.CONSENSUS));
+  }
+
   @Override
   public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
     // get all properties of all features
     @SuppressWarnings("unchecked")
-    Property<Integer>[] prop = row.streamFeatures().map(f -> (ModularFeature) f).map(f -> f.get(this)).toArray(Property[]::new);
+    Property<Integer>[] prop = row.streamFeatures().map(f -> (ModularFeature) f)
+        .map(f -> f.get(this)).toArray(Property[]::new);
     switch (bind) {
       case CONSENSUS:
         return Bindings.createObjectBinding(() -> {
