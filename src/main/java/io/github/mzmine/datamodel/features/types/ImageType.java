@@ -1,6 +1,5 @@
 package io.github.mzmine.datamodel.features.types;
 
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -16,6 +15,7 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
+import javax.annotation.Nonnull;
 
 public class ImageType extends DataType<MapProperty<RawDataFile, ModularFeature>>
     implements GraphicalColumType<MapProperty<RawDataFile, ModularFeature>> {
@@ -49,7 +49,7 @@ public class ImageType extends DataType<MapProperty<RawDataFile, ModularFeature>
     StackPane pane = new StackPane();
 
     // TODO stop task if new task is started
-    Task task = new FeaturesGraphicalNodeTask(ImageChart.class, pane, row, coll);
+    Task task = new FeaturesGraphicalNodeTask(ImageChart.class, pane, row, coll.getText());
     MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
 
     return pane;
