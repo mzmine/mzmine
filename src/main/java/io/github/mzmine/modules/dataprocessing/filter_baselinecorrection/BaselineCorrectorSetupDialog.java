@@ -352,7 +352,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     @Override
     public void run() {
 
-      addProgessBar();
+      Platform.runLater(() -> addProgessBar());
       while ((this.previewTask != null && this.previewTask.getStatus() == TaskStatus.PROCESSING)) {
 
         Platform.runLater(
@@ -364,7 +364,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         }
       }
       // Clear GUI stuffs
-      removeProgessBar();
+      Platform.runLater(() -> removeProgessBar());
       // unset_VK_ESCAPE_KeyListener();
     }
 
