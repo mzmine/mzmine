@@ -18,25 +18,28 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.util.FeatureConvertors;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.util.FeatureConvertorIonMobility;
+import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBox;
@@ -85,7 +88,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
    * Create the dialog.
    *
    * @param resolverParameters resolver parameters.
-   * @param resolverClass resolver class.
+   * @param resolverClass      resolver class.
    */
   public PeakResolverSetupDialog(boolean valueCheckRequired, final ParameterSet resolverParameters,
       final Class<? extends PeakResolver> resolverClass) {
@@ -102,6 +105,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
       final Class<? extends PeakResolver> resolverClass, String message) {
 
     super(valueCheckRequired, resolverParameters, message);
+    paramsPane.setGridLinesVisible(true);
 
     // Instantiate resolver.
     try {
@@ -122,33 +126,26 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     // Elements of panel.
     preview = new CheckBox("Show preview");
     preview.setOnAction(e -> {
-
       if (preview.isSelected()) {
         // Set the height of the preview to 200 cells, so it will span
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the preview
         // component will consume most of the extra available space.
-        paramsPane.add(pnlPlotXY, 3, 0);
+        paramsPane.add(pnlPlotXY, 3, 0, 1, getNumberOfParameters() + 2);
         pnlVisible.setCenter(pnlLabelsFields);
-        // updateMinimumSize();
-        // pack();
-
         // Set selections.
         final FeatureList[] selected = MZmineCore.getDesktop().getSelectedPeakLists();
         if (selected.length > 0) {
           comboPeakList.getSelectionModel().select(selected[0]);
         } else {
-
           comboPeakList.getSelectionModel().select(0);
         }
-        // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
       } else {
-
         paramsPane.getChildren().remove(pnlPlotXY);
         pnlVisible.getChildren().remove(pnlLabelsFields);
       }
+      mainPane.getScene().getWindow().sizeToScene();
     });
-    // preview.setHorizontalAlignment(SwingConstants.CENTER);
     preview.setDisable(peakLists.length == 0);
 
     // Preview panel.
@@ -160,37 +157,42 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     // Feature list combo-box.
     comboPeakList = new ComboBox<FeatureList>();
     // comboPeakList.setFont(COMBO_FONT);
-    for (
-
-    final FeatureList peakList : peakLists) {
+    for (final FeatureList peakList : peakLists) {
       if (peakList.getNumberOfRawDataFiles() == 1) {
         comboPeakList.getItems().add(peakList);
       }
     }
-    comboPeakList.setOnAction(e -> {
+    comboPeakList.valueProperty().addListener((obs, old, newVal) -> {
       // Remove current peaks (suspend listener).
-
+      if (newVal == null) {
+        return;
+      }
       ObservableList<FeatureListRow> newItems = FXCollections
-          .observableArrayList(comboPeakList.getSelectionModel().getSelectedItem().getRows());
+          .observableArrayList(newVal.getRows());
       comboPeak.setItems(newItems);
-
-      // Select first item.
       if (newItems.size() > 0) {
-
         comboPeak.getSelectionModel().select(0);
       }
     });
 
     // Peaks combo box.
     comboPeak = new ComboBox<FeatureListRow>();
-    // comboPeak.setFont(COMBO_FONT);
-
+    comboPeak.setButtonCell(new ListCell<>() {
+      @Override
+      protected void updateItem(FeatureListRow item, boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null || empty) {
+          setGraphic(null);
+        } else {
+          setGraphic(new PeakPreviewComboRenderer(item));
+        }
+      }
+    });
     comboPeak.setCellFactory(p -> {
       return new ListCell<FeatureListRow>() {
         @Override
         protected void updateItem(FeatureListRow item, boolean empty) {
           super.updateItem(item, empty);
-
           if (item == null || empty) {
             setGraphic(null);
           } else {
@@ -199,7 +201,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         }
       };
     });
-
+    comboPeak.valueProperty().addListener(((observable, oldValue, newValue) -> {
+      parametersChanged();
+    }));
 
     // comboPeak.setPreferredSize(
     // new Dimension(PREFERRED_PEAK_COMBO_WIDTH, comboPeak.getPreferredSize().height));
@@ -216,6 +220,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
     // TIC plot.
     ticPlot = new TICPlot();
+    ticPlot.setMinSize(400, 300);
     // ticPlot.setMinimumSize(MINIMUM_TIC_DIMENSIONS);
 
     // Tool bar.
@@ -229,13 +234,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     // pnlPlotXY.setRight(toolBar);
     // GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
 
-    paramsPane.add(pnlVisible, 0,
-
-        getNumberOfParameters() + 3);
-
-
+    paramsPane.add(pnlVisible, 0, getNumberOfParameters() + 3, 4, 1);
   }
-
 
 
   @Override
@@ -245,11 +245,16 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
       final FeatureListRow previewRow = comboPeak.getSelectionModel().getSelectedItem();
       if (previewRow != null) {
+        // Load the intensities and RTs into array.
+        final Feature previewPeak =
+            (previewRow.getFeatures().get(0).getRawDataFile() instanceof IMSRawDataFile)
+                ? FeatureConvertorIonMobility.collapseMobilityDimensionOfModularFeature(
+                (ModularFeature) previewRow.getFeatures().get(0)) : previewRow.getFeatures().get(0);
 
         logger.finest("Loading new preview peak " + previewRow);
 
         ticPlot.removeAllDataSets();
-        ticPlot.addDataSet(new ChromatogramTICDataSet(previewRow.getFeatures().get(0)));
+        ticPlot.addDataSet(new ChromatogramTICDataSet(previewPeak));
 
         // Auto-range to axes.
         ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
@@ -266,9 +271,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
           logger.fine("Illegal parameter value: " + errors);
           return;
         }
-
-        // Load the intensities and RTs into array.
-        final Feature previewPeak = previewRow.getFeatures().get(0);
 
         // Resolve peaks.
         ResolvedPeak[] resolvedPeaks = {};
@@ -295,14 +297,14 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
               peakResolver.resolvePeaks(previewPeak, parameters, rSession, mzCenterFunction, 0, 0);
 
           // Turn off R instance.
-          if (rSession != null)
+          if (rSession != null) {
             rSession.close(false);
+          }
 
         } catch (RSessionWrapperException e) {
-
           throw new IllegalStateException(e.getMessage());
         } catch (Throwable t) {
-
+          t.printStackTrace();
           logger.log(Level.SEVERE, "Peak deconvolution error", t);
           MZmineCore.getDesktop().displayErrorMessage(t.toString());
         }
@@ -328,7 +330,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
     }
   }
-
 
 
 }

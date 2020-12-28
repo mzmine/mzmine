@@ -18,10 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.components.PeakXICComponent;
+import io.github.mzmine.util.FeatureConvertorIonMobility;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 
@@ -30,15 +32,18 @@ public class PeakPreviewComboRenderer extends BorderPane {
   PeakPreviewComboRenderer(FeatureListRow row) {
 
     Feature peak = row.getFeatures().get(0);
+    if(peak instanceof ModularFeature && peak.getRawDataFile() instanceof IMSRawDataFile) {
+      peak = FeatureConvertorIonMobility.collapseMobilityDimensionOfModularFeature((ModularFeature) peak);
+    }
 
     String labelText = "#" + row.getID() + " "
         + MZmineCore.getConfiguration().getMZFormat().format(row.getAverageMZ()) + " m/z ";
     Label textComponent = new Label(labelText);
     //
-    PeakXICComponent shapeComponent = new PeakXICComponent(peak);
+    //PeakXICComponent shapeComponent = new PeakXICComponent(peak);
 
     setLeft(textComponent);
-    setCenter(shapeComponent);
+    //setCenter(shapeComponent);
 
   }
 

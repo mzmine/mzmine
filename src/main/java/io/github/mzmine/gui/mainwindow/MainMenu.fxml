@@ -72,7 +72,12 @@
   <!-- RAW DATA METHODS -->
   <Menu text="Raw data methods">
     <MenuItem text="Raw data import" onAction="#runModule"
-      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule"/>
+      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule">
+			<accelerator>
+				<KeyCodeCombination alt="UP" code="I"
+					control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+			</accelerator>
+		</MenuItem>
     <MenuItem text="Raw data import (folder)" onAction="#runModule"
       userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule"/>
 

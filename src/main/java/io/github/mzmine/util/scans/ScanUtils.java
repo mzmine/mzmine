@@ -18,8 +18,22 @@
 
 package io.github.mzmine.util.scans;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.sorting.ScanSortMode;
+import io.github.mzmine.util.scans.sorting.ScanSorter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -34,6 +48,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -43,22 +58,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.exceptions.MissingMassListException;
-import io.github.mzmine.util.scans.sorting.ScanSortMode;
-import io.github.mzmine.util.scans.sorting.ScanSorter;
-import java.util.Map;
 
 /**
  * Scan related utilities
@@ -605,6 +604,16 @@ public class ScanUtils {
     }
     return resultScans;
   }
+
+  /*public Set<ImsMsMsInfo> findMsMsInfos(ModularFeature feature) {
+    RawDataFile file = feature.getRawDataFile();
+    if(!(file instanceof IMSRawDataFile)) {
+      return null;
+    }
+    IMSRawDataFile imsFile = (IMSRawDataFile) file;
+    List<Integer> scanNumbers = feature.getScanNumbers();
+    imsFile.
+  }*/
 
   /**
    * Find the highest data point in array
