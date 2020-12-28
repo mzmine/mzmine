@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.CosineScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;

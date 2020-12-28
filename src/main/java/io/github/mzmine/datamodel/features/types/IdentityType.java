@@ -18,6 +18,11 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import javafx.util.StringConverter;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
@@ -25,7 +30,20 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
 
-public class IdentityType extends ListDataType<FeatureIdentity> implements AnnotationType {
+public class IdentityType extends ListDataType<FeatureIdentity> implements AnnotationType,
+    EditableColumnType, AddElementDialog, StringParser<FeatureIdentity> {
+
+  private static StringConverter<FeatureIdentity> converter = new StringConverter<FeatureIdentity>() {
+    @Override
+    public String toString(FeatureIdentity object) {
+      return object.toString();
+    }
+
+    @Override
+    public FeatureIdentity fromString(String name) {
+      return new SimpleFeatureIdentity(name);
+    }
+  };
 
   @Override
   public String getHeaderString() {
@@ -33,10 +51,12 @@ public class IdentityType extends ListDataType<FeatureIdentity> implements Annot
   }
 
   @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull ListProperty<FeatureIdentity> value) {
-    ObservableList<FeatureIdentity> list = value.getValue();
-    return list == null || list.isEmpty() ? "" : list.get(0).toString();
+  public FeatureIdentity fromString(String s) {
+    return converter.fromString(s);
   }
 
+  @Override
+  public StringConverter<FeatureIdentity> getStringConverter() {
+    return converter;
+  }
 }

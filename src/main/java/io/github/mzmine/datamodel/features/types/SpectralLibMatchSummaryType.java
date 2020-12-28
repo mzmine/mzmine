@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import javafx.beans.property.ObjectProperty;
@@ -26,7 +27,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class SpectralLibMatchSummaryType extends ListDataType<SpectralDBFeatureIdentity>
-    implements AnnotationType {
+    implements AnnotationType, EditableColumnType {
 
   @Override
   public String getHeaderString() {

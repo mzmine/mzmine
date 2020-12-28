@@ -27,7 +27,8 @@ import java.util.List;
 public class ManualAnnotationType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List.of(new CommentType(), new CompoundNameType(), new IonAdductType(),
+  private final List<DataType> subTypes = List.of(new IdentityType(), new CommentType(),
+          new CompoundNameType(), new IonAdductType(),
           new FormulaType(), new SmilesStructureType());
 
   @Override

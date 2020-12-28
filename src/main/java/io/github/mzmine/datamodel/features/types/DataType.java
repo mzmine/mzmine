@@ -23,15 +23,26 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
+import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditableDataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.ModularDataTypeCellValueFactory;
+import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.Property;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.cell.ComboBoxTreeTableCell;
+import javafx.util.Callback;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -117,7 +128,7 @@ public abstract class DataType<T extends Property<?>> {
       }
       // value representation
       if (this instanceof EditableColumnType) {
-        col.setCellFactory(new EditableDataTypeCellFactory(raw, this));
+        col.setCellFactory(getEditableCellFactory(col, raw, modularParentType));
         col.setEditable(true);
         col.setOnEditCommit(event -> {
           Object data = event.getNewValue();
@@ -129,7 +140,22 @@ public abstract class DataType<T extends Property<?>> {
               model = event.getRowValue().getValue().getFilesFeatures().get(raw);
             // set value
             if(modularParentType!=null) {
-              model.get(modularParentType).set(this, data);
+              model = model.get(modularParentType);
+            }
+            if(this instanceof ListDataType) {
+              if(this instanceof AddElementDialog && data instanceof String &&
+                  AddElementDialog.BUTTON_TEXT.equals(data)) {
+                ((AddElementDialog)this).createNewElementDialog(model, this);
+              } else {
+                try {
+                  ((ListProperty) model.get(this)).remove(data);
+                  ((ListProperty) model.get(this)).add(0, data);
+                } catch (Exception ex) {
+                  logger.log(Level.SEVERE, "Cannot set value from table cell to data type: "
+                      +this.getHeaderString());
+                  logger.log(Level.SEVERE, ex.getMessage(), ex);
+                }
+              }
             }
             else {
               model.set(this, data);
@@ -141,6 +167,20 @@ public abstract class DataType<T extends Property<?>> {
       }
     }
     return col;
+  }
+
+  protected Callback<TreeTableColumn<ModularFeatureListRow, Object>,
+      TreeTableCell<ModularFeatureListRow, Object>> getEditableCellFactory(
+      TreeTableColumn<ModularFeatureListRow, Object> col,
+      RawDataFile raw, ModularType modularParentType) {
+    if(this instanceof ListDataType)
+      return new EditComboCellFactory(raw, this, modularParentType);
+    else if(this instanceof StringParser<?>)
+      return new EditableDataTypeCellFactory(raw, this);
+    else {
+      throw new UnsupportedOperationException("Programming error: No edit CellFactory for "
+          + "data type: " + this.getHeaderString() + " class " + this.getClass().toString());
+    }
   }
 
   // TODO dirty hack to make this a "singleton"

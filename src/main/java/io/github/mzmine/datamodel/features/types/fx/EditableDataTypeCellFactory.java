@@ -25,20 +25,21 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import javafx.geometry.Pos;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.cell.ComboBoxTreeTableCell;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.util.Callback;
 
 /**
  * Default cell factory for a DataType
  *
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
- * @param <T>
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class EditableDataTypeCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
+  // TODO rename this class to EditStringConverterTypeCellFactory
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private RawDataFile raw;
