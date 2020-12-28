@@ -345,9 +345,9 @@ public class MonaJsonParser extends SpectralDBParser {
                   // to minutes
                   if (v.endsWith("sec")) {
                     v = v.substring(0, v.length() - 3);
-                    value = Double.parseDouble(v) / 60d;
+                    value = Float.parseFloat(v) / 60f;
                   } else {
-                    value = Double.parseDouble(v);
+                    value = Float.parseFloat(v);
                   }
                 } catch (Exception ex) {
                 }

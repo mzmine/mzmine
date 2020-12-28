@@ -313,14 +313,8 @@ public class JoinAlignerTask extends AbstractTask {
           targetRow.addFeature(file, row.getFeature(file));
         }
 
-        // Add all non-existing identities from the original row to the
-        // aligned row
-        FeatureUtils.copyFeatureListRowProperties(row, targetRow);
-
         processedRows++;
-
       }
-
     } // Next feature list
 
     // Add new aligned feature list to the project

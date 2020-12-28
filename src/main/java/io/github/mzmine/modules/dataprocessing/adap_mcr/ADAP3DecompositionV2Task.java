@@ -58,7 +58,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
   // Feature lists.
   private final MZmineProject project;
   private final ChromatogramPeakPair originalLists;
-  private FeatureList newPeakList;
+  private ModularFeatureList newPeakList;
   private final Decomposition decomposition;
 
   // User parameters
@@ -145,11 +145,11 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     }
   }
 
-  private FeatureList decomposePeaks(@Nonnull ChromatogramPeakPair lists) {
+  private ModularFeatureList decomposePeaks(@Nonnull ChromatogramPeakPair lists) {
     RawDataFile dataFile = lists.chromatograms.getRawDataFile(0);
 
     // Create new feature list.
-    final FeatureList resolvedPeakList = new ModularFeatureList(lists.peaks + " "
+    final ModularFeatureList resolvedPeakList = new ModularFeatureList(lists.peaks + " "
         + parameters.getParameter(ADAP3DecompositionV2Parameters.SUFFIX).getValue(), dataFile);
 
     // Load previous applied methods.
@@ -196,7 +196,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
           new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]),
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
 
-      FeatureListRow row = new ModularFeatureListRow((ModularFeatureList) resolvedPeakList, ++rowID);
+      ModularFeatureListRow row = new ModularFeatureListRow((ModularFeatureList) resolvedPeakList, ++rowID);
 
       row.addFeature(dataFile, refPeak);
 
@@ -224,7 +224,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
    * Performs ADAP Peak Decomposition
    *
    * @param chromatograms list of {@link BetterPeak} representing chromatograms
-   * @param ranges arrays of {@link RetTimeClusterer.Item} containing ranges of detected peaks
+   * @param peaks containing ranges of detected peaks
    * @return Collection of dulab.adap.Component objects
    */
 
@@ -279,12 +279,11 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     for (double intensity : chromatogram.ys)
       dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
 
-    ModularFeature newFeature = new ModularFeature(file, peak.getMZ(), (float) peak.getRetTime(),
+    ModularFeature newFeature = new ModularFeature(newPeakList, file, peak.getMZ(), (float) peak.getRetTime(),
         (float) peak.getIntensity(), (float) area, scanNumbers, dataPoints, FeatureStatus.MANUAL,
         representativeScan, representativeScan, new int[] {}, Range.closed((float) peak.getFirstRetTime(),
         (float) peak.getLastRetTime()), Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0f, (float) peak.getIntensity()));
-    newFeature.setFeatureList(newPeakList);
     return newFeature;
   }
 

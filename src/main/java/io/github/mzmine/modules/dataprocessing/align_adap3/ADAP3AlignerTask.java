@@ -171,7 +171,7 @@ public class ADAP3AlignerTask extends AbstractTask {
     process();
 
     // Create new feature list
-    final FeatureList alignedPeakList =
+    final ModularFeatureList alignedPeakList =
         new ModularFeatureList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
 
     int rowID = 0;
@@ -182,7 +182,7 @@ public class ADAP3AlignerTask extends AbstractTask {
 
     for (final ReferenceComponent referenceComponent : alignedComponents) {
 
-      ModularFeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) alignedPeakList, ++rowID);
+      ModularFeatureListRow newRow = new ModularFeatureListRow(alignedPeakList, ++rowID);
       for (int i = 0; i < referenceComponent.size(); ++i) {
 
         Component component = referenceComponent.getComponent(i);
@@ -199,7 +199,7 @@ public class ADAP3AlignerTask extends AbstractTask {
         RawDataFile file = row.getRawDataFiles().get(0);
 
         // Create a new MZmine feature
-        Feature feature = ADAPInterface.peakToFeature(file, peak);
+        Feature feature = ADAPInterface.peakToFeature(alignedPeakList, file, peak);
 
         // Add spectrum as an isotopic pattern
         DataPoint[] spectrum = component.getSpectrum().entrySet().stream()
@@ -226,9 +226,9 @@ public class ADAP3AlignerTask extends AbstractTask {
   }
 
   /**
-   * Convert a {@link PeakListRow} with one {@link Feature} into {@link Component}.
+   * Convert a {@link FeatureListRow} with one {@link Feature} into {@link Component}.
    *
-   * @param row an instance of {@link PeakListRow}. This parameter cannot be null.
+   * @param row an instance of {@link FeatureListRow}. This parameter cannot be null.
    * @return an instance of {@link Component} or null if the row doesn't contain any peaks or
    *         isotope patterns.
    */
@@ -270,7 +270,6 @@ public class ADAP3AlignerTask extends AbstractTask {
   /**
    * Call the alignment from the ADAP package.
    *
-   * @param alignment an instance of {@link Project} containing all samples and peaks to be aligned.
    */
   private void process() {
     AlignmentParameters params = new AlignmentParameters()
@@ -292,12 +291,12 @@ public class ADAP3AlignerTask extends AbstractTask {
   }
 
   /**
-   * Find the existing {@link PeakListRow} for a given feature list ID and row ID.
+   * Find the existing {@link FeatureListRow} for a given feature list ID and row ID.
    *
-   * @param peakListID number of a feature list in the array of {@link PeakList}. The numeration
+   * @param peakListID number of a feature list in the array of {@link FeatureList}. The numeration
    *        starts with 0.
-   * @param rowID integer that is returned by method getId() of {@link PeakListRow}.
-   * @return an instance of {@link PeakListRow} if an existing row is found. Otherwise it returns
+   * @param rowID integer that is returned by method getId() of {@link FeatureListRow}.
+   * @return an instance of {@link FeatureListRow} if an existing row is found. Otherwise it returns
    *         null.
    */
   @Nullable
@@ -320,11 +319,11 @@ public class ADAP3AlignerTask extends AbstractTask {
   }
 
   /**
-   * Find the existing {@link PeakList} for a given feature list ID.
+   * Find the existing {@link FeatureList} for a given feature list ID.
    *
-   * @param peakListId number of a feature list in the array of {@link PeakList}. The numeration
+   * @param peakListId number of a feature list in the array of {@link FeatureList}. The numeration
    *        starts with 0.
-   * @return an instance of {@link PeakList} if a feature list is found, or null.
+   * @return an instance of {@link FeatureList} if a feature list is found, or null.
    */
   @Nullable
   private FeatureList findPeakList(int peakListId) {

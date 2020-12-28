@@ -45,8 +45,8 @@ class FeatureLearnerTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private FeatureList featureList;
-  private FeatureList resultFeatureList;
+  private ModularFeatureList featureList;
+  private ModularFeatureList resultFeatureList;
 
   // features counter
   private int processedFeatures;
@@ -62,12 +62,11 @@ class FeatureLearnerTask extends AbstractTask {
   /**
    * Constructor to set all parameters and the project
    *
-   * @param rawDataFile
    * @param parameters
    */
   public FeatureLearnerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
     this.project = project;
-    this.featureList = featureList;
+    this.featureList = (ModularFeatureList) featureList;
     this.parameters = parameters;
     // Get parameter values for easier use
     suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
@@ -136,8 +135,8 @@ class FeatureLearnerTask extends AbstractTask {
       // ...
 
       // add row to result feature list
-      FeatureListRow row = featureList.getFeatureRow(aFeature);
-      row = copyFeatureRow(row);
+      ModularFeatureListRow row = (ModularFeatureListRow) featureList.getFeatureRow(aFeature);
+      row = new ModularFeatureListRow(resultFeatureList, row, true);
       resultFeatureList.addRow(row);
 
       // Update completion rate
@@ -149,28 +148,6 @@ class FeatureLearnerTask extends AbstractTask {
 
     logger.info("Finished on " + featureList);
     setStatus(TaskStatus.FINISHED);
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static FeatureListRow copyFeatureRow(final FeatureListRow row) {
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) row.getFeatureList(), row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the features.
-    for (final Feature feature : row.getFeatures()) {
-      final Feature newFeature = new ModularFeature(feature);
-      FeatureUtils.copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getRawDataFile(), newFeature);
-    }
-
-    return newRow;
   }
 
   /**

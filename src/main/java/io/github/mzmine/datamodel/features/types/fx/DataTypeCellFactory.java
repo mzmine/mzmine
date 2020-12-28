@@ -36,7 +36,6 @@ import javafx.util.Callback;
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
- * @param <T>
  */
 public class DataTypeCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {

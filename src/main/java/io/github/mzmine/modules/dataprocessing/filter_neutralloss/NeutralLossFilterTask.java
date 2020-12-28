@@ -68,7 +68,7 @@ public class NeutralLossFilterTask extends AbstractTask {
   private double minHeight;
   private int totalRows, finishedRows;
   private String molecule;
-  private FeatureList resultPeakList;
+  private ModularFeatureList resultPeakList;
   private MZmineProject project;
   private FeatureList peakList;
   private boolean checkRT;
@@ -253,12 +253,12 @@ public class NeutralLossFilterTask extends AbstractTask {
 
       String comParent = "", comChild = "";
 
-      FeatureListRow originalChild = getRowFromCandidate(candidates, 0, plh);
+      ModularFeatureListRow originalChild = getRowFromCandidate(candidates, 0, plh);
       if (originalChild == null) {
         finishedRows++;
         continue;
       }
-      FeatureListRow child = copyPeakRow(originalChild);
+      FeatureListRow child = new ModularFeatureListRow(resultPeakList, originalChild, true);
 
       if (resultMap.containsID(child.getID()))
         comChild += resultMap.getRowByID(child.getID()).getComment();
@@ -276,14 +276,14 @@ public class NeutralLossFilterTask extends AbstractTask {
                                                   // which we
                                                   // added before
       {
-        FeatureListRow originalParent = getRowFromCandidate(candidates, 1, plh);
+        ModularFeatureListRow originalParent = getRowFromCandidate(candidates, 1, plh);
 
         if (originalParent == null) {
           allPeaksAddable = false;
           continue;
         }
 
-        FeatureListRow parent = copyPeakRow(originalParent);
+        FeatureListRow parent = new ModularFeatureListRow(resultPeakList, originalParent, true);
 
         if (resultMap.containsID(parent.getID()))
           comParent += resultMap.getRowByID(parent.getID()).getComment();
@@ -352,7 +352,6 @@ public class NeutralLossFilterTask extends AbstractTask {
    *
    * @param pL
    * @param parentIndex index of possible parent peak
-   * @param maxMass
    * @return will return ArrayList<PeakListRow> of all peaks within the range of pL[parentIndex].mz
    *         -> pL[parentIndex].mz+maxMass
    */
@@ -388,28 +387,6 @@ public class NeutralLossFilterTask extends AbstractTask {
         return buf;
     }
     return buf;
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static FeatureListRow copyPeakRow(final FeatureListRow row) {
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) row.getFeatureList(), row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the peaks.
-    for (final Feature peak : row.getFeatures()) {
-      final Feature newPeak = new ModularFeature(peak);
-      FeatureUtils.copyFeatureProperties(peak, newPeak);
-      newRow.addFeature(peak.getRawDataFile(), newPeak);
-    }
-
-    return newRow;
   }
 
   public static double round(double value, int places) { // https://stackoverflow.com/questions/2808535/round-a-double-to-2-decimal-places
@@ -466,7 +443,7 @@ public class NeutralLossFilterTask extends AbstractTask {
    * @return null if no peak with the given parameters exists, the specified feature list row
    *         otherwise.
    */
-  private @Nullable FeatureListRow getRowFromCandidate(@Nonnull Candidates candidates, int peakIndex,
+  private @Nullable ModularFeatureListRow getRowFromCandidate(@Nonnull Candidates candidates, int peakIndex,
       @Nonnull PeakListHandler plh) {
 
     if (peakIndex >= candidates.size())
@@ -477,7 +454,7 @@ public class NeutralLossFilterTask extends AbstractTask {
     if (cand != null) {
       int id = cand.getCandID();
       FeatureListRow original = plh.getRowByID(id);
-      return original;
+      return (ModularFeatureListRow) original;
     }
     return null;
   }

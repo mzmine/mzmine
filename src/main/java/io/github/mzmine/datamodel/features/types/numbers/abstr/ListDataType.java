@@ -19,15 +19,39 @@
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import io.github.mzmine.datamodel.features.types.DataType;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class ListDataType<T> extends DataType<ListProperty<T>> {
 
   @Override
   public ListProperty<T> createProperty() {
     return new SimpleListProperty<T>(FXCollections.observableList(new ArrayList<T>()));
+  }
+
+  @Nonnull
+  @Override
+  public String getFormattedString(@Nullable Object value) {
+    if(value==null)
+      return "";
+    if(value instanceof List)
+      return (String) ((List)value).stream().map(Object::toString).findFirst().orElse("");
+    if(value instanceof ListProperty)
+      return (String) ((ListProperty)value).stream().map(Object::toString).findFirst().orElse("");
+    return value.toString();
+  }
+
+  @Nonnull
+  @Override
+  public String getFormattedString(@Nonnull ListProperty<T> property) {
+    return property.stream().map(Object::toString).findFirst().orElse("");
   }
 }

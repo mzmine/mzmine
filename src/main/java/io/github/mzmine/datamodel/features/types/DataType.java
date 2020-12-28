@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditableDataTypeCellFactory;
+import io.github.mzmine.datamodel.features.types.fx.ModularDataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -84,12 +85,13 @@ public abstract class DataType<T extends Property<?>> {
    * 
    * @param raw null if this is a FeatureListRow column. For Feature columns: the raw data file
    *        specifies the feature.
-   * 
+   * @param modularParentType if this type is a sub type of modularParentType (or null): Changes the CellFactory
+   *                         for editable cells and the CellValueFactory
    * @return the TreeTableColumn or null if this DataType.value is not represented in a column
    */
   @Nullable
-  public TreeTableColumn<ModularFeatureListRow, Object> createColumn(
-      final @Nullable RawDataFile raw) {
+  public TreeTableColumn<ModularFeatureListRow, Object> createColumn(final @Nullable RawDataFile raw,
+                                                                     final @Nullable ModularType modularParentType) {
     if (this instanceof NullColumnType)
       return null;
     // create column
@@ -104,8 +106,15 @@ public abstract class DataType<T extends Property<?>> {
       return col;
     } else {
       col.setSortable(true);
+
+      // is sub column of modularParentType?
       // define observable
-      col.setCellValueFactory(new DataTypeCellValueFactory(raw, this));
+      if(modularParentType!=null) {
+        col.setCellValueFactory(new ModularDataTypeCellValueFactory(raw, modularParentType, this));
+      }
+      else {
+        col.setCellValueFactory(new DataTypeCellValueFactory(raw, this));
+      }
       // value representation
       if (this instanceof EditableColumnType) {
         col.setCellFactory(new EditableDataTypeCellFactory(raw, this));
@@ -113,10 +122,18 @@ public abstract class DataType<T extends Property<?>> {
         col.setOnEditCommit(event -> {
           Object data = event.getNewValue();
           if (data != null) {
+            ModularDataModel model;
             if (raw == null)
-              event.getRowValue().getValue().set(this, data);
+              model = event.getRowValue().getValue();
             else
-              event.getRowValue().getValue().getFilesFeatures().get(raw).set(this, data);
+              model = event.getRowValue().getValue().getFilesFeatures().get(raw);
+            // set value
+            if(modularParentType!=null) {
+              model.get(modularParentType).set(this, data);
+            }
+            else {
+              model.set(this, data);
+            }
           }
         });
       } else {

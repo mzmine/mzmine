@@ -96,8 +96,6 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
   /**
    * Create bar chart of data
    * 
-   * @param cell
-   * @param coll
    * @return
    */
   public Node getBarChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
@@ -107,8 +105,6 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
   /**
    * Create bar chart of data
    * 
-   * @param cell
-   * @param coll
    * @return
    */
   public Node getAreaShareChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
