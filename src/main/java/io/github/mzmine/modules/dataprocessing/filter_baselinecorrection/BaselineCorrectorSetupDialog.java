@@ -18,19 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -46,8 +33,21 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.control.ProgressBar;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  * @description This class extends ParameterSetupDialogWithChromatogramPreview class. This is used
@@ -77,11 +77,9 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
       int keyCode = ke.getKeyCode();
       if (keyCode == KeyEvent.VK_ESCAPE) {
-
         logger.info("<ESC> Presssed.");
         previewTask.kill();
-        hidePreview();
-
+        showPreview(false);
       }
     }
 
@@ -332,7 +330,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         setErrorMessage(errorMsg);
         logger.log(Level.SEVERE, "Baseline correction error", this.getErrorMessage());
         MZmineCore.getDesktop().displayErrorMessage(this.getErrorMessage());
-        hidePreview();
+        Platform.runLater(() -> showPreview(false));
       }
     }
   }
@@ -354,7 +352,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     @Override
     public void run() {
 
-      addProgessBar();
+      Platform.runLater(() -> addProgessBar());
       while ((this.previewTask != null && this.previewTask.getStatus() == TaskStatus.PROCESSING)) {
 
         Platform.runLater(
@@ -366,7 +364,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         }
       }
       // Clear GUI stuffs
-      removeProgessBar();
+      Platform.runLater(() -> removeProgessBar());
       // unset_VK_ESCAPE_KeyListener();
     }
 
