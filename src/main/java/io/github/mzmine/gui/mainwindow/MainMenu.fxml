@@ -71,6 +71,16 @@
 
   <!-- RAW DATA METHODS -->
   <Menu text="Raw data methods">
+    <MenuItem onAction="#runModule" text="Raw data import"
+      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="I"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
+
+    <MenuItem onAction="#runModule" text="Raw data import (folder)"
+      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule"/>
     <Menu text="Raw data export">
       <MenuItem onAction="#runModule"
         text="Export raw data file to mzML"
@@ -82,8 +92,6 @@
         text="Extract scans to CSV file"
         userData="io.github.mzmine.modules.io.exportscans.ExportScansModule"/>
     </Menu>
-    <MenuItem text="Raw data import (folder)" onAction="#runModule"
-      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule"/>
 
     <Menu text="Raw data filtering">
       <MenuItem onAction="#runModule"
@@ -117,15 +125,6 @@
 
     <MenuItem onAction="#runModule" text="Merge raw data files"
       userData="io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule"/>
-
-    <MenuItem text="Raw data import" onAction="#runModule"
-      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule">
-      <accelerator>
-        <KeyCodeCombination alt="UP" code="I"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-      </accelerator>
-    </MenuItem>
-
   </Menu>
 
 
