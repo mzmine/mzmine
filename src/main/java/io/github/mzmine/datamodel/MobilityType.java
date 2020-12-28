@@ -25,8 +25,10 @@ package io.github.mzmine.datamodel;
  */
 public enum MobilityType {
 
-  NONE("none", "none"), TIMS("1/k0", "Vs/cm^2"),
-  DRIFT_TUBE("Drift time", "ms"), TRAVELING_WAVE("TODO", "TODO"),
+  NONE("none", "none"), //
+  TIMS("1/k0", "Vs/cm^2"), //
+  DRIFT_TUBE("Drift time", "ms"), //
+  TRAVELING_WAVE("TODO", "TODO"), //
   FAIMS("TODO", "TODO");
 
   private final String axisLabel;
