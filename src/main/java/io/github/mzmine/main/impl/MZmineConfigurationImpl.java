@@ -18,6 +18,7 @@
 
 package io.github.mzmine.main.impl;
 
+import io.github.mzmine.gui.preferences.UnitFormat;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -167,6 +168,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Override
   public NumberFormat getPPMFormat() {
     return preferences.getParameter(MZminePreferences.ppmFormat).getValue();
+  }
+
+  @Override
+  public UnitFormat getUnitFormat() {
+    return preferences.getParameter(MZminePreferences.unitFormat).getValue();
   }
 
   @Override

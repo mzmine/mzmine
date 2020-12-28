@@ -18,10 +18,18 @@
 
 package io.github.mzmine.project.impl;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Mobilogram;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,10 +37,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
-import io.github.mzmine.datamodel.MobilityScan;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -47,7 +51,7 @@ public class StorableFrame extends StorableScan implements Frame {
    */
   private final Map<Integer, MobilityScan> mobilitySubScans;
   private final Set<ImsMsMsInfo> precursorInfos;
-
+  private final List<StorableMobilogram> mobilograms;
   /**
    * Mobility range of this frame. Updated when a scan is added.
    */
@@ -66,26 +70,37 @@ public class StorableFrame extends StorableScan implements Frame {
     super(originalFrame, rawDataFile, numberOfDataPoints, storageID);
 
     mobilitySubScans = new HashMap<>(originalFrame.getNumberOfMobilityScans());
+    mobilograms = new ArrayList<>();
     mobilityRange = null;
     precursorInfos = originalFrame.getImsMsMsInfos();
   }
 
-  /*
-   * public StorableFrame(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints, int
-   * scanNumber, int msLevel, float retentionTime, double precursorMZ, int precursorCharge,
-   * MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition, Range<Double>
-   * scanMZRange, int frameId, @Nonnull MobilityType mobilityType,
-   * 
-   * @Nonnull Range<Double> mobilityRange, @Nonnull List<Integer> mobilityScanNumbers) {
-   * 
-   * super(rawDataFile, storageID, numberOfDataPoints, scanNumber, msLevel, retentionTime,
-   * precursorMZ, precursorCharge, spectrumType, polarity, scanDefinition, scanMZRange);
-   * 
-   * this.frameId = frameId; this.mobilityRange = mobilityRange; this.mobilityType = mobilityType;
-   * 
-   * mobilityScans = new TreeMap<>(); for (int scannum : mobilityScanNumbers) { Scan scan =
-   * rawDataFile.getScan(scannum); if (scan != null) { addMobilityScan(scan); } } }
-   */
+  /*public StorableFrame(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
+      int scanNumber, int msLevel, float retentionTime, double precursorMZ,
+      int precursorCharge,
+      MassSpectrumType spectrumType,
+      PolarityType polarity, String scanDefinition,
+      Range<Double> scanMZRange, int frameId, @Nonnull MobilityType mobilityType,
+      @Nonnull Range<Double> mobilityRange, @Nonnull List<Integer> mobilityScanNumbers) {
+
+    super(rawDataFile, storageID, numberOfDataPoints, scanNumber, msLevel, retentionTime,
+        precursorMZ, precursorCharge, spectrumType, polarity, scanDefinition,
+        scanMZRange);
+
+    this.frameId = frameId;
+    this.mobilityRange = mobilityRange;
+    this.mobilityType = mobilityType;
+
+    mobilograms = new ArrayList<>();
+
+    mobilityScans = new TreeMap<>();
+    for (int scannum : mobilityScanNumbers) {
+      Scan scan = rawDataFile.getScan(scannum);
+      if (scan != null) {
+        addMobilityScan(scan);
+      }
+    }
+  }*/
 
   @Override
   public int getNumberOfMobilityScans() {
@@ -179,6 +194,59 @@ public class StorableFrame extends StorableScan implements Frame {
     Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
         .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
+  }
+
+  @Override
+  public ImmutableList<Mobilogram> getMobilograms() {
+    return ImmutableList.copyOf(mobilograms);
+  }
+
+  /**
+   * @param mobilogram
+   * @return the storage id, -1 on error
+   */
+  @Override
+  public int addMobilogram(Mobilogram mobilogram) {
+
+    if (mobilogram instanceof StorableMobilogram && !mobilogram.getRawDataFile()
+        .equals(rawDataFile)) {
+
+      logger.warning(() -> "Cannot add mobilogram of " + mobilogram.getRawDataFile().getName() +
+          " to Frame of " + rawDataFile.getName());
+      return -1;
+
+    } else if (mobilogram instanceof StorableMobilogram && mobilogram.getRawDataFile()
+        .equals(rawDataFile)) {
+
+      logger.fine(() -> "Mobilogram already stored in this raw data file.");
+      if (!mobilograms.contains(mobilogram)) {
+        mobilograms.add((StorableMobilogram) mobilogram);
+      }
+      return ((StorableMobilogram) mobilogram).getStorageID();
+
+    } else {
+
+      try {
+        final int storageId = ((IMSRawDataFileImpl) rawDataFile)
+            .storeDataPointsForMobilogram(mobilogram.getDataPoints());
+
+        StorableMobilogram storableMobilogram = new StorableMobilogram(mobilogram,
+            (IMSRawDataFileImpl) rawDataFile, storageId);
+
+        mobilograms.add(storableMobilogram);
+        return storageId;
+      } catch (IOException | ClassCastException e) {
+        e.printStackTrace();
+        return -1;
+      }
+    }
+  }
+
+  @Override
+  public void clearMobilograms() {
+    mobilograms.forEach(mob -> ((IMSRawDataFileImpl) rawDataFile)
+        .removeDataPointsForMobilogram(mob.getStorageID()));
+    mobilograms.clear();
   }
 
   @Override

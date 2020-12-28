@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.MobilityDataPoint;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
@@ -51,6 +52,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   public static final String SAVE_IDENTIFIER = "Ion mobility Raw data file";
   private static Logger logger = Logger.getLogger(IMSRawDataFileImpl.class.getName());
+  protected final MobilityDataPointStorage mdpStorage;
   private final TreeMap<Integer, StorableFrame> frames;
   private final Hashtable<Integer, Set<Integer>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
@@ -77,6 +79,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
     mobilityRange = null;
     mobilityType = MobilityType.NONE;
+
+    mdpStorage = new MobilityDataPointStorage();
   }
 
   @Override
@@ -300,5 +304,22 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   private Range<Integer> getSegmentKeyForFrame(int frameId) {
     return segmentMobilityRange.keySet().stream()
         .filter(segmentRange -> segmentRange.contains(frameId)).findFirst().get();
+  }
+
+  int storeDataPointsForMobilogram(List<MobilityDataPoint> dataPoints) throws IOException {
+    return mdpStorage.storeDataPoints(dataPoints);
+  }
+
+  List<MobilityDataPoint> loadDatapointsForMobilogram(int storageId) throws IOException {
+//    System.out.println("Reading data points for storage id " + storageId);
+    return mdpStorage.readDataPoints(storageId);
+  }
+
+  public void removeDataPointsForMobilogram(int id) {
+    try {
+      mdpStorage.removeStoredDataPoints(id);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }

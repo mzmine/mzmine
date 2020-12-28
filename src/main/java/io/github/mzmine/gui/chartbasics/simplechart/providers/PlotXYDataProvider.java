@@ -18,32 +18,31 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
  * Combines all necessary interfaces of a given dataset to be plotted in an XY-Chart. Check the
  * specific interfaces for a detailed desription.
  * <p></p>
  * Basically, any class implementing this interface can be conveniently plotted in a {@link
- * SimpleXYChart} without the need to
- * create a specific {@link org.jfree.chart.JFreeChart} plot class, dataset, renderer, label
- * generator or tooltip generator.
+ * io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart} without the need to create a specific
+ * {@link org.jfree.chart.JFreeChart} plot class, dataset, renderer, label generator or tooltip
+ * generator.
  * <p></p>
  * Since some datasets require a computation of their values, the {@link XYValueProvider} interface
- * offers the {@link XYValueProvider#computeValues()} method to move these computations to a
+ * offers the {@link XYValueProvider#computeValues(TaskStatus)} method to move these computations to a
  * different thread. The values are grabbed after the computation has finished and the plot is
  * updated automatically.
  * <p></p>
  * For a more detailed description, one shall be referred to the interfaces listed below.
  *
  * @author https://github.com/SteffenHeu
- *
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider
  * @see io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider
- * @see ExampleProvider
+ * @see ExampleXYProvider
  */
 public interface PlotXYDataProvider extends XYValueProvider, SeriesKeyProvider<Comparable<?>>,
     LabelTextProvider, ToolTipTextProvider, ColorProvider {

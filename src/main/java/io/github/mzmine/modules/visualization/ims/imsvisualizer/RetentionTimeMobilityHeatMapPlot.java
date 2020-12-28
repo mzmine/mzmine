@@ -45,7 +45,7 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
   private final XYPlot plot;
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private PaintScaleLegend legend;
-  public XYBlockPixelSizeRenderer pixelRenderer;
+  public XYBlockPixelSizeRenderer pixelRenderer; // What does this renderer do? ~SteffenHeu
   public XYBlockRenderer blockRenderer;
 
   public RetentionTimeMobilityHeatMapPlot(XYZDataset dataset, PaintScale paintScale) {
