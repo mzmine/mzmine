@@ -202,9 +202,11 @@ public class FeatureTableFXMLTabAnchorPaneController {
     TreeItem<FeatureListRow> selectedItem = featureTable.getSelectionModel()
         .getSelectedItem();
 //    featureTable.getColumns().forEach(c -> logger.info(c.getText()));
-    logger.info(
-        "selected: " + featureTable.getSelectionModel().getSelectedCells().get(0).getTableColumn()
-            .getText());
+    if (!featureTable.getSelectionModel().getSelectedCells().isEmpty()) {
+      logger.info(
+          "selected: " + featureTable.getSelectionModel().getSelectedCells().get(0).getTableColumn()
+              .getText());
+    }
 
     if (selectedItem == null) {
       return;

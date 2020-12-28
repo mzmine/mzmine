@@ -18,6 +18,10 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import java.util.List;
 import javax.annotation.Nonnull;
 
 public class AreaRangeType extends IntensityRangeType {
@@ -28,4 +32,9 @@ public class AreaRangeType extends IntensityRangeType {
     return "Area Range";
   }
 
+  @Nonnull
+  @Override
+  public List<RowBinding> createDefaultRowBindings() {
+    return List.of(new SimpleRowBinding(this, BindingsType.RANGE));
+  }
 }

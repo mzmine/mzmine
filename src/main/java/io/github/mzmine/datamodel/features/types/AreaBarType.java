@@ -22,8 +22,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.AreaBarChart;
-import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -67,7 +67,7 @@ public class AreaBarType extends DataType<MapProperty<RawDataFile, ModularFeatur
     StackPane pane = new StackPane();
 
     // TODO stop task if new task is started
-    Task task = new FeaturesGraphicalNodeTask(AreaBarChart.class, pane, row, coll);
+    Task task = new FeaturesGraphicalNodeTask(AreaBarChart.class, pane, row, coll.getText());
     MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
 
     return pane;

@@ -25,7 +25,7 @@ package io.github.mzmine.taskcontrol;
  * 
  */
 public enum TaskPriority {
-
+  // TODO add LOW
   HIGH, NORMAL
 
 }

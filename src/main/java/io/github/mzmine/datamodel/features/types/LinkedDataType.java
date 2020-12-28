@@ -15,10 +15,15 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types.modifiers;
+package io.github.mzmine.datamodel.features.types;
 
-public enum BindingsType {
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public abstract class LinkedDataType extends DataType<TypeListenerProperty> {
 
-  AVERAGE, SUM, MIN, MAX, COUNT, RANGE, CONSENSUS, LIST;
-
+  @Override
+  public TypeListenerProperty createProperty() {
+    return new TypeListenerProperty();
+  }
 }
