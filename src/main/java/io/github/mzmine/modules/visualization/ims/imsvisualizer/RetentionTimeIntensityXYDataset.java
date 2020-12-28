@@ -18,48 +18,48 @@
 /*
 package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
-import io.github.mzmine.datamodel.Scan;
 import org.jfree.data.xy.AbstractXYDataset;
+import io.github.mzmine.datamodel.Scan;
 
 public class RetentionTimeIntensityXYDataset extends AbstractXYDataset {
 
-    private final Scan[] scans;
-    private final double[] xValues;
-    private final double[] yValues;
+  private final Scan[] scans;
+  private final Double[] xValues;
+  private final Double[] yValues;
 
-    public RetentionTimeIntensityXYDataset(DataFactory dataFactory) {
-        xValues = dataFactory.getRetentionTimeretentionTimeIntensity();
-        yValues = dataFactory.getIntensityretentionTimeIntensity();
-        scans = dataFactory.getScans();
-    }
+  public RetentionTimeIntensityXYDataset(DataFactory dataFactory) {
+    xValues = dataFactory.getRetentionTimeretentionTimeIntensity();
+    yValues = dataFactory.getIntensityretentionTimeIntensity();
+    scans = dataFactory.getScans();
+  }
 
-    @Override
-    public int getSeriesCount() {
-        return 1;
-    }
+  @Override
+  public int getSeriesCount() {
+    return 1;
+  }
 
-    @Override
-    public Comparable getSeriesKey(int series) {
-        return getRowKey(series);
-    }
+  @Override
+  public Comparable getSeriesKey(int series) {
+    return getRowKey(series);
+  }
 
-    public Comparable<?> getRowKey(int item) {
-        return scans[item].toString();
-    }
+  public Comparable<?> getRowKey(int item) {
+    return scans[item].toString();
+  }
 
-    @Override
-    public int getItemCount(int series) {
-        return xValues.length;
-    }
+  @Override
+  public int getItemCount(int series) {
+    return xValues.length;
+  }
 
-    @Override
-    public Number getX(int series, int item) {
-        return xValues[item];
-    }
+  @Override
+  public Number getX(int series, int item) {
+    return xValues[item];
+  }
 
-    @Override
-    public Number getY(int series, int item) {
-        return yValues[item];
-    }
+  @Override
+  public Number getY(int series, int item) {
+    return yValues[item];
+  }
 }
 */

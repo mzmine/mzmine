@@ -63,7 +63,7 @@ public interface Feature {
   /**
    * Returns raw data file where this feature is present
    */
-  @Nonnull
+  @Nullable
   RawDataFile getRawDataFile();
 
   /**

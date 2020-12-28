@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 
 /**
@@ -71,7 +72,7 @@ public class ADAPInterface {
   }
 
   @Nonnull
-  public static ModularFeature peakToFeature(@Nonnull RawDataFile file, @Nonnull BetterPeak peak) {
+  public static ModularFeature peakToFeature(@Nonnull ModularFeatureList featureList, @Nonnull RawDataFile file, @Nonnull BetterPeak peak) {
 
     Chromatogram chromatogram = peak.chromatogram;
 
@@ -102,7 +103,7 @@ public class ADAPInterface {
     for (double intensity : chromatogram.ys)
       dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
 
-    return new ModularFeature(file, peak.getMZ(), (float) peak.getRetTime(), (float) peak.getIntensity(),
+    return new ModularFeature(featureList, file, peak.getMZ(), (float) peak.getRetTime(), (float) peak.getIntensity(),
         (float) area, scanNumbers, dataPoints, FeatureStatus.ESTIMATED, representativeScan, representativeScan,
         new int[] {}, Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
         Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
@@ -110,7 +111,7 @@ public class ADAPInterface {
   }
 
   @Nonnull
-  public static Feature peakToFeature(@Nonnull RawDataFile file, @Nonnull Peak peak) {
+  public static Feature peakToFeature(@Nonnull ModularFeatureList featureList, @Nonnull RawDataFile file, @Nonnull Peak peak) {
 
     NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
 
@@ -126,6 +127,6 @@ public class ADAPInterface {
     BetterPeak betterPeak = new BetterPeak(peak.getInfo().peakID,
         new Chromatogram(retTimes, intensities), peak.getInfo());
 
-    return peakToFeature(file, betterPeak);
+    return peakToFeature(featureList, file, betterPeak);
   }
 }

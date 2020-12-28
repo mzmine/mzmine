@@ -141,12 +141,12 @@ public class DuplicateFilterTask extends AbstractTask {
   private FeatureList filterDuplicatePeakListRows(final FeatureList origPeakList, final String suffix,
       final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId,
       FilterMode mode) {
-    final FeatureListRow[] peakListRows = origPeakList.getRows().toArray(FeatureListRow[]::new);
+    final ModularFeatureListRow[] peakListRows = origPeakList.getRows().toArray(ModularFeatureListRow[]::new);
     final int rowCount = peakListRows.length;
     RawDataFile[] rawFiles = origPeakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create the new feature list.
-    final FeatureList newPeakList =
+    final ModularFeatureList newPeakList =
         new ModularFeatureList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
 
     // sort rows
@@ -166,11 +166,11 @@ public class DuplicateFilterTask extends AbstractTask {
     totalRows = rowCount;
     for (int firstRowIndex = 0; !isCanceled() && firstRowIndex < rowCount; firstRowIndex++) {
 
-      final FeatureListRow mainRow = peakListRows[firstRowIndex];
+      final ModularFeatureListRow mainRow = peakListRows[firstRowIndex];
 
       if (mainRow != null) {
         // copy first row
-        FeatureListRow firstRow = copyRow(mainRow);
+        ModularFeatureListRow firstRow = new ModularFeatureListRow(newPeakList, mainRow, true);
 
         for (int secondRowIndex = firstRowIndex + 1; !isCanceled()
             && secondRowIndex < rowCount; secondRowIndex++) {
@@ -194,7 +194,7 @@ public class DuplicateFilterTask extends AbstractTask {
                 // copy all detected features of row2 into row1
                 // to exchange gap-filled against detected
                 // features
-                createConsensusFirstRow(rawFiles, firstRow, secondRow);
+                createConsensusFirstRow(newPeakList, rawFiles, firstRow, secondRow);
               }
               // second row deleted
               n++;
@@ -232,7 +232,7 @@ public class DuplicateFilterTask extends AbstractTask {
    * @param firstRow
    * @param secondRow
    */
-  private void createConsensusFirstRow(RawDataFile[] rawFiles, FeatureListRow firstRow,
+  private void createConsensusFirstRow(ModularFeatureList flist, RawDataFile[] rawFiles, FeatureListRow firstRow,
       FeatureListRow secondRow) {
     for (RawDataFile raw : rawFiles) {
       Feature f2 = secondRow.getFeature(raw);
@@ -242,7 +242,7 @@ public class DuplicateFilterTask extends AbstractTask {
       switch (f2.getFeatureStatus()) {
         case DETECTED:
           // DETECTED over all
-          firstRow.addFeature(raw, copyPeak(f2));
+          firstRow.addFeature(raw, new ModularFeature(flist, f2));
           break;
         case ESTIMATED:
           // ESTIMATED over UNKNOWN or
@@ -251,7 +251,7 @@ public class DuplicateFilterTask extends AbstractTask {
           if (f1 != null && (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
               || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
                   && f1.getHeight() < f2.getHeight())))
-            firstRow.addFeature(raw, copyPeak(f2));
+            firstRow.addFeature(raw, new ModularFeature(flist, f2));
           break;
       }
     }
@@ -297,22 +297,4 @@ public class DuplicateFilterTask extends AbstractTask {
         && rtTolerance.checkWithinTolerance(firstRow.getAverageRT(), secondRow.getAverageRT());
   }
 
-  public FeatureListRow copyRow(FeatureListRow row) {
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) filteredPeakList, row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the peaks.
-    for (final Feature peak : row.getFeatures()) {
-      newRow.addFeature(peak.getRawDataFile(), copyPeak(peak));
-    }
-    return newRow;
-  }
-
-  public Feature copyPeak(Feature peak) {
-    // Copy the peaks.
-    final Feature newPeak = new ModularFeature(peak);
-    FeatureUtils.copyFeatureProperties(peak, newPeak);
-    return newPeak;
-  }
 }

@@ -22,7 +22,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
  * This interface is used to generate labels for a dataset within a specific plot.
  *
  * @author https://github.com/SteffenHeu
- * @see ExampleProvider
+ * @see ExampleXYProvider
  */
 public interface LabelTextProvider {
 

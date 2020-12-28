@@ -20,7 +20,6 @@ package io.github.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import com.google.common.collect.Range;
 
 /**
@@ -88,5 +87,6 @@ public interface Scan extends MassSpectrum {
   public void addMassList(@Nonnull MassList massList);
 
   public void removeMassList(@Nonnull MassList massList);
+
 }
 

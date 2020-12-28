@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
@@ -25,6 +26,7 @@ import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.Mobilogram;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import java.util.Collection;
@@ -135,6 +137,21 @@ public class SimpleFrame extends SimpleScan implements Frame {
     Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
         .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
+  }
+
+  @Override
+  public ImmutableList<Mobilogram> getMobilograms() {
+    throw new UnsupportedOperationException("getMobilograms is not supported by SimpleFrame");
+  }
+
+  @Override
+  public int addMobilogram(Mobilogram mobilogram) {
+    throw new UnsupportedOperationException("addMobilogram is not supported by SimpleFrame");
+  }
+
+  @Override
+  public void clearMobilograms() {
+    throw new UnsupportedOperationException("clearMobilograms is not supported by SimpleFrame");
   }
 
   @Override

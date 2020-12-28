@@ -45,7 +45,7 @@ public class RTRangeType extends FloatRangeType implements ExpandableType {
   @Override
   @Nonnull
   public String getHeaderString() {
-    return "RT Range";
+    return "RT range";
   }
 
   @Nonnull

@@ -193,12 +193,11 @@ public class SmoothingTask extends AbstractTask {
 
                 // Create a new peak.
                 ModularFeature newFeature
-                    = new ModularFeature(dataFile, maxDataPoint.getMZ(), peak.getRT(), maxIntensity,
+                    = new ModularFeature(newPeakList, dataFile, maxDataPoint.getMZ(), peak.getRT(), maxIntensity,
                     area, scanNumbers, newDataPoints, peak.getFeatureStatus(), maxScanNumber,
                     peak.getMostIntenseFragmentScanNumber(),
                     peak.getAllMS2FragmentScanNumbers().stream().mapToInt(i -> i).toArray(), peak.getRawDataPointsRTRange(),
                     peak.getRawDataPointsMZRange(), RangeUtils.toFloatRange(intensityRange));
-                newFeature.setFeatureList(newPeakList);
                 newRow.addFeature(dataFile, newFeature);
               }
             }
@@ -265,7 +264,6 @@ public class SmoothingTask extends AbstractTask {
       double sum = 0.0;
       final int k = i - halfWidth;
       for (int j = Math.max(0, -k); j < Math.min(fullWidth, numPoints - k); j++) {
-
         sum += intensities[k + j] * weights[j];
       }
 

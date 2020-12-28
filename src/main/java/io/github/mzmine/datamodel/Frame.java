@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import java.util.Collection;
 import java.util.Map;
@@ -27,14 +28,11 @@ import javax.annotation.Nullable;
 
 /**
  * A frame is a collection of mobility resolved spectra at one point in time.
- *
- * @author https://github.com/SteffenHeu
  */
 public interface Frame extends Scan {
 
   /**
    * Equivalent to {@link Scan#getScanNumber()}.
-   *
    * @return the scan number
    */
   @Deprecated
@@ -48,6 +46,7 @@ public interface Frame extends Scan {
   public MobilityType getMobilityType();
 
   /**
+   *
    * @return Unsorted set of sub spectrum numbers.
    */
   public Set<Integer> getMobilityScanNumbers();
@@ -106,4 +105,10 @@ public interface Frame extends Scan {
   default int getPrecursorCharge() {
     return 0;
   }
+
+  public ImmutableList<Mobilogram> getMobilograms();
+
+  public int addMobilogram(Mobilogram mobilogram);
+
+  public void clearMobilograms();
 }

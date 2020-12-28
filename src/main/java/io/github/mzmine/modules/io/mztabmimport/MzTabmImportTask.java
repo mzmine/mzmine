@@ -137,7 +137,7 @@ public class MzTabmImportTask extends AbstractTask {
       //Create new feature list
       String featureListName = inputFile.getName().replace(".mzTab", "");
       RawDataFile rawDataArray[] = rawDataFiles.toArray(new RawDataFile[0]);
-      FeatureList newFeatureList = new ModularFeatureList(featureListName, rawDataArray);
+      ModularFeatureList newFeatureList = new ModularFeatureList(featureListName, rawDataArray);
 
       // Check if not canceled
         if (isCanceled()) {
@@ -307,7 +307,7 @@ public class MzTabmImportTask extends AbstractTask {
     }
   }
 
-  private void importTablesData(FeatureList newFeatureList, MzTab mzTabmFile,
+  private void importTablesData(ModularFeatureList newFeatureList, MzTab mzTabmFile,
       List<RawDataFile> rawDataFiles) {
     List<Assay> assayList = mzTabmFile.getMetadata().getAssay();
     List<SmallMoleculeSummary> smallMoleculeSummaryList = mzTabmFile.getSmallMoleculeSummary();
@@ -422,7 +422,7 @@ public class MzTabmImportTask extends AbstractTask {
           status = FeatureStatus.UNKNOWN;
         }
 
-        Feature feature = new ModularFeature(rawData, feature_mz, feature_rt, feature_height,
+        Feature feature = new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt, feature_height,
             (float) abundance,
             scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
             finalRTRange, finalMZRange, finalIntensityRange);

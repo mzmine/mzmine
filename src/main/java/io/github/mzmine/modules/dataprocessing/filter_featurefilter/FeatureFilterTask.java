@@ -48,7 +48,7 @@ public class FeatureFilterTask extends AbstractTask {
   // Feature lists
   private final MZmineProject project;
   private final FeatureList origPeakList;
-  private FeatureList filteredPeakList;
+  private ModularFeatureList filteredPeakList;
 
   // Processed rows counter
   private int processedRows, totalRows;
@@ -125,10 +125,10 @@ public class FeatureFilterTask extends AbstractTask {
    * @param peakList feature list to filter.
    * @return a new feature list with entries of the original feature list that pass the filtering.
    */
-  private FeatureList filterPeakList(final FeatureList peakList) {
+  private ModularFeatureList filterPeakList(final FeatureList peakList) {
 
     // Make a copy of the peakList
-    final FeatureList newPeakList = new ModularFeatureList(
+    final ModularFeatureList newPeakList = new ModularFeatureList(
         peakList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
         peakList.getRawDataFiles());
 
@@ -151,10 +151,10 @@ public class FeatureFilterTask extends AbstractTask {
         parameters.getParameter(FeatureFilterParameters.MS2_Filter).getValue();
 
     // Loop through all rows in feature list
-    final FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
+    final ModularFeatureListRow[] rows = peakList.getRows().toArray(ModularFeatureListRow[]::new);
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
-      final FeatureListRow row = rows[processedRows];
+      final ModularFeatureListRow row = rows[processedRows];
       final RawDataFile[] rawdatafiles = row.getRawDataFiles().toArray(new RawDataFile[0]);
       int totalRawDataFiles = rawdatafiles.length;
       boolean[] keepPeak = new boolean[totalRawDataFiles];
@@ -276,25 +276,19 @@ public class FeatureFilterTask extends AbstractTask {
   /**
    * Create a copy of a feature list row.
    */
-  private FeatureListRow copyPeakRow(final FeatureListRow row, final boolean[] keepPeak) {
-
+  private FeatureListRow copyPeakRow(final ModularFeatureListRow row, final boolean[] keepPeak) {
     // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) filteredPeakList, row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
+    final FeatureListRow newRow = new ModularFeatureListRow(filteredPeakList, row, false);
 
     // Copy the peaks.
     int i = 0;
-    for (final Feature peak : row.getFeatures()) {
-
+    for (final Feature feature : row.getFeatures()) {
       // Only keep peak if it fulfills the filter criteria
       if (keepPeak[i]) {
-        final Feature newPeak = new ModularFeature(peak);
-        FeatureUtils.copyFeatureProperties(peak, newPeak);
-        newRow.addFeature(peak.getRawDataFile(), newPeak);
+        newRow.addFeature(feature.getRawDataFile(), new ModularFeature(filteredPeakList, feature));
       }
       i++;
     }
-
     return newRow;
   }
 }

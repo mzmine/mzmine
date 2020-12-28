@@ -43,7 +43,7 @@ public class IntensityRangeType extends FloatRangeType {
   @Override
   @Nonnull
   public String getHeaderString() {
-    return "Intensity Range";
+    return "Intensity range";
   }
 
 }

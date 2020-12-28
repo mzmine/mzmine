@@ -18,15 +18,6 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.project.impl.StorableMassList;
-import io.github.mzmine.project.impl.StorableScan;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -44,6 +35,20 @@ import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
+import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.project.impl.StorableImagingScan;
+import io.github.mzmine.project.impl.StorableMassList;
+import io.github.mzmine.project.impl.StorableScan;
 
 class RawDataFileSaveHandler {
 
@@ -88,6 +93,9 @@ class RawDataFileSaveHandler {
     if (rawDataFile instanceof IMSRawDataFile) {
       rawDataSavedName =
           IMSRawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
+    } else if (rawDataFile instanceof ImagingRawDataFile) {
+      rawDataSavedName =
+          ImagingRawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
     } else {
       rawDataSavedName =
           RawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
@@ -218,7 +226,8 @@ class RawDataFileSaveHandler {
       progress = 0.8 + (0.1 * ((double) completedScans / numOfScans));
     }
 
-    // for loading frames it is important, that scans have already been loaded! so save frames after scans
+    // for loading frames it is important, that scans have already been loaded! so save frames after
+    // scans
     // <FRAME>
     if (rawDataFile instanceof IMSRawDataFile) {
 
@@ -238,18 +247,18 @@ class RawDataFileSaveHandler {
           return;
         }
 
-//        StorableFrame frame = (StorableFrame) imsFile.getFrame(frameNum);
-//        int storageID = frame.getStorageID();
-//        atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
-//            String.valueOf(storageID));
-//        hd.startElement("", "", RawDataElementName.FRAME.getElementName(), atts);
-//        fillScanElement(frame, hd);
-//        fillFrameElement(frame, hd);
-//        hd.endElement("", "", RawDataElementName.FRAME.getElementName());
-//        atts.clear();
-//
-//        completedFrames++;
-//        progress = 0.9 + (0.1 * ((double) completedFrames / numOfFrames));
+        // StorableFrame frame = (StorableFrame) imsFile.getFrame(frameNum);
+        // int storageID = frame.getStorageID();
+        // atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+        // String.valueOf(storageID));
+        // hd.startElement("", "", RawDataElementName.FRAME.getElementName(), atts);
+        // fillScanElement(frame, hd);
+        // fillFrameElement(frame, hd);
+        // hd.endElement("", "", RawDataElementName.FRAME.getElementName());
+        // atts.clear();
+        //
+        // completedFrames++;
+        // progress = 0.9 + (0.1 * ((double) completedFrames / numOfFrames));
       }
     }
 
@@ -313,20 +322,19 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.QUANTITY_DATAPOINTS.getElementName());
 
     // <FRAGMENT_SCAN>
-    /*if (scan.getFragmentScanNumbers() != null) {
-      int[] fragmentScans = scan.getFragmentScanNumbers();
-      atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
-          String.valueOf(fragmentScans.length));
-      hd.startElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName(), atts);
-      atts.clear();
-      for (int i : fragmentScans) {
-        hd.startElement("", "", RawDataElementName.FRAGMENT_SCAN.getElementName(), atts);
-        hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
-        hd.endElement("", "", RawDataElementName.FRAGMENT_SCAN.getElementName());
-      }
-      hd.endElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
-
-    }*/
+    /*
+     * if (scan.getFragmentScanNumbers() != null) { int[] fragmentScans =
+     * scan.getFragmentScanNumbers(); atts.addAttribute("", "",
+     * RawDataElementName.QUANTITY.getElementName(), "CDATA", String.valueOf(fragmentScans.length));
+     * hd.startElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName(), atts);
+     * atts.clear(); for (int i : fragmentScans) { hd.startElement("", "",
+     * RawDataElementName.FRAGMENT_SCAN.getElementName(), atts);
+     * hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
+     * hd.endElement("", "", RawDataElementName.FRAGMENT_SCAN.getElementName()); } hd.endElement("",
+     * "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
+     *
+     * }
+     */
 
     // <MASS_LIST>
     MassList massLists[] = scan.getMassLists();
@@ -366,6 +374,13 @@ class RawDataFileSaveHandler {
     //hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
     //hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
 
+    if (scan instanceof StorableImagingScan) {
+      // <COORDINATES>
+      hd.startElement("", "", RawDataElementName.COORDINATES.getElementName(), atts);
+      Coordinates coordinates = ((StorableImagingScan) scan).getCoordinates();
+      hd.characters(coordinates.toString().toCharArray(), 0, coordinates.toString().length());
+      hd.endElement("", "", RawDataElementName.COORDINATES.getElementName());
+    }
   }
 
   private void fillFrameElement(Frame frame, TransformerHandler hd)

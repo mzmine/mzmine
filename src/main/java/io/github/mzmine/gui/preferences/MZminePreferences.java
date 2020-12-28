@@ -18,7 +18,9 @@
 
 package io.github.mzmine.gui.preferences;
 
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import java.text.DecimalFormat;
+import javafx.collections.FXCollections;
 import org.w3c.dom.Element;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -57,6 +59,10 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final NumberFormatParameter ppmFormat = new NumberFormatParameter("PPM format",
       "Format used for PPM values such as mass errors", true, new DecimalFormat("0.0000"));
 
+  public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>(
+      "Unit format", "The default unit format to format e.g. axis labels in MZmine.",
+      FXCollections.observableArrayList(UnitFormat.values()), UnitFormat.DIVIDE);
+
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
   public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
@@ -88,7 +94,7 @@ public class MZminePreferences extends SimpleParameterSet {
       new BooleanParameter("Dark mode", "Enables dark mode throughout MZmine.", false);
 
   public MZminePreferences() {
-    super(new Parameter[] {mzFormat, rtFormat, mobilityFormat, intensityFormat, ppmFormat,
+    super(new Parameter[]{mzFormat, rtFormat, mobilityFormat, intensityFormat, ppmFormat, unitFormat,
         numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
         stdColorPalette, chartParam});
   }

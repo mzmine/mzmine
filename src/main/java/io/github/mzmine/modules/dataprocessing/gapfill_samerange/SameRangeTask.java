@@ -49,7 +49,7 @@ class SameRangeTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private FeatureList peakList, processedPeakList;
+  private ModularFeatureList peakList, processedPeakList;
 
   private String suffix;
   private MZTolerance mzTolerance;
@@ -63,7 +63,7 @@ class SameRangeTask extends AbstractTask {
   SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
 
     this.project = project;
-    this.peakList = peakList;
+    this.peakList = (ModularFeatureList) peakList;
     this.parameters = parameters;
 
     suffix = parameters.getParameter(SameRangeGapFillerParameters.suffix).getValue();
@@ -96,21 +96,12 @@ class SameRangeTask extends AbstractTask {
 
     List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
 
-    peakList.parallelStream().forEach(sourceRow -> {
+    peakList.parallelStream().map(r -> (ModularFeatureListRow)r).forEach(sourceRow -> {
       // Canceled?
       if (isCanceled())
         return;
 
-      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) processedPeakList, sourceRow.getID());
-
-      // Copy comment
-      newRow.setComment(sourceRow.getComment());
-
-      // Copy identities
-      for (FeatureIdentity ident : sourceRow.getPeakIdentities())
-        newRow.addFeatureIdentity(ident, false);
-      if (sourceRow.getPreferredFeatureIdentity() != null)
-        newRow.setPreferredFeatureIdentity(sourceRow.getPreferredFeatureIdentity());
+      FeatureListRow newRow = new ModularFeatureListRow(processedPeakList, sourceRow, true);
 
       // Copy each peaks and fill gaps
       for (RawDataFile column : columns) {
@@ -124,10 +115,6 @@ class SameRangeTask extends AbstractTask {
         // If there is a gap, try to fill it
         if (currentPeak == null)
           currentPeak = fillGap(sourceRow, column);
-
-        // If a peak was found or created, add it
-        if (currentPeak != null)
-          newRow.addFeature(column, currentPeak);
       }
 
       outputList.add(newRow);

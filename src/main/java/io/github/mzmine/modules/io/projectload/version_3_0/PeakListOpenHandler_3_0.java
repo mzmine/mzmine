@@ -38,6 +38,8 @@ import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
+import io.github.mzmine.util.DataTypeUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -168,7 +170,8 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       int rowID = Integer.parseInt(attrs.getValue(PeakListElementName_3_0.ID.getElementName()));
       buildingRow = new ModularFeatureListRow(buildingPeakList, rowID);
       String comment = attrs.getValue(PeakListElementName_3_0.COMMENT.getElementName());
-      buildingRow.setComment(comment);
+      if(comment!=null && !comment.isEmpty())
+        buildingRow.setComment(comment);
     }
 
     // <PEAK_IDENTITY>
@@ -393,7 +396,7 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       if (peakRTRange == null)
         peakRTRange = Range.singleton(rt);
 
-      ModularFeature peak = new ModularFeature(dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
+      ModularFeature peak = new ModularFeature(buildingPeakList, dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
           status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
           peakMZRange, peakIntensityRange);
       //SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
@@ -499,6 +502,10 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
     RawDataFile[] dataFiles = currentPeakListDataFiles.toArray(new RawDataFile[0]);
 
     buildingPeakList = new ModularFeatureList(peakListName, dataFiles);
+
+    // just add all columns that we used in MZmine 2
+    // TODO create new method to save and load projects with modular data model
+    DataTypeUtils.addDefaultChromatographicTypeColumns(buildingPeakList);
 
     for (int i = 0; i < appliedMethods.size(); i++) {
       String methodName = appliedMethods.elementAt(i);
