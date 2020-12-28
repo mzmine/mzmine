@@ -216,6 +216,14 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
     // access default method
     ModularDataModel.super.set(tclass, value);
+
+    //
+    if (tclass.equals(FeaturesType.class)) {
+      get(FeaturesType.class).addListener(
+          (MapChangeListener<RawDataFile, ModularFeature>) change -> {
+            flist.getRowBindings().forEach(b -> b.apply(this));
+          });
+    }
   }
 
 

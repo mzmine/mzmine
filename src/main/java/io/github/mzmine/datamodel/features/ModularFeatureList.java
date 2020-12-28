@@ -264,7 +264,6 @@ public class ModularFeatureList implements FeatureList {
     }
 
     featureListRows.add(modularRow);
-
     applyRowBindings(modularRow);
 
     // TODO solve with bindings
@@ -468,8 +467,8 @@ public class ModularFeatureList implements FeatureList {
     public ModularFeatureList createCopy(String title) {
       ModularFeatureList flist = new ModularFeatureList(title, this.getRawDataFiles());
       // copy all rows and features
-      this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row,true))
-              .forEach(newRow -> flist.addRow(newRow));
+      this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true))
+          .forEach(newRow -> flist.addRow(newRow));
 
       // Load previous applied methods
       for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
@@ -477,4 +476,8 @@ public class ModularFeatureList implements FeatureList {
       }
       return flist;
     }
+
+  public List<RowBinding> getRowBindings() {
+    return rowBindings;
+  }
 }
