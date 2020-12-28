@@ -25,6 +25,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ import javafx.beans.property.SimpleObjectProperty;
 public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataProvider {
 
   private final String seriesKey;
-  private final Color awt;
+  private Color awt;
 
   private final List<Double> xValues;
   private final List<Double> yValues;
@@ -53,11 +54,15 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
   public PreviewMobilogram(Mobilogram originalMobilogram, final String seriesKey) {
     super(originalMobilogram.getMobilityType(), originalMobilogram.getRawDataFile());
     this.originalMobilogram = originalMobilogram;
-    this.awt = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
+    this.awt = originalMobilogram.getRawDataFile().getColorAWT();
     this.seriesKey = seriesKey;
     yValues = new ArrayList<>();
     xValues = new ArrayList<>();
     finishedPercentage = 0d;
+  }
+
+  public void setColor(Color color) {
+    this.awt = color;
   }
 
   @Override
@@ -67,7 +72,7 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
 
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+    return FxColorUtil.awtColorToFX(awt);
   }
 
   @Override
