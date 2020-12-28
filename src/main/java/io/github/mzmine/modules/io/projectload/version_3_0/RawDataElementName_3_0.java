@@ -45,6 +45,9 @@ enum RawDataElementName_3_0 {
   SCAN_MZ_RANGE("scan_mz_range"), //
   COLOR("color"), //
 
+  // imaging related
+  COORDINATES("coordinates"),
+
   // ims related
   FRAME("frame"), //
   MOBILITY("mobility"), //

@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentio
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -72,6 +73,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final int minDataPointsRt;
   private final int minTotalSignals;
   private final ScanSelection scanSelection;
+  private final PaintScale paintScaleParameter;
   private double progress = 0.0;
   private String taskDescription = "";
   private double mobilityWidth;
@@ -91,6 +93,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     this.scanSelection =
         parameters.getParameter(IonMobilityTraceBuilderParameters.scanSelection).getValue();
     this.frames = (Set<Frame>) scanSelection.getMachtingScans((frames));
+    this.paintScaleParameter =
+        parameters.getParameter(IonMobilityTraceBuilderParameters.paintScale).getValue();
     this.suffix = parameters.getParameter(IonMobilityTraceBuilderParameters.suffix).getValue();
     setStatus(TaskStatus.WAITING);
   }
@@ -150,7 +154,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
               dp -> allDataPoints.add(new RetentionTimeMobilityDataPoint(scan.getMobility(),
                   dp.getMZ(), scan.getRetentionTime(), dp.getIntensity(), frame.getFrameId(),
-                  scan.getMobilityScamNumber(), mobilityWidth)));
+                  scan.getMobilityScamNumber(), mobilityWidth, paintScaleParameter)));
         }
       }
       progress = (processedFrame / (double) frames.size()) / 4;

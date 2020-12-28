@@ -128,7 +128,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
   private FeatureList filterPeakListRows(final FeatureList peakList) {
 
     // Create new feature list.
-    final FeatureList newPeakList = new ModularFeatureList(
+    final ModularFeatureList newPeakList = new ModularFeatureList(
         peakList.getName() + ' '
             + parameters.getParameter(PeakComparisonRowFilterParameters.SUFFIX).getValue(),
         peakList.getRawDataFiles());
@@ -165,7 +165,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
             .getEmbeddedParameter().getValue();
 
     // Setup variables
-    final FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
+    final ModularFeatureListRow[] rows = peakList.getRows().toArray(ModularFeatureListRow[]::new);
     RawDataFile rawDataFile1;
     RawDataFile rawDataFile2;
     Feature peak1;
@@ -205,7 +205,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
       double foldChange = 0.0;
       double ppmDiff = 0.0;
       double rtDiff = 0.0;
-      final FeatureListRow row = rows[processedRows];
+      final ModularFeatureListRow row = rows[processedRows];
       rawDataFile1 = rawDataFiles[columnIndex1];
       rawDataFile2 = rawDataFiles[columnIndex2];
 
@@ -248,34 +248,11 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
       // Good row?
       if (allCriteriaMatched)
-        newPeakList.addRow(copyPeakRow(row));
+        newPeakList.addRow(new ModularFeatureListRow(newPeakList, row, true));
 
     }
 
     return newPeakList;
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private FeatureListRow copyPeakRow(final FeatureListRow row) {
-
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) filteredPeakList, row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the peaks.
-    for (final Feature peak : row.getFeatures()) {
-
-      final Feature newPeak = new ModularFeature(peak);
-      FeatureUtils.copyFeatureProperties(peak, newPeak);
-      newRow.addFeature(peak.getRawDataFile(), newPeak);
-    }
-
-    return newRow;
   }
 
 }

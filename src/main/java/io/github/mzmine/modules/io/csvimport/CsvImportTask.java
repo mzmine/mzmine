@@ -68,7 +68,7 @@ public class CsvImportTask extends AbstractTask {
     try{
       FileReader fileReader = new FileReader(fileName);
       CSVReader csvReader = new CSVReader(fileReader);
-      FeatureList newFeatureList = new ModularFeatureList( fileName.getName(), rawDataFile);
+      ModularFeatureList newFeatureList = new ModularFeatureList( fileName.getName(), rawDataFile);
       String[] dataLine;
       int counter = 0;
       while((dataLine = csvReader.readNext()) != null){
@@ -135,7 +135,7 @@ public class CsvImportTask extends AbstractTask {
         int fragmentScan = -1;
         int[] allFragmentScans = new int[]{0};
 
-        Feature feature = new ModularFeature(rawDataFile, feature_mz, feature_rt, feature_height, abundance,
+        Feature feature = new ModularFeature(newFeatureList, rawDataFile, feature_mz, feature_rt, feature_height, abundance,
             scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
             finalRTRange, finalMZRange, finalIntensityRange);
         newRow.addFeature(rawDataFile,feature);

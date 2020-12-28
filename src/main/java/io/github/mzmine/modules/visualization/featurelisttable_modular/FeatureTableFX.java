@@ -205,7 +205,13 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 //    logger.info("Adding columns to table");
     // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
-    ((ModularFeatureList) flist).getRowTypes().values().forEach(this::addColumn);
+    ModularFeatureList featureList = (ModularFeatureList) flist;
+    // add row types
+    featureList.getRowTypes().values().stream()
+        .filter(t -> !(t instanceof FeaturesType)).forEach(this::addColumn);
+    // add features
+    if(featureList.getRowTypes().containsKey(FeaturesType.class))
+      addColumn(featureList.getRowTypes().get(FeaturesType.class));
   }
 
   /**
@@ -218,7 +224,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     if (dataType.getClass().equals(FeaturesType.class)) {
       addFeaturesColumns();
     } else {
-      TreeTableColumn<FeatureListRow, ? extends DataType> col = dataType.createColumn(null);
+      TreeTableColumn<FeatureListRow, ? extends DataType> col = dataType.createColumn(null, null);
       if (col == null) {
         return;
       }
@@ -453,7 +459,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
       // Add sub columns of feature
       for (DataType ftype : ((ModularFeatureList) flist).getFeatureTypes().values()) {
-        TreeTableColumn<FeatureListRow, ?> subCol = ftype.createColumn(dataFile);
+        TreeTableColumn<FeatureListRow, ?> subCol = ftype.createColumn(dataFile, null);
         if (subCol != null) {
           if(ftype instanceof ExpandableType) {
             setupExpandableColumn(ftype, subCol, ColumnType.FEATURE_TYPE, dataFile);

@@ -18,10 +18,9 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import org.jfree.data.xy.AbstractXYZDataset;
-
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
 
@@ -47,13 +46,13 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   public KendrickMassPlotXYZDataset(ParameterSet parameters) {
 
-    FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
+    FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList)
+        .getValue().getMatchingFeatureLists()[0];
 
     this.parameters = parameters;
 
-    this.selectedRows =
-        parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(featureList);
+    this.selectedRows = parameters.getParameter(KendrickMassPlotParameters.selectedRows)
+        .getMatchingRows(featureList);
 
     this.customYAxisKMBase =
         parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue();

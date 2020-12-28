@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types.fx;
 
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -36,7 +37,6 @@ import javafx.util.Callback;
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
- * @param <T>
  */
 public class DataTypeCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
@@ -100,7 +100,10 @@ public class DataTypeCellFactory implements
             setGraphic(null);
           }
         }
-        setAlignment(Pos.CENTER);
+        if(type instanceof NumberType)
+          setAlignment(Pos.CENTER_RIGHT);
+        else
+          setAlignment(Pos.CENTER);
       }
     };
   }
