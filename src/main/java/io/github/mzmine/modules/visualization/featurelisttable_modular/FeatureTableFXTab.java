@@ -81,7 +81,7 @@ public class FeatureTableFXTab extends MZmineTab {
   @Nonnull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return getFeatureList().getRawDataFiles();
+    return getFeatureList()==null? Collections.emptyList() : getFeatureList().getRawDataFiles();
   }
 
   @Nonnull

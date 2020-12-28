@@ -18,10 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.*;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FeatureUtils;
 import java.text.NumberFormat;
@@ -115,7 +112,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
     // minBlankDetections);
 
     FeatureListRow[] rows =
-        FeatureUtils.copyFeatureRows(alignedFeatureList.getRows().toArray(FeatureListRow[]::new));
+        FeatureUtils.copyFeatureRows(alignedFeatureList.getRows().toArray(ModularFeatureListRow[]::new));
     rows = FeatureUtils.sortRowsMzAsc(rows);
 
     for (RawDataFile raw : alignedFeatureList.getRawDataFiles()) {

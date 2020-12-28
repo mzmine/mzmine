@@ -19,10 +19,15 @@
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.SpectralLibraryMatchType;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -176,6 +181,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+    addRowTypes();
+
     for (FeatureListRow row : rows) {
       if (isCanceled()) {
         logger.info("Added " + count + " spectral library matches (before being cancelled)");
@@ -240,6 +247,15 @@ public class RowsSpectralMatchTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
+  private void addRowTypes() {
+    // modular feature list?
+    Arrays.stream(rows).filter(row -> row.getFeatureList() instanceof ModularFeatureList)
+            .map(row -> (ModularFeatureList) row.getFeatureList()).findFirst()
+            .ifPresent(featureList -> {
+              featureList.addRowType(new SpectralLibraryMatchType());
+            });
+  }
+
   /**
    * Remove 13C isotopes from masslist
    * 
@@ -287,8 +303,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   /**
    * Uses the similarity function and filter to create similarity.
    * 
-   * @param a
-   * @param b
    * @return positive match with similarity or null if criteria was not met
    */
   private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
@@ -304,14 +318,15 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   private boolean checkRT(FeatureListRow row, SpectralDBEntry ident) {
+    if(!useRT)
+      return true;
     Float rt = (Float) ident.getField(DBEntryField.RT).orElse(null);
-    return (!useRT || rt == null || rtTolerance.checkWithinTolerance(rt, row.getAverageRT()));
+    return (rt == null || rtTolerance.checkWithinTolerance(rt, row.getAverageRT()));
   }
 
   /**
    * Thresholded masslist
    * 
-   * @param row
    * @return
    * @throws MissingMassListException
    */
@@ -349,7 +364,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   private void addIdentity(FeatureListRow row, SpectralDBFeatureIdentity pid) {
     // add new identity to the row
-    row.addFeatureIdentity(pid, false);
+    row.addSpectralLibraryMatch(pid);
 
     if (matchListener != null)
       matchListener.accept(pid);

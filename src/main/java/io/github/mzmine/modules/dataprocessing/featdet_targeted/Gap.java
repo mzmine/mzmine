@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.scans.ScanUtils;
 
@@ -46,8 +47,8 @@ class Gap {
   /**
    * Constructor: Initializes an empty gap
    *
-   * @param mz M/Z coordinate of this empty gap
-   * @param rt RT coordinate of this empty gap
+   * @param mzRange M/Z coordinate of this empty gap
+   * @param rtRange RT coordinate of this empty gap
    */
   Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
       Range<Float> rtRange, double intTolerance, double noiseLevel) {
@@ -190,10 +191,9 @@ class Gap {
 
       // Is intensity above the noise level?
       if (height >= noiseLevel) {
-        ModularFeature newPeak = new ModularFeature(rawDataFile, mz, rt, height, area, scanNumbers,
+        ModularFeature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(), rawDataFile, mz, rt, height, area, scanNumbers,
             finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
             allMS2fragmentScanNumbers, finalRTRange, finalMZRange, finalIntensityRange);
-        newPeak.setFeatureList(peakListRow.getFeatureList());
 
         // Fill the gap
         peakListRow.addFeature(rawDataFile, newPeak);

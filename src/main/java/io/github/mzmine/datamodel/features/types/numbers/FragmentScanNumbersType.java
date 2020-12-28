@@ -18,13 +18,11 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
-
-public class FragmentScanNumbersType extends ScanNumbersType implements NullColumnType {
+public class FragmentScanNumbersType extends ScanNumbersType {
 
   @Override
   public String getHeaderString() {
-    return "Fragment Scans";
+    return "Fragment scans";
   }
 
 }

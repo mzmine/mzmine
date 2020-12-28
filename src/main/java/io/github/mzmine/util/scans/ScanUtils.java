@@ -120,8 +120,7 @@ public class ScanUtils {
    * @param mzRange mz range to search in
    * @return double[2] containing base peak m/z and intensity
    */
-  public static @Nonnull
-  DataPoint findBasePeak(@Nonnull Scan scan,
+  public static @Nullable DataPoint findBasePeak(@Nonnull Scan scan,
       @Nonnull Range<Double> mzRange) {
 
     DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
@@ -580,8 +579,7 @@ public class ScanUtils {
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
    * within given m/z range
    */
-  public static int[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
-      Range<Double> mzRange) {
+  public static int[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange, Range<Double> mzRange) {
 
     assert dataFile != null;
     assert rtRange != null;

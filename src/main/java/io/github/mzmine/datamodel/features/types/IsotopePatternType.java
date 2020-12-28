@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel.features.types;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.github.mzmine.datamodel.IsotopePattern;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -34,7 +36,15 @@ public class IsotopePatternType extends DataType<ObjectProperty<IsotopePattern>>
   @Override
   @Nonnull
   public String getFormattedString(@Nonnull ObjectProperty<IsotopePattern> property) {
-    return property.getValue() != null ? "" + property.getValue().getNumberOfDataPoints() : "";
+    return property.getValue() != null ? String.valueOf(property.getValue().getNumberOfDataPoints()) : "";
+  }
+
+  @Nonnull
+  @Override
+  public String getFormattedString(@Nullable Object value) {
+    if(value==null || !(value instanceof IsotopePattern))
+      return "";
+    return String.valueOf(((IsotopePattern)value).getNumberOfDataPoints());
   }
 
   @Override

@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -206,7 +207,6 @@ public interface FeatureListRow {
    */
   public IsotopePattern getBestIsotopePattern();
 
-  // DorresteinLaB edit
   /**
    * reset the rowID
    */
@@ -217,5 +217,8 @@ public interface FeatureListRow {
 
   void setFeatureList(@Nonnull FeatureList flist);
 
-  // End DorresteinLab edit
+  default void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
+    addFeatureIdentity(id, false);
+  }
+
 }

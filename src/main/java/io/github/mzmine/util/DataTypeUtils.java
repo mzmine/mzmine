@@ -24,20 +24,9 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowBinding;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DetectionType;
-import io.github.mzmine.datamodel.features.types.RawFileType;
+import io.github.mzmine.datamodel.features.types.*;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.*;
 
 @SuppressWarnings("null")
 public class DataTypeUtils {
@@ -49,13 +38,18 @@ public class DataTypeUtils {
           new RowBinding(new AreaType(), BindingsType.MAX)*/,
           new RowBinding(new RTRangeType(), BindingsType.RANGE),
           new RowBinding(new MZRangeType(), BindingsType.RANGE));
-  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(/*new RTType(),
-      new MZType(),*/ /*new HeightType(), new AreaType()*//*, new RTRangeType(), new MZRangeType()*/);
+
+  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(
+          new RTType(), new RTRangeType(), // needed next to each other for switching between RTType and RTRangeType
+          new MZType(), new MZRangeType(), //
+          new HeightType(), new AreaType(), new ManualAnnotationType(),
+          new FeatureShapeType(), new FeaturesType());
+
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
       List.of(new ScanNumbersType(), new RawFileType(), new DetectionType(), new MZType(),
           new MZRangeType(), new RTType(), new RTRangeType(), new HeightType(), new AreaType(),
-          new BestScanNumberType(), new DataPointsType(), new IntensityRangeType());
-
+          new BestScanNumberType(), new DataPointsType(), new IntensityRangeType(), new FwhmType(),
+              new TailingFactorType(), new AsymmetryFactorType());
 
   /**
    * Adds the default chromatogram DataType columns to a feature list
@@ -65,7 +59,8 @@ public class DataTypeUtils {
   public static void addDefaultChromatographicTypeColumns(ModularFeatureList flist) {
     flist.addRowType(DEFAULT_CHROMATOGRAPHIC_ROW);
     flist.addFeatureType(DEFAULT_CHROMATOGRAPHIC_FEATURE);
-    flist.addRowBinding(DEFAULT_CHROMATOGRAPHIC_ROWBINDING);
+    // row bindigns are now added in the table
+    // flist.addRowBinding(DEFAULT_CHROMATOGRAPHIC_ROWBINDING);
   }
 
 }
