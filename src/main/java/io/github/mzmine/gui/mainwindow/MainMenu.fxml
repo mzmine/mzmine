@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.input.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.text.*?>
-<?import io.github.mzmine.gui.mainwindow.*?>
-<?import io.github.mzmine.util.javafx.*?>
-
+<?import io.github.mzmine.util.javafx.WindowsMenu?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <MenuBar useSystemMenuBar="true"
   xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
@@ -119,7 +119,14 @@
 				userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule" />
 		</Menu>
 
-	</Menu>
+    <Menu text="Mobilogram detection">
+      <MenuItem text="Mobilogram builder" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilogramBuilderModule"/>
+			<MenuItem onAction="#runModule" text="Mobilogram smoothing"
+				userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramSmootherModule"/>
+    </Menu>
+
+  </Menu>
 
 
 	<!-- FEATURE LIST METHODS -->

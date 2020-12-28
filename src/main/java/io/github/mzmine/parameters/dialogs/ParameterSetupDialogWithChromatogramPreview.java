@@ -18,8 +18,6 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import io.github.mzmine.util.RangeUtils;
-import java.text.NumberFormat;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -27,12 +25,12 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
+import io.github.mzmine.util.RangeUtils;
+import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.geometry.Orientation;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
@@ -42,10 +40,8 @@ import javafx.scene.layout.FlowPane;
  * <p>
  * Slightly modified to add the possibility of switching to TIC (versus Base Peak) preview.
  */
-public abstract class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupDialog {
-
-  private RawDataFile[] dataFiles;
-  private RawDataFile previewDataFile;
+public abstract class ParameterSetupDialogWithChromatogramPreview extends
+    ParameterSetupDialogWithPreview {
 
   // Dialog components
   private final BorderPane pnlPreviewFields = new BorderPane();
@@ -56,12 +52,11 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
       new DoubleRangeComponent(MZmineCore.getConfiguration().getRTFormat());
   private final DoubleRangeComponent mzRangeBox =
       new DoubleRangeComponent(MZmineCore.getConfiguration().getMZFormat());
-  private final CheckBox previewCheckBox = new CheckBox("Show preview");
-
   // Show as TIC
   private final ComboBox<TICPlotType> ticViewComboBox =
       new ComboBox<TICPlotType>(FXCollections.observableArrayList(TICPlotType.values()));
-
+  private RawDataFile[] dataFiles;
+  private RawDataFile previewDataFile;
   // XYPlot
   private TICPlot ticPlot;
 
@@ -82,35 +77,17 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
       }
     }
 
-    previewCheckBox.selectedProperty().addListener((obs, o, n) -> {
-      if (n == true) {
-        showPreview();
-      } else {
-        hidePreview();
-      }
-    });
-    // previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
-
-    paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
-    paramsPane.add(previewCheckBox, 0, getNumberOfParameters() + 2);
-
     // Elements of pnlLab
     FlowPane pnlLab = new FlowPane(Orientation.VERTICAL);
     // pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-    // pnlLab.getChildren().add(Box.createVerticalStrut(5));
     pnlLab.getChildren().add(new Label("Data file "));
-    // pnlLab.add(Box.createVerticalStrut(20));
     pnlLab.getChildren().add(new Label("Plot Type "));
-    // pnlLab.add(Box.createVerticalStrut(25));
     pnlLab.getChildren().add(new Label("RT range "));
-    // pnlLab.add(Box.createVerticalStrut(15));
     pnlLab.getChildren().add(new Label("m/z range "));
 
     // Elements of pnlFlds
     FlowPane pnlFlds = new FlowPane(Orientation.VERTICAL);
-
-    // pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
@@ -131,11 +108,8 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
 
     pnlFlds.getChildren().add(comboDataFileName);
-    // pnlFlds.add(Box.createVerticalStrut(10));
     pnlFlds.getChildren().add(ticViewComboBox);
-    // pnlFlds.add(Box.createVerticalStrut(20));
     pnlFlds.getChildren().add(rtRangeBox);
-    // pnlFlds.add(Box.createVerticalStrut(5));
     pnlFlds.getChildren().add(mzRangeBox);
 
     // Put all together
@@ -144,43 +118,10 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     pnlPreviewFields.setVisible(false);
 
     ticPlot = new TICPlot();
-    // ticPlot.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-    // ticPlot.setMinimumSize(new Dimension(400, 300));
 
-    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3);
-
-//    previewCheckBox.selectedProperty().addListener(((observable, oldValue, newValue) -> {
-//      if (newValue == true) {
-//        mainPane.setCenter(ticPlot);
-//        mainPane.setLeft(mainScrollPane);
-//        mainPane.autosize();
-//        mainPane.getScene().getWindow().sizeToScene();
-//        parametersChanged();
-//      } else {
-//        mainPane.setLeft(null);
-//        mainPane.setCenter(mainScrollPane);
-//        mainPane.autosize();
-//        mainPane.getScene().getWindow().sizeToScene();
-//      }
-//    }));
-
-  }
-
-  protected void showPreview() {
-    mainPane.setCenter(ticPlot);
-    mainPane.setLeft(mainScrollPane);
-    mainPane.autosize();
-    mainPane.getScene().getWindow().sizeToScene();
-    pnlPreviewFields.setVisible(true);
-    parametersChanged();
-  }
-
-  protected void hidePreview() {
-    mainPane.setLeft(null);
-    mainPane.setCenter(mainScrollPane);
-    mainPane.autosize();
-    mainPane.getScene().getWindow().sizeToScene();
-    pnlPreviewFields.setVisible(false);
+    previewWrapperPane.setBottom(pnlPreviewFields);
+    previewWrapperPane.setCenter(ticPlot);
+    setOnPreviewShown(() -> parametersChanged());
   }
 
   /**
@@ -209,6 +150,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     ticPlot.setTitle(previewDataFile.getName(), title);
   }
 
+
   public TICPlotType getPlotType() {
     return (ticViewComboBox.getSelectionModel().getSelectedItem());
   }
@@ -225,7 +167,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
   protected void parametersChanged() {
 
     // Update preview as parameters have changed
-    if ((previewCheckBox == null) || (!previewCheckBox.isSelected())) {
+    if ((getPreviewCheckbox() == null) || (!getPreviewCheckbox().isSelected())) {
       return;
     }
 

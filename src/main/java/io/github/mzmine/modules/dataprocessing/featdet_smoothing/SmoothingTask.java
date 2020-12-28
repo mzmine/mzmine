@@ -264,7 +264,6 @@ public class SmoothingTask extends AbstractTask {
       double sum = 0.0;
       final int k = i - halfWidth;
       for (int j = Math.max(0, -k); j < Math.min(fullWidth, numPoints - k); j++) {
-
         sum += intensities[k + j] * weights[j];
       }
 

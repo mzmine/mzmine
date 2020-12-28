@@ -18,19 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -46,13 +33,27 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.control.ProgressBar;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  * @description This class extends ParameterSetupDialogWithChromatogramPreview class. This is used
- * to preview how the selected baseline correction method and its parameters works over the raw data
- * file.
+ *              to preview how the selected baseline correction method and its parameters works over
+ *              the raw data file.
+ *
  */
 public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChromatogramPreview {
 
@@ -76,20 +77,17 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
       int keyCode = ke.getKeyCode();
       if (keyCode == KeyEvent.VK_ESCAPE) {
-
         logger.info("<ESC> Presssed.");
         previewTask.kill();
-        hidePreview();
+        showPreview(false);
       }
     }
 
     @Override
-    public void keyReleased(KeyEvent ke) {
-    }
+    public void keyReleased(KeyEvent ke) {}
 
     @Override
-    public void keyTyped(KeyEvent ke) {
-    }
+    public void keyTyped(KeyEvent ke) {}
   };
 
   public static List<Component> getAllComponents(final Container c) {
@@ -116,8 +114,9 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
    */
 
   /**
+   *
    * @param correctorParameters Method specific parameters
-   * @param correctorClass      Chosen corrector to be instantiated
+   * @param correctorClass Chosen corrector to be instantiated
    */
   public BaselineCorrectorSetupDialog(boolean valueCheckRequired, ParameterSet correctorParameters,
       Class<? extends BaselineCorrector> correctorClass) {
@@ -251,14 +250,12 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
         // Turn off R instance.
         try {
-          if (!this.userCanceled) {
+          if (!this.userCanceled)
             this.rSession.close(false);
-          }
         } catch (RSessionWrapperException e) {
           if (!this.userCanceled) {
-            if (errorMsg == null) {
+            if (errorMsg == null)
               errorMsg = e.getMessage();
-            }
           } else {
             // User canceled: Silent.
           }
@@ -288,9 +285,8 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
         // Turn off R instance.
         try {
-          if (this.rSession != null) {
+          if (this.rSession != null)
             this.rSession.close(true);
-          }
         } catch (RSessionWrapperException e) {
           // User canceled: Silent.
         }
@@ -334,7 +330,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         setErrorMessage(errorMsg);
         logger.log(Level.SEVERE, "Baseline correction error", this.getErrorMessage());
         MZmineCore.getDesktop().displayErrorMessage(this.getErrorMessage());
-        Platform.runLater(() -> hidePreview());
+        Platform.runLater(() -> showPreview(false));
       }
     }
   }
@@ -356,7 +352,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     @Override
     public void run() {
 
-      addProgessBar();
+      Platform.runLater(() -> addProgessBar());
       while ((this.previewTask != null && this.previewTask.getStatus() == TaskStatus.PROCESSING)) {
 
         Platform.runLater(
@@ -368,7 +364,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         }
       }
       // Clear GUI stuffs
-      removeProgessBar();
+      Platform.runLater(() -> removeProgessBar());
       // unset_VK_ESCAPE_KeyListener();
     }
 
@@ -430,9 +426,9 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
    * Quick way to recover the baseline plot (by subtracting the corrected file from the original
    * one).
    *
-   * @param dataFile    original datafile
+   * @param dataFile original datafile
    * @param newDataFile corrected datafile
-   * @param plotType    expected plot type
+   * @param plotType expected plot type
    * @return the baseline additional dataset
    */
   private XYDataset createBaselineDataset(RawDataFile dataFile, RawDataFile newDataFile,

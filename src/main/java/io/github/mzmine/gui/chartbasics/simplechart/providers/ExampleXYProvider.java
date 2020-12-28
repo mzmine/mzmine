@@ -20,6 +20,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleObjectProperty;
 
 /**
  * Example implementation of a PlotXYDatasetProvider. This can be your usual data-class, you just
@@ -34,7 +36,7 @@ import java.util.stream.Collectors;
  *
  * @author https://github.com/SteffenHeu
  */
-public class ExampleProvider implements PlotXYDataProvider {
+public class ExampleXYProvider implements PlotXYDataProvider {
 
   private final String seriesKey;
   private final Color awt;
@@ -58,7 +60,7 @@ public class ExampleProvider implements PlotXYDataProvider {
   private double finishedPercentage;
 
 
-  public ExampleProvider(List<DataPoint> originalDataPoints) {
+  public ExampleXYProvider(List<DataPoint> originalDataPoints) {
     this.seriesKey = "Some series key";
     this.awt = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
 
@@ -108,7 +110,7 @@ public class ExampleProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues() {
+  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     // here we can load and sort our data. remember to store the sorted data, so we can generate
     // labels based on the indices.
     sortedDps = originalDatapoints.stream().sorted(Comparator.comparingDouble(DataPoint::getMZ))

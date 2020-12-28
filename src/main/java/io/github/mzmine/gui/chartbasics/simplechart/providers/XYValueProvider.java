@@ -19,7 +19,9 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.List;
+import javafx.beans.property.SimpleObjectProperty;
 
 /**
  * This interface is used to provide a dataset with x and y values. The amount of x and y values has
@@ -27,7 +29,7 @@ import java.util.List;
  * <p></p>
  * The values are not grabbed during the creation of the dataset. After initialising the dataset
  * (e.g. {@link ColoredXYDataset}) a thread is started where the values of the dataset can be
- * calculated or loaded from disk. For that operation, the {@link XYValueProvider#computeValues()}
+ * calculated or loaded from disk. For that operation, the {@link XYValueProvider#computeValues(TaskStatus)}
  * method is used. The implementing class can supply information on the progress of the operation
  * via the method {@link XYValueProvider#getComputationFinishedPercentage()}, which will be
  * represented in the task bar.
@@ -46,8 +48,13 @@ public interface XYValueProvider {
   /**
    * Called in a seperate thread to compute values or load them from disk after the dataset has been
    * created.
+   *
+   * @param status The task status of the task executing this calculation. Long calculations should
+   *               repeatedly check this value and cancel their computation if the status has
+   *               changed to {@link TaskStatus#CANCELED}. Implementing classes can also make use of
+   *               CANCELED or ERROR to stop the task from continuing, if an error occurred.
    */
-  public void computeValues();
+  public void computeValues(SimpleObjectProperty<TaskStatus> status);
 
   /**
    * @return A sorted list of domain values. Index has to match the range value indices.
@@ -61,7 +68,7 @@ public interface XYValueProvider {
 
   /**
    * Helper method to provide the user with progress information during {@link
-   * XYValueProvider#computeValues()}.
+   * XYValueProvider#computeValues(SimpleObjectProperty)}.
    *
    * @return a finished percentage. (0.0-1.0)
    */
