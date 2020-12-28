@@ -21,7 +21,7 @@ This module is going to prepare all the data sets required by ion-mobility and i
 
 */
 package io.github.mzmine.modules.visualization.ims.imsvisualizer;
-
+/*
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -104,7 +104,8 @@ public class DataFactory {
        scanRetentionTimeMap : Here scanRetentionTimeMap contains retentionTime as key and values as the sum of all the intensity at
        that that retentionTime.
     */
-        for (int i = 0; i < rtIntensity.size(); i++) {
+/*
+import java.util.ArrayList;for (int i = 0; i < rtIntensity.size(); i++) {
 
             if (scanRetentionTimeMap.get(rtIntensity.get(i)) != null) {
                 intensityretentionTimeIntensity[i] = scanRetentionTimeMap.get(rtIntensity.get(i));
@@ -236,16 +237,10 @@ public class DataFactory {
         imsTask.setSelectedScans(selectedScans);
     }
 
-    /*
-    get all the unique mobilities in all scan
-    */
     public double[] getMobilityretentionTimeMobility() {
         return mobilityretentionTimeMobility;
     }
 
-    /*
-     Return mobilities for retentionTime-mobility heat map.
-    */
     public double[] getRetentionTimeretentionTimeIntensity() {
         return retentionTimeretentionTimeIntensity;
     }
@@ -258,44 +253,26 @@ public class DataFactory {
         return mobilityIntensityMobility;
     }
 
-    /*
-     get the all unique retention times in all   scan
-    */
     public double[] getIntensityretentionTimeMobility() {
         return intensityretentionTimeMobility;
     }
 
-    /*
-     get all the intensities value at unique mobilities.
-    */
     public double[] getIntensityretentionTimeIntensity() {
         return intensityretentionTimeIntensity;
     }
 
-    /*
-     get the all the intensities values at unique retention time
-    */
     public double[] getRetentionTimeretentionTimeMobility() {
         return retentionTimeretentionTimeMobility;
     }
 
-    /*
-      return all the scans .
-    */
     public Scan[] getScans() {
         return scans;
     }
 
-    /*
-      return the seleted mz Range.
-    */
     public Range getmzRange() {
         return mzRange;
     }
 
-    /*
-      return the mobility.
-    */
     public Double[] getMzMzMobility() {
         return mzMzMobility;
     }
@@ -309,3 +286,4 @@ public class DataFactory {
     }
 
 }
+*/

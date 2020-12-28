@@ -22,12 +22,10 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.project.impl.StorableFrame;
 import io.github.mzmine.project.impl.StorableMassList;
 import io.github.mzmine.project.impl.StorableScan;
 import io.github.mzmine.util.RangeUtils;
@@ -35,10 +33,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javafx.scene.paint.Color;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -307,8 +303,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
 
       final StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
           dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ,
-          precursorCharge, /*fragmentScan,*/ null, polarity, scanDescription, scanMZRange,
-          mobility, mobilityType);
+          precursorCharge, /*fragmentScan,*/ null, polarity, scanDescription, scanMZRange);
 
       try {
         newRawDataFile.addScan(storableScan);

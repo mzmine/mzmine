@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.ims;
+/*package io.github.mzmine.modules.visualization.ims;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -43,10 +43,11 @@ public class ImsVisualizerParameters extends SimpleParameterSet {
                 "Monochrome cyan"});
     /**
      * Windows size and position
-     */
+     *//*
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public ImsVisualizerParameters() {
         super(new Parameter[] {dataFiles, scanSelection, paintScale, mzRange, windowSettings});
     }
 }
+*/
