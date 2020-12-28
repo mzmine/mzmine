@@ -19,18 +19,35 @@
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
-import com.microsoft.schemas.office.visio.x2012.main.RowType;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.types.*;
-import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
-import io.github.mzmine.datamodel.features.types.numbers.*;
+import io.github.mzmine.datamodel.features.types.AreaBarType;
+import io.github.mzmine.datamodel.features.types.AreaShareType;
+import io.github.mzmine.datamodel.features.types.CommentType;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.FeatureInformationType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeType;
+import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.IdentityType;
+import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
+import io.github.mzmine.datamodel.features.types.SpectralLibraryMatchType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,19 +56,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
-
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import javafx.beans.property.ObjectProperty;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.RawDataFile;
 import javafx.beans.property.MapProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
