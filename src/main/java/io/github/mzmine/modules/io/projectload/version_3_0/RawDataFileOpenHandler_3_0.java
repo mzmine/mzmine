@@ -18,18 +18,6 @@
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.TreeMap;
-import java.util.logging.Logger;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -42,7 +30,19 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.project.impl.StorableMassList;
 import io.github.mzmine.project.impl.StorableScan;
 import io.github.mzmine.util.RangeUtils;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.TreeMap;
+import java.util.logging.Logger;
 import javafx.scene.paint.Color;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDataFileOpenHandler {
 
@@ -301,7 +301,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
 
       final StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
           dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
-          /* fragmentScan, */ null, polarity, scanDescription, scanMZRange, mobility, mobilityType);
+          /* fragmentScan, */ null, polarity, scanDescription, scanMZRange);
 
       try {
         newRawDataFile.addScan(storableScan);

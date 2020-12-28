@@ -71,7 +71,7 @@ class RawDataFileSaveHandler {
    * same zip file.
    *
    * @param rawDataFile raw data file to be copied
-   * @param number number of the raw data file
+   * @param number      number of the raw data file
    * @throws java.io.IOException
    * @throws TransformerConfigurationException
    * @throws SAXException
@@ -332,7 +332,7 @@ class RawDataFileSaveHandler {
      * hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
      * hd.endElement("", "", RawDataElementName.FRAGMENT_SCAN.getElementName()); } hd.endElement("",
      * "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
-     * 
+     *
      * }
      */
 
@@ -369,16 +369,10 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName());
 
     // <MOBILITY>
-    hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
-    double mobility = scan.getMobility();
-    hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
-    hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
-
-    // <MOBILITY_TYPE>
-    hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
-    MobilityType mobilityType = scan.getMobilityType();
-    hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
-    hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
+    //hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
+    //double mobility = scan.getMobility();
+    //hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
+    //hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
 
     if (scan instanceof StorableImagingScan) {
       // <COORDINATES>
@@ -397,6 +391,12 @@ class RawDataFileSaveHandler {
     hd.startElement("", "", RawDataElementName.FRAME_ID.getElementName(), atts);
     hd.characters(frameId.toCharArray(), 0, frameId.length());
     hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
+
+    // <MOBILITY_TYPE>
+    //hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
+    //MobilityType mobilityType = scan.getMobilityType();
+    //hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
+    //hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
 
     hd.startElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName(), atts);
     hd.characters(frame.getMobilityRange().lowerEndpoint().toString().toCharArray(), 0,

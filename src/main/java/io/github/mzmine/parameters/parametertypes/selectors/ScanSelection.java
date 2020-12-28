@@ -197,11 +197,11 @@ public class ScanSelection {
       if (scanMobilityRange != null && !((Frame) scan).getMobilityRange().isConnected(scanMobilityRange)) {
         return false;
       }
-    } else {
+    } /*else {
       if ((scanMobilityRange != null) && (!scanMobilityRange.contains(scan.getMobility()))) {
         return false;
       }
-    }
+    }*/
 
     if (!Strings.isNullOrEmpty(scanDefinition)) {
 

@@ -168,7 +168,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
         && getPrecursorCharge() == that.getPrecursorCharge()
         && Float.compare(that.getRetentionTime(), getRetentionTime()) == 0
         && getNumberOfDataPoints() == that.getNumberOfDataPoints()
-        && Double.compare(that.getMobility(), getMobility()) == 0
         && Objects.equals(getDataPointMZRange(), that.getDataPointMZRange()) && Objects
         .equals(getHighestDataPoint(), that.getHighestDataPoint()) && Double.compare(getTIC(),
         that.getTIC()) == 0
@@ -187,6 +186,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
             getDataPointMZRange(), getHighestDataPoint(), getTIC(), getSpectrumType(),
             getNumberOfDataPoints(),
             getDataFile(), getMassLists(), getPolarity(), getScanDefinition(), getScanningMZRange(),
-            getMobility(), getMobilityType(), getFrameId());
+            getMobilityType(), getFrameId());
   }
 }

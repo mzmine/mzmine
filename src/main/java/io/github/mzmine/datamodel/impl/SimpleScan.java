@@ -52,9 +52,6 @@ public class SimpleScan implements Scan {
   private String scanDefinition;
   private Range<Double> scanMZRange;
 
-  private double mobility;
-  private MobilityType mobilityType;
-
   /**
    * Clone constructor
    */
@@ -62,7 +59,7 @@ public class SimpleScan implements Scan {
     this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
         sc.getPrecursorMZ(), sc.getPrecursorCharge(),
         sc.getDataPoints(), sc.getSpectrumType(), sc.getPolarity(), sc.getScanDefinition(),
-        sc.getScanningMZRange(), sc.getMobility(), sc.getMobilityType());
+        sc.getScanningMZRange());
   }
 
   /**
@@ -72,18 +69,6 @@ public class SimpleScan implements Scan {
       double precursorMZ, int precursorCharge, DataPoint[] dataPoints,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
-
-    this(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
-        dataPoints, spectrumType, polarity, scanDefinition, scanMZRange, -1.d, MobilityType.NONE);
-  }
-
-  /**
-   * Constructor for creating scan with given data
-   */
-  public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, DataPoint[] dataPoints,
-      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      Range<Double> scanMZRange, double mobility, MobilityType mobilityType) {
 
     // save scan data
     this.dataFile = dataFile;
@@ -96,8 +81,6 @@ public class SimpleScan implements Scan {
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
-    this.mobility = mobility;
-    this.mobilityType = mobilityType;
 
     if (dataPoints != null) {
       setDataPoints(dataPoints);
@@ -264,18 +247,6 @@ public class SimpleScan implements Scan {
    */
   public void setRetentionTime(float retentionTime) {
     this.retentionTime = retentionTime;
-  }
-
-  /**
-   * @return Mobility if measured, -1 otherwise
-   */
-  public double getMobility() {
-    return mobility;
-  }
-
-  @Override
-  public MobilityType getMobilityType() {
-    return mobilityType;
   }
 
   /**

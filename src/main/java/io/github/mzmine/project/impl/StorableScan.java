@@ -28,7 +28,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -46,7 +45,6 @@ import io.github.mzmine.util.scans.ScanUtils;
 public class StorableScan implements Scan {
 
   protected RawDataFile rawDataFile;
-  protected MobilityType mobilityType;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private int scanNumber, msLevel;
   private double precursorMZ;
@@ -62,7 +60,6 @@ public class StorableScan implements Scan {
   private String scanDefinition;
   private Range<Double> scanMZRange;
   private int storageID;
-  private double mobility;
 
   /**
    * Constructor for creating a storable scan from a given scan
@@ -88,25 +85,12 @@ public class StorableScan implements Scan {
     this.scanDefinition = originalScan.getScanDefinition();
     this.scanMZRange = originalScan.getScanningMZRange();
 
-    this.mobility = originalScan.getMobility();
-    this.mobilityType = originalScan.getMobilityType();
-
   }
 
   public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
       int scanNumber, int msLevel, float retentionTime, double precursorMZ, int precursorCharge,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
-
-    this(rawDataFile, storageID, numberOfDataPoints, scanNumber, msLevel, retentionTime,
-        precursorMZ, precursorCharge, spectrumType, polarity, scanDefinition, scanMZRange, -1.0d,
-        MobilityType.NONE);
-  }
-
-  public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
-      int scanNumber, int msLevel, float retentionTime, double precursorMZ, int precursorCharge,
-      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      Range<Double> scanMZRange, double mobility, MobilityType mobilityType) {
 
     this.rawDataFile = rawDataFile;
     this.numberOfDataPoints = numberOfDataPoints;
@@ -116,14 +100,12 @@ public class StorableScan implements Scan {
     this.msLevel = msLevel;
     this.retentionTime = retentionTime;
     this.precursorMZ = precursorMZ;
-    this.mobility = mobility;
     this.precursorCharge = precursorCharge;
     this.spectrumType = spectrumType;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
 
-    this.mobilityType = mobilityType;
   }
 
   /**
@@ -248,7 +230,7 @@ public class StorableScan implements Scan {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Scan#getScanAcquisitionTime()
+   * @see io.github.mzmine.datamodel.Scan#getRetentionTime()
    */
   @Override
   public float getRetentionTime() {
@@ -419,16 +401,6 @@ public class StorableScan implements Scan {
       scanMZRange = getDataPointMZRange();
     }
     return scanMZRange;
-  }
-
-  @Override
-  public double getMobility() {
-    return mobility;
-  }
-
-  @Override
-  public MobilityType getMobilityType() {
-    return mobilityType;
   }
 
 }

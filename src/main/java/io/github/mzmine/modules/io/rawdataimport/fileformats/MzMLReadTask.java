@@ -18,19 +18,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats;
 
-import io.github.mzmine.datamodel.MobilityType;
-import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -43,6 +30,18 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
 import uk.ac.ebi.jmzml.model.mzml.CVParam;
@@ -156,14 +155,14 @@ public class MzMLReadTask extends AbstractTask {
 
         io.github.mzmine.datamodel.Scan scan;
 
-        if(Double.compare(mobility, -1.0d) == 0) {
+        //if(Double.compare(mobility, -1.0d) == 0) {
           scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
               precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null);
-        } else {
+        /*} else {
           scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
               precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null, mobility,
               MobilityType.DRIFT_TUBE);
-        }
+        }*/
 
         /*for (io.github.mzmine.datamodel.Scan s : parentStack) {
           if (s.getScanNumber() == parentScan) {

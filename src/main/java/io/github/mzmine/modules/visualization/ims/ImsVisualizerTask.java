@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
+/*
 package io.github.mzmine.modules.visualization.ims;
 
 import java.io.IOException;
@@ -324,3 +324,4 @@ public class ImsVisualizerTask extends AbstractTask {
     return dataFiles;
   }
 }
+*/

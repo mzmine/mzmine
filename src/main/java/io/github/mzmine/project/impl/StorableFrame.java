@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Mobilogram;
+import io.github.mzmine.datamodel.MobilityType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +52,7 @@ public class StorableFrame extends StorableScan implements Frame {
    */
   private final Map<Integer, MobilityScan> mobilitySubScans;
   private final Set<ImsMsMsInfo> precursorInfos;
+  private final MobilityType mobilityType;
   private final List<StorableMobilogram> mobilograms;
   /**
    * Mobility range of this frame. Updated when a scan is added.
@@ -71,6 +73,7 @@ public class StorableFrame extends StorableScan implements Frame {
 
     mobilitySubScans = new HashMap<>(originalFrame.getNumberOfMobilityScans());
     mobilograms = new ArrayList<>();
+    mobilityType = originalFrame.getMobilityType();
     mobilityRange = null;
     precursorInfos = originalFrame.getImsMsMsInfos();
   }
@@ -196,6 +199,12 @@ public class StorableFrame extends StorableScan implements Frame {
     return pcInfo.orElse(null);
   }
 
+  @Nonnull
+  @Override
+  public MobilityType getMobilityType() {
+    return mobilityType;
+  }
+
   @Override
   public ImmutableList<Mobilogram> getMobilograms() {
     return ImmutableList.copyOf(mobilograms);
@@ -262,10 +271,8 @@ public class StorableFrame extends StorableScan implements Frame {
         && Double.compare(that.getPrecursorMZ(), getPrecursorMZ()) == 0
         && getPrecursorCharge() == that.getPrecursorCharge()
         && Float.compare(that.getRetentionTime(), getRetentionTime()) == 0
-        && getNumberOfDataPoints() == that.getNumberOfDataPoints()
-        && getStorageID() == that.getStorageID()
-        && Double.compare(that.getMobility(), getMobility()) == 0
-        && Objects.equals(getDataPointMZRange(), that.getDataPointMZRange())
+        && getNumberOfDataPoints() == that.getNumberOfDataPoints() && getStorageID() == that
+        .getStorageID() && Objects.equals(getDataPointMZRange(), that.getDataPointMZRange())
         && Objects.equals(getHighestDataPoint(), that.getHighestDataPoint())
         && Double.compare(getTIC(), that.getTIC()) == 0
         && getSpectrumType() == that.getSpectrumType() && getDataFile().equals(that.getDataFile())
@@ -278,10 +285,12 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getScanNumber(), getMSLevel(), getPrecursorMZ(), getPrecursorCharge(),
-        getRetentionTime(), getDataPointMZRange(), getHighestDataPoint(), getTIC(),
-        getSpectrumType(), getNumberOfDataPoints(), getDataFile(), getMassLists(), getPolarity(),
-        getScanDefinition(), getScanningMZRange(), getStorageID(), getMobility(), getMobilityType(),
-        getFrameId());
+    return Objects
+        .hash(getScanNumber(), getMSLevel(), getPrecursorMZ(), getPrecursorCharge(),
+            getRetentionTime(),
+            getDataPointMZRange(), getHighestDataPoint(), getTIC(), getSpectrumType(),
+            getNumberOfDataPoints(),
+            getDataFile(), getMassLists(), getPolarity(), getScanDefinition(), getScanningMZRange(),
+            getStorageID(), getMobilityType(), getFrameId());
   }
 }

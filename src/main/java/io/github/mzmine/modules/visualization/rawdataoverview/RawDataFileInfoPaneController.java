@@ -86,9 +86,6 @@ public class RawDataFileInfoPaneController {
   private TableColumn<ScanDescription, String> definitionColumn;
 
   @FXML
-  private TableColumn<ScanDescription, String> mobilityColumn;
-
-  @FXML
   private Label lblNumScans;
 
   @FXML
@@ -169,14 +166,12 @@ public class RawDataFileInfoPaneController {
     scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
     polarityColumn.setCellValueFactory(new PropertyValueFactory<>("polarity"));
     definitionColumn.setCellValueFactory(new PropertyValueFactory<>("definition"));
-    mobilityColumn.setCellValueFactory(new PropertyValueFactory<>("mobility"));
 
     scanColumn.setComparator(new StringToDoubleComparator());
     rtColumn.setComparator(new StringToDoubleComparator());
     msLevelColumn.setComparator(new StringToDoubleComparator());
 //    basePeakColumn.setComparator(new StringToDoubleComparator());
     basePeakIntensityColumn.setComparator(new StringToDoubleComparator());
-    mobilityColumn.setComparator(new StringToDoubleComparator());
 
     MZmineCore.getTaskController().addTask(new PopulateTask(rawDataFile));
   }
@@ -268,8 +263,6 @@ public class RawDataFileInfoPaneController {
         } else {
           precursor = mzFormat.format(scan.getPrecursorMZ());
         }
-        String mobility = "";
-        mobility = mzFormat.format(scan.getMobility());
 
         // format mzRange
         String mzRange =
@@ -292,7 +285,6 @@ public class RawDataFileInfoPaneController {
             scan.getSpectrumType().toString(), // profile/centroid
             scan.getPolarity().toString(), // polarity
             scan.getScanDefinition(),      // definition
-            mobility,  // mobility
             basePeakMZ, // base peak mz
             basePeakIntensity) // base peak intensity
         );
