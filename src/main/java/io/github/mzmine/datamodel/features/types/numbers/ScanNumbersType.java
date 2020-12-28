@@ -20,12 +20,31 @@ package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import javafx.beans.property.ListProperty;
 
-public class ScanNumbersType extends ListDataType<Integer> implements NullColumnType {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
+
+public class ScanNumbersType extends ListDataType<Integer> {
 
   @Override
   public String getHeaderString() {
     return "Scans";
   }
 
+
+  @Nonnull
+  @Override
+  public String getFormattedString(@Nonnull ListProperty<Integer> property) {
+    return property.getValue() != null ? String.valueOf(property.getValue().size()) : "";
+  }
+
+  @Nonnull
+  @Override
+  public String getFormattedString(@Nullable Object value) {
+    if(value==null || !(value instanceof List))
+      return "";
+    return String.valueOf(((List)value).size());
+  }
 }

@@ -42,7 +42,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private FeatureList originalFeatureList, normalizedFeatureList;
+  private ModularFeatureList originalFeatureList, normalizedFeatureList;
 
   private int processedRows, totalRows;
 
@@ -58,7 +58,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
       ParameterSet parameters) {
 
     this.project = project;
-    this.originalFeatureList = featureList;
+    this.originalFeatureList = (ModularFeatureList) featureList;
 
     suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
     normalizationType =
@@ -99,15 +99,14 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     }
 
     // Initialize new alignment result for the normalized result
-    normalizedFeatureList =
-        new ModularFeatureList(originalFeatureList + " " + suffix, originalFeatureList.getRawDataFiles());
+    normalizedFeatureList = originalFeatureList.createCopy(originalFeatureList + " " + suffix);
 
     // Copy raw data files from original alignment result to new alignment
     // result
-    totalRows = originalFeatureList.getNumberOfRows();
+    totalRows = normalizedFeatureList.getNumberOfRows();
 
     // Loop through all rows
-    rowIteration: for (FeatureListRow row : originalFeatureList.getRows()) {
+    rowIteration: for (FeatureListRow row : normalizedFeatureList.getRows()) {
 
       // Cancel ?
       if (isCanceled()) {
@@ -122,17 +121,12 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
         }
       }
 
-      // Copy comment and identification
-      ModularFeatureListRow normalizedRow = new ModularFeatureListRow(
-          (ModularFeatureList) row.getFeatureList(), row.getID());
-      FeatureUtils.copyFeatureListRowProperties(row, normalizedRow);
-
       // Get m/z and RT of the current row
       double mz = row.getAverageMZ();
       double rt = row.getAverageRT();
 
       // Loop through all raw data files
-      for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
+      for (RawDataFile file : normalizedFeatureList.getRawDataFiles()) {
 
         double normalizationFactors[] = null;
         double normalizationFactorWeights[] = null;
@@ -237,33 +231,19 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
         // Normalize feature
         Feature originalFeature = row.getFeature(file);
         if (originalFeature != null) {
-
-          ModularFeature normalizedFeature = new ModularFeature(originalFeature);
-
-          FeatureUtils.copyFeatureProperties(originalFeature, normalizedFeature);
-
           float normalizedHeight = (float) (originalFeature.getHeight() / normalizationFactor);
           float normalizedArea = (float) (originalFeature.getArea() / normalizationFactor);
-          normalizedFeature.setHeight(normalizedHeight);
-          normalizedFeature.setArea(normalizedArea);
-
-          normalizedRow.addFeature(file, normalizedFeature);
+          originalFeature.setHeight(normalizedHeight);
+          originalFeature.setArea(normalizedArea);
         }
 
       }
 
-      normalizedFeatureList.addRow(normalizedRow);
       processedRows++;
-
     }
 
     // Add new feature list to the project
     project.addFeatureList(normalizedFeatureList);
-
-    // Load previous applied methods
-    for (FeatureListAppliedMethod proc : originalFeatureList.getAppliedMethods()) {
-      normalizedFeatureList.addDescriptionOfAppliedTask(proc);
-    }
 
     // Add task description to feature list
     normalizedFeatureList.addDescriptionOfAppliedTask(

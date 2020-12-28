@@ -78,12 +78,17 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
    * @throws ParserConfigurationException
    */
   @Override
-  public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile)
-      throws IOException, ParserConfigurationException, SAXException, UnsupportedOperationException {
+  public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile,
+      boolean isImagingRawDataFile) throws IOException, ParserConfigurationException, SAXException,
+      UnsupportedOperationException {
 
     if (isIMSRawDataFile) {
       throw new UnsupportedOperationException(
           "Ion mobility is not supported in projects created before MZmine 3.0");
+    }
+    if (isImagingRawDataFile) {
+      throw new UnsupportedOperationException(
+          "Imaging is not supported in projects created before MZmine 3.0");
     }
 
     charBuffer = new StringBuffer();
@@ -113,7 +118,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
   /**
    * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String,
-   * java.lang.String, org.xml.sax.Attributes)
+   *      java.lang.String, org.xml.sax.Attributes)
    */
   @Override
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
@@ -158,7 +163,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
   /**
    * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String, java.lang.String,
-   * java.lang.String)
+   *      java.lang.String)
    */
   @Override
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
@@ -234,9 +239,9 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       retentionTime = (float) (Double.parseDouble(getTextOfElement()) / 60d);
     }
 
-//    if (qName.equals(RawDataElementName_2_5.ION_MOBILITY.getElementName())) {
-//      mobility = Double.parseDouble(getTextOfElement());
-//    }
+    // if (qName.equals(RawDataElementName_2_5.ION_MOBILITY.getElementName())) {
+    // mobility = Double.parseDouble(getTextOfElement());
+    // }
 
     if (qName.equals(RawDataElementName_2_5.QUANTITY_DATAPOINTS.getElementName())) {
       dataPointsNumber = Integer.parseInt(getTextOfElement());
@@ -250,7 +255,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
       StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
           dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
-          /*fragmentScan,*/ null, polarity, scanDescription, scanMZRange);
+          /* fragmentScan, */ null, polarity, scanDescription, scanMZRange);
 
       try {
         newRawDataFile.addScan(storableScan);

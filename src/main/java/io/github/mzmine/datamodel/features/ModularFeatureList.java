@@ -3,13 +3,8 @@ package io.github.mzmine.datamodel.features;
 import io.github.mzmine.datamodel.features.types.AreaBarType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
-import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
-import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.datamodel.features.types.numbers.*;
 import io.github.mzmine.util.DataTypeUtils;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -22,6 +17,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import io.github.mzmine.util.FeatureUtils;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
@@ -30,7 +27,6 @@ import io.github.mzmine.datamodel.features.types.CommentType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
-import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
@@ -39,13 +35,13 @@ public class ModularFeatureList implements FeatureList {
 
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
-  private final LinkedHashMap<Class<? extends DataType>, DataType> rowTypesLinkedMap =
-      new LinkedHashMap<>();
-  private ObservableMap<Class<? extends DataType>, DataType> rowTypes;
+  // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
+  private ObservableMap<Class<? extends DataType>, DataType> rowTypes =
+          FXCollections.observableMap(new LinkedHashMap<>());
 
-  private final LinkedHashMap<Class<? extends DataType>, DataType> featureTypesLinkedMap =
-      new LinkedHashMap<>();
-  private ObservableMap<Class<? extends DataType>, DataType> featureTypes;
+  // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
+  private ObservableMap<Class<? extends DataType>, DataType> featureTypes =
+          FXCollections.observableMap(new LinkedHashMap<>());
 
   // bindings for values
   private final List<RowBinding> rowBindings = new ArrayList<>();
@@ -76,26 +72,15 @@ public class ModularFeatureList implements FeatureList {
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
 
-    // Type columns will be ordered in the order of types initialization
-    addRowType(new IDType());
-    addRowType(new MZType());
-    addRowType(new MZRangeType());
-    addRowType(new RTType());
-    addRowType(new RTRangeType());
-    DataTypeUtils.addDefaultChromatographicTypeColumns(this);
-
-    addRowType(new FeatureShapeType());
-    addRowType(new AreaBarType());
-    addRowType(new AreaShareType());
-    // has raw files - add column to row and feature
-    if (!dataFiles.isEmpty()) {
-      addRowType(new FeaturesType());
-      addFeatureType(new RawFileType());
-      addFeatureType(new FwhmType());
-      addFeatureType(new TailingFactorType());
-      addFeatureType(new AsymmetryFactorType());
-    }
-    addRowType(new CommentType());
+    // add standard row bindings even if data types are missing
+    addRowBinding(new RowBinding(new MZType(), BindingsType.AVERAGE));
+    addRowBinding(new RowBinding(new RTType(), BindingsType.AVERAGE));
+    addRowBinding(new RowBinding(new HeightType(), BindingsType.MAX));
+    addRowBinding(new RowBinding(new AreaType(), BindingsType.MAX));
+    addRowBinding(new RowBinding(new RTRangeType(), BindingsType.RANGE));
+    addRowBinding(new RowBinding(new MZRangeType(), BindingsType.RANGE));
+    addRowBinding(new RowBinding(new IntensityRangeType(), BindingsType.RANGE));
+    addRowBinding(new RowBinding(new ChargeType(), BindingsType.CONSENSUS));
   }
 
   @Override
@@ -145,13 +130,9 @@ public class ModularFeatureList implements FeatureList {
 
   public void addFeatureType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
-      if (!featureTypesLinkedMap.containsKey(type.getClass())) {
-        featureTypesLinkedMap.put(type.getClass(), type);
-        // add to maps
-        modularStreamFeatures().forEach(f -> {
-          f.setProperty(type, type.createProperty());
-        });
-        featureTypes = FXCollections.observableMap(featureTypesLinkedMap);
+      if (!featureTypes.containsKey(type.getClass())) {
+        // all {@link ModularFeature} will automatically add a default property to their data map
+        featureTypes.put(type.getClass(), type);
       }
     }
   }
@@ -162,13 +143,10 @@ public class ModularFeatureList implements FeatureList {
 
   public void addRowType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
-      if (!rowTypesLinkedMap.containsKey(type.getClass())) {
-        rowTypesLinkedMap.put(type.getClass(), type);
-        // add type columns to maps
-        modularStream().forEach(row -> {
-          row.setProperty(type, type.createProperty());
-        });
-        rowTypes = FXCollections.observableMap(rowTypesLinkedMap);
+      if (!rowTypes.containsKey(type.getClass())) {
+        // add row type - all rows will automatically generate a default property for this type in
+        // their data map
+        rowTypes.put(type.getClass(), type);
       }
     }
   }
@@ -461,6 +439,9 @@ public class ModularFeatureList implements FeatureList {
   //  a private variable during rows initialization
   @Override
   public Range<Double> getRowsMZRange() {
+    if(getRows().isEmpty())
+      return Range.singleton(0d);
+
     updateMaxIntensity(); // Update range before returning value
 
     DoubleSummaryStatistics mzStatistics = getRows().stream()
@@ -474,6 +455,9 @@ public class ModularFeatureList implements FeatureList {
   //  a private variable during rows initialization
   @Override
   public Range<Float> getRowsRTRange() {
+    if(getRows().isEmpty())
+      return Range.singleton(0f);
+
     updateMaxIntensity(); // Update range before returning value
 
     DoubleSummaryStatistics rtStatistics = getRows().stream()
@@ -483,4 +467,21 @@ public class ModularFeatureList implements FeatureList {
     return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
   }
 
+  /**
+   * create copy of all feature list rows and features
+   * @param title
+   * @return
+   */
+    public ModularFeatureList createCopy(String title) {
+      ModularFeatureList flist = new ModularFeatureList(title, this.getRawDataFiles());
+      // copy all rows and features
+      this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row,true))
+              .forEach(newRow -> flist.addRow(newRow));
+
+      // Load previous applied methods
+      for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
+        flist.addDescriptionOfAppliedTask(proc);
+      }
+      return flist;
+    }
 }

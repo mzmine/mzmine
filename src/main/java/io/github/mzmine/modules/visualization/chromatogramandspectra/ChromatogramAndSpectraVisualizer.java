@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.plot.ValueMarker;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -320,7 +321,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     filesToProcess.forEach(r -> removeRawDataFile(r));
 
     // presence of file is checked in the add method
-    rawDataFiles.forEach(r -> addRawDataFile(r));
+    rawDataFiles.forEach(r -> {
+      if (!(r instanceof ImagingRawDataFile)) {
+        addRawDataFile(r);
+      }
+    });
   }
 
   /**

@@ -52,6 +52,7 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameter
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.collections.ObservableList;
 
 /**
  * Exports all files needed for GNPS
@@ -160,7 +161,9 @@ public class GnpsFbmnExportTask extends AbstractTask {
   private void export(FeatureList featureList, FileWriter writer, File curFile) throws IOException {
     final String newLine = System.lineSeparator();
 
-    for (FeatureListRow row : featureList.getRows()) {
+    ObservableList<FeatureListRow> rows = featureList.getRows();
+    for (int i = 0; i < rows.size(); i++) {
+      ModularFeatureListRow row = (ModularFeatureListRow) rows.get(i);
       String rowID = Integer.toString(row.getID());
 
       String retTimeInSeconds = Double.toString(Math.round(row.getAverageRT() * 60 * 100) / 100.);
@@ -170,7 +173,8 @@ public class GnpsFbmnExportTask extends AbstractTask {
         continue;
       int msmsScanNumber = bestFeature.getMostIntenseFragmentScanNumber();
       if (rowID != null) {
-        FeatureListRow copyRow = copyFeatureRow(row);
+        // TODO why?
+        FeatureListRow copyRow = new ModularFeatureListRow((ModularFeatureList)row.getFeatureList(), row, true);
         // Best feature always exists, because feature list row has at
         // least one feature
         bestFeature = copyRow.getBestFeature();
@@ -195,7 +199,7 @@ public class GnpsFbmnExportTask extends AbstractTask {
 
         if (massList == null) {
           MZmineCore.getDesktop().displayErrorMessage("There is no mass list called " + massListName
-              + " for MS/MS scan #" + msmsScanNumber + " (" + bestFeature.getRawDataFile() + ")");
+                  + " for MS/MS scan #" + msmsScanNumber + " (" + bestFeature.getRawDataFile() + ")");
           return;
         }
 
@@ -227,9 +231,9 @@ public class GnpsFbmnExportTask extends AbstractTask {
         DataPoint[] dataPoints = massList.getDataPoints();
         if (mergeParameters != null) {
           MsMsSpectraMergeModule merger =
-              MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
+                  MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
           MergedSpectrum spectrum =
-              merger.getBestMergedSpectrum(mergeParameters, row, massListName);
+                  merger.getBestMergedSpectrum(mergeParameters, row, massListName);
           if (spectrum != null) {
             dataPoints = spectrum.data;
             writer.write("MERGED_STATS=");
@@ -250,27 +254,6 @@ public class GnpsFbmnExportTask extends AbstractTask {
 
   public String getTaskDescription() {
     return "Exporting GNPS of feature list(s) " + Arrays.toString(featureLists) + " to MGF file(s)";
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   */
-  private static FeatureListRow copyFeatureRow(final FeatureListRow row) {
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) row.getFeatureList(), row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the features.
-    for (final Feature feature : row.getFeatures()) {
-
-      final Feature newFeature = new ModularFeature(feature);
-      FeatureUtils.copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getRawDataFile(), newFeature);
-
-    }
-
-    return newRow;
   }
 
 }

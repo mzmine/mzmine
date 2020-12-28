@@ -69,7 +69,6 @@ public abstract class SpectralDBParser {
     list.add(entry);
     if (list.size() % bufferEntries == 0) {
       // start new task for every 1000 entries
-      logger.info("Imported " + list.size() + " library entries");
       // push entries
       processor.processNextEntries(list, processedEntries);
       processedEntries += list.size();

@@ -197,7 +197,8 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
         continue;
       int msmsScanNumber = bestFeature.getMostIntenseFragmentScanNumber();
       if (rowID != null) {
-        FeatureListRow copyRow = copyFeatureRow(row);
+        // TODO why
+        FeatureListRow copyRow = new ModularFeatureListRow((ModularFeatureList)row.getFeatureList(), (ModularFeatureListRow)row, true);
         // Best feature always exists, because feature list row has at
         // least one feature
         bestFeature = copyRow.getBestFeature();
@@ -303,27 +304,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Exporting GNPS of feature list(s) " + Arrays.toString(featureLists) + " to MGF file(s)";
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   */
-  private static FeatureListRow copyFeatureRow(final FeatureListRow row) {
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) row.getFeatureList(), row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the features.
-    for (final Feature feature : row.getFeatures()) {
-
-      final Feature newFeature = new ModularFeature(feature);
-      FeatureUtils.copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getRawDataFile(), newFeature);
-
-    }
-
-    return newRow;
   }
 
 }

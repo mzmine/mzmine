@@ -216,7 +216,6 @@ class IsotopeGrouperTask extends AbstractTask {
       newPeak.setCharge(bestFitCharge);
 
       FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) deisotopedFeatureList, oldRow.getID(), newPeak);
-      FeatureUtils.copyFeatureListRowProperties(oldRow, newRow);
       newRow.addFeature(dataFile, newPeak);
       deisotopedFeatureList.addRow(newRow);
 

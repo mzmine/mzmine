@@ -187,14 +187,14 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       if (component.getSpectrum().isEmpty())
         continue;
 
-      FeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
+      ModularFeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
 
       // Add the reference peak
       FeatureListRow refPeakRow = originalPeakList.getRow(component.getBestPeak().getInfo().peakID);
       // ?
       refPeakRow.setFeatureList(resolvedPeakList);
       // ?
-      Feature refPeak = new ModularFeature(refPeakRow.getBestFeature());
+      Feature refPeak = new ModularFeature(resolvedPeakList, refPeakRow.getBestFeature());
 
       // Add spectrum
       List<DataPoint> dataPoints = new ArrayList<>();

@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -205,7 +206,6 @@ public class DeconvolutionTask extends AbstractTask {
    * Deconvolve a chromatogram into separate peaks.
    *
    * @param peakList holds the chromatogram to deconvolve.
-   * @param mzCenterFunction2
    * @return a new feature list holding the resolved peaks.
    * @throws RSessionWrapperException
    */
@@ -233,8 +233,9 @@ public class DeconvolutionTask extends AbstractTask {
       this.RTRangeMSMS = 0;
 
     // Create new feature list.
-    final FeatureList resolvedPeaks =
+    final ModularFeatureList resolvedPeaks =
         new ModularFeatureList(peakList + " " + parameters.getParameter(SUFFIX).getValue(), dataFile);
+    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedPeaks);
 
     // Load previous applied methods.
     for (final FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
@@ -267,7 +268,6 @@ public class DeconvolutionTask extends AbstractTask {
 
       // Add peaks to the new feature list.
       for (final ResolvedPeak peak : peaks) {
-
         peak.setParentChromatogramRowID(currentRow.getID());
 
         final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) resolvedPeaks, peakId++);

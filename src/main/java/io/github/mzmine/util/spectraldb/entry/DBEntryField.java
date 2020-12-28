@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public enum DBEntryField {
 
-  ENTRY_ID, NAME, SYNONYM, COMMENT, ION_TYPE, RT(Double.class), MZ(Double.class), CHARGE(
+  ENTRY_ID, NAME, SYNONYM, COMMENT, ION_TYPE, RT(Float.class), MZ(Double.class), CHARGE(
       Integer.class), ION_MODE, COLLISION_ENERGY, FORMULA, MOLWEIGHT(Double.class), EXACT_MASS(
           Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
               Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION;

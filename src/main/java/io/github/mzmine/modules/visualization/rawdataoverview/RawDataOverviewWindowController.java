@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
@@ -89,6 +90,8 @@ public class RawDataOverviewWindowController {
    * Sets the raw data files to be displayed. Already present files are not removed to optimise
    * performance. This should be called over
    * {@link RawDataOverviewWindowController#addRawDataFileTab} if possible.
+   * 
+   * Only add LC-MS data sets, exclude imaging
    *
    * @param rawDataFiles
    */
@@ -103,7 +106,11 @@ public class RawDataOverviewWindowController {
     filesToProcess.forEach(r -> removeRawDataFile(r));
 
     // presence of file is checked in the add method
-    rawDataFiles.forEach(r -> addRawDataFileTab(r));
+    rawDataFiles.forEach(r -> {
+      if (!(r instanceof ImagingRawDataFileImpl)) {
+        addRawDataFileTab(r);
+      }
+    });
     visualizer.setRawDataFiles(rawDataFiles);
   }
 
@@ -183,7 +190,9 @@ public class RawDataOverviewWindowController {
 
     visualizer.chromPositionProperty().addListener((observable, oldValue, pos) -> {
       RawDataFile selectedRawDataFile = pos.getDataFile();
-
+      if (selectedRawDataFile instanceof ImagingRawDataFileImpl) {
+        return;
+      }
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
       if (con == null || selectedRawDataFile == null) {
         logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());

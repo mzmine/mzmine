@@ -45,7 +45,7 @@ public class MZRangeType extends DoubleRangeType implements ExpandableType {
   @Override
   @Nonnull
   public String getHeaderString() {
-    return "m/z Range";
+    return "m/z range";
   }
 
   @Nonnull

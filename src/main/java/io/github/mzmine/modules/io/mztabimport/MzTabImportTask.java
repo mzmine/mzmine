@@ -145,7 +145,7 @@ class MzTabImportTask extends AbstractTask {
       // Create a new feature list
       String featureListName = inputFile.getName().replace(".mzTab", "");
       RawDataFile rawDataArray[] = rawDataFiles.values().toArray(new RawDataFile[0]);
-      FeatureList newFeatureList = new ModularFeatureList(featureListName, rawDataArray);
+      ModularFeatureList newFeatureList = new ModularFeatureList(featureListName, rawDataArray);
 
       // Check if not canceled
       if (isCanceled())
@@ -338,7 +338,7 @@ class MzTabImportTask extends AbstractTask {
 
   }
 
-  private void importSmallMolecules(FeatureList newFeatureList, MZTabFile mzTabFile,
+  private void importSmallMolecules(ModularFeatureList newFeatureList, MZTabFile mzTabFile,
       Map<Integer, RawDataFile> rawDataFiles) {
     SortedMap<Integer, Assay> assayMap = mzTabFile.getMetadata().getAssayMap();
     Collection<SmallMolecule> smallMolecules = mzTabFile.getSmallMolecules();
@@ -397,7 +397,7 @@ class MzTabImportTask extends AbstractTask {
       }
 
       // Add shared information to row
-      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) newFeatureList, rowCounter);
+      ModularFeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) newFeatureList, rowCounter);
       newRow.setAverageMZ(mzExp);
       newRow.setAverageRT(rtValue);
       if (description != null) {
@@ -453,7 +453,7 @@ class MzTabImportTask extends AbstractTask {
         Range<Float> finalIntensityRange = Range.singleton(feature_height);
         FeatureStatus status = FeatureStatus.DETECTED;
 
-        Feature peak = new ModularFeature(rawData, feature_mz, feature_rt, feature_height, abundance,
+        Feature peak = new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt, feature_height, abundance,
             scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
             finalRTRange, finalMZRange, finalIntensityRange);
 
