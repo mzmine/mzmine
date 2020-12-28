@@ -19,36 +19,34 @@
 package io.github.mzmine.datamodel.features.types.tasks;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.lang.reflect.InvocationTargetException;
 import javafx.application.Platform;
-import javafx.beans.property.MapProperty;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 
 /**
  * Task for creating graphical nodes, having (ModularFeatureListRow row, AtomicDouble progress) constructor
  */
-public class FeaturesGraphicalNodeTask extends AbstractTask{
+public class FeaturesGraphicalNodeTask extends AbstractTask {
+
   Class<? extends Node> nodeClass;
   private StackPane pane;
   private ModularFeatureListRow row;
-  private TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll;
+  private String collHeader;
   private AtomicDouble progress = new AtomicDouble(0d);
   private int rowID = -1;
 
-  public FeaturesGraphicalNodeTask(Class<? extends Node> nodeClass, StackPane pane, ModularFeatureListRow row,
-      TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll) {
+  public FeaturesGraphicalNodeTask(Class<? extends Node> nodeClass, StackPane pane,
+      ModularFeatureListRow row,
+      String collHeader) {
     super();
     this.nodeClass = nodeClass;
     this.pane = pane;
     this.row = row;
-    this.coll = coll;
+    this.collHeader = collHeader;
   }
 
   @Override
@@ -67,7 +65,7 @@ public class FeaturesGraphicalNodeTask extends AbstractTask{
     }
     final Node node = n;
     // save chart for later
-    row.addBufferedColChart(coll.getText(), n);
+    row.addBufferedColChart(collHeader, n);
 
     Platform.runLater(() -> {
       pane.getChildren().add(node);
@@ -78,7 +76,7 @@ public class FeaturesGraphicalNodeTask extends AbstractTask{
 
   @Override
   public String getTaskDescription() {
-    return "Creating a graphical column for col: " + coll.getText()
+    return "Creating a graphical column for col: " + collHeader
         + " in row: " + rowID;
   }
 

@@ -18,12 +18,16 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.main.MZmineCore;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.List;
 import javax.annotation.Nonnull;
 
 public class MZType extends DoubleType implements ExpandableType {
@@ -57,5 +61,11 @@ public class MZType extends DoubleType implements ExpandableType {
   @Override
   public Class<? extends DataType<?>> getHiddenTypeClass() {
     return getClass();
+  }
+
+  @Nonnull
+  @Override
+  public List<RowBinding> createDefaultRowBindings() {
+    return List.of(new SimpleRowBinding(this, BindingsType.AVERAGE));
   }
 }

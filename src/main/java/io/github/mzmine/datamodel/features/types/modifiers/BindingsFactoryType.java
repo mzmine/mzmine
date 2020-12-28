@@ -18,8 +18,15 @@
 package io.github.mzmine.datamodel.features.types.modifiers;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.types.DataType;
 import javafx.beans.binding.ObjectBinding;
 
+/**
+ * A {@link DataType} that defines different BindingTypes for {@link RowBinding}
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
 public interface BindingsFactoryType {
 
 
