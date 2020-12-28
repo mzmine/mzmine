@@ -29,7 +29,22 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
-import io.github.mzmine.datamodel.features.types.numbers.*;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
+import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
@@ -39,14 +54,13 @@ import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangePeak;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javax.annotation.Nonnull;
 
 public class FeatureConvertors {
 
@@ -73,14 +87,18 @@ public class FeatureConvertors {
         new ModularFeature((ModularFeatureList) chromatogram.getFeatureList());
 
     int[] scansMS2 = chromatogram.getAllMS2FragmentScanNumbers();
-    modularFeature.set(FragmentScanNumbersType.class, IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
+    modularFeature.set(FragmentScanNumbersType.class,
+        IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
     int[] scans = chromatogram.getScanNumbers();
-    modularFeature.set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    modularFeature
+        .set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
 
-    modularFeature.set(BestFragmentScanNumberType.class, chromatogram.getMostIntenseFragmentScanNumber());
+    modularFeature
+        .set(BestFragmentScanNumberType.class, chromatogram.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, chromatogram.getRepresentativeScanNumber());
-    if(chromatogram.getIsotopePattern()!=null)
+    if (chromatogram.getIsotopePattern() != null) {
       modularFeature.set(IsotopePatternType.class, chromatogram.getIsotopePattern());
+    }
     modularFeature.set(ChargeType.class, chromatogram.getCharge());
 
     modularFeature.set(RawFileType.class, chromatogram.getDataFile());
@@ -111,8 +129,8 @@ public class FeatureConvertors {
     modularFeature.set(IntensityRangeType.class, intensityRange);
 
     ObservableList<Integer> allMS2 = IntStream.of(ScanUtils
-            .findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange)).boxed()
-            .collect(Collectors.toCollection(FXCollections::observableArrayList));
+        .findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange)).boxed()
+        .collect(Collectors.toCollection(FXCollections::observableArrayList));
     modularFeature.setAllMS2FragmentScanNumbers(allMS2);
 
     // Quality parameters
@@ -369,11 +387,14 @@ public class FeatureConvertors {
         new ModularFeature((ModularFeatureList) sameRangePeak.getPeakList());
 
     int[] scansMS2 = sameRangePeak.getAllMS2FragmentScanNumbers();
-    modularFeature.set(FragmentScanNumbersType.class, IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
+    modularFeature.set(FragmentScanNumbersType.class,
+        IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
     int[] scans = sameRangePeak.getScanNumbers();
-    modularFeature.set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    modularFeature
+        .set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
 
-    modularFeature.set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
+    modularFeature
+        .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, sameRangePeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, sameRangePeak.getPeakInformation());
@@ -443,11 +464,14 @@ public class FeatureConvertors {
         new ModularFeature((ModularFeatureList) sameRangePeak.getPeakList());
 
     int[] scansMS2 = sameRangePeak.getAllMS2FragmentScanNumbers();
-    modularFeature.set(FragmentScanNumbersType.class, IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
+    modularFeature.set(FragmentScanNumbersType.class,
+        IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
     int[] scans = sameRangePeak.getScanNumbers();
-    modularFeature.set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    modularFeature
+        .set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
 
-    modularFeature.set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
+    modularFeature
+        .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, sameRangePeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, sameRangePeak.getPeakInformation());
@@ -517,14 +541,16 @@ public class FeatureConvertors {
     ModularFeature modularFeature =
         new ModularFeature((ModularFeatureList) resolvedPeak.getPeakList());
 
-
     // Add values to feature
     int[] scansMS2 = resolvedPeak.getAllMS2FragmentScanNumbers();
-    modularFeature.set(FragmentScanNumbersType.class, IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
+    modularFeature.set(FragmentScanNumbersType.class,
+        IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
     int[] scans = resolvedPeak.getScanNumbers();
-    modularFeature.set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    modularFeature
+        .set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
 
-    modularFeature.set(BestFragmentScanNumberType.class, resolvedPeak.getMostIntenseFragmentScanNumber());
+    modularFeature
+        .set(BestFragmentScanNumberType.class, resolvedPeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, resolvedPeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, resolvedPeak.getPeakInformation());
