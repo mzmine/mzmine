@@ -25,13 +25,10 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.types.AreaBarType;
-import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.CommentType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
-import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
 import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
@@ -136,12 +133,6 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       features = (FXCollections.observableMap(fmap));
       // set
       set(FeaturesType.class, features);
-
-      // TODO: MapProperty/Map? change DataTypeCellValueFactory? Bind to features?
-      // set(FeatureShapeType.class, getFeatures());
-      set(FeatureShapeType.class, getFeaturesProperty());
-      set(AreaBarType.class, getFeaturesProperty());
-      set(AreaShareType.class, getFeaturesProperty());
     } else {
       features = Collections.emptyMap();
     }
