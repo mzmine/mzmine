@@ -4,7 +4,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -20,7 +19,7 @@ public class SimpleImagingScan extends SimpleScan implements ImagingScan {
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, Coordinates coordinates) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, dataPoints,
-        spectrumType, polarity, scanDefinition, scanMZRange, -1.d, MobilityType.NONE);
+        spectrumType, polarity, scanDefinition, scanMZRange);
     this.setCoordinates(coordinates);
   }
 

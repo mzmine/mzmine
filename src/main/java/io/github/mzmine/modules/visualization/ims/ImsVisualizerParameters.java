@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
+/*
 package io.github.mzmine.modules.visualization.ims;
 
 import java.text.DecimalFormat;
@@ -54,12 +54,10 @@ public class ImsVisualizerParameters extends SimpleParameterSet {
                   Range.closed(0.0, 100.0)),
               new PaintScale(PaintScaleColorStyle.YELLOW, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0))});
-  /**
-   * Windows size and position
-   */
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public ImsVisualizerParameters() {
     super(new Parameter[] {dataFiles, scanSelection, paintScale, mzRange, windowSettings});
   }
 }
+*/

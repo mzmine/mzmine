@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
+/*
 package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
 import org.jfree.data.xy.AbstractXYZDataset;
@@ -72,3 +72,4 @@ public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
     return yValues[item];
   }
 }
+*/
