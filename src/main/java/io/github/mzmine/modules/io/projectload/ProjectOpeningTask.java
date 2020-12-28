@@ -18,11 +18,6 @@
 
 package io.github.mzmine.modules.io.projectload;
 
-import io.github.mzmine.modules.io.projectload.version_3_0.PeakListOpenHandler_3_0;
-import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
-import io.github.mzmine.modules.io.projectload.version_3_0.UserParameterOpenHandler_3_0;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import io.github.mzmine.datamodel.features.FeatureList;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -40,13 +35,19 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import com.google.common.io.CountingInputStream;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_2_5.PeakListOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.RawDataFileOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.UserParameterOpenHandler_2_5;
+import io.github.mzmine.modules.io.projectload.version_3_0.PeakListOpenHandler_3_0;
+import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
+import io.github.mzmine.modules.io.projectload.version_3_0.UserParameterOpenHandler_3_0;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -162,17 +163,21 @@ public class ProjectOpeningTask extends AbstractTask {
         totalBytes += entry.getSize();
       }
 
-      final Pattern rawFilePattern = Pattern
-          .compile(RawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.xml$");
-      final Pattern imsRawFilePattern = Pattern
-          .compile(IMSRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.xml$");
+      final Pattern rawFilePattern =
+          Pattern.compile(RawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.xml$");
+      final Pattern imsRawFilePattern =
+          Pattern.compile(IMSRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.xml$");
+      final Pattern imagingRawFilePattern =
+          Pattern.compile(ImagingRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.xml$");
 
       // We have two patterns, since the data points file is named in accordance to the
       // raw file name. However, we load it in exactly the same way.
-      final Pattern scansFilePattern = Pattern
-          .compile(RawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.scans$");
-      final Pattern imsScansFilePattern = Pattern
-          .compile(IMSRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.scans$");
+      final Pattern scansFilePattern =
+          Pattern.compile(RawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.scans$");
+      final Pattern imsScansFilePattern =
+          Pattern.compile(IMSRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.scans$");
+      final Pattern imagingScansFilePattern =
+          Pattern.compile(ImagingRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.scans$");
 
       final Pattern peakListPattern = Pattern.compile("Peak list #([\\d]+) (.*)\\.xml$");
 
@@ -212,7 +217,15 @@ public class ProjectOpeningTask extends AbstractTask {
           logger.info("loading ims raw from " + entryName);
           final String fileID = imsRawFileMatcher.group(1);
           final String fileName = imsRawFileMatcher.group(2);
-          loadRawDataFile(cis, fileID, fileName, true);
+          loadRawDataFile(cis, fileID, fileName, true, false);
+        }
+
+        final Matcher imagingRawFileMatcher = imagingRawFilePattern.matcher(entryName);
+        if (imagingRawFileMatcher.matches()) {
+          logger.info("loading imaging raw from " + entryName);
+          final String fileID = imagingRawFileMatcher.group(1);
+          final String fileName = imagingRawFileMatcher.group(2);
+          loadRawDataFile(cis, fileID, fileName, false, true);
         }
 
         // Load a raw data file
@@ -221,7 +234,7 @@ public class ProjectOpeningTask extends AbstractTask {
           logger.info("loading normal raw from " + entryName);
           final String fileID = rawFileMatcher.group(1);
           final String fileName = rawFileMatcher.group(2);
-          loadRawDataFile(cis, fileID, fileName, false);
+          loadRawDataFile(cis, fileID, fileName, false, false);
         }
 
         // Load the scan data of a raw data file
@@ -235,6 +248,12 @@ public class ProjectOpeningTask extends AbstractTask {
         if (imsScansFileMatcher.matches()) {
           final String fileID = imsScansFileMatcher.group(1);
           final String fileName = imsScansFileMatcher.group(2);
+          loadScansFile(cis, fileID, fileName);
+        }
+        final Matcher imagingScansFileMatcher = imagingScansFilePattern.matcher(entryName);
+        if (imagingScansFileMatcher.matches()) {
+          final String fileID = imagingScansFileMatcher.group(1);
+          final String fileName = imagingScansFileMatcher.group(2);
           loadScansFile(cis, fileID, fileName);
         }
 
@@ -407,7 +426,7 @@ public class ProjectOpeningTask extends AbstractTask {
   }
 
   private void loadRawDataFile(InputStream is, String fileID, String fileName,
-      boolean isIMSRawDataFile) throws IOException,
+      boolean isIMSRawDataFile, boolean isImagingFile) throws IOException,
       ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
 
     logger.info("Loading raw data file #" + fileID + ": " + fileName);
@@ -419,7 +438,8 @@ public class ProjectOpeningTask extends AbstractTask {
       throw new IOException("Missing scans data for file ID " + fileID);
     }
 
-    RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(is, scansFile, isIMSRawDataFile);
+    RawDataFile newFile =
+        rawDataFileOpenHandler.readRawDataFile(is, scansFile, isIMSRawDataFile, isImagingFile);
     newProject.addFile(newFile);
     dataFilesIDMap.put(fileID, newFile);
 
@@ -436,7 +456,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
     final FileOutputStream os = new FileOutputStream(tempFile);
 
-//    If the project was saved with 2.5 version < 3.0
+    // If the project was saved with 2.5 version < 3.0
     copyMachine =
         (rawDataFileOpenHandler instanceof RawDataFileOpenHandler_2_5) ? new StreamCopy32to64()
             : new StreamCopy();

@@ -18,11 +18,9 @@
 
 package io.github.mzmine.project.impl;
 
-import io.github.mzmine.datamodel.MobilityType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Vector;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -30,6 +28,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -46,8 +45,9 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class StorableScan implements Scan {
 
+  protected RawDataFile rawDataFile;
+  protected MobilityType mobilityType;
   private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private int scanNumber, msLevel;
   private double precursorMZ;
   private int precursorCharge;
@@ -57,20 +57,17 @@ public class StorableScan implements Scan {
   private Double totalIonCurrent;
   private MassSpectrumType spectrumType;
   private int numberOfDataPoints;
-  protected RawDataFileImpl rawDataFile;
   private ArrayList<MassList> massLists = new ArrayList<MassList>();
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
-
   private int storageID;
   private double mobility;
-  protected MobilityType mobilityType;
 
   /**
    * Constructor for creating a storable scan from a given scan
    */
-  public StorableScan(Scan originalScan, RawDataFileImpl rawDataFile, int numberOfDataPoints,
+  public StorableScan(Scan originalScan, RawDataFile rawDataFile, int numberOfDataPoints,
       int storageID) {
 
     // save scan data
@@ -93,23 +90,23 @@ public class StorableScan implements Scan {
 
     this.mobility = originalScan.getMobility();
     this.mobilityType = originalScan.getMobilityType();
+
   }
 
   public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
-      int scanNumber, int msLevel, float retentionTime, double precursorMZ,
-      int precursorCharge, MassSpectrumType spectrumType,
-      PolarityType polarity, String scanDefinition, Range<Double> scanMZRange) {
+      int scanNumber, int msLevel, float retentionTime, double precursorMZ, int precursorCharge,
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      Range<Double> scanMZRange) {
 
     this(rawDataFile, storageID, numberOfDataPoints, scanNumber, msLevel, retentionTime,
-        precursorMZ, precursorCharge, spectrumType, polarity, scanDefinition,
-        scanMZRange, -1.0d, MobilityType.NONE);
+        precursorMZ, precursorCharge, spectrumType, polarity, scanDefinition, scanMZRange, -1.0d,
+        MobilityType.NONE);
   }
 
   public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
-      int scanNumber, int msLevel, float retentionTime, double precursorMZ,
-      int precursorCharge, MassSpectrumType spectrumType,
-      PolarityType polarity, String scanDefinition, Range<Double> scanMZRange, double mobility,
-      MobilityType mobilityType) {
+      int scanNumber, int msLevel, float retentionTime, double precursorMZ, int precursorCharge,
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      Range<Double> scanMZRange, double mobility, MobilityType mobilityType) {
 
     this.rawDataFile = rawDataFile;
     this.numberOfDataPoints = numberOfDataPoints;
@@ -137,7 +134,7 @@ public class StorableScan implements Scan {
   public DataPoint[] getDataPoints() {
 
     try {
-      DataPoint result[] = rawDataFile.readDataPoints(storageID);
+      DataPoint result[] = ((RawDataFileImpl) rawDataFile).readDataPoints(storageID);
       return result;
     } catch (IOException e) {
       logger.severe("Could not read data from temporary file " + e.toString());
@@ -251,7 +248,7 @@ public class StorableScan implements Scan {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Scan#getRetentionTime()
+   * @see io.github.mzmine.datamodel.Scan#getScanAcquisitionTime()
    */
   @Override
   public float getRetentionTime() {
@@ -289,7 +286,7 @@ public class StorableScan implements Scan {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Scan#getDataPointMZRange()
+   * @see io.github.mzmine.datamodel.Scan#getMZRangeMax()
    */
   @Override
   @Nonnull
@@ -301,7 +298,7 @@ public class StorableScan implements Scan {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Scan#getHighestDataPoint()
+   * @see io.github.mzmine.datamodel.Scan#getBasePeakMZ()
    */
   @Override
   public DataPoint getHighestDataPoint() {
@@ -352,8 +349,9 @@ public class StorableScan implements Scan {
     } else {
       DataPoint massListDataPoints[] = massList.getDataPoints();
       try {
-        int mlStorageID = rawDataFile.storeDataPoints(massListDataPoints);
-        storedMassList = new StorableMassList(rawDataFile, mlStorageID, massList.getName(), this);
+        int mlStorageID = ((RawDataFileImpl) rawDataFile).storeDataPoints(massListDataPoints);
+        storedMassList = new StorableMassList(((RawDataFileImpl) rawDataFile), mlStorageID,
+            massList.getName(), this);
       } catch (IOException e) {
         logger.severe("Could not write data to temporary file " + e.toString());
         return;
@@ -428,7 +426,6 @@ public class StorableScan implements Scan {
     return mobility;
   }
 
-  @Nonnull
   @Override
   public MobilityType getMobilityType() {
     return mobilityType;

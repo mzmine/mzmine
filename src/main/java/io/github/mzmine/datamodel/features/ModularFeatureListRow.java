@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.types.numbers.*;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,29 +39,47 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
-
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.types.AreaBarType;
+import io.github.mzmine.datamodel.features.types.AreaShareType;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeType;
+import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.util.FeatureSorter;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
-import javax.annotation.Nullable;
 
 /**
  * Map of all feature related data.
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- * <p>
- * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
- *  of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list creation in the
- *  chromatogram builder ~SteffenHeu
+ *         <p>
+ *         TODO: I think the RawFileType should also be in the map and not just accessible via the
+ *         key set of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list
+ *         creation in the chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
@@ -123,10 +140,10 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       set(FeaturesType.class, features);
 
       // TODO: MapProperty/Map? change DataTypeCellValueFactory? Bind to features?
-      //set(FeatureShapeType.class, getFeatures());
-//      set(FeatureShapeType.class, getFeaturesProperty());
-//      set(AreaBarType.class, getFeaturesProperty());
-//      set(AreaShareType.class, getFeaturesProperty());
+      // set(FeatureShapeType.class, getFeatures());
+      set(FeatureShapeType.class, getFeaturesProperty());
+      set(AreaBarType.class, getFeaturesProperty());
+      set(AreaShareType.class, getFeaturesProperty());
     } else {
       features = Collections.emptyMap();
     }
@@ -250,12 +267,26 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    */
   @Override
   public void addFeature(RawDataFile raw, Feature feature) {
-    if(!(feature instanceof ModularFeature)) {
-      throw new IllegalArgumentException("Cannot add non-modular feature to modular feature list row.");
+    if (!(feature instanceof ModularFeature)) {
+      throw new IllegalArgumentException(
+          "Cannot add non-modular feature to modular feature list row.");
     }
     ModularFeature modularFeature = (ModularFeature) feature;
-    features.put(raw, modularFeature);
-    // should already be set
+    /*
+     * if (Objects.equals(modularFeature.getFeatureList(), getFeatureList())) { // features are
+     * final - replace all values for all data types // keep old feature ModularFeature old =
+     * getFilesFeatures().get(raw); for (DataType type : flist.getFeatureTypes().values()) {
+     * old.set(type, modularFeature.get(type).getValue()); } } else { features.put(raw,
+     * modularFeature); }
+     */
+    if (hasFeature(raw)) {
+      ModularFeature old = getFeature(raw);
+      for (DataType<?> type : flist.getFeatureTypes().values()) {
+        old.set(type, modularFeature.get(type).getValue());
+      }
+    } else {
+      features.put(raw, modularFeature);
+    }
     modularFeature.setFeatureList(flist);
   }
 
@@ -328,7 +359,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public boolean hasFeature(Feature feature) {
     if (!(feature instanceof ModularFeature)) {
-      //throw new IllegalArgumentException("Modular feature list row can not contain non-modular feature.");
+      // throw new IllegalArgumentException("Modular feature list row can not contain non-modular
+      // feature.");
       return false;
     }
     return features.containsValue((ModularFeature) feature);
@@ -366,8 +398,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public void setFeatureList(@Nonnull FeatureList flist) {
-    if(!(flist instanceof ModularFeatureList)) {
-      throw new IllegalArgumentException("Cannot set non-modular feature list to modular feature list row.");
+    if (!(flist instanceof ModularFeatureList)) {
+      throw new IllegalArgumentException(
+          "Cannot set non-modular feature list to modular feature list row.");
     }
     this.flist = (ModularFeatureList) flist;
   }
@@ -532,4 +565,34 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return null;
   }
 
+  // TODO: increase speed(enumeration through features)
+  private /* synchronized */ void calculateAverageValues() {
+    double mzSum = 0;
+    float rtSum = 0, heightSum = 0, areaSum = 0;
+    int charge = 0;
+    HashSet<Integer> chargeArr = new HashSet<Integer>();
+    for (Feature feature : getFeatures()) {
+      // Alignned feature list rows can contain "empty" features
+      if (feature.getRawDataFile() == null) {
+        continue;
+      }
+      rtSum += feature.getRT();
+      mzSum += feature.getMZ();
+      heightSum += feature.getHeight();
+      areaSum += feature.getArea();
+      if (feature.getCharge() > 0) {
+        chargeArr.add(feature.getCharge());
+        charge = feature.getCharge();
+      }
+    }
+    averageRT = rtSum / features.size();
+    averageMZ = mzSum / features.size();
+    averageHeight = heightSum / features.size();
+    averageArea = areaSum / features.size();
+    if (chargeArr.size() < 2) {
+      rowCharge = charge;
+    } else {
+      rowCharge = 0;
+    }
+  }
 }

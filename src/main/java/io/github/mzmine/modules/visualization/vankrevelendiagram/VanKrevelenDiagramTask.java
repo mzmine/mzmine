@@ -18,12 +18,8 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -39,16 +35,19 @@ import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.TextAnchor;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -75,9 +74,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private JFreeChart chart;
   private FeatureList featureList;
   private String zAxisLabel;
-  private String zAxisScaleType;
-  private Range<Double> zScaleRange;
-  private String paintScaleStyle;
+  private PaintScale paintScaleParameter;
   private FeatureListRow rows[];
   private FeatureListRow filteredRows[];
   private String title;
@@ -93,9 +90,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
         .getMatchingFeatureLists()[0];
     zAxisLabel =
         parameters.getParameter(VanKrevelenDiagramParameters.zAxisValues).getValue().toString();
-    zAxisScaleType = parameters.getParameter(VanKrevelenDiagramParameters.zScaleType).getValue();
-    zScaleRange = parameters.getParameter(VanKrevelenDiagramParameters.zScaleRange).getValue();
-    paintScaleStyle = parameters.getParameter(VanKrevelenDiagramParameters.paintScale).getValue();
+    paintScaleParameter =
+        parameters.getParameter(VanKrevelenDiagramParameters.paintScale).getValue();
     rows = parameters.getParameter(VanKrevelenDiagramParameters.selectedRows)
         .getMatchingRows(featureList);
     filteredRows = filterSelectedRows(rows);
@@ -118,18 +114,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       logger.info("Create Van Krevelen diagram of " + featureList);
       // Task canceled?
-      if (isCanceled())
+      if (isCanceled()) {
         return;
-      JFreeChart chart = null;
-      // 2D, if no third dimension was selected
-      if (zAxisLabel.equals("none")) {
-        chart = create2DVanKrevelenDiagram();
       }
-      // 3D, if a third dimension was selected
-      else {
-        chart = create3DVanKrevelenDiagram();
-      }
-
+      chart = create3DVanKrevelenDiagram();
       chart.setBackgroundPaint(Color.white);
 
       // create chart JPanel
@@ -207,55 +195,6 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   }
 
   /**
-   * create 2D Van Krevelen Diagram chart
-   */
-  private JFreeChart create2DVanKrevelenDiagram() {
-    logger.info("Creating new 2D chart instance");
-    appliedSteps++;
-
-    // load dataset
-    VanKrevelenDiagramXYDataset dataset2D = new VanKrevelenDiagramXYDataset(filteredRows);
-
-    // create chart
-    chart = ChartFactory.createScatterPlot(title, "O/C", "H/C", dataset2D, PlotOrientation.VERTICAL,
-        true, true, false);
-
-    XYPlot plot = (XYPlot) chart.getPlot();
-    plot.setBackgroundPaint(Color.WHITE);
-    plot.setDomainCrosshairPaint(Color.GRAY);
-    plot.setRangeCrosshairPaint(Color.GRAY);
-    plot.setDomainCrosshairVisible(true);
-    plot.setRangeCrosshairVisible(true);
-    appliedSteps++;
-
-    // set renderer
-    XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
-
-    // calc block sizes
-    double maxX = plot.getDomainAxis().getRange().getUpperBound();
-    double maxY = plot.getRangeAxis().getRange().getUpperBound();
-
-    renderer.setBlockWidth(0.001);
-    renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-
-    // set tooltip generator
-    ScatterPlotToolTipGenerator tooltipGenerator =
-        new ScatterPlotToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
-    renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
-    plot.setRenderer(renderer);
-
-    // set item label generator
-    NameItemLabelGenerator generator = new NameItemLabelGenerator(filteredRows);
-    renderer.setDefaultItemLabelGenerator(generator);
-    renderer.setDefaultItemLabelsVisible(false);
-    renderer.setDefaultItemLabelFont(legendFont);
-    renderer.setDefaultPositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.CENTER,
-        TextAnchor.TOP_RIGHT, TextAnchor.TOP_RIGHT, -45), true);
-
-    return chart;
-  }
-
-  /**
    * create 3D Van Krevelen Diagram chart
    */
   private JFreeChart create3DVanKrevelenDiagram() {
@@ -266,49 +205,18 @@ public class VanKrevelenDiagramTask extends AbstractTask {
         new VanKrevelenDiagramXYZDataset(zAxisLabel, filteredRows);
 
     // copy and sort z-Values for min and max of the paint scale
-    double[] copyZValues = new double[dataset3D.getItemCount(0)];
+    Double[] copyZValues = new Double[dataset3D.getItemCount(0)];
     for (int i = 0; i < dataset3D.getItemCount(0); i++) {
       copyZValues[i] = dataset3D.getZValue(0, i);
     }
     Arrays.sort(copyZValues);
-    // get index in accordance to percentile windows
-    int minScaleIndex = 0;
-    int maxScaleIndex = copyZValues.length - 1;
-    double min = 0;
-    double max = 0;
+    double min = copyZValues[0];
+    double max = copyZValues[copyZValues.length - 1];
+    PaintScale paintScale = createPaintScale(copyZValues);
 
-    if (zAxisScaleType.equals("percentile")) {
-      minScaleIndex = (int) Math.floor(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
-      maxScaleIndex = copyZValues.length
-          - (int) (Math.ceil(copyZValues.length * ((100 - zScaleRange.upperEndpoint()) / 100)));
-      if (zScaleRange.upperEndpoint() == 100) {
-        maxScaleIndex = copyZValues.length - 1;
-      }
-      if (zScaleRange.lowerEndpoint() == 0) {
-        minScaleIndex = 0;
-      }
-      min = copyZValues[minScaleIndex];
-      max = copyZValues[maxScaleIndex];
-    }
-    if (zAxisScaleType.equals("custom")) {
-      min = zScaleRange.lowerEndpoint();
-      max = zScaleRange.upperEndpoint();
-    }
-
-    // create paint scale for third dimension
-    Paint[] contourColors =
-        XYBlockPixelSizePaintScales.getPaintColors(zAxisScaleType, zScaleRange, paintScaleStyle);
-    LookupPaintScale scale = null;
-    scale = new LookupPaintScale(copyZValues[0], copyZValues[copyZValues.length - 1],
-        new Color(0, 0, 0));
-    double[] scaleValues = new double[contourColors.length];
-    double delta = (max - min) / (contourColors.length - 1);
-    double value = min;
-    for (int i = 0; i < contourColors.length; i++) {
-      scale.add(value, contourColors[i]);
-      scaleValues[i] = value;
-      value = value + delta;
-    }
+    PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
+    paintScaleFactoy.createColorsForPaintScale(paintScale);
+    // contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
 
     // create chart
     chart = ChartFactory.createScatterPlot(title, "O/C", "H/C", dataset3D, PlotOrientation.VERTICAL,
@@ -318,7 +226,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
     XYPlot plot = chart.getXYPlot();
     appliedSteps++;
-    renderer.setPaintScale(scale);
+    renderer.setPaintScale(paintScale);
     double maxX = plot.getDomainAxis().getRange().getUpperBound();
     double maxY = plot.getRangeAxis().getRange().getUpperBound();
 
@@ -354,7 +262,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
-    PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
+    PaintScaleLegend legend = new PaintScaleLegend(paintScale, scaleAxis);
 
     legend.setStripOutlineVisible(false);
     legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
@@ -397,8 +305,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       // check if formula is suitable for Van Krevelen diagram (needs
       // elements C, H, and O)
       if (isFormula) {
-        String s =
-            featureListRow.getPreferredFeatureIdentity().getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
+        String s = featureListRow.getPreferredFeatureIdentity()
+            .getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
         if (s.contains("C") && s.contains("H") && s.contains("O")) {
           hasSuitableElements = true;
           displayedFeatures++;
@@ -417,6 +325,12 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       return rows.toArray(FeatureListRow[]::new);
     } else
       return null;
+  }
+
+  private PaintScale createPaintScale(Double[] zValues) {
+    Range<Double> zValueRange = Range.closed(zValues[0], zValues[zValues.length - 1]);
+    return new PaintScale(paintScaleParameter.getPaintScaleColorStyle(),
+        paintScaleParameter.getPaintScaleBoundStyle(), zValueRange);
   }
 
 }

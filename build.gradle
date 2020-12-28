@@ -13,8 +13,8 @@ description = "MZmine"
 
 // JDK 14+ is needed for jpackage, but we maintain Java 11 source/target
 // compatibility to avoid problems with JavaFX Scene Builder
-sourceCompatibility = "11"
-targetCompatibility = "11"
+sourceCompatibility = "14"
+targetCompatibility = "14"
 defaultTasks "jpackage"
 
 // Check the OS
@@ -55,6 +55,9 @@ repositories {
     }
     maven { // For jmzTab-m Snapshot
         url = "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+    maven { // For jimzml
+        url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser"
     }
 }
 
@@ -164,6 +167,7 @@ dependencies {
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
+    implementation "com.alanmrace:jimzmlparser:1.0.5"
 }
 
 /*

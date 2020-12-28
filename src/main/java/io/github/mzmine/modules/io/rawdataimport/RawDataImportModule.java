@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport;
 
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.TDFReaderTask;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -27,7 +26,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFileWriter;
@@ -42,6 +40,8 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.MzXMLReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.NativeFileReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.NetCDFReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.ZipReadTask;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImzMLReadTask;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.TDFReaderTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -64,14 +64,12 @@ public class RawDataImportModule implements MZmineProcessingModule {
   private String commonPrefix = null;
 
   @Override
-  public @Nonnull
-  String getName() {
+  public @Nonnull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
-  String getDescription() {
+  public @Nonnull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
@@ -81,8 +79,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
    *
    * @return String
    */
-  public @Nonnull
-  String getLastCommonPrefix() {
+  public @Nonnull String getLastCommonPrefix() {
     if (commonPrefix == null) {
       commonPrefix = "";
     }
@@ -100,8 +97,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
     String commonPrefix = null;
     if (MZmineCore.getDesktop().getMainWindow() != null && fileNames.length > 1) {
       String fileName = fileNames[0].getName();
-      outerloop:
-      for (int x = 0; x < fileName.length(); x++) {
+      outerloop: for (int x = 0; x < fileName.length(); x++) {
         for (int i = 0; i < fileNames.length; i++) {
           if (!fileName.substring(0, x).equals(fileNames[i].getName().substring(0, x))) {
             commonPrefix = fileName.substring(0, x - 1);
@@ -183,6 +179,8 @@ public class RawDataImportModule implements MZmineProcessingModule {
       try {
         if (fileType == RawDataFileType.BRUKER_TDF) {
           newMZmineFile = MZmineCore.createNewIMSFile(newName);
+        } else if (fileType == RawDataFileType.IMZML) {
+          newMZmineFile = MZmineCore.createNewImagingFile(newName);
         } else {
           newMZmineFile = MZmineCore.createNewFile(newName);
         }
@@ -213,14 +211,12 @@ public class RawDataImportModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull
-  MZmineModuleCategory getModuleCategory() {
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.RAWDATA;
   }
 
   @Override
-  public @Nonnull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
     return RawDataImportParameters.class;
   }
 
@@ -236,6 +232,9 @@ public class RawDataImportModule implements MZmineProcessingModule {
         break;
       case MZML:
         newTask = new MzMLReadTask(project, fileName, newMZmineFile);
+        break;
+      case IMZML:
+        newTask = new ImzMLReadTask(project, fileName, newMZmineFile);
         break;
       case MZXML:
         newTask = new MzXMLReadTask(project, fileName, newMZmineFile);

@@ -20,7 +20,6 @@ package io.github.mzmine.modules.io.rawdataimport;
 
 import java.io.File;
 import java.util.List;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.util.ExitCode;
@@ -32,7 +31,7 @@ public class RawDataImportParameters extends SimpleParameterSet {
   public static final FileNamesParameter fileNames = new FileNamesParameter();
 
   public RawDataImportParameters() {
-    super(new Parameter[]{fileNames});
+    super(new Parameter[] {fileNames});
   }
 
   @Override
@@ -45,6 +44,7 @@ public class RawDataImportParameters extends SimpleParameterSet {
             "*.xml", "*.raw", "*.csv", "*.zip", "*.gz", "*.tdf"), //
         new ExtensionFilter("NetCDF files", "*.cdf", "*.nc"), //
         new ExtensionFilter("mzML files", "*.mzML"), //
+        new ExtensionFilter("imzML files", "*.imzML"), //
         new ExtensionFilter("mzData files", "*.mzData"), //
         new ExtensionFilter("mzXML files", "*.mzXML"), //
         new ExtensionFilter("Thermo RAW files", "*.raw"), //

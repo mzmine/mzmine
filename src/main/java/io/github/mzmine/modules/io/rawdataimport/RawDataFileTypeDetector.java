@@ -55,11 +55,11 @@ public class RawDataFileTypeDetector {
 
   // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
   private static final String THERMO_HEADER = String.valueOf(
-      new char[]{0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
+      new char[] {0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
 
-  private static final String GZIP_HEADER = String.valueOf(new char[]{0x1f, 0x8b});
+  private static final String GZIP_HEADER = String.valueOf(new char[] {0x1f, 0x8b});
 
-  private static final String ZIP_HEADER = String.valueOf(new char[]{'P', 'K', 0x03, 0x04});
+  private static final String ZIP_HEADER = String.valueOf(new char[] {'P', 'K', 0x03, 0x04});
 
   private static final String TDF_SUFFIX = ".tdf";
   private static final String TDF_BIN_SUFFIX = ".tdf_bin";
@@ -139,7 +139,11 @@ public class RawDataFileTypeDetector {
         }
 
         if (fileHeader.contains(MZML_HEADER)) {
-          return RawDataFileType.MZML;
+          if (fileName.getName().toLowerCase().endsWith("imzml")) {
+            return RawDataFileType.IMZML;
+          } else {
+            return RawDataFileType.MZML;
+          }
         }
 
         if (fileHeader.contains(MZDATA_HEADER)) {
