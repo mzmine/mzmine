@@ -18,12 +18,6 @@
 
 package io.github.mzmine.project.impl;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Vector;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
@@ -36,6 +30,12 @@ import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Vector;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 
 /**
@@ -50,15 +50,15 @@ public class StorableScan implements Scan {
   private double precursorMZ;
   private int precursorCharge;
   private float retentionTime;
-  private Range<Double> mzRange;
-  private DataPoint basePeak;
-  private Double totalIonCurrent;
+  protected Range<Double> mzRange;
+  protected DataPoint basePeak;
+  protected Double totalIonCurrent;
   private MassSpectrumType spectrumType;
   private int numberOfDataPoints;
   private ArrayList<MassList> massLists = new ArrayList<MassList>();
   private PolarityType polarity;
   private String scanDefinition;
-  private Range<Double> scanMZRange;
+  protected Range<Double> scanMZRange;
   private int storageID;
 
   /**
@@ -237,7 +237,7 @@ public class StorableScan implements Scan {
     return retentionTime;
   }
 
-  void updateValues() {
+  protected void updateValues() {
     DataPoint dataPoints[] = getDataPoints();
 
     // find m/z range and base peak
