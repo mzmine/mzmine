@@ -13,109 +13,112 @@
 
   <!-- PROJECT -->
   <Menu text="Project">
-    <Menu onShowing="#fillRecentProjects" text="Open recent project..."
-      fx:id="recentProjectsMenu"/>
-    <MenuItem onAction="#runModule" text="Open project"
+    <Menu fx:id="recentProjectsMenu" text="Open recent project..."
+      onShowing="#fillRecentProjects" />
+    <MenuItem text="Open project" onAction="#runModule"
       userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="O"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+          control="DOWN" meta="UP" shift="UP" shortcut="UP" />
       </accelerator>
     </MenuItem>
-    <MenuItem onAction="#runModule" text="Save project"
+    <MenuItem text="Save project" onAction="#runModule"
       userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="S"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+          control="DOWN" meta="UP" shift="UP" shortcut="UP" />
       </accelerator>
     </MenuItem>
-    <MenuItem onAction="#runModule" text="Save project as"
+    <MenuItem text="Save project as" onAction="#runModule"
       userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule">
       <accelerator>
         <KeyCodeCombination alt="DOWN" code="S"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+          control="DOWN" meta="UP" shift="UP" shortcut="UP" />
       </accelerator>
     </MenuItem>
-    <MenuItem onAction="#closeProject" text="Close project">
+    <MenuItem text="Close project" onAction="#closeProject">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+          control="DOWN" meta="UP" shift="UP" shortcut="UP" />
       </accelerator>
     </MenuItem>
 
-    <MenuItem onAction="#runModule" text="Batch mode"
-      userData="io.github.mzmine.modules.batchmode.BatchModeModule"/>
-    <MenuItem onAction="#setSampleParams"
-      text="Set sample parameters"/>
+    <SeparatorMenuItem />
+    <MenuItem text="Batch mode" onAction="#runModule"
+      userData="io.github.mzmine.modules.batchmode.BatchModeModule" />
 
-    <MenuItem onAction="#setPreferences" text="Set preferences"/>
-    <MenuItem onAction="#runModule" text="Save MZmine parameters"
-      userData=""/>
+    <SeparatorMenuItem />
+    <MenuItem text="Set sample parameters"
+      onAction="#setSampleParams" />
 
-    <MenuItem onAction="#runModule" text="Load MZmine parameters"
-      userData=""/>
-    <MenuItem onAction="#runModule" text="Export audit log"
-      userData="io.github.mzmine.modules.auditlogexport.AuditLogExportModule"/>
+    <SeparatorMenuItem />
+    <MenuItem text="Set preferences" onAction="#setPreferences" />
 
-    <MenuItem onAction="#exitApplication" text="Exit"/>
-    <SeparatorMenuItem/>
-    <SeparatorMenuItem/>
+    <SeparatorMenuItem />
+    <MenuItem text="Save MZmine parameters" onAction="#runModule"
+      userData="" />
+    <MenuItem text="Load MZmine parameters" onAction="#runModule"
+      userData="" />
 
-    <SeparatorMenuItem/>
-    <SeparatorMenuItem/>
+    <SeparatorMenuItem />
+    <MenuItem text="Export audit log" onAction="#runModule"
+      userData="io.github.mzmine.modules.auditlogexport.AuditLogExportModule" />
 
-    <SeparatorMenuItem/>
-    <SeparatorMenuItem/>
+    <SeparatorMenuItem />
+    <MenuItem text="Exit" onAction="#exitApplication" />
   </Menu>
 
 
   <!-- RAW DATA METHODS -->
   <Menu text="Raw data methods">
-    <MenuItem onAction="#runModule" text="Raw data import"
+    <MenuItem text="Raw data import" onAction="#runModule"
       userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="I"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+          control="DOWN" meta="UP" shift="UP" shortcut="UP" />
       </accelerator>
     </MenuItem>
-
-    <MenuItem onAction="#runModule" text="Raw data import (folder)"
+    <MenuItem text="Raw data import (folder)" onAction="#runModule"
       userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule"/>
+
     <Menu text="Raw data export">
-      <MenuItem onAction="#runModule"
-        text="Export raw data file to mzML"
-        userData="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule"/>
-      <MenuItem onAction="#runModule"
-        text="Export scans mgf, txt, msp and mzML"
-        userData="io.github.mzmine.modules.io.exportscans.ExportScansFromRawFilesModule"/>
-      <MenuItem onAction="#runModule"
-        text="Extract scans to CSV file"
-        userData="io.github.mzmine.modules.io.exportscans.ExportScansModule"/>
+      <MenuItem text="Export raw data file to mzML"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule" />
+      <MenuItem text="Export scans mgf, txt, msp and mzML"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.io.exportscans.ExportScansFromRawFilesModule" />
+      <MenuItem text="Extract scans to CSV file"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.io.exportscans.ExportScansModule" />
+    </Menu>
+    <MenuItem text="Merge raw data files" onAction="#runModule"
+      userData="io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule" />
+    <Menu text="Raw data filtering">
+      <MenuItem text="Scan by scan filtering"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule" />
+      <MenuItem text="Crop filter" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule" />
+      <MenuItem text="Baseline correction" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule" />
+      <MenuItem text="Align scans (MS1)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule" />
+      <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule" />
     </Menu>
 
-    <Menu text="Raw data filtering">
-      <MenuItem onAction="#runModule"
-        text="Scan by scan filtering"
-        userData="io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule"/>
-      <MenuItem onAction="#runModule" text="Crop filter"
-        userData="io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule"/>
-      <MenuItem onAction="#runModule" text="Baseline correction"
-        userData="io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule"/>
-      <MenuItem onAction="#runModule" text="Align scans (MS1)"
-        userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
-      <MenuItem onAction="#runModule" text="Scan smoothing (MS1)"
-        userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
-    </Menu>
     <Menu text="Mass detection">
-      <MenuItem onAction="#runModule" text="Mass detection"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule"/>
+      <MenuItem text="Mass detection" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" />
       <MenuItem onAction="#runModule"
         text="FTMS shoulder peak filter"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule" />
       <MenuItem onAction="#runModule"
         text="Mass calibration"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule" />
     </Menu>
+
     <Menu text="Mobilogram detection">
       <MenuItem text="Mobilogram builder" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilogramBuilderModule"/>
@@ -123,63 +126,61 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramSmootherModule"/>
     </Menu>
 
-    <MenuItem onAction="#runModule" text="Merge raw data files"
-      userData="io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule"/>
   </Menu>
 
 
   <!-- FEATURE LIST METHODS -->
   <Menu text="Feature list methods">
     <Menu text="Import feature list">
-      <MenuItem onAction="#runModule" text="mzTab"
-        userData="io.github.mzmine.modules.io.mztabimport.MzTabImportModule"/>
-      <MenuItem onAction="#runModule" text="mzTab-m"
-        userData="io.github.mzmine.modules.io.mztabmimport.MZTabmImportModule"/>
-      <MenuItem onAction="#runModule" text="csv"
-        userData="io.github.mzmine.modules.io.csvimport.CsvImportModule"/>
+      <MenuItem text="mzTab" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
+      <MenuItem text="mzTab-m" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.mztabmimport.MZTabmImportModule" />
+      <MenuItem text="csv" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.csvimport.CsvImportModule" />
     </Menu>
 
     <Menu text="Export feature list">
-      <MenuItem onAction="#runModule" text="CSV"
-        userData="io.github.mzmine.modules.io.csvexport.CSVExportModule"/>
-      <MenuItem onAction="#runModule" text="MetaboAnalyst"
-        userData="io.github.mzmine.modules.io.metaboanalystexport.MetaboAnalystExportModule"/>
-      <MenuItem onAction="#runModule" text="mzTab"
-        userData="io.github.mzmine.modules.io.mztabexport.MzTabExportModule"/>
-      <MenuItem onAction="#runModule" text="mzTab-m"
-        userData="io.github.mzmine.modules.io.mztabmexport.MZTabmExportModule"/>
-      <MenuItem onAction="#runModule" text="SQL Database"
-        userData="io.github.mzmine.modules.io.sqlexport.SQLExportModule"/>
-      <MenuItem onAction="#runModule" text="MSP file (ADAP)"
-        userData="io.github.mzmine.modules.io.adapmspexport.AdapMspExportModule"/>
-      <MenuItem onAction="#runModule" text="MGF file (ADAP)"
-        userData="io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportModule"/>
-      <MenuItem onAction="#runModule"
-        text="GNPS - feature based molecular networking"
-        userData="io.github.mzmine.modules.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitModule"/>
-      <MenuItem onAction="#runModule"
-        text="GNPS-GC-MS (with ADAP)"
-        userData="io.github.mzmine.modules.io.gnpsexport.gc.GnpsGcExportAndSubmitModule"/>
-      <MenuItem onAction="#runModule" text="SIRIUS / CSI-FingerID"
-        userData="io.github.mzmine.modules.io.siriusexport.SiriusExportModule"/>
+      <MenuItem text="CSV" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.csvexport.CSVExportModule" />
+      <MenuItem text="MetaboAnalyst" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.metaboanalystexport.MetaboAnalystExportModule" />
+      <MenuItem text="mzTab" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.mztabexport.MzTabExportModule" />
+      <MenuItem text="mzTab-m" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.mztabmexport.MZTabmExportModule" />
+      <MenuItem text="SQL Database" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.sqlexport.SQLExportModule" />
+      <MenuItem text="MSP file (ADAP)" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.adapmspexport.AdapMspExportModule" />
+      <MenuItem text="MGF file (ADAP)" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportModule" />
+      <MenuItem text="GNPS - feature based molecular networking"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitModule" />
+      <MenuItem text="GNPS-GC-MS (with ADAP)"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.io.gnpsexport.gc.GnpsGcExportAndSubmitModule" />
+      <MenuItem text="SIRIUS / CSI-FingerID" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.siriusexport.SiriusExportModule" />
     </Menu>
 
     <Menu text="Feature detection">
       <Menu text="MS1">
         <MenuItem onAction="#runModule"
           text="ADAP chromatogram builder"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
-        <MenuItem onAction="#runModule"
-          text="Chromatogram deconvolution"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule"/>
-        <MenuItem onAction="#runModule"
-          text="Chromatogram smoothing"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule"/>
-        <MenuItem onAction="#runModule" text="GridMass"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>
+          userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule" />
+        <MenuItem text="Chromatogram deconvolution"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule" />
+        <MenuItem text="Chromatogram smoothing"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule" />
+        <MenuItem text="GridMass" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule" />
         <MenuItem onAction="#runModule"
           text="Targeted feature detection"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
+          userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule" />
       </Menu>
       <Menu text="Imaging">
         <MenuItem onAction="#runModule"
@@ -194,229 +195,229 @@
       <Menu text="MSn">
         <MenuItem onAction="#runModule"
           text="MSn feature list builder"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule"/>
+          userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule" />
       </Menu>
       <Menu text="SRM">
         <MenuItem onAction="#runModule"
-          text="SRM feature list builder (TODO)" userData="TODO"/>
+          text="SRM feature list builder (TODO)" userData="TODO" />
       </Menu>
     </Menu>
 
     <Menu text="Spectral deconvolution">
-      <MenuItem onAction="#runModule"
-        text="Hierarchical clustering"
-        userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule"/>
-      <MenuItem onAction="#runModule"
-        text="Multivariate curve resolution"
-        userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule"/>
+      <MenuItem text="Hierarchical clustering"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule" />
+      <MenuItem text="Multivariate curve resolution"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule" />
     </Menu>
 
     <Menu text="Isotopes">
-      <MenuItem onAction="#runModule" text="Isotope grouper"
-        userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
-      <MenuItem onAction="#runModule" text="Isotope peak scanner"
-        userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
+      <MenuItem text="Isotope grouper" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule" />
+      <MenuItem text="Isotope peak scanner" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule" />
     </Menu>
 
     <Menu text="Feature list filtering">
-      <MenuItem onAction="#runModule"
-        text="Duplicate feature filter"
-        userData="io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule"/>
-      <MenuItem onAction="#runModule"
-        text="Feature list rows filter"
-        userData="io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule"/>
-      <MenuItem onAction="#runModule" text="Feature filter"
-        userData="io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule"/>
-      <MenuItem onAction="#runModule"
-        text="Peak comparison rows filter"
-        userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule"/>
-      <MenuItem onAction="#runModule"
-        text="Clear feature list annotations"
-        userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.FeatureListClearAnnotationsModule"/>
-      <MenuItem onAction="#runModule" text="Neutral loss filter"
-        userData="io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule"/>
+      <MenuItem text="Duplicate feature filter"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule" />
+      <MenuItem text="Feature list rows filter"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule" />
+      <MenuItem text="Feature filter" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule" />
+      <MenuItem text="Peak comparison rows filter"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule" />
+      <MenuItem text="Clear feature list annotations"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.FeatureListClearAnnotationsModule" />
+      <MenuItem text="Neutral loss filter" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule" />
     </Menu>
 
     <Menu text="Alignment">
-      <MenuItem onAction="#runModule" text="Join aligner"
-        userData="io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule"/>
-      <MenuItem onAction="#runModule" text="RANSAC aligner"
-        userData="io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule"/>
-      <MenuItem onAction="#runModule"
-        text="Hierarchical aligner (GC)"
-        userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule"/>
-      <MenuItem onAction="#runModule" text="ADAP aligner (GC)"
-        userData="io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule"/>
+      <MenuItem text="Join aligner" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule" />
+      <MenuItem text="RANSAC aligner" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule" />
+      <MenuItem text="Hierarchical aligner (GC)"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule" />
+      <MenuItem text="ADAP aligner (GC)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule" />
     </Menu>
 
     <Menu text="Gap filling">
-      <MenuItem onAction="#runModule" text="Peak finder"
-        userData="io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule"/>
-      <MenuItem onAction="#runModule"
-        text="Same RT and m/z range gap filler"
-        userData="io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule"/>
+      <MenuItem text="Peak finder" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule" />
+      <MenuItem text="Same RT and m/z range gap filler"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule" />
     </Menu>
 
     <Menu text="Normalization">
-      <MenuItem onAction="#runModule"
-        text="Retention time calibration"
-        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule"/>
-      <MenuItem onAction="#runModule" text="Linear normalizer"
-        userData="io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule"/>
-      <MenuItem onAction="#runModule"
-        text="Standard compound normalizer"
-        userData="io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule"/>
+      <MenuItem text="Retention time calibration"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule" />
+      <MenuItem text="Linear normalizer" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule" />
+      <MenuItem text="Standard compound normalizer"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule" />
     </Menu>
 
     <Menu text="Identification">
       <Menu text="Search precursor mass">
-        <MenuItem onAction="#runModule"
-          text="Local compound database (CSV) search"
-          userData="io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule"/>
-        <MenuItem onAction="#runModule"
-          text="Online compound database search"
-          userData="io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule"/>
-        <MenuItem
+        <MenuItem text="Local compound database (CSV) search"
           onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule" />
+        <MenuItem text="Online compound database search"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule" />
+        <MenuItem
           text="Precursor search in local spectral database"
-          userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule"/>
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule" />
       </Menu>
 
       <Menu text="Search spectra">
-        <MenuItem onAction="#runModule"
-          text="Local spectral database search"
-          userData="io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule"/>
-        <MenuItem onAction="#runModule" text="NIST MS search"
-          userData="io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule"/>
-        <MenuItem onAction="#runModule"
-          text="Chemical formula prediction"
-          userData="io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule"/>
-        <MenuItem onAction="#runModule" text="Lipid search"
-          userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchModule"/>
-        <MenuItem onAction="#runModule"
-          text="MS2 similarity search"
-          userData="io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule"/>
-        <MenuItem onAction="#runModule"
-          text="SIRIUS / CSI-FingerID"
-          userData="io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule"/>
+        <MenuItem text="Local spectral database search"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule" />
+        <MenuItem text="NIST MS search" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule" />
+        <MenuItem text="Chemical formula prediction"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule" />
+        <MenuItem text="Lipid search" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchModule" />
+        <MenuItem text="MS2 similarity search"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule" />
+        <MenuItem text="SIRIUS / CSI-FingerID"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule" />
       </Menu>
 
       <Menu text="Search related peaks">
-        <MenuItem onAction="#runModule" text="CAMERA search"
-          userData="io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule"/>
-        <MenuItem onAction="#runModule" text="Adduct search"
-          userData="io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchModule"/>
-        <MenuItem onAction="#runModule" text="Fragment search"
-          userData="io.github.mzmine.modules.dataprocessing.id_fragmentsearch.FragmentSearchModule"/>
-        <MenuItem onAction="#runModule" text="Complex search"
-          userData="io.github.mzmine.modules.dataprocessing.id_complexsearch.ComplexSearchModule"/>
-        <MenuItem onAction="#runModule" text="CliqueMS group"
-          userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>
+        <MenuItem text="CAMERA search" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule" />
+        <MenuItem text="Adduct search" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchModule" />
+        <MenuItem text="Fragment search" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_fragmentsearch.FragmentSearchModule" />
+        <MenuItem text="Complex search" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_complexsearch.ComplexSearchModule" />
+        <MenuItem text="CliqueMS group" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule" />
       </Menu>
 
     </Menu>
 
     <Menu text="Data analysis">
       <Menu text="Bubble plots">
-        <MenuItem onAction="#runModule"
-          text="Coefficient of variation (CV) plot"
-          userData="io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot.CVPlotModule"/>
-        <MenuItem onAction="#runModule" text="Logratio plot"
-          userData="io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot.LogratioPlotModule"/>
+        <MenuItem text="Coefficient of variation (CV) plot"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot.CVPlotModule" />
+        <MenuItem text="Logratio plot" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot.LogratioPlotModule" />
       </Menu>
       <Menu text="Dimensionality reduction">
-        <MenuItem onAction="#runModule"
-          text="Principal component analysis (PCA)"
-          userData="io.github.mzmine.modules.dataanalysis.projectionplots.PCAPlotModule"/>
-        <MenuItem onAction="#runModule"
-          text="Curvilinear distance analysis (CDA)"
-          userData="io.github.mzmine.modules.dataanalysis.projectionplots.CDAPlotModule"/>
-        <MenuItem onAction="#runModule" text="Sammon's projection"
-          userData="io.github.mzmine.modules.dataanalysis.projectionplots.SammonsPlotModule"/>
+        <MenuItem text="Principal component analysis (PCA)"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataanalysis.projectionplots.PCAPlotModule" />
+        <MenuItem text="Curvilinear distance analysis (CDA)"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataanalysis.projectionplots.CDAPlotModule" />
+        <MenuItem text="Sammon's projection" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataanalysis.projectionplots.SammonsPlotModule" />
       </Menu>
-      <MenuItem onAction="#runModule" text="Clustering"
-        userData="io.github.mzmine.modules.dataanalysis.clustering.ClusteringModule"/>
-      <MenuItem onAction="#runModule" text="Heat map plot"
-        userData="io.github.mzmine.modules.dataanalysis.heatmaps.HeatMapModule"/>
-      <MenuItem onAction="#runModule" text="One-way ANOVA"
-        userData="io.github.mzmine.modules.dataanalysis.anova.AnovaModule"/>
+      <MenuItem text="Clustering" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataanalysis.clustering.ClusteringModule" />
+      <MenuItem text="Heat map plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataanalysis.heatmaps.HeatMapModule" />
+      <MenuItem text="One-way ANOVA" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataanalysis.anova.AnovaModule" />
     </Menu>
   </Menu>
 
   <!-- VISUALIZATION -->
   <Menu text="Visualization">
-    <MenuItem onAction="#runModule" text="MS spectrum"
-      userData="io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="IMS data viewer"
-      userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
-    <MenuItem onAction="#runModule" text="Chromatogram plot"
-      userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Image viewer"
-      userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="2D plot"
-      userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="3D plot"
-      userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="MS/MS plot"
-      userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Neutral loss plot"
-      userData="io.github.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Combined module"
-      userData="io.github.mzmine.modules.visualization.combinedmodule.CombinedModule"/>
-    <MenuItem onAction="#runModule" text="m/z scan histogram"
-      userData="io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule"/>
-    <MenuItem onAction="#runModule"
-      text="Diagnostic fragmentation filtering"
-      userData="io.github.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Raw data overview"
-      userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
+    <MenuItem text="MS spectrum" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule" />
+    <MenuItem text="IMS data viewer" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule" />
+    <MenuItem text="Chromatogram plot" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule" />
+    <MenuItem text="Image viewer" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule" />
+    <MenuItem text="2D plot" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule" />
+    <MenuItem text="3D plot" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule" />
+    <MenuItem text="MS/MS plot" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule" />
+    <MenuItem text="Neutral loss plot" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule" />
+    <MenuItem text="Combined module" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.combinedmodule.CombinedModule" />
+    <MenuItem text="m/z scan histogram" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule" />
+    <MenuItem text="Diagnostic fragmentation filtering"
+      onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule" />
+    <MenuItem text="Raw data overview" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule" />
 
 
-    <MenuItem onAction="#runModule" text="Scatter plot"
-      userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Histogram plot"
-      userData="io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Feature intensity plot"
-      userData="io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule"/>
-    <MenuItem onAction="#runModule" text="Kendrick mass plot"
-      userData="io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule"/>
-    <MenuItem onAction="#runModule" text="Van Krevelen diagram"
-      userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
-    <SeparatorMenuItem/>
+    <SeparatorMenuItem />
+    <MenuItem text="Scatter plot" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule" />
+    <MenuItem text="Histogram plot" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule" />
+    <MenuItem text="Feature intensity plot" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule" />
+    <MenuItem text="Kendrick mass plot" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule" />
+    <MenuItem text="Van Krevelen diagram" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule" />
   </Menu>
 
   <!-- TOOLS -->
   <Menu text="Tools">
-    <MenuItem onAction="#runModule"
-      text="Isotope pattern preview"
-      userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
-    <MenuItem onAction="#runModule"
-      text="Kovats index extraction"
-      userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>
-    <MenuItem onAction="#runModule"
-      text="Calculate quality parameters"
-      userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
+    <MenuItem text="Isotope pattern preview"
+      onAction="#runModule"
+      userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule" />
+    <MenuItem text="Kovats index extraction"
+      onAction="#runModule"
+      userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule" />
+    <MenuItem text="Calculate quality parameters"
+      onAction="#runModule"
+      userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule" />
   </Menu>
 
 
   <!-- WINDOWS -->
-  <Menu text="Help">
-    <MenuItem onAction="#showAbout" text="About MZmine"/>
-    <MenuItem onAction="#openLink" text="Tutorials"
-      userData="http://mzmine.github.io/documentation.html"/>
-    <MenuItem onAction="#openLink" text="Support"
-      userData="http://mzmine.github.io/support.html"/>
-    <MenuItem onAction="#versionCheck" text="Check for updates"/>
-    <MenuItem onAction="#handleShowLogFile" text="Show log file"/>
-    <MenuItem onAction="#openLink" text="Report a problem"
-      userData="https://github.com/mzmine/mzmine3/issues"/>
-    <SeparatorMenuItem/>
-    <SeparatorMenuItem/>
-
-  </Menu>
+  <WindowsMenu />
 
   <!-- HELP -->
-  <WindowsMenu/>
+  <Menu text="Help">
+    <MenuItem text="About MZmine" onAction="#showAbout" />
+    <MenuItem text="Tutorials" onAction="#openLink"
+      userData="http://mzmine.github.io/documentation.html" />
+    <MenuItem text="Support" onAction="#openLink"
+      userData="http://mzmine.github.io/support.html" />
+    <SeparatorMenuItem />
+    <MenuItem text="Check for updates" onAction="#versionCheck" />
+    <SeparatorMenuItem />
+    <MenuItem text="Show log file" onAction="#handleShowLogFile" />
+    <MenuItem text="Report a problem" onAction="#openLink"
+      userData="https://github.com/mzmine/mzmine3/issues" />
+
+  </Menu>
 
 </MenuBar>
 

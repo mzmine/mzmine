@@ -191,6 +191,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     summedSpectrumChart.setDefaultRenderer(summedSpectrumRenderer);
     summedSpectrumChart.setShowCrosshair(false);
     summedMobilogramChart.getXYPlot().setOrientation(PlotOrientation.HORIZONTAL);
+    summedMobilogramChart.getXYPlot().getRangeAxis().setInverted(true);
     summedMobilogramChart.setShowCrosshair(false);
 
     final ColoredXYBarRenderer singleSpectrumRenderer = new ColoredXYBarRenderer(false);
