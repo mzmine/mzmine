@@ -20,7 +20,10 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
@@ -196,8 +199,21 @@ public abstract class DataType<T extends Property<?>> {
 
   /**
    * Creating a property which is used in a {@link ModularDataModel}
-   * 
+   *
    * @return
    */
   public abstract T createProperty();
+
+
+  /**
+   * In case this DataType is added to a {@link ModularFeature}, these row bindings are added to the
+   * {@link ModularFeatureList} to automatically calculate or visualize summary datatypes in a row
+   *
+   * @return
+   */
+  @Nonnull
+  public List<RowBinding> createDefaultRowBindings() {
+    return List.of();
+  }
+
 }

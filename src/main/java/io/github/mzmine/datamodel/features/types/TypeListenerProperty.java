@@ -15,10 +15,24 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types.modifiers;
+package io.github.mzmine.datamodel.features.types;
 
-public enum BindingsType {
+import io.github.mzmine.datamodel.features.ListRowBinding;
+import java.util.List;
+import javafx.beans.property.SimpleBooleanProperty;
 
-  AVERAGE, SUM, MIN, MAX, COUNT, RANGE, CONSENSUS, LIST;
+/**
+ * Holds no value but makes fireChangedEvent public. Used by {@link LinkedDataType} and {@link
+ * ListRowBinding} to listen to multiple feature DataTypes
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public class TypeListenerProperty extends SimpleBooleanProperty {
 
+  // Listen to multiple feature types for changes
+  private List<DataType> featureTypes;
+
+  public void fireChangedEvent() {
+    super.fireValueChangedEvent();
+  }
 }

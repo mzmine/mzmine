@@ -20,24 +20,31 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeType;
+import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.RawFileType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
+import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import java.util.List;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.RowBinding;
-import io.github.mzmine.datamodel.features.types.*;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import io.github.mzmine.datamodel.features.types.numbers.*;
 
 @SuppressWarnings("null")
 public class DataTypeUtils {
-  // bindings from row to features
-  public static final @Nonnull List<RowBinding> DEFAULT_CHROMATOGRAPHIC_ROWBINDING =
-      List.of(new RowBinding(new MZType(), BindingsType.AVERAGE),
-          new RowBinding(new RTType(), BindingsType.AVERAGE)/*,
-          new RowBinding(new HeightType(), BindingsType.MAX),
-          new RowBinding(new AreaType(), BindingsType.MAX)*/,
-          new RowBinding(new RTRangeType(), BindingsType.RANGE),
-          new RowBinding(new MZRangeType(), BindingsType.RANGE));
 
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(
           new RTType(), new RTRangeType(), // needed next to each other for switching between RTType and RTRangeType
@@ -60,7 +67,6 @@ public class DataTypeUtils {
     flist.addRowType(DEFAULT_CHROMATOGRAPHIC_ROW);
     flist.addFeatureType(DEFAULT_CHROMATOGRAPHIC_FEATURE);
     // row bindigns are now added in the table
-    // flist.addRowBinding(DEFAULT_CHROMATOGRAPHIC_ROWBINDING);
   }
 
 }

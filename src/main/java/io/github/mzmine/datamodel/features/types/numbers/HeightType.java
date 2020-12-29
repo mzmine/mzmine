@@ -18,11 +18,15 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.main.MZmineCore;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.List;
+import javax.annotation.Nonnull;
 
 public class HeightType extends FloatType {
 
@@ -47,4 +51,9 @@ public class HeightType extends FloatType {
     return "Height";
   }
 
+  @Nonnull
+  @Override
+  public List<RowBinding> createDefaultRowBindings() {
+    return List.of(new SimpleRowBinding(this, BindingsType.MAX));
+  }
 }
