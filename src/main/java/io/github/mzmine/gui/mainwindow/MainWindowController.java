@@ -31,8 +31,8 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.util.javafx.DraggableListCellWithDraggableFiles;
-import io.github.mzmine.util.javafx.listviewgroups.ListViewGroupsEntity;
-import io.github.mzmine.util.javafx.listviewgroups.ListViewGroups;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -47,7 +47,7 @@ import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.FeatureTableFXUtil;
-import io.github.mzmine.util.javafx.listviewgroups.ListViewGroupsCell;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
 import javafx.application.Platform;
 import javafx.scene.control.ContextMenu;
 import io.github.mzmine.parameters.ParameterSet;
@@ -124,7 +124,7 @@ public class MainWindowController {
   private Scene mainScene;
 
   @FXML
-  private ListViewGroups<RawDataFile> rawDataList;
+  private GroupableListView<RawDataFile> rawDataList;
 
   @FXML
   private ListView<FeatureList> featuresList;
@@ -195,10 +195,10 @@ public class MainWindowController {
 
     alignedFeaturesList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-    rawDataList.setCellFactory(rawDataListView -> new ListViewGroupsCell<>(rawDataGroupMenuItem) {
+    rawDataList.setCellFactory(rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
       @Override
-      protected void updateItem(ListViewGroupsEntity<RawDataFile> item, boolean empty) {
+      protected void updateItem(GroupableListViewEntity<RawDataFile> item, boolean empty) {
         super.updateItem(item, empty);
         if (empty || (item == null)) {
           setText("");
@@ -215,7 +215,7 @@ public class MainWindowController {
       }
 
       @Override
-      public void commitEdit(ListViewGroupsEntity<RawDataFile> item) {
+      public void commitEdit(GroupableListViewEntity<RawDataFile> item) {
         super.commitEdit(item);
         if (item == null || item.isGroupHeader()) {
           return;
@@ -419,7 +419,7 @@ public class MainWindowController {
     addTab(rop);
   }
 
-  public ListViewGroups<RawDataFile> getRawDataList() {
+  public GroupableListView<RawDataFile> getRawDataList() {
     return rawDataList;
   }
 

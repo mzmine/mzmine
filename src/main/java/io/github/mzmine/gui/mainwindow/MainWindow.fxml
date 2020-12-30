@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import org.controlsfx.control.StatusBar?>
 
-<?import io.github.mzmine.util.javafx.listviewgroups.ListViewGroups?>
+<?import io.github.mzmine.util.javafx.groupablelistview.GroupableListView?>
 <Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/10.0.2-internal"
   xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
@@ -31,7 +31,7 @@
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
-                          <ListViewGroups fx:id="rawDataList" editable="true"
+                          <GroupableListView fx:id="rawDataList" editable="true"
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <contextMenu>
@@ -72,7 +72,7 @@
                                 </items>
                               </ContextMenu>
                             </contextMenu>
-                          </ListViewGroups>
+                          </GroupableListView>
                         </children>
                       </AnchorPane>
                     </content>

@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.util.javafx.listviewgroups;
+package io.github.mzmine.util.javafx.groupablelistview;
 
 import io.github.mzmine.util.javafx.DraggableListCellWithDraggableFiles;
 import java.util.ArrayList;
@@ -34,11 +34,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
 /**
- * Class designed to be used as a cell of {@link ListViewGroups}.
+ * Class designed to be used as a cell of {@link GroupableListView}.
  * @param <T> type of the cell content
  */
-public class ListViewGroupsCell<T> extends
-    DraggableListCellWithDraggableFiles<ListViewGroupsEntity<T>> {
+public class GroupableListViewCell<T> extends
+    DraggableListCellWithDraggableFiles<GroupableListViewEntity<T>> {
 
   private static final int INDENT = 20;
   private final String POSTFIX = "files";
@@ -49,7 +49,7 @@ public class ListViewGroupsCell<T> extends
   private final TextField renameTextField = new TextField();
   private Node renameSavedGraphic;
 
-  public ListViewGroupsCell(MenuItem groupUngroupMenuItem) {
+  public GroupableListViewCell(MenuItem groupUngroupMenuItem) {
     setEditable(true);
 
     // Setup renaming text fields
@@ -62,13 +62,13 @@ public class ListViewGroupsCell<T> extends
 
     // Setup group headers expanding
     expandButton.setOnMouseClicked(event -> {
-      getListView().getItems().removeAll(((ListViewGroups<T>) getListView())
+      getListView().getItems().removeAll(((GroupableListView<T>) getListView())
           .getGroupItems(getItem().getGroupHeader()));
       setGraphic(hiddenButton);
       getItem().invertState();
     });
     hiddenButton.setOnMouseClicked(event -> {
-      getListView().getItems().addAll(getIndex() + 1, ((ListViewGroups<T>) getListView())
+      getListView().getItems().addAll(getIndex() + 1, ((GroupableListView<T>) getListView())
           .getGroupItems(getItem().getGroupHeader()));
       setGraphic(expandButton);
       getItem().invertState();
@@ -76,15 +76,15 @@ public class ListViewGroupsCell<T> extends
 
     // Setup grouping context menu item
     Platform.runLater(() -> {
-      getListView().getSelectionModel().getSelectedItems().addListener(new ListChangeListener<ListViewGroupsEntity<T>>() {
+      getListView().getSelectionModel().getSelectedItems().addListener(new ListChangeListener<GroupableListViewEntity<T>>() {
         @Override
-        public void onChanged(Change<? extends ListViewGroupsEntity<T>> change) {
-          if (((ListViewGroups<T>) getListView()).onlyGroupHeadersSelected()) {
+        public void onChanged(Change<? extends GroupableListViewEntity<T>> change) {
+          if (((GroupableListView<T>) getListView()).onlyGroupHeadersSelected()) {
             groupUngroupMenuItem.setText("Ungroup " + POSTFIX);
             groupUngroupMenuItem.setDisable(false);
-          } else if (((ListViewGroups<T>) getListView()).onlyItemsSelected()
+          } else if (((GroupableListView<T>) getListView()).onlyItemsSelected()
               // TODO: do we need inherited grouping?
-              && !((ListViewGroups<T>) getListView()).anyGroupedItemSelected()) {
+              && !((GroupableListView<T>) getListView()).anyGroupedItemSelected()) {
             groupUngroupMenuItem.setText("Group " + POSTFIX);
             groupUngroupMenuItem.setDisable(false);
           } else {
@@ -97,7 +97,7 @@ public class ListViewGroupsCell<T> extends
   }
 
   @Override
-  protected void updateItem(ListViewGroupsEntity<T> item, boolean empty) {
+  protected void updateItem(GroupableListViewEntity<T> item, boolean empty) {
     super.updateItem(item, empty);
     if (empty || (item == null)) {
       setText("");
@@ -153,14 +153,14 @@ public class ListViewGroupsCell<T> extends
   }
 
   @Override
-  public void commitEdit(ListViewGroupsEntity<T> item) {
+  public void commitEdit(GroupableListViewEntity<T> item) {
     if (item == null) {
       return;
     }
     super.commitEdit(item);
 
     if (item.isGroupHeader()) {
-      ((ListViewGroups<T>) getListView()).renameGroupHeader(item, renameTextField.getText());
+      ((GroupableListView<T>) getListView()).renameGroupHeader(item, renameTextField.getText());
     }
     setGraphic(renameSavedGraphic);
     setText(renameTextField.getText());
@@ -173,26 +173,26 @@ public class ListViewGroupsCell<T> extends
   @Override
   protected void dragDroppedAction(int draggedIdx) {
     int thisIndex = getIndex();
-    ListViewGroupsEntity<T> draggedItem = getListView().getItems().get(draggedIdx);
-    ListViewGroupsEntity<T> thisItem = getListView().getItems().get(thisIndex);
+    GroupableListViewEntity<T> draggedItem = getListView().getItems().get(draggedIdx);
+    GroupableListViewEntity<T> thisItem = getListView().getItems().get(thisIndex);
 
     // Define drop behavior depending on the active items
     if (draggedItem.isValue()) {
       if (thisItem.isGroupHeader() && thisIndex > draggedIdx) {
-        thisIndex += ((ListViewGroups<T>) getListView()).getGroupSize(thisItem.getGroupHeader());
+        thisIndex += ((GroupableListView<T>) getListView()).getGroupSize(thisItem.getGroupHeader());
       }
 
       super.dragDroppedAction(draggedIdx);
-      ((ListViewGroups<T>) getListView()).removeFromGroup(draggedItem.getGroup(), draggedItem);
-      ((ListViewGroups<T>) getListView()).addToGroup(thisItem.getGroup(), draggedItem);
+      ((GroupableListView<T>) getListView()).removeFromGroup(draggedItem.getGroup(), draggedItem);
+      ((GroupableListView<T>) getListView()).addToGroup(thisItem.getGroup(), draggedItem);
     } else if (draggedItem.isGroupHeader() && !thisItem.isGrouped()) {
-      List<ListViewGroupsEntity<T>> groupItems
-          = new ArrayList<>(((ListViewGroups<T>) getListView()).getGroupItems(draggedItem.getGroupHeader()));
+      List<GroupableListViewEntity<T>> groupItems
+          = new ArrayList<>(((GroupableListView<T>) getListView()).getGroupItems(draggedItem.getGroupHeader()));
 
       if (thisIndex > draggedIdx) {
         thisIndex -= groupItems.size();
         if (thisItem.isGroupHeader()) {
-          thisIndex += ((ListViewGroups<T>) getListView()).getGroupSize(thisItem.getGroupHeader());
+          thisIndex += ((GroupableListView<T>) getListView()).getGroupSize(thisItem.getGroupHeader());
         }
       }
 

@@ -23,7 +23,7 @@ import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.pr
 import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.util.javafx.listviewgroups.ListViewGroups;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -261,7 +261,7 @@ public class MZmineGUI extends Application implements Desktop {
 
       MZmineCore.getProjectManager().setCurrentProject(project);
 
-      ListViewGroups<RawDataFile> rawDataTree = mainWindowController.getRawDataList();
+      GroupableListView<RawDataFile> rawDataTree = mainWindowController.getRawDataList();
       rawDataTree.setItemsValues(project.getRawDataFiles());
 
       ListView<FeatureList> featureTree = mainWindowController.getFeaturesList();
@@ -276,7 +276,7 @@ public class MZmineGUI extends Application implements Desktop {
   @Nonnull
   public static List<RawDataFile> getSelectedRawDataFiles() {
 
-    final ListViewGroups<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
+    final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
     return ImmutableList.copyOf(rawDataListView.getSelectedItems());
 
   }

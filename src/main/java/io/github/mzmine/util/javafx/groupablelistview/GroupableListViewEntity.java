@@ -16,20 +16,20 @@
  * USA
  */
 
-package io.github.mzmine.util.javafx.listviewgroups;
+package io.github.mzmine.util.javafx.groupablelistview;
 
 /**
- * Class designed to be used as an item of {@link ListViewGroups}.
+ * Class designed to be used as an item of {@link GroupableListView}.
  * @param <T> type of the list view item value
  */
-public class ListViewGroupsEntity<T> {
+public class GroupableListViewEntity<T> {
 
   // Value
 
   private T value;
   private String group;
 
-  public ListViewGroupsEntity(T value) {
+  public GroupableListViewEntity(T value) {
     this.value = value;
   }
 
@@ -63,7 +63,7 @@ public class ListViewGroupsEntity<T> {
   private String groupHeader;
   private boolean isExpanded = true;
 
-  public ListViewGroupsEntity(String groupHeader) {
+  public GroupableListViewEntity(String groupHeader) {
     this.groupHeader = groupHeader;
   }
 
