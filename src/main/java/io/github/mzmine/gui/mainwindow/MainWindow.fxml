@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import org.controlsfx.control.StatusBar?>
 
+<?import io.github.mzmine.util.javafx.listviewgroups.ListViewGroups?>
 <Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/10.0.2-internal"
   xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
@@ -30,11 +31,11 @@
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
-                          <ListView fx:id="rawDataTree" editable="true"
+                          <ListViewGroups fx:id="rawDataList" editable="true"
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <contextMenu>
-                              <ContextMenu>
+                              <ContextMenu fx:id="rawDataContextMenu">
                                 <items>
                                   <MenuItem onAction="#handleShowChromatogram"
                                     text="Show chromatogram"/>
@@ -63,6 +64,7 @@
                                   </Menu>
                                   <MenuItem onAction="#handleRenameFile" text="Rename file"/>
                                   <MenuItem onAction="#handleRemoveRawData" text="Remove file"/>
+                                  <MenuItem fx:id="rawDataGroupMenuItem" onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
 
                                   <SeparatorMenuItem/>
                                   <MenuItem onAction="#handleSetRawDataFileColor" text="Set color"/>
@@ -70,7 +72,7 @@
                                 </items>
                               </ContextMenu>
                             </contextMenu>
-                          </ListView>
+                          </ListViewGroups>
                         </children>
                       </AnchorPane>
                     </content>
@@ -79,7 +81,7 @@
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
-                          <ListView fx:id="featureTree" editable="true"
+                          <ListView fx:id="featuresList" editable="true"
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <contextMenu>
@@ -111,7 +113,7 @@
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
-                          <ListView fx:id="alignedFeatureTree" editable="true"
+                          <ListView fx:id="alignedFeaturesList" editable="true"
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <contextMenu>

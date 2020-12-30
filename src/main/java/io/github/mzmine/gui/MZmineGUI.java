@@ -23,6 +23,7 @@ import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.pr
 import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.javafx.listviewgroups.ListViewGroups;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -260,13 +261,13 @@ public class MZmineGUI extends Application implements Desktop {
 
       MZmineCore.getProjectManager().setCurrentProject(project);
 
-      ListView<RawDataFile> rawDataTree = mainWindowController.getRawDataTree();
-      rawDataTree.setItems(project.getRawDataFiles());
+      ListViewGroups<RawDataFile> rawDataTree = mainWindowController.getRawDataList();
+      rawDataTree.setItemsValues(project.getRawDataFiles());
 
-      ListView<FeatureList> featureTree = mainWindowController.getFeatureTree();
+      ListView<FeatureList> featureTree = mainWindowController.getFeaturesList();
       featureTree.setItems(project.getFeatureLists().filtered(featureList -> !featureList.isAligned()));
 
-      ListView<FeatureList> alignedFeatureTree = mainWindowController.getAlignedFeatureTree();
+      ListView<FeatureList> alignedFeatureTree = mainWindowController.getAlignedFeaturesList();
       alignedFeatureTree.setItems(project.getFeatureLists().filtered(featureList -> featureList.isAligned()));
     });
 
@@ -275,15 +276,15 @@ public class MZmineGUI extends Application implements Desktop {
   @Nonnull
   public static List<RawDataFile> getSelectedRawDataFiles() {
 
-    final ListView<RawDataFile> rawDataListView = mainWindowController.getRawDataTree();
-    return ImmutableList.copyOf(rawDataListView.getSelectionModel().getSelectedItems());
+    final ListViewGroups<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
+    return ImmutableList.copyOf(rawDataListView.getSelectedItems());
 
   }
 
   @Nonnull
   public static List<FeatureList> getSelectedFeatureLists() {
 
-    final ListView<FeatureList> featureListView = mainWindowController.getFeatureTree();
+    final ListView<FeatureList> featureListView = mainWindowController.getFeaturesList();
     return ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
 
   }
@@ -291,7 +292,7 @@ public class MZmineGUI extends Application implements Desktop {
   @Nonnull
   public static List<FeatureList> getSelectedAlignedFeatureLists() {
 
-    final ListView<FeatureList> featureListView = mainWindowController.getAlignedFeatureTree();
+    final ListView<FeatureList> featureListView = mainWindowController.getAlignedFeaturesList();
     return ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
 
   }

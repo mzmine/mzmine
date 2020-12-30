@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.gui.mainwindow;
+package io.github.mzmine.util.javafx;
 
 import io.github.mzmine.gui.MZmineGUI;
 import javafx.collections.ObservableList;
@@ -32,11 +32,11 @@ import javafx.scene.input.TransferMode;
  * to reorder ListView items by dragging with the mouse
  * to drag and drop files on the ListView
  */
-public class DraggableListCellWithDraggableFiles<Type> extends ListCell<Type> {
+public class DraggableListCellWithDraggableFiles<T> extends ListCell<T> {
 
   public DraggableListCellWithDraggableFiles() {
 
-    final DraggableListCellWithDraggableFiles<Type> thisCell = this; // necessary??
+    final DraggableListCellWithDraggableFiles<T> thisCell = this; // necessary??
 
     setOnDragDetected(event -> {
       if (getItem() == null) {
@@ -83,17 +83,7 @@ public class DraggableListCellWithDraggableFiles<Type> extends ListCell<Type> {
       Dragboard db = event.getDragboard();
 
       if (db.hasString()) {
-        ObservableList<Type> items = getListView().getItems();
-
-        int draggedIdx = Integer.valueOf(db.getString());
-        int thisIdx = items.indexOf(getItem());
-
-        Type draggedItem = getListView().getItems().get(draggedIdx);
-
-        items.set(draggedIdx, getItem());
-        items.set(thisIdx, draggedItem);
-        getListView().getSelectionModel().clearAndSelect(thisIdx);
-
+        dragDroppedAction(Integer.parseInt(db.getString()));
       }
       if(db.hasFiles())
          MZmineGUI.activateSetOnDragDropped(event);
@@ -105,6 +95,15 @@ public class DraggableListCellWithDraggableFiles<Type> extends ListCell<Type> {
 
     setOnDragDone(DragEvent::consume);
 
+  }
+
+  protected void dragDroppedAction(int draggedIdx) {
+    ObservableList<T> items = getListView().getItems();
+    T draggedItem = getListView().getItems().get(draggedIdx);
+
+    items.remove(draggedItem);
+    items.add(getIndex(), draggedItem);
+    getListView().getSelectionModel().clearAndSelect(getIndex());
   }
 
 }
