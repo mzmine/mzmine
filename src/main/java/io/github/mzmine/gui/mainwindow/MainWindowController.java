@@ -693,19 +693,19 @@ public class MainWindowController {
     if (tab instanceof MZmineTab) {
       ((MZmineTab) tab).updateOnSelectionProperty().addListener(((obs, old, val) -> {
         if (val) {
-          if (!((MZmineTab) tab).getRawDataFiles()
+          if (((MZmineTab) tab).getRawDataFiles() != null && !((MZmineTab) tab).getRawDataFiles()
               .equals(rawDataList.getSelectionModel().getSelectedItems())) {
             ((MZmineTab) tab)
                 .onRawDataFileSelectionChanged(rawDataList.getSelectedItems());
           }
 
-          if(!((MZmineTab) tab).getFeatureLists()
+          if(((MZmineTab) tab).getFeatureLists() != null && !((MZmineTab) tab).getFeatureLists()
               .equals(featuresList.getSelectionModel().getSelectedItems())) {
             ((MZmineTab) tab)
                 .onFeatureListSelectionChanged(featuresList.getSelectionModel().getSelectedItems());
           }
 
-          if(!((MZmineTab) tab).getAlignedFeatureLists()
+          if(((MZmineTab) tab).getAlignedFeatureLists() != null && !((MZmineTab) tab).getAlignedFeatureLists()
               .equals(alignedFeaturesList.getSelectionModel().getSelectedItems())) {
             ((MZmineTab) tab)
                 .onAlignedFeatureListSelectionChanged(alignedFeaturesList.getSelectionModel().getSelectedItems());
