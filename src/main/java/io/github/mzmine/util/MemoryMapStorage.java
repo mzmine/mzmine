@@ -153,7 +153,6 @@ public class MemoryMapStorage {
     // Copy the data to the memory mapped storage
     sliceDoubleView.put(data, offset, length);
 
-
     // Update the position and the main buffer so we are ready to store the next array
     currentMappedFile.position(savedPosition + length * Double.BYTES);
 
@@ -208,7 +207,6 @@ public class MemoryMapStorage {
 
     // Copy the data to the memory mapped storage
     sliceFloatView.put(data, offset, length);
-
 
     // Update the position and the main buffer so we are ready to store the next array
     currentMappedFile.position(savedPosition + length * Float.BYTES);
