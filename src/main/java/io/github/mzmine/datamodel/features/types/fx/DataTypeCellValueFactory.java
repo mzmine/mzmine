@@ -63,8 +63,8 @@ public class DataTypeCellValueFactory implements
   public ObservableValue<Object> call(CellDataFeatures<ModularFeatureListRow, Object> param) {
     final ModularDataModel map = dataMapSupplier.apply(param.getValue().getValue());
     if (map == null) {
-      logger.log(Level.WARNING, "There was no DataTypeMap for the column of DataType "
-          + type.getClass().toString() + " and raw file " + (raw == null ? "NONE" : raw.getName()));
+      //logger.log(Level.WARNING, "There was no DataTypeMap for the column of DataType "
+      //    + type.getClass().toString() + " and raw file " + (raw == null ? "NONE" : raw.getName()));
       return null;
     }
 

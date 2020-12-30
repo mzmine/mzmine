@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXMLTabAnchorPaneController;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javax.annotation.Nullable;
@@ -42,7 +42,7 @@ public class FeatureTableFXUtil {
   @Nullable
   public static void /*FeatureTableFXMLTabAnchorPaneController*/ addFeatureTableTab(
       FeatureList flist) {
-    FeatureTableFXTab newTab = new FeatureTableFXTab(flist);
+    FeatureTableTab newTab = new FeatureTableTab(flist);
     MZmineCore.getDesktop().addTab(newTab);
     //return newTab.getController();
   }
