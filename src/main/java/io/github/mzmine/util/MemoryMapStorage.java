@@ -27,6 +27,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
@@ -66,6 +68,8 @@ public class MemoryMapStorage {
    */
   private static final long STORAGE_FILE_CAPACITY = 1_000_000_000L;
 
+  private final Set<File> temporaryFiles = new HashSet<>();
+
   /**
    * The file that we are currently writing into.
    */
@@ -82,6 +86,7 @@ public class MemoryMapStorage {
 
     // Create the temporary storage file
     File storageFileName = File.createTempFile("mzmine", ".tmp");
+    temporaryFiles.add(storageFileName);
     logger.finest("Created a temporary file " + storageFileName);
 
     // Open the file for writing
@@ -267,6 +272,16 @@ public class MemoryMapStorage {
 
     return readOnlySlice;
 
+  }
+
+  /**
+   * Discard this memory-mapped storage and remove all the associated temporary files.
+   */
+  public synchronized void discard() throws IOException {
+    for (File tmpFile : temporaryFiles)
+      tmpFile.delete();
+    temporaryFiles.clear();
+    currentMappedFile = null;
   }
 
 }
