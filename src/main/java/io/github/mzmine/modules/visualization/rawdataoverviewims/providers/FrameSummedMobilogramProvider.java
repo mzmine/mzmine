@@ -26,7 +26,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
 
@@ -39,23 +38,34 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
   protected final UnitFormat unitFormat;
   private final CachedFrame cachedFrame;
 
-  private final List<Double> domainValues;
-  private final List<Double> rangeValues;
+  private double[] mobilites;
+  private double[] intensities;
 
   private double finishedPercentage;
 
   public FrameSummedMobilogramProvider(CachedFrame frame) {
     cachedFrame = frame;
-
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
-
-    domainValues = new ArrayList<>();
-    rangeValues = new ArrayList<>();
     finishedPercentage = 0d;
+  }
+
+  @Override
+  public double getDomainValue(int index) {
+    return mobilites[index];
+  }
+
+  @Override
+  public double getRangeValue(int index) {
+    return intensities[index];
+  }
+
+  @Override
+  public int getValueCount() {
+    return mobilites.length;
   }
 
   @Override
@@ -75,16 +85,6 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
         + "\nBase peak m/z " + mzFormat.format(scan.getHighestDataPoint().getMZ())
         + "\nBase peak intensity " + intensityFormat
         .format(scan.getHighestDataPoint().getIntensity());
-  }
-
-  @Override
-  public List<Double> getDomainValues() {
-    return domainValues;
-  }
-
-  @Override
-  public List<Double> getRangeValues() {
-    return rangeValues;
   }
 
   @Override
@@ -110,10 +110,16 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    cachedFrame.getSortedMobilityScans()
-        .forEach(scan -> rangeValues.add(ScanUtils.getTIC(scan.getDataPoints(), 0.d)));
-    finishedPercentage = 0.5;
-    cachedFrame.getSortedMobilityScans().forEach(scan -> domainValues.add(scan.getMobility()));
+    List<MobilityScan> scans = cachedFrame.getSortedMobilityScans();
+
+    int numScans = scans.size();
+    mobilites = new double[numScans];
+    intensities = new double[numScans];
+    for (int i = 0; i < numScans; i++) {
+      mobilites[i] = scans.get(i).getMobility();
+      intensities[i] = ScanUtils.getTIC(scans.get(i).getDataPoints(), 0.d);
+      finishedPercentage = (double) i / numScans;
+    }
     finishedPercentage = 1.0;
   }
 }

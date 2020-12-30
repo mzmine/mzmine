@@ -26,8 +26,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
 
 public class SingleSpectrumProvider implements PlotXYDataProvider {
@@ -38,9 +36,8 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
   protected final NumberFormat intensityFormat;
   protected final UnitFormat unitFormat;
   private final MobilityScan scan;
-  private final List<Double> domainValues;
-  private final List<Double> rangeValues;
   private double finishedPercentage;
+  private DataPoint[] dataPoints;
 
   public SingleSpectrumProvider(MobilityScan scan) {
     this.scan = scan;
@@ -50,8 +47,6 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
 
-    domainValues = new ArrayList<>();
-    rangeValues = new ArrayList<>();
     finishedPercentage = 0d;
   }
 
@@ -67,7 +62,7 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
 
   @Override
   public String getLabel(int index) {
-    return mzFormat.format(domainValues.get(index));
+    return mzFormat.format(dataPoints[index].getMZ());
   }
 
   @Override
@@ -82,31 +77,30 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
         + "\nMobility scan #" + scan.getMobilityScamNumber()
         + "\nMobility: " + mobilityFormat.format(scan.getMobility()) + " " + scan.getMobilityType()
         .getUnit()
-        + "\nm/z: " + mzFormat.format(domainValues.get(itemIndex))
-        + "\nIntensity: " + intensityFormat.format(rangeValues.get(itemIndex));
+        + "\nm/z: " + mzFormat.format(dataPoints[itemIndex].getMZ())
+        + "\nIntensity: " + intensityFormat.format(dataPoints[itemIndex].getIntensity());
 
   }
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    DataPoint[] dataPoints = scan.getDataPoints();
-    double finishedDps = 0;
-    for (DataPoint dp : dataPoints) {
-      domainValues.add(dp.getMZ());
-      rangeValues.add(dp.getIntensity());
-      finishedDps++;
-      finishedPercentage = finishedDps / dataPoints.length;
-    }
+    dataPoints = scan.getDataPoints();
+    finishedPercentage = 1.d;
   }
 
   @Override
-  public List<Double> getDomainValues() {
-    return domainValues;
+  public double getDomainValue(int index) {
+    return dataPoints[index].getMZ();
   }
 
   @Override
-  public List<Double> getRangeValues() {
-    return rangeValues;
+  public double getRangeValue(int index) {
+    return dataPoints[index].getIntensity();
+  }
+
+  @Override
+  public int getValueCount() {
+    return dataPoints.length;
   }
 
   @Override

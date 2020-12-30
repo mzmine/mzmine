@@ -245,26 +245,31 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void updateValueMarkers() {
-    extractedMobilogramChart.getXYPlot().clearDomainMarkers();
-    extractedMobilogramChart.getXYPlot()
-        .addDomainMarker(new ValueMarker(selectedMobilityScan.getValue().getMobility(),
-            markerColor, markerStroke));
-    summedMobilogramChart.getXYPlot().clearDomainMarkers();
-    summedMobilogramChart.getXYPlot()
-        .addDomainMarker(new ValueMarker(selectedMobilityScan.getValue().getMobility(),
-            markerColor, markerStroke));
-    summedSpectrumChart.getXYPlot().clearDomainMarkers();
-    summedSpectrumChart.getXYPlot().addDomainMarker(new ValueMarker(selectedMz.get(),
-        markerColor, markerStroke));
-    singleSpectrumChart.getXYPlot().clearDomainMarkers();
-    singleSpectrumChart.getXYPlot().addDomainMarker(new ValueMarker(selectedMz.get(),
-        markerColor, markerStroke));
-    heatmapChart.getXYPlot().clearDomainMarkers();
-    heatmapChart.getXYPlot().clearRangeMarkers();
-    heatmapChart.getXYPlot()
-        .addDomainMarker(new ValueMarker(selectedMz.get(), markerColor, markerStroke));
-    heatmapChart.getXYPlot().addRangeMarker(
-        new ValueMarker(selectedMobilityScan.getValue().getMobility(), markerColor, markerStroke));
+    if (selectedMobilityScan.get() != null) {
+      extractedMobilogramChart.getXYPlot().clearDomainMarkers();
+      extractedMobilogramChart.getXYPlot()
+          .addDomainMarker(new ValueMarker(selectedMobilityScan.getValue().getMobility(),
+              markerColor, markerStroke));
+      summedMobilogramChart.getXYPlot().clearDomainMarkers();
+      summedMobilogramChart.getXYPlot()
+          .addDomainMarker(new ValueMarker(selectedMobilityScan.getValue().getMobility(),
+              markerColor, markerStroke));
+      heatmapChart.getXYPlot().addRangeMarker(
+          new ValueMarker(selectedMobilityScan.getValue().getMobility(), markerColor,
+              markerStroke));
+    }
+    if (selectedMz.getValue() != null) {
+      summedSpectrumChart.getXYPlot().clearDomainMarkers();
+      summedSpectrumChart.getXYPlot().addDomainMarker(new ValueMarker(selectedMz.get(),
+          markerColor, markerStroke));
+      singleSpectrumChart.getXYPlot().clearDomainMarkers();
+      singleSpectrumChart.getXYPlot().addDomainMarker(new ValueMarker(selectedMz.get(),
+          markerColor, markerStroke));
+      heatmapChart.getXYPlot().clearDomainMarkers();
+      heatmapChart.getXYPlot().clearRangeMarkers();
+      heatmapChart.getXYPlot()
+          .addDomainMarker(new ValueMarker(selectedMz.get(), markerColor, markerStroke));
+    }
   }
 
   private void clearAllCharts() {

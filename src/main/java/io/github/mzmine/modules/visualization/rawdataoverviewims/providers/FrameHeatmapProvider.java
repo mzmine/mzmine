@@ -107,26 +107,32 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
       finishedScans++;
       finishedPercentage = finishedScans / numScans;
     }
+
   }
 
   @Override
-  public List<Double> getDomainValues() {
-    return domainValues;
+  public double getDomainValue(int index) {
+    return domainValues.get(index);
   }
 
   @Override
-  public List<Double> getRangeValues() {
-    return rangeValues;
+  public double getRangeValue(int index) {
+    return rangeValues.get(index);
+  }
+
+  @Override
+  public int getValueCount() {
+    return domainValues.size();
+  }
+
+  @Override
+  public double getZValue(int index) {
+    return zValues.get(index);
   }
 
   @Override
   public double getComputationFinishedPercentage() {
     return finishedPercentage;
-  }
-
-  @Override
-  public List<Double> getZValues() {
-    return zValues;
   }
 
   @Nullable
