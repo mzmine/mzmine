@@ -198,6 +198,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
     }
   }
 
+  public FeatureList getFeatureList() {
+    return featureTable.getFeatureList();
+  }
+
   void selectedRowChanged() {
     TreeItem<FeatureListRow> selectedItem = featureTable.getSelectionModel()
         .getSelectedItem();

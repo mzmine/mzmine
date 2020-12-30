@@ -18,21 +18,18 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javax.annotation.Nonnull;
 
-public class FeatureTableFXTab extends MZmineTab {
+public class FeatureTableTab extends MZmineTab {
   private final Image SELECTION_ICON =
       FxIconUtil.loadImageFromResources("icons/propertiesicon.png");
 
-  private final FeatureTableFX table;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
 
   private FeatureTableFXMLTabAnchorPaneController controller;
 
-  public FeatureTableFXTab(FeatureList flist) {
+  public FeatureTableTab(FeatureList flist) {
     super("Feature Table", true, false);
-
     mainPane = new BorderPane();
-    table = new FeatureTableFX();
     toolBar = new ToolBar();
 
     // Setup feature table
@@ -70,12 +67,8 @@ public class FeatureTableFXTab extends MZmineTab {
     setContent(mainPane);
   }
 
-  public FeatureTableFX getTable() {
-    return table;
-  }
-
   public FeatureList getFeatureList() {
-    return table.getFeatureList();
+    return controller.getFeatureList();
   }
 
   @Nonnull
