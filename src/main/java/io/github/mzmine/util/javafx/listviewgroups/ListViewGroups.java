@@ -109,7 +109,10 @@ public class ListViewGroups<T> extends ListView<ListViewGroupsEntity<T>> {
     List<Integer> selectedIndices = ImmutableList.copyOf(getSelectionModel().getSelectedIndices());
     groupItems(selectedIndices, gensymGroupHeader("New group"));
 
-    getSelectionModel().clearAndSelect(Collections.min(selectedIndices));
+    getSelectionModel().clearSelection();
+    int firstGroupIndex = Collections.min(selectedIndices) + 1;
+    getSelectionModel().selectRange(firstGroupIndex, firstGroupIndex + selectedIndices.size());
+
     Platform.runLater(() -> {
       setEditable(true);
       edit(Collections.min(selectedIndices));
@@ -193,7 +196,7 @@ public class ListViewGroups<T> extends ListView<ListViewGroupsEntity<T>> {
 
   public boolean anyGroupedItemSelected() {
     for (ListViewGroupsEntity<T> selectedItem : getSelectionModel().getSelectedItems()) {
-      if (selectedItem.isGrouped()) {
+      if (selectedItem != null && selectedItem.isGrouped()) {
         return true;
       }
     }
