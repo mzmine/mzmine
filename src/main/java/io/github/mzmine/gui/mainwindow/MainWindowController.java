@@ -132,7 +132,7 @@ public class MainWindowController {
   private Tab tvAligned;
 
   @FXML
-  private TreeView<FeatureList> tvAlignedFeatureLists;
+  private ListView<FeatureList> alignedFeatureTree;
 
   @FXML
   private AnchorPane tbRawData;
@@ -290,6 +290,7 @@ public class MainWindowController {
     });
 
     featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    alignedFeatureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // featureTree.setShowRoot(true);
 
     featureTree.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
@@ -302,17 +303,32 @@ public class MainWindowController {
           return;
         }
         setText(item.getName());
-        if (item.getNumberOfRawDataFiles() > 1) {
-          setGraphic(new ImageView(featureListAlignedIcon));
-        } else {
-          setGraphic(new ImageView(featureListSingleIcon));
-        }
+        setGraphic(new ImageView(featureListSingleIcon));
       }
     });
+    alignedFeatureTree.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
+      @Override
+      protected void updateItem(FeatureList item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || (item == null)) {
+          setText("");
+          setGraphic(null);
+          return;
+        }
+        setText(item.getName());
+        setGraphic(new ImageView(featureListAlignedIcon));
+      }
+    });
+
     // Add mouse clicked event handler
     featureTree.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         handleOpenFeatureList(event);
+      }
+    });
+    alignedFeatureTree.setOnMouseClicked(event -> {
+      if (event.getClickCount() == 2) {
+        handleOpenAlignedFeatureList(event);
       }
     });
 
@@ -339,7 +355,16 @@ public class MainWindowController {
           }
         });
 
-    // TODO: aligned feature lists tree selection listener
+    alignedFeatureTree.getSelectionModel().getSelectedItems()
+        .addListener((ListChangeListener<FeatureList>) c -> {
+          c.next();
+          for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
+            if (tab instanceof MZmineTab && tab.isSelected()
+                && ((MZmineTab) tab).isUpdateOnSelection()) {
+              ((MZmineTab) tab).onAlignedFeatureListSelectionChanged(c.getList());
+            }
+          }
+        });
 
     /*
      * // update if tab selection in main window changes
@@ -436,6 +461,10 @@ public class MainWindowController {
 
   public ListView<FeatureList> getFeatureTree() {
     return featureTree;
+  }
+
+  public ListView<FeatureList> getAlignedFeatureTree() {
+    return alignedFeatureTree;
   }
 
   /*
@@ -619,6 +648,15 @@ public class MainWindowController {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
       // PeakListTableModule.showNewPeakListVisualizerWindow(fl);
+      Platform.runLater(() -> {
+        FeatureTableFXUtil.addFeatureTableTab(fl);
+      });
+    }
+  }
+
+  public void handleOpenAlignedFeatureList(Event event) {
+    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedAlignedFeatureLists();
+    for (FeatureList fl : selectedFeatureLists) {
       Platform.runLater(() -> {
         FeatureTableFXUtil.addFeatureTableTab(fl);
       });

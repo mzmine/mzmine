@@ -264,7 +264,10 @@ public class MZmineGUI extends Application implements Desktop {
       rawDataTree.setItems(project.getRawDataFiles());
 
       ListView<FeatureList> featureTree = mainWindowController.getFeatureTree();
-      featureTree.setItems(project.getFeatureLists());
+      featureTree.setItems(project.getFeatureLists().filtered(featureList -> !featureList.isAligned()));
+
+      ListView<FeatureList> alignedFeatureTree = mainWindowController.getAlignedFeatureTree();
+      alignedFeatureTree.setItems(project.getFeatureLists().filtered(featureList -> featureList.isAligned()));
     });
 
   }
@@ -272,20 +275,24 @@ public class MZmineGUI extends Application implements Desktop {
   @Nonnull
   public static List<RawDataFile> getSelectedRawDataFiles() {
 
-    final var rawDataListView = mainWindowController.getRawDataTree();
-    final var selectedRawDataFiles =
-        ImmutableList.copyOf(rawDataListView.getSelectionModel().getSelectedItems());
-    return selectedRawDataFiles;
+    final ListView<RawDataFile> rawDataListView = mainWindowController.getRawDataTree();
+    return ImmutableList.copyOf(rawDataListView.getSelectionModel().getSelectedItems());
 
   }
 
   @Nonnull
   public static List<FeatureList> getSelectedFeatureLists() {
 
-    final var featureListView = mainWindowController.getFeatureTree();
-    final var selectedFeatureLists =
-        ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
-    return selectedFeatureLists;
+    final ListView<FeatureList> featureListView = mainWindowController.getFeatureTree();
+    return ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
+
+  }
+
+  @Nonnull
+  public static List<FeatureList> getSelectedAlignedFeatureLists() {
+
+    final ListView<FeatureList> featureListView = mainWindowController.getAlignedFeatureTree();
+    return ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
 
   }
 
