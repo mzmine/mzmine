@@ -18,29 +18,29 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 class MultiThreadPeakFinderTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private FeatureList peakList, processedPeakList;
+  private ModularFeatureList peakList, processedPeakList;
   private double intTolerance;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
@@ -55,7 +55,8 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
   private int taskIndex;
 
-  MultiThreadPeakFinderTask(MZmineProject project, FeatureList peakList, FeatureList processedPeakList,
+  MultiThreadPeakFinderTask(MZmineProject project, ModularFeatureList peakList,
+      ModularFeatureList processedPeakList,
       ParameterSet parameters, int start, int endexcl, SubTaskFinishListener listener,
       int taskIndex) {
 
@@ -113,11 +114,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
           Range<Float> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
 
           Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
-
           gaps.add(newGap);
-
-        } else {
-          newRow.addFeature(dataFile, sourcePeak);
         }
       }
 
