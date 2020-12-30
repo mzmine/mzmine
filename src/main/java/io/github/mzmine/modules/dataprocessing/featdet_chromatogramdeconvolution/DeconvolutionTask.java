@@ -39,12 +39,6 @@ import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentio
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.util.DataTypeUtils;
-import io.github.mzmine.util.FeatureConvertors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -298,10 +292,10 @@ public class DeconvolutionTask extends AbstractTask {
       // Add peaks to the new feature list.
       for (final ResolvedPeak peak : peaks) {
         peak.setParentChromatogramRowID(currentRow.getID());
-        final ModularFeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) resolvedPeaks,
+        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedPeaks,
             peakId++);
-        final ModularFeature newFeature = (ModularFeature) FeatureConvertors
-            .ResolvedPeakToMoularFeature(peak);
+        final ModularFeature newFeature = FeatureConvertors
+            .ResolvedPeakToMoularFeature(resolvedPeaks, peak);
         if (newFeature.getRawDataFile() instanceof IMSRawDataFile) {
           newRow.addFeature(dataFile, FeatureConvertorIonMobility
               .mapResolvedCollapsedFeaturesToImsFeature(newFeature,

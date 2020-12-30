@@ -20,7 +20,6 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -89,7 +88,7 @@ public class FeatureDataSetCalc extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // TODO: new ModularFeatureList name
-    FeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode());
+    ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode());
 
     for (RawDataFile rawDataFile : rawDataFiles) {
       if (getStatus() == TaskStatus.CANCELED) {
@@ -99,7 +98,8 @@ public class FeatureDataSetCalc extends AbstractTask {
       ManualFeature feature = ManualFeatureUtils.pickFeatureManually(rawDataFile,
           rawDataFile.getDataRTRange(scanSelection.getMsLevel()), mzRange);
       feature.setFeatureList(newFeatureList);
-      ModularFeature modularFeature = FeatureConvertors.ManualFeatureToModularFeature(feature);
+      ModularFeature modularFeature = FeatureConvertors
+          .ManualFeatureToModularFeature(newFeatureList, feature);
       if (feature != null && feature.getScanNumbers() != null
           && feature.getScanNumbers().length > 0) {
         features.add(new FeatureDataSet(modularFeature));

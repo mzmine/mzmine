@@ -270,6 +270,10 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       throw new IllegalArgumentException(
           "Cannot add non-modular feature to modular feature list row.");
     }
+    if (!flist.equals(feature.getFeatureList())) {
+      throw new IllegalArgumentException("Cannot add feature with different feature list to this "
+          + "row. Create feature with the correct feature list as an argument.");
+    }
     ModularFeature modularFeature = (ModularFeature) feature;
     /*
      * if (Objects.equals(modularFeature.getFeatureList(), getFeatureList())) { // features are
