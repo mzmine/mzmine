@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
+import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.SpectralLibraryMatchType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -417,10 +419,18 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public String getComment() {
-    if (!hasTypeColumn(CommentType.class)) {
+    ModularTypeProperty manual = getManualAnnotation();
+    if (manual != null) {
+      return manual.get(CommentType.class).getValue();
+    } else if (hasTypeColumn(CommentType.class)) {
+      return get(CommentType.class).getValue();
+    } else {
       return "";
     }
-    return get(CommentType.class).getValue();
+  }
+
+  public ModularTypeProperty getManualAnnotation() {
+    return get(ManualAnnotationType.class);
   }
 
   @Override
@@ -440,10 +450,14 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public ObservableList<FeatureIdentity> getPeakIdentities() {
-    if (!hasTypeColumn(IdentityType.class)) {
+    ModularTypeProperty manual = getManualAnnotation();
+    if (manual != null) {
+      return manual.get(IdentityType.class).getValue();
+    } else if (hasTypeColumn(IdentityType.class)) {
+      return get(IdentityType.class).getValue();
+    } else {
       return FXCollections.emptyObservableList();
     }
-    return get(IdentityType.class);
   }
 
   public void setPeakIdentities(ObservableList<FeatureIdentity> identities) {
@@ -504,7 +518,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     if (!hasTypeColumn(FeatureInformationType.class)) {
       return null;
     }
-    return (FeatureInformation) get(FeatureInformationType.class);
+    return (FeatureInformation) get(FeatureInformationType.class).getValue();
   }
 
   @Override
