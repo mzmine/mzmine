@@ -100,13 +100,18 @@ public class ExampleXYProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public List<Double> getDomainValues() {
-    return xValues;
+  public double getDomainValue(int index) {
+    return xValues.get(index);
   }
 
   @Override
-  public List<Double> getRangeValues() {
-    return yValues;
+  public double getRangeValue(int index) {
+    return yValues.get(index);
+  }
+
+  @Override
+  public int getValueCount() {
+    return xValues.size();
   }
 
   @Override

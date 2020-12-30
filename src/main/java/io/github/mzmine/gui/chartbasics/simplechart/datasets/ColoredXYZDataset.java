@@ -28,10 +28,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,7 +51,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   private static final String FALLBACK_PAINTSCALE_STYLE = "Rainbow";
 
   private final XYZValueProvider xyzValueProvider;
-  protected List<Double> zValues;
   protected Double minZValue;
   protected Double maxZValue;
   protected LookupPaintScale paintScale;
@@ -69,7 +68,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
       final boolean useAlphaInPaintscale) {
     super(dataProvider, false);
     this.xyzValueProvider = dataProvider;
-    zValues = Collections.emptyList();
     minZValue = Double.MAX_VALUE;
     maxZValue = Double.MIN_VALUE;
     renderer = new XYBlockPixelSizeRenderer();
@@ -95,7 +93,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     if (item > computedItemCount) {
       return 0;
     }
-    return zValues.get(item);
+    return xyzValueProvider.getZValue(item);
   }
 
   @Override
@@ -103,7 +101,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     if (item > computedItemCount) {
       return 0;
     }
-    return zValues.get(item);
+    return xyzValueProvider.getZValue(item);
   }
 
   public double getMinZValue() {
@@ -160,9 +158,13 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return -1;
   }
 
-  private double calculateDefaultBoxDimensionForPlots(Collection<Double> values) {
-    List<Double> valuesSorted = values.stream().sorted(Double::compareTo)
-        .collect(Collectors.toList());
+  private double calculateDefaultBoxDimensionForPlots(Function<Integer, Double> getter,
+      int maxIndex) {
+    double[] valuesSorted = new double[maxIndex];
+    for (int i = 0; i < maxIndex; i++) {
+      valuesSorted[i] = getter.apply(i).doubleValue();
+    }
+    Arrays.sort(valuesSorted);
 
     List<Double> deltas = new ArrayList<>();
     Double yA = null;
@@ -227,31 +229,31 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     if (status.get() != TaskStatus.PROCESSING) {
       return;
     }
-    if (xyzValueProvider.getDomainValues().size() != xyzValueProvider.getRangeValues().size()
-        || xyzValueProvider.getZValues().size() != xyzValueProvider.getRangeValues().size()) {
-      throw new IllegalArgumentException("Number of domain, range or z values does not match.");
+
+    computedItemCount = xyValueProvider.getValueCount();
+    for (int i = 0; i < computedItemCount; i++) {
+      if (minRangeValue.doubleValue() < xyValueProvider.getRangeValue(i)) {
+        minRangeValue = xyValueProvider.getRangeValue(i);
+      }
+      if (xyzValueProvider.getZValue(i) < minZValue) {
+        minZValue = xyzValueProvider.getZValue(i);
+      }
+      if (xyzValueProvider.getZValue(i) > maxZValue) {
+        maxZValue = xyzValueProvider.getZValue(i);
+      }
     }
-
-    rangeValues = xyzValueProvider.getRangeValues();
-    domainValues = xyzValueProvider.getDomainValues();
-    zValues = xyzValueProvider.getZValues();
-
-    minRangeValue = Collections.min(rangeValues);
-    minZValue = Collections.min(zValues);
-    maxZValue = Collections.max(zValues);
 
     boxHeight = xyzValueProvider.getBoxHeight();
     boxWidth = xyzValueProvider.getBoxWidth();
     if (boxHeight == null) {
-      boxHeight = calculateDefaultBoxDimensionForPlots(rangeValues);
+      boxHeight = calculateDefaultBoxDimensionForPlots(i -> getYValue(0, i), computedItemCount);
     }
     if (boxWidth == null) {
-      boxWidth = calculateDefaultBoxDimensionForPlots(domainValues);
+      boxWidth = calculateDefaultBoxDimensionForPlots(i -> getXValue(0, i), computedItemCount);
     }
 
     this.paintScale = computePaintScale(minZValue, maxZValue);
 
-    computedItemCount = domainValues.size();
     computed = true;
     status.set(TaskStatus.FINISHED);
 
