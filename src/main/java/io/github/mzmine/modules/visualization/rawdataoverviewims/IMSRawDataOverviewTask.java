@@ -29,11 +29,13 @@ import java.util.Set;
 public class IMSRawDataOverviewTask extends AbstractTask {
 
   private RawDataFile file;
+  private final ParameterSet parameterSet;
 
   public IMSRawDataOverviewTask(ParameterSet parameterSet) {
     file = parameterSet.getParameter(IMSRawDataOverviewParameters.rawDataFiles)
         .getValue()
         .getMatchingRawDataFiles()[0];
+    this.parameterSet = parameterSet;
   }
 
   @Override
@@ -49,7 +51,7 @@ public class IMSRawDataOverviewTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    MZmineTab tab = new IMSRawDataOverviewTab();
+    MZmineTab tab = new IMSRawDataOverviewTab(parameterSet);
     tab.onRawDataFileSelectionChanged(Set.of(file));
     MZmineCore.getDesktop().addTab(tab);
     setStatus(TaskStatus.FINISHED);

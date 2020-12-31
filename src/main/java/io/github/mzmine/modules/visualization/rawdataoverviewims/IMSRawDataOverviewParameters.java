@@ -18,15 +18,25 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 public class IMSRawDataOverviewParameters extends SimpleParameterSet {
 
-  public static RawDataFilesParameter rawDataFiles = new RawDataFilesParameter(1, 1);
+  public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter(1, 1);
+
+  public static final DoubleParameter summedFrameNoiseLevel = new DoubleParameter("Frame noise"
+      + " level", "Noise level for the summed frame spectrum.",
+      MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
+
+  public static final DoubleParameter mobilityScanNoiseLevel = new DoubleParameter("Mobility sca "
+      + "noise level", "Noise level for individual mobility scans, mobilogram and heatmap "
+      + "calculation.", MZmineCore.getConfiguration().getIntensityFormat(), 5E2);
 
   public IMSRawDataOverviewParameters() {
-    super(new UserParameter[]{rawDataFiles});
+    super(new UserParameter[]{rawDataFiles, summedFrameNoiseLevel, mobilityScanNoiseLevel});
   }
 }

@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.rawdataoverviewims;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.parameters.ParameterSet;
 import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nonnull;
@@ -32,6 +33,16 @@ public class IMSRawDataOverviewTab extends MZmineTab {
   public IMSRawDataOverviewTab() {
     super("Ion mobility raw data overview", true, false);
     pane = new IMSRawDataOverviewPane();
+    setContent(pane);
+  }
+
+  public IMSRawDataOverviewTab(ParameterSet parameterSet) {
+    super("Ion mobility raw data overview", true, false);
+    pane = new IMSRawDataOverviewPane(
+        parameterSet.getParameter(IMSRawDataOverviewParameters.summedFrameNoiseLevel)
+            .getValue(),
+        parameterSet.getParameter(IMSRawDataOverviewParameters.mobilityScanNoiseLevel)
+            .getValue());
     setContent(pane);
   }
 

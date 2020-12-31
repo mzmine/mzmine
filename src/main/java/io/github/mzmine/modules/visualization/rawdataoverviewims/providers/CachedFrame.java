@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.project.impl.StorableFrame;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,17 +43,18 @@ public class CachedFrame extends StorableFrame {
   private List<MobilityScan> sortedMobilityScans;
   private DataPoint[] summedDataPoints;
 
-  public CachedFrame(StorableFrame frame) throws IOException {
+  public CachedFrame(StorableFrame frame, double frameNoiseLevel, double mobilityScaNoiseLevel)
+      throws IOException {
     super(frame, (RawDataFileImpl) frame.getDataFile(), frame.getNumberOfDataPoints(),
         frame.getStorageID());
     this.frame = frame;
     summedDataPoints = new DataPoint[0];
     sortedMobilityScans = new ArrayList<>();
 
-    summedDataPoints = frame.getDataPoints();
+    summedDataPoints = ScanUtils.getFiltered(frame.getDataPoints(), frameNoiseLevel);
 
     for (MobilityScan scan : frame.getMobilityScans()) {
-      DataPoint[] dataPoints = scan.getDataPoints();
+      DataPoint[] dataPoints = ScanUtils.getFiltered(scan.getDataPoints(), mobilityScaNoiseLevel);
       mobilitySubScans.put(scan.getMobilityScamNumber(),
           new SimpleMobilityScan(scan.getMobilityScamNumber(), this, dataPoints));
     }

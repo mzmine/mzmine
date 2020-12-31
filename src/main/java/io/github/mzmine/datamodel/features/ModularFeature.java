@@ -376,8 +376,8 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public SimpleFeatureInformation getFeatureInformation() {
-    SimpleFeatureInformation v = get(FeatureInformationType.class).getValue();
-    return v == null ? null : v;
+    return get(FeatureInformationType.class) == null ?
+        null : get(FeatureInformationType.class).get();
   }
 
   @Nullable

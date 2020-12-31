@@ -99,8 +99,8 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return cachedFrame.getDataFile().getName() + " - Frame " + cachedFrame.getFrameId() + " "
-        + rtFormat.format(cachedFrame.getRetentionTime()) + " min";
+    return "Total ion mobilogram for " + cachedFrame.getDataFile().getName() + " - Frame "
+        + cachedFrame.getFrameId() + " " + rtFormat.format(cachedFrame.getRetentionTime()) + " min";
   }
 
   @Override
