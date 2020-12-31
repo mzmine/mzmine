@@ -538,12 +538,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Nullable
   @Override
   public ModularFeature getBestFeature() {
-    ModularFeature features[] = getFeatures().toArray(new ModularFeature[0]);
-    Arrays.sort(features, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
-    if (features.length == 0) {
-      return null;
-    }
-    return features[0];
+    return streamFeatures().filter(f -> !f.get(DetectionType.class).equals(FeatureStatus.UNKNOWN))
+        .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
+        .orElse(null);
   }
 
   @Override
@@ -552,7 +549,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     Scan bestScan = null;
     for (Feature feature : getFeatures()) {
       RawDataFile rawData = feature.getRawDataFile();
-      if (rawData == null || !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
+      if (rawData == null || feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
         continue;
       }
 
