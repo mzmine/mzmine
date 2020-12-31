@@ -29,11 +29,14 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRender
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.PreviewMobilogram;
+import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.CachedFrame;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameHeatmapProvider;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameSummedMobilogramProvider;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameSummedSpectrumProvider;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.SingleSpectrumProvider;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.StorableFrame;
 import io.github.mzmine.util.MobilogramUtils;
@@ -69,6 +72,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private final SimpleXYChart<SingleSpectrumProvider> singleSpectrumChart;
   private final SimpleXYChart<PreviewMobilogram> extractedMobilogramChart;
   private final SimpleXYZScatterPlot<FrameHeatmapProvider> heatmapChart;
+  private final TICPlot ticChart;
 
   private final NumberFormat rtFormat;
   private final NumberFormat mzFormat;
@@ -78,8 +82,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
   private final MZTolerance mzTolerance;
   private final ObjectProperty<Frame> selectedFrame;
-  private final DoubleProperty selectedMz;
   private final ObjectProperty<MobilityScan> selectedMobilityScan;
+  private final DoubleProperty selectedMz;
   private final Stroke markerStroke = new BasicStroke(1.0f);
   private CachedFrame cachedFrame;
   private Color markerColor;
@@ -111,6 +115,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     singleSpectrumChart = new SimpleXYChart<>("Mobility scan");
     extractedMobilogramChart = new SimpleXYChart<>("Extracted ion mobilogram");
     heatmapChart = new SimpleXYZScatterPlot<>("Frame heatmap");
+    ticChart = new TICPlot();
     initCharts();
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -128,10 +133,11 @@ public class IMSRawDataOverviewPane extends BorderPane {
     chartPanel.add(new BorderPane(extractedMobilogramChart), 3, 0);
     chartPanel.add(new BorderPane(summedSpectrumChart), 1, 1);
     chartPanel.add(new BorderPane(singleSpectrumChart), 3, 1);
-    chartPanel.add(controlsPanel, 0, 1);
+    chartPanel.add(new BorderPane(ticChart), 0, 1);
+//    chartPanel.add(controlsPanel, 0, 1);
 
     selectedMz = new SimpleDoubleProperty();
-    selectedMobilityScan = new SimpleObjectProperty();
+    selectedMobilityScan = new SimpleObjectProperty<>();
     mzTolerance = new MZTolerance(0.008, 10);
     markerColor = MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT();
     initChartListeners();
@@ -148,6 +154,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
       heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
       summedMobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame));
       summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
+      ticChart.getXYPlot().clearDomainMarkers();
+      ticChart.getXYPlot().addDomainMarker(
+          new ValueMarker(selectedFrame.get().getRetentionTime(), markerColor, markerStroke));
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -190,6 +199,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
         .getDefaultToolTipGenerator());
     summedSpectrumChart.setDefaultRenderer(summedSpectrumRenderer);
     summedSpectrumChart.setShowCrosshair(false);
+
     summedMobilogramChart.getXYPlot().setOrientation(PlotOrientation.HORIZONTAL);
     summedMobilogramChart.getXYPlot().getRangeAxis().setInverted(true);
     summedMobilogramChart.setShowCrosshair(false);
@@ -202,8 +212,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
         .getDefaultToolTipGenerator());
     singleSpectrumChart.setDefaultRenderer(singleSpectrumRenderer);
     singleSpectrumChart.setShowCrosshair(false);
+
     extractedMobilogramChart.setShowCrosshair(false);
     heatmapChart.setShowCrosshair(false);
+    ticChart.getXYPlot().setDomainCrosshairVisible(false);
+    ticChart.getXYPlot().setRangeCrosshairVisible(false);
+    ticChart.switchDataPointsVisible();
   }
 
   private void initControlPanel() {
@@ -224,6 +238,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
     heatmapChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       selectedMz.set(newValue.getDomainValue());
     }));
+    ticChart.cursorPositionProperty()
+        .addListener(((observable, oldValue, newValue) -> setSelectedFrame(rawDataFile.getFrame(
+            newValue.getScanNumber()))));
   }
 
   private void initSelectedValueListeners() {
@@ -304,6 +321,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
       return;
     }
     this.rawDataFile = (IMSRawDataFile) rawDataFile;
+    ticChart.removeAllDataSets();
+    ScanSelection selection = new ScanSelection(1);
+    ticChart.addDataSet(new TICDataSet(rawDataFile, selection.getMatchingScans(rawDataFile),
+        rawDataFile.getDataMZRange(), null), rawDataFile.getColorAWT());
     updateAxisLabels();
     setSelectedFrame(1);
   }
