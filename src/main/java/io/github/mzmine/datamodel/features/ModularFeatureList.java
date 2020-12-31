@@ -66,16 +66,6 @@ public class ModularFeatureList implements FeatureList {
     // only a few standard types
     addRowType(new IDType());
     addRowType(new ManualAnnotationType());
-
-    // add standard row bindings even if data types are missing
-//    addRowBinding(new RowBinding(new MZType(), BindingsType.AVERAGE));
-//    addRowBinding(new RowBinding(new RTType(), BindingsType.AVERAGE));
-//    addRowBinding(new RowBinding(new HeightType(), BindingsType.MAX));
-//    addRowBinding(new RowBinding(new AreaType(), BindingsType.MAX));
-//    addRowBinding(new RowBinding(new RTRangeType(), BindingsType.RANGE));
-//    addRowBinding(new RowBinding(new MZRangeType(), BindingsType.RANGE));
-//    addRowBinding(new RowBinding(new IntensityRangeType(), BindingsType.RANGE));
-//    addRowBinding(new RowBinding(new ChargeType(), BindingsType.CONSENSUS));
   }
 
   @Override
