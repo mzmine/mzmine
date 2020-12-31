@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
+import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.SpectralLibraryMatchType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -51,6 +53,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javafx.beans.property.MapProperty;
@@ -139,8 +142,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
     if (copyFeatures) {
       // Copy the features.
-      for (final Feature feature : row.getFeatures()) {
-        this.addFeature(feature.getRawDataFile(), new ModularFeature(flist, feature));
+      for (final Entry<RawDataFile, ModularFeature> feature : row.getFilesFeatures().entrySet()) {
+        this.addFeature(feature.getKey(), new ModularFeature(flist, feature.getValue()));
       }
     }
   }
@@ -269,6 +272,13 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     if (!(feature instanceof ModularFeature)) {
       throw new IllegalArgumentException(
           "Cannot add non-modular feature to modular feature list row.");
+    }
+    if (!flist.equals(feature.getFeatureList())) {
+      throw new IllegalArgumentException("Cannot add feature with different feature list to this "
+          + "row. Create feature with the correct feature list as an argument.");
+    }
+    if (raw == null) {
+      throw new IllegalArgumentException("Raw file cannot be null");
     }
     ModularFeature modularFeature = (ModularFeature) feature;
     /*
@@ -413,10 +423,18 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public String getComment() {
-    if (!hasTypeColumn(CommentType.class)) {
+    ModularTypeProperty manual = getManualAnnotation();
+    if (manual != null) {
+      return manual.get(CommentType.class).getValue();
+    } else if (hasTypeColumn(CommentType.class)) {
+      return get(CommentType.class).getValue();
+    } else {
       return "";
     }
-    return get(CommentType.class).getValue();
+  }
+
+  public ModularTypeProperty getManualAnnotation() {
+    return get(ManualAnnotationType.class);
   }
 
   @Override
@@ -436,10 +454,14 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public ObservableList<FeatureIdentity> getPeakIdentities() {
-    if (!hasTypeColumn(IdentityType.class)) {
+    ModularTypeProperty manual = getManualAnnotation();
+    if (manual != null) {
+      return manual.get(IdentityType.class).getValue();
+    } else if (hasTypeColumn(IdentityType.class)) {
+      return get(IdentityType.class).getValue();
+    } else {
       return FXCollections.emptyObservableList();
     }
-    return get(IdentityType.class);
   }
 
   public void setPeakIdentities(ObservableList<FeatureIdentity> identities) {
@@ -500,7 +522,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     if (!hasTypeColumn(FeatureInformationType.class)) {
       return null;
     }
-    return (FeatureInformation) get(FeatureInformationType.class);
+    return (FeatureInformation) get(FeatureInformationType.class).getValue();
   }
 
   @Override
@@ -516,12 +538,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Nullable
   @Override
   public ModularFeature getBestFeature() {
-    ModularFeature features[] = getFeatures().toArray(new ModularFeature[0]);
-    Arrays.sort(features, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
-    if (features.length == 0) {
-      return null;
-    }
-    return features[0];
+    return streamFeatures().filter(f -> !f.get(DetectionType.class).equals(FeatureStatus.UNKNOWN))
+        .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
+        .orElse(null);
   }
 
   @Override
@@ -529,10 +548,14 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     double bestTIC = 0.0;
     Scan bestScan = null;
     for (Feature feature : getFeatures()) {
-      double theTIC = 0.0;
       RawDataFile rawData = feature.getRawDataFile();
+      if (rawData == null || feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
+        continue;
+      }
+
       int bestScanNumber = feature.getMostIntenseFragmentScanNumber();
       Scan theScan = rawData.getScan(bestScanNumber);
+      double theTIC = 0.0;
       if (theScan != null) {
         theTIC = theScan.getTIC();
       }

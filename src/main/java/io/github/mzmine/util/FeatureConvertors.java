@@ -290,7 +290,8 @@ public class FeatureConvertors {
    * @param manualFeature input manual feature
    * @return output modular feature
    */
-  static public ModularFeature ManualFeatureToModularFeature(@Nonnull ManualFeature manualFeature) {
+  static public ModularFeature ManualFeatureToModularFeature(ModularFeatureList featureList,
+      @Nonnull ManualFeature manualFeature) {
 
     if (manualFeature.getFeatureList() == null) {
       throw new NullPointerException("Feature list of the manual feature is null.");
@@ -300,8 +301,6 @@ public class FeatureConvertors {
       throw new IllegalArgumentException(
           "Can not create modular feature from manual feature of non-modular feature list.");
     }
-
-    ModularFeatureList featureList = (ModularFeatureList) manualFeature.getFeatureList();
 
     // Add quality parameters to the feature list
     featureList.addFeatureType(new FwhmType());
@@ -372,6 +371,7 @@ public class FeatureConvertors {
   }
 
   public static io.github.mzmine.datamodel.features.Feature SameRangePeakToModularFeature(
+      ModularFeatureList featureList,
       SameRangePeak sameRangePeak) {
 
     if (sameRangePeak.getPeakList() == null) {
@@ -383,8 +383,7 @@ public class FeatureConvertors {
           "Can not create modular feature from sameRangePeak of non-modular feature list.");
     }
 
-    ModularFeature modularFeature =
-        new ModularFeature((ModularFeatureList) sameRangePeak.getPeakList());
+    ModularFeature modularFeature = new ModularFeature(featureList);
 
     int[] scansMS2 = sameRangePeak.getAllMS2FragmentScanNumbers();
     modularFeature.set(FragmentScanNumbersType.class,
@@ -449,7 +448,8 @@ public class FeatureConvertors {
     return modularFeature;
   }
 
-  public static ModularFeature ChromatogramToModularFeature(Chromatogram sameRangePeak) {
+  public static ModularFeature ChromatogramToModularFeature(ModularFeatureList featureList,
+      Chromatogram sameRangePeak) {
 
     if (sameRangePeak.getPeakList() == null) {
       throw new NullPointerException("Feature list of the sameRangePeak is null.");
@@ -461,7 +461,7 @@ public class FeatureConvertors {
     }
 
     ModularFeature modularFeature =
-        new ModularFeature((ModularFeatureList) sameRangePeak.getPeakList());
+        new ModularFeature(featureList);
 
     int[] scansMS2 = sameRangePeak.getAllMS2FragmentScanNumbers();
     modularFeature.set(FragmentScanNumbersType.class,
@@ -526,7 +526,7 @@ public class FeatureConvertors {
     return modularFeature;
   }
 
-  public static io.github.mzmine.datamodel.features.Feature ResolvedPeakToMoularFeature(
+  public static ModularFeature ResolvedPeakToMoularFeature(ModularFeatureList featureList,
       ResolvedPeak resolvedPeak) {
 
     if (resolvedPeak.getPeakList() == null) {
@@ -539,7 +539,7 @@ public class FeatureConvertors {
     }
 
     ModularFeature modularFeature =
-        new ModularFeature((ModularFeatureList) resolvedPeak.getPeakList());
+        new ModularFeature(featureList);
 
     // Add values to feature
     int[] scansMS2 = resolvedPeak.getAllMS2FragmentScanNumbers();

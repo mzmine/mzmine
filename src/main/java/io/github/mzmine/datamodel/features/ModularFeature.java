@@ -18,32 +18,47 @@
 
 package io.github.mzmine.datamodel.features;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.features.types.*;
-import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
-import io.github.mzmine.datamodel.features.types.numbers.*;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.FeatureInformationType;
+import io.github.mzmine.datamodel.features.types.IsotopePatternType;
+import io.github.mzmine.datamodel.features.types.RawFileType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
+import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -232,32 +247,28 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nonnull
   @Override
   public Range<Float> getRawDataPointsRTRange() {
-    if(!hasTypeColumn(RTRangeType.class))
-      return Range.singleton(0f);
-    return get(RTRangeType.class).getValue();
+    Range<Float> v = get(RTRangeType.class).getValue();
+    return v == null ? Range.singleton(0f) : v;
   }
 
   @Nonnull
   @Override
   public Range<Double> getRawDataPointsMZRange() {
-    if(!hasTypeColumn(MZRangeType.class))
-      return Range.singleton(0d);
-    return get(MZRangeType.class).getValue();
+    Range<Double> v = get(MZRangeType.class).getValue();
+    return v == null ? Range.singleton(0d) : v;
   }
 
   @Nonnull
   @Override
   public Range<Float> getRawDataPointsIntensityRange() {
-    if(!hasTypeColumn(IntensityRangeType.class))
-      return Range.singleton(0f);
-    return get(IntensityRangeType.class).getValue();
+    Range<Float> v = get(IntensityRangeType.class).getValue();
+    return v == null ? Range.singleton(0f) : v;
   }
 
   @Override
   public int getMostIntenseFragmentScanNumber() {
-    if(!hasTypeColumn(BestFragmentScanNumberType.class))
-      return -1;
-    return get(BestFragmentScanNumberType.class).getValue();
+    Integer v = get(BestFragmentScanNumberType.class).getValue();
+    return v == null ? -1 : v;
   }
 
   @Override
@@ -267,9 +278,9 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public ObservableList<Integer> getAllMS2FragmentScanNumbers() {
-    if(!hasTypeColumn(FragmentScanNumbersType.class))
-      return FXCollections.emptyObservableList();
-    return get(FragmentScanNumbersType.class).getValue();
+    ObservableList<Integer> v = get(FragmentScanNumbersType.class).getValue();
+    return v == null ? FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
+        : v;
   }
 
   @Override
@@ -280,9 +291,8 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nullable
   @Override
   public IsotopePattern getIsotopePattern() {
-    if(!hasTypeColumn(IsotopePatternType.class))
-      return null;
-    return get(IsotopePatternType.class).getValue();
+    IsotopePattern v = get(IsotopePatternType.class).getValue();
+    return v == null ? null : v;
   }
 
   @Override
@@ -303,26 +313,20 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public float getFWHM() {
-    if (get(FwhmType.class) == null || get(FwhmType.class).getValue() == null) {
-      return Float.NaN;
-    }
-    return get(FwhmType.class).getValue();
+    Float v = get(FwhmType.class).getValue();
+    return v == null ? Float.NaN : v;
   }
 
   @Override
   public float getTailingFactor() {
-    if (get(TailingFactorType.class) == null || get(TailingFactorType.class).getValue() == null) {
-      return Float.NaN;
-    }
-    return get(TailingFactorType.class).getValue();
+    Float v = get(TailingFactorType.class).getValue();
+    return v == null ? Float.NaN : v;
   }
 
   @Override
   public float getAsymmetryFactor() {
-    if (get(AsymmetryFactorType.class) == null || get(AsymmetryFactorType.class).getValue() == null) {
-      return Float.NaN;
-    }
-    return get(AsymmetryFactorType.class).getValue();
+    Float v = get(AsymmetryFactorType.class).getValue();
+    return v == null ? Float.NaN : v;
   }
 
   @Override
@@ -372,9 +376,8 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public SimpleFeatureInformation getFeatureInformation() {
-    if(!hasTypeColumn(FeatureInformationType.class))
-      return null;
-    return get(FeatureInformationType.class).getValue();
+    SimpleFeatureInformation v = get(FeatureInformationType.class).getValue();
+    return v == null ? null : v;
   }
 
   @Nullable
@@ -400,9 +403,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public RawDataFile getRawDataFile() {
     ObjectProperty<RawDataFile> raw = get(RawFileType.class);
-    if(raw==null)
-      return null;
-    return raw.getValue();
+    return raw == null ? null : raw.getValue();
   }
 
   public Property<Float> getRTProperty() {
@@ -424,9 +425,9 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nonnull
   @Override
   public ObservableList<Integer> getScanNumbers() {
-    if(!hasTypeColumn(ScanNumbersType.class))
-      return FXCollections.emptyObservableList();
-    return get(ScanNumbersType.class).getValue();
+    ObservableList<Integer> v = get(ScanNumbersType.class).getValue();
+    return v == null ? FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
+        : v;
   }
 
   @Override
@@ -436,47 +437,41 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public int getRepresentativeScanNumber() {
-    if(!hasTypeColumn(BestScanNumberType.class))
-      return -1;
-    return get(BestScanNumberType.class).getValue();
+    Integer v = get(BestScanNumberType.class).getValue();
+    return v == null ? -1 : v;
   }
 
   @Override
   public ObservableList<DataPoint> getDataPoints() {
-    if(!hasTypeColumn(DataPointsType.class))
-      return FXCollections.emptyObservableList();
-    return get(DataPointsType.class).getValue();
+    ObservableList<DataPoint> v = get(DataPointsType.class).getValue();
+    return v == null ? FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
+        : v;
   }
 
   public float getRT() {
-    if(!hasTypeColumn(RTType.class))
-      return Float.NaN;
-    return get(RTType.class).getValue();
+    Float v = get(RTType.class).getValue();
+    return v == null ? Float.NaN : v;
   }
 
   @Nonnull
   @Override
   public FeatureStatus getFeatureStatus() {
-    if(!hasTypeColumn(RTType.class))
-      return FeatureStatus.UNKNOWN;
-    return get(DetectionType.class).getValue();
+    FeatureStatus v = get(DetectionType.class).getValue();
+    return v == null ? FeatureStatus.UNKNOWN : v;
   }
 
   public double getMZ() {
-    if(!hasTypeColumn(MZType.class))
-      return Double.NaN;
-    return get(MZType.class).getValue();
+    Double mz = get(MZType.class).getValue();
+    return mz == null ? Double.NaN : mz;
   }
 
   public float getHeight() {
-    if(!hasTypeColumn(HeightType.class))
-      return Float.NaN;
-    return get(HeightType.class).getValue();
+    Float v = get(HeightType.class).getValue();
+    return v == null ? Float.NaN : v;
   }
 
   public float getArea() {
-    if(!hasTypeColumn(AreaType.class))
-      return Float.NaN;
-    return get(AreaType.class).getValue();
+    Float v = get(AreaType.class).getValue();
+    return v == null ? Float.NaN : v;
   }
 }

@@ -18,22 +18,17 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.Vector;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -41,16 +36,23 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 public class JoinAlignerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private FeatureList featureLists[], alignedFeatureList;
+  private ModularFeatureList[] featureLists;
+  private ModularFeatureList alignedFeatureList;
 
   // Processed rows counter
   private int processedRows, totalRows;
@@ -76,8 +78,8 @@ public class JoinAlignerTask extends AbstractTask {
     this.project = project;
     this.parameters = parameters;
 
-    featureLists =
-        parameters.getParameter(JoinAlignerParameters.peakLists).getValue().getMatchingFeatureLists();
+    featureLists = parameters.getParameter(JoinAlignerParameters.peakLists).getValue()
+        .getMatchingFeatureLists();
 
     featureListName = parameters.getParameter(JoinAlignerParameters.peakListName).getValue();
 
@@ -301,7 +303,7 @@ public class JoinAlignerTask extends AbstractTask {
 
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
-          targetRow = new ModularFeatureListRow((ModularFeatureList) featureList, newRowID);
+          targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
           newRowID++;
           alignedFeatureList.addRow(targetRow);
         }
@@ -310,7 +312,7 @@ public class JoinAlignerTask extends AbstractTask {
         // TODO: test aligned feature list correctness, seems like rows are not aligned correctly
         //  while aligning previously aligned feature lists
         for (RawDataFile file : row.getRawDataFiles()) {
-          targetRow.addFeature(file, row.getFeature(file));
+          targetRow.addFeature(file, new ModularFeature(alignedFeatureList, row.getFeature(file)));
         }
 
         processedRows++;

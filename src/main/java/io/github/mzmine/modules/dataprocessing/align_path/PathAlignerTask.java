@@ -17,16 +17,15 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.Aligner;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.ScoreAligner;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.logging.Logger;
 
 /**
  *
@@ -36,7 +35,8 @@ class PathAlignerTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private FeatureList peakLists[], alignedPeakList;
+  private ModularFeatureList peakLists[];
+  private ModularFeatureList alignedPeakList;
   private String peakListName;
   private ParameterSet parameters;
   private Aligner aligner;
@@ -45,8 +45,9 @@ class PathAlignerTask extends AbstractTask {
 
     this.project = project;
     this.parameters = parameters;
-    peakLists =
-        parameters.getParameter(PathAlignerParameters.peakLists).getValue().getMatchingFeatureLists();
+    peakLists = (ModularFeatureList[])
+        parameters.getParameter(PathAlignerParameters.peakLists).getValue()
+            .getMatchingFeatureLists();
 
     peakListName = parameters.getParameter(PathAlignerParameters.peakListName).getValue();
   }
@@ -77,7 +78,7 @@ class PathAlignerTask extends AbstractTask {
     logger.info("Running Path aligner");
 
     aligner = (Aligner) new ScoreAligner(this.peakLists, parameters);
-    alignedPeakList = aligner.align();
+    alignedPeakList = (ModularFeatureList) aligner.align();
     // Add new aligned feature list to the project
     project.addFeatureList(alignedPeakList);
 

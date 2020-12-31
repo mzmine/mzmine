@@ -18,13 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,23 +49,14 @@ import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
 import org.apache.commons.math.stat.regression.SimpleRegression;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.RangeUtils;
 
 class RansacAlignerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private FeatureList featureLists[], alignedFeatureList;
+  private ModularFeatureList[] featureLists;
+  private ModularFeatureList alignedFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
   // Parameters
@@ -69,7 +71,7 @@ class RansacAlignerTask extends AbstractTask {
   public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists, ParameterSet parameters) {
 
     this.project = project;
-    this.featureLists = featureLists;
+    this.featureLists = (ModularFeatureList[]) featureLists;
     this.parameters = parameters;
 
     // Get parameter values for easier use
@@ -154,7 +156,7 @@ class RansacAlignerTask extends AbstractTask {
 
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
-          targetRow = new ModularFeatureListRow((ModularFeatureList) featureList, newRowID);
+          targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
           //(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
           //    ModularFeature p)
           newRowID++;
@@ -163,7 +165,7 @@ class RansacAlignerTask extends AbstractTask {
 
         // Add all peaks from the original row to the aligned row
         for (RawDataFile file : row.getRawDataFiles()) {
-          targetRow.addFeature(file, row.getFeature(file));
+          targetRow.addFeature(file, new ModularFeature(alignedFeatureList, row.getFeature(file)));
         }
 
         processedRows++;

@@ -18,57 +18,64 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.ArrayList;
-
 import com.google.common.base.Strings;
-
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.TextUtils;
+import java.util.ArrayList;
+import java.util.stream.Stream;
 
 public class FeatureListsSelection implements Cloneable {
 
   private FeatureListsSelectionType selectionType = FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS;
-  private FeatureList specificFeatureLists[];
+  private ModularFeatureList specificFeatureLists[];
   private String namePattern;
-  private FeatureList batchLastFeatureLists[];
+  private ModularFeatureList batchLastFeatureLists[];
 
-  public FeatureList[] getMatchingFeatureLists() {
+  public ModularFeatureList[] getMatchingFeatureLists() {
 
     switch (selectionType) {
 
       case GUI_SELECTED_FEATURELISTS:
-        return MZmineCore.getDesktop().getSelectedPeakLists();
+        return Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
+            .map(ModularFeatureList.class::cast).toArray(ModularFeatureList[]::new);
       case ALL_FEATURELISTS:
-        return MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(FeatureList[]::new);
+        return MZmineCore.getProjectManager().getCurrentProject().getFeatureLists()
+            .toArray(ModularFeatureList[]::new);
       case SPECIFIC_FEATURELISTS:
-        if (specificFeatureLists == null)
-          return new FeatureList[0];
+        if (specificFeatureLists == null) {
+          return new ModularFeatureList[0];
+        }
         return specificFeatureLists;
       case NAME_PATTERN:
-        if (Strings.isNullOrEmpty(namePattern))
-          return new FeatureList[0];
-        ArrayList<FeatureList> matchingFeatureLists = new ArrayList<FeatureList>();
-        FeatureList allFeatureLists[] = MZmineCore.getProjectManager().getCurrentProject()
-            .getFeatureLists().toArray(FeatureList[]::new);
+        if (Strings.isNullOrEmpty(namePattern)) {
+          return new ModularFeatureList[0];
+        }
+        ArrayList<ModularFeatureList> matchingFeatureLists = new ArrayList<>();
+        ModularFeatureList allFeatureLists[] = MZmineCore.getProjectManager().getCurrentProject()
+            .getFeatureLists().toArray(ModularFeatureList[]::new);
 
-        plCheck: for (FeatureList pl : allFeatureLists) {
+        plCheck:
+        for (ModularFeatureList pl : allFeatureLists) {
 
           final String plName = pl.getName();
 
           final String regex = TextUtils.createRegexFromWildcards(namePattern);
 
           if (plName.matches(regex)) {
-            if (matchingFeatureLists.contains(pl))
+            if (matchingFeatureLists.contains(pl)) {
               continue;
+            }
             matchingFeatureLists.add(pl);
             continue plCheck;
           }
         }
-        return matchingFeatureLists.toArray(new FeatureList[0]);
+        return matchingFeatureLists.toArray(new ModularFeatureList[0]);
       case BATCH_LAST_FEATURELISTS:
-        if (batchLastFeatureLists == null)
-          return new FeatureList[0];
+        if (batchLastFeatureLists == null) {
+          return new ModularFeatureList[0];
+        }
         return batchLastFeatureLists;
     }
 
@@ -89,7 +96,7 @@ public class FeatureListsSelection implements Cloneable {
   }
 
   public void setSpecificFeatureLists(FeatureList[] specificFeatureLists) {
-    this.specificFeatureLists = specificFeatureLists;
+    this.specificFeatureLists = toModular(specificFeatureLists);
   }
 
   public String getNamePattern() {
@@ -101,7 +108,11 @@ public class FeatureListsSelection implements Cloneable {
   }
 
   public void setBatchLastFeatureLists(FeatureList[] batchLastFeatureLists) {
-    this.batchLastFeatureLists = batchLastFeatureLists;
+    this.batchLastFeatureLists = toModular(batchLastFeatureLists);
+  }
+
+  public ModularFeatureList[] toModular(FeatureList[] flist) {
+    return Stream.of(flist).map(ModularFeatureList.class::cast).toArray(ModularFeatureList[]::new);
   }
 
   public FeatureListsSelection clone() {

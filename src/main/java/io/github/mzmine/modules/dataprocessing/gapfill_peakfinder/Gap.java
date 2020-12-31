@@ -18,19 +18,19 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import java.util.List;
-import java.util.Vector;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.List;
+import java.util.Vector;
 
 public class Gap {
 
@@ -60,7 +60,6 @@ public class Gap {
     this.intTolerance = intTolerance;
     this.mzRange = mzRange;
     this.rtRange = rtRange;
-
   }
 
   public void offerNextScan(Scan scan) {
@@ -189,7 +188,8 @@ public class Gap {
       int[] allMS2FragmentScanNumbers =
           ScanUtils.findAllMS2FragmentScans(rawDataFile, finalRTRange, finalMZRange);
 
-      ModularFeature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(), rawDataFile, mz, rt, height, area, scanNumbers,
+      ModularFeature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
+          rawDataFile, mz, rt, height, area, scanNumbers,
           finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
           allMS2FragmentScanNumbers, finalRTRange, finalMZRange, finalIntensityRange);
 
