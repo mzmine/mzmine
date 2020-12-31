@@ -18,8 +18,13 @@
 
 package io.github.mzmine.gui;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import io.github.mzmine.util.ExitCode;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -27,16 +32,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
-import io.github.mzmine.util.ExitCode;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javax.annotation.Nonnull;
 
 
 public class HeadLessDesktop implements Desktop {
@@ -86,7 +86,7 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public ModularFeatureList[] getSelectedPeakLists() {
+  public FeatureList[] getSelectedPeakLists() {
     throw new UnsupportedOperationException();
   }
 

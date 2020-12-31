@@ -106,7 +106,7 @@ public class FeatureConvertorIonMobility {
    * replacing the data points.
    *
    * @param processedFeatures Mobility-compressed resolved features. To be converted via {@link
-   *                          FeatureConvertors#ResolvedPeakToMoularFeature(ResolvedPeak)} first.
+   *                          FeatureConvertors#ResolvedPeakToMoularFeature(ModularFeatureList, ResolvedPeak)} first.
    *                          Will be modified in this method and returned.
    * @param originalFeature   Mobility-uncompressed original feature passed to the deconvolution
    *                          task.

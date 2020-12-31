@@ -29,13 +29,21 @@
 
 package io.github.mzmine.modules.io.gnpsexport.fbmn;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
+import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,19 +54,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
-import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.files.FileAndPathUtil;
 
 /**
  * Exports all files needed for GNPS
@@ -185,52 +180,28 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
     int countMissingMassList = 0;
     for (FeatureListRow row : featureList.getRows()) {
       // do not export if no MSMS
-      if (!filter.filter(row))
+      if (!filter.filter(row)) {
         continue;
+      }
 
       String rowID = Integer.toString(row.getID());
       double retTimeInSeconds = ((row.getAverageRT() * 60 * 100.0) / 100.);
 
       // Get the MS/MS scan number
       Feature bestFeature = row.getBestFeature();
-      if (bestFeature == null)
+      if (bestFeature == null) {
         continue;
-      int msmsScanNumber = bestFeature.getMostIntenseFragmentScanNumber();
-      if (rowID != null) {
-        // TODO why
-        FeatureListRow copyRow = new ModularFeatureListRow((ModularFeatureList)row.getFeatureList(), (ModularFeatureListRow)row, true);
-        // Best feature always exists, because feature list row has at
-        // least one feature
-        bestFeature = copyRow.getBestFeature();
-
-        // Get the heighest feature with a MS/MS scan number (with mass
-        // list)
-        boolean missingMassList = false;
-        msmsScanNumber = bestFeature.getMostIntenseFragmentScanNumber();
-        while (msmsScanNumber < 1
-            || getScan(bestFeature, msmsScanNumber).getMassList(massListName) == null) {
-          // missing masslist
-          if (msmsScanNumber > 0)
-            missingMassList = true;
-
-          copyRow.removeFeature(bestFeature.getRawDataFile());
-          if (copyRow.getFeatures().size() == 0)
-            break;
-
-          bestFeature = copyRow.getBestFeature();
-          msmsScanNumber = bestFeature.getMostIntenseFragmentScanNumber();
-        }
-        if (missingMassList)
-          countMissingMassList++;
       }
-      if (msmsScanNumber >= 1) {
+      Scan msmsScan = row.getBestFragmentation();
+      if (msmsScan != null) {
         // MS/MS scan must exist, because msmsScanNumber was > 0
-        Scan msmsScan = bestFeature.getRawDataFile().getScan(msmsScanNumber);
 
         MassList massList = msmsScan.getMassList(massListName);
 
         if (massList == null) {
-          continue;
+          setErrorMessage("MS2 scan has no mass list. Run Mass detection on all scans");
+          setStatus(TaskStatus.ERROR);
+          return count;
         }
 
         writer.write("BEGIN IONS" + newLine);

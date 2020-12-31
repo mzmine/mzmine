@@ -18,19 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.util.FeatureConvertors;
-import java.text.Format;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
@@ -39,6 +32,12 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.FeatureConvertors;
+import java.text.Format;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.logging.Logger;
 
 public class GridMassTask extends AbstractTask {
 
@@ -510,7 +509,8 @@ public class GridMassTask extends AbstractTask {
             if (peak.getArea() > 1e-6) {
               newPeakID++;
               ModularFeatureListRow newRow = new ModularFeatureListRow(newPeakList, newPeakID);
-              newRow.addFeature(dataFile, FeatureConvertors.ChromatogramToModularFeature(peak));
+              newRow.addFeature(dataFile,
+                  FeatureConvertors.ChromatogramToModularFeature(newPeakList, peak));
               newRow.setComment(sx.toString(retentiontime));
               newPeakList.addRow(newRow);
               if (debug > 0)

@@ -25,9 +25,7 @@ import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChar
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -70,7 +68,7 @@ public class FeatureShapeType extends LinkedDataType
     // TODO stop task if new task is started
     Task task = new FeaturesGraphicalNodeTask(FeatureShapeChart.class, pane, row, coll.getText());
     // TODO change to TaskPriority.LOW priority
-    MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
+    // MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
 
     return pane;
   }
