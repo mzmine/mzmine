@@ -53,6 +53,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javafx.beans.property.MapProperty;
@@ -141,8 +142,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
     if (copyFeatures) {
       // Copy the features.
-      for (final Feature feature : row.getFeatures()) {
-        this.addFeature(feature.getRawDataFile(), new ModularFeature(flist, feature));
+      for (final Entry<RawDataFile, ModularFeature> feature : row.getFilesFeatures().entrySet()) {
+        this.addFeature(feature.getKey(), new ModularFeature(flist, feature.getValue()));
       }
     }
   }
@@ -275,6 +276,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
           + "row. Create feature with the correct feature list as an argument.");
+    }
+    if (raw == null) {
+      throw new IllegalArgumentException("Raw file cannot be null");
     }
     ModularFeature modularFeature = (ModularFeature) feature;
     /*
@@ -547,10 +551,14 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     double bestTIC = 0.0;
     Scan bestScan = null;
     for (Feature feature : getFeatures()) {
-      double theTIC = 0.0;
       RawDataFile rawData = feature.getRawDataFile();
+      if (rawData == null || !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
+        continue;
+      }
+
       int bestScanNumber = feature.getMostIntenseFragmentScanNumber();
       Scan theScan = rawData.getScan(bestScanNumber);
+      double theTIC = 0.0;
       if (theScan != null) {
         theTIC = theScan.getTIC();
       }

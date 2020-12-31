@@ -305,7 +305,7 @@ public class DeconvolutionTask extends AbstractTask {
           newRow.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
               newRow.getFeaturesProperty());
         } else {
-          newRow.addFeature(newFeature.getRawDataFile(), newFeature);
+          newRow.addFeature(dataFile, newFeature);
         }
 
         newRow.setFeatureInformation(peak.getPeakInformation());
