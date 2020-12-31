@@ -90,16 +90,16 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
   @Override
   public Number getZ(int series, int item) {
-    if (item > computedItemCount) {
-      return 0;
+    if (!valuesComputed) {
+      return 0.0;
     }
     return xyzValueProvider.getZValue(item);
   }
 
   @Override
   public double getZValue(int series, int item) {
-    if (item > computedItemCount) {
-      return 0;
+    if (!valuesComputed) {
+      return 0.0;
     }
     return xyzValueProvider.getZValue(item);
   }
@@ -231,6 +231,8 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     }
 
     computedItemCount = xyValueProvider.getValueCount();
+    valuesComputed = true;
+
     for (int i = 0; i < computedItemCount; i++) {
       if (minRangeValue.doubleValue() < xyValueProvider.getRangeValue(i)) {
         minRangeValue = xyValueProvider.getRangeValue(i);

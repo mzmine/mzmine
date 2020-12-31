@@ -39,18 +39,14 @@ public class SimpleChartUtility {
    * @return true/false if the item is a local maximum.
    */
   public static boolean isLocalMaximum(XYDataset dataset, final int series, final int item) {
-
     final boolean isLocalMaximum;
     if (item <= 0 || item >= dataset.getItemCount(series) - 1) {
-
       isLocalMaximum = false;
-
     } else {
       final double intensity = dataset.getYValue(series, item);
       isLocalMaximum = dataset.getYValue(series, item - 1) <= intensity
           && intensity >= dataset.getYValue(series, item + 1);
     }
-
     return isLocalMaximum;
   }
 
