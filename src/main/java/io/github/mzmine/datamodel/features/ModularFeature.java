@@ -247,28 +247,28 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nonnull
   @Override
   public Range<Float> getRawDataPointsRTRange() {
-    Range<Float> v = get(RTRangeType.class).getValue();
-    return v == null ? Range.singleton(0f) : v;
+    ObjectProperty<Range<Float>> v = get(RTRangeType.class);
+    return v == null || v.getValue() == null ? Range.singleton(0f) : v.getValue();
   }
 
   @Nonnull
   @Override
   public Range<Double> getRawDataPointsMZRange() {
-    Range<Double> v = get(MZRangeType.class).getValue();
-    return v == null ? Range.singleton(0d) : v;
+    ObjectProperty<Range<Double>> v = get(MZRangeType.class);
+    return v == null || v.getValue() == null ? Range.singleton(0d) : v.getValue();
   }
 
   @Nonnull
   @Override
   public Range<Float> getRawDataPointsIntensityRange() {
-    Range<Float> v = get(IntensityRangeType.class).getValue();
-    return v == null ? Range.singleton(0f) : v;
+    ObjectProperty<Range<Float>> v = get(IntensityRangeType.class);
+    return v == null || v.getValue() == null ? Range.singleton(0f) : v.getValue();
   }
 
   @Override
   public int getMostIntenseFragmentScanNumber() {
-    Integer v = get(BestFragmentScanNumberType.class).getValue();
-    return v == null ? -1 : v;
+    Property<Integer> v = get(BestFragmentScanNumberType.class);
+    return v == null || v.getValue() == null ? -1 : v.getValue();
   }
 
   @Override
@@ -278,9 +278,10 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public ObservableList<Integer> getAllMS2FragmentScanNumbers() {
-    ObservableList<Integer> v = get(FragmentScanNumbersType.class).getValue();
-    return v == null ? FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-        : v;
+    ListProperty<Integer> v = get(FragmentScanNumbersType.class);
+    return v == null || v.getValue() == null ? FXCollections
+        .unmodifiableObservableList(FXCollections.emptyObservableList())
+        : v.getValue();
   }
 
   @Override
@@ -291,8 +292,8 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nullable
   @Override
   public IsotopePattern getIsotopePattern() {
-    IsotopePattern v = get(IsotopePatternType.class).getValue();
-    return v == null ? null : v;
+    Property<IsotopePattern> v = get(IsotopePatternType.class);
+    return v == null ? null : v.getValue();
   }
 
   @Override
@@ -302,8 +303,8 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public int getCharge() {
-    Integer charge = get(ChargeType.class).getValue();
-    return charge==null? 0 : charge;
+    Property<Integer> charge = get(ChargeType.class);
+    return charge == null || charge.getValue() == null ? 0 : charge.getValue();
   }
 
   @Override
@@ -313,20 +314,20 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public float getFWHM() {
-    Float v = get(FwhmType.class).getValue();
-    return v == null ? Float.NaN : v;
+    Property<Float> v = get(FwhmType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   @Override
   public float getTailingFactor() {
-    Float v = get(TailingFactorType.class).getValue();
-    return v == null ? Float.NaN : v;
+    Property<Float> v = get(TailingFactorType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   @Override
   public float getAsymmetryFactor() {
-    Float v = get(AsymmetryFactorType.class).getValue();
-    return v == null ? Float.NaN : v;
+    Property<Float> v = get(AsymmetryFactorType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   @Override
@@ -376,8 +377,8 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public SimpleFeatureInformation getFeatureInformation() {
-    SimpleFeatureInformation v = get(FeatureInformationType.class).getValue();
-    return v == null ? null : v;
+    ObjectProperty<SimpleFeatureInformation> v = get(FeatureInformationType.class);
+    return v == null ? null : v.getValue();
   }
 
   @Nullable
@@ -425,9 +426,10 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nonnull
   @Override
   public ObservableList<Integer> getScanNumbers() {
-    ObservableList<Integer> v = get(ScanNumbersType.class).getValue();
-    return v == null ? FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-        : v;
+    ListProperty<Integer> v = get(ScanNumbersType.class);
+    return v == null || v.getValue() == null ?
+        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
+        : v.getValue();
   }
 
   @Override
@@ -437,41 +439,42 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public int getRepresentativeScanNumber() {
-    Integer v = get(BestScanNumberType.class).getValue();
-    return v == null ? -1 : v;
+    Property<Integer> v = get(BestScanNumberType.class);
+    return v == null || v.getValue() == null ? -1 : v.getValue();
   }
 
   @Override
   public ObservableList<DataPoint> getDataPoints() {
-    ObservableList<DataPoint> v = get(DataPointsType.class).getValue();
-    return v == null ? FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-        : v;
+    ListProperty<DataPoint> v = get(DataPointsType.class);
+    return v == null || v.getValue() == null ?
+        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
+        : v.getValue();
   }
 
   public float getRT() {
-    Float v = get(RTType.class).getValue();
-    return v == null ? Float.NaN : v;
+    Property<Float> v = get(RTType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   @Nonnull
   @Override
   public FeatureStatus getFeatureStatus() {
-    FeatureStatus v = get(DetectionType.class).getValue();
-    return v == null ? FeatureStatus.UNKNOWN : v;
+    ObjectProperty<FeatureStatus> v = get(DetectionType.class);
+    return v == null || v.getValue() == null ? FeatureStatus.UNKNOWN : v.getValue();
   }
 
   public double getMZ() {
-    Double mz = get(MZType.class).getValue();
-    return mz == null ? Double.NaN : mz;
+    Property<Double> mz = get(MZType.class);
+    return mz == null || mz.getValue() == null ? Double.NaN : mz.getValue();
   }
 
   public float getHeight() {
-    Float v = get(HeightType.class).getValue();
-    return v == null ? Float.NaN : v;
+    Property<Float> v = get(HeightType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   public float getArea() {
-    Float v = get(AreaType.class).getValue();
-    return v == null ? Float.NaN : v;
+    Property<Float> v = get(AreaType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 }
