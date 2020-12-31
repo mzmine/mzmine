@@ -17,31 +17,29 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
+import com.Ostermiller.util.CSVParser;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import com.Ostermiller.util.CSVParser;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class TargetedPeakDetectionModuleTask extends AbstractTask {
 
@@ -129,7 +127,6 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       newRow.addFeatureIdentity(new SimpleFeatureIdentity(peaks.get(row).getName()), true);
 
       Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance, noiseLevel);
-
       gaps.add(newGap);
     }
 

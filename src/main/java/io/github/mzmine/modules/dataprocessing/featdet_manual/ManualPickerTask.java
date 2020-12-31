@@ -18,26 +18,26 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.util.FeatureConvertors;
-import io.github.mzmine.util.RangeUtils;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
 
 class ManualPickerTask extends AbstractTask {
 
@@ -47,7 +47,7 @@ class ManualPickerTask extends AbstractTask {
 
   private final MZmineProject project;
   private final FeatureTableFX table;
-  private final FeatureList featureList;
+  private final ModularFeatureList featureList;
   private FeatureListRow featureListRow;
   private RawDataFile dataFiles[];
   private Range<Double> mzRange;
@@ -59,7 +59,7 @@ class ManualPickerTask extends AbstractTask {
     this.project = project;
     this.featureListRow = featureListRow;
     this.dataFiles = dataFiles;
-    this.featureList = featureList;
+    this.featureList = (ModularFeatureList) featureList;
     this.table = table;
 
     // TODO: FloatRangeParameter
@@ -128,8 +128,10 @@ class ManualPickerTask extends AbstractTask {
 
       if (dataPointFound) {
         newFeature.finalizeFeature();
-        if (newFeature.getArea() > 0)
-          featureListRow.addFeature(dataFile, FeatureConvertors.ManualFeatureToModularFeature(newFeature));
+        if (newFeature.getArea() > 0) {
+          featureListRow.addFeature(dataFile,
+              FeatureConvertors.ManualFeatureToModularFeature(featureList, newFeature));
+        }
       } else {
         featureListRow.removeFeature(dataFile);
       }

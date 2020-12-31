@@ -18,7 +18,6 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -29,6 +28,7 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.shape.Circle;
+import javax.annotation.Nonnull;
 
 public class DetectionType extends DataType<ObjectProperty<FeatureStatus>>
     implements GraphicalColumType<FeatureStatus> {
@@ -59,7 +59,7 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>>
 
   @Override
   public ObjectProperty<FeatureStatus> createProperty() {
-    return new SimpleObjectProperty<FeatureStatus>();
+    return new SimpleObjectProperty<FeatureStatus>(FeatureStatus.UNKNOWN);
   }
 
 }

@@ -18,29 +18,27 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
 
 class PeakFinderTask extends AbstractTask {
 
@@ -133,16 +131,12 @@ class PeakFinderTask extends AbstractTask {
           Feature sourcePeak = newRow.getFeature(dataFile);
 
           if (sourcePeak == null) {
-
             // Create a new gap
-
             Range<Double> mzRange = mzTolerance.getToleranceRange(newRow.getAverageMZ());
             Range<Float> rtRange = rtTolerance.getToleranceRange(newRow.getAverageRT());
 
             Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
-
             gaps.add(newGap);
-
           }
         }
 
@@ -242,8 +236,7 @@ class PeakFinderTask extends AbstractTask {
 
           Feature sourcePeak = sourceRow.getFeature(datafile1);
 
-          if (sourcePeak == null) {
-
+          if (sourcePeak == null || sourcePeak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
             // Create a new gap
 
             double mz = sourceRow.getAverageMZ();
@@ -259,24 +252,17 @@ class PeakFinderTask extends AbstractTask {
             }
 
             if (rt2 > -1) {
-
               float rt = (float) info.predict(rt2);
 
               if (rt != -1) {
-
                 Range<Double> mzRange = mzTolerance.getToleranceRange(mz);
                 Range<Float> rtRange = rtTolerance.getToleranceRange(rt);
 
                 Gap newGap = new Gap(newRow, datafile1, mzRange, rtRange, intTolerance);
-
                 gaps.add(newGap);
               }
             }
-
-          } else {
-            newRow.addFeature(datafile1, sourcePeak);
           }
-
         }
 
         // Stop processing this file if there are no gaps

@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -314,7 +315,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         for (int i = 0; i < peakCount; i++) {
 
           final FeatureDataSet featureDataSet
-              = new FeatureDataSet(FeatureConvertors.ResolvedPeakToMoularFeature(resolvedPeaks[i]));
+              = new FeatureDataSet(FeatureConvertors.ResolvedPeakToMoularFeature(
+              (ModularFeatureList) resolvedPeaks[i].getPeakList(), resolvedPeaks[i]));
           ticPlot.addFeatureDataSet(featureDataSet);
         }
 

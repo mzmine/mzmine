@@ -18,16 +18,15 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.util.color.ColorsFX;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
@@ -36,6 +35,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javax.annotation.Nonnull;
 
 public class FeatureShapeChart extends StackPane {
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -51,9 +51,14 @@ public class FeatureShapeChart extends StackPane {
       int size = row.getFilesFeatures().size();
       int fi = 0;
       for (Feature f : row.getFeatures()) {
+        // contains feature?
+        List<DataPoint> dps = f.getDataPoints();
+        if (dps == null || dps.isEmpty()) {
+          continue;
+        }
+
         XYChart.Series<Number, Number> data = new XYChart.Series<>();
         List<Integer> scans = f.getScanNumbers();
-        List<DataPoint> dps = f.getDataPoints();
         RawDataFile raw = f.getRawDataFile();
         // add data points retention time -> intensity
         for (int i = 0; i < scans.size(); i++) {
