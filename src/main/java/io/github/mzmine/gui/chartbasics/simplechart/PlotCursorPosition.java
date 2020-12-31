@@ -41,7 +41,7 @@ public class PlotCursorPosition {
   final XYDataset dataset;
   final int valueIndex;
 
-  public PlotCursorPosition(final double rangeVal, final double domainVal, final double zValue,
+  public PlotCursorPosition(final double domainVal, final double rangeVal, final double zValue,
       final int valueIndex, final XYDataset dataset) {
     this.rangeValue = rangeVal;
     this.domainValue = domainVal;
@@ -50,9 +50,9 @@ public class PlotCursorPosition {
     this.dataset = dataset;
   }
 
-  public PlotCursorPosition(final double rangeVal, final double domainVal, final int valueIndex,
+  public PlotCursorPosition(final double domainVal, final double rangeVal, final int valueIndex,
       final XYDataset dataset) {
-    this(rangeVal, domainVal, DEFAULT_Z_VALUE, valueIndex, dataset);
+    this(domainVal, rangeVal, DEFAULT_Z_VALUE, valueIndex, dataset);
   }
 
   public double getRangeValue() {

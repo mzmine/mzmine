@@ -25,6 +25,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import org.jfree.chart.plot.Plot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
@@ -57,6 +58,14 @@ public interface SimpleChart<T extends PlotXYDataProvider> {
   public int addDataset(T datasetProvider);
 
   public void removeAllDatasets();
+
+  public XYItemRenderer getDefaultRenderer();
+
+  public void setDefaultRenderer(XYItemRenderer defaultRenderer);
+
+  public ObjectProperty<XYItemRenderer> defaultRendererProperty();
+
+  public void setShowCrosshair(boolean show);
 
   /**
    * @return current cursor position or null

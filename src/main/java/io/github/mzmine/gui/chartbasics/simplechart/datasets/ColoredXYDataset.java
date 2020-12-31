@@ -40,6 +40,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.IntervalXYDataset;
 
 /**
  * Default dataset class for {@link SimpleXYChart}. Any class implementing {@link
@@ -49,8 +50,8 @@ import org.jfree.data.xy.AbstractXYDataset;
  *
  * @author https://github.com/SteffenHeu
  */
-public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesKeyProvider,
-    LabelTextProvider, ToolTipTextProvider, ColorPropertyProvider {
+public class ColoredXYDataset extends AbstractXYDataset implements Task, IntervalXYDataset,
+    SeriesKeyProvider, LabelTextProvider, ToolTipTextProvider, ColorPropertyProvider {
 
   private static Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
   protected final XYValueProvider xyValueProvider;
@@ -76,7 +77,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
 
     // Task stuff
     this.computed = false;
-    status.set(TaskStatus.WAITING);
+    status = new SimpleObjectProperty<>(TaskStatus.WAITING);
     errorMessage = "";
 
     // dataset stuff
@@ -301,5 +302,45 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, SeriesK
   @Override
   public void cancel() {
     status.set(TaskStatus.CANCELED);
+  }
+
+  @Override
+  public Number getStartX(int series, int item) {
+    return getX(series, item);
+  }
+
+  @Override
+  public double getStartXValue(int series, int item) {
+    return getX(series, item).doubleValue();
+  }
+
+  @Override
+  public Number getEndX(int series, int item) {
+    return getX(series, item);
+  }
+
+  @Override
+  public double getEndXValue(int series, int item) {
+    return getX(series, item).doubleValue();
+  }
+
+  @Override
+  public Number getStartY(int series, int item) {
+    return 0;
+  }
+
+  @Override
+  public double getStartYValue(int series, int item) {
+    return 0;
+  }
+
+  @Override
+  public Number getEndY(int series, int item) {
+    return getY(series, item);
+  }
+
+  @Override
+  public double getEndYValue(int series, int item) {
+    return getY(series, item).doubleValue();
   }
 }
