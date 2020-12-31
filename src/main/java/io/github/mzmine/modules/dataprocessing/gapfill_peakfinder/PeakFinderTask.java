@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -235,8 +236,7 @@ class PeakFinderTask extends AbstractTask {
 
           Feature sourcePeak = sourceRow.getFeature(datafile1);
 
-          if (sourcePeak == null) {
-
+          if (sourcePeak == null || sourcePeak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
             // Create a new gap
 
             double mz = sourceRow.getAverageMZ();

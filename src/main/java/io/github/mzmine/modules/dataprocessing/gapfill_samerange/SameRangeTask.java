@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -112,8 +113,9 @@ class SameRangeTask extends AbstractTask {
         Feature currentPeak = sourceRow.getFeature(column);
 
         // If there is a gap, try to fill it
-        if (currentPeak == null)
+        if (currentPeak == null || currentPeak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
           currentPeak = fillGap(sourceRow, column);
+        }
       }
 
       outputList.add(newRow);

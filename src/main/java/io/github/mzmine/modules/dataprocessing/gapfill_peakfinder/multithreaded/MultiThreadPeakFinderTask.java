@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -106,8 +107,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
         Feature sourcePeak = sourceRow.getFeature(dataFile);
 
-        if (sourcePeak == null) {
-
+        if (sourcePeak == null || sourcePeak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
           // Create a new gap
 
           Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
