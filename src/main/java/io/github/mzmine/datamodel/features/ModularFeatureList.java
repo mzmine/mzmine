@@ -3,6 +3,8 @@ package io.github.mzmine.datamodel.features;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,6 +62,10 @@ public class ModularFeatureList implements FeatureList {
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
+
+    // only a few standard types
+    addRowType(new IDType());
+    addRowType(new ManualAnnotationType());
 
     // add standard row bindings even if data types are missing
 //    addRowBinding(new RowBinding(new MZType(), BindingsType.AVERAGE));
