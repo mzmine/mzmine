@@ -22,6 +22,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -50,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -119,7 +123,8 @@ public class ScanUtils {
    * @param mzRange mz range to search in
    * @return double[2] containing base peak m/z and intensity
    */
-  public static @Nullable DataPoint findBasePeak(@Nonnull Scan scan,
+  public static @Nullable
+  DataPoint findBasePeak(@Nonnull Scan scan,
       @Nonnull Range<Double> mzRange) {
 
     DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
@@ -130,7 +135,6 @@ public class ScanUtils {
         basePeak = dp;
       }
     }
-
 
     return basePeak;
   }
@@ -579,7 +583,8 @@ public class ScanUtils {
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
    * within given m/z range
    */
-  public static int[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange, Range<Double> mzRange) {
+  public static int[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
+      Range<Double> mzRange) {
 
     assert dataFile != null;
     assert rtRange != null;
@@ -605,15 +610,25 @@ public class ScanUtils {
     return resultScans;
   }
 
-  /*public Set<ImsMsMsInfo> findMsMsInfos(ModularFeature feature) {
-    RawDataFile file = feature.getRawDataFile();
-    if(!(file instanceof IMSRawDataFile)) {
+  @Nullable
+  public static List<ImsMsMsInfo> findMsMsInfos(IMSRawDataFile imsRawDataFile,
+      Range<Double> mzRange,
+      Range<Float> rtRange) {
+    List<ImsMsMsInfo> featureMsMsInfos = new ArrayList<>();
+    Collection<? extends Frame> ms2Frames = imsRawDataFile.getFrames(2, rtRange);
+    for (Frame frame : ms2Frames) {
+      Set<ImsMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
+      for (ImsMsMsInfo msmsInfo : frameMsMsInfos) {
+        if (mzRange.contains(msmsInfo.getLargestPeakMz())) {
+          featureMsMsInfos.add(msmsInfo);
+        }
+      }
+    }
+    if (featureMsMsInfos.isEmpty()) {
       return null;
     }
-    IMSRawDataFile imsFile = (IMSRawDataFile) file;
-    List<Integer> scanNumbers = feature.getScanNumbers();
-    imsFile.
-  }*/
+    return featureMsMsInfos;
+  }
 
   /**
    * Find the highest data point in array
@@ -1226,7 +1241,6 @@ public class ScanUtils {
   }
 
   /**
-   *
    * @param dataPoints Sorted (by mz, ascending) array of data points
    * @param mzRange
    * @return
