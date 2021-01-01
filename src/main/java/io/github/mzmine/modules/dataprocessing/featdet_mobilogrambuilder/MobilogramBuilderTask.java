@@ -107,8 +107,9 @@ public class MobilogramBuilderTask extends AbstractTask {
           .forEach(mob -> MobilogramUtils.fillMissingScanNumsWithZero((SimpleMobilogram) mob));
       // mobilograms.forEach(mob -> ((SimpleMobilogram)mob).fillEdgesWithZeros(3));
 
-      frame.clearMobilograms();
-      mobilograms.forEach(frame::addMobilogram);
+      // Temporarily disabled
+      // frame.clearMobilograms();
+      // mobilograms.forEach(frame::addMobilogram);
       processedFrames++;
     }
 

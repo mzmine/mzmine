@@ -157,8 +157,8 @@ public class TDFReaderTask extends AbstractTask {
         finishedPercentage = 0.1 * (loadedFrames) / numFrames;
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        Frame frame = TDFUtils.exctractCentroidScanForTimsFrame(handle, frameId, metaDataTable,
-            frameTable, framePrecursorTable);
+        Frame frame = TDFUtils.exctractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
+            metaDataTable, frameTable, framePrecursorTable);
         newMZmineFile.addScan(frame);
         frames.add(frame);
         frameId++;
@@ -274,8 +274,8 @@ public class TDFReaderTask extends AbstractTask {
       setDescription("Loading mobility scans of " + rawDataFileName + ": Frame "
           + frame.getFrameId() + "/" + numFrames);
       finishedPercentage = 0.1 + (0.9 * ((double) loadedFrames / numFrames));
-      final Set<MobilityScan> spectra =
-          TDFUtils.loadSpectraForTIMSFrame(handle, frame.getFrameId(), frame, frameTable);
+      final Set<MobilityScan> spectra = TDFUtils.loadSpectraForTIMSFrame(newMZmineFile, handle,
+          frame.getFrameId(), frame, frameTable);
 
       for (MobilityScan spectrum : spectra) {
         frame.addMobilityScan(spectrum);

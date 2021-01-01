@@ -169,15 +169,18 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
   public DataPoint[] getDataPoints() {
     DataPoint d[] = new DataPoint[getNumberOfDataPoints()];
     for (int i = 0; i < getNumberOfDataPoints(); i++) {
-      d[i] = new SimpleDataPoint(getMzValues().get(i), getIntensityValues().get(i));
+      d[i] = new SimpleDataPoint(mzValues.get(i), intensityValues.get(i));
     }
     return d;
   }
 
   @Override
   public DataPoint getHighestDataPoint() {
-    DataPoint d = new SimpleDataPoint(getMzValues().get(getBasePeak()),
-        getIntensityValues().get(getBasePeak()));
+    if (basePeak < 0)
+      return null;
+    double basePeakMz = mzValues.get(basePeak);
+    double basePeakInt = intensityValues.get(basePeak);
+    DataPoint d = new SimpleDataPoint(basePeakMz, basePeakInt);
     return d;
   }
 

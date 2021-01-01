@@ -303,8 +303,9 @@ public class MzDataReadTask extends AbstractTask {
         MassSpectrumType spectrumType =
             ScanUtils.detectSpectrumType(mzDataPoints, intensityDataPoints);
 
-        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-            precursorCharge, mzDataPoints, intensityDataPoints, spectrumType, polarity, "", null);
+        buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
+            precursorMz, precursorCharge, mzDataPoints, intensityDataPoints, spectrumType, polarity,
+            "", null);
 
         /*
          * Verify the size of parentStack. The actual size of the window to cover possible

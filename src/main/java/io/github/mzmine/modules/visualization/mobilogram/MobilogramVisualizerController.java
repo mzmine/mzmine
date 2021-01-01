@@ -125,7 +125,8 @@ public class MobilogramVisualizerController {
   public void onFrameSelectionChanged(ActionEvent actionEvent) {
     Frame selectedFrame = frameSelector.getValue();
     mobilogramSelector.getItems().clear();
-    mobilogramSelector.getItems().addAll(selectedFrame.getMobilograms());
+    // Temporarily disabled
+    // mobilogramSelector.getItems().addAll(selectedFrame.getMobilograms());
   }
 
   public void onMobilogramSelectionChanged(ActionEvent actionEvent) {
@@ -196,9 +197,10 @@ public class MobilogramVisualizerController {
             if (item == null || empty) {
               setGraphic(null);
             } else {
-              setText(item.getFrameId() + " MS" + item.getMSLevel() + " @"
-                  + rtFormat.format(item.getRetentionTime()) + " min ("
-                  + item.getMobilograms().size() + ")");
+              // Temporarily disabled
+              // setText(item.getFrameId() + " MS" + item.getMSLevel() + " @"
+              // + rtFormat.format(item.getRetentionTime()) + " min ("
+              // + item.getMobilograms().size() + ")");
             }
           }
         };
@@ -210,7 +212,7 @@ public class MobilogramVisualizerController {
           return "";
         }
         return item.getFrameId() + " MS" + item.getMSLevel() + " @"
-            + rtFormat.format(item.getRetentionTime()) + " min (" + item.getMobilograms().size()
+            + rtFormat.format(item.getRetentionTime()) + " min (" // + item.getMobilograms().size()
             + ")";
       }
 

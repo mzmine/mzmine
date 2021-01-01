@@ -39,6 +39,7 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
@@ -339,8 +340,8 @@ public class TDFUtils {
    * @param frameTable
    * @return
    */
-  public static SimpleFrame exctractCentroidScanForTimsFrame(RawDataFile newFile, final long handle,
-      final long frameId, @Nonnull final TDFMetaDataTable metaDataTable,
+  public static SimpleFrame exctractCentroidScanForTimsFrame(IMSRawDataFile newFile,
+      final long handle, final long frameId, @Nonnull final TDFMetaDataTable metaDataTable,
       @Nonnull final TDFFrameTable frameTable,
       @Nonnull final FramePrecursorTable framePrecursorTable) {
 

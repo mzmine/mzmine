@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.impl;
 
 import java.nio.DoubleBuffer;
+import java.util.Vector;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -148,6 +149,65 @@ public class SimpleIsotopePattern implements IsotopePattern {
     if (isotopeCompostion != null)
       return isotopeCompostion;
     return null;
+  }
+
+
+
+  @Override
+  public DataPoint[] getDataPoints() {
+    DataPoint d[] = new DataPoint[getNumberOfDataPoints()];
+    for (int i = 0; i < getNumberOfDataPoints(); i++) {
+      d[i] = new SimpleDataPoint(getMzValues().get(i), getIntensityValues().get(i));
+    }
+    return d;
+  }
+
+  @Override
+  public DataPoint getHighestDataPoint() {
+    if (highestIsotope < 0)
+      return null;
+    return getDataPoints()[highestIsotope];
+  }
+
+  @Override
+  public DataPoint[] getDataPointsByMass(Range<Double> mzRange) {
+
+    DataPoint[] dataPoints = getDataPoints();
+    int startIndex, endIndex;
+    for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
+      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
+        break;
+      }
+    }
+
+    for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
+      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
+        break;
+      }
+    }
+
+    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+
+    // Copy the relevant points
+    System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
+
+    return pointsWithinRange;
+  }
+
+  @Override
+  public DataPoint[] getDataPointsOverIntensity(double intensity) {
+    int index;
+    Vector<DataPoint> points = new Vector<DataPoint>();
+    DataPoint[] dataPoints = getDataPoints();
+    for (index = 0; index < dataPoints.length; index++) {
+      if (dataPoints[index].getIntensity() >= intensity) {
+        points.add(dataPoints[index]);
+      }
+    }
+
+    DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
+
+    return pointsOverIntensity;
   }
 
 
