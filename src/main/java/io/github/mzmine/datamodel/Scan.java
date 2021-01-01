@@ -89,5 +89,13 @@ public interface Scan extends MassSpectrum {
 
   void removeMassList(@Nonnull MassList massList);
 
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getSpectrumType()
+   */
+  @Override
+  MassSpectrumType getSpectrumType();
+
+  void setSpectrumType(MassSpectrumType spectrumType);
+
 }
 

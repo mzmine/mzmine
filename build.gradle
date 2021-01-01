@@ -82,7 +82,7 @@ ext {
 dependencies {
     implementation "com.github.graphstream:gs-core:2.0-alpha"
     implementation "com.github.graphstream:gs-ui-javafx:2.0-alpha"
-    implementation "org.jfree:jfreechart:1.5.1"
+    implementation "org.jfree:jfreechart:1.5.2"
     implementation "org.jfree:org.jfree.chart.fx:2.0"
     implementation "org.jfree:org.jfree.fxgraphics2d:2.1"
     implementation "org.jfree:org.jfree.svg:4.1"

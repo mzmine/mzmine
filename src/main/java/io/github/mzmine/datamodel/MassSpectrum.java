@@ -19,10 +19,8 @@
 package io.github.mzmine.datamodel;
 
 import java.nio.DoubleBuffer;
-import java.util.Vector;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 
 /**
  * This class represent one mass spectrum.
@@ -35,7 +33,7 @@ public interface MassSpectrum {
    * @return m/z range of this Scan
    */
   @Nonnull
-  public Range<Double> getDataPointMZRange();
+  Range<Double> getDataPointMZRange();
 
   /**
    * Returns the index of the top intensity data point. May return -1 if there are no data points in
@@ -43,26 +41,26 @@ public interface MassSpectrum {
    *
    * @return Base peak index
    */
-  public int getBasePeak();
+  int getBasePeak();
 
   /**
    * Returns the sum of intensities of all data points.
    *
    * @return Total ion current
    */
-  public double getTIC();
+  double getTIC();
 
   /**
    * Centroid / profile / thresholded
    *
    * @return
    */
-  public MassSpectrumType getSpectrumType();
+  MassSpectrumType getSpectrumType();
 
   /**
    * @return Number of m/z and intensity data points
    */
-  public int getNumberOfDataPoints();
+  int getNumberOfDataPoints();
 
   /**
    * Returns data points of this m/z table sorted in m/z order.
@@ -73,70 +71,25 @@ public interface MassSpectrum {
    * @return Data points (m/z and intensity pairs) of this scan
    */
   @Nonnull
-  public DoubleBuffer getMzValues();
+  DoubleBuffer getMzValues();
 
   @Nonnull
-  public DoubleBuffer getIntensityValues();
+  DoubleBuffer getIntensityValues();
 
-  default DataPoint[] getDataPoints() {
-    DataPoint d[] = new DataPoint[getNumberOfDataPoints()];
-    for (int i = 0; i < getNumberOfDataPoints(); i++) {
-      d[i] = new SimpleDataPoint(getMzValues().get(i), getIntensityValues().get(i));
-    }
-    return d;
-  }
+  DataPoint[] getDataPoints();
 
-  default DataPoint getHighestDataPoint() {
-    DataPoint d = new SimpleDataPoint(getMzValues().get(getBasePeak()),
-        getIntensityValues().get(getBasePeak()));
-    return d;
-  }
+  DataPoint getHighestDataPoint();
 
   /**
    * @return Returns scan datapoints within a given range
    */
   @Nonnull
-  default DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
+  DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange);
 
-    DataPoint[] dataPoints = getDataPoints();
-    int startIndex, endIndex;
-    for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
-        break;
-      }
-    }
-
-    for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
-        break;
-      }
-    }
-
-    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
-
-    // Copy the relevant points
-    System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
-
-    return pointsWithinRange;
-  }
 
   /**
    * @return Returns scan datapoints over certain intensity
    */
   @Nonnull
-  default DataPoint[] getDataPointsOverIntensity(double intensity) {
-    int index;
-    Vector<DataPoint> points = new Vector<DataPoint>();
-    DataPoint[] dataPoints = getDataPoints();
-    for (index = 0; index < dataPoints.length; index++) {
-      if (dataPoints[index].getIntensity() >= intensity) {
-        points.add(dataPoints[index]);
-      }
-    }
-
-    DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
-
-    return pointsOverIntensity;
-  }
-
+  DataPoint[] getDataPointsOverIntensity(double intensity);
 }
