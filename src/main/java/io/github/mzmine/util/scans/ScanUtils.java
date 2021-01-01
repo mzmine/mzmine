@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,6 +44,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -126,7 +130,6 @@ public class ScanUtils {
         basePeak = dp;
       }
     }
-
 
     return basePeak;
   }
@@ -596,12 +599,24 @@ public class ScanUtils {
     return resultScans;
   }
 
-  /*
-   * public Set<ImsMsMsInfo> findMsMsInfos(ModularFeature feature) { RawDataFile file =
-   * feature.getRawDataFile(); if(!(file instanceof IMSRawDataFile)) { return null; } IMSRawDataFile
-   * imsFile = (IMSRawDataFile) file; List<Integer> scanNumbers = feature.getScanNumbers(); imsFile.
-   * }
-   */
+  @Nullable
+  public static List<ImsMsMsInfo> findMsMsInfos(IMSRawDataFile imsRawDataFile,
+      Range<Double> mzRange, Range<Float> rtRange) {
+    List<ImsMsMsInfo> featureMsMsInfos = new ArrayList<>();
+    Collection<? extends Frame> ms2Frames = imsRawDataFile.getFrames(2, rtRange);
+    for (Frame frame : ms2Frames) {
+      Set<ImsMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
+      for (ImsMsMsInfo msmsInfo : frameMsMsInfos) {
+        if (mzRange.contains(msmsInfo.getLargestPeakMz())) {
+          featureMsMsInfos.add(msmsInfo);
+        }
+      }
+    }
+    if (featureMsMsInfos.isEmpty()) {
+      return null;
+    }
+    return featureMsMsInfos;
+  }
 
   /**
    * Find the highest data point in array
@@ -1244,7 +1259,6 @@ public class ScanUtils {
   }
 
   /**
-   *
    * @param dataPoints Sorted (by mz, ascending) array of data points
    * @param mzRange
    * @return
