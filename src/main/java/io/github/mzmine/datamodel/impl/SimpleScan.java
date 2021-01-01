@@ -27,6 +27,8 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.scans.ScanUtils;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Simple implementation of the Scan interface.
@@ -46,6 +48,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
+  private ObservableList<MassList> massLists = FXCollections.observableArrayList();
 
   /**
    * Clone constructor
@@ -179,25 +182,42 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  public synchronized void addMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException();
+  public synchronized void addMassList(final @Nonnull MassList massList) {
+
+    // Remove all mass lists with same name, if there are any
+    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
+    for (MassList ml : currentMassLists) {
+      if (ml.getName().equals(massList.getName())) {
+        removeMassList(ml);
+      }
+    }
+
+    // Add the new mass list
+    massLists.add(massList);
+
   }
 
   @Override
-  public synchronized void removeMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException();
+  public synchronized void removeMassList(final @Nonnull MassList massList) {
+    massLists.remove(massList);
   }
 
   @Override
   @Nonnull
   public MassList[] getMassLists() {
-    throw new UnsupportedOperationException();
+    return massLists.toArray(new MassList[0]);
   }
 
   @Override
   public MassList getMassList(@Nonnull String name) {
-    throw new UnsupportedOperationException();
+    for (MassList ml : massLists) {
+      if (ml.getName().equals(name)) {
+        return ml;
+      }
+    }
+    return null;
   }
+
 
   @Override
   @Nonnull
