@@ -141,7 +141,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
       entry.add(new ImsMsMsInfoImpl(largestPeakMzColumn.get(i),
           Range.closedOpen(scanNumBeginColumn.get(i).intValue(),
               scanNumEndColumn.get(i).intValue()), collisionEnergyColumn.get(i).floatValue(),
-          chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue()));
+          chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue(), frameId));
     }
   }
 

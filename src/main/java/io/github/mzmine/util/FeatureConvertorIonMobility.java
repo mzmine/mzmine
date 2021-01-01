@@ -21,9 +21,11 @@ package io.github.mzmine.util;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
@@ -33,6 +35,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.R
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.maths.CenterFunction;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -43,7 +46,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class FeatureConvertorIonMobility {
 
@@ -106,15 +111,15 @@ public class FeatureConvertorIonMobility {
    * replacing the data points.
    *
    * @param processedFeatures Mobility-compressed resolved features. To be converted via {@link
-   *                          FeatureConvertors#ResolvedPeakToMoularFeature(ModularFeatureList, ResolvedPeak)} first.
-   *                          Will be modified in this method and returned.
+   *                          FeatureConvertors#ResolvedPeakToMoularFeature(ModularFeatureList,
+   *                          ResolvedPeak)} first. Will be modified in this method and returned.
    * @param originalFeature   Mobility-uncompressed original feature passed to the deconvolution
    *                          task.
    * @return
    */
   public static Set<ModularFeature> mapResolvedCollapsedFeaturesToImsFeature(
       Set<ModularFeature> processedFeatures, final ModularFeature originalFeature,
-      final CenterFunction centerFunction) {
+      final CenterFunction centerFunction, double msmsRange, float rtRangeMsMs) {
 
     /**
      * What to recalculate after expanding:
@@ -138,17 +143,32 @@ public class FeatureConvertorIonMobility {
           .toArray();
       double[] intensities = processedFeature.getDataPoints().stream()
           .mapToDouble(DataPoint::getIntensity).toArray();
-      //double[] mobilities = processedFeature.getDataPoints().stream().mapToDouble(RetentionTimeMobilityDataPoint::getMobility).toArray();
       double mz = centerFunction.calcCenter(mzs, intensities);
-      //double mobility = centerFunction.calcCenter(mobilities, intensities);
       processedFeature.setMZ(mz);
-      //processedFeature.set(MobilityType.class, mobility);
+      List<? extends DataPoint> dps = processedFeature.getDataPoints();
+      Range<Integer> mobilityScanNumRange = getDataPointsMobilityScanNumberRange(dps);
+      List<ImsMsMsInfo> msMsInfos = ScanUtils
+          .findMsMsInfos((IMSRawDataFile) processedFeature.getRawDataFile(),
+              Range.closed(processedFeature.getMZ() - msmsRange / 2,
+                  processedFeature.getMZ() + msmsRange / 2),
+              Range.closed(processedFeature.getRT() - rtRangeMsMs / 2,
+                  processedFeature.getRT() + rtRangeMsMs / 2));
+      if (msMsInfos != null) {
+        List<ImsMsMsInfo> eligibleMsMsInfos = msMsInfos.stream()
+            .filter(info -> info.getSpectrumNumberRange().isConnected(mobilityScanNumRange))
+            .collect(
+                Collectors.toList());
+        processedFeature.set(ImsMsMsInfoType.class, eligibleMsMsInfos);
+      }
       // TODO: calc area
+
       processedFeature.set(IntensityRangeType.class, Range
           .closed((float) Arrays.stream(intensities).min().getAsDouble(),
               (float) Arrays.stream(intensities).max().getAsDouble()));
       processedFeature.set(MZRangeType.class, Range.closed(Arrays.stream(mzs).min().getAsDouble(),
           Arrays.stream(mzs).max().getAsDouble()));
+
+
     }
     return processedFeatures;
   }
@@ -156,9 +176,9 @@ public class FeatureConvertorIonMobility {
   @Nonnull
   public static ModularFeature mapResolvedCollapsedFeaturesToImsFeature(
       ModularFeature processedFeature, final ModularFeature originalFeature,
-      final CenterFunction centerFunction) {
+      final CenterFunction centerFunction, double msmsRange, float rtRangeMsMs) {
     return mapResolvedCollapsedFeaturesToImsFeature(Set.of(processedFeature), originalFeature,
-        centerFunction).stream().findAny().get();
+        centerFunction, msmsRange, rtRangeMsMs).stream().findAny().get();
 
   }
 
@@ -216,10 +236,32 @@ public class FeatureConvertorIonMobility {
     return sortedDataPoints;
   }
 
+  @Nullable
+  public static Range<Integer> getDataPointsMobilityScanNumberRange(
+      List<? extends DataPoint> dataPoints) {
+    Range<Integer> range = null;
+    for (DataPoint dp : dataPoints) {
+      if (!(dp instanceof RetentionTimeMobilityDataPoint)) {
+        throw new IllegalArgumentException("IMS feature contains invalid data points.");
+      } else {
+        if (range == null) {
+          range = Range.singleton(((RetentionTimeMobilityDataPoint) dp).getScanNumber());
+        } else {
+          if (!range.contains(((RetentionTimeMobilityDataPoint) dp).getScanNumber())) {
+            range =
+                range.span(Range.singleton(((RetentionTimeMobilityDataPoint) dp).getScanNumber()));
+          }
+        }
+      }
+    }
+    return range;
+  }
+
   // maybe use ConcurrentSkipListMap instead if concurrency problems come up
   private static class FixedSizeHashMap<K, V> extends LinkedHashMap<K, V> {
 
     private static final Logger logger = Logger.getLogger(FixedSizeHashMap.class.getName());
+    private int maxSize = 50;
 
     @Override
     public V get(Object key) {
@@ -231,8 +273,6 @@ public class FeatureConvertorIonMobility {
       }
       return val;
     }
-
-    private int maxSize = 50;
 
     public int getMaxSize() {
       return maxSize;
