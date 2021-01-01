@@ -39,7 +39,6 @@ import javax.annotation.Nonnull;
  */
 public class CachedFrame extends StorableFrame {
 
-  private final StorableFrame frame;
   private List<MobilityScan> sortedMobilityScans;
   private DataPoint[] summedDataPoints;
 
@@ -47,7 +46,6 @@ public class CachedFrame extends StorableFrame {
       throws IOException {
     super(frame, (RawDataFileImpl) frame.getDataFile(), frame.getNumberOfDataPoints(),
         frame.getStorageID());
-    this.frame = frame;
     summedDataPoints = new DataPoint[0];
     sortedMobilityScans = new ArrayList<>();
 

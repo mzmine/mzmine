@@ -36,6 +36,7 @@ import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.Cache
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameHeatmapProvider;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameSummedMobilogramProvider;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameSummedSpectrumProvider;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.IonTraceProvider;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.SingleSpectrumProvider;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
@@ -82,6 +83,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private final SimpleXYChart<FrameSummedSpectrumProvider> summedSpectrumChart;
   private final SimpleXYChart<SingleSpectrumProvider> singleSpectrumChart;
   private final SimpleXYZScatterPlot<FrameHeatmapProvider> heatmapChart;
+  private final SimpleXYZScatterPlot<IonTraceProvider> ionTraceChart;
   private final TICPlot ticChart;
 
   private final NumberFormat rtFormat;
@@ -125,7 +127,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
     chartPanel.getColumnConstraints()
         .addAll(constraints, constraints, new ColumnConstraints(), constraints);
-    chartPanel.getRowConstraints().addAll(rowConstraints, rowConstraints);
+    chartPanel.getRowConstraints().addAll(rowConstraints, rowConstraints, rowConstraints);
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -142,6 +144,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     summedSpectrumChart = new SimpleXYChart<>("Summed frame spectrum");
     singleSpectrumChart = new SimpleXYChart<>("Mobility scan");
     heatmapChart = new SimpleXYZScatterPlot<>("Frame heatmap");
+    ionTraceChart = new SimpleXYZScatterPlot<>("Ion trace chart");
     ticChart = new TICPlot();
     initCharts();
 
@@ -153,6 +156,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     chartPanel.add(new BorderPane(singleSpectrumChart), 0, 1);
     chartPanel.add(new BorderPane(summedSpectrumChart), 1, 1);
     chartPanel.add(new BorderPane(ticChart), 3, 1);
+    chartPanel.add(new BorderPane(ionTraceChart), 0, 2, 4, 1);
 
     selectedMz = new SimpleDoubleProperty();
     selectedMobilityScan = new SimpleObjectProperty<>();
@@ -208,6 +212,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     heatmapChart.setDomainAxisNumberFormatOverride(mzFormat);
     heatmapChart.setRangeAxisLabel(mobilityLabel);
     heatmapChart.setRangeAxisNumberFormatOverride(mobilityFormat);
+    ionTraceChart.setDomainAxisLabel(unitFormat.format("Retention time", "min"));
+    ionTraceChart.setRangeAxisLabel(mobilityLabel);
   }
 
   private void initCharts() {
@@ -233,6 +239,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     singleSpectrumChart.setDefaultRenderer(singleSpectrumRenderer);
     singleSpectrumChart.setShowCrosshair(false);
 
+    ionTraceChart.setShowCrosshair(false);
     heatmapChart.setShowCrosshair(false);
     ticChart.getXYPlot().setDomainCrosshairVisible(false);
     ticChart.getXYPlot().setRangeCrosshairVisible(false);
@@ -346,6 +353,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
           new Thread(new Threads.BuildMobilogram(mzTolerance.getToleranceRange(selectedMz.get()),
               Set.of(cachedFrame), this, true));
       mobilogramCalc.start();
+      ionTraceChart.setDataset(new IonTraceProvider(rawDataFile,
+          mzTolerance.getToleranceRange(selectedMz.get()), rawDataFile.getDataRTRange(1),
+          mobilityScanNoiseLevel));
       updateValueMarkers();
     }));
   }
