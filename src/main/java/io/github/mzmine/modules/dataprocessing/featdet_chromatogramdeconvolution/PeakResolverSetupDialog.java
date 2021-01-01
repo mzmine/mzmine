@@ -106,7 +106,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
       final Class<? extends PeakResolver> resolverClass, String message) {
 
     super(valueCheckRequired, resolverParameters, message);
-    paramsPane.setGridLinesVisible(true);
 
     // Instantiate resolver.
     try {
