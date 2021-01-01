@@ -140,9 +140,9 @@ public class ImzMLReadTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
-        SimpleImagingScan scan = new SimpleImagingScan(null, scanNumber, msLevel, retentionTime,
-            precursorMz, precursorCharge, mzValues, intensityValues, spectrumType, polarity,
-            scanDefinition, null, coord);
+        SimpleImagingScan scan = new SimpleImagingScan(newMZmineFile, scanNumber, msLevel,
+            retentionTime, precursorMz, precursorCharge, mzValues, intensityValues, spectrumType,
+            polarity, scanDefinition, null, coord);
 
 
         /*
