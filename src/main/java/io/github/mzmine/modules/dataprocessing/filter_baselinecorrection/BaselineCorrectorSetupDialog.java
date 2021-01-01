@@ -18,6 +18,19 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -33,21 +46,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.control.ProgressBar;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  * @description This class extends ParameterSetupDialogWithChromatogramPreview class. This is used
@@ -450,14 +450,15 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
       new_sc = newDataFile.getScan(scanNumbers[scanIndex]);
 
       if (plotType == TICPlotType.BASEPEAK) {
-        dp = sc.getHighestDataPoint();
-        new_dp = new_sc.getHighestDataPoint();
-        if (dp == null) {
+        Double scanBP = sc.getBasePeakIntensity();
+        Double newScanBP = new_sc.getBasePeakIntensity();
+
+        if (scanBP == null) {
           intensity = 0.0;
-        } else if (new_dp == null) {
-          intensity = dp.getIntensity();
+        } else if (newScanBP == null) {
+          intensity = scanBP;
         } else {
-          intensity = dp.getIntensity() - new_dp.getIntensity();
+          intensity = scanBP - newScanBP;
         }
       } else {
         intensity = sc.getTIC() - new_sc.getTIC();

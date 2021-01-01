@@ -500,7 +500,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         }
 
         addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern[bestPatternIndex],
-            pattern[bestPatternIndex].getBasePeak()));
+            pattern[bestPatternIndex].getBasePeakIndex()));
         if (accurateAvgIntensity)
           addComment(parent, " Avg pattern rating: "
               + round(candidates[bestPatternIndex].getAvgAccAvgRating(), 3));
@@ -515,7 +515,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
                 + " I(c)/I(p): "
                 + round(child.getAverageHeight() / plh
                     .getRowByID(candidates[bestPatternIndex]
-                        .get(pattern[bestPatternIndex].getBasePeak()).getCandID())
+                        .get(pattern[bestPatternIndex].getBasePeakIndex()).getCandID())
                     .getAverageHeight(), 2)
                 + " Identity: " + pattern[bestPatternIndex].getIsotopeComposition(k) + " Rating: "
                 + round(candidates[bestPatternIndex].get(k).getRating(), 3) + average));

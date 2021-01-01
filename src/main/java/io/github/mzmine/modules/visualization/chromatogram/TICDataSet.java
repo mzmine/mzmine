@@ -18,20 +18,18 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -68,7 +66,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   private final int totalScans;
   private int processedScans;
 
-  private final double[] basePeakValues;
+  private final double[] basePeakMZValues;
   private final double[] intensityValues;
   private final double[] rtValues;
   private final Range<Double> mzRange;
@@ -112,7 +110,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     dataFile = file;
     this.scans = scans;
     totalScans = scans.length;
-    basePeakValues = new double[totalScans];
+    basePeakMZValues = new double[totalScans];
     intensityValues = new double[totalScans];
     rtValues = new double[totalScans];
     processedScans = 0;
@@ -136,7 +134,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   public TICDataSet(Feature feature) {
 
     dataFile = feature.getRawDataFile();
-    mzRange =  feature.getRawDataPointsMZRange();
+    mzRange = feature.getRawDataPointsMZRange();
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
     List<Integer> scanNums = feature.getScanNumbers();
 
@@ -147,7 +145,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     }
 
     totalScans = scans.length;
-    basePeakValues = new double[totalScans];
+    basePeakMZValues = new double[totalScans];
     intensityValues = new double[totalScans];
     rtValues = new double[totalScans];
     processedScans = 0;
@@ -222,7 +220,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   @Override
   public Number getZ(final int series, final int item) {
 
-    return basePeakValues[item];
+    return basePeakMZValues[item];
   }
 
   @Override
@@ -367,13 +365,15 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
       final Scan scan = scans[index];
 
       // Determine base peak value.
-      final DataPoint basePeak =
-          mzRange.encloses(scan.getDataPointMZRange()) ? scan.getHighestDataPoint()
-              : ScanUtils.findBasePeak(scan, mzRange);
+      final Double basePeakMZ = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getBasePeakMz()
+          : ScanUtils.findBasePeak(scan, mzRange).getMZ();
+      final Double basePeakIntensity =
+          mzRange.encloses(scan.getDataPointMZRange()) ? scan.getBasePeakIntensity()
+              : ScanUtils.findBasePeak(scan, mzRange).getIntensity();
 
-      if (basePeak != null) {
+      if (basePeakMZ != null) {
 
-        basePeakValues[index] = basePeak.getMZ();
+        basePeakMZValues[index] = basePeakMZ;
       }
 
       // Determine peak intensity.
@@ -384,9 +384,9 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
         intensity = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getTIC()
             : ScanUtils.calculateTIC(scan, mzRange);
 
-      } else if (plotType == TICPlotType.BASEPEAK && basePeak != null) {
+      } else if (plotType == TICPlotType.BASEPEAK && basePeakIntensity != null) {
 
-        intensity = basePeak.getIntensity();
+        intensity = basePeakIntensity;
       }
 
       intensityValues[index] = intensity;
@@ -435,31 +435,4 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     return TaskPriority.NORMAL;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof TICDataSet)) {
-      return false;
-    }
-    TICDataSet that = (TICDataSet) o;
-    return totalScans == that.totalScans && Double.compare(that.intensityMin, intensityMin) == 0
-        && Double.compare(that.intensityMax, intensityMax) == 0
-        && Objects.equals(dataFile, that.dataFile) && Arrays.equals(scans, that.scans)
-        && Arrays.equals(basePeakValues, that.basePeakValues)
-        && Arrays.equals(intensityValues, that.intensityValues)
-        && Arrays.equals(rtValues, that.rtValues) && Objects.equals(mzRange, that.mzRange)
-        && plotType == that.plotType;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = Objects.hash(dataFile, totalScans, mzRange, intensityMin, intensityMax, plotType);
-    result = 31 * result + Arrays.hashCode(scans);
-    result = 31 * result + Arrays.hashCode(basePeakValues);
-    result = 31 * result + Arrays.hashCode(intensityValues);
-    result = 31 * result + Arrays.hashCode(rtValues);
-    return result;
-  }
 }

@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -63,10 +62,6 @@ import javafx.collections.ObservableList;
  * Scan related utilities
  */
 public class ScanUtils {
-
-  private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
-
-
 
   /**
    * Common utility method to be used as Scan.toString() method in various Scan implementations
@@ -551,16 +546,16 @@ public class ScanUtils {
 
       if (mzRange.contains(scan.getPrecursorMZ())) {
 
-        DataPoint basePeak = scan.getHighestDataPoint();
+        Double basePeakInt = scan.getBasePeakIntensity();
 
-        // If there is no feature in the scan, basePeak can be null
-        if (basePeak == null) {
+        // If there is no peak in the scan, basePeak can be null
+        if (basePeakInt == null) {
           continue;
         }
 
-        if (basePeak.getIntensity() > topBasePeak) {
+        if (basePeakInt > topBasePeak) {
           bestFragmentScan = scan.getScanNumber();
-          topBasePeak = basePeak.getIntensity();
+          topBasePeak = basePeakInt;
         }
       }
 

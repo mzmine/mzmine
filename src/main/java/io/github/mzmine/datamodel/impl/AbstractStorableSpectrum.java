@@ -24,6 +24,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -44,8 +45,6 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
   protected int basePeak = -1;
   protected double totalIonCurrent;
 
-
-
   /**
    * Constructor for creating scan with given data
    */
@@ -57,7 +56,6 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
     this.storage = storage;
 
   }
-
 
   public void setDataPoints(DataPoint dataPoints[]) {
     double mzValues[] = new double[dataPoints.length];
@@ -142,7 +140,7 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
    * @see Scan#getHighestDataPoint()
    */
   @Override
-  public int getBasePeak() {
+  public int getBasePeakIndex() {
     return basePeak;
   }
 
@@ -174,15 +172,11 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
     return d;
   }
 
-  @Override
-  public DataPoint getHighestDataPoint() {
-    if (basePeak < 0)
-      return null;
-    double basePeakMz = mzValues.get(basePeak);
-    double basePeakInt = intensityValues.get(basePeak);
-    DataPoint d = new SimpleDataPoint(basePeakMz, basePeakInt);
-    return d;
-  }
+  /*
+   * @Override public DataPoint getHighestDataPoint() { if (basePeak < 0) return null; double
+   * basePeakMz = mzValues.get(basePeak); double basePeakInt = intensityValues.get(basePeak);
+   * DataPoint d = new SimpleDataPoint(basePeakMz, basePeakInt); return d; }
+   */
 
   /**
    * @return Returns scan datapoints within a given range
@@ -231,6 +225,34 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
     DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
 
     return pointsOverIntensity;
+  }
+
+  @Override
+  public double getMzValue(int index) {
+    return mzValues.get(index);
+  }
+
+  @Override
+  public double getIntensityValue(int index) {
+    return intensityValues.get(index);
+  }
+
+  @Override
+  @Nullable
+  public Double getBasePeakMz() {
+    if (basePeak < 0)
+      return null;
+    else
+      return mzValues.get(basePeak);
+  }
+
+  @Override
+  @Nullable
+  public Double getBasePeakIntensity() {
+    if (basePeak < 0)
+      return null;
+    else
+      return intensityValues.get(basePeak);
   }
 
 }

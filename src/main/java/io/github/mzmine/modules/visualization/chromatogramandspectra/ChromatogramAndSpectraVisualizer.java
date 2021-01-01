@@ -245,8 +245,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     // update feature data sets if the tolerance for the extraction changes
     chromMzToleranceProperty().addListener((obs, old, val) -> {
       if (getChromPosition() != null) {
-        updateFeatureDataSets(getChromPosition().getDataFile()
-            .getScan(getChromPosition().getScanNumber()).getHighestDataPoint().getMZ());
+        Scan scan = getChromPosition().getDataFile().getScan(getChromPosition().getScanNumber());
+        if (scan.getBasePeakMz() != null)
+          updateFeatureDataSets(scan.getBasePeakMz());
       }
     });
 
@@ -383,7 +384,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     updateChromatogramDomainMarker(pos);
     // update feature data sets
-    updateFeatureDataSets(file.getScan(pos.getScanNumber()).getHighestDataPoint().getMZ());
+    Scan scan = file.getScan(pos.getScanNumber());
+    if (scan.getBasePeakMz() != null)
+      updateFeatureDataSets(scan.getBasePeakMz());
     // update spectrum plots
     updateSpectraPlot(filesAndDataSets.keySet(), pos);
   }

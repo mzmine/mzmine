@@ -1,24 +1,22 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -29,13 +27,15 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
@@ -99,8 +99,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
 
     checkIsotopes =
         parameters.getParameter(FormulaPredictionFeatureListParameters.isotopeFilter).getValue();
-    isotopeParameters = parameters.getParameter(FormulaPredictionFeatureListParameters.isotopeFilter)
-        .getEmbeddedParameters();
+    isotopeParameters = parameters
+        .getParameter(FormulaPredictionFeatureListParameters.isotopeFilter).getEmbeddedParameters();
     if (checkIsotopes) {
       // Only get the value if the isotope checking is activated, otherwise we might get a NPE
       minScore = isotopeParameters
@@ -109,7 +109,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       minScore = 0d;
     }
 
-    checkMSMS = parameters.getParameter(FormulaPredictionFeatureListParameters.msmsFilter).getValue();
+    checkMSMS =
+        parameters.getParameter(FormulaPredictionFeatureListParameters.msmsFilter).getValue();
     msmsParameters = parameters.getParameter(FormulaPredictionFeatureListParameters.msmsFilter)
         .getEmbeddedParameters();
     if (checkMSMS) {
@@ -121,13 +122,15 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
 
     checkRDBE =
         parameters.getParameter(FormulaPredictionFeatureListParameters.rdbeRestrictions).getValue();
-    rdbeParameters = parameters.getParameter(FormulaPredictionFeatureListParameters.rdbeRestrictions)
-        .getEmbeddedParameters();
+    rdbeParameters =
+        parameters.getParameter(FormulaPredictionFeatureListParameters.rdbeRestrictions)
+            .getEmbeddedParameters();
 
     checkRatios =
         parameters.getParameter(FormulaPredictionFeatureListParameters.elementalRatios).getValue();
-    ratiosParameters = parameters.getParameter(FormulaPredictionFeatureListParameters.elementalRatios)
-        .getEmbeddedParameters();
+    ratiosParameters =
+        parameters.getParameter(FormulaPredictionFeatureListParameters.elementalRatios)
+            .getEmbeddedParameters();
 
     maxBestFormulasPerFeature = parameters
         .getParameter(FormulaPredictionFeatureListParameters.maxBestFormulasPerFeature).getValue();
@@ -269,7 +272,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @param cdkFormula
    * @param featureListRow
    * @return null for no MSMS pattern - or a double as the score
@@ -302,7 +305,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @param cdkFormula
    * @param peakListRow
    * @return null for no isotope pattern - or a double as the score
@@ -321,7 +324,11 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       final double isotopeNoiseLevel = isotopeParameters
           .getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
-      final double detectedPatternHeight = detectedPattern.getHighestDataPoint().getIntensity();
+      int isotopeBasePeak = detectedPattern.getBasePeakIndex();
+      if (isotopeBasePeak < 0)
+        return 0.0;
+      final double detectedPatternHeight =
+          detectedPattern.getIntensityValues().get(isotopeBasePeak);
 
       final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 

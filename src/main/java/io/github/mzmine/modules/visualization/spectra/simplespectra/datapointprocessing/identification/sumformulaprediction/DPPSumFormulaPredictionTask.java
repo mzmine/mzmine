@@ -309,7 +309,10 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     final double isotopeNoiseLevel =
         isotopeParameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
-    final double detectedPatternHeight = detectedPattern.getHighestDataPoint().getIntensity();
+    int isotopeBasePeak = detectedPattern.getBasePeakIndex();
+    if (isotopeBasePeak < 0)
+      return 0.0;
+    final double detectedPatternHeight = detectedPattern.getIntensityValues().get(isotopeBasePeak);
 
     final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 

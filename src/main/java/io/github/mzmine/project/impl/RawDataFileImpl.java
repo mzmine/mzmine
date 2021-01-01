@@ -42,7 +42,6 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -94,7 +93,7 @@ public class RawDataFileImpl implements RawDataFile {
   // To store mass lists that have been added but not yet reflected in the GUI
   // by the
   // notifyUpdatedMassLists() method
-  private final List<MassList> newMassLists = new ArrayList<>();
+  // private final List<MassList> newMassLists = new ArrayList<>();
 
   /**
    * Scans
@@ -350,13 +349,13 @@ public class RawDataFileImpl implements RawDataFile {
         continue;
       }
 
-      DataPoint scanBasePeak = scan.getHighestDataPoint();
+      Double scanBasePeak = scan.getBasePeakIntensity();
       if (scanBasePeak == null) {
         continue;
       }
 
-      if ((maxBasePeak == null) || (scanBasePeak.getIntensity() > maxBasePeak)) {
-        maxBasePeak = scanBasePeak.getIntensity();
+      if ((maxBasePeak == null) || (scanBasePeak > maxBasePeak)) {
+        maxBasePeak = scanBasePeak;
       }
 
     }

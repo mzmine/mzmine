@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,19 +21,16 @@ package io.github.mzmine.modules.tools.isotopeprediction;
 import java.awt.Window;
 import java.util.ArrayList;
 import javax.annotation.Nonnull;
-
 import org.openscience.cdk.formula.IsotopeContainer;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
@@ -183,10 +180,13 @@ public class IsotopePatternCalculator implements MZmineModule {
   public static IsotopePattern normalizeIsotopePattern(IsotopePattern pattern,
       double normalizedValue) {
 
-    DataPoint highestIsotope = pattern.getHighestDataPoint();
-    DataPoint dataPoints[] = pattern.getDataPoints();
+    int isotopeBasePeak = pattern.getBasePeakIndex();
+    if (isotopeBasePeak < 0)
+      return pattern;
+    final double maxIntensity = pattern.getIntensityValues().get(isotopeBasePeak);
 
-    double maxIntensity = highestIsotope.getIntensity();
+
+    DataPoint dataPoints[] = pattern.getDataPoints();
 
     DataPoint newDataPoints[] = new DataPoint[dataPoints.length];
 
@@ -200,8 +200,8 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     if (pattern instanceof SimpleIsotopePattern
         && ((SimpleIsotopePattern) pattern).getIsotopeCompositions() != null)
-      return new SimpleIsotopePattern(newDataPoints, pattern.getStatus(),
-          pattern.getDescription(), ((SimpleIsotopePattern) pattern).getIsotopeCompositions());
+      return new SimpleIsotopePattern(newDataPoints, pattern.getStatus(), pattern.getDescription(),
+          ((SimpleIsotopePattern) pattern).getIsotopeCompositions());
     else
       return new SimpleIsotopePattern(newDataPoints, pattern.getStatus(), pattern.getDescription());
 
@@ -252,8 +252,8 @@ public class IsotopePatternCalculator implements MZmineModule {
         if (comp != null)
           newComp.add(comp);
       }
-      return new SimpleIsotopePattern(newDataPoints.toArray(new DataPoint[0]),
-          pattern.getStatus(), pattern.getDescription(), newComp.toArray(new String[0]));
+      return new SimpleIsotopePattern(newDataPoints.toArray(new DataPoint[0]), pattern.getStatus(),
+          pattern.getDescription(), newComp.toArray(new String[0]));
     }
 
     return new SimpleIsotopePattern(newDataPoints.toArray(new DataPoint[0]), pattern.getStatus(),

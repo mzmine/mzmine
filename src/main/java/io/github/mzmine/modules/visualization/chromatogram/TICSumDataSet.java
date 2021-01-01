@@ -77,10 +77,10 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   /**
    * Create the data set.
    *
-   * @param file           data file to plot.
+   * @param file data file to plot.
    * @param theScanNumbers scans to plot.
-   * @param rangeMZ        range of m/z to plot.
-   * @param window         visualizer window.
+   * @param rangeMZ range of m/z to plot.
+   * @param window visualizer window.
    */
   public TICSumDataSet(final RawDataFile[] files, final Range<Float> rangeRT,
       final Range<Double> rangeMZ, final TICVisualizerTab window) {
@@ -92,11 +92,11 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
    * Create the data set + possibility to specify a plot type, even outside a "TICVisualizerWindow"
    * context.
    *
-   * @param file           data file to plot.
+   * @param file data file to plot.
    * @param theScanNumbers scans to plot.
-   * @param rangeMZ        range of m/z to plot.
-   * @param window         visualizer window.
-   * @param plotType       plot type.
+   * @param rangeMZ range of m/z to plot.
+   * @param window visualizer window.
+   * @param plotType plot type.
    */
   public TICSumDataSet(final RawDataFile[] files, final Range<Float> rangeRT,
       final Range<Double> rangeMZ, final TICVisualizerTab window, TICPlotType plotType) {
@@ -236,9 +236,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
         double intensity = 0.0;
 
         // Determine base peak value.
-        final DataPoint basePeak =
-            mzRange.encloses(scan.getDataPointMZRange()) ? scan.getHighestDataPoint()
-                : ScanUtils.findBasePeak(scan, mzRange);
+        final DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
         if (basePeak != null) {
           mzBasePeak = basePeak.getMZ();
           intensityBasePeak = basePeak.getIntensity();

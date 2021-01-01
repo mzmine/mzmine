@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.impl;
 import java.nio.DoubleBuffer;
 import java.util.Vector;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -98,7 +99,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public @Nonnull int getBasePeak() {
+  public @Nonnull int getBasePeakIndex() {
     return highestIsotope;
   }
 
@@ -162,12 +163,10 @@ public class SimpleIsotopePattern implements IsotopePattern {
     return d;
   }
 
-  @Override
-  public DataPoint getHighestDataPoint() {
-    if (highestIsotope < 0)
-      return null;
-    return getDataPoints()[highestIsotope];
-  }
+  /*
+   * @Override public DataPoint getHighestDataPoint() { if (highestIsotope < 0) return null; return
+   * getDataPoints()[highestIsotope]; }
+   */
 
   @Override
   public DataPoint[] getDataPointsByMass(Range<Double> mzRange) {
@@ -210,6 +209,32 @@ public class SimpleIsotopePattern implements IsotopePattern {
     return pointsOverIntensity;
   }
 
+  @Override
+  public double getMzValue(int index) {
+    return mzValues[index];
+  }
 
+  @Override
+  public double getIntensityValue(int index) {
+    return intensityValues[index];
+  }
+
+  @Override
+  @Nullable
+  public Double getBasePeakMz() {
+    if (highestIsotope < 0)
+      return null;
+    else
+      return mzValues[highestIsotope];
+  }
+
+  @Override
+  @Nullable
+  public Double getBasePeakIntensity() {
+    if (highestIsotope < 0)
+      return null;
+    else
+      return intensityValues[highestIsotope];
+  }
 
 }

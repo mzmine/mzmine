@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel;
 
 import java.nio.DoubleBuffer;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 
 /**
@@ -41,7 +42,7 @@ public interface MassSpectrum {
    *
    * @return Base peak index
    */
-  int getBasePeak();
+  int getBasePeakIndex();
 
   /**
    * Returns the sum of intensities of all data points.
@@ -76,13 +77,26 @@ public interface MassSpectrum {
   @Nonnull
   DoubleBuffer getIntensityValues();
 
+  double getMzValue(int index);
+
+  double getIntensityValue(int index);
+
+  @Nullable
+  Double getBasePeakMz();
+
+  @Nullable
+  Double getBasePeakIntensity();
+
+
+  @Deprecated
   DataPoint[] getDataPoints();
 
-  DataPoint getHighestDataPoint();
+  // DataPoint getHighestDataPoint();
 
   /**
    * @return Returns scan datapoints within a given range
    */
+  @Deprecated
   @Nonnull
   DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange);
 
@@ -90,6 +104,7 @@ public interface MassSpectrum {
   /**
    * @return Returns scan datapoints over certain intensity
    */
+  @Deprecated
   @Nonnull
   DataPoint[] getDataPointsOverIntensity(double intensity);
 }
