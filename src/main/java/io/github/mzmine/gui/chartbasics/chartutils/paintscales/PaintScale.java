@@ -18,9 +18,9 @@
 
 package io.github.mzmine.gui.chartbasics.chartutils.paintscales;
 
+import com.google.common.collect.Range;
 import java.awt.Color;
 import org.jfree.chart.renderer.LookupPaintScale;
-import com.google.common.collect.Range;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -36,7 +36,12 @@ public class PaintScale extends LookupPaintScale {
 
   public PaintScale(PaintScaleColorStyle paintScaleColorStyle,
       PaintScaleBoundStyle paintScaleBoundStyle, Range<Double> scaleRange) {
-    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint(), Color.BLACK);
+    this(paintScaleColorStyle, paintScaleBoundStyle, scaleRange, Color.BLACK);
+  }
+
+  public PaintScale(PaintScaleColorStyle paintScaleColorStyle,
+      PaintScaleBoundStyle paintScaleBoundStyle, Range<Double> scaleRange, Color color) {
+    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint(), color);
     this.paintScaleColorStyle = paintScaleColorStyle;
     this.paintScaleBoundStyle = paintScaleBoundStyle;
   }

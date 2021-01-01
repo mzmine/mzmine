@@ -54,6 +54,7 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
+import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
@@ -382,7 +383,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @param dataset
    * @return Paint scale based on the datasets min and max values.
    */
-  private LookupPaintScale makePaintScale(XYZDataset dataset) {
+  private PaintScale makePaintScale(XYZDataset dataset) {
     if (!(dataset instanceof ColoredXYZDataset)
         || ((ColoredXYZDataset) dataset).getPaintScale() == null
         || ((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
@@ -401,7 +402,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     if (dataset == null) {
       return;
     }
-    LookupPaintScale paintScale = makePaintScale(dataset);
+    PaintScale paintScale = makePaintScale(dataset);
     updateRenderer(paintScale);
     if (dataset instanceof ColoredXYZDataset
         && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
@@ -435,7 +436,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @param scale
    * @return Legend based on the {@link LookupPaintScale}.
    */
-  private PaintScaleLegend generateLegend(double min, double max, @Nonnull LookupPaintScale scale) {
+  private PaintScaleLegend generateLegend(double min, double max, @Nonnull PaintScale scale) {
     NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
@@ -458,7 +459,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    *
    * @param paintScale
    */
-  private void updateRenderer(LookupPaintScale paintScale) {
+  private void updateRenderer(PaintScale paintScale) {
     XYDataset dataset = plot.getDataset();
     if (!(dataset instanceof XYZDataset)) {
       // maybe add a case for that later

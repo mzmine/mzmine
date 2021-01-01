@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General private License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * private License for more details.
- * 
+ *
  * You should have received a copy of the GNU General private License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -25,8 +25,12 @@ import java.awt.Color;
 public class PaintScaleFactory {
 
   public PaintScale createColorsForPaintScale(PaintScale paintScale) {
+    return createColorsForPaintScale(paintScale, false);
+  }
+
+  public PaintScale createColorsForPaintScale(PaintScale paintScale, boolean useAlpha) {
     Color[] colors = calculateColorsForPaintScale(paintScale.getPaintScaleColorStyle(),
-        paintScale.getPaintScaleBoundStyle());
+        paintScale.getPaintScaleBoundStyle(), useAlpha);
     double delta = (paintScale.getUpperBound() - paintScale.getLowerBound()) / (colors.length - 1);
     double value = paintScale.getLowerBound();
     for (Color color : colors) {
@@ -37,23 +41,32 @@ public class PaintScaleFactory {
   }
 
   private Color[] calculateColorsForPaintScale(PaintScaleColorStyle paintScaleColorStyle,
-      PaintScaleBoundStyle paintScaleBoundStyle) {
+      PaintScaleBoundStyle paintScaleBoundStyle, boolean useAlpha) {
+    Color[] colors;
     switch (paintScaleColorStyle) {
       case CYAN:
-        return getCyanScale(paintScaleBoundStyle);
+        colors = getCyanScale(paintScaleBoundStyle);
+        break;
       case GREEN:
-        return getGreenScale(paintScaleBoundStyle);
+        colors = getGreenScale(paintScaleBoundStyle);
+        break;
       case RAINBOW:
-        return getRainbowScale();
+        colors = getRainbowScale();
+        break;
       case GRREN_RED:
-        return getGreenYellowRedScale(paintScaleBoundStyle);
+        colors = getGreenYellowRedScale(paintScaleBoundStyle);
+        break;
       case RED:
-        return getRedScale(paintScaleBoundStyle);
+        colors = getRedScale(paintScaleBoundStyle);
+        break;
       case YELLOW:
-        return getYellowScale(paintScaleBoundStyle);
+        colors = getYellowScale(paintScaleBoundStyle);
+        break;
       default:
-        return getRainbowScale();
+        colors = getRainbowScale();
+        break;
     }
+    return (useAlpha) ? scaleAlphaForPaintScale(colors) : colors;
 
   }
 

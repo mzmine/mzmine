@@ -19,8 +19,10 @@
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYZValueProvider;
@@ -31,11 +33,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.IntToDoubleFunction;
 import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.data.xy.XYZDataset;
@@ -48,13 +49,15 @@ import org.jfree.data.xy.XYZDataset;
  */
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
-  private static final String FALLBACK_PAINTSCALE_STYLE = "Rainbow";
+  private final static PaintScaleColorStyle FALLBACK_PS_STYLE = PaintScaleColorStyle.RAINBOW;
+  private final static PaintScaleBoundStyle FALLBACK_PS_BOUND = PaintScaleBoundStyle.LOWER_AND_UPPER_BOUND;
 
   private final XYZValueProvider xyzValueProvider;
   protected Double minZValue;
   protected Double maxZValue;
-  protected LookupPaintScale paintScale;
-  protected String paintScaleString;
+  protected PaintScale paintScale;
+  protected PaintScaleColorStyle defaultPaintScaleColorStyle;
+  protected PaintScaleBoundStyle defaultPaintScaleBoundStyle;
   protected Double boxWidth;
   protected Double boxHeight;
   protected AbstractXYItemRenderer renderer;
@@ -66,8 +69,16 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
   public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
       final boolean useAlphaInPaintscale) {
+    this(dataProvider, useAlphaInPaintscale, FALLBACK_PS_STYLE, FALLBACK_PS_BOUND);
+  }
+
+  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
+      final boolean useAlphaInPaintscale, PaintScaleColorStyle paintScaleColorStyle,
+      PaintScaleBoundStyle paintScaleBoundStyle) {
     super(dataProvider, false);
     this.xyzValueProvider = dataProvider;
+    this.defaultPaintScaleColorStyle = paintScaleColorStyle;
+    this.defaultPaintScaleBoundStyle = paintScaleBoundStyle;
     minZValue = Double.MAX_VALUE;
     maxZValue = Double.MIN_VALUE;
     renderer = new XYBlockPixelSizeRenderer();
@@ -113,23 +124,36 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   }
 
   /**
-   * see {@link XYBlockPixelSizePaintScales}
-   *
-   * @param paintScaleString
-   */
-  public void setPaintScaleString(String paintScaleString) {
-    this.paintScaleString = paintScaleString;
-  }
-
-  /**
    * The {@link PaintScale} this data will be drawn with.
    *
    * @return A paint scale. If null, a default paint scale will be used.
    */
   @Nullable
   @Override
-  public LookupPaintScale getPaintScale() {
+  public PaintScale getPaintScale() {
     return paintScale;
+  }
+
+//  public void setPaintScale(PaintScale paintScale) {
+//    this.paintScale = paintScale;
+//  }
+
+  public PaintScaleColorStyle getDefaultPaintScaleColorStyle() {
+    return defaultPaintScaleColorStyle;
+  }
+
+  public void setDefaultPaintScaleColorStyle(
+      PaintScaleColorStyle defaultPaintScaleColorStyle) {
+    this.defaultPaintScaleColorStyle = defaultPaintScaleColorStyle;
+  }
+
+  public PaintScaleBoundStyle getDefaultPaintScaleBoundStyle() {
+    return defaultPaintScaleBoundStyle;
+  }
+
+  public void setDefaultPaintScaleBoundStyle(
+      PaintScaleBoundStyle defaultPaintScaleBoundStyle) {
+    this.defaultPaintScaleBoundStyle = defaultPaintScaleBoundStyle;
   }
 
   public Double getBoxWidth() {
@@ -158,11 +182,11 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return -1;
   }
 
-  private double calculateDefaultBoxDimensionForPlots(Function<Integer, Double> getter,
+  private double calculateDefaultBoxDimensionForPlots(IntToDoubleFunction getter,
       int maxIndex) {
     double[] valuesSorted = new double[maxIndex];
     for (int i = 0; i < maxIndex; i++) {
-      valuesSorted[i] = getter.apply(i).doubleValue();
+      valuesSorted[i] = getter.applyAsDouble(i);
     }
     Arrays.sort(valuesSorted);
 
@@ -192,33 +216,14 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return median;
   }
 
-  private LookupPaintScale computePaintScale(double min, double max) {
-    if (paintScaleString == null || paintScaleString.isEmpty()) {
-      paintScaleString = FALLBACK_PAINTSCALE_STYLE;
-    }
-
-    // get index in accordance to percentile windows
-    Color[] contourColors = XYBlockPixelSizePaintScales
-        .getPaintColors("", Range.closed(min, max), paintScaleString);
-    if (contourColors == null) {
-      contourColors = XYBlockPixelSizePaintScales
-          .getPaintColors("", Range.closed(min, max), FALLBACK_PAINTSCALE_STYLE);
-    }
-    if (useAlphaInPaintscale) {
-      contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
-    }
-    LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
-
-//    double[] scaleValues = new double[contourColors.length];
-    double delta = (max - min) / (contourColors.length - 1);
-    double value = min;
-    for (int i = 0; i < contourColors.length; i++) {
-//      scaleValues[i] = value;
-      scale.add(value, contourColors[i]);
-      value = value + delta;
-    }
-
-    return scale;
+  private PaintScale createDefaultPaintScale(double min, double max) {
+    Range<Double> zValueRange = Range.closed(min, max);
+    var paintScale =
+        new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
+            defaultPaintScaleColorStyle, defaultPaintScaleBoundStyle, zValueRange, Color.WHITE);
+    PaintScaleFactory psf = new PaintScaleFactory();
+    paintScale = psf.createColorsForPaintScale(paintScale, useAlphaInPaintscale);
+    return paintScale;
   }
 
   @Override
@@ -254,7 +259,10 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
       boxWidth = calculateDefaultBoxDimensionForPlots(i -> getXValue(0, i), computedItemCount);
     }
 
-    this.paintScale = computePaintScale(minZValue, maxZValue);
+    if (xyzValueProvider instanceof PaintScaleProvider) {
+      paintScale = ((PaintScaleProvider) xyzValueProvider).getPaintScale();
+    }
+    paintScale = (paintScale != null) ? paintScale : createDefaultPaintScale(minZValue, maxZValue);
 
     computed = true;
     status.set(TaskStatus.FINISHED);
