@@ -33,7 +33,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
@@ -116,7 +116,7 @@ public class IsotopePatternUtils {
    */
   public static ProcessedDataPoint findIsotopicPeaks(ProcessedDataPoint dp,
       ProcessedDataPoint[] originalDataPoints, MZTolerance mzTolerance,
-      ExtendedIsotopePattern pattern, Range<Double> mzrange, int maxCharge) {
+      SimpleIsotopePattern pattern, Range<Double> mzrange, int maxCharge) {
     // dp is the peak we are currently searching an isotope pattern for
 
     if (maxCharge < 1 || !mzrange.contains(dp.getMZ()))
@@ -267,8 +267,8 @@ public class IsotopePatternUtils {
       ProcessedDataPoint dps[] = peaks.toArray(new ProcessedDataPoint[0]);
       String[] isos = isotopes.toArray(new String[0]);
 
-      ExtendedIsotopePattern pattern =
-          new ExtendedIsotopePattern(dps, IsotopePatternStatus.DETECTED,
+      SimpleIsotopePattern pattern =
+          new SimpleIsotopePattern(dps, IsotopePatternStatus.DETECTED,
               format.format(dp.getMZ()) /* + Arrays.toString(isos) */, isos);
 
       dp.addResult(new DPPIsotopePatternResult(pattern,

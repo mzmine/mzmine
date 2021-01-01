@@ -17,18 +17,24 @@
  */
 package io.github.mzmine.datamodel.impl;
 
+import java.io.IOException;
+import java.nio.DoubleBuffer;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.util.scans.ScanUtils;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.util.MemoryMapStorage;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -36,44 +42,92 @@ import javax.annotation.Nullable;
  */
 public class SimpleMobilityScan implements MobilityScan {
 
-  private final Frame frame;
-  private final DataPoint[] dataPoints;
-  private final DataPoint highestDataPoint;
-  private final double totalIonCount;
-  private final int mobilityScamNumber;
-  private Range<Double> dataPointsMzRange;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public SimpleMobilityScan(int mobilityScamNumber, Frame frame, DataPoint[] dataPoints) {
+  private final RawDataFile dataFile;
+  private final Frame frame;
+  private DoubleBuffer mzValues, intensityValues;
+  private int basePeak;
+  private double totalIonCurrent;
+  private int mobilityScamNumber;
+  private Range<Double> mzRange;
+  private Set<MassList> massLists;
+
+  public SimpleMobilityScan(RawDataFile dataFile, int mobilityScamNumber, Frame frame,
+      double mzValues[], double intensityValues[]) {
+    this.dataFile = dataFile;
     this.frame = frame;
-    this.dataPoints = dataPoints;
-    ScanUtils.sortDataPointsByMz(this.dataPoints);
-    this.totalIonCount = ScanUtils.getTIC(dataPoints, 0.d);
-    if(dataPoints.length == 0) {
-      highestDataPoint = null;
-    } else {
-      this.highestDataPoint = ScanUtils.findTopDataPoint(dataPoints);
-    }
+
     this.mobilityScamNumber = mobilityScamNumber;
+    setDataPoints(mzValues, intensityValues);
   }
+
+  /**
+   * @param dataPoints
+   */
+  public void setDataPoints(double mzValues[], double intensityValues[]) {
+
+    assert mzValues.length == intensityValues.length;
+
+    for (int i = 0; i < mzValues.length - 1; i++) {
+      if (mzValues[i] > mzValues[i + 1]) {
+        throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
+      }
+    }
+
+    MemoryMapStorage storage = dataFile.getMemoryMapStorage();
+    try {
+      this.mzValues = storage.storeData(mzValues);
+      this.intensityValues = storage.storeData(intensityValues);
+    } catch (IOException e) {
+      e.printStackTrace();
+      logger.log(Level.SEVERE,
+          "Error while storing data points on disk, keeping them in memory instead", e);
+      this.mzValues = DoubleBuffer.wrap(mzValues);
+      this.intensityValues = DoubleBuffer.wrap(intensityValues);
+    }
+
+    totalIonCurrent = 0;
+
+    // find m/z range and base peak
+    if (intensityValues.length > 0) {
+
+      basePeak = 0;
+      mzRange = Range.closed(mzValues[0], mzValues[mzValues.length - 1]);
+
+      for (int i = 0; i < intensityValues.length; i++) {
+
+        if (intensityValues[i] > intensityValues[basePeak]) {
+          basePeak = i;
+        }
+
+        totalIonCurrent += intensityValues[i];
+
+      }
+
+    } else {
+      mzRange = Range.singleton(0.0);
+      basePeak = -1;
+    }
+  }
+
+
 
   @Nonnull
   @Override
   public Range<Double> getDataPointMZRange() {
-    if (dataPointsMzRange == null) {
-      dataPointsMzRange = ScanUtils.findMzRange(dataPoints);
-    }
-    return dataPointsMzRange;
+    return mzRange;
   }
 
   @Nullable
   @Override
-  public DataPoint getHighestDataPoint() {
-    return highestDataPoint;
+  public int getBasePeak() {
+    return basePeak;
   }
 
   @Override
   public double getTIC() {
-    return totalIonCount;
+    return totalIonCurrent;
   }
 
   @Override
@@ -83,26 +137,9 @@ public class SimpleMobilityScan implements MobilityScan {
 
   @Override
   public int getNumberOfDataPoints() {
-    return dataPoints.length;
+    return mzValues.capacity();
   }
 
-  @Nonnull
-  @Override
-  public DataPoint[] getDataPoints() {
-    return dataPoints;
-  }
-
-  @Nonnull
-  @Override
-  public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
-    return ScanUtils.getDataPointsByMass(dataPoints, mzRange);
-  }
-
-  @Nonnull
-  @Override
-  public DataPoint[] getDataPointsOverIntensity(double intensity) {
-    return ScanUtils.getFiltered(dataPoints, intensity);
-  }
 
   @Override
   public double getMobility() {
@@ -136,23 +173,51 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public synchronized void addMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException();
+  public synchronized void addMassList(final @Nonnull MassList massList) {
+
+    // Remove all mass lists with same name, if there are any
+    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
+    for (MassList ml : currentMassLists) {
+      if (ml.getName().equals(massList.getName())) {
+        removeMassList(ml);
+      }
+    }
+
+    // Add the new mass list
+    massLists.add(massList);
   }
 
   @Override
-  public synchronized void removeMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException();
+  public synchronized void removeMassList(final @Nonnull MassList massList) {
+
+    // Remove the mass list
+    massLists.remove(massList);
+
   }
 
   @Override
   @Nonnull
   public Set<MassList> getMassLists() {
-    throw new UnsupportedOperationException();
+    return Objects.requireNonNullElse(massLists, Collections.emptySet());
   }
 
   @Override
   public MassList getMassList(@Nonnull String name) {
-    throw new UnsupportedOperationException();
+    for (MassList ml : massLists) {
+      if (ml.getName().equals(name)) {
+        return ml;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public DoubleBuffer getMzValues() {
+    return mzValues;
+  }
+
+  @Override
+  public DoubleBuffer getIntensityValues() {
+    return intensityValues;
   }
 }

@@ -31,13 +31,15 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleMassList;
+import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
 import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.project.impl.StorableMassList;
-import io.github.mzmine.project.impl.StorableScan;
 import io.github.mzmine.util.RangeUtils;
 
 public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDataFileOpenHandler {
@@ -60,7 +62,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
   private int storedDataNumDP;
   private TreeMap<Integer, Long> dataPointsOffsets;
   private TreeMap<Integer, Integer> dataPointsLengths;
-  private ArrayList<StorableMassList> massLists;
+  private ArrayList<MassList> massLists;
   private PolarityType polarity = PolarityType.UNKNOWN;
   private String scanDescription = "";
   private Range<Double> scanMZRange = null;
@@ -92,7 +94,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     }
 
     charBuffer = new StringBuffer();
-    massLists = new ArrayList<StorableMassList>();
+    massLists = new ArrayList<>();
 
     newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
     newRawDataFile.openDataPointsFile(scansFile);
@@ -106,8 +108,8 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     saxParser.parse(is, this);
 
     // Adds the raw data file to MZmine
-    RawDataFile rawDataFile = newRawDataFile.finishWriting();
-    return rawDataFile;
+    // RawDataFile rawDataFile = newRawDataFile.finishWriting();
+    return newRawDataFile;
 
   }
 
@@ -156,7 +158,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       String name = attrs.getValue(RawDataElementName_2_5.NAME.getElementName());
       int storageID =
           Integer.parseInt(attrs.getValue(RawDataElementName_2_5.STORAGE_ID.getElementName()));
-      StorableMassList newML = new StorableMassList(newRawDataFile, storageID, name, null);
+      MassList newML = new SimpleMassList(null, null, null);
       massLists.add(newML);
     }
   }
@@ -253,9 +255,9 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
     if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
 
-      StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
-          dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
-          /* fragmentScan, */ null, polarity, scanDescription, scanMZRange);
+      Scan storableScan = new SimpleScan(newRawDataFile, scanNumber, msLevel, retentionTime,
+          precursorMZ, precursorCharge, /* fragmentScan, */ null, null, null, polarity,
+          scanDescription, scanMZRange);
 
       try {
         newRawDataFile.addScan(storableScan);
@@ -263,8 +265,8 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
         throw new SAXException(e);
       }
 
-      for (StorableMassList newML : massLists) {
-        newML.setScan(storableScan);
+      for (MassList newML : massLists) {
+        // newML.setScan(storableScan);
         storableScan.addMassList(newML);
       }
 

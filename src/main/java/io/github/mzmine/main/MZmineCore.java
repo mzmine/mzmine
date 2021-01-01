@@ -34,8 +34,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFileWriter;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineGUI;
@@ -230,15 +232,15 @@ public final class MZmineCore {
     return initializedModules.values();
   }
 
-  public static RawDataFileWriter createNewFile(String name) throws IOException {
+  public static RawDataFile createNewFile(String name) throws IOException {
     return new RawDataFileImpl(name);
   }
 
-  public static RawDataFileWriter createNewIMSFile(String name) throws IOException {
+  public static IMSRawDataFile createNewIMSFile(String name) throws IOException {
     return new IMSRawDataFileImpl(name);
   }
 
-  public static RawDataFileWriter createNewImagingFile(String name) throws IOException {
+  public static ImagingRawDataFile createNewImagingFile(String name) throws IOException {
     return new ImagingRawDataFileImpl(name);
   }
 

@@ -19,11 +19,10 @@
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.resample;
 
 import javax.annotation.Nonnull;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -33,7 +32,8 @@ import io.github.mzmine.util.scans.ScanUtils;
 
 public class ResampleFilter implements ScanFilter {
 
-  public Scan filterScan(Scan scan, ParameterSet parameters) {
+  @Override
+  public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
 
     double binSize = parameters.getParameter(ResampleFilterParameters.binSize).getValue();
 
@@ -66,7 +66,7 @@ public class ResampleFilter implements ScanFilter {
     }
 
     // Create updated scan
-    SimpleScan newScan = new SimpleScan(scan);
+    SimpleScan newScan = new SimpleScan(newFile, scan);
     newScan.setDataPoints(newPoints);
     newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
 

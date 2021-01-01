@@ -1,17 +1,16 @@
-
 /*
  * Copyright 2006-2015 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -40,13 +39,10 @@ import com.alanmrace.jimzmlparser.mzml.SelectedIonList;
 import com.alanmrace.jimzmlparser.mzml.Spectrum;
 import com.alanmrace.jimzmlparser.mzml.SpectrumList;
 import com.alanmrace.jimzmlparser.parser.ImzMLHandler;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -64,8 +60,7 @@ public class ImzMLReadTask extends AbstractTask {
 
   private File file;
   private MZmineProject project;
-  private RawDataFileWriter newMZmineFile;
-  private ImagingRawDataFile rawDataFile;
+  private ImagingRawDataFile newMZmineFile;
   private int totalScans = 0, parsedScans;
 
   private int lastScanNumber = 0;
@@ -82,7 +77,7 @@ public class ImzMLReadTask extends AbstractTask {
   private static final int PARENT_STACK_SIZE = 20;
   private LinkedList<SimpleScan> parentStack = new LinkedList<>();
 
-  public ImzMLReadTask(MZmineProject project, File fileToOpen, RawDataFileWriter newMZmineFile) {
+  public ImzMLReadTask(MZmineProject project, File fileToOpen, ImagingRawDataFile newMZmineFile) {
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
@@ -91,6 +86,7 @@ public class ImzMLReadTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
   }
@@ -98,6 +94,7 @@ public class ImzMLReadTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -134,17 +131,18 @@ public class ImzMLReadTask extends AbstractTask {
         double precursorMz = extractPrecursorMz(spectrum);
         int precursorCharge = extractPrecursorCharge(spectrum);
         String scanDefinition = extractScanDefinition(spectrum);
-        DataPoint[] dataPoints = extractDataPoints(spectrum);
+        double mzValues[] = extractMzValues(spectrum);
+        double intensityValues[] = extractIntensityValues(spectrum);
 
         // imaging
         Coordinates coord = extractCoordinates(spectrum);
 
         // Auto-detect whether this scan is centroided
-        MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
+        MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
-        SimpleImagingScan scan =
-            new SimpleImagingScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-                precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null, coord);
+        SimpleImagingScan scan = new SimpleImagingScan(null, scanNumber, msLevel, retentionTime,
+            precursorMz, precursorCharge, mzValues, intensityValues, spectrumType, polarity,
+            scanDefinition, null, coord);
 
 
         /*
@@ -167,10 +165,9 @@ public class ImzMLReadTask extends AbstractTask {
         newMZmineFile.addScan(scan);
       }
 
-      rawDataFile = (ImagingRawDataFile) newMZmineFile.finishWriting();
       // set settings of image
-      rawDataFile.setImagingParam(new ImagingParameters(imzml));
-      project.addFile(rawDataFile);
+      newMZmineFile.setImagingParam(new ImagingParameters(imzml));
+      project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
       setStatus(TaskStatus.ERROR);
@@ -242,29 +239,31 @@ public class ImzMLReadTask extends AbstractTask {
     return 0;
   }
 
-  private DataPoint[] extractDataPoints(Spectrum spectrum) {
+  private double[] extractIntensityValues(Spectrum spectrum) {
+    try {
+      BinaryDataArrayList dataList = spectrum.getBinaryDataArrayList();
+      BinaryDataArray intensityArray = dataList.getIntensityArray();
+      double intensityValues[] = intensityArray.getDataAsDouble();
+      return intensityValues;
+    } catch (IOException e) {
+      e.printStackTrace();
+      return new double[0];
+    }
+  }
+
+  private double[] extractMzValues(Spectrum spectrum) {
     try {
       BinaryDataArrayList dataList = spectrum.getBinaryDataArrayList();
 
       BinaryDataArray mzArray = dataList.getmzArray();
       double mzValues[] = mzArray.getDataAsDouble();
-      if ((dataList == null) || (mzValues.length == 0))
-        return new DataPoint[0];
-
-      BinaryDataArray intensityArray = dataList.getIntensityArray();
-      double intensityValues[] = intensityArray.getDataAsDouble();
-      DataPoint dataPoints[] = new DataPoint[mzValues.length];
-      for (int i = 0; i < dataPoints.length; i++) {
-        double mz = mzValues[i];
-        double intensity = intensityValues[i];
-        dataPoints[i] = new SimpleDataPoint(mz, intensity);
-      }
-      return dataPoints;
+      return mzValues;
 
     } catch (IOException e) {
       e.printStackTrace();
+      return new double[0];
     }
-    return new DataPoint[0];
+
   }
 
   private Coordinates extractCoordinates(Spectrum spectrum) {
@@ -394,6 +393,7 @@ public class ImzMLReadTask extends AbstractTask {
     return spectrum.getID();
   }
 
+  @Override
   public String getTaskDescription() {
     return "Opening file " + file;
   }

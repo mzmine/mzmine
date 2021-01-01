@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
@@ -132,7 +132,7 @@ public class IsotopePatternCalculator implements MZmineModule {
     String formulaString = MolecularFormulaManipulator.getString(cdkFormula);
 
     if (storeFormula)
-      return new ExtendedIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, formulaString,
+      return new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, formulaString,
           isotopeComposition);
     else
       return new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, formulaString);
@@ -154,14 +154,14 @@ public class IsotopePatternCalculator implements MZmineModule {
       DataPoint p = dp[i];
       if (dp[i] != null) {
         newDP.add(p);
-        if (pattern instanceof ExtendedIsotopePattern) {
-          newComp.add(((ExtendedIsotopePattern) pattern).getIsotopeComposition(i));
+        if (pattern instanceof SimpleIsotopePattern) {
+          newComp.add(((SimpleIsotopePattern) pattern).getIsotopeComposition(i));
         }
       }
     }
 
-    if (pattern instanceof ExtendedIsotopePattern)
-      return new ExtendedIsotopePattern(newDP.toArray(new DataPoint[0]), pattern.getStatus(),
+    if (pattern instanceof SimpleIsotopePattern)
+      return new SimpleIsotopePattern(newDP.toArray(new DataPoint[0]), pattern.getStatus(),
           pattern.getDescription(), newComp.toArray(new String[0]));
     else
       return new SimpleIsotopePattern(newDP.toArray(new DataPoint[0]), pattern.getStatus(),
@@ -198,10 +198,10 @@ public class IsotopePatternCalculator implements MZmineModule {
       newDataPoints[i] = new SimpleDataPoint(mz, intensity);
     }
 
-    if (pattern instanceof ExtendedIsotopePattern
-        && ((ExtendedIsotopePattern) pattern).getIsotopeCompositions() != null)
-      return new ExtendedIsotopePattern(newDataPoints, pattern.getStatus(),
-          pattern.getDescription(), ((ExtendedIsotopePattern) pattern).getIsotopeCompositions());
+    if (pattern instanceof SimpleIsotopePattern
+        && ((SimpleIsotopePattern) pattern).getIsotopeCompositions() != null)
+      return new SimpleIsotopePattern(newDataPoints, pattern.getStatus(),
+          pattern.getDescription(), ((SimpleIsotopePattern) pattern).getIsotopeCompositions());
     else
       return new SimpleIsotopePattern(newDataPoints, pattern.getStatus(), pattern.getDescription());
 
@@ -217,9 +217,9 @@ public class IsotopePatternCalculator implements MZmineModule {
     DataPoint dataPoints[] = pattern.getDataPoints().clone();
 
     String newIsotopeComposition[] = new String[pattern.getNumberOfDataPoints()];
-    if (pattern instanceof ExtendedIsotopePattern
-        && ((ExtendedIsotopePattern) pattern).getIsotopeCompositions() != null)
-      newIsotopeComposition = ((ExtendedIsotopePattern) pattern).getIsotopeCompositions();
+    if (pattern instanceof SimpleIsotopePattern
+        && ((SimpleIsotopePattern) pattern).getIsotopeCompositions() != null)
+      newIsotopeComposition = ((SimpleIsotopePattern) pattern).getIsotopeCompositions();
 
     for (int i = 0; i < dataPoints.length - 1; i++) {
 
@@ -230,10 +230,10 @@ public class IsotopePatternCalculator implements MZmineModule {
         dataPoints[i + 1] = new SimpleDataPoint(newMZ, newIntensity);
         dataPoints[i] = null;
 
-        if (pattern instanceof ExtendedIsotopePattern
-            && ((ExtendedIsotopePattern) pattern).getIsotopeCompositions() != null) {
-          newIsotopeComposition[i + 1] = ((ExtendedIsotopePattern) pattern).getIsotopeComposition(i)
-              + ", " + ((ExtendedIsotopePattern) pattern).getIsotopeComposition(i + 1);
+        if (pattern instanceof SimpleIsotopePattern
+            && ((SimpleIsotopePattern) pattern).getIsotopeCompositions() != null) {
+          newIsotopeComposition[i + 1] = ((SimpleIsotopePattern) pattern).getIsotopeComposition(i)
+              + ", " + ((SimpleIsotopePattern) pattern).getIsotopeComposition(i + 1);
           newIsotopeComposition[i] = null;
         }
       }
@@ -245,14 +245,14 @@ public class IsotopePatternCalculator implements MZmineModule {
         newDataPoints.add(dp);
     }
 
-    if (pattern instanceof ExtendedIsotopePattern
-        && ((ExtendedIsotopePattern) pattern).getIsotopeCompositions() != null) {
+    if (pattern instanceof SimpleIsotopePattern
+        && ((SimpleIsotopePattern) pattern).getIsotopeCompositions() != null) {
       ArrayList<String> newComp = new ArrayList<String>();
       for (String comp : newIsotopeComposition) {
         if (comp != null)
           newComp.add(comp);
       }
-      return new ExtendedIsotopePattern(newDataPoints.toArray(new DataPoint[0]),
+      return new SimpleIsotopePattern(newDataPoints.toArray(new DataPoint[0]),
           pattern.getStatus(), pattern.getDescription(), newComp.toArray(new String[0]));
     }
 

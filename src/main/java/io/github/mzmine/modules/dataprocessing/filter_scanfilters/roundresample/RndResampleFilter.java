@@ -18,21 +18,21 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.roundresample;
 
+import java.util.Arrays;
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
 
-import java.util.Arrays;
-
 public class RndResampleFilter implements ScanFilter {
 
-  public Scan filterScan(Scan scan, ParameterSet parameters) {
+  @Override
+  public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
 
     boolean sum_duplicates =
         parameters.getParameter(RndResampleFilterParameters.SUM_DUPLICATES).getValue();
@@ -40,14 +40,12 @@ public class RndResampleFilter implements ScanFilter {
         parameters.getParameter(RndResampleFilterParameters.REMOVE_ZERO_INTENSITY).getValue();
 
     // If CENTROIDED scan, use it as-is
-    Scan inputScan;
+    DataPoint dps[];
     if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
-      inputScan = scan;
+      dps = scan.getDataPoints();
     // Otherwise, detect local maxima
     else
-      inputScan = new LocMaxCentroidingAlgorithm(scan).centroidScan();
-
-    DataPoint dps[] = inputScan.getDataPoints();
+      dps = LocMaxCentroidingAlgorithm.centroidScan(scan.getDataPoints());
 
     // Cleanup first: Remove zero intensity data points (if requested)
     // Reuse dps array
@@ -110,7 +108,7 @@ public class RndResampleFilter implements ScanFilter {
     }
 
     // Create updated scan
-    SimpleScan newScan = new SimpleScan(inputScan);
+    SimpleScan newScan = new SimpleScan(newFile, scan);
     newScan.setDataPoints(Arrays.copyOfRange(dps, 0, newNumOfDataPoints));
     newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
 

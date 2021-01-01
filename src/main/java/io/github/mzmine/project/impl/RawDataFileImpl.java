@@ -45,12 +45,10 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleImagingScan;
-import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -66,7 +64,7 @@ import javafx.scene.paint.Color;
  * the two TreeMaps. When the project is saved, the contents of the dataPointsFile are consolidated
  * - only data points referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
  */
-public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
+public class RawDataFileImpl implements RawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
 
@@ -85,8 +83,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   private final TreeMap<Integer, Integer> dataPointsLengths;
 
   // Temporary file for scan data storage
-  private File dataPointsFileName;
-  private RandomAccessFile dataPointsFile;
+  private File storageFileName;
+  private RandomAccessFile storageFile;
+  private final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
+
+
 
   private ObjectProperty<Color> color;
 
@@ -120,6 +121,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   @Override
+  public @Nonnull MemoryMapStorage getMemoryMapStorage() {
+    return storageMemoryMap;
+  }
+
+  @Override
   public RawDataFile clone() throws CloneNotSupportedException {
     return (RawDataFile) super.clone();
   }
@@ -136,7 +142,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    * been added yet to this RawDataFileImpl instance
    */
   public RandomAccessFile getDataPointsFile() {
-    return dataPointsFile;
+    return storageFile;
   }
 
   /**
@@ -146,19 +152,21 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    */
   public synchronized void openDataPointsFile(File dataPointsFileName) throws IOException {
 
-    if (this.dataPointsFile != null) {
+    if (this.storageFile != null) {
       throw new IOException("Cannot open another data points file, because one is already open");
     }
 
-    this.dataPointsFileName = dataPointsFileName;
-    this.dataPointsFile = new RandomAccessFile(dataPointsFileName, "rw");
+    this.storageFileName = dataPointsFileName;
+    this.storageFile = new RandomAccessFile(dataPointsFileName, "rw");
+    FileChannel fileChannel = storageFile.getChannel();
+    // this.storageMemoryMap = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0,
+    // Integer.MAX_VALUE);
 
     // Locks the temporary file so it is not removed when another instance
     // of MZmine is starting. Lock will be automatically released when this
     // instance of MZmine exits. Locking may fail on network-mounted
     // filesystems.
     try {
-      FileChannel fileChannel = dataPointsFile.getChannel();
       fileChannel.lock();
     } catch (IOException e) {
       logger.log(Level.WARNING, "Failed to lock the file " + dataPointsFileName, e);
@@ -407,12 +415,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
   public synchronized int storeDataPoints(DataPoint dataPoints[]) throws IOException {
 
-    if (dataPointsFile == null) {
+    if (storageFile == null) {
       File newFile = RawDataFileImpl.createNewDataPointsFile();
       openDataPointsFile(newFile);
     }
 
-    final long currentOffset = dataPointsFile.length();
+    final long currentOffset = storageFile.length();
 
     final int currentID;
     if (!dataPointsOffsets.isEmpty()) {
@@ -438,12 +446,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
     for (DataPoint dp : dataPoints) {
-      doubleBuffer.put((double) dp.getMZ());
-      doubleBuffer.put((double) dp.getIntensity());
+      doubleBuffer.put(dp.getMZ());
+      doubleBuffer.put(dp.getIntensity());
     }
 
-    dataPointsFile.seek(currentOffset);
-    dataPointsFile.write(buffer.array(), 0, numOfBytes);
+    storageFile.seek(currentOffset);
+    storageFile.write(buffer.array(), 0, numOfBytes);
 
     dataPointsOffsets.put(currentID, currentOffset);
     dataPointsLengths.put(currentID, numOfDataPoints);
@@ -470,8 +478,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
       ((Buffer) buffer).clear();
     }
 
-    dataPointsFile.seek(currentOffset);
-    dataPointsFile.read(buffer.array(), 0, numOfBytes);
+    storageFile.seek(currentOffset);
+    storageFile.read(buffer.array(), 0, numOfBytes);
 
     DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
 
@@ -493,47 +501,14 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   @Override
-  public synchronized Scan addScan(Scan newScan) throws IOException {
+  public synchronized void addScan(Scan newScan) throws IOException {
 
     // When we are loading the project, scan data file is already prepare
     // and we just need store the reference
-    if (newScan instanceof StorableScan) {
-      scans.put(newScan.getScanNumber(), newScan);
-      return newScan;
-    }
-    if (newScan instanceof SimpleImagingScan) {
-      DataPoint[] dataPoints = newScan.getDataPoints();
-      final int storageID = storeDataPoints(dataPoints);
-      StorableImagingScan storedScan =
-          new StorableImagingScan(newScan, this, dataPoints.length, storageID);
-      if (scans.put(newScan.getScanNumber(), storedScan) != null) {
-        logger.info("scan " + newScan.getScanNumber() + " already existed");
-      }
-      return storedScan;
-    } else if (newScan instanceof SimpleScan) {
-      DataPoint[] dataPoints = newScan.getDataPoints();
-      final int storageID = storeDataPoints(dataPoints);
-      StorableScan storedScan = new StorableScan(newScan, this, dataPoints.length, storageID);
-      if (scans.put(newScan.getScanNumber(), storedScan) != null) {
-        logger.info("scan " + newScan.getScanNumber() + " already existed");
-      }
-      return storedScan;
-    }
-    return newScan;
+    scans.put(newScan.getScanNumber(), newScan);
+
   }
 
-
-  /**
-   * @see io.github.mzmine.datamodel.RawDataFileWriter#finishWriting()
-   */
-  @Override
-  public synchronized RawDataFile finishWriting() throws IOException {
-    for (Scan scan : scans.values()) {
-      ((StorableScan) scan).updateValues();
-    }
-    logger.finest("Writing of scans to file " + dataPointsFileName + " finished");
-    return this;
-  }
 
   @Override
   @Nonnull
@@ -640,10 +615,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   // return mobilityType;
   // }
 
+  @Override
   public void setRTRange(int msLevel, Range<Float> rtRange) {
     dataRTRange.put(msLevel, rtRange);
   }
 
+  @Override
   public void setMZRange(int msLevel, Range<Double> mzRange) {
     dataMZRange.put(msLevel, mzRange);
   }
@@ -697,12 +674,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   @Override
   public synchronized void close() {
     try {
-      if (dataPointsFileName != null) {
-        dataPointsFile.close();
-        dataPointsFileName.delete();
+      if (storageFileName != null) {
+        storageFile.close();
+        storageFileName.delete();
       }
     } catch (IOException e) {
-      logger.warning("Could not close file " + dataPointsFileName + ": " + e.toString());
+      logger.warning("Could not close file " + storageFileName + ": " + e.toString());
     }
   }
 
@@ -721,6 +698,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   public String toString() {
     return dataFileName;
   }
+
 
   // TODO make sure that equals and hashCode() works
 }

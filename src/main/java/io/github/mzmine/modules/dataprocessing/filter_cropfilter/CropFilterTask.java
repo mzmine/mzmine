@@ -19,13 +19,10 @@
 package io.github.mzmine.modules.dataprocessing.filter_cropfilter;
 
 import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
@@ -81,12 +78,11 @@ public class CropFilterTask extends AbstractTask {
 
     try {
 
-      RawDataFileWriter rawDataFileWriter =
-          MZmineCore.createNewFile(dataFile.getName() + " " + suffix);
+      RawDataFile newFile = MZmineCore.createNewFile(dataFile.getName() + " " + suffix);
 
       for (Scan scan : scans) {
 
-        SimpleScan scanCopy = new SimpleScan(scan);
+        SimpleScan scanCopy = new SimpleScan(newFile, scan);
 
         // Check if we have something to crop
         if (!mzRange.encloses(scan.getDataPointMZRange())) {
@@ -94,13 +90,12 @@ public class CropFilterTask extends AbstractTask {
           scanCopy.setDataPoints(croppedDataPoints);
         }
 
-        rawDataFileWriter.addScan(scanCopy);
+        newFile.addScan(scanCopy);
 
         processedScans++;
       }
 
-      RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
-      project.addFile(filteredRawDataFile);
+      project.addFile(newFile);
 
       // Remove the original file if requested
       if (removeOriginal) {

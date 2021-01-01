@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,12 +21,9 @@ package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -41,7 +38,7 @@ import io.github.mzmine.util.R.RSessionWrapperException;
 /**
  * @description Abstract corrector class for baseline correction. Has to be specialized via the
  *              implementation of a "BaselineProvider".
- * 
+ *
  */
 public abstract class BaselineCorrector implements BaselineProvider, MZmineModule {
 
@@ -75,7 +72,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Getting general parameters (common to all the correctors).
-   * 
+   *
    * @param generalParameters The parameters common to all methods (grabbed from
    *        "BaselineCorrectionParameters")
    */
@@ -120,8 +117,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       progressMap.put(origDataFile, new int[] {0, 0, 0});
 
     // Create a new temporary file to write in.
-    RawDataFileWriter rawDataFileWriter =
-        MZmineCore.createNewFile(origDataFile.getName() + ' ' + suffix);
+    RawDataFile newFile = MZmineCore.createNewFile(origDataFile.getName() + ' ' + suffix);
 
     // Determine number of bins.
     final double mzLen = origDataFile.getDataMZRange().upperEndpoint()
@@ -161,38 +157,30 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
           // Correct baseline for this MS-level.
           if (useTIC) {
-            correctTICBaselines(rSession, origDataFile, rawDataFileWriter, level, numBins,
-                parameters);
+            correctTICBaselines(rSession, origDataFile, newFile, level, numBins, parameters);
           } else {
-            correctBasePeakBaselines(rSession, origDataFile, rawDataFileWriter, level, numBins,
-                parameters);
+            correctBasePeakBaselines(rSession, origDataFile, newFile, level, numBins, parameters);
           }
         } else {
 
           // Copy scans for this MS-level.
-          copyScansToWriter(origDataFile, rawDataFileWriter, level);
+          copyScansToWriter(origDataFile, newFile, level);
         }
       }
     }
 
-    // If the referring task was canceled, stop processing.
-    if (!isAborted(origDataFile)) {
-      // Finalize writing.
-      correctedDataFile = rawDataFileWriter.finishWriting();
-    }
-
-    return correctedDataFile;
+    return newFile;
   }
 
   /**
-   * Copy scans to RawDataFileWriter.
-   * 
+   * Copy scans to RawDataFile.
+   *
    * @param origDataFile dataFile of concern.
    * @param writer writer to copy scans to.
    * @param level MS-level of scans to copy.
    * @throws IOException if there are i/o problems.
    */
-  private void copyScansToWriter(final RawDataFile origDataFile, final RawDataFileWriter writer,
+  private void copyScansToWriter(final RawDataFile origDataFile, final RawDataFile writer,
       final int level) throws IOException {
 
     logger.finest("Copy scans");
@@ -218,7 +206,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       }
 
       // Create new copied scan.
-      final SimpleScan newScan = new SimpleScan(origScan);
+      final SimpleScan newScan = new SimpleScan(writer, origScan);
       newScan.setDataPoints(newDataPoints);
       writer.addScan(newScan);
       progressMap.get(origDataFile)[0]++;
@@ -227,7 +215,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Correct the baselines (using base peak chromatograms).
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @param writer data file writer.
    * @param level the MS level.
@@ -239,9 +227,8 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
    * @throws InterruptedException
    */
   private void correctBasePeakBaselines(final RSessionWrapper rSession,
-      final RawDataFile origDataFile, final RawDataFileWriter writer, final int level,
-      final int numBins, final ParameterSet parameters)
-      throws IOException, RSessionWrapperException {
+      final RawDataFile origDataFile, final RawDataFile writer, final int level, final int numBins,
+      final ParameterSet parameters) throws IOException, RSessionWrapperException {
 
     // Get scan numbers from original file.
     final int[] scanNumbers = origDataFile.getScanNumbers(level);
@@ -271,7 +258,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final DataPoint[] origDataPoints = origScan.getDataPoints();
 
       // Create and write new corrected scan.
-      final SimpleScan newScan = new SimpleScan(origScan);
+      final SimpleScan newScan = new SimpleScan(writer, origScan);
       newScan.setDataPoints(
           subtractBasePeakBaselines(origDataFile, origDataPoints, baseChrom, numBins, scanIndex));
       writer.addScan(newScan);
@@ -281,7 +268,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Correct the baselines (using TIC chromatograms).
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @param writer data file writer.
    * @param level the MS level.
@@ -292,8 +279,8 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
    * @throws BaselineCorrectionException
    */
   private void correctTICBaselines(final RSessionWrapper rSession, final RawDataFile origDataFile,
-      final RawDataFileWriter writer, final int level, final int numBins,
-      final ParameterSet parameters) throws IOException, RSessionWrapperException {
+      final RawDataFile writer, final int level, final int numBins, final ParameterSet parameters)
+      throws IOException, RSessionWrapperException {
 
     // Get scan numbers from original file.
     final int[] scanNumbers = origDataFile.getScanNumbers(level);
@@ -334,7 +321,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final DataPoint[] origDataPoints = origScan.getDataPoints();
 
       // Create and write new corrected scan.
-      final SimpleScan newScan = new SimpleScan(origScan);
+      final SimpleScan newScan = new SimpleScan(writer, origScan);
       newScan.setDataPoints(
           subtractTICBaselines(origDataFile, origDataPoints, baseChrom, numBins, scanIndex));
       writer.addScan(newScan);
@@ -345,7 +332,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Constructs base peak (max) chromatograms - one for each m/z bin.
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @param level the MS level.
    * @param numBins number of m/z bins.
@@ -385,7 +372,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Constructs TIC (sum) chromatograms - one for each m/z bin.
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @param level the MS level.
    * @param numBins number of m/z bins.
@@ -423,7 +410,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Perform baseline correction in bins (base peak).
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @param dataPoints input data points to correct.
    * @param baselines the baselines - one per m/z bin.
@@ -459,7 +446,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Perform baseline correction in bins (TIC).
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @param dataPoints input data points to correct.
    * @param baselines the baselines - one per m/z bin.
@@ -496,7 +483,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
   // Correction progress stuffs (to be called from mother Task)
   /**
    * Initializing progress info.
-   * 
+   *
    * @param origDataFile dataFile of concern.
    */
   public void initProgress(final RawDataFile origDataFile) {
@@ -505,7 +492,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Getting progress.
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @return progress.
    */
@@ -518,7 +505,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Getting progressMax.
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @return progressMax.
    */
@@ -531,7 +518,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Getting global progress.
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @return The finished percentage.
    */
@@ -543,7 +530,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Releasing progress info.
-   * 
+   *
    * @param origDataFile dataFile of concern.
    */
   public void clearProgress(final RawDataFile origDataFile) {
@@ -565,7 +552,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
   // Cancel processing features
   /**
    * Switch to abort processing (used from task mode)
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @param abort If we shall abort
    */
@@ -576,7 +563,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   /**
    * Check if dataFile processing has been canceled.
-   * 
+   *
    * @param origDataFile dataFile of concern.
    * @return True if it has.
    */

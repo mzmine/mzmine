@@ -32,7 +32,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -137,7 +137,7 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
 
     setStatus(TaskStatus.PROCESSING);
 
-    ExtendedIsotopePattern[] elementPattern =
+    SimpleIsotopePattern[] elementPattern =
         getIsotopePatterns(elements, mergeWidth, minAbundance);
 
     ProcessedDataPoint[] originalDataPoints = (ProcessedDataPoint[]) getDataPoints();
@@ -145,7 +145,7 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
     totalSteps = originalDataPoints.length * 2 + 1;
 
     // one loop for every element
-    for (ExtendedIsotopePattern pattern : elementPattern) {
+    for (SimpleIsotopePattern pattern : elementPattern) {
 
       // one loop for every datapoint
       // we want to check all the isotopes for every datapoint before we
@@ -213,20 +213,20 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
    * @param minAbundance
    * @return
    */
-  public static ExtendedIsotopePattern[] getIsotopePatterns(String elements, double mergeWidth,
+  public static SimpleIsotopePattern[] getIsotopePatterns(String elements, double mergeWidth,
       double minAbundance) {
     SilentChemObjectBuilder builder =
         (SilentChemObjectBuilder) SilentChemObjectBuilder.getInstance();
     IMolecularFormula form =
         MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(elements, builder);
 
-    ExtendedIsotopePattern[] isotopePatterns = new ExtendedIsotopePattern[form.getIsotopeCount()];
+    SimpleIsotopePattern[] isotopePatterns = new SimpleIsotopePattern[form.getIsotopeCount()];
 
     int i = 0;
     // create a isotope pattern for every element
     for (IIsotope element : form.isotopes()) {
       isotopePatterns[i] =
-          (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(
+          (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(
               element.getSymbol(), minAbundance, mergeWidth, 1, PolarityType.NEUTRAL, true);
       i++;
     }
@@ -234,13 +234,13 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
     // cleanly, we remove the
     // lightest isotope description
 
-    ExtendedIsotopePattern[] cleanedPatterns = new ExtendedIsotopePattern[form.getIsotopeCount()];
+    SimpleIsotopePattern[] cleanedPatterns = new SimpleIsotopePattern[form.getIsotopeCount()];
 
     i = 0;
-    for (ExtendedIsotopePattern p : isotopePatterns) {
+    for (SimpleIsotopePattern p : isotopePatterns) {
       String[] composition = p.getIsotopeCompositions();
       composition[0] = "";
-      cleanedPatterns[i] = new ExtendedIsotopePattern(p.getDataPoints(), p.getStatus(),
+      cleanedPatterns[i] = new SimpleIsotopePattern(p.getDataPoints(), p.getStatus(),
           p.getDescription(), composition);
       i++;
     }

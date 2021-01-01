@@ -48,7 +48,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.gui.chartbasics.chartthemes.EIsotopePatternChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
@@ -230,7 +230,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
    *
    * @param pattern
    */
-  protected void updateChart(ExtendedIsotopePattern pattern) {
+  protected void updateChart(SimpleIsotopePattern pattern) {
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
 
     if (pol == PolarityType.NEUTRAL) {
@@ -249,7 +249,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
    *
    * @param pattern
    */
-  protected void updateTable(ExtendedIsotopePattern pattern) {
+  protected void updateTable(SimpleIsotopePattern pattern) {
     DataPoint[] dp = pattern.getDataPoints();
     tableData.clear();
     for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {

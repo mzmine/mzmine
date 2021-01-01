@@ -18,18 +18,20 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import java.util.TreeSet;
-import java.util.Vector;
+import java.io.IOException;
+import java.nio.DoubleBuffer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
@@ -37,15 +39,18 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class SimpleScan implements Scan {
 
-  private RawDataFile dataFile;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
-  private DataPoint dataPoints[];
+
   private double precursorMZ;
   private int precursorCharge;
   private float retentionTime;
   private Range<Double> mzRange;
-  private DataPoint basePeak;
+  private DoubleBuffer mzValues, intensityValues;
+  private int basePeak = -1;
   private double totalIonCurrent;
   private MassSpectrumType spectrumType;
   private PolarityType polarity;
@@ -55,20 +60,23 @@ public class SimpleScan implements Scan {
   /**
    * Clone constructor
    */
-  public SimpleScan(Scan sc) {
-    this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
-        sc.getPrecursorMZ(), sc.getPrecursorCharge(),
-        sc.getDataPoints(), sc.getSpectrumType(), sc.getPolarity(), sc.getScanDefinition(),
-        sc.getScanningMZRange());
+
+  public SimpleScan(@Nonnull RawDataFile dataFile, Scan sc) {
+    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getPrecursorMZ(),
+        sc.getPrecursorCharge(), null, null, sc.getSpectrumType(), sc.getPolarity(),
+        sc.getScanDefinition(), sc.getScanningMZRange());
   }
+
 
   /**
    * Constructor for creating scan with given data
    */
-  public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, DataPoint[] dataPoints,
+  public SimpleScan(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
+      double precursorMZ, int precursorCharge, double mzValues[], double intensityValues[],
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
+
+    Preconditions.checkNotNull(dataFile);
 
     // save scan data
     this.dataFile = dataFile;
@@ -81,93 +89,69 @@ public class SimpleScan implements Scan {
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
+    if (mzValues != null && intensityValues != null)
+      setDataPoints(mzValues, intensityValues);
 
-    if (dataPoints != null) {
-      setDataPoints(dataPoints);
-    }
   }
 
-  /**
-   * @return Returns scan datapoints
-   */
-  @Nonnull
-  public DataPoint[] getDataPoints() {
-    return dataPoints;
-  }
 
-  /**
-   * @return Returns scan datapoints within a given range
-   */
-  @Nonnull
-  public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
-
-    int startIndex, endIndex;
-    for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
-        break;
-      }
+  public void setDataPoints(DataPoint dataPoints[]) {
+    double mzValues[] = new double[dataPoints.length];
+    double intensityValues[] = new double[dataPoints.length];
+    for (int i = 0; i < dataPoints.length; i++) {
+      mzValues[i] = dataPoints[i].getMZ();
+      intensityValues[i] = dataPoints[i].getIntensity();
     }
-
-    for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
-        break;
-      }
-    }
-
-    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
-
-    // Copy the relevant points
-    System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
-
-    return pointsWithinRange;
-  }
-
-  /**
-   * @return Returns scan datapoints over certain intensity
-   */
-  @Nonnull
-  public DataPoint[] getDataPointsOverIntensity(double intensity) {
-    int index;
-    Vector<DataPoint> points = new Vector<DataPoint>();
-
-    for (index = 0; index < dataPoints.length; index++) {
-      if (dataPoints[index].getIntensity() >= intensity) {
-        points.add(dataPoints[index]);
-      }
-    }
-
-    DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
-
-    return pointsOverIntensity;
+    setDataPoints(mzValues, intensityValues);
   }
 
   /**
    * @param dataPoints
    */
-  public void setDataPoints(DataPoint[] dataPoints) {
+  public synchronized void setDataPoints(double mzValues[], double intensityValues[]) {
 
-    this.dataPoints = dataPoints;
-    mzRange = Range.singleton(0.0);
-    basePeak = null;
+    assert mzValues.length == intensityValues.length;
+
+    for (int i = 0; i < mzValues.length - 1; i++) {
+      if (mzValues[i] > mzValues[i + 1]) {
+        throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
+      }
+    }
+
+    MemoryMapStorage storage = dataFile.getMemoryMapStorage();
+    try {
+      this.mzValues = storage.storeData(mzValues);
+      this.intensityValues = storage.storeData(intensityValues);
+    } catch (IOException e) {
+      e.printStackTrace();
+      logger.log(Level.SEVERE,
+          "Error while storing data points on disk, keeping them in memory instead", e);
+      this.mzValues = DoubleBuffer.wrap(mzValues);
+      this.intensityValues = DoubleBuffer.wrap(intensityValues);
+    }
+
+
     totalIonCurrent = 0;
 
     // find m/z range and base peak
-    if (dataPoints.length > 0) {
+    if (intensityValues.length > 0) {
 
-      basePeak = dataPoints[0];
-      mzRange = Range.singleton(dataPoints[0].getMZ());
+      basePeak = 0;
+      mzRange = Range.closed(mzValues[0], mzValues[mzValues.length - 1]);
 
-      for (DataPoint dp : dataPoints) {
+      for (int i = 0; i < intensityValues.length; i++) {
 
-        if (dp.getIntensity() > basePeak.getIntensity()) {
-          basePeak = dp;
+        if (intensityValues[i] > intensityValues[basePeak]) {
+          basePeak = i;
         }
 
-        mzRange = mzRange.span(Range.singleton(dp.getMZ()));
-        totalIonCurrent += dp.getIntensity();
+        totalIonCurrent += intensityValues[i];
 
       }
 
+    } else {
+      mzRange = Range.singleton(0.0);
+      basePeak = -1;
     }
 
   }
@@ -175,13 +159,15 @@ public class SimpleScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getNumberOfDataPoints()
    */
+  @Override
   public int getNumberOfDataPoints() {
-    return dataPoints.length;
+    return mzValues.capacity();
   }
 
   /**
    * @see io.github.mzmine.datamodel.Scan#getScanNumber()
    */
+  @Override
   public int getScanNumber() {
     return scanNumber;
   }
@@ -196,6 +182,7 @@ public class SimpleScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getMSLevel()
    */
+  @Override
   public int getMSLevel() {
     return msLevel;
   }
@@ -210,6 +197,7 @@ public class SimpleScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getPrecursorMZ()
    */
+  @Override
   public double getPrecursorMZ() {
     return precursorMZ;
   }
@@ -224,6 +212,7 @@ public class SimpleScan implements Scan {
   /**
    * @return Returns the precursorCharge.
    */
+  @Override
   public int getPrecursorCharge() {
     return precursorCharge;
   }
@@ -238,6 +227,7 @@ public class SimpleScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#
    */
+  @Override
   public float getRetentionTime() {
     return retentionTime;
   }
@@ -252,6 +242,7 @@ public class SimpleScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#
    */
+  @Override
   @Nonnull
   public Range<Double> getDataPointMZRange() {
     return mzRange;
@@ -260,13 +251,15 @@ public class SimpleScan implements Scan {
   /**
    * @see Scan#getHighestDataPoint()
    */
-  public DataPoint getHighestDataPoint() {
+  @Override
+  public int getBasePeak() {
     return basePeak;
   }
 
   /**
    * @see io.github.mzmine.datamodel.Scan#getSpectrumType()
    */
+  @Override
   public MassSpectrumType getSpectrumType() {
     return spectrumType;
   }
@@ -275,14 +268,17 @@ public class SimpleScan implements Scan {
     this.spectrumType = spectrumType;
   }
 
+  @Override
   public double getTIC() {
     return totalIonCurrent;
   }
 
+  @Override
   public String toString() {
     return ScanUtils.scanToString(this, false);
   }
 
+  @Override
   @Nonnull
   public RawDataFile getDataFile() {
     return dataFile;
@@ -396,6 +392,16 @@ public class SimpleScan implements Scan {
     if (Double.doubleToLongBits(totalIonCurrent) != Double.doubleToLongBits(other.totalIonCurrent))
       return false;
     return true;
+  }
+
+  @Override
+  public DoubleBuffer getMzValues() {
+    return mzValues;
+  }
+
+  @Override
+  public DoubleBuffer getIntensityValues() {
+    return intensityValues;
   }
 
 }

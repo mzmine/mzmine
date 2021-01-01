@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,9 +20,7 @@ package io.github.mzmine.datamodel.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import com.google.common.collect.Range;
-
 import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsScan;
@@ -31,7 +29,6 @@ import io.github.msdk.datamodel.PolarityType;
 import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
 import io.github.msdk.util.tolerances.MzTolerance;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 
 /**
@@ -71,10 +68,7 @@ public class MZmineToMSDKMsScan implements MsScan {
   public double[] getMzValues(double[] array) {
     if (array == null || array.length < mzmineScan.getNumberOfDataPoints())
       array = new double[mzmineScan.getNumberOfDataPoints()];
-    DataPoint dp[] = mzmineScan.getDataPoints();
-    for (int i = 0; i < mzmineScan.getNumberOfDataPoints(); i++) {
-      array[i] = dp[i].getMZ();
-    }
+    mzmineScan.getMzValues().get(array);
     return array;
   }
 
@@ -82,9 +76,8 @@ public class MZmineToMSDKMsScan implements MsScan {
   public float[] getIntensityValues(float[] array) {
     if (array == null || array.length < mzmineScan.getNumberOfDataPoints())
       array = new float[mzmineScan.getNumberOfDataPoints()];
-    DataPoint dp[] = mzmineScan.getDataPoints();
     for (int i = 0; i < mzmineScan.getNumberOfDataPoints(); i++) {
-      array[i] = (float) dp[i].getIntensity();
+      array[i] = (float) mzmineScan.getIntensityValues().get(i);
     }
     return array;
   }

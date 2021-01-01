@@ -18,27 +18,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.BrukerScanMode;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFFrameMsMsInfoTable;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFFrameTable;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMaldiFrameInfoTable;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMetaDataTable;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFPrecursorTable;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import io.github.mzmine.project.impl.StorableFrame;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -51,6 +30,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFFrameMsMsInfoTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFFrameTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMaldiFrameInfoTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFPrecursorTable;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -68,37 +65,28 @@ public class TDFReaderTask extends AbstractTask {
   private final TDFFrameMsMsInfoTable frameMsMsInfoTable;
   private final FramePrecursorTable framePrecursorTable;
   private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
-  private final RawDataFileWriter newMZmineFile;
+  private final IMSRawDataFile newMZmineFile;
   private boolean isMaldi;
 
   private String description;
   private double finishedPercentage;
   private int loadedFrames;
+
   /**
-   * Bruker tims format:
-   * - Folder
-   *  - contains multiple files
-   *  - one folder per analysis
-   *  - .d extension
-   *  - *.tdf - SQLite database; contains metadata
-   *  - *.tdf_bin - contains peak data
+   * Bruker tims format: - Folder - contains multiple files - one folder per analysis - .d extension
+   * - *.tdf - SQLite database; contains metadata - *.tdf_bin - contains peak data
    *
-   *  - *.tdf_bin
-   *   - list of frames
-   *   - frame:
-   *    - set of spectra at one specific time
-   *    - single spectrum for "each" mobility
-   *    - spectrum:
-   *     - intensity vs m/z
+   * - *.tdf_bin - list of frames - frame: - set of spectra at one specific time - single spectrum
+   * for "each" mobility - spectrum: - intensity vs m/z
    */
 
   /**
    * @param project
    * @param file
-   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via {@link
-   *                      MZmineCore#createNewIMSFile(String)}.
+   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via
+   *        {@link MZmineCore#createNewIMSFile(String)}.
    */
-  public TDFReaderTask(MZmineProject project, File file, RawDataFileWriter newMZmineFile) {
+  public TDFReaderTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile) {
     File[] files = new File[2];
     if (file.isDirectory()) {
       files = getDataFilesFromDir(file);
@@ -109,8 +97,8 @@ public class TDFReaderTask extends AbstractTask {
     this.tdf = files[0];
     this.tdfBin = files[0];
 
-    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead()
-        || !tdfBin.exists() || !tdfBin.canRead()) {
+    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead() || !tdfBin.exists()
+        || !tdfBin.canRead()) {
       throw new IllegalArgumentException(
           "\"Cannot open sql or bin files: \" + tdf.getName() + \"; \" + tdfBin.getName()");
     }
@@ -131,7 +119,7 @@ public class TDFReaderTask extends AbstractTask {
     }
 
     this.newMZmineFile = newMZmineFile;
-    ((IMSRawDataFile) newMZmineFile).setName(rawDataFileName);
+    newMZmineFile.setName(rawDataFileName);
 
     loadedFrames = 0;
     setStatus(TaskStatus.WAITING);
@@ -166,13 +154,13 @@ public class TDFReaderTask extends AbstractTask {
     Set<Frame> frames = new LinkedHashSet<>();
     try {
       for (int scanNum = frameId; scanNum < frameTable.getNumberOfFrames(); scanNum++) {
-        finishedPercentage = 0.1 * ((double) loadedFrames) / numFrames;
+        finishedPercentage = 0.1 * (loadedFrames) / numFrames;
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        Scan frame = TDFUtils.exctractCentroidScanForTimsFrame(handle, frameId, metaDataTable,
+        Frame frame = TDFUtils.exctractCentroidScanForTimsFrame(handle, frameId, metaDataTable,
             frameTable, framePrecursorTable);
-        Frame storedFrame = (Frame) newMZmineFile.addScan(frame);
-        frames.add(storedFrame);
+        newMZmineFile.addScan(frame);
+        frames.add(frame);
         frameId++;
         loadedFrames++;
         if (isCanceled()) {
@@ -183,26 +171,21 @@ public class TDFReaderTask extends AbstractTask {
       e.printStackTrace();
     }
 
-//    if (!isMaldi) {
+    // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
-//    } else {
-//      appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
-//          metaDataTable, maldiFrameInfoTable);
-//    }
+    // } else {
+    // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
+    // metaDataTable, maldiFrameInfoTable);
+    // }
 
     TDFUtils.close(handle);
 
-    try {
-      setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
-      RawDataFile file = newMZmineFile.finishWriting();
-      finishedPercentage = 1.0;
-      logger.info("Imported " + rawDataFileName + ". Loaded " + file.getNumOfScans() + " scans and "
-          + ((IMSRawDataFile) file).getNumberOfFrames() + " frames.");
-      MZmineCore.getProjectManager().getCurrentProject().addFile(file);
-      compareMobilities((IMSRawDataFile) file);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
+    finishedPercentage = 1.0;
+    logger.info("Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans()
+        + " scans and " + newMZmineFile.getNumberOfFrames() + " frames.");
+    MZmineCore.getProjectManager().getCurrentProject().addFile(newMZmineFile);
+    compareMobilities(newMZmineFile);
 
     setStatus(TaskStatus.FINISHED);
 
@@ -227,11 +210,11 @@ public class TDFReaderTask extends AbstractTask {
 
       setDescription("Reading metadata for " + tdf.getName());
       metaDataTable.executeQuery(connection);
-//      metaDataTable.print();
+      // metaDataTable.print();
 
       setDescription("Reading frame data for " + tdf.getName());
       frameTable.executeQuery(connection);
-//      frameTable.print();
+      // frameTable.print();
 
       isMaldi = frameTable.getScanModeColumn()
           .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));
@@ -241,24 +224,24 @@ public class TDFReaderTask extends AbstractTask {
             .contains(Integer.toUnsignedLong(BrukerScanMode.PASEF.getNum()))) {
           setDescription("Reading precursor info for " + tdf.getName());
           precursorTable.executeQuery(connection);
-//        precursorTable.print();
+          // precursorTable.print();
 
           setDescription("Reading PASEF info for " + tdf.getName());
           pasefFrameMsMsInfoTable.executeQuery(connection);
-//        pasefFrameMsMsInfoTable.print();
+          // pasefFrameMsMsInfoTable.print();
 
           setDescription("Reading Frame MS/MS info for " + tdf.getName());
           frameMsMsInfoTable.executeQuery(connection);
-//        frameMsMsInfoTable.print();
+          // frameMsMsInfoTable.print();
 
           setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
           framePrecursorTable.executeQuery(connection);
-//        framePrecursorTable.print();
+          // framePrecursorTable.print();
         }
       } else {
         setDescription("MALDI info for " + tdf.getName());
         maldiFrameInfoTable.executeQuery(connection);
-//        maldiFrameInfoTable.print();
+        // maldiFrameInfoTable.print();
       }
 
       connection.close();
@@ -276,28 +259,26 @@ public class TDFReaderTask extends AbstractTask {
   /**
    * Adds all scans from the pasef segment to a raw data file. Does not add the frame spectra!
    *
-   * @param handle        handle of the tdfbin. {@link TDFUtils#openFile(File)} {@link
-   *                      TDFUtils#openFile(File, long)}
+   * @param handle handle of the tdfbin. {@link TDFUtils#openFile(File)}
+   *        {@link TDFUtils#openFile(File, long)}
    * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
-   * @param frames        the frames to load mobility spectra for
+   * @param frames the frames to load mobility spectra for
    */
   private void appendScansFromTimsSegment(final long handle,
-      @Nonnull final TDFFrameTable tdfFrameTable,
-      Set<Frame> frames) {
+      @Nonnull final TDFFrameTable tdfFrameTable, Set<Frame> frames) {
 
     loadedFrames = 0;
     final long numFrames = tdfFrameTable.getNumberOfFrames();
 
     for (Frame frame : frames) {
-      setDescription(
-          "Loading mobility scans of " + rawDataFileName + ": Frame " + frame.getFrameId() + "/"
-              + numFrames);
+      setDescription("Loading mobility scans of " + rawDataFileName + ": Frame "
+          + frame.getFrameId() + "/" + numFrames);
       finishedPercentage = 0.1 + (0.9 * ((double) loadedFrames / numFrames));
-      final Set<MobilityScan> spectra = TDFUtils
-          .loadSpectraForTIMSFrame(handle, frame.getFrameId(), frame, frameTable);
+      final Set<MobilityScan> spectra =
+          TDFUtils.loadSpectraForTIMSFrame(handle, frame.getFrameId(), frame, frameTable);
 
       for (MobilityScan spectrum : spectra) {
-        ((StorableFrame) frame).addMobilityScan(spectrum);
+        frame.addMobilityScan(spectrum);
       }
 
       if (isCanceled()) {
@@ -308,20 +289,18 @@ public class TDFReaderTask extends AbstractTask {
 
   }
 
-  private void appendScansFromMaldiTimsSegment(@Nonnull final RawDataFileWriter rawDataFile,
+  private void appendScansFromMaldiTimsSegment(@Nonnull final IMSRawDataFile rawDataFile,
       final long handle, final long firstFrameId, final long lastFrameId,
-      @Nonnull final TDFFrameTable tdfFrameTable,
-      @Nonnull final TDFMetaDataTable tdfMetaDataTable,
+      @Nonnull final TDFFrameTable tdfFrameTable, @Nonnull final TDFMetaDataTable tdfMetaDataTable,
       @Nonnull final TDFMaldiFrameInfoTable tdfMaldiTable) {
 
     final long numFrames = tdfFrameTable.getNumberOfFrames();
 
     for (long frameId = firstFrameId; frameId <= lastFrameId; frameId++) {
-      setDescription(
-          "Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
+      setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
       finishedPercentage = 0.9 * frameId / numFrames;
-      final List<Scan> scans = TDFUtils.loadScansForMaldiTimsFrame(
-          handle, frameId, tdfFrameTable, tdfMetaDataTable, tdfMaldiTable);
+      final List<Scan> scans = TDFUtils.loadScansForMaldiTimsFrame(handle, frameId, tdfFrameTable,
+          tdfMetaDataTable, tdfMaldiTable);
 
       try {
         for (Scan scan : scans) {
@@ -345,8 +324,8 @@ public class TDFReaderTask extends AbstractTask {
     }
 
     File[] files = dir.listFiles(pathname -> {
-      if (pathname.getAbsolutePath().endsWith(".tdf") || pathname.getAbsolutePath()
-          .endsWith(".tdf_bin")) {
+      if (pathname.getAbsolutePath().endsWith(".tdf")
+          || pathname.getAbsolutePath().endsWith(".tdf_bin")) {
         return true;
       }
       return false;
@@ -369,7 +348,7 @@ public class TDFReaderTask extends AbstractTask {
       return false;
     }).findAny().get();
 
-    return new File[]{tdf, tdf_bin};
+    return new File[] {tdf, tdf_bin};
   }
 
   private void identifySegments(IMSRawDataFileImpl rawDataFile) {
@@ -389,9 +368,9 @@ public class TDFReaderTask extends AbstractTask {
       for (Integer num : nums) {
         if (Double.compare(thisFrame.getMobilityForMobilityScanNumber(num),
             nextFrame.getMobilityForMobilityScanNumber(num)) != 0) {
-          logger.info("Mobilities for num " + num + " dont match 1: " + thisFrame
-              .getMobilityForMobilityScanNumber(num) + " 2: " + nextFrame
-              .getMobilityForMobilityScanNumber(num));
+          logger.info("Mobilities for num " + num + " dont match 1: "
+              + thisFrame.getMobilityForMobilityScanNumber(num) + " 2: "
+              + nextFrame.getMobilityForMobilityScanNumber(num));
         }
       }
     }

@@ -39,16 +39,13 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.project.impl.StorableImagingScan;
-import io.github.mzmine.project.impl.StorableMassList;
-import io.github.mzmine.project.impl.StorableScan;
 
 class RawDataFileSaveHandler {
 
@@ -71,7 +68,7 @@ class RawDataFileSaveHandler {
    * same zip file.
    *
    * @param rawDataFile raw data file to be copied
-   * @param number      number of the raw data file
+   * @param number number of the raw data file
    * @throws java.io.IOException
    * @throws TransformerConfigurationException
    * @throws SAXException
@@ -214,8 +211,8 @@ class RawDataFileSaveHandler {
         return;
       }
 
-      StorableScan scan = (StorableScan) rawDataFile.getScan(scanNumber);
-      int storageID = scan.getStorageID();
+      Scan scan = rawDataFile.getScan(scanNumber);
+      int storageID = 0;
       atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
           String.valueOf(storageID));
       hd.startElement("", "", RawDataElementName.SCAN.getElementName(), atts);
@@ -339,11 +336,11 @@ class RawDataFileSaveHandler {
     // <MASS_LIST>
     MassList massLists[] = scan.getMassLists();
     for (MassList massList : massLists) {
-      StorableMassList stMassList = (StorableMassList) massList;
+      MassList stMassList = massList;
       atts.addAttribute("", "", RawDataElementName.NAME.getElementName(), "CDATA",
           stMassList.getName());
-      atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
-          String.valueOf(stMassList.getStorageID()));
+      // atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+      // String.valueOf(stMassList.getStorageID()));
       hd.startElement("", "", RawDataElementName.MASS_LIST.getElementName(), atts);
       atts.clear();
       hd.endElement("", "", RawDataElementName.MASS_LIST.getElementName());
@@ -369,15 +366,15 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName());
 
     // <MOBILITY>
-    //hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
-    //double mobility = scan.getMobility();
-    //hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
-    //hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
+    // hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
+    // double mobility = scan.getMobility();
+    // hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
+    // hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
 
-    if (scan instanceof StorableImagingScan) {
+    if (scan instanceof ImagingScan) {
       // <COORDINATES>
       hd.startElement("", "", RawDataElementName.COORDINATES.getElementName(), atts);
-      Coordinates coordinates = ((StorableImagingScan) scan).getCoordinates();
+      Coordinates coordinates = ((ImagingScan) scan).getCoordinates();
       hd.characters(coordinates.toString().toCharArray(), 0, coordinates.toString().length());
       hd.endElement("", "", RawDataElementName.COORDINATES.getElementName());
     }
@@ -393,10 +390,10 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
 
     // <MOBILITY_TYPE>
-    //hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
-    //MobilityType mobilityType = scan.getMobilityType();
-    //hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
-    //hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
+    // hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
+    // MobilityType mobilityType = scan.getMobilityType();
+    // hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
+    // hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
 
     hd.startElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName(), atts);
     hd.characters(frame.getMobilityRange().lowerEndpoint().toString().toCharArray(), 0,

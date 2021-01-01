@@ -18,31 +18,33 @@
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
-import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.project.impl.StorableMassList;
-import io.github.mzmine.project.impl.StorableScan;
-import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-import javafx.scene.paint.Color;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleMassList;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
+import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.RangeUtils;
+import javafx.scene.paint.Color;
 
 public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDataFileOpenHandler {
 
@@ -65,7 +67,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   private int storedDataNumDP;
   private TreeMap<Integer, Long> dataPointsOffsets;
   private TreeMap<Integer, Integer> dataPointsLengths;
-  private ArrayList<StorableMassList> massLists;
+  private ArrayList<MassList> massLists;
   private PolarityType polarity = PolarityType.UNKNOWN;
   private String scanDescription = "";
   private Range<Double> scanMZRange = null;
@@ -91,11 +93,12 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
    * @throws SAXException
    * @throws ParserConfigurationException
    */
+  @Override
   public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile,
       boolean isImagingRawDataFile) throws IOException, ParserConfigurationException, SAXException {
 
     charBuffer = new StringBuffer();
-    massLists = new ArrayList<StorableMassList>();
+    massLists = new ArrayList<MassList>();
 
     if (isIMSRawDataFile) {
       newRawDataFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(null);
@@ -116,11 +119,12 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
     saxParser.parse(is, this);
 
     // Adds the raw data file to MZmine
-    RawDataFile rawDataFile = newRawDataFile.finishWriting();
-    return rawDataFile;
+    // RawDataFile rawDataFile = newRawDataFile.finishWriting();
+    return newRawDataFile;
 
   }
 
+  @Override
   public void cancel() {
     canceled = true;
   }
@@ -162,7 +166,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       String name = attrs.getValue(RawDataElementName_3_0.NAME.getElementName());
       int storageID =
           Integer.parseInt(attrs.getValue(RawDataElementName_3_0.STORAGE_ID.getElementName()));
-      StorableMassList newML = new StorableMassList(newRawDataFile, storageID, name, null);
+      MassList newML = new SimpleMassList(null, null, null);
       massLists.add(newML);
     }
 
@@ -299,9 +303,9 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
 
       // TODO
 
-      final StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
-          dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
-          /* fragmentScan, */ null, polarity, scanDescription, scanMZRange);
+      final Scan storableScan = new SimpleScan(newRawDataFile, scanNumber, msLevel, retentionTime,
+          precursorMZ, precursorCharge, /* fragmentScan, */ null, null, null, polarity,
+          scanDescription, scanMZRange);
 
       try {
         newRawDataFile.addScan(storableScan);
@@ -309,8 +313,8 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
         throw new SAXException(e);
       }
 
-      for (StorableMassList newML : massLists) {
-        newML.setScan(storableScan);
+      for (MassList newML : massLists) {
+        // newML.setScan(storableScan);
         storableScan.addMassList(newML);
       }
 
@@ -327,10 +331,10 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
                              * null, polarity, scanDescription, scanMZRange, frameId, mobilityType,
                              * Range.closed(lowerMobilityRange, upperMobilityRange),
                              * Arrays.stream(mobilityScans).boxed().collect(Collectors.toList()));
-                             * 
+                             *
                              * try { newRawDataFile.addScan(storableScan); } catch (IOException e) {
                              * throw new SAXException(e); }
-                             * 
+                             *
                              * for (StorableMassList newML : massLists) {
                              * newML.setScan(storableScan); storableScan.addMassList(newML); }
                              */
@@ -358,6 +362,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
    *
    * @see org.xml.sax.ContentHandler#characters(char[], int, int)
    */
+  @Override
   public void characters(char buf[], int offset, int len) throws SAXException {
     charBuffer = charBuffer.append(buf, offset, len);
   }

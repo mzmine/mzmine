@@ -27,17 +27,12 @@ import java.nio.ByteOrder;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.io.rawdataimport.RawDataFileType;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -57,8 +52,7 @@ public class NativeFileReadTask extends AbstractTask {
   private File file;
   private RawDataFileType fileType;
   private MZmineProject project;
-  private RawDataFileWriter newMZmineFile;
-  private RawDataFile finalRawDataFile;
+  private RawDataFile newMZmineFile;
 
   private Process dumper = null;
 
@@ -76,7 +70,7 @@ public class NativeFileReadTask extends AbstractTask {
   private double precursorMZ = 0;
 
   public NativeFileReadTask(MZmineProject project, File fileToOpen, RawDataFileType fileType,
-      RawDataFileWriter newMZmineFile) {
+      RawDataFile newMZmineFile) {
     this.project = project;
     this.file = fileToOpen;
     this.fileType = fileType;
@@ -86,6 +80,7 @@ public class NativeFileReadTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
   }
@@ -93,6 +88,7 @@ public class NativeFileReadTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -117,9 +113,9 @@ public class NativeFileReadTask extends AbstractTask {
     String cmdLine[];
 
     if (osName.toUpperCase().contains("WINDOWS")) {
-      cmdLine = new String[]{rawDumpPath, file.getPath()};
+      cmdLine = new String[] {rawDumpPath, file.getPath()};
     } else {
-      cmdLine = new String[]{"wine", rawDumpPath, file.getPath()};
+      cmdLine = new String[] {"wine", rawDumpPath, file.getPath()};
     }
 
     try {
@@ -151,9 +147,7 @@ public class NativeFileReadTask extends AbstractTask {
             + parsedScans + " out of " + totalScans + ")"));
       }
 
-      // Close file
-      finalRawDataFile = newMZmineFile.finishWriting();
-      project.addFile(finalRawDataFile);
+      project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
 
@@ -176,6 +170,7 @@ public class NativeFileReadTask extends AbstractTask {
 
   }
 
+  @Override
   public String getTaskDescription() {
     return "Opening file " + file;
   }
@@ -346,16 +341,17 @@ public class NativeFileReadTask extends AbstractTask {
         // INTENSITY VALUES was the last item of the scan, so now we can
         // convert the data to DataPoint[] array and create a new scan
 
-        DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
-        for (int i = 0; i < numOfDataPoints; i++) {
-          dataPoints[i] = new SimpleDataPoint(mzValuesBuffer[i], intensityValuesBuffer[i]);
-        }
+        double mzValues[] = new double[numOfDataPoints];
+        double intensityValues[] = new double[numOfDataPoints];
+        System.arraycopy(mzValuesBuffer, 0, mzValues, 0, numOfDataPoints);
+        System.arraycopy(intensityValuesBuffer, 0, intensityValues, 0, numOfDataPoints);
+
 
         // Auto-detect whether this scan is centroided
-        MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
+        MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
         SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMZ,
-            precursorCharge, dataPoints, spectrumType, polarity, scanId, mzRange);
+            precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanId, mzRange);
         newMZmineFile.addScan(newScan);
 
         parsedScans++;

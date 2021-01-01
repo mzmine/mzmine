@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
@@ -37,7 +36,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 /**
  * Merge multiple raw data files into one. For example one positive, one negative and multiple with
  * MS2
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
@@ -114,22 +113,20 @@ class RawFileMergeTask extends AbstractTask {
       });
 
       // create new file
-      RawDataFileWriter rawDataFileWriter =
-          MZmineCore.createNewFile(raw[0].getName() + " " + suffix);
+      RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix);
 
       int i = 0;
       for (Scan scan : scans) {
         if (isCanceled())
           return;
         // copy, reset scan number
-        SimpleScan scanCopy = new SimpleScan(scan);
+        SimpleScan scanCopy = new SimpleScan(newFile, scan);
         scanCopy.setScanNumber(i);
-        rawDataFileWriter.addScan(scanCopy);
+        newFile.addScan(scanCopy);
         i++;
       }
 
-      RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
-      project.addFile(filteredRawDataFile);
+      project.addFile(newFile);
 
       if (getStatus() == TaskStatus.PROCESSING)
         setStatus(TaskStatus.FINISHED);

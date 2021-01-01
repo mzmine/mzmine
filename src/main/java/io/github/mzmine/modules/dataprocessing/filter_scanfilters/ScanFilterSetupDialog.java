@@ -18,11 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 
+import java.awt.Color;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
-import java.awt.Color;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
@@ -35,6 +37,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
   private ParameterSet filterParameters;
   private ScanFilter rawDataFilter;
+  private RawDataFile tmpFile;
 
   /**
    * @param parameters
@@ -48,6 +51,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
     try {
       this.rawDataFilter = filterClass.getDeclaredConstructor().newInstance();
+      this.tmpFile = MZmineCore.createNewFile("tmp");
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -61,7 +65,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
   @Override
   protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
 
-    Scan newScan = rawDataFilter.filterScan(previewScan, filterParameters);
+    Scan newScan = rawDataFilter.filterScan(tmpFile, previewScan, filterParameters);
 
     ScanDataSet spectraDataSet = new ScanDataSet("Filtered scan", newScan);
     ScanDataSet spectraOriginalDataSet = new ScanDataSet("Original scan", previewScan);

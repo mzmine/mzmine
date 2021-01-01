@@ -20,8 +20,8 @@ package io.github.mzmine.modules.dataprocessing.filter_scanfilters.savitzkygolay
 
 import java.util.Hashtable;
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -72,7 +72,7 @@ public class SGFilter implements ScanFilter {
   }
 
   @Override
-  public Scan filterScan(Scan scan, ParameterSet parameters) {
+  public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
 
     int numOfDataPoints = parameters.getParameter(SGFilterParameters.datapoints).getValue();
 
@@ -123,7 +123,7 @@ public class SGFilter implements ScanFilter {
 
     }
 
-    SimpleScan newScan = new SimpleScan(scan);
+    SimpleScan newScan = new SimpleScan(newFile, scan);
     newScan.setDataPoints(newDataPoints);
     return newScan;
 
