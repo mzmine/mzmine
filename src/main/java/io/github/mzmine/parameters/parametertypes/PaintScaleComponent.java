@@ -19,25 +19,30 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import javax.swing.JPanel;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
+import io.github.mzmine.util.javafx.FxColorUtil;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.embed.swing.SwingNode;
 import javafx.scene.control.ComboBox;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.shape.Rectangle;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class PaintScaleComponent extends GridPane {
 
-  private final SwingNode swingNode;
   private final ComboBox<PaintScale> comboBox;
+  private final FlowPane flowPane;
 
   public PaintScaleComponent(ObservableList<PaintScale> choices) {
     comboBox = new ComboBox<>(choices);
@@ -46,43 +51,27 @@ public class PaintScaleComponent extends GridPane {
       @Override
       public void changed(ObservableValue<? extends PaintScale> observable, PaintScale oldValue,
           PaintScale newValue) {
-        drawLegendInSwingNode();
+        drawPaintScale(newValue);
       }
     });
     add(comboBox, 0, 0);
-    swingNode = new SwingNode();
-    swingNode.prefWidth(comboBox.getPrefWidth());
-    swingNode.prefHeight(10);
-    drawLegendInSwingNode();
-    add(swingNode, 0, 1);
+    flowPane = new FlowPane();
+    add(flowPane, 0, 1);
   }
 
 
-  private void drawLegendInSwingNode() {
-    JPanel jPanel = new JPanel() {
-      @Override
-      public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        PaintScale selectedPaintScale = comboBox.getSelectionModel().getSelectedItem();
-        if (selectedPaintScale != null) {
-          PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
-          paintScaleFactoy.createColorsForPaintScale(selectedPaintScale);
-          for (int i = 0; i < 100; i++) {
-            g.setColor((Color) selectedPaintScale.getPaint(i));
-            g.drawRect(0 + i, 1, 1, 10);
-          }
-        }
-      }
-    };
-    jPanel.setSize(100, 10);
-    swingNode.setContent(jPanel);
+  private void drawPaintScale(PaintScale paintScale) {
+    PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
+    paintScale = paintScaleFactoy.createColorsForPaintScale(paintScale);
+    List<Stop> stops = new ArrayList<>(100);
+    for (int i = 0; i < 100; i++) {
+      stops.add(
+          new Stop((double) i / 100, FxColorUtil.awtColorToFX((Color) paintScale.getPaint(i))));
+    }
+    LinearGradient gradient = new LinearGradient(0, 0, 1, 0, true, CycleMethod.NO_CYCLE, stops);
+    flowPane.getChildren().clear();
+    flowPane.getChildren().add(new Rectangle(100, 10, gradient));
   }
-
-
-  public SwingNode getSwingNode() {
-    return swingNode;
-  }
-
 
   public ComboBox<PaintScale> getComboBox() {
     return comboBox;
