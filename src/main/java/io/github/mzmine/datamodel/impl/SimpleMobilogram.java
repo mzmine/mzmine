@@ -23,6 +23,7 @@ import com.google.common.math.Quantiles;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Mobilogram;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class SimpleMobilogram implements Mobilogram {
   private static NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
   private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final IMSRawDataFile rawDataFile;
-  private final SortedMap<Integer, MobilityDataPoint> dataPoints;
+  private final SortedMap<Scan, MobilityDataPoint> dataPoints;
   private final MobilityType mt;
   private double mobility;
   private double mz;
@@ -139,7 +140,7 @@ public class SimpleMobilogram implements Mobilogram {
 
   @Nonnull
   @Override
-  public List<Integer> getMobilityScanNumbers() {
+  public List<Scan> getMobilityScanNumbers() {
     return new ArrayList<>(dataPoints.keySet());
   }
 

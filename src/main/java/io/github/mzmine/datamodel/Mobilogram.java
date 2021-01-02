@@ -45,7 +45,7 @@ public interface Mobilogram {
   public MobilityDataPoint getHighestDataPoint();
 
   @Nonnull
-  List<Integer> getMobilityScanNumbers();
+  List<Scan> getMobilityScanNumbers();
 
   public MobilityType getMobilityType();
 

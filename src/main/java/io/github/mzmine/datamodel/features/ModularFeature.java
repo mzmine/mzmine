@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
@@ -49,8 +50,6 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -102,9 +101,10 @@ public class ModularFeature implements Feature, ModularDataModel {
    * Initializes a new feature using given values
    *
    */
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt, float height, float area,
-      int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
-      int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
+      float height, float area,
+      Scan[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
+      Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers,
       @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
       @Nonnull Range<Float> intensityRange) {
     this(flist);
@@ -115,13 +115,14 @@ public class ModularFeature implements Feature, ModularDataModel {
     assert featureStatus != null;
 
     if (dataPointsPerScan.length == 0) {
-      throw new IllegalArgumentException("Cannot create a ModularFeature instance with no data points");
+      throw new IllegalArgumentException(
+          "Cannot create a ModularFeature instance with no data points");
     }
 
-    setFragmentScanNumber(fragmentScanNumber);
-    setRepresentativeScanNumber(representativeScan);
+    setFragmentScan(fragmentScanNumber);
+    setRepresentativeScan(representativeScan);
     // add values to feature
-    set(ScanNumbersType.class, IntStream.of(scanNumbers).boxed().collect(Collectors.toList()));
+    set(ScanNumbersType.class, scanNumbers);
     set(RawFileType.class, dataFile);
     set(DetectionType.class, featureStatus);
     set(MZType.class, mz);
@@ -138,8 +139,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
-    set(FragmentScanNumbersType.class, IntStream.of(allMS2FragmentScanNumbers).boxed()
-        .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+    set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
 
     float fwhm = QualityParameters.calculateFWHM(this);
     if(!Float.isNaN(fwhm)) {
@@ -179,9 +179,9 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(RTType.class, (f.getRT()));
       set(HeightType.class, (f.getHeight()));
       set(AreaType.class, (f.getArea()));
-      set(BestScanNumberType.class, (f.getRepresentativeScanNumber()));
-      set(BestFragmentScanNumberType.class, (f.getMostIntenseFragmentScanNumber()));
-      set(FragmentScanNumbersType.class, (f.getAllMS2FragmentScanNumbers()));
+      set(BestScanNumberType.class, (f.getRepresentativeScan()));
+      set(BestFragmentScanNumberType.class, (f.getMostIntenseFragmentScan()));
+      set(FragmentScanNumbersType.class, (f.getAllMS2FragmentScans()));
 
       // datapoints of feature
       set(DataPointsType.class, f.getDataPoints());
@@ -237,10 +237,11 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public DataPoint getDataPoint(int scan) {
+  public DataPoint getDataPoint(Scan scan) {
     int index = getScanNumbers().indexOf(scan);
-    if (index < 0)
+    if (index < 0) {
       return null;
+    }
     return getDataPoints().get(index);
   }
 
@@ -266,26 +267,26 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public int getMostIntenseFragmentScanNumber() {
-    Property<Integer> v = get(BestFragmentScanNumberType.class);
-    return v == null || v.getValue() == null ? -1 : v.getValue();
+  public Scan getMostIntenseFragmentScan() {
+    Property<Scan> v = get(BestFragmentScanNumberType.class);
+    return v == null || v.getValue() == null ? null : v.getValue();
   }
 
   @Override
-  public void setFragmentScanNumber(int fragmentScanNumber) {
-    set(BestFragmentScanNumberType.class, fragmentScanNumber);
+  public void setFragmentScan(Scan fragmentScan) {
+    set(BestFragmentScanNumberType.class, fragmentScan);
   }
 
   @Override
-  public ObservableList<Integer> getAllMS2FragmentScanNumbers() {
-    ListProperty<Integer> v = get(FragmentScanNumbersType.class);
+  public ObservableList<Scan> getAllMS2FragmentScans() {
+    ListProperty<Scan> v = get(FragmentScanNumbersType.class);
     return v == null || v.getValue() == null ? FXCollections
         .unmodifiableObservableList(FXCollections.emptyObservableList())
         : v.getValue();
   }
 
   @Override
-  public void setAllMS2FragmentScanNumbers(ObservableList<Integer> allMS2FragmentScanNumbers) {
+  public void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers) {
     set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
   }
 
@@ -392,7 +393,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     this.flist = (ModularFeatureList) flist;
   }
 
-  public ListProperty<Integer> getScanNumbersProperty() {
+  public ListProperty<Scan> getScanNumbersProperty() {
     return get(ScanNumbersType.class);
   }
 
@@ -425,22 +426,22 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Nonnull
   @Override
-  public ObservableList<Integer> getScanNumbers() {
-    ListProperty<Integer> v = get(ScanNumbersType.class);
+  public ObservableList<Scan> getScanNumbers() {
+    ListProperty<Scan> v = get(ScanNumbersType.class);
     return v == null || v.getValue() == null ?
         FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
         : v.getValue();
   }
 
   @Override
-  public void setRepresentativeScanNumber(int representiveScanNumber) {
-    set(BestScanNumberType.class, representiveScanNumber);
+  public Scan getRepresentativeScan() {
+    Property<Scan> v = get(BestScanNumberType.class);
+    return v == null || v.getValue() == null ? null : v.getValue();
   }
 
   @Override
-  public int getRepresentativeScanNumber() {
-    Property<Integer> v = get(BestScanNumberType.class);
-    return v == null || v.getValue() == null ? -1 : v.getValue();
+  public void setRepresentativeScan(Scan scan) {
+    set(BestScanNumberType.class, scan);
   }
 
   @Override

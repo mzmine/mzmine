@@ -19,15 +19,16 @@
 package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 
 public class MobilityDataPoint implements DataPoint {
 
   private final double mz;
   private final double intensity;
   private final double mobility;
-  private final int scanNum;
+  private final Scan scanNum;
 
-  public MobilityDataPoint(double mz, double intensity, double mobility, int scanNum) {
+  public MobilityDataPoint(double mz, double intensity, double mobility, Scan scanNum) {
     this.mz = mz;
     this.intensity = intensity;
     this.mobility = mobility;
@@ -48,7 +49,7 @@ public class MobilityDataPoint implements DataPoint {
     return intensity;
   }
 
-  public int getScanNum() {
+  public Scan getScanNum() {
     return scanNum;
   }
 }
