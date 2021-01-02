@@ -61,23 +61,19 @@ public class DeconvolutionTask extends AbstractTask {
   // Feature lists.
   private final MZmineProject project;
   private final FeatureList originalPeakList;
+  // User parameters
+  private final ParameterSet parameters;
+  // function to find center mz of all feature data points
+  private final CenterFunction mzCenterFunction;
   private FeatureList newPeakList;
-
   // Counters.
   private int processedRows;
   private int totalRows;
-
-  // User parameters
-  private final ParameterSet parameters;
-
   private RSessionWrapper rSession;
   private String errorMsg;
   private boolean setMSMSRange, setMSMSRT;
   private double msmsRange;
   private float RTRangeMSMS;
-
-  // function to find center mz of all feature data points
-  private final CenterFunction mzCenterFunction;
 
   /**
    * Create the task.
@@ -215,16 +211,16 @@ public class DeconvolutionTask extends AbstractTask {
   /**
    * Deconvolve a chromatogram into separate peaks.
    *
-   * @param peakList holds the chromatogram to deconvolve.
+   * @param originalFeatureList holds the chromatogram to deconvolve.
    * @param rSession
    * @return a new feature list holding the resolved peaks.
    * @throws RSessionWrapperException
    */
-  private FeatureList resolvePeaks(final FeatureList peakList, RSessionWrapper rSession)
+  private FeatureList resolvePeaks(final FeatureList originalFeatureList, RSessionWrapper rSession)
       throws RSessionWrapperException {
 
     // Get data file information.
-    final RawDataFile dataFile = peakList.getRawDataFile(0);
+    final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
 
     // Feature resolver.
     final MZmineProcessingStep<PeakResolver> resolver =
@@ -246,33 +242,35 @@ public class DeconvolutionTask extends AbstractTask {
     }
 
     // Create new feature list.
-    final ModularFeatureList resolvedPeaks =
-        new ModularFeatureList(peakList + " " + parameters.getParameter(SUFFIX).getValue(),
+    final ModularFeatureList resolvedFeatureList =
+        new ModularFeatureList(
+            originalFeatureList + " " + parameters.getParameter(SUFFIX).getValue(),
             dataFile);
-    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedPeaks);
-    if(peakList.getRawDataFile(0) instanceof IMSRawDataFile) {
-      resolvedPeaks.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
-      resolvedPeaks.addRowType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
-      resolvedPeaks.addRowType(new FeatureShapeMobilogramType());
-      resolvedPeaks.addRowType(new MobilityType());
+    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+    if (originalFeatureList.getRawDataFile(0) instanceof IMSRawDataFile) {
+      resolvedFeatureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
+      resolvedFeatureList.addRowType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
+      resolvedFeatureList.addRowType(new FeatureShapeMobilogramType());
+      resolvedFeatureList.addRowType(new MobilityType());
     }
 
     // Load previous applied methods.
-    for (final FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
-      resolvedPeaks.addDescriptionOfAppliedTask(method);
+    for (final FeatureListAppliedMethod method : originalFeatureList.getAppliedMethods()) {
+      resolvedFeatureList.addDescriptionOfAppliedTask(method);
     }
 
     // Add task description to feature list.
-    resolvedPeaks.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
+    resolvedFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Feature deconvolution by " + resolver, resolver.getParameterSet()));
 
     // Initialise counters.
     processedRows = 0;
-    totalRows = peakList.getNumberOfRows();
+    totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
 
     // Process each chromatogram.
-    final FeatureListRow[] peakListRows = peakList.getRows().toArray(FeatureListRow[]::new);
+    final FeatureListRow[] peakListRows = originalFeatureList.getRows()
+        .toArray(FeatureListRow[]::new);
     final int chromatogramCount = peakListRows.length;
     for (int index = 0; !isCanceled() && index < chromatogramCount; index++) {
 
@@ -292,14 +290,15 @@ public class DeconvolutionTask extends AbstractTask {
       // Add peaks to the new feature list.
       for (final ResolvedPeak peak : peaks) {
         peak.setParentChromatogramRowID(currentRow.getID());
-        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedPeaks,
+        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
             peakId++);
         final ModularFeature newFeature = FeatureConvertors
-            .ResolvedPeakToMoularFeature(resolvedPeaks, peak);
+            .ResolvedPeakToMoularFeature(resolvedFeatureList, peak);
         if (newFeature.getRawDataFile() instanceof IMSRawDataFile) {
           newRow.addFeature(dataFile, FeatureConvertorIonMobility
               .mapResolvedCollapsedFeaturesToImsFeature(newFeature,
-                  (ModularFeature) currentRow.getFeature(dataFile), mzCenterFunction));
+                  (ModularFeature) currentRow.getFeature(dataFile), mzCenterFunction, msmsRange,
+                  RTRangeMSMS));
           newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
           newRow.set(FeatureShapeMobilogramType.class, newRow.getFeaturesProperty());
           newRow.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
@@ -309,13 +308,13 @@ public class DeconvolutionTask extends AbstractTask {
         }
 
         newRow.setFeatureInformation(peak.getPeakInformation());
-        resolvedPeaks.addRow(newRow);
+        resolvedFeatureList.addRow(newRow);
       }
 
       processedRows++;
     }
 
-    return resolvedPeaks;
+    return resolvedFeatureList;
   }
 
   @Override

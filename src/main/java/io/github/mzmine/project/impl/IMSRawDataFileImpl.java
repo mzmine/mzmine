@@ -142,8 +142,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Override
   @Nonnull
   public List<Frame> getFrames(int msLevel, Range<Float> rtRange) {
-    return getFrames(msLevel).stream().filter(frame -> rtRange.contains(frame.getRetentionTime()))
-        .collect(Collectors.toList());
+    return getFrames(msLevel).stream()
+        .filter(frame -> rtRange.contains(frame.getRetentionTime())).collect(Collectors.toList());
   }
 
   @Nonnull

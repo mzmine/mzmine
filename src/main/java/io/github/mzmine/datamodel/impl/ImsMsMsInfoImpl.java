@@ -34,15 +34,18 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
   private final float collisionEnergy;
   private final int precursorCharge;
   private final int parentFrameNumber;
+  private final int fragmentFrameNumber;
+
 
   public ImsMsMsInfoImpl(double precursorMz,
       Range<Integer> spectrumNumberRange, float collisionEnergy, int precursorCharge,
-      int parentFrameNumber) {
+      int parentFrameNumber, int fragmentFrameNumber) {
     this.precursorMz = precursorMz;
     this.spectrumNumberRange = spectrumNumberRange;
     this.collisionEnergy = collisionEnergy;
     this.precursorCharge = precursorCharge;
     this.parentFrameNumber = parentFrameNumber;
+    this.fragmentFrameNumber = fragmentFrameNumber;
   }
 
   @Override
@@ -71,6 +74,11 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
   }
 
   @Override
+  public int getFrameNumber() {
+    return fragmentFrameNumber;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -82,13 +90,14 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
     return Double.compare(that.precursorMz, precursorMz) == 0
         && Float.compare(that.getCollisionEnergy(), getCollisionEnergy()) == 0
         && getPrecursorCharge() == that.getPrecursorCharge() && getParentFrameNumber() == that
-        .getParentFrameNumber() && getSpectrumNumberRange().equals(that.getSpectrumNumberRange());
+        .getParentFrameNumber() && getSpectrumNumberRange().equals(that.getSpectrumNumberRange())
+        && getFrameNumber() == that.getFrameNumber();
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hash(precursorMz, getSpectrumNumberRange(), getCollisionEnergy(), getPrecursorCharge(),
-            getParentFrameNumber());
+            getParentFrameNumber(), getFrameNumber());
   }
 }

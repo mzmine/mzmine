@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -56,9 +57,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Stream;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -230,25 +233,24 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   // Helper methods
-  // most common data types
-  public FeatureStatus getDetectionType() {
-    return get(DetectionType.class).getValue();
-  }
-
   public Range<Double> getMZRange() {
-    return get(MZRangeType.class).getValue();
+    ObjectProperty<Range<Double>> v = get(MZRangeType.class);
+    return v == null || v.getValue() == null ? Range.singleton(0d) : v.getValue();
   }
 
   public float getHeight() {
-    return get(HeightType.class).getValue();
+    Property<Float> v = get(HeightType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   public float getArea() {
-    return get(AreaType.class).getValue();
+    Property<Float> v = get(AreaType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   public ObservableMap<RawDataFile, ModularFeature> getFilesFeatures() {
-    return get(FeaturesType.class).getValue();
+    MapProperty<RawDataFile, ModularFeature> v = get(FeaturesType.class);
+    return v == null || v.getValue() == null ? null : v.getValue();
   }
 
   @Override
@@ -307,7 +309,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public int getID() {
     Property<Integer> idProp = get(IDType.class);
-    return idProp == null || idProp.getValue() == null ? -1 : get(IDType.class).getValue();
+    return idProp == null || idProp.getValue() == null ? -1 : idProp.getValue();
   }
 
 
@@ -323,42 +325,32 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public double getAverageMZ() {
-    if (!hasTypeColumn(MZType.class)) {
-      return Double.NaN;
-    }
-    return get(MZType.class).getValue();
+    Property<Double> v = get(MZType.class);
+    return v == null || v.getValue() == null ? Double.NaN : v.getValue();
   }
 
   @Override
   public float getAverageRT() {
-    if (!hasTypeColumn(RTType.class)) {
-      return Float.NaN;
-    }
-    return get(RTType.class).getValue();
+    Property<Float> v = get(RTType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   @Override
   public double getAverageHeight() {
-    if (!hasTypeColumn(HeightType.class)) {
-      return Double.NaN;
-    }
-    return get(HeightType.class).getValue();
+    Property<Float> v = get(HeightType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   @Override
   public int getRowCharge() {
-    if (!hasTypeColumn(ChargeType.class)) {
-      return 0;
-    }
-    return get(ChargeType.class).getValue();
+    Property<Integer> v = get(ChargeType.class);
+    return v == null || v.getValue() == null ? 0 : v.getValue();
   }
 
   @Override
   public double getAverageArea() {
-    if (!hasTypeColumn(AreaType.class)) {
-      return Double.NaN;
-    }
-    return get(AreaType.class).getValue();
+    Property<Float> v = get(AreaType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   @Override
@@ -426,10 +418,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     ModularTypeProperty manual = getManualAnnotation();
     if (manual != null) {
       return manual.get(CommentType.class).getValue();
-    } else if (hasTypeColumn(CommentType.class)) {
-      return get(CommentType.class).getValue();
     } else {
-      return "";
+      StringProperty v = get(CommentType.class);
+      return v == null || v.getValue() == null ? "" : v.getValue();
     }
   }
 
@@ -439,7 +430,14 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public void setComment(String comment) {
-    set(CommentType.class, comment);
+    ModularTypeProperty manual = getManualAnnotation();
+    if (manual == null) {
+      // add type
+      flist.addRowType(new ManualAnnotationType());
+      setComment(comment);
+      return;
+    }
+    manual.set(CommentType.class, comment);
   }
 
   @Override
@@ -457,21 +455,32 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     ModularTypeProperty manual = getManualAnnotation();
     if (manual != null) {
       return manual.get(IdentityType.class).getValue();
-    } else if (hasTypeColumn(IdentityType.class)) {
-      return get(IdentityType.class).getValue();
     } else {
-      return FXCollections.emptyObservableList();
+      ListProperty<FeatureIdentity> prop = get(IdentityType.class);
+      return prop == null || prop.getValue() == null ? null :
+          FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
     }
   }
 
   public void setPeakIdentities(ObservableList<FeatureIdentity> identities) {
-    set(IdentityType.class, identities);
+    ModularTypeProperty manual = getManualAnnotation();
+    if (manual == null) {
+      // add type
+      flist.addRowType(new ManualAnnotationType());
+      setPeakIdentities(identities);
+      return;
+    }
+    manual.set(IdentityType.class, identities);
   }
 
   @Override
   public void addFeatureIdentity(FeatureIdentity identity, boolean preferred) {
-    if (!hasTypeColumn(IdentityType.class)) {
-      getFeatureList().addRowType(new IdentityType());
+    ModularTypeProperty manual = getManualAnnotation();
+    if (manual == null) {
+      // add type
+      flist.addRowType(new ManualAnnotationType());
+      addFeatureIdentity(identity, preferred);
+      return;
     }
     // Verify if exists already an identity with the same name
     ObservableList<FeatureIdentity> peakIdentities = getPeakIdentities();
@@ -519,20 +528,15 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public FeatureInformation getFeatureInformation() {
-    if (!hasTypeColumn(FeatureInformationType.class)) {
-      return null;
-    }
-    return (FeatureInformation) get(FeatureInformationType.class).getValue();
+    ObjectProperty<SimpleFeatureInformation> v = get(FeatureInformationType.class);
+    return v == null ? null : v.getValue();
   }
 
   @Override
   public double getMaxDataPointIntensity() {
-    if (!hasTypeColumn(IntensityRangeType.class)) {
-      return Double.NaN;
-    }
     ObjectProperty<Range<Float>> rangeObjectProperty = get(IntensityRangeType.class);
-    return rangeObjectProperty.getValue() != null ?
-        rangeObjectProperty.getValue().upperEndpoint() : 0;
+    return rangeObjectProperty != null && rangeObjectProperty.getValue() != null ?
+        rangeObjectProperty.getValue().upperEndpoint() : Double.NaN;
   }
 
   @Nullable
@@ -602,34 +606,4 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return null;
   }
 
-  // TODO: increase speed(enumeration through features)
-  // private synchronized void calculateAverageValues() {
-  // double mzSum = 0;
-  // float rtSum = 0, heightSum = 0, areaSum = 0;
-  // int charge = 0;
-  // HashSet<Integer> chargeArr = new HashSet<Integer>();
-  // for (Feature feature : getFeatures()) {
-  // // Alignned feature list rows can contain "empty" features
-  // if (feature.getRawDataFile() == null) {
-  // continue;
-  // }
-  // rtSum += feature.getRT();
-  // mzSum += feature.getMZ();
-  // heightSum += feature.getHeight();
-  // areaSum += feature.getArea();
-  // if (feature.getCharge() > 0) {
-  // chargeArr.add(feature.getCharge());
-  // charge = feature.getCharge();
-  // }
-  // }
-  // averageRT = rtSum / features.size();
-  // averageMZ = mzSum / features.size();
-  // averageHeight = heightSum / features.size();
-  // averageArea = areaSum / features.size();
-  // if (chargeArr.size() < 2) {
-  // rowCharge = charge;
-  // } else {
-  // rowCharge = 0;
-  // }
-  // }
 }

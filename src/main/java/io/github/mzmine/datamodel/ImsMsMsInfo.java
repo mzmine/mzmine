@@ -51,9 +51,12 @@ public interface ImsMsMsInfo {
   public int getPrecursorCharge();
 
   /**
-   *
-   * @return The frame this precursor was initially detected in.
+   * @return The ms 1 frame this precursor was initially detected in.
    */
   public int getParentFrameNumber();
 
+  /**
+   * @return The ms 2 frame number this belongs to.
+   */
+  public int getFrameNumber();
 }
