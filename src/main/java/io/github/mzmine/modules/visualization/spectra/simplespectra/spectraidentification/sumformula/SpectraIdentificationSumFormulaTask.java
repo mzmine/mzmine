@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -35,7 +35,6 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -59,7 +58,7 @@ import io.github.mzmine.util.FormulaUtils;
 
 /**
  * Task for sum formula prediction in spectra.
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectraIdentificationSumFormulaTask extends AbstractTask {
@@ -88,7 +87,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
   /**
    * Create the task.
-   * 
+   *
    * @param parameters task parameters.
    */
   public SpectraIdentificationSumFormulaTask(ParameterSet parameters, Scan currentScan,
@@ -157,7 +156,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     MassDetector massDetector = null;
     ArrayList<String> allCompoundIDs = new ArrayList<>();
 
-    // Create a new mass list for MS/MS scan. Check if sprectrum is profile
+    // Create a new mass list for MS/MS scan. Check if spectrum is profile
     // or centroid mode
     if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
       massDetector = new CentroidMassDetector();

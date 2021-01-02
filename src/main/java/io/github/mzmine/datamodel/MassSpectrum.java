@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import java.nio.DoubleBuffer;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
@@ -26,7 +27,7 @@ import com.google.common.collect.Range;
 /**
  * This class represent one mass spectrum.
  */
-public interface MassSpectrum {
+public interface MassSpectrum extends Iterable<DataPoint> {
 
   /**
    * Returns the m/z range of this spectrum. Never returns null.
@@ -87,9 +88,11 @@ public interface MassSpectrum {
   @Nullable
   Double getBasePeakIntensity();
 
+  Stream<DataPoint> stream();
 
-  @Deprecated
-  DataPoint[] getDataPoints();
+
+
+  // @Deprecated DataPoint[] getDataPoints();
 
   // DataPoint getHighestDataPoint();
 

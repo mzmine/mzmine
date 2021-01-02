@@ -19,12 +19,16 @@
 package io.github.mzmine.datamodel.impl;
 
 import java.nio.DoubleBuffer;
+import java.util.Iterator;
 import java.util.Vector;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
+import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.util.scans.ScanUtils;
 
@@ -152,10 +156,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
     return null;
   }
 
-
-
-  @Override
-  public DataPoint[] getDataPoints() {
+  private DataPoint[] getDataPoints() {
     DataPoint d[] = new DataPoint[getNumberOfDataPoints()];
     for (int i = 0; i < getNumberOfDataPoints(); i++) {
       d[i] = new SimpleDataPoint(getMzValues().get(i), getIntensityValues().get(i));
@@ -235,6 +236,53 @@ public class SimpleIsotopePattern implements IsotopePattern {
       return null;
     else
       return intensityValues[highestIsotope];
+  }
+
+  @Override
+  public Iterator<DataPoint> iterator() {
+    return new DataPointIterator(this);
+  }
+
+  @Override
+  public Stream<DataPoint> stream() {
+    return Streams.stream(this);
+  }
+
+  private class DataPointIterator implements Iterator<DataPoint>, DataPoint {
+
+    // We start at -1 so the first call to next() moves us to index 0
+    private int cursor = -1;
+    private final MassSpectrum spectrum;
+
+    DataPointIterator(MassSpectrum spectrum) {
+      this.spectrum = spectrum;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return (cursor + 1) < spectrum.getNumberOfDataPoints();
+    }
+
+    @Override
+    public DataPoint next() {
+      cursor++;
+      return this;
+    }
+
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public double getMZ() {
+      return spectrum.getMzValue(cursor);
+    }
+
+    @Override
+    public double getIntensity() {
+      return spectrum.getIntensityValue(cursor);
+    }
   }
 
 }

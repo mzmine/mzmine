@@ -25,7 +25,6 @@ import org.jfree.data.xy.XYBarDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import io.github.msdk.MSDKRuntimeException;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 
@@ -48,7 +47,6 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
   private static final long serialVersionUID = 1L;
   private SimpleIsotopePattern pattern;
   private double minIntensity;
-  private DataPoint[] dp;
   private XYSeries above;
   private XYSeries below;
   private double width;
@@ -82,21 +80,22 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
     descrBelow = new ArrayList<String>();
     descrAbove = new ArrayList<String>();
 
-    dp = pattern.getDataPoints();
-    assignment = new Assignment[dp.length];
+
+
+    assignment = new Assignment[pattern.getNumberOfDataPoints()];
     for (int i = 0; i < assignment.length; i++)
       assignment[i] = new Assignment();
 
-    for (int i = 0; i < dp.length; i++) {
-      if (dp[i].getIntensity() < minIntensity) {
+    for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
+      if (pattern.getIntensityValue(i) < minIntensity) {
         assignment[i].ab = AB.BELOW;
         assignment[i].id = i;
-        below.add(dp[i].getMZ(), dp[i].getIntensity());
+        below.add(pattern.getMzValue(i), pattern.getIntensityValue(i));
         descrBelow.add(pattern.getIsotopeComposition(i));
       } else {
         assignment[i].ab = AB.ABOVE;
         assignment[i].id = i;
-        above.add(dp[i].getMZ(), dp[i].getIntensity());
+        above.add(pattern.getMzValue(i), pattern.getIntensityValue(i));
         descrAbove.add(pattern.getIsotopeComposition(i));
       }
     }
@@ -120,13 +119,13 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
   // the next two methods are not needed yet but might come in handy in the
   // future
   public int getSeriesDpIndex(int peakIndex) throws MSDKRuntimeException {
-    if (peakIndex > dp.length)
+    if (peakIndex >= pattern.getNumberOfDataPoints())
       throw new MSDKRuntimeException("Index out of bounds.");
     return assignment[peakIndex].id;
   }
 
   public AB getSeriesAB(int peakIndex) throws MSDKRuntimeException {
-    if (peakIndex > dp.length)
+    if (peakIndex >= pattern.getNumberOfDataPoints())
       throw new MSDKRuntimeException("Index out of bounds.");
     return assignment[peakIndex].ab;
   }

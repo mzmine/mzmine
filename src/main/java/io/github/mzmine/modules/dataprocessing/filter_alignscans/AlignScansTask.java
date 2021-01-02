@@ -216,7 +216,7 @@ public class AlignScansTask extends AbstractTask {
         for (i = -mzSpan; i <= mzSpan; i++) {
           shifts = shifts + i + ":" + shiftedScans[i + mzSpan] + " | ";
         }
-        logger.info("Finished Scan Alignment on " + dataFile + ". Scans per shift = " + shifts);
+        logger.info("Finished scan alignment on " + dataFile + ". Scans per shift = " + shifts);
 
       }
 
