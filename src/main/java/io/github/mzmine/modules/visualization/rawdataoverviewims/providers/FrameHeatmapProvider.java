@@ -44,6 +44,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   private final List<Double> domainValues;
   private final List<Double> rangeValues;
   private final List<Double> zValues;
+  private final List<MobilityScan> mobilityScanAtValueIndex;
 
   private double finishedPercentage;
 
@@ -59,6 +60,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
     domainValues = new ArrayList<>();
     rangeValues = new ArrayList<>();
     zValues = new ArrayList<>();
+    mobilityScanAtValueIndex = new ArrayList<>();
     finishedPercentage = 0d;
   }
 
@@ -103,11 +105,16 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
         rangeValues.add(mobilityScan.getMobility());
         domainValues.add(dp.getMZ());
         zValues.add(dp.getIntensity());
+        mobilityScanAtValueIndex.add(mobilityScan);
       }
       finishedScans++;
       finishedPercentage = finishedScans / numScans;
     }
 
+  }
+
+  public MobilityScan getMobilityScanAtValueIndex(int index) {
+    return mobilityScanAtValueIndex.get(index);
   }
 
   @Override

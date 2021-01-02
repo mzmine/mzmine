@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.Task;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
@@ -192,6 +193,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
 
   public synchronized XYDataset removeDataSet(int index) {
     XYDataset ds = plot.getDataset(index);
+    if (ds instanceof Task) { // stop calculation in case it's still running
+      ((Task) ds).cancel();
+    }
     plot.setDataset(index, null);
     plot.setRenderer(index, null);
     notifyDatasetsChangedListeners();
@@ -234,6 +238,10 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   public synchronized void removeAllDatasets() {
     chart.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
+      XYDataset ds = plot.getDataset(i);
+      if (ds instanceof Task) {
+        ((Task) ds).cancel();
+      }
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
     }

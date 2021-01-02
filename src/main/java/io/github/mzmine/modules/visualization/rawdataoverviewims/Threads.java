@@ -42,7 +42,7 @@ class Threads {
   private Threads() {
   }
 
-  public static class BuildMultipleMobilograms implements Runnable {
+  public static class BuildMultipleRanges implements Runnable {
 
     private final List<Range<Double>> mzRanges;
     private final Set<Frame> frames;
@@ -50,7 +50,7 @@ class Threads {
     private final IMSRawDataFile file;
     private final ScanSelection scanSelection;
 
-    protected BuildMultipleMobilograms(@Nonnull List<Range<Double>> mzRanges,
+    protected BuildMultipleRanges(@Nonnull List<Range<Double>> mzRanges,
         @Nonnull Set<Frame> frames, @Nonnull IMSRawDataFile file,
         @Nonnull ScanSelection scanSelection,
         @Nonnull IMSRawDataOverviewPane pane) {
@@ -71,18 +71,19 @@ class Threads {
       NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
       for (Range<Double> mzRange : mzRanges) {
         SimpleMobilogram mobilogram = MobilogramUtils.buildMobilogramForMzRange(frames, mzRange);
-        if (mobilogram == null) {
-          continue;
-        }
-        PreviewMobilogram prev = new PreviewMobilogram(mobilogram,
+        final String seriesKey =
             "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
-                .format(mzRange.upperEndpoint()));
-        FastColoredXYDataset dataset = new FastColoredXYDataset(prev);
-        dataset.setColor(colors.getAWT(mzRanges.indexOf(mzRange)));
-        mobilogramDataSets.add(dataset);
+                .format(mzRange.upperEndpoint());
+        if (mobilogram != null) {
+          PreviewMobilogram prev = new PreviewMobilogram(mobilogram, seriesKey);
+          FastColoredXYDataset dataset = new FastColoredXYDataset(prev);
+          dataset.setColor(colors.getAWT(mzRanges.indexOf(mzRange)));
+          mobilogramDataSets.add(dataset);
+        }
         TICDataSet ticDataSet = new TICDataSet(file, scanSelection.getMatchingScans(file),
             mzRange, null);
         ticDataSets.add(ticDataSet);
+        ticDataSet.setCustomSeriesKey(seriesKey);
         ticDataSeColors.add(colors.getAWT(mzRanges.indexOf(mzRange)));
       }
       Platform
@@ -90,7 +91,7 @@ class Threads {
     }
   }
 
-  public static class BuildSelectedMobilogram implements Runnable {
+  public static class BuildSelectedRanges implements Runnable {
 
     private final Range<Double> mzRange;
     private final Set<Frame> frames;
@@ -98,7 +99,7 @@ class Threads {
     private final IMSRawDataFile file;
     private final ScanSelection scanSelection;
 
-    protected BuildSelectedMobilogram(@Nonnull Range<Double> mzRange, @Nonnull Set<Frame> frames,
+    protected BuildSelectedRanges(@Nonnull Range<Double> mzRange, @Nonnull Set<Frame> frames,
         @Nonnull IMSRawDataFile file, @Nonnull ScanSelection scanSelection,
         @Nonnull IMSRawDataOverviewPane pane) {
       this.mzRange = mzRange;
@@ -112,14 +113,16 @@ class Threads {
     public void run() {
       SimpleMobilogram mobilogram = MobilogramUtils.buildMobilogramForMzRange(frames, mzRange);
       NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-      PreviewMobilogram prev = new PreviewMobilogram(mobilogram,
+      final String seriesKey =
           "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
-              .format(mzRange.upperEndpoint()));
+              .format(mzRange.upperEndpoint());
+      PreviewMobilogram prev = new PreviewMobilogram(mobilogram, seriesKey);
       FastColoredXYDataset dataset = new FastColoredXYDataset(prev);
       Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
       dataset.setColor(color);
       TICDataSet ticDataSet = new TICDataSet(file, scanSelection.getMatchingScans(file),
           mzRange, null);
+      ticDataSet.setCustomSeriesKey(seriesKey);
       Platform.runLater(() -> pane.setSelectedRangesToChart(dataset, ticDataSet, color));
     }
   }

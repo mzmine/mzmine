@@ -76,17 +76,15 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   private static final double AXIS_MARGINS = 0.001;
 
   protected final JFreeChart chart;
-  protected EStandardChartTheme theme;
   private final XYPlot plot;
-
-  // properties
-  private ObjectProperty<TICPlotType> plotType;
   private final ObjectProperty<ChromatogramCursorPosition> cursorPosition;
   private final BooleanProperty matchLabelColors;
-
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
   private final TICPlotRenderer defaultRenderer;
+  protected EStandardChartTheme theme;
+  // properties
+  private ObjectProperty<TICPlotType> plotType;
   private MenuItem RemoveFilePopupMenu;
 
   private int nextDataSetNum;
@@ -103,6 +101,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   private int labelsVisible;
   private boolean havePeakLabels;
+
   public TICPlot() {
 
     super(ChartFactory.createXYLineChart("", // title
@@ -627,7 +626,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
    *               added right after and the plot shall not be updated until then.
    */
-  public void removeAllDataSets(boolean notify) {
+  public synchronized void removeAllDataSets(boolean notify) {
     plot.setNotify(false);
     final int dataSetCount = plot.getDatasetCount();
     for (int index = 0; index < dataSetCount; index++) {
@@ -647,6 +646,15 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     removeAllDataSets(true);
   }
 
+  public synchronized void removeDatasets(Collection<Integer> indices) {
+    plot.setNotify(false);
+    for (Integer index : indices) {
+      removeDataSet(index);
+    }
+    plot.setNotify(true);
+    chart.fireChartChanged();
+  }
+
   public void setTitle(final String titleText, final String subTitleText) {
     chartTitle.setText(titleText);
     chartSubTitle.setText(subTitleText);
@@ -655,6 +663,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   @Nonnull
   public ObjectProperty<TICPlotType> plotTypeProperty() {
     return plotType;
+  }
+
+  public TICPlotType getPlotType() {
+    return plotType.get();
   }
 
   public void setPlotType(final TICPlotType plotType) {
@@ -674,11 +686,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     getXYPlot().getRangeAxis().setLabel(yAxisLabel);
   }
 
-  public TICPlotType getPlotType() {
-    return plotType.get();
-  }
-
-  private int addDataSetAndRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {
+  private synchronized int addDataSetAndRenderer(final XYDataset dataSet,
+      final XYItemRenderer renderer) {
     if (dataSet instanceof TICDataSet) {
       renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
     } else if (dataSet instanceof FeatureDataSet) {
@@ -731,12 +740,12 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     return cursorPosition.get();
   }
 
-  public ObjectProperty<ChromatogramCursorPosition> cursorPositionProperty() {
-    return cursorPosition;
-  }
-
   public void setCursorPosition(ChromatogramCursorPosition cursorPosition) {
     this.cursorPosition.set(cursorPosition);
+  }
+
+  public ObjectProperty<ChromatogramCursorPosition> cursorPositionProperty() {
+    return cursorPosition;
   }
 
   /**
@@ -746,7 +755,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
-        if(event.getTrigger().getButton() == MouseButton.PRIMARY) {
+        if (event.getTrigger().getButton() == MouseButton.PRIMARY) {
           ChromatogramCursorPosition pos = getCurrentCursorPosition();
           if (pos != null) {
             setCursorPosition(pos);

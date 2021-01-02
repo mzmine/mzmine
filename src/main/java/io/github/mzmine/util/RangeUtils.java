@@ -180,7 +180,7 @@ public class RangeUtils {
         && Double.isNaN(range.upperEndpoint().doubleValue());
   }
 
-  public static boolean isGoogleRangeConnectedToJFreeRange(org.jfree.data.Range jfreeRange,
+  public static boolean isJFreeRangeConnectedToGoogleRange(org.jfree.data.Range jfreeRange,
       Range<? extends Number> googleRange) {
     return jfreeRange.contains(googleRange.lowerEndpoint().doubleValue()) || jfreeRange
         .contains(googleRange.upperEndpoint().doubleValue());

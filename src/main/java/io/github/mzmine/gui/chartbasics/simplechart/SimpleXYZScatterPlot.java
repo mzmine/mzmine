@@ -24,6 +24,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.awt.Font;
@@ -181,6 +182,10 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   public synchronized void removeAllDatasets() {
     chart.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
+      XYDataset ds = plot.getDataset(i);
+      if (ds instanceof Task) {
+        ((Task) ds).cancel();
+      }
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
     }

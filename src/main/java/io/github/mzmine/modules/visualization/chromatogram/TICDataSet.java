@@ -18,7 +18,18 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,19 +37,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jfree.data.xy.AbstractXYZDataset;
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
@@ -77,6 +77,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
   private TaskStatus status;
   private String errorMessage;
+
+  private String customSeriesKey = null;
 
   // Plot type
   private TICPlotType plotType;
@@ -215,8 +217,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
   @Override
   public Comparable<String> getSeriesKey(final int series) {
-
-    return dataFile.getName();
+    return (customSeriesKey == null) ? dataFile.getName() : customSeriesKey;
   }
 
   @Override
@@ -433,6 +434,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   @Override
   public TaskPriority getTaskPriority() {
     return TaskPriority.NORMAL;
+  }
+
+  public void setCustomSeriesKey(String customSeriesKey) {
+    this.customSeriesKey = customSeriesKey;
   }
 
   @Override

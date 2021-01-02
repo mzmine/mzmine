@@ -222,7 +222,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
         new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
             defaultPaintScaleColorStyle, defaultPaintScaleBoundStyle, zValueRange, Color.WHITE);
     PaintScaleFactory psf = new PaintScaleFactory();
-    paintScale = psf.createColorsForPaintScale(paintScale, useAlphaInPaintscale);
+    paintScale = psf.createColorsForPaintScale(paintScale, true);
     return paintScale;
   }
 
