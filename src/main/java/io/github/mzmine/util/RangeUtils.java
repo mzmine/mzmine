@@ -24,12 +24,12 @@
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.util.maths.ArithmeticUtils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
 
 public class RangeUtils {
 
@@ -49,7 +49,6 @@ public class RangeUtils {
    * Parses a range from String where upper and lower bounds are delimited by a dash, e.g.
    * "100.0-200.5". Note: we are dealing with doubles, so in an unfortunate case the range might
    * look like this "3.402439E-36-1.310424E-2".
-   * 
    */
   public static Range<Double> parseDoubleRange(String text) {
     Pattern p = Pattern.compile("([\\d\\.]+(?:E\\-?\\d+)?)\\-([\\d\\.]+(?:E\\-?\\d+)?)");
@@ -88,12 +87,13 @@ public class RangeUtils {
    * Splits the range in numOfBins bins and then returns the index of the bin which contains given
    * value. Indexes are from 0 to (numOfBins - 1).
    *
-   * @param range Input range
+   * @param range     Input range
    * @param numOfBins Number of bins
-   * @param value Value inside the range
+   * @param value     Value inside the range
    * @return Index of the bin containing given value
    */
-  public static <N extends Number & Comparable<N>> int binNumber(Range<N> range, int numOfBins, N value) {
+  public static <N extends Number & Comparable<N>> int binNumber(Range<N> range, int numOfBins,
+      N value) {
     N rangeLength = rangeLength(range);
     N valueDistanceFromStart = ArithmeticUtils.subtract(value, range.lowerEndpoint());
     return (int) Math.round(ArithmeticUtils.multiply(ArithmeticUtils
@@ -101,8 +101,7 @@ public class RangeUtils {
   }
 
   /**
-   * Returns length of the given range.
-   * i.e. [a..b] -> b - a
+   * Returns length of the given range. i.e. [a..b] -> b - a
    *
    * @param range Range
    * @return Range length
@@ -112,8 +111,7 @@ public class RangeUtils {
   }
 
   /**
-   * Returns central value of the given range.
-   * i.e. [a..b] -> [a + b] / 2
+   * Returns central value of the given range. i.e. [a..b] -> [a + b] / 2
    *
    * @param range Range
    * @return Range center
@@ -134,28 +132,32 @@ public class RangeUtils {
       return Range.open((N) (Number) 0.0f, (N) (Number) 0.0f);
     }
 
-    N min = array[0], max= array[0];
+    N min = array[0], max = array[0];
     for (N d : array) {
-      if (d.compareTo(max) > 0)
+      if (d.compareTo(max) > 0) {
         max = d;
-      if (d.compareTo(min) < 0)
+      }
+      if (d.compareTo(min) < 0) {
         min = d;
+      }
     }
     return Range.closed(min, max);
   }
 
   /**
    * Returns a range that is contained in between the both ranges.
-   * 
+   *
    * @param r1 First range
    * @param r2 Second range
    * @return The connected range. Null if there is no connected range.
    */
-  public static @Nullable <N extends Number & Comparable<N>> Range<N> getConnected(@Nonnull Range<N> r1,
+  public static @Nullable
+  <N extends Number & Comparable<N>> Range<N> getConnected(@Nonnull Range<N> r1,
       @Nonnull Range<N> r2) {
 
-    if (!r1.isConnected(r2))
+    if (!r1.isConnected(r2)) {
       return null;
+    }
 
     N lower = (r1.lowerEndpoint().compareTo(r2.lowerEndpoint()) > 0)
         ? r1.lowerEndpoint()
@@ -176,5 +178,11 @@ public class RangeUtils {
   public static <N extends Number & Comparable<N>> boolean isNaNRange(@Nonnull Range<N> range) {
     return Double.isNaN(range.lowerEndpoint().doubleValue())
         && Double.isNaN(range.upperEndpoint().doubleValue());
+  }
+
+  public static boolean isGoogleRangeConnectedToJFreeRange(org.jfree.data.Range jfreeRange,
+      Range<? extends Number> googleRange) {
+    return jfreeRange.contains(googleRange.lowerEndpoint().doubleValue()) || jfreeRange
+        .contains(googleRange.upperEndpoint().doubleValue());
   }
 }

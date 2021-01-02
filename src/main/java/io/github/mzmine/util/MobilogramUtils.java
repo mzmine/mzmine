@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 public class MobilogramUtils {
 
@@ -180,6 +181,7 @@ public class MobilogramUtils {
    * @param mzRange
    * @return
    */
+  @Nullable
   public static SimpleMobilogram buildMobilogramForMzRange(Collection<Frame> frames,
       Range<Double> mzRange) {
     Frame anyFrame = frames.stream().findAny().orElse(null);
@@ -203,6 +205,10 @@ public class MobilogramUtils {
       }
     }
 
+    if (eligibleDataPoints.size() == 0) {
+      return null;
+    }
+
     for (var entry : eligibleDataPoints.entrySet()) {
       if (entry.getValue().isEmpty()) {
         continue;
@@ -211,6 +217,9 @@ public class MobilogramUtils {
       double mz = entry.getValue().stream().mapToDouble(DataPoint::getMZ).average().getAsDouble();
       mobilogram.addDataPoint(new MobilityDataPoint(mz, intensity,
           anyFrame.getMobilityForMobilityScanNumber(entry.getKey()), entry.getKey()));
+    }
+    if (mobilogram.getDataPoints().isEmpty()) {
+      return null;
     }
     mobilogram.calc();
     fillMissingScanNumsWithZero(mobilogram);

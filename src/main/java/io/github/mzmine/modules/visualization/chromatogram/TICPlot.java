@@ -19,7 +19,11 @@
 package io.github.mzmine.modules.visualization.chromatogram;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -33,7 +37,9 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseButton;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,12 +61,6 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
-import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.main.MZmineCore;
-import javafx.scene.Cursor;
-import javafx.scene.control.MenuItem;
 
 /**
  * TIC plot.
@@ -394,7 +394,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     return plot;
   }
 
-  public synchronized void addDataSet(final XYDataset dataSet) {
+  public synchronized int addDataSet(final XYDataset dataSet) {
     if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
         != getPlotType())) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
@@ -407,23 +407,24 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       renderer.setSeriesFillPaint(0, plot.getDrawingSupplier().getNextFillPaint());
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
-      addDataSetAndRenderer(dataSet, renderer);
+      return addDataSetAndRenderer(dataSet, renderer);
     } catch (CloneNotSupportedException e) {
       logger.log(Level.WARNING, "Unable to clone renderer", e);
     }
+    return -1;
   }
 
-  public synchronized void addDataSet(XYDataset dataSet, Color color) {
+  public synchronized int addDataSet(XYDataset dataSet, Color color) {
     XYItemRenderer newRenderer = new DefaultXYItemRenderer();
     newRenderer.setDefaultFillPaint(color);
-    addDataSetAndRenderer(dataSet, newRenderer);
+    return addDataSetAndRenderer(dataSet, newRenderer);
   }
 
-  public synchronized void addTICDataSet(final TICDataSet dataSet, Color color) {
-    addTICDataSet(dataSet, color, color);
+  public synchronized int addTICDataSet(final TICDataSet dataSet, Color color) {
+    return addTICDataSet(dataSet, color, color);
   }
 
-  public synchronized void addTICDataSet(final TICDataSet dataSet, Color lineColor,
+  public synchronized int addTICDataSet(final TICDataSet dataSet, Color lineColor,
       Color fillColor) {
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
@@ -431,10 +432,11 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       renderer.setSeriesFillPaint(0, fillColor);
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
-      addTICDataSet(dataSet, renderer);
+      return addTICDataSet(dataSet, renderer);
     } catch (CloneNotSupportedException e) {
       logger.log(Level.WARNING, "Unable to clone renderer", e);
     }
+    return -1;
   }
 
   /**
@@ -444,7 +446,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    *
    * @param dataSet
    */
-  public synchronized void addTICDataSet(final TICDataSet dataSet) {
+  public synchronized int addTICDataSet(final TICDataSet dataSet) {
     Color clr = null;
     if (dataSet.getDataFile() != null) {
       clr = dataSet.getDataFile().getColorAWT();
@@ -461,13 +463,14 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       }
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
-      addTICDataSet(dataSet, renderer);
+      return addTICDataSet(dataSet, renderer);
     } catch (CloneNotSupportedException e) {
       logger.log(Level.WARNING, "Unable to clone renderer", e);
     }
+    return -1;
   }
 
-  public synchronized void addTICDataSet(final TICDataSet dataSet, TICPlotRenderer renderer) {
+  public synchronized int addTICDataSet(final TICDataSet dataSet, TICPlotRenderer renderer) {
     // Check if the dataSet to be added is compatible with the type of plot.
     if (dataSet.getPlotType()
         != getPlotType()) {
@@ -475,7 +478,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
           + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
           + "'");
     }
-    addDataSetAndRenderer(dataSet, renderer);
+    return addDataSetAndRenderer(dataSet, renderer);
   }
 
   /**
@@ -497,7 +500,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    *
    * @param dataSet
    */
-  public synchronized void addFeatureDataSet(final FeatureDataSet dataSet) {
+  public synchronized int addFeatureDataSet(final FeatureDataSet dataSet) {
     final FeatureTICRenderer renderer = new FeatureTICRenderer();
     if (dataSet.getFeature() != null && dataSet.getFeature().getRawDataFile() != null
         && dataSet.getFeature().getRawDataFile().getColor() != null) {
@@ -509,7 +512,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       renderer.setSeriesFillPaint(0, plot.getDrawingSupplier().getNextFillPaint());
     }
     renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
-    addDataSetAndRenderer(dataSet, renderer);
+    return addDataSetAndRenderer(dataSet, renderer);
   }
 
   public synchronized void addFeatureDataSets(Collection<FeatureDataSet> dataSets) {
@@ -675,16 +678,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     return plotType.get();
   }
 
-  private void addDataSetAndRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {
-    int index = nextDataSetNum;
-
-//    if (plot.getDataset(index) != null) {
-//      index = 0;
-//      while (plot.getDataset(index) != null) {
-//        index++;
-//      }
-//    }
-
+  private int addDataSetAndRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {
     if (dataSet instanceof TICDataSet) {
       renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
     } else if (dataSet instanceof FeatureDataSet) {
@@ -692,9 +686,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
           ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
     }
 
-    plot.setRenderer(index, renderer);
-    plot.setDataset(index, dataSet);
+    plot.setRenderer(nextDataSetNum, renderer);
+    plot.setDataset(nextDataSetNum, dataSet);
     nextDataSetNum++;
+    return nextDataSetNum - 1;
   }
 
   @Override

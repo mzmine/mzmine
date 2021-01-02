@@ -202,11 +202,28 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    * @param datasetProviders
    * @return Mapping of the dataset index and the provider values.
    */
-  public Map<Integer, T> addDatasets(Collection<T> datasetProviders) {
+  public Map<Integer, T> addDatasetProviders(Collection<T> datasetProviders) {
     chart.setNotify(false);
     HashMap<Integer, T> map = new HashMap<>();
     for (T datasetProvider : datasetProviders) {
       map.put(this.addDataset(datasetProvider), datasetProvider);
+    }
+    chart.setNotify(true);
+    chart.fireChartChanged();
+    notifyDatasetsChangedListeners();
+    return map;
+  }
+
+  /**
+   * @param datasets
+   * @return Mapping of the dataset index and the datasets.
+   */
+  public Map<Integer, ColoredXYDataset> addDatasets(
+      Collection<? extends ColoredXYDataset> datasets) {
+    chart.setNotify(false);
+    HashMap<Integer, ColoredXYDataset> map = new HashMap<>();
+    for (ColoredXYDataset dataset : datasets) {
+      map.put(this.addDataset(dataset), dataset);
     }
     chart.setNotify(true);
     chart.fireChartChanged();
