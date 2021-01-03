@@ -40,7 +40,7 @@ public class AlignScansTask extends AbstractTask {
 
   // scan counter
   private int processedScans = 0, totalScans;
-  private int[] scanNumbers;
+  private Scan[] scanNumbers;
 
   // User parameters
   private String suffix;
@@ -100,7 +100,7 @@ public class AlignScansTask extends AbstractTask {
 
     logger.info("Started Scan Alignment on " + dataFile);
 
-    scanNumbers = dataFile.getScanNumbers(1);
+    scanNumbers = dataFile.getScanNumbers(1).toArray(Scan[]::new);
     totalScans = scanNumbers.length;
 
     RawDataFile newRDFW = null;
@@ -115,7 +115,7 @@ public class AlignScansTask extends AbstractTask {
         if (isCanceled())
           return;
 
-        Scan scan = dataFile.getScan(scanNumbers[i]);
+        Scan scan = scanNumbers[i];
         si = Math.max(0, i - scanSpan);
         sj = si + 2 * scanSpan;
         if (sj >= totalScans) {
@@ -128,7 +128,7 @@ public class AlignScansTask extends AbstractTask {
             mzValues = new DataPoint[sj - si + 1][];
           // Load Data Points
           for (j = si; j <= sj; j++) {
-            Scan xscan = dataFile.getScan(scanNumbers[j]);
+            Scan xscan = scanNumbers[j];
             mzValues[j - si] = xscan.getDataPoints();
           }
           // Estimate Correlations

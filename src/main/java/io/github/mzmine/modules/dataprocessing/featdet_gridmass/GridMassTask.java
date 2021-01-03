@@ -38,10 +38,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 
 public class GridMassTask extends AbstractTask {
 
-  private HashMap<Integer, DataPoint[]> dpCache = null;
+  private HashMap<Scan, DataPoint[]> dpCache = null;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
@@ -53,7 +54,6 @@ public class GridMassTask extends AbstractTask {
   private int newPeakID = 0;
   private ScanSelection scanSelection;
   private Scan[] scans;
-  private int scanNumbers[];
   Datum[] roi[];
   double retentiontime[];
 
@@ -135,7 +135,6 @@ public class GridMassTask extends AbstractTask {
     logger.info("Started GRIDMASS v1.0 [Apr-09-2014] on " + dataFile);
 
     scans = scanSelection.getMatchingScans(dataFile);
-    scanNumbers = scanSelection.getMatchingScanNumbers(dataFile);
     totalScans = scans.length;
 
     // Check if we have any scans
@@ -503,7 +502,7 @@ public class GridMassTask extends AbstractTask {
         sx.buildMaxDatumFromScans(roi, minimumHeight);
         if (sx.getMaxDatumScans() >= tolScans && (sx.getContigousMaxDatumScans() >= tolScans
             || sx.getContigousToMaxDatumScansRatio() > 0.5)) {
-          Chromatogram peak = new Chromatogram(dataFile, scanNumbers);
+          Chromatogram peak = new Chromatogram(dataFile, scans);
           if (addMaxDatumFromScans(sx, peak) > 0) {
             peak.finishChromatogram();
             if (peak.getArea() > 1e-6) {
@@ -584,11 +583,11 @@ public class GridMassTask extends AbstractTask {
 
   public IndexedDataPoint[][] smoothDataPoints(RawDataFile dataFile, double timeSpan,
       double timeMZSpan, int scanSpan, double mzTol, int mzPoints, double minimumHeight) {
-    int[] scanNumbers = dataFile.getScanNumbers(1);
-    int totalScans = scanNumbers.length;
+    ObservableList<Scan> scanNumbers = dataFile.getScanNumbers(1);
+    int totalScans = scanNumbers.size();
     DataPoint mzValues[][] = null; // [relative scan][j value]
     DataPoint mzValuesJ[] = null;
-    int mzValuesScan[] = null;
+    Scan mzValuesScan[] = null;
     int mzValuesMZidx[] = null;
     IndexedDataPoint newMZValues[][] = null;
     IndexedDataPoint tmpDP[] = new IndexedDataPoint[0];
@@ -604,7 +603,7 @@ public class GridMassTask extends AbstractTask {
         return null;
 
       // Smoothing in TIME space
-      Scan scan = dataFile.getScan(scanNumbers[i]);
+      Scan scan = scanNumbers.get(i);
       double rt = retentiontime[i];
       DataPoint[] xDP = null;
       IndexedDataPoint[] iDP = null;
@@ -642,17 +641,17 @@ public class GridMassTask extends AbstractTask {
           // Allocate
           if (mzValues == null || mzValues.length < sj - si + 1) {
             mzValues = new DataPoint[sj - si + 1][];
-            mzValuesScan = new int[sj - si + 1];
+            mzValuesScan = new Scan[sj - si + 1];
             mzValuesMZidx = new int[sj - si + 1];
           }
           // Load Data Points
           for (j = si; j <= sj; j++) {
             int jsi = j - si;
             if (mzValues[jsi] == null || jsi >= mzValuesScan.length - 1
-                || mzValuesScan[jsi + 1] != scanNumbers[j]) {
-              Scan xscan = dataFile.getScan(scanNumbers[j]);
+                || !mzValuesScan[jsi + 1].equals(scanNumbers.get(j))) {
+              Scan xscan = scanNumbers.get(j);
               mzValues[jsi] = xscan.getDataPoints();
-              mzValuesScan[jsi] = scanNumbers[j];
+              mzValuesScan[jsi] = scanNumbers.get(j);
             } else {
               mzValues[jsi] = mzValues[jsi + 1];
               mzValuesScan[jsi] = mzValuesScan[jsi + 1];
@@ -775,7 +774,7 @@ public class GridMassTask extends AbstractTask {
         }
         if (max.intensity > 0) {
           adds++;
-          peak.addMzPeak(scans[i].getScanNumber(),
+          peak.addMzPeak(scans[i],
               new SimpleDataPoint(max.mzOriginal, max.intensityOriginal));
         }
       }
@@ -889,7 +888,7 @@ public class GridMassTask extends AbstractTask {
     double sum = 0;
     double maxValue = 0;
     for (int i = l; i <= r; i++) {
-      DataPoint mzs[] = getCachedDataPoints(scans[i].getScanNumber());
+      DataPoint mzs[] = getCachedDataPoints(scans[i]);
       if (mzs != null) {
         for (int j = findFirstMass(min, mzs); j < mzs.length; j++) {
           double mass = mzs[j].getMZ();
@@ -993,7 +992,7 @@ public class GridMassTask extends AbstractTask {
         }
         if (chr != null && mzMax != null) {
           // Add ONLY THE MAX INTENSITY PER SCAN
-          chr.addMzPeak(scans[i].getScanNumber(), new SimpleDataPoint(mzMax.mz, mzMax.intensity)); // mzMax
+          chr.addMzPeak(scans[i], new SimpleDataPoint(mzMax.mz, mzMax.intensity)); // mzMax
         }
         if (stats != null && mzMax != null) {
           stats.enter(i, mzMax.mz);
@@ -1003,17 +1002,16 @@ public class GridMassTask extends AbstractTask {
     return s;
   }
 
-  DataPoint[] getCachedDataPoints(int scan) {
+  DataPoint[] getCachedDataPoints(Scan scan) {
+    if (scan == null)
+      return null;
     if (dpCache == null)
-      dpCache = new HashMap<Integer, DataPoint[]>();
+      dpCache = new HashMap<Scan, DataPoint[]>();
     DataPoint[] dp = dpCache.get(scan);
     if (dp != null) {
       return dp;
     }
-    Scan s = dataFile.getScan(scan);
-    if (s == null)
-      return null;
-    dp = s.getDataPoints();
+    dp = scan.getDataPoints();
     dpCache.put(scan, dp);
     return dp;
   }

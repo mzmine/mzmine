@@ -49,7 +49,7 @@ public class TICToolTipGenerator implements XYToolTipGenerator {
 
       final TICDataSet ticDataSet = (TICDataSet) dataSet;
 
-      toolTip = "Scan #" + ticDataSet.getScanNumber(item) + "\nRetention time: "
+      toolTip = "Scan #" + ticDataSet.getScan(item).getScanNumber() + "\nRetention time: "
           + rtFormat.format(rtValue) + "\nBase peak m/z: "
           + mzFormat.format(ticDataSet.getZValue(series, item)) + "\nIntensity: "
           + intensityFormat.format(intValue);

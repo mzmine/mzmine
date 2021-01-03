@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.collections.ObservableList;
 
 /**
  *
@@ -39,7 +40,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 
   // scan counter
   private int processedScans = 0, totalScans;
-  private int[] scanNumbers;
+  private ObservableList<Scan> scanNumbers;
 
   // User parameters
   private String massListName, suffix;
@@ -92,13 +93,13 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 
     logger.info("Started mass filter on " + dataFile);
 
-    scanNumbers = dataFile.getScanNumbers();
-    totalScans = scanNumbers.length;
+    scanNumbers = dataFile.getScans();
+    totalScans = scanNumbers.size();
 
     // Check if we have at least one scan with a mass list of given name
     boolean haveMassList = false;
     for (int i = 0; i < totalScans; i++) {
-      Scan scan = dataFile.getScan(scanNumbers[i]);
+      Scan scan = scanNumbers.get(i);
       MassList massList = scan.getMassList(massListName);
       if (massList != null) {
         haveMassList = true;
@@ -117,7 +118,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
       if (isCanceled())
         return;
 
-      Scan scan = dataFile.getScan(scanNumbers[i]);
+      Scan scan = scanNumbers.get(i);
 
       MassList massList = scan.getMassList(massListName);
 

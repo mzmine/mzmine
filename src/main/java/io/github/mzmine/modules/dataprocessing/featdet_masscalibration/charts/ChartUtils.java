@@ -84,7 +84,7 @@ public class ChartUtils {
             rtFormat.format(match.getMeasuredRetentionTime()),
             match.getMatchedRetentionTime() == -1 ? "none" : rtFormat.format(match.getMatchedRetentionTime()),
             ppmFormat.format(match.getMzError()), match.getMzErrorType(),
-            intensityFormat.format(match.getMeasuredDataPoint().getIntensity()), match.getScanNumber());
+            intensityFormat.format(match.getMeasuredDataPoint().getIntensity()), match.getScan());
     StringBuilder tooltipTextBuilder = new StringBuilder(tooltipText);
     if (match.getMatchedCalibrant().getMolecularFormula() != null) {
       tooltipTextBuilder.append("\nIon formula: " + match.getMatchedCalibrant().getMolecularFormula());

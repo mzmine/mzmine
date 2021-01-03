@@ -156,12 +156,10 @@ public class FragmentSearchTask extends AbstractTask {
       return false;
 
     // Get MS/MS scan, if exists
-    int fragmentScanNumber = mainPeak.getBestFeature().getMostIntenseFragmentScanNumber();
-    if (fragmentScanNumber <= 0)
+    Scan fragmentScan = mainPeak.getBestFeature().getMostIntenseFragmentScan();
+    if (fragmentScan == null)
       return false;
 
-    RawDataFile dataFile = mainPeak.getBestFeature().getRawDataFile();
-    Scan fragmentScan = dataFile.getScan(fragmentScanNumber);
     if (fragmentScan == null)
       return false;
 

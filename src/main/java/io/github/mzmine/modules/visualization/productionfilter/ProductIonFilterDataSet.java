@@ -51,7 +51,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   private Range<Double> totalMZRange;
 
   private Object xAxisType;
-  private int scanNumbers[], totalScans, processedScans;
+  private Scan[] scanNumbers;
+  private int totalScans;
+  private int processedScans;
 
   private MZTolerance mzDifference;
   private List<Double> targetedMZ_List;
@@ -123,14 +125,12 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     // m/z for plotting in R
     List<String> dataListVisual = new ArrayList<String>();
 
-    for (int scanNumber : scanNumbers) {
+    for (Scan scan : scanNumbers) {
 
       // Cancel?
       if (status == TaskStatus.CANCELED) {
         return;
       }
-
-      Scan scan = rawDataFile.getScan(scanNumber);
 
       // check parent m/z
       if (!totalMZRange.contains(scan.getPrecursorMZ())) {
@@ -316,9 +316,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
             break;
           }
 
-          ProductIonFilterDataPoint newPoint = new ProductIonFilterDataPoint(
-              scanDataPoints[featureIndex].getMZ(), scan.getScanNumber(), scan.getPrecursorMZ(),
-              scan.getPrecursorCharge(), scan.getRetentionTime());
+          ProductIonFilterDataPoint newPoint =
+              new ProductIonFilterDataPoint(scanDataPoints[featureIndex].getMZ(), scan,
+                  scan.getPrecursorMZ(), scan.getPrecursorCharge(), scan.getRetentionTime());
 
           dataSeries.get(0).add(newPoint);
 

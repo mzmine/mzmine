@@ -531,72 +531,42 @@ public class ScanUtils {
    * Finds the MS/MS scan with highest intensity, within given retention time range and with
    * precursor m/z within given m/z range
    */
-  public static int findBestFragmentScan(RawDataFile dataFile, Range<Float> rtRange,
+  public static Scan findBestFragmentScan(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
 
     assert dataFile != null;
     assert rtRange != null;
     assert mzRange != null;
 
-    int bestFragmentScan = -1;
-    double topBasePeak = 0;
-
-    int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
-
-    for (int number : fragmentScanNumbers) {
-
-      Scan scan = dataFile.getScan(number);
-
-      if (mzRange.contains(scan.getPrecursorMZ())) {
-
-        Double basePeakInt = scan.getBasePeakIntensity();
-
-        // If there is no peak in the scan, basePeak can be null
-        if (basePeakInt == null) {
-          continue;
-        }
-
-        if (basePeakInt > topBasePeak) {
-          bestFragmentScan = scan.getScanNumber();
-          topBasePeak = basePeakInt;
-        }
-      }
-
-    }
-
-    return bestFragmentScan;
-
+    return dataFile.getScanNumbers(2).stream()
+        .filter(s -> rtRange.contains(s.getRetentionTime()) && mzRange.contains(s.getPrecursorMZ()))
+        .max(Comparator.comparingDouble(s -> s.getHighestDataPoint().getIntensity()))
+        .orElse(null);
   }
 
   /**
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
    * within given m/z range
    */
-  public static int[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
+  public static Scan[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
-
     assert dataFile != null;
     assert rtRange != null;
     assert mzRange != null;
 
-    int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
-    ArrayList<Integer> fragmentScanNumbersInMZRange = new ArrayList<Integer>();
+    return dataFile.getScanNumbers(2).stream()
+        .filter(s -> rtRange.contains(s.getRetentionTime()) && mzRange.contains(s.getPrecursorMZ()))
+        .toArray(Scan[]::new);
+  }
 
-    for (int number : fragmentScanNumbers) {
-
-      Scan scan = dataFile.getScan(number);
-
-      if (mzRange.contains(scan.getPrecursorMZ())) {
-        fragmentScanNumbersInMZRange.add(number);
-      }
-    }
-    int[] resultScans = new int[fragmentScanNumbersInMZRange.size()];
-    if (resultScans.length > 0) {
-      resultScans = fragmentScanNumbersInMZRange.stream().mapToInt(i -> i).toArray();
-    } else {
-      resultScans = new int[] {};
-    }
-    return resultScans;
+  /**
+   *
+   * @param dataFile
+   * @param msLevel 0 for all scans
+   * @return
+   */
+  public static Stream<Scan> streamScans(RawDataFile dataFile, int msLevel) {
+    return dataFile.getScanNumbers(msLevel).stream();
   }
 
   @Nullable
@@ -991,12 +961,12 @@ public class ScanUtils {
 
     assert scan != null;
     final RawDataFile dataFile = scan.getDataFile();
-    final int scanNumbers[] = dataFile.getScanNumbers();
+    final ObservableList<Scan> scanNumbers = dataFile.getScans();
 
-    int startIndex = Arrays.binarySearch(scanNumbers, scan.getScanNumber());
+    int startIndex = scanNumbers.indexOf(scan);
 
     for (int i = startIndex; i >= 0; i--) {
-      Scan s = dataFile.getScan(scanNumbers[i]);
+      Scan s = scanNumbers.get(i);
       if (s.getMSLevel() == 1) {
         return s;
       }
@@ -1009,16 +979,16 @@ public class ScanUtils {
   /**
    * Finds the first MS1 scan succeeding the given MS2 scan. If no such scan exists, returns null.
    */
-  public static @Nullable Scan findSucceedingPrecursorScan(@Nonnull Scan scan) {
-
+  @Nullable
+  public static Scan findSucceedingPrecursorScan(@Nonnull Scan scan) {
     assert scan != null;
     final RawDataFile dataFile = scan.getDataFile();
-    final int scanNumbers[] = dataFile.getScanNumbers();
+    final ObservableList<Scan> scanNumbers = dataFile.getScans();
 
-    int startIndex = Arrays.binarySearch(scanNumbers, scan.getScanNumber());
+    int startIndex = scanNumbers.indexOf(scan);
 
-    for (int i = startIndex; i < scanNumbers.length; i++) {
-      Scan s = dataFile.getScan(scanNumbers[i]);
+    for (int i = startIndex; i < scanNumbers.size(); i++) {
+      Scan s = scanNumbers.get(i);
       if (s.getMSLevel() == 1) {
         return s;
       }

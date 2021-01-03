@@ -19,6 +19,7 @@
 package io.github.mzmine.project.impl;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -68,7 +69,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   public IMSRawDataFileImpl(String dataFileName) throws IOException {
     super(dataFileName);
 
-    frames = new TreeMap<>();
+    frames = new ArrayList<>();
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
     frameMsLevelCache = new Hashtable<>();
@@ -114,7 +115,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Nonnull
   @Override
   public Collection<? extends Frame> getFrames() {
-    return frames.values();
+    return frames;
   }
 
   @Nonnull
@@ -139,19 +140,13 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   @Nonnull
   @Override
-  public Set<Integer> getFrameNumbers() {
-    return frames.keySet();
-  }
-
-  @Nonnull
-  @Override
-  public Set<Integer> getFrameNumbers(int msLevel) {
+  public Set<Scan> getFrameNumbers(int msLevel) {
     return frameNumbersCache.computeIfAbsent(msLevel, (key) -> {
-      Set<Integer> frameNums = new HashSet<>();
+      Set<Scan> frameNums = new HashSet<>();
       synchronized (frames) {
-        for (Entry<Integer, Frame> e : frames.entrySet()) {
-          if (e.getValue().getMSLevel() == msLevel) {
-            frameNums.add(e.getKey());
+        for (Scan e : frames) {
+          if (e.getMSLevel() == msLevel) {
+            frameNums.add(e);
           }
         }
       }
@@ -166,10 +161,10 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   @Nonnull
   @Override
-  public Set<Integer> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
+  public Set<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
     // since {@link getFrameNumbers(int)} is prefiltered, this shouldn't lead to NPE
     return getFrameNumbers(msLevel).stream()
-        .filter(frameNum -> rtRange.contains(getFrame(frameNum).getRetentionTime()))
+        .filter(frameNum -> rtRange.contains(frameNum.getRetentionTime()))
         .collect(Collectors.toSet());
   }
 

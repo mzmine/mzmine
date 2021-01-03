@@ -89,9 +89,7 @@ public class MassListComponent extends FlowPane {
     ArrayList<String> names = new ArrayList<>();
     RawDataFile dataFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
     for (RawDataFile dataFile : dataFiles) {
-      int scanNums[] = dataFile.getScanNumbers();
-      for (int scanNum : scanNums) {
-        Scan scan = dataFile.getScan(scanNum);
+      for(Scan scan : dataFile.getScans()) {
         MassList massLists[] = scan.getMassLists();
         for (MassList massList : massLists) {
           String name = massList.getName();
@@ -104,8 +102,4 @@ public class MassListComponent extends FlowPane {
     return names;
   }
 
-  /*
-   * public void addDocumentListener(DocumentListener dl) {
-   * nameField.getDocument().addDocumentListener(dl); }
-   */
 }

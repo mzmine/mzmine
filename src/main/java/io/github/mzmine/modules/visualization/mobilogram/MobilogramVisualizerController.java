@@ -96,8 +96,10 @@ public class MobilogramVisualizerController {
       if (valueIndex != -1) {
         MobilityDataPoint selectedDp =
             mobilogramSelector.getValue().getDataPoints().get(valueIndex);
-        SpectraVisualizerModule.addNewSpectrumTab(frameSelector.getValue().getDataFile(),
-            selectedDp.getScanNum());
+        Frame frame = frameSelector.getValue();
+        // todo check correct?
+        SpectraVisualizerModule.addNewSpectrumTab(frame.getDataFile(), frame);
+//            selectedDp.getScanNum());
       }
     });
     mobilogramChart.getContextMenu().getItems().add(showSpectrum);

@@ -32,6 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.collections.ObservableList;
 
 /**
  * Merge multiple raw data files into one. For example one positive, one negative and multiple with
@@ -92,12 +93,11 @@ class RawFileMergeTask extends AbstractTask {
       for (RawDataFile r : raw) {
         // some files are only for MS2
         boolean isMS2Only = useMS2Marker && r.getName().contains(ms2Marker);
-        int[] snarray = r.getScanNumbers();
-        for (int sn : snarray) {
+        ObservableList<Scan> snarray = r.getScans();
+        for (Scan scan : snarray) {
           if (isCanceled())
             return;
 
-          Scan scan = r.getScan(sn);
           if (!isMS2Only || scan.getMSLevel() > 1) {
             scans.add(scan);
           }
@@ -105,12 +105,7 @@ class RawFileMergeTask extends AbstractTask {
       }
 
       // sort by rt
-      scans.sort(new Comparator<Scan>() {
-        @Override
-        public int compare(Scan a, Scan b) {
-          return Double.compare(a.getRetentionTime(), b.getRetentionTime());
-        }
-      });
+      scans.sort(Comparator.comparingDouble(Scan::getRetentionTime));
 
       // create new file
       RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix);

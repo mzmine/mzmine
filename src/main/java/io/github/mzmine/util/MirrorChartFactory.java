@@ -234,7 +234,7 @@ public class MirrorChartFactory {
     } else if (raw != null) {
       Feature peak = row.getFeature(raw);
       if (peak != null) {
-        scan = raw.getScan(peak.getMostIntenseFragmentScanNumber());
+        scan = peak.getMostIntenseFragmentScan();
       }
     }
     if (scan == null && useBestForMissingRaw) {

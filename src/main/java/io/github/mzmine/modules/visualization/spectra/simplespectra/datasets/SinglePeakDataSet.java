@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -36,7 +37,7 @@ public class SinglePeakDataSet extends AbstractXYDataset implements IntervalXYDa
   private DataPoint dataPoint;
   private String label;
 
-  public SinglePeakDataSet(int scanNumber, Feature peak) {
+  public SinglePeakDataSet(Scan scanNumber, Feature peak) {
     this.label = peak.toString();
     this.dataPoint = peak.getDataPoint(scanNumber);
   }

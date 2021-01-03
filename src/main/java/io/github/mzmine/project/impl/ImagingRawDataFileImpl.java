@@ -8,6 +8,7 @@ import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
+import javafx.collections.ObservableList;
 
 
 public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRawDataFile {
@@ -19,7 +20,7 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
 
   // scan numbers
   // TODO add ms level - one array for each level
-  private int[][][] xyzScanNumbers;
+  private Scan[][][] xyzScanNumbers;
 
 
   public ImagingRawDataFileImpl(String dataFileName) throws IOException {
@@ -39,14 +40,14 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
   @Override
   public Scan getScan(double x, double y) {
     //
-    int[][][] numbers = getXYZScanNumbers();
+    Scan[][][] numbers = getXYZScanNumbers();
     // yline:
     int iy = (int) ((y) / param.getPixelShape());
     int ix = (int) (x / param.getPixelWidth());
 
     if (ix >= 0 && ix < numbers.length && iy >= 0 && iy < numbers[ix].length
-        && numbers[ix][iy][0] != -1)
-      return getScan(numbers[ix][iy][0]);
+        && numbers[ix][iy][0] != null)
+      return numbers[ix][iy][0];
     else
       return null;
   }
@@ -61,7 +62,7 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     y = Math.min(y, y2);
     y2 = Math.max(tmp, y2);
 
-    int[][][] numbers = getXYZScanNumbers();
+    Scan[][][] numbers = getXYZScanNumbers();
     int iy = (int) ((y) / param.getPixelShape());
     int ix = (int) (x / param.getPixelWidth());
 
@@ -73,8 +74,8 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     if (ix >= 0 && ix2 < numbers.length && iy >= 0 && iy2 < numbers[ix2].length) {
       for (int i = ix; i <= ix2; i++) {
         for (int k = iy; k <= iy2; k++) {
-          if (numbers[i][k][0] != -1)
-            list.add(getScan(numbers[i][k][0]));
+          if (numbers[i][k][0] != null)
+            list.add(numbers[i][k][0]);
         }
       }
     }
@@ -86,26 +87,26 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
    * 
    * @return
    */
-  public int[][][] getXYZScanNumbers() {
+  public Scan[][][] getXYZScanNumbers() {
     if (xyzScanNumbers == null) {
       // sort all scan numbers to xyz location
-      xyzScanNumbers = new int[param.getMaxNumberOfPixelX()][param.getMaxNumberOfPixelY()][param
+      xyzScanNumbers = new Scan[param.getMaxNumberOfPixelX()][param.getMaxNumberOfPixelY()][param
           .getMaxNumberOfPixelZ()];
       for (int x = 0; x < xyzScanNumbers.length; x++) {
         for (int y = 0; y < xyzScanNumbers[x].length; y++) {
           for (int z = 0; z < xyzScanNumbers[x][y].length; z++) {
-            xyzScanNumbers[x][y][z] = -1;
+            xyzScanNumbers[x][y][z] = null;
           }
         }
       }
       // add all scans
-      int[] numbers = getScanNumbers();
-      for (int i = 0; i < numbers.length; i++) {
-        if (getScan(numbers[i]) instanceof ImagingScan) {
-          Coordinates c = ((ImagingScan) getScan(numbers[i])).getCoordinates();
+      ObservableList<Scan> numbers = getScans();
+      for (int i = 0; i < numbers.size(); i++) {
+        if (numbers.get(i) instanceof ImagingScan) {
+          Coordinates c = ((ImagingScan) numbers.get(i)).getCoordinates();
           if (c.getX() < param.getMaxNumberOfPixelX() && c.getY() < param.getMaxNumberOfPixelY()
               && c.getZ() < param.getMaxNumberOfPixelZ())
-            xyzScanNumbers[c.getX()][c.getY()][c.getZ()] = numbers[i];
+            xyzScanNumbers[c.getX()][c.getY()][c.getZ()] = numbers.get(i);
         }
       }
     }

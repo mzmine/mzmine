@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.BasicStroke;
@@ -112,7 +113,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
 
     int n = 0;
     for (Feature f : row.getFeatures()) {
-      if (f.getMostIntenseFragmentScanNumber() > 0)
+      if (f.getMostIntenseFragmentScan() != null)
         n++;
     }
     lbRawTotalWithFragmentation.setText("(total raw:" + n + ")");
@@ -172,16 +173,16 @@ public class MultiSpectraVisualizerWindow extends JFrame {
   public boolean setRawFileAndShow(RawDataFile raw) {
     Feature peak = row.getFeature(raw);
     // no peak / no ms2 - return false
-    if (peak == null || peak.getAllMS2FragmentScanNumbers() == null
-        || peak.getAllMS2FragmentScanNumbers().size() == 0)
+    if (peak == null || peak.getAllMS2FragmentScans() == null
+        || peak.getAllMS2FragmentScans().size() == 0)
       return false;
 
     this.activeRaw = raw;
     // clear
     pnGrid.removeAll();
 
-    ObservableList<Integer> numbers = peak.getAllMS2FragmentScanNumbers();
-    for (int scan : numbers) {
+    ObservableList<Scan> numbers = peak.getAllMS2FragmentScans();
+    for (Scan scan : numbers) {
       pnGrid.add(addSpectra(scan));
     }
 
@@ -199,7 +200,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     return Arrays.asList(rawFiles).indexOf(raw);
   }
 
-  private JPanel addSpectra(int scan) {
+  private JPanel addSpectra(Scan scan) {
     JPanel panel = new JPanel(new BorderLayout());
     // Split pane for eic plot (top) and spectrum (bottom)
     JSplitPane bottomPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -240,7 +241,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     ticPlot.getChart().getLegend().setVisible(false);
 
     // add a retention time Marker to the EIC
-    ValueMarker marker = new ValueMarker(activeRaw.getScan(scan).getRetentionTime());
+    ValueMarker marker = new ValueMarker(scan.getRetentionTime());
     marker.setPaint(Color.RED);
     marker.setStroke(new BasicStroke(3.0f));
 
@@ -256,7 +257,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
 
     // get MS/MS spectra window
     SpectraVisualizerTab spectraTab = new SpectraVisualizerTab(activeRaw);
-    spectraTab.loadRawData(activeRaw.getScan(scan));
+    spectraTab.loadRawData(scan);
 
     // get MS/MS spectra plot
     SpectraPlot spectrumPlot = spectraTab.getSpectrumPlot();

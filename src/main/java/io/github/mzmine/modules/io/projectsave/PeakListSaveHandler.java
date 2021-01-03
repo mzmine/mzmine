@@ -18,6 +18,14 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -29,6 +37,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -70,7 +79,6 @@ public class PeakListSaveHandler {
    * Create an XML document with the feature list information an save it into the project zip file
    *
    * @param featureList
-   * @param peakListSavedName name of the feature list
    * @throws java.io.IOException
    */
   public void savePeakList(FeatureList featureList)
@@ -184,7 +192,6 @@ public class PeakListSaveHandler {
    * Add the row information into the XML document
    *
    * @param row
-   * @param element
    * @throws IOException
    */
   private void fillRowElement(FeatureListRow row, TransformerHandler hd)
@@ -262,7 +269,6 @@ public class PeakListSaveHandler {
    * Add the peak identity information into the XML document
    *
    * @param identity
-   * @param element
    */
   private void fillIdentityElement(FeatureIdentity identity, TransformerHandler hd)
       throws SAXException {
@@ -308,8 +314,6 @@ public class PeakListSaveHandler {
    * Add the peaks information into the XML document
    *
    * @param feature
-   * @param element
-   * @param dataFileID
    * @throws IOException
    */
   private void fillPeakElement(Feature feature, TransformerHandler hd)
@@ -318,20 +322,19 @@ public class PeakListSaveHandler {
 
     // <REPRESENTATIVE_SCAN>
     hd.startElement("", "", PeakListElementName.REPRESENTATIVE_SCAN.getElementName(), atts);
-    hd.characters(String.valueOf(feature.getRepresentativeScanNumber()).toCharArray(), 0,
-        String.valueOf(feature.getRepresentativeScanNumber()).length());
+    hd.characters(String.valueOf(feature.getRepresentativeScan().getScanNumber()).toCharArray(), 0,
+        String.valueOf(feature.getRepresentativeScan().getScanNumber()).length());
     hd.endElement("", "", PeakListElementName.REPRESENTATIVE_SCAN.getElementName());
 
     // <FRAGMENT_SCAN>
     hd.startElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName(), atts);
-    hd.characters(String.valueOf(feature.getMostIntenseFragmentScanNumber()).toCharArray(), 0,
-        String.valueOf(feature.getMostIntenseFragmentScanNumber()).length());
+    hd.characters(String.valueOf(feature.getMostIntenseFragmentScan().getScanNumber()).toCharArray(), 0,
+        String.valueOf(feature.getMostIntenseFragmentScan().getScanNumber()).length());
     hd.endElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName());
 
     // <ALL_MS2_FRAGMENT_SCANS>
-    fillAllMS2FragmentScanNumbers(feature.getAllMS2FragmentScanNumbers(), hd);
-
-    List<Integer> scanNumbers = feature.getScanNumbers();
+    fillAllMS2FragmentScanNumbers(feature.getAllMS2FragmentScans().stream().map(Scan::getScanNumber)
+        .collect(Collectors.toList()), hd);
 
     // <ISOTOPE_PATTERN>
     IsotopePattern isotopePattern = feature.getIsotopePattern();
@@ -351,7 +354,7 @@ public class PeakListSaveHandler {
 
     // <MZPEAK>
     atts.addAttribute("", "", PeakListElementName.QUANTITY.getElementName(), "CDATA",
-        String.valueOf(scanNumbers.size()));
+        String.valueOf(feature.getScanNumbers().size()));
     hd.startElement("", "", PeakListElementName.MZPEAKS.getElementName(), atts);
     atts.clear();
 
@@ -366,10 +369,11 @@ public class PeakListSaveHandler {
     DataOutputStream dataHeightStream = new DataOutputStream(byteHeightStream);
 
     float mass, height;
-    for (int scan : scanNumbers) {
-      dataScanStream.writeInt(scan);
+    for (int i=0; i<feature.getNumberOfDataPoints(); i++) {
+      Scan scan = feature.getScanAtIndex(i);
+      dataScanStream.writeInt(scan.getScanNumber());
       dataScanStream.flush();
-      DataPoint mzPeak = feature.getDataPoint(scan);
+      DataPoint mzPeak = feature.getDataPointAtIndex(i);
       if (mzPeak != null) {
         mass = (float) mzPeak.getMZ();
         height = (float) mzPeak.getIntensity();

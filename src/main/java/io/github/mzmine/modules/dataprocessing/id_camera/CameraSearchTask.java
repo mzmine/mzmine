@@ -256,7 +256,7 @@ public class CameraSearchTask extends AbstractTask {
       final Map<Scan, Set<DataPoint>> peakDataPointsByScan =
           new HashMap<Scan, Set<DataPoint>>(rawFile.getNumOfScans(MS_LEVEL));
       int dataPointCount = 0;
-      for (final int scanNumber : rawFile.getScanNumbers(MS_LEVEL)) {
+      for (final Scan scan : rawFile.getScanNumbers(MS_LEVEL)) {
 
         // Create a set to hold data points (sorted by m/z).
         final Set<DataPoint> dataPoints = new TreeSet<DataPoint>(ASCENDING_MASS_SORTER);
@@ -266,7 +266,7 @@ public class CameraSearchTask extends AbstractTask {
         dataPointCount++;
 
         // Map the set.
-        peakDataPointsByScan.put(rawFile.getScan(scanNumber), dataPoints);
+        peakDataPointsByScan.put(scan, dataPoints);
       }
 
       // Add peaks.
@@ -280,17 +280,15 @@ public class CameraSearchTask extends AbstractTask {
         final double mz = peak.getMZ();
 
         // Get the peak's data points per scan.
-        for (final int scanNumber : peak.getScanNumbers()) {
-
-          final Scan scan = rawFile.getScan(scanNumber);
+        for (int i=0; i<peak.getNumberOfDataPoints(); i++){
+          Scan scan = peak.getScanAtIndex(i);
           if (scan.getMSLevel() != MS_LEVEL) {
-
             throw new IllegalStateException(
                 "CAMERA can only process feature lists from MS-level " + MS_LEVEL);
           }
 
           // Copy the data point.
-          final DataPoint dataPoint = peak.getDataPoint(scanNumber);
+          final DataPoint dataPoint = peak.getDataPointAtIndex(i);
           if (dataPoint != null) {
 
             final double intensity = dataPoint.getIntensity();
@@ -346,15 +344,12 @@ public class CameraSearchTask extends AbstractTask {
       // Fill vectors.
       int scanIndex = 0;
       int pointIndex = 0;
-      for (final int scanNumber : rawFile.getScanNumbers(MS_LEVEL)) {
-
-        final Scan scan = rawFile.getScan(scanNumber);
+      for (final Scan scan : rawFile.getScanNumbers(MS_LEVEL)) {
         scanTimes[scanIndex] = scan.getRetentionTime();
         scanIndices[scanIndex] = pointIndex + 1;
         scanIndex++;
 
         for (final DataPoint dataPoint : peakDataPointsByScan.get(scan)) {
-
           masses[pointIndex] = dataPoint.getMZ();
           intensities[pointIndex] = dataPoint.getIntensity();
           pointIndex++;
@@ -499,8 +494,8 @@ public class CameraSearchTask extends AbstractTask {
    * Add pseudo-spectra identities.
    *
    * @param peaks peaks to annotate with identities.
-   * @param spectraExp the pseudo-spectra ids vector.
-   * @param isotopeExp the isotopes vector.
+   * @param spectra the pseudo-spectra ids vector.
+   * @param isotopes the isotopes vector.
    */
   private void addPseudoSpectraIdentities(final Feature[] peaks, final int[] spectra,
       final String[] isotopes, final String[] adducts) {

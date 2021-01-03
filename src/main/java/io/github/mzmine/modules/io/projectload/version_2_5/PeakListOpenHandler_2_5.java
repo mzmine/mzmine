@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -60,12 +61,14 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
   private ModularFeatureListRow buildingRow;
   private ModularFeatureList buildingPeakList;
 
-  private int numOfMZpeaks, representativeScan, fragmentScan;
+  private int numOfMZpeaks;
+  private Integer representativeScan;
+  private Integer fragmentScan;
   private String peakColumnID;
   private double mass;
   private float rt, area;
-  private int[] scanNumbers;
-  private int[] allMS2FragmentScanNumbers;
+  private Integer[] scanNumbers;
+  private Integer[] allMS2FragmentScanNumbers;
   private Vector<Integer> currentAllMS2FragmentScans;
   private float height;
   private double[] masses, intensities;
@@ -244,7 +247,6 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
    */
   @Override
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
-
     if (canceled)
       throw new SAXException("Parsing canceled");
 
@@ -279,14 +281,14 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
     // <SCAN_ID>
     if (qName.equals(PeakListElementName_2_5.SCAN_ID.getElementName())) {
-
       byte[] bytes = Base64.decodeToBytes(getTextOfElement());
       // make a data input stream
       DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(bytes));
-      scanNumbers = new int[numOfMZpeaks];
+      scanNumbers = new Integer[numOfMZpeaks];
       for (int i = 0; i < numOfMZpeaks; i++) {
         try {
-          scanNumbers[i] = dataInputStream.readInt();
+          int scanNumber = dataInputStream.readInt();
+          scanNumbers[i] = scanNumber;
         } catch (IOException ex) {
           throw new SAXException(ex);
         }
@@ -352,9 +354,13 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       if (dataFile == null)
         throw new SAXException("Error in project: data file " + peakColumnID + " not found");
 
-      for (int i = 0; i < numOfMZpeaks; i++) {
+      Scan[] scans = Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
+      Scan[] fragmentScans = currentAllMS2FragmentScans.stream().map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
+      Scan bestMS1 = dataFile.getScanAtNumber(representativeScan);
+      Scan bestMS2 = dataFile.getScanAtNumber(fragmentScan);
 
-        Scan sc = dataFile.getScan(scanNumbers[i]);
+      for (int i = 0; i < numOfMZpeaks; i++) {
+        Scan sc = scans[i];
         float retentionTime = sc.getRetentionTime();
 
         double mz = masses[i];
@@ -384,12 +390,6 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
       FeatureStatus status = FeatureStatus.valueOf(peakStatus);
 
-      // convert vector of allMS2FragmentScans to array
-      allMS2FragmentScanNumbers = new int[currentAllMS2FragmentScans.size()];
-      for (int i = 0; i < allMS2FragmentScanNumbers.length; i++) {
-        allMS2FragmentScanNumbers[i] = currentAllMS2FragmentScans.get(i);
-      }
-
       // clear all MS2 fragment scan numbers list for next peak
       currentAllMS2FragmentScans.clear();
 
@@ -404,6 +404,11 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       // mzPeaks,
       // status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
       // peakMZRange, peakIntensityRange);
+      ModularFeature peak = new ModularFeature(buildingPeakList, dataFile, mass, rt, height, area, scans, mzPeaks,
+          status, bestMS1, bestMS2, fragmentScans, peakRTRange, peakMZRange, peakIntensityRange);
+      //SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
+      //    status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
+      //    peakMZRange, peakIntensityRange);
 
       peak.setCharge(currentPeakCharge);
 

@@ -19,25 +19,26 @@
 package io.github.mzmine.modules.visualization.msms;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 
 /**
  * This class represents one feature datapoint (retention time and m/z)
  */
 class FeatureDataPoint {
 
-  private int scanNumber;
+  private Scan scanNumber;
   private double rt;
   private DataPoint dataPoint;
 
   /**
    */
-  FeatureDataPoint(int scanNumber, double rt, DataPoint dataPoint) {
+  FeatureDataPoint(Scan scanNumber, double rt, DataPoint dataPoint) {
     this.scanNumber = scanNumber;
     this.rt = rt;
     this.dataPoint = dataPoint;
   }
 
-  int getScanNumber() {
+  Scan getScan() {
     return scanNumber;
   }
 

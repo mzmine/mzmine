@@ -52,7 +52,7 @@ class FeatureToolTipGenerator implements XYToolTipGenerator {
     double rtValue = dataPoint.getRT();
     double intValue = dataPoint.getIntensity();
     double mzValue = dataPoint.getMZ();
-    int scanNumber = dataPoint.getScanNumber();
+    int scanNumber = dataPoint.getScan().getScanNumber();
 
     String toolTip =
         "Peak: " + feature + "\nStatus: " + feature.getFeatureStatus() + "\nFeature list row: " + row

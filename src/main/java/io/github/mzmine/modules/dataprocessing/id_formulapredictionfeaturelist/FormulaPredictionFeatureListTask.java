@@ -80,8 +80,6 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
    *
    * @param parameters
    * @param featureList
-   * @param peakListRow
-   * @param peak
    */
   FormulaPredictionFeatureListTask(FeatureList featureList, ParameterSet parameters) {
 
@@ -282,15 +280,14 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     Double msmsScore = null;
     Feature bestFeature = featureListRow.getBestFeature();
     RawDataFile dataFile = bestFeature.getRawDataFile();
-    int msmsScanNumber = bestFeature.getMostIntenseFragmentScanNumber();
+    Scan msmsScan = bestFeature.getMostIntenseFragmentScan();
 
-    if ((checkMSMS) && (msmsScanNumber > 0)) {
-      Scan msmsScan = dataFile.getScan(msmsScanNumber);
+    if ((checkMSMS) && (msmsScan != null)) {
       String massListName = msmsParameters.getParameter(MSMSScoreParameters.massList).getValue();
       MassList ms2MassList = msmsScan.getMassList(massListName);
       if (ms2MassList == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("The MS/MS scan #" + msmsScanNumber + " in file " + dataFile.getName()
+        setErrorMessage("The MS/MS scan #" + msmsScan.getScanNumber() + " in file " + dataFile.getName()
             + " does not have a mass list called '" + massListName + "'");
         return null;
       }

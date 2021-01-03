@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
@@ -35,7 +36,7 @@ import javafx.collections.FXCollections;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class ScanNumbersType extends ListDataType<Integer> implements BindingsFactoryType {
+public class ScanNumbersType extends ListDataType<Scan> implements BindingsFactoryType {
 
   @Override
   public String getHeaderString() {
@@ -45,7 +46,7 @@ public class ScanNumbersType extends ListDataType<Integer> implements BindingsFa
 
   @Nonnull
   @Override
-  public String getFormattedString(@Nonnull ListProperty<Integer> property) {
+  public String getFormattedString(@Nonnull ListProperty<Scan> property) {
     return property.getValue() != null ? String.valueOf(property.getValue().size()) : "";
   }
 

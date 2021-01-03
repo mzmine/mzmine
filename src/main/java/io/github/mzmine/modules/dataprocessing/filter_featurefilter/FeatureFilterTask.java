@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -168,7 +168,7 @@ public class FeatureFilterTask extends AbstractTask {
         final double peakArea = peak.getArea();
         final double peakHeight = peak.getHeight();
         final int peakDatapoints = peak.getScanNumbers().size();
-        final int msmsScanNumber = peak.getMostIntenseFragmentScanNumber();
+        final Scan msmsScanNumber = peak.getMostIntenseFragmentScan();
 
         Float peakFWHM = peak.getFWHM();
         Float peakTailingFactor = peak.getTailingFactor();
@@ -259,7 +259,7 @@ public class FeatureFilterTask extends AbstractTask {
 
         // Check MS/MS filter
         if (filterByMS2) {
-          if (msmsScanNumber < 1)
+          if (msmsScanNumber != null)
             keepPeak[i] = false;
         }
       }

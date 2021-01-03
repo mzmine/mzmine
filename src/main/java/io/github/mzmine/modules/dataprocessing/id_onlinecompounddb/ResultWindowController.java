@@ -190,7 +190,7 @@ public class ResultWindowController {
         Feature peak = peakListRow.getBestFeature();
 
         RawDataFile dataFile = peak.getRawDataFile();
-        int scanNumber = peak.getRepresentativeScanNumber();
+        Scan scanNumber = peak.getRepresentativeScan();
         SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null,
                 peak.getIsotopePattern(), predictedPattern);
     }

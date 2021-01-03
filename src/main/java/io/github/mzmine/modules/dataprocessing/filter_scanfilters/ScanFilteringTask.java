@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.collections.ObservableList;
 
 class ScanFilteringTask extends AbstractTask {
 
@@ -39,7 +40,7 @@ class ScanFilteringTask extends AbstractTask {
 
   // scan counter
   private int processedScans = 0, totalScans;
-  private int[] scanNumbers;
+  private ObservableList<Scan> scanNumbers;
 
   // User parameters
   private String suffix;
@@ -100,8 +101,8 @@ class ScanFilteringTask extends AbstractTask {
 
     logger.info("Started filtering scans on " + dataFile);
 
-    scanNumbers = dataFile.getScanNumbers();
-    totalScans = scanNumbers.length;
+    scanNumbers = dataFile.getScans();
+    totalScans = scanNumbers.size();
 
     try {
 
@@ -116,7 +117,7 @@ class ScanFilteringTask extends AbstractTask {
           return;
         }
 
-        Scan scan = dataFile.getScan(scanNumbers[i]);
+        Scan scan = scanNumbers.get(i);
         Scan newScan = null;
         if (select.matches(scan))
           newScan =
@@ -151,7 +152,6 @@ class ScanFilteringTask extends AbstractTask {
       setErrorMessage(e.toString());
       return;
     }
-
   }
 
 }

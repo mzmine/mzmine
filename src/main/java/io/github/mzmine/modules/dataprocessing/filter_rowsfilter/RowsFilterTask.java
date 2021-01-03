@@ -401,7 +401,7 @@ public class RowsFilterTask extends AbstractTask {
         // iterates the features
         int failCounts = 0;
         for (int i = 0; i < featureCount; i++) {
-          if (row.getFeatures().get(i).getMostIntenseFragmentScanNumber() < 1) {
+          if (row.getFeatures().get(i).getMostIntenseFragmentScan() == null) {
             failCounts++;
             // filterRowCriteriaFailed = true;
             // break;

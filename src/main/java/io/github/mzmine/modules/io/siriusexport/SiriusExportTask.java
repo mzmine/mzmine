@@ -12,6 +12,7 @@
 
 package io.github.mzmine.modules.io.siriusexport;
 
+import io.github.mzmine.datamodel.Scan;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -179,7 +180,7 @@ public class SiriusExportTask extends AbstractTask {
     // get row charge and polarity
     char polarity = 0;
     for (Feature f : row.getFeatures()) {
-      char pol = f.getRawDataFile().getScan(f.getRepresentativeScanNumber()).getPolarity()
+      char pol = f.getRepresentativeScan().getPolarity()
           .asSingleChar().charAt(0);
       if (pol != polarity && polarity != 0) {
         setErrorMessage(
@@ -198,9 +199,9 @@ public class SiriusExportTask extends AbstractTask {
       if (mergeMode != MergeMode.ACROSS_SAMPLES) {
         for (Feature f : row.getFeatures()) {
           if (f.getFeatureStatus() == FeatureStatus.DETECTED
-              && f.getMostIntenseFragmentScanNumber() >= 0) {
+              && f.getMostIntenseFragmentScan() != null) {
             // write correlation spectrum
-            writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1);
+            writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1, null);
             writeCorrelationSpectrum(writer, f);
             if (mergeMode == MergeMode.CONSECUTIVE_SCANS) {
               // merge MS/MS
@@ -226,8 +227,7 @@ public class SiriusExportTask extends AbstractTask {
         }
       } else {
         // write correlation spectrum
-        writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED,
-            -1);
+        writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED, -1, null);
         writeCorrelationSpectrum(writer, row.getBestFeature());
         // merge everything into one
         MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row, massListName)
@@ -245,14 +245,14 @@ public class SiriusExportTask extends AbstractTask {
       MassList ms1MassList = bestFeature.getRepresentativeScan().getMassList(massListName);
       if (ms1MassList != null) {
         writeHeader(writer, row, bestFeature.getRawDataFile(), polarity, MsType.MS,
-            bestFeature.getRepresentativeScanNumber());
+            bestFeature.getRepresentativeScan());
         writeSpectrum(writer, ms1MassList.getDataPoints());
       }
 
       for (Feature f : row.getFeatures()) {
-        for (int ms2scan : f.getAllMS2FragmentScanNumbers()) {
+        for (Scan ms2scan : f.getAllMS2FragmentScans()) {
           writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, ms2scan);
-          MassList ms2MassList = f.getRawDataFile().getScan(ms2scan).getMassList(massListName);
+          MassList ms2MassList = ms2scan.getMassList(massListName);
           if (ms2MassList == null)
             continue;
           writeSpectrum(writer, ms2MassList.getDataPoints());
@@ -267,7 +267,7 @@ public class SiriusExportTask extends AbstractTask {
     for (Feature f : row.getFeatures()) {
       if (f.getFeatureStatus() == FeatureStatus.DETECTED) {
         if ((f.getIsotopePattern() != null && f.getIsotopePattern().getNumberOfDataPoints() > 1)
-            || f.getMostIntenseFragmentScanNumber() >= 0)
+            || f.getMostIntenseFragmentScan() != null)
           return false;
       }
     }
@@ -292,8 +292,8 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
-      char polarity, MsType msType, Integer scanNumber) throws IOException {
-    writeHeader(writer, row, raw, polarity, msType, scanNumber, null);
+      char polarity, MsType msType, Scan scanNumber) throws IOException {
+    writeHeader(writer, row, raw, polarity, msType, scanNumber.getScanNumber(), null);
   }
 
   private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
@@ -352,7 +352,7 @@ public class SiriusExportTask extends AbstractTask {
       writer.write(feature.getRawDataFile().getName());
       writer.newLine();
     }
-    if (scanNumber != null) {
+    if (scanNumber != -1) {
       writer.write("SCANS=");
       writer.write(String.valueOf(scanNumber));
       writer.newLine();

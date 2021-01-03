@@ -205,7 +205,7 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.QUANTITY_SCAN.getElementName());
 
     // <SCAN>
-    for (int scanNumber : rawDataFile.getScanNumbers()) {
+    for (Scan scan : rawDataFile.getScans()) {
 
       if (canceled) {
         return;
@@ -238,7 +238,7 @@ class RawDataFileSaveHandler {
       hd.endElement("", "", RawDataElementName.QUANTITY_FRAMES.getElementName());
 
       int completedFrames = 0;
-      for (int frameNum : imsFile.getFrameNumbers()) {
+      for (Frame frameNum : imsFile.getFrames()) {
 
         if (canceled) {
           return;

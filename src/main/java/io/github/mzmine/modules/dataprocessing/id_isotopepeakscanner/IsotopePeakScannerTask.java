@@ -18,12 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
+import io.github.mzmine.datamodel.Scan;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -809,10 +811,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   private PolarityType getPeakListPolarity(FeatureList peakList) {
-    int[] scans = peakList.getRow(0).getFeatures().get(0).getScanNumbers().stream().mapToInt(i -> i)
-        .toArray();
-    RawDataFile raw = peakList.getRow(0).getFeatures().get(0).getRawDataFile();
-    return raw.getScan(scans[0]).getPolarity();
+    return peakList.getRawDataFiles().stream().map(raw -> raw.getDataPolarity().stream().findFirst().orElse(PolarityType.UNKNOWN)).findFirst()
+        .orElse(PolarityType.UNKNOWN);
   }
 
   private boolean checkParameters() {
@@ -845,9 +845,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
       RawDataFile[] raws = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
       boolean foundMassList = false;
       for (RawDataFile raw : raws) {
-        int scanNumbers[] = raw.getScanNumbers();
-        for (int scan : scanNumbers) {
-          MassList[] massLists = raw.getScan(scan).getMassLists();
+        ObservableList<Scan> scanNumbers = raw.getScans();
+        for (Scan scan : scanNumbers) {
+          MassList[] massLists = scan.getMassLists();
           for (MassList list : massLists) {
             if (list.getName().equals(massListName))
               foundMassList = true;

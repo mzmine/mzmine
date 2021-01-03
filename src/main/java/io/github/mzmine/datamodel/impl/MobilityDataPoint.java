@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 
 public class MobilityDataPoint implements DataPoint {
 
