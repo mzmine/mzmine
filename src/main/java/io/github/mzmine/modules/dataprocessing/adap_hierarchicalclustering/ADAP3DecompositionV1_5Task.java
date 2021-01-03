@@ -15,6 +15,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -34,6 +35,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import dulab.adap.common.algorithms.FeatureTools;
 import dulab.adap.datamodel.Component;
@@ -261,14 +263,14 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
     for (FeatureListRow row : peakList.getRows()) {
       Feature peak = row.getBestFeature();
-      int[] scanNumbers = peak.getScanNumbers().stream().mapToInt(i -> i).toArray();
+      ObservableList<Scan> scanNumbers = peak.getScanNumbers();
 
       // Build chromatogram
       NavigableMap<Double, Double> chromatogram = new TreeMap<>();
-      for (int scanNumber : scanNumbers) {
-        DataPoint dataPoint = peak.getDataPoint(scanNumber);
+      for (int i=0; i< scanNumbers.size(); i++) {
+        DataPoint dataPoint = peak.getDataPointAtIndex(i);
         if (dataPoint != null)
-          chromatogram.put((double) dataFile.getScan(scanNumber).getRetentionTime(),
+          chromatogram.put(Double.valueOf(String.valueOf(peak.getRetentionTimeAtIndex(i))),
               dataPoint.getIntensity());
       }
 
@@ -285,17 +287,17 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
         info.peakID = row.getID() - 1;
 
         double height = -Double.MIN_VALUE;
-        for (int scan : scanNumbers) {
-          double intensity = peak.getDataPoint(scan).getIntensity();
+        for (int i=0; i<scanNumbers.size(); i++) {
+          double intensity = peak.getDataPointAtIndex(i).getIntensity();
 
           if (intensity > height) {
             height = intensity;
-            info.peakIndex = scan;
+            info.peakIndex = scanNumbers.get(i).getScanNumber();
           }
         }
 
-        info.leftApexIndex = scanNumbers[0];
-        info.rightApexIndex = scanNumbers[scanNumbers.length - 1];
+        info.leftApexIndex = scanNumbers.get(0).getScanNumber();
+        info.rightApexIndex = scanNumbers.get(scanNumbers.size() - 1).getScanNumber();
         info.retTime = peak.getRT();
         info.mzValue = peak.getMZ();
         info.intensity = peak.getHeight();

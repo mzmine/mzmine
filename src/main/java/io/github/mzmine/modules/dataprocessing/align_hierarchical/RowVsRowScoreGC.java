@@ -198,7 +198,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       // peakListRow.getRawDataFiles()[0], true);
       // }
 
-      Scan apexScan = refRDF.getScan(peakListRow.getBestFeature().getRepresentativeScanNumber());
+      Scan apexScan = refRDF.getScanAtNumber(peakListRow.getBestFeature().getRepresentativeScan().getScanNumber());
       //
       // Get scan m/z vector.
       // logger.info("DPs MZ Range: " + apexScan.getMZRange());
@@ -238,7 +238,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
         // true);
         // }
 
-        apexScan = refRDF.getScan(alignedRow.getFeature(rdf).getRepresentativeScanNumber());
+        apexScan = alignedRow.getFeature(rdf).getRepresentativeScan();
         // if (useDetectedMzOnly &&
         // alignedRow.getBestPeak().getIsotopePattern() != null)
         // dataPoints =
@@ -264,12 +264,12 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       // refRDF = DataFileUtils.getAncestorDataFile(this.project,
       // peakListRow.getRawDataFiles()[0], true);
       // }
-      Scan apexScan = refRDF.getScan(peakListRow.getBestFeature().getRepresentativeScanNumber());
+      Scan apexScan = refRDF.getScanAtNumber(peakListRow.getBestFeature().getRepresentativeScan().getScanNumber());
       //
       // vec1
       // Scan numbers to be averaged
       int apexScanNumber = apexScan.getScanNumber();
-      int[] peakScanNumbers = peakListRow.getBestFeature().getScanNumbers().stream().mapToInt(i -> i).toArray();
+      int[] peakScanNumbers = peakListRow.getBestFeature().getScanNumbers().stream().mapToInt(s -> s.getScanNumber()).toArray();
       int nbSideScans = (int) Math.round(peakScanNumbers.length * 5.0 / 100.0);
       int firstScanNum = Math.max(apexScanNumber - nbSideScans, peakScanNumbers[0]);
       int lastScanNum =
@@ -278,7 +278,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       //
       // Compute average
       for (int i = firstScanNum; i < lastScanNum; ++i) {
-        Scan curScan = refRDF.getScan(i);
+        Scan curScan = refRDF.getScanAtNumber(i);
         DataPoint[] dataPoints = curScan.getDataPoints();
         for (int j = 0; j < dataPoints.length; ++j) {
           DataPoint dp = dataPoints[j];
@@ -297,10 +297,10 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       // refRDF = DataFileUtils.getAncestorDataFile(this.project,
       // alignedRow.getRawDataFiles()[0], true);
       // }
-      apexScan = refRDF.getScan(alignedRow.getBestFeature().getRepresentativeScanNumber());
+      apexScan = refRDF.getScanAtNumber(alignedRow.getBestFeature().getRepresentativeScan().getScanNumber());
       // Scan numbers to be averaged
       apexScanNumber = apexScan.getScanNumber();
-      peakScanNumbers = alignedRow.getBestFeature().getScanNumbers().stream().mapToInt(i -> i).toArray();
+      peakScanNumbers = alignedRow.getBestFeature().getScanNumbers().stream().mapToInt(s -> s.getScanNumber()).toArray();
       firstScanNum = Math.max(apexScanNumber - nbSideScans, peakScanNumbers[0]);
       lastScanNum =
           Math.min(apexScanNumber + nbSideScans, peakScanNumbers[peakScanNumbers.length - 1]);
@@ -308,7 +308,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       //
       // Compute average
       for (int i = firstScanNum; i < lastScanNum; ++i) {
-        Scan curScan = refRDF.getScan(i);
+        Scan curScan = refRDF.getScanAtNumber(i);
         DataPoint[] dataPoints = curScan.getDataPoints();
         for (int j = 0; j < dataPoints.length; ++j) {
           DataPoint dp = dataPoints[j];

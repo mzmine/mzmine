@@ -146,8 +146,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     logger.info("Started chromatogram builder on " + dataFile);
 
     scans = scanSelection.getMatchingScans(dataFile);
-    int allScanNumbers[] = scanSelection.getMatchingScanNumbers(dataFile);
-
     List<Float> rtListForChromCDF = new ArrayList<Float>();
 
     // Check if the scans are properly ordered by RT
@@ -220,7 +218,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       }
 
       for (DataPoint mzFeature : mzValues) {
-        ExpandedDataPoint curDatP = new ExpandedDataPoint(mzFeature, scan.getScanNumber());
+        ExpandedDataPoint curDatP = new ExpandedDataPoint(mzFeature, scan);
         allMzValues.add(curDatP);
         // corespondingScanNum.add(scan.getScanNumber());
       }
@@ -311,9 +309,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
         if (toBeLowerBound < toBeUpperBound) {
           Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
-          ADAPChromatogram newChrom = new ADAPChromatogram(dataFile, allScanNumbers);
+          ADAPChromatogram newChrom = new ADAPChromatogram(dataFile, scans);
 
-          newChrom.addMzFeature(mzFeature.getScanNumber(), mzFeature);
+          newChrom.addMzFeature(mzFeature.getScan(), mzFeature);
 
           newChrom.setHighPointMZ(mzFeature.getMZ());
 
@@ -324,7 +322,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
           rangeSet.add(newRange);
         } else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
           ADAPChromatogram curChrom = rangeToChromMap.get(plusRange);
-          curChrom.addMzFeature(mzFeature.getScanNumber(), mzFeature);
+          curChrom.addMzFeature(mzFeature.getScan(), mzFeature);
         } else
           throw new IllegalStateException(String.format("Incorrect range [%f, %f] for m/z %f",
               toBeLowerBound, toBeUpperBound, mzFeature.getMZ()));
@@ -334,7 +332,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
         ADAPChromatogram curChrom = rangeToChromMap.get(containsPointRange);
 
-        curChrom.addMzFeature(mzFeature.getScanNumber(), mzFeature);
+        curChrom.addMzFeature(mzFeature.getScan(), mzFeature);
 
         // update the entry in the map
         rangeToChromMap.put(containsPointRange, curChrom);

@@ -15,6 +15,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -253,11 +254,11 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     Chromatogram chromatogram = peak.chromatogram;
 
     // Retrieve scan numbers
-    int representativeScan = 0;
-    int[] scanNumbers = new int[chromatogram.length];
+    Scan representativeScan = null;
+    Scan[] scanNumbers = new Scan[chromatogram.length];
     int count = 0;
-    for (int num : file.getScanNumbers()) {
-      double retTime = file.getScan(num).getRetentionTime();
+    for (Scan num : file.getScans()) {
+      double retTime = num.getRetentionTime();
       Double intensity = chromatogram.getIntensity(retTime, false);
       if (intensity != null)
         scanNumbers[count++] = num;
@@ -281,7 +282,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
     ModularFeature newFeature = new ModularFeature(newPeakList, file, peak.getMZ(), (float) peak.getRetTime(),
         (float) peak.getIntensity(), (float) area, scanNumbers, dataPoints, FeatureStatus.MANUAL,
-        representativeScan, representativeScan, new int[] {}, Range.closed((float) peak.getFirstRetTime(),
+        representativeScan, representativeScan, new Scan[] {}, Range.closed((float) peak.getFirstRetTime(),
         (float) peak.getLastRetTime()), Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0f, (float) peak.getIntensity()));
     return newFeature;
