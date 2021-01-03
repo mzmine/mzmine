@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -252,14 +253,12 @@ public class ADAP3AlignerTask extends AbstractTask {
 
     // Read Chromatogram
     final Feature peak = row.getBestFeature();
-    final RawDataFile dataFile = peak.getRawDataFile();
-
     NavigableMap<Double, Double> chromatogram = new TreeMap<>();
 
-    for (final int scan : peak.getScanNumbers()) {
-      final DataPoint dataPoint = peak.getDataPoint(scan);
+    for(int i=0; i<peak.getNumberOfDataPoints(); i++) {
+      final DataPoint dataPoint = peak.getDataPointAtIndex(i);
       if (dataPoint != null)
-        chromatogram.put((double) dataFile.getScan(scan).getRetentionTime(), dataPoint.getIntensity());
+        chromatogram.put(Double.valueOf(String.valueOf(peak.getRetentionTimeAtIndex(i))), dataPoint.getIntensity());
     }
 
     return new Component(null,

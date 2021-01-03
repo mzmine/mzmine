@@ -25,7 +25,7 @@ import com.google.common.collect.Range;
 /**
  * This class represent one spectrum of a raw data file.
  */
-public interface Scan extends MassSpectrum {
+public interface Scan extends MassSpectrum, Comparable<Scan> {
 
   /**
    *
@@ -88,5 +88,18 @@ public interface Scan extends MassSpectrum {
 
   public void removeMassList(@Nonnull MassList massList);
 
+
+  /**
+   * Standard method to sort scans
+   * @param s
+   * @return
+   */
+  @Override
+  default int compareTo(@Nonnull Scan s) {
+    int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
+    if(result!=0)
+      return result;
+    else return Float.compare(this.getRetentionTime(), s.getRetentionTime());
+  }
 }
 

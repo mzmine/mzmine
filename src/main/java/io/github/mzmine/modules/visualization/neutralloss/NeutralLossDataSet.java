@@ -47,7 +47,9 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
   private Range<Double> totalMZRange;
   private int numOfFragments;
   private Object xAxisType;
-  private int scanNumbers[], totalScans, processedScans;
+  private Scan[] scanNumbers;
+  private int totalScans;
+  private int processedScans;
 
   private TaskStatus status = TaskStatus.WAITING;
 
@@ -88,13 +90,11 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
     setStatus(TaskStatus.PROCESSING);
     processedScans = 0;
 
-    for (int scanNumber : scanNumbers) {
+    for (Scan scan : scanNumbers) {
 
       // Cancel?
       if (status == TaskStatus.CANCELED)
         return;
-
-      Scan scan = rawDataFile.getScan(scanNumber);
 
       // check parent m/z
       if (!totalMZRange.contains(scan.getPrecursorMZ())) {
@@ -148,7 +148,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
           break;
 
         NeutralLossDataPoint newPoint =
-            new NeutralLossDataPoint(scanDataPoints[featureIndex].getMZ(), scan.getScanNumber(),
+            new NeutralLossDataPoint(scanDataPoints[featureIndex].getMZ(), scan,
                 scan.getPrecursorMZ(), scan.getPrecursorCharge(), scan.getRetentionTime());
 
         dataSeries.get(0).add(newPoint);
@@ -308,9 +308,6 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
     return "Updating neutral loss visualizer of " + rawDataFile;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#setStatus()
-   */
   public void setStatus(TaskStatus newStatus) {
     this.status = newStatus;
   }

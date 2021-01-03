@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -32,12 +33,12 @@ public class ChromatogramTICDataSet extends AbstractXYDataset {
   private static final long serialVersionUID = 1L;
   private Feature chromatogram;
   private RawDataFile dataFile;
-  private int scanNumbers[];
+  private Scan scanNumbers[];
 
   public ChromatogramTICDataSet(Feature chromatogram) {
     this.chromatogram = chromatogram;
     this.dataFile = chromatogram.getRawDataFile();
-    this.scanNumbers = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
+    this.scanNumbers = chromatogram.getScanNumbers().toArray(Scan[]::new);
   }
 
   public Comparable<?> getSeriesKey(int series) {
@@ -49,11 +50,11 @@ public class ChromatogramTICDataSet extends AbstractXYDataset {
   }
 
   public Number getX(int series, int index) {
-    return dataFile.getScan(scanNumbers[index]).getRetentionTime();
+    return scanNumbers[index].getRetentionTime();
   }
 
   public Number getY(int series, int index) {
-    DataPoint mzPeak = chromatogram.getDataPoint(scanNumbers[index]);
+    DataPoint mzPeak = chromatogram.getDataPointAtIndex(index);
     if (mzPeak == null)
       return 0;
     return mzPeak.getIntensity();

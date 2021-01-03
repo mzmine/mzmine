@@ -295,9 +295,9 @@ public class MZTabmExportTask extends AbstractTask {
               if (feature != null) {
                 //Spectra ref
                 List<SpectraRef> sr = new ArrayList<>();
-                for(int x:feature.getScanNumbers()){
+                for(Scan scan : feature.getScanNumbers()){
                   sr.add(new SpectraRef().msRun(rawDataFileToAssay.get(feature.getRawDataFile()).
-                      getMsRunRef().get(0)).reference("index=" + x));
+                      getMsRunRef().get(0)).reference("index=" + scan.getScanNumber()));
                 }
                 if(sr.size() == 0){
                 sr.add(new SpectraRef().msRun(rawDataFileToAssay.get(feature.getRawDataFile()).

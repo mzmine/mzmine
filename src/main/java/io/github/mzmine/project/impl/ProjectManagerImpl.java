@@ -37,9 +37,6 @@ public class ProjectManagerImpl implements ProjectManager {
 
   MZmineProject currentProject;
 
-  /**
-   * @see io.github.mzmine.modules.MZmineModule#initModule(io.github.mzmine.main.MZmineCore)
-   */
   public void initModule() {
     currentProject = new MZmineProjectImpl();
     myInstance = this;

@@ -276,14 +276,12 @@ class SQLExportTask extends AbstractTask {
               statement.setBlob(i + 1, is);
               break;
             case MSMS:
-              int msmsScanNum = row.getBestFeature().getMostIntenseFragmentScanNumber();
+              Scan msmsScan = row.getBestFeature().getMostIntenseFragmentScan();
               // Check if there is any MS/MS scan
-              if (msmsScanNum <= 0) {
+              if (msmsScan == null) {
                 statement.setNull(i + 1, Types.BLOB);
                 break;
               }
-              RawDataFile dataFile = row.getBestFeature().getRawDataFile();
-              Scan msmsScan = dataFile.getScan(msmsScanNum);
               MassList msmsMassList = msmsScan.getMassList(dataValue);
               // Check if there is a masslist for the scan
               if (msmsMassList == null) {

@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Mobilogram;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.MobilityDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import java.io.IOException;
@@ -110,8 +111,7 @@ public class StorableMobilogram implements Mobilogram {
   @Nonnull
   @Override
   public List<Integer> getMobilityScanNumbers() {
-    return getDataPoints().stream().mapToInt(MobilityDataPoint::getScanNum).boxed()
-        .collect(Collectors.toList());
+    return getDataPoints().stream().map(MobilityDataPoint::getScanNum).collect(Collectors.toList());
   }
 
   @Override

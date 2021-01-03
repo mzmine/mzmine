@@ -114,7 +114,6 @@ public class ChromatogramBuilderTask extends AbstractTask {
     logger.info("Started chromatogram builder on " + dataFile);
 
     scans = scanSelection.getMatchingScans(dataFile);
-    int allScanNumbers[] = scanSelection.getMatchingScanNumbers(dataFile);
     totalScans = scans.length;
 
     // Check if the scans are properly ordered by RT
@@ -137,7 +136,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
     Chromatogram[] chromatograms;
     HighestDataPointConnector massConnector = new HighestDataPointConnector(dataFile,
-        allScanNumbers, minimumTimeSpan, minimumHeight, mzTolerance);
+        scans, minimumTimeSpan, minimumHeight, mzTolerance);
 
     for (Scan scan : scans) {
 
@@ -161,7 +160,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         return;
       }
 
-      massConnector.addScan(scan.getScanNumber(), mzValues);
+      massConnector.addScan(scan, mzValues);
       processedScans++;
     }
 

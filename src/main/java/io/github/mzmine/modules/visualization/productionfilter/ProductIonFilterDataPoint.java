@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.productionfilter;
 
+import io.github.mzmine.datamodel.Scan;
 import java.text.NumberFormat;
 
 import io.github.mzmine.main.MZmineCore;
@@ -28,7 +29,7 @@ import io.github.mzmine.main.MZmineCore;
 class ProductIonFilterDataPoint {
 
   private double mzValue;
-  private int scanNumber;
+  private Scan scanNumber;
   private double precursorMZ;
   private int precursorCharge;
   private double retentionTime;
@@ -39,12 +40,11 @@ class ProductIonFilterDataPoint {
 
   /**
    * @param scanNumber
-   * @param precursorScanNumber
    * @param precursorMZ
    * @param precursorCharge
    * @param retentionTime
    */
-  ProductIonFilterDataPoint(double mzValue, int scanNumber, double precursorMZ, int precursorCharge,
+  ProductIonFilterDataPoint(double mzValue, Scan scanNumber, double precursorMZ, int precursorCharge,
       double retentionTime) {
 
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -118,7 +118,7 @@ class ProductIonFilterDataPoint {
   /**
    * @return Returns the scanNumber.
    */
-  int getScanNumber() {
+  Scan getScan() {
     return scanNumber;
   }
 

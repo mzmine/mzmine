@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
 
+import io.github.mzmine.datamodel.Scan;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -125,7 +126,7 @@ public class MassCalibrator {
   }
 
   public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, float retentionTime) {
-    return addMassList(massList, retentionTime, -1, 0.0);
+    return addMassList(massList, retentionTime, null, 0.0);
   }
 
   /**
@@ -138,7 +139,7 @@ public class MassCalibrator {
    * @return
    */
   public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, float retentionTime,
-      int scanNumber, double intensityThreshold) {
+      Scan scanNumber, double intensityThreshold) {
     ArrayList<MassPeakMatch> matches =
         matchPeaksWithCalibrants(massList, retentionTime, scanNumber, intensityThreshold);
     massPeakMatches.addAll(matches);
@@ -396,7 +397,7 @@ public class MassCalibrator {
 
   protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList,
       float retentionTime) {
-    return matchPeaksWithCalibrants(massList, retentionTime, -1, 0.0);
+    return matchPeaksWithCalibrants(massList, retentionTime, null, 0.0);
   }
 
   /**
@@ -411,7 +412,7 @@ public class MassCalibrator {
    * @return list of mass peak matches
    */
   protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList,
-      float retentionTime, int scanNumber, double intensityThreshold) {
+      float retentionTime, Scan scanNumber, double intensityThreshold) {
     ArrayList<MassPeakMatch> matches = new ArrayList<>();
 
     StandardsList retentionTimeFiltered;

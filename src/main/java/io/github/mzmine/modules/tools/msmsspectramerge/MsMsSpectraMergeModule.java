@@ -345,7 +345,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
     if (scores[best] <= 0)
       return MergedSpectrum.empty(totalNumberOfScans);
     final List<Scan> scansToMerge = new ArrayList<>();
-    scansToMerge.add(scans.origin.getScan(scans.ms2ScanNumbers[best]));
+    scansToMerge.add(scans.ms2ScanNumbers[best]);
     final Scan firstScan = scansToMerge.get(0);
     final MassList firstML = firstScan.getMassList(massList);
     if (firstML == null)
@@ -360,11 +360,11 @@ public class MsMsSpectraMergeModule implements MZmineModule {
     for (int i = 1; i < scores.length; ++i) {
       int k = best - i;
       if (k >= 0 && scores[k] > scoreThreshold) {
-        scansToMerge.add(scans.origin.getScan(scans.ms2ScanNumbers[k]));
+        scansToMerge.add(scans.ms2ScanNumbers[k]);
       }
       k = best + i;
       if (k < scores.length && scores[k] > scoreThreshold) {
-        scansToMerge.add(scans.origin.getScan(scans.ms2ScanNumbers[k]));
+        scansToMerge.add(scans.ms2ScanNumbers[k]);
       }
     }
     if (scansToMerge.size() == 1) {

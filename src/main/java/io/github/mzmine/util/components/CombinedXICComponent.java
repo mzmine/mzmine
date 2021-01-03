@@ -18,10 +18,12 @@
 
 package io.github.mzmine.util.components;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import javafx.collections.ObservableList;
 import org.jfree.fx.FXGraphics2D;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -47,7 +49,7 @@ public class CombinedXICComponent extends Canvas {
   private double maxIntensity;
 
   /**
-   * @param ChromatographicPeak [] Picked peaks to plot
+   * @param peaks [] Picked peaks to plot
    */
   public CombinedXICComponent(Feature[] peaks, int id) {
 
@@ -107,24 +109,25 @@ public class CombinedXICComponent extends Canvas {
         continue;
 
       // get scan numbers, one data point per each scan
-      Integer scanNumbers[] = peak.getScanNumbers().toArray(new Integer[0]);
+      ObservableList<Scan> scans = peak.getScanNumbers();
+      int numberOfScans = scans.size();
 
       // for each datapoint, find [X:Y] coordinates of its point in
       // painted image
-      int xValues[] = new int[scanNumbers.length + 2];
-      int yValues[] = new int[scanNumbers.length + 2];
+      int xValues[] = new int[numberOfScans + 2];
+      int yValues[] = new int[numberOfScans + 2];
 
       // find one datapoint with maximum intensity in each scan
-      for (int i = 0; i < scanNumbers.length; i++) {
+      for (int i = 0; i < numberOfScans; i++) {
 
         double dataPointIntensity = 0;
-        DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
+        DataPoint dataPoint = peak.getDataPointAtIndex(i);
 
         if (dataPoint != null)
           dataPointIntensity = dataPoint.getIntensity();
 
         // get retention time (X value)
-        float retentionTime = peak.getRawDataFile().getScan(scanNumbers[i]).getRetentionTime();
+        float retentionTime = scans.get(i).getRetentionTime();
 
         // calculate [X:Y] coordinates
         xValues[i + 1] = (int) Math.floor((retentionTime - rtRange.lowerEndpoint())

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -142,8 +143,7 @@ public class RawDataOverviewWindowController {
               // in that case we just select the table.
               return;
             }
-            Integer scanNum = Integer.valueOf(newValue.getScanNumber());
-            visualizer.setFocusedScan(raw, scanNum);
+            visualizer.setFocusedScan(raw, newValue.getScan());
           }));
 
       Tab rawDataFileTab = new Tab(raw.getName());
@@ -204,15 +204,14 @@ public class RawDataOverviewWindowController {
 
       if (rawDataTableView.getItems() != null) {
         try {
-          String scanNumberString = String.valueOf(pos.getScanNumber());
+          Scan scan = pos.getScan();
           rawDataTableView.getItems().stream()
-              .filter(item -> item.getScanNumber().equals(scanNumberString)).findFirst()
+              .filter(item -> item.getScan().equals(scan)).findFirst()
               .ifPresent(item -> {
                 rawDataTableView.getSelectionModel().select(item);
                 if (!con.getVisibleRange().contains(rawDataTableView.getItems().indexOf(item))) {
                   rawDataTableView.scrollTo(item);
                 }
-
               });
         } catch (Exception e) {
           e.getStackTrace();

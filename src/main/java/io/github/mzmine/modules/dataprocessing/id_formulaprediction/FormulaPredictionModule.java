@@ -42,10 +42,9 @@ public class FormulaPredictionModule implements MZmineModule {
     double mzValue = row.getAverageMZ();
     parameters.getParameter(FormulaPredictionParameters.neutralMass).setIonMass(mzValue);
 
-    int bestScanNum = row.getBestFeature().getRepresentativeScanNumber();
-    if (bestScanNum > 0) {
+    Scan bestScan = row.getBestFeature().getRepresentativeScan();
+    if (bestScan != null) {
       RawDataFile dataFile = row.getBestFeature().getRawDataFile();
-      Scan bestScan = dataFile.getScan(bestScanNum);
       PolarityType scanPolarity = bestScan.getPolarity();
       switch (scanPolarity) {
         case POSITIVE:

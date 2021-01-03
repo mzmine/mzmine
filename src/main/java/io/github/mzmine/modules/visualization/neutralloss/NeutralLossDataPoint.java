@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.neutralloss;
 
+import io.github.mzmine.datamodel.Scan;
 import java.text.NumberFormat;
 
 import io.github.mzmine.main.MZmineCore;
@@ -28,7 +29,7 @@ import io.github.mzmine.main.MZmineCore;
 class NeutralLossDataPoint {
 
   private double mzValue;
-  private int scanNumber;
+  private Scan scan;
   private double precursorMZ;
   private int precursorCharge;
   private double retentionTime;
@@ -44,14 +45,14 @@ class NeutralLossDataPoint {
    * @param precursorCharge
    * @param retentionTime
    */
-  NeutralLossDataPoint(double mzValue, int scanNumber, double precursorMZ, int precursorCharge,
+  NeutralLossDataPoint(double mzValue, Scan scan, double precursorMZ, int precursorCharge,
       double retentionTime) {
 
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
     this.mzValue = mzValue;
-    this.scanNumber = scanNumber;
+    this.scan = scan;
     this.precursorMZ = precursorMZ;
     this.precursorCharge = precursorCharge;
     this.retentionTime = retentionTime;
@@ -70,7 +71,7 @@ class NeutralLossDataPoint {
     sb.append(mzFormat.format(neutralLoss));
     sb.append(", m/z ");
     sb.append(mzFormat.format(mzValue));
-    sb.append(", scan #" + scanNumber + ", RT ");
+    sb.append(", scan #" + scan.getScanNumber() + ", RT ");
     sb.append(rtFormat.format(retentionTime));
     sb.append(", m/z ");
     sb.append(mzFormat.format(precursorMZ));
@@ -118,8 +119,8 @@ class NeutralLossDataPoint {
   /**
    * @return Returns the scanNumber.
    */
-  int getScanNumber() {
-    return scanNumber;
+  Scan getScan() {
+    return scan;
   }
 
   double getNeutralLoss() {

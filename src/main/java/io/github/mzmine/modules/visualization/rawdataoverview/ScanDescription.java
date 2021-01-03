@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import io.github.mzmine.datamodel.Scan;
+
 /*
  * Raw data overview raw data table model class class
  * 
@@ -25,6 +27,7 @@ package io.github.mzmine.modules.visualization.rawdataoverview;
  */
 public class ScanDescription {
 
+  private Scan scan;
   private String scanNumber;
   private String retentionTime;
   private String msLevel;
@@ -37,8 +40,11 @@ public class ScanDescription {
   private String basePeakIntensity;
 
 
-  public ScanDescription(String scanNumber, String retentionTime, String msLevel, String precursorMz,
-      String mzRange, String scanType, String polarity, String definition, String basePeak, String basePeakIntensity) {
+  public ScanDescription(Scan scan, String scanNumber,
+      String retentionTime, String msLevel, String precursorMz,
+      String mzRange, String scanType, String polarity, String definition, String basePeak,
+      String basePeakIntensity) {
+    this.scan = scan;
     this.scanNumber = scanNumber;
     this.retentionTime = retentionTime;
     this.msLevel = msLevel;
@@ -51,6 +57,10 @@ public class ScanDescription {
     this.basePeakIntensity = basePeakIntensity;
   }
 
+
+  public Scan getScan() {
+    return scan;
+  }
 
   public String getScanNumber() {
     return scanNumber;

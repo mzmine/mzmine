@@ -31,12 +31,14 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.ABS_WAV_COEFFS;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.HALF_WAVELET_WINDOW;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.PeakInfo;
@@ -105,15 +107,15 @@ public class ADAPDetector implements PeakResolver {
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) throws RSessionWrapperException {
 
-    int scanNumbers[] = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
-    final int scanCount = scanNumbers.length;
+    ObservableList<Scan> scanNumbers = chromatogram.getScanNumbers();
+    final int scanCount = scanNumbers.size();
     double retentionTimes[] = new double[scanCount];
     double intensities[] = new double[scanCount];
     RawDataFile dataFile = chromatogram.getRawDataFile();
     for (int i = 0; i < scanCount; i++) {
-      final int scanNum = scanNumbers[i];
-      retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
-      DataPoint dp = chromatogram.getDataPoint(scanNum);
+      final Scan scanNum = scanNumbers.get(i);
+      retentionTimes[i] = scanNum.getRetentionTime();
+      DataPoint dp = chromatogram.getDataPointAtIndex(i);
       if (dp != null)
         intensities[i] = dp.getIntensity();
       else

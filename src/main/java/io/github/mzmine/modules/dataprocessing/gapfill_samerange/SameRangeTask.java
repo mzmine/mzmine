@@ -180,17 +180,14 @@ class SameRangeTask extends AbstractTask {
     Range<Double> mzRangeWithTol = mzTolerance.getToleranceRange(mzRange);
 
     // Get scan numbers
-    int[] scanNumbers = column.getScanNumbers(1, rtRange);
+    Scan[] scanNumbers = column.getScanNumbers(1, rtRange);
 
     boolean dataPointFound = false;
 
-    for (int scanNumber : scanNumbers) {
+    for (Scan scan : scanNumbers) {
 
       if (isCanceled())
         return null;
-
-      // Get next scan
-      Scan scan = column.getScan(scanNumber);
 
       // Find most intense m/z peak
       DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRangeWithTol);
@@ -198,10 +195,10 @@ class SameRangeTask extends AbstractTask {
       if (basePeak != null) {
         if (basePeak.getIntensity() > 0)
           dataPointFound = true;
-        newPeak.addDatapoint(scan.getScanNumber(), basePeak);
+        newPeak.addDatapoint(scan, basePeak);
       } else {
         DataPoint fakeDataPoint = new SimpleDataPoint(RangeUtils.rangeCenter(mzRangeWithTol), 0);
-        newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+        newPeak.addDatapoint(scan, fakeDataPoint);
       }
 
     }

@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -38,6 +39,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,7 +55,7 @@ import javax.annotation.Nullable;
 public class FeatureConvertorIonMobility {
 
   private static final FixedSizeHashMap
-      <ModularFeature, Map<Integer, Set<RetentionTimeMobilityDataPoint>>> cache =
+      <ModularFeature, Map<Scan, Set<RetentionTimeMobilityDataPoint>>> cache =
       new FixedSizeHashMap<>();
 
   /**
@@ -70,13 +72,13 @@ public class FeatureConvertorIonMobility {
 
     ModularFeature newFeature = new ModularFeature(flist);
     newFeature.set(RawFileType.class, originalFeature.getRawDataFile());
-    Map<Integer, Set<RetentionTimeMobilityDataPoint>> sortedDataPoints = groupDataPointsByFrameId(
+    Map<Scan, Set<RetentionTimeMobilityDataPoint>> sortedDataPoints = groupDataPointsByFrameId(
         originalFeature);
 
     double maxIntensity = 0;
     // sum intensity over mobility dimension
-    for (Entry<Integer, Set<RetentionTimeMobilityDataPoint>> entry : sortedDataPoints.entrySet()) {
-      int frameNumber = entry.getKey();
+    for (Entry<Scan, Set<RetentionTimeMobilityDataPoint>> entry : sortedDataPoints.entrySet()) {
+      Scan frame = entry.getKey();
       double mz = 0;
       double intensity = 0;
       for (RetentionTimeMobilityDataPoint dp : entry.getValue()) {
@@ -87,7 +89,7 @@ public class FeatureConvertorIonMobility {
         }
       }
       DataPoint summedDataPoint = new SimpleDataPoint(mz / entry.getValue().size(), intensity);
-      newFeature.getScanNumbers().add(frameNumber);
+      newFeature.getScanNumbers().add(frame);
       newFeature.getDataPoints().add(summedDataPoint);
     }
     newFeature.setHeight((float) maxIntensity);
@@ -127,7 +129,7 @@ public class FeatureConvertorIonMobility {
      */
 
     // replace datapoints in mobility-collapsed resolved feature with original data points
-    Map<Integer, Set<RetentionTimeMobilityDataPoint>> originalDataPoints = groupDataPointsByFrameId(
+    Map<Scan, Set<RetentionTimeMobilityDataPoint>> originalDataPoints = groupDataPointsByFrameId(
         originalFeature);
     for (ModularFeature processedFeature : processedFeatures) {
       processedFeature.getDataPoints().clear();
@@ -186,7 +188,7 @@ public class FeatureConvertorIonMobility {
    * @param originalFeature The original feature
    * @return Mapping of frame id -> set of {@link RetentionTimeMobilityDataPoint}.
    */
-  public static Map<Integer, Set<RetentionTimeMobilityDataPoint>> groupDataPointsByFrameId(
+  public static Map<Scan, Set<RetentionTimeMobilityDataPoint>> groupDataPointsByFrameId(
       @Nonnull final ModularFeature originalFeature) {
     if (!(originalFeature.getRawDataFile() instanceof IMSRawDataFile)) {
       throw new IllegalArgumentException(
@@ -194,7 +196,7 @@ public class FeatureConvertorIonMobility {
     }
 
     // I'm not using computeIfAbsent here because it might lead to a concurrent modification
-    Map<Integer, Set<RetentionTimeMobilityDataPoint>> val = cache.get(originalFeature);
+    Map<Scan, Set<RetentionTimeMobilityDataPoint>> val = cache.get(originalFeature);
     if (val != null) {
       return val;
     }
@@ -209,7 +211,7 @@ public class FeatureConvertorIonMobility {
    * @return
    */
   @Nonnull
-  private static Map<Integer, Set<RetentionTimeMobilityDataPoint>> groupByFrameIdAndCacheDataPoints(
+  private static Map<Scan, Set<RetentionTimeMobilityDataPoint>> groupByFrameIdAndCacheDataPoints(
       @Nonnull final ModularFeature originalFeature) {
 
     List<? extends DataPoint> originalDataPoints = originalFeature.getDataPoints();
@@ -224,11 +226,11 @@ public class FeatureConvertorIonMobility {
     }
 
     // group by frame & sort ascending
-    Map<Integer, Set<RetentionTimeMobilityDataPoint>> sortedDataPoints = new TreeMap<>(
-        Integer::compareTo);
+    Map<Scan, Set<RetentionTimeMobilityDataPoint>> sortedDataPoints = new TreeMap<>(
+        Comparator.comparingInt(Scan::getScanNumber));
     for (RetentionTimeMobilityDataPoint dp : mobilityDataPoints) {
       Set<RetentionTimeMobilityDataPoint> entry = sortedDataPoints
-          .computeIfAbsent(dp.getFrameNumber(), HashSet::new);
+          .computeIfAbsent(dp.getFrame(), scan -> new HashSet<>());
       entry.add(dp);
     }
 

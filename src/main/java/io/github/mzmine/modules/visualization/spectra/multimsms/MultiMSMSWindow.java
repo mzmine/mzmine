@@ -200,7 +200,7 @@ public class MultiMSMSWindow extends JFrame {
   private boolean rawContainsFragmentation(RawDataFile raw) {
     for (FeatureListRow row : rows) {
       Feature peak = row.getFeature(raw);
-      if (peak != null && peak.getMostIntenseFragmentScanNumber() > 0) {
+      if (peak != null && peak.getMostIntenseFragmentScan() != null) {
         return true;
       }
     }
@@ -376,7 +376,7 @@ public class MultiMSMSWindow extends JFrame {
         }
       }
       if (best != null) {
-        scan = best.getRawDataFile().getScan(best.getRepresentativeScanNumber());
+        scan = best.getRepresentativeScan();
         EChartPanel cp = SpectrumChartFactory.createScanChartPanel(scan, showTitle, showLegend);
         if (cp != null)
           msone = new ChartViewWrapper(cp);

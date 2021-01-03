@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import java.util.Objects;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -70,33 +69,66 @@ public interface Feature {
    * This method returns numbers of scans that contain this feature
    */
   @Nonnull
-  ObservableList<Integer> getScanNumbers();
+  ObservableList<Scan> getScanNumbers();
 
   /**
-   * This method sets the number of most representative scan of this feature
-   */
-  void setRepresentativeScanNumber(int representiveScanNumber);
-
-  /**
-   * This method returns the number of most representative scan of this feature
-   */
-  int getRepresentativeScanNumber();
-
-  /**
-   * This method returns the best scan
-   */
-  default @Nonnull
-  Scan getRepresentativeScan() {
-    return Objects.requireNonNull(getRawDataFile().getScan(getRepresentativeScanNumber()));
-  };
-
-  /**
-   * This method returns m/z and intensity of this feature in a given scan. This m/z and intensity does
-   * not need to match any actual raw data point. May return null, if there is no data point in
-   * given scan.
+   * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
+   *
+   * @param i
+   * @return
    */
   @Nullable
-  DataPoint getDataPoint(int scanNumber);
+  default Scan getScanAtIndex(int i) {
+    ObservableList<Scan> scans = getScanNumbers();
+    return scans == null ? null : scans.get(i);
+  }
+
+  /**
+   * Used to loop over retention time, scans, and data points in combination with ({@link
+   * #getDataPointAtIndex(int)}
+   *
+   * @param i
+   * @return
+   */
+  @Nullable
+  default float getRetentionTimeAtIndex(int i) {
+    ObservableList<Scan> scans = getScanNumbers();
+    return scans == null ? null : scans.get(i).getRetentionTime();
+  }
+
+  /**
+   * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
+   *
+   * @param i
+   * @return
+   */
+  @Nullable
+  default DataPoint getDataPointAtIndex(int i) {
+    ObservableList<DataPoint> dataPoints = getDataPoints();
+    return dataPoints == null ? null : dataPoints.get(i);
+  }
+
+  /**
+   * This method returns the best scan (null if no raw file is attached)
+   */
+  @Nullable
+  Scan getRepresentativeScan();
+
+  /**
+   * The representative scan of this feature
+   *
+   * @param scan
+   */
+  void setRepresentativeScan(Scan scan);
+
+  /**
+   * This method returns m/z and intensity of this feature in a given scan. This m/z and intensity
+   * does not need to match any actual raw data point. May return null, if there is no data point in
+   * given scan. Tip: Better loop over the data points and scans with an index to retrieve all
+   * information
+   */
+  @Nullable
+  DataPoint getDataPoint(Scan scan);
 
   /**
    * Returns all data points.
@@ -124,12 +156,12 @@ public interface Feature {
   /**
    * Returns the number of scan that represents the fragmentation of this feature in MS2 level.
    */
-  int getMostIntenseFragmentScanNumber();
+  Scan getMostIntenseFragmentScan();
 
   /**
    * Returns all scan numbers that represent fragmentations of this feature in MS2 level.
    */
-  ObservableList<Integer> getAllMS2FragmentScanNumbers();
+  ObservableList<Scan> getAllMS2FragmentScans();
 
   /**
    * Sets raw M/Z value of the feature
@@ -152,11 +184,11 @@ public interface Feature {
   void setArea(float area);
 
   /**
-   * Set best fragment scan numbers
+   * Set best fragment scan
    *
-   * @param fragmentScanNumber
+   * @param fragmentScan
    */
-  void setFragmentScanNumber(int fragmentScanNumber);
+  void setFragmentScan(Scan fragmentScan);
 
   /**
    * Set all fragment scan numbers
@@ -164,7 +196,7 @@ public interface Feature {
    * @param allMS2FragmentScanNumbers
    */
   //void setAllMS2FragmentScanNumbers(List<Integer> allMS2FragmentScanNumbers); ?
-  void setAllMS2FragmentScanNumbers(ObservableList<Integer> allMS2FragmentScanNumbers);
+  void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
 
   /**
    * Returns the isotope pattern of this feature or null if no pattern is attached
@@ -235,4 +267,8 @@ public interface Feature {
 
   void setFeatureList(@Nonnull FeatureList featureList);
 
+  default int getNumberOfDataPoints() {
+    ObservableList<DataPoint> dp = getDataPoints();
+    return dp == null? -1 : dp.size();
+  }
 }

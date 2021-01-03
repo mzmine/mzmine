@@ -23,7 +23,9 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import java.text.Format;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
@@ -52,7 +54,7 @@ public class ResolvedPeak{
   private Double fwhm = null, tf = null, af = null;
 
   // Scan numbers
-  private int scanNumbers[];
+  private Scan scanNumbers[];
 
   // We store the values of data points as double[] arrays in order to save
   // memory, which would be wasted by keeping a lot of instances of
@@ -60,10 +62,10 @@ public class ResolvedPeak{
   private double dataPointMZValues[], dataPointIntensityValues[];
 
   // Top intensity scan, fragment scan
-  private int representativeScan, fragmentScan;
+  private Scan representativeScan, fragmentScan;
 
   // All MS2 fragment scan numbers
-  private int[] allMS2FragmentScanNumbers;
+  private Scan[] allMS2FragmentScanNumbers;
 
   // Ranges of raw data points
   private Range<Double> rawDataPointsMZRange;
@@ -95,9 +97,9 @@ public class ResolvedPeak{
     this.dataFile = chromatogram.getRawDataFile();
 
     // Make an array of scan numbers of this peak
-    scanNumbers = new int[regionEnd - regionStart + 1];
+    scanNumbers = new Scan[regionEnd - regionStart + 1];
 
-    int chromatogramScanNumbers[] = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
+    Scan chromatogramScanNumbers[] = chromatogram.getScanNumbers().stream().toArray(Scan[]::new);
 
     System.arraycopy(chromatogramScanNumbers, regionStart, scanNumbers, 0,
         regionEnd - regionStart + 1);
@@ -131,11 +133,11 @@ public class ResolvedPeak{
 
       if (rawDataPointsIntensityRange == null) {
         rawDataPointsIntensityRange = Range.singleton((float) dp.getIntensity());
-        rawDataPointsRTRange = Range.singleton(dataFile.getScan(scanNumbers[i]).getRetentionTime());
+        rawDataPointsRTRange = Range.singleton(scanNumbers[i].getRetentionTime());
         rawDataPointsMZRange = Range.singleton(dp.getMZ());
       } else {
         rawDataPointsRTRange = rawDataPointsRTRange
-            .span(Range.singleton(dataFile.getScan(scanNumbers[i]).getRetentionTime()));
+            .span(Range.singleton(scanNumbers[i].getRetentionTime()));
         rawDataPointsIntensityRange =
             rawDataPointsIntensityRange.span(Range.singleton((float) dp.getIntensity()));
         rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(dp.getMZ()));
@@ -143,7 +145,7 @@ public class ResolvedPeak{
 
       if (height < dp.getIntensity()) {
         height = dp.getIntensity();
-        rt = dataFile.getScan(scanNumbers[i]).getRetentionTime();
+        rt = scanNumbers[i].getRetentionTime();
         representativeScan = scanNumbers[i];
       }
     }
@@ -156,8 +158,8 @@ public class ResolvedPeak{
     for (int i = 1; i < scanNumbers.length; i++) {
 
       // For area calculation, we use retention time in seconds
-      double previousRT = dataFile.getScan(scanNumbers[i - 1]).getRetentionTime() * 60d;
-      double currentRT = dataFile.getScan(scanNumbers[i]).getRetentionTime() * 60d;
+      double previousRT = scanNumbers[i - 1].getRetentionTime() * 60d;
+      double currentRT = scanNumbers[i].getRetentionTime() * 60d;
 
       double previousHeight = dataPointIntensityValues[i - 1];
       double currentHeight = dataPointIntensityValues[i];
@@ -193,9 +195,8 @@ public class ResolvedPeak{
     allMS2FragmentScanNumbers =
         ScanUtils.findAllMS2FragmentScans(dataFile, searchingRangeRT, searchingRange);
 
-    if (fragmentScan > 0) {
-      Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-      int precursorCharge = fragmentScanObject.getPrecursorCharge();
+    if (fragmentScan !=null) {
+      int precursorCharge = fragmentScan.getPrecursorCharge();
       if (precursorCharge > 0)
         this.charge = precursorCharge;
     }
@@ -247,11 +248,11 @@ public class ResolvedPeak{
     return height;
   }
 
-  public int getMostIntenseFragmentScanNumber() {
+  public Scan getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
-  public int[] getAllMS2FragmentScanNumbers() {
+  public Scan[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
@@ -275,11 +276,11 @@ public class ResolvedPeak{
     return rawDataPointsRTRange;
   }
 
-  public int getRepresentativeScanNumber() {
+  public Scan getRepresentativeScanNumber() {
     return representativeScan;
   }
 
-  public @Nonnull int[] getScanNumbers() {
+  public @Nonnull Scan[] getScanNumbers() {
     return scanNumbers;
   }
 
@@ -350,19 +351,21 @@ public class ResolvedPeak{
     return this.parentChromatogramRowID;
   }
 
-  public void setFragmentScanNumber(int fragmentScanNumber) {
+  public void setFragmentScanNumber(Scan fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
 
-  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
+  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
     // also set best scan by TIC
-    int best = -1;
+    Scan best = null;
     double tic = 0;
     if (allMS2FragmentScanNumbers != null) {
-      for (int i : allMS2FragmentScanNumbers) {
-        if (tic < dataFile.getScan(i).getTIC())
-          best = i;
+      for (Scan scan : allMS2FragmentScanNumbers) {
+        if (tic < scan.getTIC()) {
+          best = scan;
+          tic = scan.getTIC();
+        }
       }
     }
     setFragmentScanNumber(best);
@@ -379,4 +382,11 @@ public class ResolvedPeak{
   }
 
 
+  public List<DataPoint> getDataPoints() {
+    List<DataPoint> dp = new ArrayList<>(dataPointMZValues.length);
+    for(int i=0; i<dataPointMZValues.length; i++) {
+      dp.add(new SimpleDataPoint(dataPointMZValues[i], dataPointIntensityValues[i]));
+    }
+    return dp;
+  }
 }

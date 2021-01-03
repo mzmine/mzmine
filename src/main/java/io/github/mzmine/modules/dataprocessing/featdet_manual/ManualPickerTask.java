@@ -87,27 +87,24 @@ class ManualPickerTask extends AbstractTask {
 
     logger.finest("Starting manual feature picker, RT: " + rtRange + ", m/z: " + mzRange);
 
+    Scan[][] scanNumbersRaw = new Scan[dataFiles.length][];
     // Calculate total number of scans to process
-    for (RawDataFile dataFile : dataFiles) {
-      int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
-      totalScans += scanNumbers.length;
+    for (int i = 0; i < dataFiles.length; i++) {
+      scanNumbersRaw[i] = dataFiles[i].getScanNumbers(1, rtRange);
+      totalScans += scanNumbersRaw.length;
     }
 
     // Find feature in each data file
-    for (RawDataFile dataFile : dataFiles) {
-
+    for (int i = 0; i < dataFiles.length; i++) {
+      RawDataFile dataFile = dataFiles[i];
       ManualFeature newFeature = new ManualFeature(dataFile);
       boolean dataPointFound = false;
 
-      int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+      Scan[] scanNumbers = scanNumbersRaw[i];
 
-      for (int scanNumber : scanNumbers) {
-
+      for (Scan scan : scanNumbers) {
         if (isCanceled())
           return;
-
-        // Get next scan
-        Scan scan = dataFile.getScan(scanNumber);
 
         // Find most intense m/z feature
         DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
@@ -115,15 +112,13 @@ class ManualPickerTask extends AbstractTask {
         if (basePeak != null) {
           if (basePeak.getIntensity() > 0)
             dataPointFound = true;
-          newFeature.addDatapoint(scan.getScanNumber(), basePeak);
+          newFeature.addDatapoint(scan, basePeak);
         } else {
           final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
           DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-          newFeature.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+          newFeature.addDatapoint(scan, fakeDataPoint);
         }
-
         processedScans++;
-
       }
 
       if (dataPointFound) {

@@ -18,6 +18,17 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.features.Feature;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
@@ -30,15 +41,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
-import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
@@ -64,7 +67,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
   private final RawDataFile dataFile;
 
-  private final Scan scans[];
+  private final List<Scan> scans;
   private final int totalScans;
   private int processedScans;
 
@@ -91,7 +94,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * @param rangeMZ range of m/z to plot.
    * @param window visualizer window.
    */
-  public TICDataSet(final RawDataFile file, final Scan scans[], final Range<Double> rangeMZ,
+  public TICDataSet(final RawDataFile file, final ObservableList<Scan> scans, final Range<Double> rangeMZ,
       final TICVisualizerTab window) {
     this(file, scans, rangeMZ, window,
         ((window != null) ? window.getPlotType() : TICPlotType.BASEPEAK));
@@ -107,13 +110,13 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * @param window visualizer window.
    * @param plotType plot type.
    */
-  public TICDataSet(final RawDataFile file, final Scan scans[], final Range<Double> rangeMZ,
+  public TICDataSet(final RawDataFile file, final List<Scan> scans, final Range<Double> rangeMZ,
       final TICVisualizerTab window, TICPlotType plotType) {
 
     mzRange = rangeMZ;
     dataFile = file;
     this.scans = scans;
-    totalScans = scans.length;
+    totalScans = scans.size();
     basePeakValues = new double[totalScans];
     intensityValues = new double[totalScans];
     rtValues = new double[totalScans];
@@ -140,15 +143,9 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     dataFile = feature.getRawDataFile();
     mzRange =  feature.getRawDataPointsMZRange();
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
-    List<Integer> scanNums = feature.getScanNumbers();
+    scans = feature.getScanNumbers();
 
-    scans = new Scan[scanNums.size()];
-
-    for (int i = 0; i < scanNums.size(); i++) {
-      scans[i] = dataFile.getScan(scanNums.get(i));
-    }
-
-    totalScans = scans.length;
+    totalScans = scans.size();
     basePeakValues = new double[totalScans];
     intensityValues = new double[totalScans];
     rtValues = new double[totalScans];
@@ -163,6 +160,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
     // Start-up the refresh task.
     MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
+  }
+
+  public TICDataSet(RawDataFile newFile, Scan[] scans, Range<Double> mzRange, TICVisualizerTab window) {
+    this(newFile, FXCollections.observableArrayList(scans),mzRange, window);
   }
 
   @Override
@@ -266,13 +267,11 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     return index;
   }
 
-  public int getScanNumber(final int item) {
-
-    return scans[item].getScanNumber();
+  public Scan getScan(final int item) {
+    return scans.get(item);
   }
 
   public RawDataFile getDataFile() {
-
     return dataFile;
   }
 
@@ -365,7 +364,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     for (int index = 0; status != TaskStatus.CANCELED && index < totalScans; index++) {
 
       // Current scan.
-      final Scan scan = scans[index];
+      final Scan scan = scans.get(index);
 
       // Determine base peak value.
       final DataPoint basePeak =
@@ -440,31 +439,31 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     this.customSeriesKey = customSeriesKey;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof TICDataSet)) {
-      return false;
-    }
-    TICDataSet that = (TICDataSet) o;
-    return totalScans == that.totalScans && Double.compare(that.intensityMin, intensityMin) == 0
-        && Double.compare(that.intensityMax, intensityMax) == 0
-        && Objects.equals(dataFile, that.dataFile) && Arrays.equals(scans, that.scans)
-        && Arrays.equals(basePeakValues, that.basePeakValues)
-        && Arrays.equals(intensityValues, that.intensityValues)
-        && Arrays.equals(rtValues, that.rtValues) && Objects.equals(mzRange, that.mzRange)
-        && plotType == that.plotType;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = Objects.hash(dataFile, totalScans, mzRange, intensityMin, intensityMax, plotType);
-    result = 31 * result + Arrays.hashCode(scans);
-    result = 31 * result + Arrays.hashCode(basePeakValues);
-    result = 31 * result + Arrays.hashCode(intensityValues);
-    result = 31 * result + Arrays.hashCode(rtValues);
-    return result;
-  }
+//  @Override
+//  public boolean equals(Object o) {
+//    if (this == o) {
+//      return true;
+//    }
+//    if (!(o instanceof TICDataSet)) {
+//      return false;
+//    }
+//    TICDataSet that = (TICDataSet) o;
+//    return totalScans == that.totalScans && Double.compare(that.intensityMin, intensityMin) == 0
+//        && Double.compare(that.intensityMax, intensityMax) == 0
+//        && Objects.equals(dataFile, that.dataFile) && Arrays.equals(scans, that.scans)
+//        && Arrays.equals(basePeakValues, that.basePeakValues)
+//        && Arrays.equals(intensityValues, that.intensityValues)
+//        && Arrays.equals(rtValues, that.rtValues) && Objects.equals(mzRange, that.mzRange)
+//        && plotType == that.plotType;
+//  }
+//
+//  @Override
+//  public int hashCode() {
+//    int result = Objects.hash(dataFile, totalScans, mzRange, intensityMin, intensityMax, plotType);
+//    result = 31 * result + Arrays.hashCode(scans);
+//    result = 31 * result + Arrays.hashCode(basePeakValues);
+//    result = 31 * result + Arrays.hashCode(intensityValues);
+//    result = 31 * result + Arrays.hashCode(rtValues);
+//    return result;
+//  }
 }

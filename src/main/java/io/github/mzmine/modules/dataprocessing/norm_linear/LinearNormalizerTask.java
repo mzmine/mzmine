@@ -176,8 +176,7 @@ class LinearNormalizerTask extends AbstractTask {
       // - normalization by total raw signal
       if (normalizationType == NormalizationType.TotalRawSignal) {
         normalizationFactor = 0;
-        for (int scanNumber : file.getScanNumbers(1)) {
-          Scan scan = file.getScan(scanNumber);
+        for (Scan scan : file.getScanNumbers(1)) {
           normalizationFactor += scan.getTIC();
         }
       }

@@ -21,12 +21,14 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.util.color.ColorsFX;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
@@ -58,12 +60,12 @@ public class FeatureShapeChart extends StackPane {
         }
 
         XYChart.Series<Number, Number> data = new XYChart.Series<>();
-        List<Integer> scans = f.getScanNumbers();
+        ObservableList<Scan> scans = f.getScanNumbers();
         RawDataFile raw = f.getRawDataFile();
         // add data points retention time -> intensity
         for (int i = 0; i < scans.size(); i++) {
           DataPoint dp = dps.get(i);
-          double retentionTime = raw.getScan(scans.get(i)).getRetentionTime();
+          double retentionTime = scans.get(i).getRetentionTime();
           double intensity = dp == null ? 0 : dp.getIntensity();
           data.getData().add(new XYChart.Data<>(retentionTime, intensity));
           /*

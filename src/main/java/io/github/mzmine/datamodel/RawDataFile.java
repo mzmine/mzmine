@@ -18,11 +18,12 @@
 
 package io.github.mzmine.datamodel;
 
-import javafx.beans.property.ObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import java.util.List;
+import javafx.beans.property.ObjectProperty;
+import javafx.collections.ObservableList;
+import javafx.scene.paint.Color;
+import javax.annotation.Nonnull;
 
 public interface RawDataFile {
 
@@ -52,21 +53,13 @@ public interface RawDataFile {
   public int[] getMSLevels();
 
   /**
-   * Returns sorted array of all scan numbers in this file
-   *
-   * @return Sorted array of scan numbers, never returns null
-   */
-  @Nonnull
-  public int[] getScanNumbers();
-
-  /**
    * Returns sorted array of all scan numbers in given MS level
    *
-   * @param msLevel MS level
+   * @param msLevel MS level (0 for all scans)
    * @return Sorted array of scan numbers, never returns null
    */
   @Nonnull
-  public int[] getScanNumbers(int msLevel);
+  public ObservableList<Scan> getScanNumbers(int msLevel);
 
   /**
    * Returns sorted array of all scan numbers in given MS level and retention time range
@@ -76,7 +69,7 @@ public interface RawDataFile {
    * @return Sorted array of scan numbers, never returns null
    */
   @Nonnull
-  public int[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  public Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
 
   /**
    * Scan could be null if scanID is not contained in the raw data file
@@ -84,8 +77,8 @@ public interface RawDataFile {
    * @param scan Desired scan number
    * @return Desired scan
    */
-  @Nullable
-  public Scan getScan(int scan);
+//  @Nullable
+//  public Scan getScan(int scan);
 
   /**
    * @param rt      The rt
@@ -93,14 +86,14 @@ public interface RawDataFile {
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
    * the rt range of this file.
    */
-  public int getScanNumberAtRT(float rt, int mslevel);
+  public Scan getScanNumberAtRT(float rt, int mslevel);
 
   /**
    * @param rt The rt
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
    * the rt range of this file.
    */
-  public int getScanNumberAtRT(float rt);
+  public Scan getScanNumberAtRT(float rt);
 
   @Nonnull
   public Range<Double> getDataMZRange();
@@ -128,15 +121,37 @@ public interface RawDataFile {
 
   public java.awt.Color getColorAWT();
 
-  public javafx.scene.paint.Color getColor();
+  public Color getColor();
 
-  public void setColor(javafx.scene.paint.Color color);
+  public void setColor(Color color);
 
-  public ObjectProperty<javafx.scene.paint.Color> colorProperty();
+  public ObjectProperty<Color> colorProperty();
 
   /**
    * Close the file in case it is removed from the project
    */
   public void close();
 
+  ObservableList<Scan> getScans();
+
+  /**
+   * The scan at the specified scan number or null
+   *
+   * @param scanNumber
+   * @return
+   */
+  default Scan getScanAtNumber(int scanNumber) {
+    return getScans().stream().filter(s -> s.getScanNumber() == scanNumber)
+        .findFirst().orElse(null);
+  }
+
+  /**
+   * Scan at index i in list getScans()
+   *
+   * @param i
+   * @return
+   */
+  default Scan getScan(int i) {
+    return getScans().get(i);
+  }
 }

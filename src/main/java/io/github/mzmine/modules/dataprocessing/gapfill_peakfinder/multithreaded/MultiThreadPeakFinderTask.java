@@ -35,6 +35,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 class MultiThreadPeakFinderTask extends AbstractTask {
@@ -45,7 +46,8 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   private double intTolerance;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
-  private int processedScans, totalScans;
+  private int totalScans;
+  private AtomicInteger processedScans = new AtomicInteger(0);
 
   // start and end (exclusive) for raw data file processing
   private int start;
@@ -120,30 +122,25 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
       // Stop processing this file if there are no gaps
       if (gaps.isEmpty()) {
-        processedScans += dataFile.getNumOfScans();
+        processedScans.addAndGet(dataFile.getNumOfScans());
         continue;
       }
 
       // Get all scans of this data file
-      int scanNumbers[] = dataFile.getScanNumbers(1);
+      dataFile.getScanNumbers(1).forEach(scan -> {
+        if(!isCanceled()) {
+          // Feed this scan to all gaps
+          for (Gap gap : gaps) {
+            gap.offerNextScan(scan);
+          }
 
-      // Process each scan
-      for (int scanNumber : scanNumbers) {
-        // Canceled?
+          processedScans.incrementAndGet();
+        }
+      });
+
         if (isCanceled()) {
           return;
         }
-
-        // Get the scan
-        Scan scan = dataFile.getScan(scanNumber);
-
-        // Feed this scan to all gaps
-        for (Gap gap : gaps) {
-          gap.offerNextScan(scan);
-        }
-
-        processedScans++;
-      }
 
       // Finalize gaps
       for (Gap gap : gaps) {
@@ -163,7 +160,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     if (totalScans == 0) {
       return 0;
     }
-    return (double) processedScans / (double) totalScans;
+    return (double) processedScans.get() / (double) totalScans;
   }
 
   public String getTaskDescription() {
