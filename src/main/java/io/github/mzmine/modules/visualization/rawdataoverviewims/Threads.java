@@ -86,7 +86,7 @@ class Threads {
             "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
                 .format(mzRange.upperEndpoint());
         if (mobilogram != null) {
-          PreviewMobilogram prev = new PreviewMobilogram(mobilogram, seriesKey);
+          PreviewMobilogram prev = new PreviewMobilogram(mobilogram, seriesKey, true);
           FastColoredXYDataset dataset = new FastColoredXYDataset(prev);
           dataset.setColor(colors.getAWT(mzRanges.indexOf(mzRange)));
           mobilogramDataSets.add(dataset);
@@ -155,7 +155,7 @@ class Threads {
 
       SimpleMobilogram mobilogram = MobilogramUtils.buildMobilogramForMzRange(frames, mzRange);
       if (mobilogram != null) {
-        PreviewMobilogram prev = new PreviewMobilogram(mobilogram, seriesKey);
+        PreviewMobilogram prev = new PreviewMobilogram(mobilogram, seriesKey, true);
         dataset = new FastColoredXYDataset(prev);
         dataset.setColor(color);
       }

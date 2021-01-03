@@ -377,7 +377,7 @@ public class TDFReaderTask extends AbstractTask {
   }
 
   private void compareMobilities(IMSRawDataFile rawDataFile) {
-    for (int i = 1; i < rawDataFile.getNumberOfFrames() + 1; i++) {
+    for (int i = 1; i < rawDataFile.getNumberOfFrames() - 1; i++) {
       Frame thisFrame = rawDataFile.getFrame(i);
       Frame nextFrame = rawDataFile.getFrame(i + 1);
 

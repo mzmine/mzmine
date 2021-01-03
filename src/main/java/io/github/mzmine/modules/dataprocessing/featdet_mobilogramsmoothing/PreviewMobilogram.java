@@ -41,16 +41,23 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
   private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
   private final Mobilogram originalMobilogram;
+  private final boolean invertRangeAndDomain;
   private Color awt;
   private List<MobilityDataPoint> sortedDps;
   private double finishedPercentage;
 
 
   public PreviewMobilogram(Mobilogram originalMobilogram, final String seriesKey) {
+    this(originalMobilogram, seriesKey, false);
+  }
+
+  public PreviewMobilogram(Mobilogram originalMobilogram, final String seriesKey,
+      boolean invertRangeAndDomain) {
     super(originalMobilogram.getMobilityType(), originalMobilogram.getRawDataFile());
     this.originalMobilogram = originalMobilogram;
     this.awt = originalMobilogram.getRawDataFile().getColorAWT();
     this.seriesKey = seriesKey;
+    this.invertRangeAndDomain = invertRangeAndDomain;
     finishedPercentage = 0d;
   }
 
@@ -94,12 +101,14 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
 
   @Override
   public double getDomainValue(int index) {
-    return sortedDps.get(index).getMobility();
+    return (invertRangeAndDomain) ? sortedDps.get(index).getIntensity() :
+        sortedDps.get(index).getMobility();
   }
 
   @Override
   public double getRangeValue(int index) {
-    return sortedDps.get(index).getIntensity();
+    return (invertRangeAndDomain) ? sortedDps.get(index).getMobility() :
+        sortedDps.get(index).getIntensity();
   }
 
   @Override
