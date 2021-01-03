@@ -124,7 +124,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     lblScanSel.setTooltip(new Tooltip(TOOLTIP_SCANSEL));
     add(lblScanSel, 0, 3);
     add(scanSelectionComponent, 1, 3);
-    Label lblRtRange = new Label("Retention time range");
+    Label lblRtRange = new Label("Retention time width");
     lblRtRange.setTooltip(new Tooltip(TOOLTIP_RTRANGE));
     add(lblRtRange, 0, 4);
     add(rtWidthComponent, 1, 4);

@@ -22,8 +22,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.HiddenParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
@@ -51,11 +49,8 @@ public class IMSRawDataOverviewParameters extends SimpleParameterSet {
       IMSRawDataOverviewControlPanel.TOOLTIP_RTRANGE, MZmineCore.getConfiguration().getRTFormat()
       , 2d);
 
-  public static final HiddenParameter<IntegerParameter, Integer> adjustment =
-      new HiddenParameter<>(new IntegerParameter("adjustment", "", 46));
-
   public IMSRawDataOverviewParameters() {
     super(new Parameter[]{rawDataFiles, summedFrameNoiseLevel, mobilityScanNoiseLevel,
-        mzTolerance, scanSelection, rtWidth, adjustment});
+        mzTolerance, scanSelection, rtWidth});
   }
 }

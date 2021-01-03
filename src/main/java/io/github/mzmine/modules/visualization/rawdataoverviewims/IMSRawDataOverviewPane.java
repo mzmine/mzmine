@@ -57,12 +57,12 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.Spinner;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.shape.Rectangle;
 import javax.annotation.Nullable;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.PlotOrientation;
@@ -73,15 +73,18 @@ import org.jfree.chart.ui.RectangleEdge;
 
 public class IMSRawDataOverviewPane extends BorderPane {
 
+  private static final int HEATMAP_LEGEND_HEIGHT = 40;
+
   private final GridPane chartPanel;
   private final IMSRawDataOverviewControlPanel controlsPanel;
-  private final FlowPane alignmentPane; // will contain the mobilityAlignmentPlaceholder
   private final SimpleXYChart<FrameSummedMobilogramProvider> mobilogramChart;
   private final SimpleXYChart<FrameSummedSpectrumProvider> summedSpectrumChart;
   private final SimpleXYChart<SingleSpectrumProvider> singleSpectrumChart;
   private final SimpleXYZScatterPlot<FrameHeatmapProvider> heatmapChart;
   private final SimpleXYZScatterPlot<IonTraceProvider> ionTraceChart;
   private final TICPlot ticChart;
+  private final Canvas heatmapLegendCanvas;
+  private final Canvas ionTraceLegendCanvas;
 
   private final NumberFormat rtFormat;
   private final NumberFormat mzFormat;
@@ -111,19 +114,15 @@ public class IMSRawDataOverviewPane extends BorderPane {
    * Creates a BorderPane layout.
    */
   public IMSRawDataOverviewPane() {
-    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f, MZmineCore.getConfiguration()
-        .getModuleParameters(IMSRawDataOverviewModule.class)
-        .getParameter(IMSRawDataOverviewParameters.adjustment).getValue());
+    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f);
   }
 
   public IMSRawDataOverviewPane(final double frameNoiseLevel, final double mobilityScanNoiseLevel
-      , final MZTolerance mzTolerance, final ScanSelection scanSelection, final Float rtWidth,
-      int initialAdjustment) {
+      , final MZTolerance mzTolerance, final ScanSelection scanSelection, final Float rtWidth) {
     super();
     super.getStyleClass().add("region-match-chart-bg");
     getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     chartPanel = new GridPane();
-    alignmentPane = new FlowPane();
     selectedMobilogramDatasetIndex = -1;
     selectedChromatogramDatasetIndex = -1;
     mzRangeTicDatasetIndices = new HashSet<>();
@@ -153,24 +152,22 @@ public class IMSRawDataOverviewPane extends BorderPane {
     heatmapChart = new SimpleXYZScatterPlot<>("Frame heatmap");
     ionTraceChart = new SimpleXYZScatterPlot<>("Ion trace chart");
     ticChart = new TICPlot();
+    heatmapLegendCanvas = new Canvas();
+    ionTraceLegendCanvas = new Canvas();
     initCharts();
 
     updateAxisLabels();
+    initChartLegendPanels();
     chartPanel.add(new BorderPane(summedSpectrumChart), 1, 0);
     chartPanel.add(new BorderPane(ticChart), 2, 0);
     chartPanel.add(new BorderPane(singleSpectrumChart), 3, 0);
-    chartPanel.add(new BorderPane(mobilogramChart, null, null, alignmentPane, null), 0, 1);
-    chartPanel.add(new BorderPane(heatmapChart), 1, 1);
-    chartPanel.add(new BorderPane(ionTraceChart), 2, 1, 1, 1);
+    chartPanel.add(new BorderPane(mobilogramChart, null, null, new Rectangle(1,
+        HEATMAP_LEGEND_HEIGHT, javafx.scene.paint.Color.TRANSPARENT), null), 0, 1);
+    chartPanel.add(new BorderPane(heatmapChart, null, null, heatmapChart.getLegendCanvas(), null)
+        , 1, 1);
+    chartPanel.add(new BorderPane(ionTraceChart, null, null, ionTraceChart.getLegendCanvas(),
+        null), 2, 1, 1, 1);
     chartPanel.add(controlsPanel, 3, 1);
-
-    Spinner<Integer> alignmentSpinner = new Spinner<>(10, 80, initialAdjustment);
-    alignmentSpinner.minHeightProperty().bind(alignmentSpinner.valueProperty());
-    alignmentSpinner.valueProperty().addListener(
-        ((observable, oldValue, newValue) -> MZmineCore.getConfiguration()
-            .getModuleParameters(IMSRawDataOverviewModule.class)
-            .getParameter(IMSRawDataOverviewParameters.adjustment).setValue(newValue)));
-    alignmentPane.getChildren().add(alignmentSpinner);
 
     selectedMz = new SimpleDoubleProperty();
     selectedMobilityScan = new SimpleObjectProperty<>();
@@ -192,8 +189,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
       heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
       mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame));
       summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
-      singleSpectrumChart.addDataset(new SingleSpectrumProvider(
-          cachedFrame.getMobilityScan(selectedMobilityScan.get().getMobilityScamNumber())));
+      if (selectedMobilityScan.get() != null) {
+        singleSpectrumChart.addDataset(new SingleSpectrumProvider(
+            cachedFrame.getMobilityScan(selectedMobilityScan.get().getMobilityScamNumber())));
+      }
       ticChart.getXYPlot().clearDomainMarkers();
       ticChart.getXYPlot().addDomainMarker(
           new ValueMarker(selectedFrame.get().getRetentionTime(), markerColor, markerStroke),
@@ -310,30 +309,30 @@ public class IMSRawDataOverviewPane extends BorderPane {
     ChartGroup mobilityGroup = new ChartGroup(false, false, false, true);
     mobilityGroup.add(new ChartViewWrapper(heatmapChart));
     mobilityGroup.add(new ChartViewWrapper(ionTraceChart));
-//    mobilityGroup.add(new ChartViewWrapper(mobilogramChart));
-//    CombinedDomainXYPlot combinedMz = new CombinedDomainXYPlot(heatmapChart.getXYPlot()
-//        .getDomainAxis());
-//    combinedMz.add(heatmapChart.getXYPlot());
-//    combinedMz.add(summedSpectrumChart.getXYPlot());
-//    CombinedRangeXYPlot combinedMobility =
-//        new CombinedRangeXYPlot(heatmapChart.getXYPlot().getRangeAxis());
-//    combinedMobility.add((XYPlot) combinedMz.getSubplots().get(0));
-//    combinedMobility.add(mobilogramChart.getXYPlot());
-//    chartPanel.add(new BorderPane(new EChartViewer(new JFreeChart(combinedMz))), 0,0, 2, 2);
   }
 
   private void initChartPanel() {
     ColumnConstraints colConstraints = new ColumnConstraints();
-    colConstraints.setPercentWidth(15);
     ColumnConstraints colConstraints2 = new ColumnConstraints();
+    colConstraints.setPercentWidth(15);
     colConstraints2.setPercentWidth((100d - 15d) / 3d);
+
     RowConstraints rowConstraints = new RowConstraints();
-    rowConstraints.setPercentHeight(35);
     RowConstraints rowConstraints2 = new RowConstraints();
+    rowConstraints.setPercentHeight(35);
     rowConstraints2.setPercentHeight(65);
     chartPanel.getColumnConstraints()
         .addAll(colConstraints, colConstraints2, colConstraints2, colConstraints2);
     chartPanel.getRowConstraints().addAll(rowConstraints, rowConstraints2);
+  }
+
+  private void initChartLegendPanels() {
+    heatmapLegendCanvas.widthProperty().bind(heatmapChart.widthProperty());
+    heatmapLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
+    ionTraceLegendCanvas.widthProperty().bind(ionTraceChart.widthProperty());
+    ionTraceLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
+    heatmapChart.setLegendCanvas(heatmapLegendCanvas);
+    ionTraceChart.setLegendCanvas(ionTraceLegendCanvas);
   }
 
   private void initChartListeners() {
