@@ -146,15 +146,19 @@ class Threads {
       if (frame == null) {
         return;
       }
-      SimpleMobilogram mobilogram = MobilogramUtils.buildMobilogramForMzRange(frames, mzRange);
       NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+      Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
       final String seriesKey =
           "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
               .format(mzRange.upperEndpoint());
-      PreviewMobilogram prev = new PreviewMobilogram(mobilogram, seriesKey);
-      FastColoredXYDataset dataset = new FastColoredXYDataset(prev);
-      Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
-      dataset.setColor(color);
+      FastColoredXYDataset dataset = null;
+
+      SimpleMobilogram mobilogram = MobilogramUtils.buildMobilogramForMzRange(frames, mzRange);
+      if (mobilogram != null) {
+        PreviewMobilogram prev = new PreviewMobilogram(mobilogram, seriesKey);
+        dataset = new FastColoredXYDataset(prev);
+        dataset.setColor(color);
+      }
       ScanSelection scanSel = new ScanSelection(scanSelection.getScanNumberRange(),
           scanSelection.getBaseFilteringInteger(),
           Range.closed(frame.getRetentionTime() - rtWidth / 2,
@@ -164,7 +168,8 @@ class Threads {
       TICDataSet ticDataSet = new TICDataSet(file, scanSel.getMatchingScans(file),
           mzRange, null);
       ticDataSet.setCustomSeriesKey(seriesKey);
-      Platform.runLater(() -> pane.setSelectedRangesToChart(dataset, ticDataSet, color));
+      final FastColoredXYDataset finalDataset = dataset;
+      Platform.runLater(() -> pane.setSelectedRangesToChart(finalDataset, ticDataSet, color));
     }
   }
 

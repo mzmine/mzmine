@@ -55,12 +55,12 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
 
   @Override
   public double getDomainValue(int index) {
-    return mobilites[index];
+    return intensities[index];
   }
 
   @Override
   public double getRangeValue(int index) {
-    return intensities[index];
+    return mobilites[index];
   }
 
   @Override
