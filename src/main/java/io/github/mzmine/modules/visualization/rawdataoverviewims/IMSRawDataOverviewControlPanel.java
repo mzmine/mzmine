@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.text.NumberFormat;
 import java.util.List;
 import javafx.collections.FXCollections;
@@ -40,6 +41,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.shape.Rectangle;
 
 public class IMSRawDataOverviewControlPanel extends GridPane {
 
@@ -143,7 +145,9 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
         }
         setText(mzFormat.format(item.lowerEndpoint()) + " - " + mzFormat
             .format(item.upperEndpoint()));
-        setGraphic(null);
+        SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette().clone();
+        colors.remove(pane.getRawDataFile().getColor());
+        setGraphic(new Rectangle(10, 10, colors.get(getMobilogramRangesList().indexOf(item))));
       }
     });
 

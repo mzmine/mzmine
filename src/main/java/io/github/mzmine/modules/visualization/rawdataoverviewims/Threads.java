@@ -27,6 +27,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.PreviewMobilogram;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MobilogramUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
@@ -42,18 +44,20 @@ class Threads {
   private Threads() {
   }
 
-  public static class BuildMultipleRanges implements Runnable {
+  public static class BuildMultipleRanges extends AbstractTask {
 
     private final List<Range<Double>> mzRanges;
     private final Set<Frame> frames;
     private final IMSRawDataOverviewPane pane;
     private final IMSRawDataFile file;
     private final ScanSelection scanSelection;
+    private double finishedPercentage;
 
     protected BuildMultipleRanges(@Nonnull List<Range<Double>> mzRanges,
         @Nonnull Set<Frame> frames, @Nonnull IMSRawDataFile file,
         @Nonnull ScanSelection scanSelection,
         @Nonnull IMSRawDataOverviewPane pane) {
+      finishedPercentage = 0d;
       this.mzRanges = mzRanges;
       this.frames = frames;
       this.pane = pane;
@@ -85,9 +89,21 @@ class Threads {
         ticDataSets.add(ticDataSet);
         ticDataSet.setCustomSeriesKey(seriesKey);
         ticDataSeColors.add(colors.getAWT(mzRanges.indexOf(mzRange)));
+        finishedPercentage = mzRanges.indexOf(mzRange) / (double) mzRanges.size();
       }
+      setStatus(TaskStatus.FINISHED);
       Platform
           .runLater(() -> pane.addRangesToChart(mobilogramDataSets, ticDataSets, ticDataSeColors));
+    }
+
+    @Override
+    public String getTaskDescription() {
+      return "Building mobilograms and tic data sets for Ims raw data overview.";
+    }
+
+    @Override
+    public double getFinishedPercentage() {
+      return finishedPercentage;
     }
   }
 

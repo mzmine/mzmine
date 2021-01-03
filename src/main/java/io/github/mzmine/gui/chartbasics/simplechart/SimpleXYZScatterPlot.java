@@ -84,6 +84,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   protected final List<DatasetsChangedListener> datasetListeners;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
 
+  protected RectangleEdge defaultPaintscaleLocation = RectangleEdge.RIGHT;
+
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
@@ -453,9 +455,11 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     newLegend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     newLegend.setAxisOffset(5.0);
     newLegend.setSubdivisionCount(500);
-    newLegend.setPosition(RectangleEdge.RIGHT);
+    newLegend.setPosition(defaultPaintscaleLocation);
     newLegend.getAxis().setLabelFont(legendFont);
     newLegend.getAxis().setTickLabelFont(legendFont);
+//    double h =
+//        newLegend.getHeight() + newLegend.getStripWidth() + newLegend.getAxisOffset() ;
     return newLegend;
   }
 
@@ -480,5 +484,13 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     blockRenderer.setBlockHeight(xyz.getBoxHeight());
     blockRenderer.setBlockWidth(xyz.getBoxWidth());
     blockRenderer.setPaintScale(paintScale);
+  }
+
+  public RectangleEdge getDefaultPaintscaleLocation() {
+    return defaultPaintscaleLocation;
+  }
+
+  public void setDefaultPaintscaleLocation(RectangleEdge defaultPaintscaleLocation) {
+    this.defaultPaintscaleLocation = defaultPaintscaleLocation;
   }
 }
