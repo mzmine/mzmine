@@ -452,13 +452,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
       final int storageID = storeDataPoints(dataPoints);
       StorableImagingScan storedScan =
           new StorableImagingScan(newScan, this, dataPoints.length, storageID);
-      scans.add(newScan);
+      scans.add(storedScan);
       addedScan = storedScan;
     } else if (newScan instanceof SimpleScan) {
       DataPoint[] dataPoints = newScan.getDataPoints();
       final int storageID = storeDataPoints(dataPoints);
       StorableScan storedScan = new StorableScan(newScan, this, dataPoints.length, storageID);
-      scans.add(newScan);
+      scans.add(storedScan);
       addedScan = storedScan;
     }
     else {

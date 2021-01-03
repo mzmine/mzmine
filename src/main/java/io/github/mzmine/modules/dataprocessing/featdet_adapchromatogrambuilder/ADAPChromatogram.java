@@ -101,6 +101,7 @@ public class ADAPChromatogram {
 
   private double highPointMZ = 0;
 
+  // full stack of scans
   private final Scan scanNumbers[];
 
   public int tmp_see_same_scan_count = 0;
@@ -218,6 +219,8 @@ public class ADAPChromatogram {
       tmp_see_same_scan_count += 1;
       return;
     }
+    if(mzValue==null)
+      return;
 
     dataPointsMap.put(scanNumber, mzValue);
     lastMzFeature = mzValue;
@@ -313,7 +316,7 @@ public class ADAPChromatogram {
   }
 
   public @Nonnull Scan[] getScanNumbers() {
-    return scanNumbers;
+    return dataPointsMap.keySet().toArray(Scan[]::new);
   }
 
   public @Nonnull RawDataFile getDataFile() {

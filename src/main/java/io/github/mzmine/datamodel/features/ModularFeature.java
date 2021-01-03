@@ -50,6 +50,7 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -122,7 +123,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     setFragmentScan(fragmentScanNumber);
     setRepresentativeScan(representativeScan);
     // add values to feature
-    set(ScanNumbersType.class, scanNumbers);
+    set(ScanNumbersType.class, List.of(scanNumbers));
     set(RawFileType.class, dataFile);
     set(DetectionType.class, featureStatus);
     set(MZType.class, mz);
@@ -139,7 +140,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
-    set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
+    set(FragmentScanNumbersType.class, List.of(allMS2FragmentScanNumbers));
 
     float fwhm = QualityParameters.calculateFWHM(this);
     if(!Float.isNaN(fwhm)) {
