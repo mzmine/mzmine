@@ -201,7 +201,7 @@ public class SiriusExportTask extends AbstractTask {
           if (f.getFeatureStatus() == FeatureStatus.DETECTED
               && f.getMostIntenseFragmentScan() != null) {
             // write correlation spectrum
-            writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, null, null);
+            writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1, null);
             writeCorrelationSpectrum(writer, f);
             if (mergeMode == MergeMode.CONSECUTIVE_SCANS) {
               // merge MS/MS
@@ -226,7 +226,7 @@ public class SiriusExportTask extends AbstractTask {
         }
       } else {
         // write correlation spectrum
-        writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED, null, null);
+        writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED, -1, null);
         writeCorrelationSpectrum(writer, row.getBestFeature());
         // merge everything into one
         MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row, massListName)
@@ -292,11 +292,11 @@ public class SiriusExportTask extends AbstractTask {
 
   private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw, char polarity,
       MsType msType, Scan scanNumber) throws IOException {
-    writeHeader(writer, row, raw, polarity, msType, scanNumber, null);
+    writeHeader(writer, row, raw, polarity, msType, -1, null);
   }
 
   private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw, char polarity,
-      MsType msType, Scan scanNumber, List<String> sources) throws IOException {
+      MsType msType, int scanNumber, List<String> sources) throws IOException {
     final Feature feature = row.getFeature(raw);
     writer.write("BEGIN IONS");
     writer.newLine();
@@ -351,7 +351,7 @@ public class SiriusExportTask extends AbstractTask {
       writer.write(feature.getRawDataFile().getName());
       writer.newLine();
     }
-    if (scanNumber != null) {
+    if (scanNumber != -1) {
       writer.write("SCANS=");
       writer.write(String.valueOf(scanNumber));
       writer.newLine();

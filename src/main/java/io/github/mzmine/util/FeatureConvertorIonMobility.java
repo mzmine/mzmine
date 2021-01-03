@@ -226,10 +226,11 @@ public class FeatureConvertorIonMobility {
     }
 
     // group by frame & sort ascending
-    Map<Integer, Set<RetentionTimeMobilityDataPoint>> sortedDataPoints = new TreeMap<>(Integer::compareTo);
+    Map<Scan, Set<RetentionTimeMobilityDataPoint>> sortedDataPoints = new TreeMap<>(
+        Comparator.comparingInt(Scan::getScanNumber));
     for (RetentionTimeMobilityDataPoint dp : mobilityDataPoints) {
       Set<RetentionTimeMobilityDataPoint> entry = sortedDataPoints
-          .computeIfAbsent(dp.getFrame(), HashSet::new);
+          .computeIfAbsent(dp.getFrame(), scan -> new HashSet<>());
       entry.add(dp);
     }
 
