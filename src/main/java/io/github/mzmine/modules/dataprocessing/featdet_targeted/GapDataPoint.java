@@ -19,28 +19,28 @@
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 
 /**
  * DataPoint implementation extended with retention time and scan number
  */
 class GapDataPoint implements DataPoint {
 
-  private int scanNumber;
+  private Scan scan;
   private double mz, rt, intensity;
 
   /**
    */
-  GapDataPoint(int scanNumber, double mz, double rt, double intensity) {
-
-    this.scanNumber = scanNumber;
+  GapDataPoint(Scan scan, double mz, double rt, double intensity) {
+    this.scan = scan;
     this.mz = mz;
     this.rt = rt;
     this.intensity = intensity;
 
   }
 
-  int getScanNumber() {
-    return scanNumber;
+  Scan getScan() {
+    return scan;
   }
 
   public double getIntensity() {

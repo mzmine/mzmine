@@ -24,6 +24,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -45,6 +46,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.collections.ObservableList;
 
 /**
  * Performs chromatographic smoothing of a peak-list.
@@ -128,12 +130,12 @@ public class SmoothingTask extends AbstractTask {
             if (!isCanceled()) {
 
               // Copy original peak intensities.
-              final int[] scanNumbers = peak.getScanNumbers().stream().mapToInt(i -> i).toArray();
-              final int numScans = scanNumbers.length;
+              final ObservableList<Scan> scanNumbers = peak.getScanNumbers();
+              final int numScans = scanNumbers.size();
               final double[] intensities = new double[numScans];
               for (int i = 0; i < numScans; i++) {
 
-                final DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
+                final DataPoint dataPoint = peak.getDataPointAtIndex(i);
                 intensities[i] = dataPoint == null ? 0.0 : dataPoint.getIntensity();
               }
 
@@ -144,20 +146,20 @@ public class SmoothingTask extends AbstractTask {
               final RawDataFile dataFile = peak.getRawDataFile();
               final DataPoint[] newDataPoints = new DataPoint[numScans];
               float maxIntensity = 0f;
-              int maxScanNumber = -1;
+              Scan maxScanNumber = null;
               DataPoint maxDataPoint = null;
               Range<Double> intensityRange = null;
               float area = 0f;
               for (int i = 0; i < numScans; i++) {
 
-                final int scanNumber = scanNumbers[i];
-                final DataPoint dataPoint = peak.getDataPoint(scanNumber);
+                final Scan scanNumber = scanNumbers.get(i);
+                final DataPoint dataPoint = peak.getDataPointAtIndex(i);
                 final double intensity = smoothed[i];
                 if (dataPoint != null && intensity > 0.0) {
 
                   // Create a new data point.
                   final double mz = dataPoint.getMZ();
-                  final double rt = dataFile.getScan(scanNumber).getRetentionTime();
+                  final double rt = scanNumber.getRetentionTime();
                   final DataPoint newDataPoint = new SimpleDataPoint(mz, intensity);
                   newDataPoints[i] = newDataPoint;
 
@@ -181,7 +183,7 @@ public class SmoothingTask extends AbstractTask {
 
                     final DataPoint lastDP = newDataPoints[i - 1];
                     final double lastIntensity = lastDP == null ? 0.0 : lastDP.getIntensity();
-                    final double lastRT = dataFile.getScan(scanNumbers[i - 1]).getRetentionTime();
+                    final double lastRT = scanNumbers.get(i - 1).getRetentionTime();
                     area += (rt - lastRT) * 60d * (intensity + lastIntensity) / 2.0;
                   }
                 }
@@ -189,14 +191,14 @@ public class SmoothingTask extends AbstractTask {
 
               assert maxDataPoint != null;
 
-              if (!isCanceled() && maxScanNumber >= 0) {
+              if (!isCanceled() && maxScanNumber != null) {
 
                 // Create a new peak.
                 ModularFeature newFeature
                     = new ModularFeature(newPeakList, dataFile, maxDataPoint.getMZ(), peak.getRT(), maxIntensity,
-                    area, scanNumbers, newDataPoints, peak.getFeatureStatus(), maxScanNumber,
-                    peak.getMostIntenseFragmentScanNumber(),
-                    peak.getAllMS2FragmentScanNumbers().stream().mapToInt(i -> i).toArray(), peak.getRawDataPointsRTRange(),
+                    area, scanNumbers.toArray(Scan[]::new), newDataPoints, peak.getFeatureStatus(), maxScanNumber,
+                    peak.getMostIntenseFragmentScan(),
+                    peak.getAllMS2FragmentScans().toArray(Scan[]::new), peak.getRawDataPointsRTRange(),
                     peak.getRawDataPointsMZRange(), RangeUtils.toFloatRange(intensityRange));
                 newRow.addFeature(dataFile, newFeature);
               }

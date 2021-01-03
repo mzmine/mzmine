@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 
+import io.github.mzmine.datamodel.Scan;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -37,12 +38,12 @@ public class HighestDataPointConnector {
   private final MZTolerance mzTolerance;
   private final double minimumTimeSpan, minimumHeight;
   private final RawDataFile dataFile;
-  private final int allScanNumbers[];
+  private final Scan allScanNumbers[];
 
   // Mapping of last data point m/z --> chromatogram
   private Set<Chromatogram> buildingChromatograms;
 
-  public HighestDataPointConnector(RawDataFile dataFile, int allScanNumbers[],
+  public HighestDataPointConnector(RawDataFile dataFile, Scan allScanNumbers[],
       double minimumTimeSpan, double minimumHeight, MZTolerance mzTolerance) {
 
     this.mzTolerance = mzTolerance;
@@ -58,7 +59,7 @@ public class HighestDataPointConnector {
 
   }
 
-  public void addScan(int scanNumber, DataPoint mzValues[]) {
+  public void addScan(Scan scanNumber, DataPoint mzValues[]) {
 
     // Sort m/z peaks by descending intensity
     Arrays.sort(mzValues,

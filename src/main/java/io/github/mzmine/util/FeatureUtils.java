@@ -180,24 +180,20 @@ public class FeatureUtils {
     ManualFeature newFeature = new ManualFeature(dataFile);
     boolean dataPointFound = false;
 
-    int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+    Scan[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
 
-    for (int scanNumber : scanNumbers) {
-
-      // Get next scan
-      Scan scan = dataFile.getScan(scanNumber);
-
+    for (Scan scan : scanNumbers) {
       // Find most intense m/z feature
       DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
       if (basePeak != null) {
         if (basePeak.getIntensity() > 0)
           dataPointFound = true;
-        newFeature.addDatapoint(scan.getScanNumber(), basePeak);
+        newFeature.addDatapoint(scan, basePeak);
       } else {
         final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
         DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-        newFeature.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+        newFeature.addDatapoint(scan, fakeDataPoint);
       }
 
     }
@@ -338,7 +334,7 @@ public class FeatureUtils {
       RawDataFile dataFile, Range<Float> rtRange, Range<Double> mzRange) {
 
     // Get MS1 scans in RT range.
-    int[] scanRange = dataFile.getScanNumbers(1, rtRange);
+    Scan[] scanRange = dataFile.getScanNumbers(1, rtRange);
 
     // Feature parameters.
     DataPoint targetDP[] = new DataPoint[scanRange.length];
@@ -347,19 +343,17 @@ public class FeatureUtils {
     targetMZ = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2;
     targetRT = (float) (rtRange.upperEndpoint() + rtRange.lowerEndpoint()) / 2;
     targetHeight = targetArea = 0;
-    int representativeScan = 0;
-    int fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
-    int[] allMS2fragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
+    Scan representativeScan = null;
+    Scan[] allMS2fragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
+    Scan fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
 
     // Get target data points, height, and estimated area over range.
     for (int i = 0; i < scanRange.length; i++) {
-
-      int num = scanRange[i];
+      Scan scan = scanRange[i];
       double mz = targetMZ;
       double intensity = 0;
 
       // Get base peak for target.
-      Scan scan = dataFile.getScan(num);
       DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
       // If peak exists, get data point values.
@@ -374,7 +368,7 @@ public class FeatureUtils {
       // Update feature height and scan.
       if (intensity > targetHeight) {
         targetHeight = (float) intensity;
-        representativeScan = scan.getScanNumber();
+        representativeScan = scan;
       }
 
       // Skip area calculation for last datapoint.
@@ -383,7 +377,7 @@ public class FeatureUtils {
       }
 
       // Get next scan for area calculation.
-      Scan nextScan = dataFile.getScan(scanRange[i + 1]);
+      Scan nextScan = scanRange[i + 1];
       DataPoint nextBasePeak = ScanUtils.findBasePeak(scan, mzRange);
       double nextIntensity = 0;
 

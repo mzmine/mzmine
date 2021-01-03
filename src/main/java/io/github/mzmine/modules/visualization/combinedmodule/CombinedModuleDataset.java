@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
@@ -43,7 +44,8 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
   private Range<Float> totalRTRange;
   private CombinedModuleVisualizerTabController visualizer;
   private TaskStatus status = TaskStatus.WAITING;
-  private int processedScans, scanNumbers[];
+  private int processedScans;
+  private ObservableList<Scan> scanNumbers;
   private HashMap<Integer, Vector<CombinedModuleDataPoint>> dataSeries;
   int totalScans;
   private AxisType xAxisType, yAxisType;
@@ -67,8 +69,8 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
     this.colorScale = colorScale;
     this.massListName = massList;
 
-    scanNumbers = rawDataFile.getScanNumbers();
-    totalScans = scanNumbers.length;
+    scanNumbers = rawDataFile.getScans();
+    totalScans = scanNumbers.size();
     dataSeries = new HashMap<Integer, Vector<CombinedModuleDataPoint>>();
     dataSeries.put(RAW_LEVEL, new Vector<CombinedModuleDataPoint>(totalScans));
     dataSeries.put(PRECURSOR_LEVEL, new Vector<CombinedModuleDataPoint>(totalScans));
@@ -85,11 +87,10 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
 
     ArrayList<Float> retentionList = new ArrayList<Float>();
     ArrayList<Double> precursorList = new ArrayList<Double>();
-    for (int scanNumber : scanNumbers) {
+    for (Scan scan : scanNumbers) {
       if (status == TaskStatus.CANCELED) {
         return;
       }
-      Scan scan = rawDataFile.getScan(scanNumber);
 
       //ignore scans of MS level 1
       if (scan.getMSLevel() == 1) {

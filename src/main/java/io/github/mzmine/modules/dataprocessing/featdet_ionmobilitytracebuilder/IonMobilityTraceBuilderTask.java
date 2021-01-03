@@ -153,7 +153,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         } else {
           Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
               dp -> allDataPoints.add(new RetentionTimeMobilityDataPoint(scan.getMobility(),
-                  dp.getMZ(), scan.getRetentionTime(), dp.getIntensity(), frame.getFrameId(),
+                  dp.getMZ(), scan.getRetentionTime(), dp.getIntensity(), frame,
                   scan.getMobilityScamNumber(), mobilityWidth, paintScaleParameter)));
         }
       }

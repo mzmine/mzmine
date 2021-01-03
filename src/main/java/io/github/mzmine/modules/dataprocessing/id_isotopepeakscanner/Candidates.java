@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerTask.RatingType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import javafx.collections.ObservableList;
 
 /**
  * This class is used to manage objects of the Candidate class and to calculate an average rating if
@@ -293,10 +294,10 @@ public class Candidates {
       if (!raw.getDataMZRange().contains(mz))
         continue;
 
-      int[] scanNums = raw.getScanNumbers();
+      ObservableList<Scan> scanNums = raw.getScans();
 
-      for (int i = 0; i < scanNums.length; i++) {
-        Scan scan = raw.getScan(scanNums[i]);
+      for (int i = 0; i < scanNums.size(); i++) {
+        Scan scan = scanNums.get(i);
 
         MassList list = scan.getMassList(massListName);
 
@@ -350,10 +351,10 @@ public class Candidates {
       if (!raw.getDataMZRange().contains(rows[0].getAverageMZ()))
         continue;
 
-      int[] scanNums = raw.getScanNumbers();
+      ObservableList<Scan> scanNums = raw.getScans();
 
-      for (int i = 0; i < scanNums.length; i++) {
-        Scan scan = raw.getScan(scanNums[i]);
+      for (int i = 0; i < scanNums.size(); i++) {
+        Scan scan = scanNums.get(i);
 
         MassList list = scan.getMassList(massListName);
 

@@ -147,26 +147,16 @@ class PeakFinderTask extends AbstractTask {
         }
 
         // Get all scans of this data file
-        int scanNumbers[] = dataFile.getScanNumbers(1);
+        dataFile.getScanNumbers(1).forEach(scan -> {
+          if(!isCanceled()) {
+            // Feed this scan to all gaps
+            for (Gap gap : gaps) {
+              gap.offerNextScan(scan);
+            }
 
-        // Process each scan
-        for (int scanNumber : scanNumbers) {
-          // Canceled?
-          if (isCanceled()) {
-            // inside stream - only skips this element
-            return;
+            processedScans.incrementAndGet();
           }
-
-          // Get the scan
-          Scan scan = dataFile.getScan(scanNumber);
-
-          // Feed this scan to all gaps
-          for (Gap gap : gaps) {
-            gap.offerNextScan(scan);
-          }
-
-          processedScans.incrementAndGet();
-        }
+        });
 
         // Finalize gaps
         for (Gap gap : gaps) {
@@ -272,24 +262,19 @@ class PeakFinderTask extends AbstractTask {
         }
 
         // Get all scans of this data file
-        int scanNumbers[] = datafile1.getScanNumbers(1);
-
-        // Process each scan
-        for (int scanNumber : scanNumbers) {
-
-          // Canceled?
-          if (isCanceled()) {
-            return;
+        datafile1.getScanNumbers(1).forEach(scan -> {
+          if(!isCanceled()) {
+            // Feed this scan to all gaps
+            for (Gap gap : gaps) {
+              gap.offerNextScan(scan);
+            }
+            processedScans.incrementAndGet();
           }
+        });
 
-          // Get the scan
-          Scan scan = datafile1.getScan(scanNumber);
-
-          // Feed this scan to all gaps
-          for (Gap gap : gaps) {
-            gap.offerNextScan(scan);
-          }
-          processedScans.incrementAndGet();
+        // Canceled?
+        if (isCanceled()) {
+          return;
         }
 
         // Finalize gaps

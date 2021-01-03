@@ -57,53 +57,49 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
 
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
     String massList = parameters.getParameter(SpectraVisualizerParameters.massList).getValue();
-
-    addNewSpectrumTab(dataFiles[0], scanNumber, massList);
-
+    addNewSpectrumTab(dataFiles[0], dataFiles[0].getScanAtNumber(scanNumber), massList);
     return ExitCode.OK;
   }
 
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile,
-      int scanNumber) {
-    return addNewSpectrumTab(dataFile, scanNumber, null, null, null, null);
+      Scan scan) {
+    return addNewSpectrumTab(dataFile, scan, null, null, null, null);
   }
 
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile,
-      int scanNumber, String massList) {
-    return addNewSpectrumTab(dataFile, scanNumber, null, null, null, null, massList);
+      Scan scan, String massList) {
+    return addNewSpectrumTab(dataFile, scan, null, null, null, null, massList);
   }
 
-  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       Feature peak) {
-    return addNewSpectrumTab(dataFile, scanNumber, peak, null, null, null);
+    return addNewSpectrumTab(dataFile, scan, peak, null, null, null);
   }
 
-  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       IsotopePattern detectedPattern) {
-    return addNewSpectrumTab(dataFile, scanNumber, null, detectedPattern, null, null);
+    return addNewSpectrumTab(dataFile, scan, null, detectedPattern, null, null);
   }
 
-  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern) {
-    return addNewSpectrumTab(dataFile, scanNumber, peak, detectedPattern, predictedPattern,
+    return addNewSpectrumTab(dataFile, scan, peak, detectedPattern, predictedPattern,
         null);
   }
 
-  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
       IsotopePattern spectrum){
-    return addNewSpectrumTab(dataFile, scanNumber, peak, detectedPattern, predictedPattern, spectrum, null);
+    return addNewSpectrumTab(dataFile, scan, peak, detectedPattern, predictedPattern, spectrum, null);
   }
 
-  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
       IsotopePattern spectrum, String massList) {
 
-    Scan scan = dataFile.getScan(scanNumber);
-
     if (scan == null) {
       MZmineCore.getDesktop().displayErrorMessage(
-          "Raw data file " + dataFile + " does not contain scan #" + scanNumber);
+          "Raw data file " + dataFile + " does not contain scan #" + scan);
       return null;
     }
 
@@ -116,12 +112,12 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
       MassList massListObject = scan.getMassList(massList);
       if (massListObject == null) {
         MZmineCore.getDesktop().displayErrorMessage(
-          "Raw data file " + dataFile + " scan #" + scanNumber + " does not contain mass list " + massList);
+          "Raw data file " + dataFile + " scan #" + scan + " does not contain mass list " + massList);
         return null;
       }
     }
 
-    SpectraVisualizerTab newTab = new SpectraVisualizerTab(dataFile, scanNumber, massList, true);
+    SpectraVisualizerTab newTab = new SpectraVisualizerTab(dataFile, scan, massList, true);
     newTab.loadRawData(scan);
 
     if (peak != null)

@@ -22,6 +22,7 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementati
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSTask;
@@ -121,16 +122,16 @@ public class ComputeCliqueModule {
   private double[][] getEIC(RawDataFile file, List<PeakData> peakDataList) {
     List<List<DataPoint>> dataPoints = new ArrayList<>(); // contains m/z and intensity data
     List<Double> rts = new ArrayList<>(); // holds Retention Time values in seconds
-    for (int z : file.getScanNumbers()) {
-      rts.add(file.getScan(z).getRetentionTime() * 60.0); // conversion for minutes to seconds
+    for (Scan scan : file.getScans()) {
+      rts.add(scan.getRetentionTime() * 60.0); // conversion for minutes to seconds
       List<DataPoint> dps = new ArrayList<DataPoint>(
-          Arrays.asList(file.getScan(z).getDataPoints()));
+          Arrays.asList(scan.getDataPoints()));
 
       dataPoints.add(dps);
     }
     // nrows = #rts , ncols = # peaks, already transposed as in R code
-    double EIC[][] = new double[file.getScanNumbers().length][peakDataList.size()];
-    for (int i = 0; i < file.getScanNumbers().length; i++) {
+    double EIC[][] = new double[file.getScans().size()][peakDataList.size()];
+    for (int i = 0; i < file.getScans().size(); i++) {
       for (int j = 0; j < peakDataList.size(); j++) {
         EIC[i][j] = 0.0;
       }

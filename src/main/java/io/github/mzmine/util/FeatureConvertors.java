@@ -23,6 +23,7 @@ import io.github.msdk.datamodel.Feature;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DetectionType;
@@ -55,9 +56,11 @@ import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangePeak;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
@@ -86,12 +89,8 @@ public class FeatureConvertors {
     ModularFeature modularFeature =
         new ModularFeature((ModularFeatureList) chromatogram.getFeatureList());
 
-    int[] scansMS2 = chromatogram.getAllMS2FragmentScanNumbers();
-    modularFeature.set(FragmentScanNumbersType.class,
-        IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
-    int[] scans = chromatogram.getScanNumbers();
-    modularFeature
-        .set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    modularFeature.set(FragmentScanNumbersType.class, chromatogram.getAllMS2FragmentScanNumbers());
+    modularFeature.set(ScanNumbersType.class, chromatogram.getScanNumbers());
 
     modularFeature
         .set(BestFragmentScanNumberType.class, chromatogram.getMostIntenseFragmentScanNumber());
@@ -110,11 +109,7 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, chromatogram.getRepresentativeScanNumber());
 
     // Data points of feature
-    List<DataPoint> dps = new ArrayList<>();
-    for (int scan : scans) {
-      dps.add(chromatogram.getDataPoint(scan));
-    }
-    modularFeature.set(DataPointsType.class, dps);
+    modularFeature.set(DataPointsType.class, new ArrayList<>(chromatogram.getDataPoints()));
 
     // Ranges
     Range<Float> rtRange = Range.closed(chromatogram.getRawDataPointsRTRange().lowerEndpoint(),
@@ -128,10 +123,10 @@ public class FeatureConvertors {
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
 
-    ObservableList<Integer> allMS2 = IntStream.of(ScanUtils
-        .findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange)).boxed()
-        .collect(Collectors.toCollection(FXCollections::observableArrayList));
-    modularFeature.setAllMS2FragmentScanNumbers(allMS2);
+    ObservableList<Scan> allMS2 = Arrays
+        .stream(ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange))
+    .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    modularFeature.setAllMS2FragmentScans(allMS2);
 
     // Quality parameters
     float fwhm = QualityParameters.calculateFWHM(modularFeature);
@@ -166,8 +161,8 @@ public class FeatureConvertors {
         new ModularFeature((ModularFeatureList) ionTrace.getFeatureList());
 
     // TODO
-    modularFeature.setFragmentScanNumber(-1);
-    modularFeature.setRepresentativeScanNumber(-1);
+    modularFeature.setFragmentScan(null);
+    modularFeature.setRepresentativeScan(null);
     // Add values to feature
     modularFeature.set(ScanNumbersType.class, new ArrayList<>(ionTrace.getScanNumbers()));
     modularFeature.set(RawFileType.class, rawDataFile);
@@ -232,8 +227,8 @@ public class FeatureConvertors {
     ModularFeature modularFeature = new ModularFeature((ModularFeatureList) image.getFeatureList());
 
     // TODO
-    modularFeature.setFragmentScanNumber(-1);
-    modularFeature.setRepresentativeScanNumber(-1);
+    modularFeature.setFragmentScan(null);
+    modularFeature.setRepresentativeScan(null);
     // Add values to feature
     modularFeature.set(ScanNumbersType.class, new ArrayList<>(image.getScanNumbers()));
     modularFeature.set(RawFileType.class, rawDataFile);
@@ -309,12 +304,13 @@ public class FeatureConvertors {
 
     ModularFeature modularFeature = new ModularFeature(featureList);
 
-    modularFeature.setFragmentScanNumber(manualFeature.getMostIntenseFragmentScanNumber());
-    modularFeature.setRepresentativeScanNumber(manualFeature.getRepresentativeScanNumber());
+    modularFeature.setFragmentScan(manualFeature.getMostIntenseFragmentScanNumber());
+    modularFeature.setRepresentativeScan(manualFeature.getRepresentativeScanNumber());
     // Add values to feature
-    int[] scans = manualFeature.getScanNumbers();
-    modularFeature.set(ScanNumbersType.class,
-        IntStream.of(scans).boxed().collect(Collectors.toList()));
+
+    modularFeature.set(FragmentScanNumbersType.class, manualFeature.getAllMS2FragmentScanNumbers());
+    modularFeature.set(ScanNumbersType.class, manualFeature.getScanNumbers());
+
     modularFeature.set(RawFileType.class, manualFeature.getRawDataFile());
     modularFeature.set(DetectionType.class, manualFeature.getFeatureStatus());
     modularFeature.set(MZType.class, manualFeature.getMZ());
@@ -324,11 +320,7 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, manualFeature.getRepresentativeScanNumber());
 
     // Data points of feature
-    List<DataPoint> dps = new ArrayList<>();
-    for (int scan : scans) {
-      dps.add(manualFeature.getDataPoint(scan));
-    }
-    modularFeature.set(DataPointsType.class, dps);
+    modularFeature.set(DataPointsType.class, new ArrayList<>(manualFeature.getDataPoints()));
 
     // Ranges
     Range<Float> rtRange = Range.closed(manualFeature.getRawDataPointsRTRange().lowerEndpoint(),
@@ -385,12 +377,9 @@ public class FeatureConvertors {
 
     ModularFeature modularFeature = new ModularFeature(featureList);
 
-    int[] scansMS2 = sameRangePeak.getAllMS2FragmentScanNumbers();
-    modularFeature.set(FragmentScanNumbersType.class,
-        IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
-    int[] scans = sameRangePeak.getScanNumbers();
-    modularFeature
-        .set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+
+    modularFeature.set(FragmentScanNumbersType.class, sameRangePeak.getAllMS2FragmentScanNumbers());
+    modularFeature.set(ScanNumbersType.class, sameRangePeak.getScanNumbers());
 
     modularFeature
         .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
@@ -408,11 +397,7 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
 
     // Data points of feature
-    List<DataPoint> dps = new ArrayList<>();
-    for (int scan : scans) {
-      dps.add(sameRangePeak.getDataPoint(scan));
-    }
-    modularFeature.set(DataPointsType.class, dps);
+    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
 
     // Ranges
     Range<Float> rtRange = Range.closed(sameRangePeak.getRawDataPointsRTRange().lowerEndpoint(),
@@ -463,12 +448,9 @@ public class FeatureConvertors {
     ModularFeature modularFeature =
         new ModularFeature(featureList);
 
-    int[] scansMS2 = sameRangePeak.getAllMS2FragmentScanNumbers();
-    modularFeature.set(FragmentScanNumbersType.class,
-        IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
-    int[] scans = sameRangePeak.getScanNumbers();
-    modularFeature
-        .set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+
+    modularFeature.set(FragmentScanNumbersType.class, sameRangePeak.getAllMS2FragmentScanNumbers());
+    modularFeature.set(ScanNumbersType.class, sameRangePeak.getScanNumbers());
 
     modularFeature
         .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
@@ -486,11 +468,7 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
 
     // Data points of feature
-    List<DataPoint> dps = new ArrayList<>();
-    for (int scan : scans) {
-      dps.add(sameRangePeak.getDataPoint(scan));
-    }
-    modularFeature.set(DataPointsType.class, dps);
+    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
 
     // Ranges
     Range<Float> rtRange = Range.closed(sameRangePeak.getRawDataPointsRTRange().lowerEndpoint(),
@@ -542,12 +520,8 @@ public class FeatureConvertors {
         new ModularFeature(featureList);
 
     // Add values to feature
-    int[] scansMS2 = resolvedPeak.getAllMS2FragmentScanNumbers();
-    modularFeature.set(FragmentScanNumbersType.class,
-        IntStream.of(scansMS2).boxed().collect(Collectors.toList()));
-    int[] scans = resolvedPeak.getScanNumbers();
-    modularFeature
-        .set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    modularFeature.set(FragmentScanNumbersType.class, resolvedPeak.getAllMS2FragmentScanNumbers());
+    modularFeature.set(ScanNumbersType.class, resolvedPeak.getScanNumbers());
 
     modularFeature
         .set(BestFragmentScanNumberType.class, resolvedPeak.getMostIntenseFragmentScanNumber());
@@ -565,11 +539,7 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
 
     // Data points of feature
-    List<DataPoint> dps = new ArrayList<>();
-    for (int scan : scans) {
-      dps.add(resolvedPeak.getDataPoint(scan));
-    }
-    modularFeature.set(DataPointsType.class, dps);
+    modularFeature.set(DataPointsType.class, resolvedPeak.getDataPoints());
 
     // Ranges
     Range<Float> rtRange = Range.closed(resolvedPeak.getRawDataPointsRTRange().lowerEndpoint(),

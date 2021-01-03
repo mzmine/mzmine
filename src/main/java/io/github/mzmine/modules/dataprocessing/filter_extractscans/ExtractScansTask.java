@@ -93,7 +93,7 @@ class ExtractScansTask extends AbstractTask {
         double max = 0;
         // find center scan
         for (int i = 0; i < raw.getNumOfScans(); i++) {
-          Scan scan = raw.getScan(raw.getScanNumbers()[i]);
+          Scan scan = raw.getScan(i);
           double rt = scan.getRetentionTime();
           if (autoMax) {
             double tic = scan.getTIC();
@@ -129,7 +129,7 @@ class ExtractScansTask extends AbstractTask {
         int start = -1;
         int end = -1;
         for (int i = 0; i < raw.getNumOfScans(); i++) {
-          Scan scan = raw.getScan(raw.getScanNumbers()[i]);
+          Scan scan = raw.getScan(i);
           double rt = scan.getRetentionTime();
 
           if (i == raw.getNumOfScans() - 1) {
@@ -168,19 +168,19 @@ class ExtractScansTask extends AbstractTask {
     File fileDir = new File(dir, FilenameUtils.removeExtension(raw.getName()));
     FileAndPathUtil.createDirectory(fileDir);
     int end = Math.min(scans + start, raw.getNumOfScans());
-    String linescans = "scan" + delimiter + raw.getScanNumbers()[start] + delimiter + "to"
-        + delimiter + raw.getScanNumbers()[end - 1] + "\n";
-    String lineRT = "RT" + delimiter + raw.getScan(raw.getScanNumbers()[start]).getRetentionTime()
-        + "to" + raw.getScan(raw.getScanNumbers()[end - 1]).getRetentionTime() + "\n";
+    String linescans = "scan" + delimiter + raw.getScan(start).getScanNumber() + delimiter + "to"
+        + delimiter + raw.getScan(end - 1).getScanNumber() + "\n";
+    String lineRT = "RT" + delimiter + raw.getScan(start).getRetentionTime()
+        + "to" + raw.getScan(end - 1).getRetentionTime() + "\n";
     String linePath = raw.getName() + "\n";
     String lineOptions = "export of" + delimiter;
     if (!useCenterTime) {
-      double st = raw.getScan(raw.getScanNumbers()[start]).getRetentionTime();
-      double et = raw.getScan(raw.getScanNumbers()[end]).getRetentionTime();
+      double st = raw.getScan(start).getRetentionTime();
+      double et = raw.getScan(end).getRetentionTime();
       lineOptions += scans + delimiter + "scans from time " + delimiter + st + " to " + et + "\n";
     } else if (autoMax) {
       lineOptions += scans + delimiter + "scans around scan with maximum intensity:" + delimiter
-          + raw.getScanNumbers()[scanMaxTIC] + "\n";
+          + raw.getScan(scanMaxTIC).getScanNumber() + "\n";
     } else {
       lineOptions +=
           scans + delimiter + "scans around center time:" + delimiter + centerTime + "\n";
@@ -198,7 +198,7 @@ class ExtractScansTask extends AbstractTask {
       }
       // EXPORT
       try {
-        Scan s = raw.getScan(raw.getScanNumbers()[i]);
+        Scan s = raw.getScan(i);
         // write header
         if (exportHeader) {
           out.append(linePath);
@@ -207,7 +207,7 @@ class ExtractScansTask extends AbstractTask {
           out.append(lineOptions);
 
           out.append("TIC" + delimiter + s.getTIC() + "\n");
-          out.append("scan number" + delimiter + raw.getScanNumbers()[i] + "\n");
+          out.append("scan number" + delimiter + raw.getScan(i).getScanNumber() + "\n");
           out.append("retention time" + delimiter + s.getRetentionTime() + "\n\n");
           out.append("mz" + delimiter + "intensity\n");
         }

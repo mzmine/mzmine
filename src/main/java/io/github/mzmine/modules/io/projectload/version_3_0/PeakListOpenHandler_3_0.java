@@ -61,13 +61,14 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
   private ModularFeatureListRow buildingRow;
   private ModularFeatureList buildingPeakList;
 
-  private int numOfMZpeaks, representativeScan, fragmentScan;
+  private int numOfMZpeaks;
+  private Scan representativeScan, fragmentScan;
   private String peakColumnID;
   private double mass;
   private float rt, area;
-  private int[] scanNumbers;
-  private int[] allMS2FragmentScanNumbers;
-  private Vector<Integer> currentAllMS2FragmentScans;
+  private Scan[] scanNumbers;
+  private Scan[] allMS2FragmentScanNumbers;
+  private Vector<Scan> currentAllMS2FragmentScans;
   private float height;
   private double[] masses, intensities;
   private String peakStatus, peakListName, name, identityPropertyName, rawDataFileID;
@@ -115,7 +116,7 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
     appliedMethodParameters = new Vector<String>();
     currentPeakListDataFiles = new Vector<RawDataFile>();
     currentIsotopes = new Vector<DataPoint>();
-    currentAllMS2FragmentScans = new Vector<Integer>();
+    currentAllMS2FragmentScans = new Vector<Scan>();
 
     buildingPeakList = null;
 
@@ -243,6 +244,7 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
    */
   @Override
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
+    RawDataFile dataFile = dataFilesIDMap.get(peakColumnID);
 
     if (canceled)
       throw new SAXException("Parsing canceled");
@@ -268,7 +270,6 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
     // <RAW_FILE>
     if (qName.equals(PeakListElementName_3_0.RAWFILE.getElementName())) {
       rawDataFileID = getTextOfElement();
-      RawDataFile dataFile = dataFilesIDMap.get(rawDataFileID);
       if (dataFile == null) {
         throw new SAXException(
             "Cannot open feature list, because raw data file " + rawDataFileID + " is missing.");
@@ -282,10 +283,10 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       byte[] bytes = Base64.decodeToBytes(getTextOfElement());
       // make a data input stream
       DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(bytes));
-      scanNumbers = new int[numOfMZpeaks];
+      scanNumbers = new Scan[numOfMZpeaks];
       for (int i = 0; i < numOfMZpeaks; i++) {
         try {
-          scanNumbers[i] = dataInputStream.readInt();
+          scanNumbers[i] = dataFile.getScanAtNumber(dataInputStream.readInt());
         } catch (IOException ex) {
           throw new SAXException(ex);
         }
@@ -294,18 +295,18 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
 
     // <REPRESENTATIVE_SCAN>
     if (qName.equals(PeakListElementName_3_0.REPRESENTATIVE_SCAN.getElementName())) {
-      representativeScan = Integer.valueOf(getTextOfElement());
+      representativeScan = dataFile.getScanAtNumber(Integer.valueOf(getTextOfElement()));
     }
 
     // <FRAGMENT_SCAN>
     if (qName.equals(PeakListElementName_3_0.FRAGMENT_SCAN.getElementName())) {
-      fragmentScan = Integer.valueOf(getTextOfElement());
+      fragmentScan = dataFile.getScanAtNumber(Integer.valueOf(getTextOfElement()));
     }
 
     // <All_MS2_FRAGMENT_SCANS>
     if (qName.equals(PeakListElementName_3_0.ALL_MS2_FRAGMENT_SCANS.getElementName())) {
       Integer fragmentNumber = Integer.valueOf(getTextOfElement());
-      currentAllMS2FragmentScans.add(fragmentNumber);
+      currentAllMS2FragmentScans.add(dataFile.getScanAtNumber(fragmentNumber));
     }
 
     // <MASS>
@@ -346,14 +347,13 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       DataPoint[] mzPeaks = new DataPoint[numOfMZpeaks];
       Range<Double> peakMZRange = null;
       Range<Float> peakRTRange = null, peakIntensityRange = null;
-      RawDataFile dataFile = dataFilesIDMap.get(peakColumnID);
 
       if (dataFile == null)
         throw new SAXException("Error in project: data file " + peakColumnID + " not found");
 
       for (int i = 0; i < numOfMZpeaks; i++) {
 
-        Scan sc = dataFile.getScan(scanNumbers[i]);
+        Scan sc = scanNumbers[i];
         float retentionTime = sc.getRetentionTime();
 
         double mz = masses[i];
@@ -384,7 +384,7 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       FeatureStatus status = FeatureStatus.valueOf(peakStatus);
 
       // convert vector of allMS2FragmentScans to array
-      allMS2FragmentScanNumbers = new int[currentAllMS2FragmentScans.size()];
+      allMS2FragmentScanNumbers = new Scan[currentAllMS2FragmentScans.size()];
       for (int i = 0; i < allMS2FragmentScanNumbers.length; i++) {
         allMS2FragmentScanNumbers[i] = currentAllMS2FragmentScans.get(i);
       }

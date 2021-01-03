@@ -18,11 +18,11 @@
 
 package io.github.mzmine.util;
 
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 
 import com.google.common.collect.Range;
 
-import io.github.msdk.util.RawDataFileUtil;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 
@@ -68,29 +68,28 @@ public class RawDataFileUtils {
    * 
    */
   public static boolean hasMassLists(RawDataFile dataFile) {
-    for (int scanNum : dataFile.getScanNumbers(1)) {
-      Scan scan = dataFile.getScan(scanNum);
+    for (Scan scan : dataFile.getScanNumbers(1)) {
       if (scan.getMassLists().length == 0)
         return false;
     }
     return true;
   }
 
-  public static int getClosestScanNumber(RawDataFile dataFile, double rt) {
+  public static Scan getClosestScanNumber(RawDataFile dataFile, double rt) {
 
-    int scanNums[] = dataFile.getScanNumbers();
-    if (scanNums.length == 0)
-      return -1;
+    ObservableList<Scan> scanNums = dataFile.getScans();
+    if (scanNums.size() == 0)
+      return null;
     int best = 0;
-    double bestRt = dataFile.getScan(scanNums[0]).getRetentionTime();
+    double bestRt = scanNums.get(0).getRetentionTime();
 
-    for (int i = 1; i < scanNums.length; i++) {
-      double thisRt = dataFile.getScan(scanNums[i]).getRetentionTime();
+    for (int i = 1; i < scanNums.size(); i++) {
+      double thisRt = scanNums.get(i).getRetentionTime();
       if (Math.abs(bestRt - rt) > Math.abs(thisRt - rt)) {
         best = i;
         bestRt = thisRt;
       }
     }
-    return scanNums[best];
+    return scanNums.get(best);
   }
 }

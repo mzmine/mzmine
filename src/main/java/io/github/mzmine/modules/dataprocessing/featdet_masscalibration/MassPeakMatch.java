@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.errortypes.ErrorType;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist.StandardsListItem;
 import java.util.Comparator;
@@ -40,7 +41,7 @@ public class MassPeakMatch {
 
   protected DataPoint measuredDataPoint;
   protected StandardsListItem matchedCalibrant;
-  protected int scanNumber;
+  protected Scan scan;
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime, double matchedMzRatio,
       double matchedRetentionTime) {
@@ -65,17 +66,17 @@ public class MassPeakMatch {
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime, double matchedMzRatio,
       double matchedRetentionTime, ErrorType mzErrorType, DataPoint measuredDataPoint,
-      int scanNumber) {
+      Scan scan) {
     this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType,
         measuredDataPoint);
-    this.scanNumber = scanNumber;
+    this.scan = scan;
   }
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime, double matchedMzRatio,
       double matchedRetentionTime, ErrorType mzErrorType, DataPoint measuredDataPoint,
-      int scanNumber, StandardsListItem matchedCalibrant) {
+      Scan scan, StandardsListItem matchedCalibrant) {
     this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType,
-        measuredDataPoint, scanNumber);
+        measuredDataPoint, scan);
     this.matchedCalibrant = matchedCalibrant;
   }
 
@@ -118,7 +119,7 @@ public class MassPeakMatch {
     return matchedCalibrant;
   }
 
-  public int getScanNumber() {
-    return scanNumber;
+  public Scan getScan() {
+    return scan;
   }
 }

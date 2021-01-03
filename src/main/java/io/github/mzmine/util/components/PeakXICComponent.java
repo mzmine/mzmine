@@ -97,7 +97,7 @@ public class PeakXICComponent extends Canvas {
     for (int i = 0; i < scanNumbers.length; i++) {
 
       double dataPointIntensity = 0;
-      DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
+      DataPoint dataPoint = peak.getDataPointAtIndex(i);
 
       if (dataPoint != null)
         dataPointIntensity = dataPoint.getIntensity();

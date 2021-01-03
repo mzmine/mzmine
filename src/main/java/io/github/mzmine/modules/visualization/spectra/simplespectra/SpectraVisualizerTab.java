@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.*;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
@@ -121,7 +122,6 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   private RawDataFile dataFile;
   private String massList;
-  private final int scanNumber;
 
   // Currently loaded scan
   private Scan currentScan;
@@ -139,12 +139,12 @@ public class SpectraVisualizerTab extends MZmineTab {
   private static final double zoomCoefficient = 1.2f;
   private Color dataFileColor;
 
-  public SpectraVisualizerTab(RawDataFile dataFile, int scanNumber, String massList, boolean enableProcessing) {
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, String massList, boolean enableProcessing) {
     super("Spectra visualizer", true, false);
     //setTitle("Spectrum loading...");
     this.dataFile = dataFile;
     this.massList = massList;
-    this.scanNumber = scanNumber;
+    this.currentScan = scanNumber;
     dataFileColor = dataFile.getColorAWT();
 
     loadColorSettings();
@@ -280,7 +280,7 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   public SpectraVisualizerTab(RawDataFile dataFile) {
-    this(dataFile, 1, null, false);
+    this(dataFile, null, null, false);
   }
 
   private void loadColorSettings() {
@@ -319,7 +319,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     // Clean up the MS/MS selector combo
 
-    final ComboBox<String> msmsSelector = bottomPanel.getMSMSSelector();
+    final ComboBox<Scan> msmsSelector = bottomPanel.getMSMSSelector();
 
     // We disable the MSMS selector first and then enable it again later
     // after updating the items. If we skip this, the size of the
@@ -337,18 +337,12 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     // TODO: Search fragment scans
     // Add all fragment scans to MS/MS selector combo
-    int fragmentScans[] = null; // currentScan.getFragmentScanNumbers();
+    Scan fragmentScans[] = null; // currentScan.getFragmentScanNumbers();
     if (fragmentScans != null) {
-      for (int fragment : fragmentScans) {
-        Scan fragmentScan = dataFile.getScan(fragment);
+      for (Scan fragmentScan : fragmentScans) {
         if (fragmentScan == null)
           continue;
-        final String itemText = "Fragment scan #" + fragment + ", RT: "
-            + rtFormat.format(fragmentScan.getRetentionTime()) + ", precursor m/z: "
-            + mzFormat.format(fragmentScan.getPrecursorMZ());
-        // Updating the combo in other than Swing thread may cause
-        // exception
-        msmsSelector.getItems().add(itemText);
+        msmsSelector.getItems().add(fragmentScan);
         msmsVisible = true;
       }
     }
@@ -403,7 +397,7 @@ public class SpectraVisualizerTab extends MZmineTab {
         "Loading a feature list " + selectedPeakList + " to a spectrum window"/* + getTitle()*/);
 
     PeakListDataSet peaksDataSet =
-        new PeakListDataSet(dataFile, currentScan.getScanNumber(), selectedPeakList);
+        new PeakListDataSet(dataFile, currentScan, selectedPeakList);
 
     // Set plot data sets
     spectrumPlot.addDataSet(peaksDataSet, peaksColor, true);
@@ -412,7 +406,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   public void loadSinglePeak(Feature peak) {
 
-    SinglePeakDataSet peakDataSet = new SinglePeakDataSet(currentScan.getScanNumber(), peak);
+    SinglePeakDataSet peakDataSet = new SinglePeakDataSet(currentScan, peak);
 
     // Set plot data sets
     spectrumPlot.addDataSet(peakDataSet, singlePeakColor, true);
@@ -470,23 +464,21 @@ public class SpectraVisualizerTab extends MZmineTab {
       return;
 
     int msLevel = currentScan.getMSLevel();
-    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-    int scanIndex = Arrays.binarySearch(scanNumbers, currentScan.getScanNumber());
+    ObservableList<Scan> scans = dataFile.getScanNumbers(msLevel);
+    int scanIndex = scans.indexOf(currentScan);
     if (scanIndex > 0) {
-      final int prevScanIndex = scanNumbers[scanIndex - 1];
+      final Scan prevScan = scans.get(scanIndex - 1);
 
       Runnable newThreadRunnable = new Runnable() {
 
         @Override
         public void run() {
-          loadRawData(dataFile.getScan(prevScanIndex));
+          loadRawData(prevScan);
         }
-
       };
 
       Thread newThread = new Thread(newThreadRunnable);
       newThread.start();
-
     }
   }
 
@@ -497,24 +489,14 @@ public class SpectraVisualizerTab extends MZmineTab {
       return;
 
     int msLevel = currentScan.getMSLevel();
-    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-    int scanIndex = Arrays.binarySearch(scanNumbers, currentScan.getScanNumber());
+    ObservableList<Scan> scanNumbers = dataFile.getScanNumbers(msLevel);
+    int scanIndex = scanNumbers.indexOf(currentScan);
 
-    if (scanIndex < (scanNumbers.length - 1)) {
-      final int nextScanIndex = scanNumbers[scanIndex + 1];
+    if (scanIndex < (scanNumbers.size() - 1)) {
+      final Scan nextScan = scanNumbers.get(scanIndex + 1);
 
-      Runnable newThreadRunnable = new Runnable() {
-
-        @Override
-        public void run() {
-          loadRawData(dataFile.getScan(nextScanIndex));
-        }
-
-      };
-
-      Thread newThread = new Thread(newThreadRunnable);
+      Thread newThread = new Thread(() -> loadRawData(nextScan));
       newThread.start();
-
     }
   }
 
@@ -640,10 +622,10 @@ public class SpectraVisualizerTab extends MZmineTab {
     }
 
     // add new scan
-    Scan newScan = newFile.getScan(scanNumber);
+    Scan newScan = newFile.getScanNumberAtRT(currentScan.getRetentionTime());
     if(newScan == null) {
       MZmineCore.getDesktop().displayErrorMessage(
-          "Raw data file " + dataFile + " does not contain scan #" + scanNumber);
+          "Raw data file " + dataFile + " does not contain scan at retention time " + currentScan.getRetentionTime());
       return;
     }
 

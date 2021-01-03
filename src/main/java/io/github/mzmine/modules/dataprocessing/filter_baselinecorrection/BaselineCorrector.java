@@ -76,7 +76,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
   /**
    * Getting general parameters (common to all the correctors).
    * 
-   * @param generalParameters The parameters common to all methods (grabbed from
+   * @param parameters The parameters common to all methods (grabbed from
    *        "BaselineCorrectionParameters")
    */
   public void collectCommonParameters(final ParameterSet parameters) {
@@ -136,7 +136,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     // progressMax = 0;
     for (final int level : levels) {
       final boolean isMSLevel = msLevel == level;
-      final int numScans = origDataFile.getScanNumbers(level).length;
+      final int numScans = origDataFile.getScanNumbers(level).size();
       foundLevel |= isMSLevel;
       // progressMax += isMSLevel || msLevel == 0 ? 2 * numScans +
       // numBins : numScans;
@@ -198,14 +198,14 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     logger.finest("Copy scans");
 
     // Get scan numbers for MS-level.
-    final int[] scanNumbers = origDataFile.getScanNumbers(level);
+    final Scan[] scanNumbers = origDataFile.getScanNumbers(level).toArray(Scan[]::new);
     final int numScans = scanNumbers.length;
 
     // Create copy of scans.
     for (int scanIndex = 0; !isAborted(origDataFile) && scanIndex < numScans; scanIndex++) {
 
       // Get original scan.
-      final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
+      final Scan origScan = scanNumbers[scanIndex];
 
       // Get data points (m/z and intensity pairs) of the original scan
       final DataPoint[] origDataPoints = origScan.getDataPoints();
@@ -235,7 +235,6 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
    * @param parameters parameters specific to the actual method for baseline computing.
    * @throws IOException if there are i/o problems.
    * @throws RSessionWrapperException
-   * @throws BaselineCorrectionException
    * @throws InterruptedException
    */
   private void correctBasePeakBaselines(final RSessionWrapper rSession,
@@ -244,7 +243,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       throws IOException, RSessionWrapperException {
 
     // Get scan numbers from original file.
-    final int[] scanNumbers = origDataFile.getScanNumbers(level);
+    final Scan[] scanNumbers = origDataFile.getScanNumbers(level).toArray(Scan[]::new);
     final int numScans = scanNumbers.length;
 
     // Build chromatograms.
@@ -265,7 +264,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     for (int scanIndex = 0; !isAborted(origDataFile) && scanIndex < numScans; scanIndex++) {
 
       // Get original scan.
-      final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
+      final Scan origScan = scanNumbers[scanIndex];
 
       // Get data points (m/z and intensity pairs) of the original scan
       final DataPoint[] origDataPoints = origScan.getDataPoints();
@@ -289,14 +288,13 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
    * @param parameters parameters specific to the actual method for baseline computing.
    * @throws IOException if there are i/o problems.
    * @throws RSessionWrapperException
-   * @throws BaselineCorrectionException
    */
   private void correctTICBaselines(final RSessionWrapper rSession, final RawDataFile origDataFile,
       final RawDataFileWriter writer, final int level, final int numBins,
       final ParameterSet parameters) throws IOException, RSessionWrapperException {
 
     // Get scan numbers from original file.
-    final int[] scanNumbers = origDataFile.getScanNumbers(level);
+    final Scan[] scanNumbers = origDataFile.getScanNumbers(level).toArray(Scan[]::new);
     final int numScans = scanNumbers.length;
 
     // Build chromatograms.
@@ -328,7 +326,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     for (int scanIndex = 0; !isAborted(origDataFile) && scanIndex < numScans; scanIndex++) {
 
       // Get original scan.
-      final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
+      final Scan origScan = scanNumbers[scanIndex];
 
       // Get data points (m/z and intensity pairs) of the original scan
       final DataPoint[] origDataPoints = origScan.getDataPoints();
@@ -355,7 +353,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final int numBins) {
 
     // Get scan numbers from original file.
-    final int[] scanNumbers = origDataFile.getScanNumbers(level);
+    final Scan[] scanNumbers = origDataFile.getScanNumbers(level).toArray(Scan[]::new);
     final int numScans = scanNumbers.length;
 
     // Determine MZ range.
@@ -367,7 +365,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     for (int scanIndex = 0; !isAborted(origDataFile) && scanIndex < numScans; scanIndex++) {
 
       // Get original scan.
-      final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
+      final Scan scan = scanNumbers[scanIndex];
 
       // Process data points.
       for (final DataPoint dataPoint : scan.getDataPoints()) {
@@ -395,7 +393,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final int numBins) {
 
     // Get scan numbers from original file.
-    final int[] scanNumbers = origDataFile.getScanNumbers(level);
+    final Scan[] scanNumbers = origDataFile.getScanNumbers(level).toArray(Scan[]::new);
     final int numScans = scanNumbers.length;
 
     // Determine MZ range.
@@ -407,7 +405,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     for (int scanIndex = 0; !isAborted(origDataFile) && scanIndex < numScans; scanIndex++) {
 
       // Get original scan.
-      final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
+      final Scan scan = scanNumbers[scanIndex];
 
       // Process data points.
       for (final DataPoint dataPoint : scan.getDataPoints()) {

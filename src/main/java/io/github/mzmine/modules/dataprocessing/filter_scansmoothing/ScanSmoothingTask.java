@@ -32,6 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.collections.ObservableList;
 
 public class ScanSmoothingTask extends AbstractTask {
 
@@ -42,7 +43,7 @@ public class ScanSmoothingTask extends AbstractTask {
 
   // scan counter
   private int processedScans = 0, totalScans;
-  private int[] scanNumbers;
+  private ObservableList<Scan> scanNumbers;
 
   // User parameters
   private String suffix;
@@ -103,7 +104,7 @@ public class ScanSmoothingTask extends AbstractTask {
     logger.info("Started Scan Smoothing on " + dataFile);
 
     scanNumbers = dataFile.getScanNumbers(1);
-    totalScans = scanNumbers.length;
+    totalScans = scanNumbers.size();
 
     RawDataFileWriter newRDFW = null;
     int timepassed = 0;
@@ -119,7 +120,7 @@ public class ScanSmoothingTask extends AbstractTask {
           return;
 
         // Smoothing in TIME space
-        Scan scan = dataFile.getScan(scanNumbers[i]);
+        Scan scan = scanNumbers.get(i);
         if (scan != null) {
           double rt = scan.getRetentionTime();
           final SimpleScan newScan = new SimpleScan(scan);
@@ -129,13 +130,13 @@ public class ScanSmoothingTask extends AbstractTask {
           if (timeSpan > 0 || scanSpan > 0) {
             double timeMZtol = Math.max(mzTol, 1e-5);
             for (si = i; si > 1; si--) {
-              Scan scanS = dataFile.getScan(scanNumbers[si - 1]);
+              Scan scanS = scanNumbers.get(si - 1);
               if (scanS == null || scanS.getRetentionTime() < rt - timeSpan / 2) {
                 break;
               }
             }
             for (sj = i; sj < totalScans - 1; sj++) {
-              Scan scanS = dataFile.getScan(scanNumbers[sj + 1]);
+              Scan scanS = scanNumbers.get(sj + 1);
               if (scanS == null || scanS.getRetentionTime() >= rt + timeSpan / 2) {
                 break;
               }
@@ -163,7 +164,7 @@ public class ScanSmoothingTask extends AbstractTask {
                 mzValues = new DataPoint[sj - si + 1][];
               // Load Data Points
               for (j = si; j <= sj; j++) {
-                Scan xscan = dataFile.getScan(scanNumbers[j]);
+                Scan xscan = scanNumbers.get(j);
                 mzValues[j - si] = xscan.getDataPoints();
               }
               // Estimate Averages

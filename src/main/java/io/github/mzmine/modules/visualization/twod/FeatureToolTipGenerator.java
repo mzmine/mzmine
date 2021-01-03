@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -51,7 +52,7 @@ class FeatureToolTipGenerator implements XYToolTipGenerator {
     float rtValue = dataPoint.getRT();
     double intValue = dataPoint.getIntensity();
     double mzValue = dataPoint.getMZ();
-    int scanNumber = dataPoint.getScanNumber();
+    Scan scanNumber = dataPoint.getScan();
 
     String toolTip =
         "Feature: " + feature + "\nStatus: " + feature.getFeatureStatus() + "\nFeature list row: " + row

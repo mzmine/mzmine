@@ -46,7 +46,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   private final FlowPane pnlDataFile, pnlScanArrows, pnlScanNumber;
   private final VBox pnlControls;
   private final ComboBox<RawDataFile> comboDataFileName;
-  private final ComboBox<Integer> comboScanNumber;
+  private final ComboBox<Scan> comboScanNumber;
   // XYPlot
   private final SpectraPlot spectrumPlot;
   private RawDataFile[] dataFiles;
@@ -87,10 +87,8 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     pnlScanNumber = new FlowPane();
     pnlScanNumber.getChildren().add(new Label("Scan number "));
 
-    int scanNumbers[] = previewDataFile.getScanNumbers();
-    ObservableList<Integer> scanNums =
-        FXCollections.observableArrayList(CollectionUtils.toIntegerArray(scanNumbers));
-    comboScanNumber = new ComboBox<Integer>(scanNums);
+    ObservableList<Scan> scanNumbers = previewDataFile.getScans();
+    comboScanNumber = new ComboBox<>(scanNumbers);
     comboScanNumber.getSelectionModel().select(0);
     comboScanNumber.getSelectionModel().selectedItemProperty().addListener((obs, old, newIndex) -> {
       parametersChanged();
@@ -104,11 +102,8 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
       if (previewDataFile == null) {
         return;
       }
-      int scanNumbers2[] = previewDataFile.getScanNumbers();
-      ObservableList<Integer> scanNums2 =
-          FXCollections.observableArrayList(CollectionUtils.toIntegerArray(scanNumbers2));
-
-      comboScanNumber.setItems(scanNums2);
+      ObservableList<Scan> scanNumbers2 = previewDataFile.getScans();
+      comboScanNumber.setItems(scanNumbers2);
       comboScanNumber.getSelectionModel().select(0);
       parametersChanged();
     });
@@ -193,14 +188,13 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
       return;
     }
 
-    Integer scanNumber = comboScanNumber.getSelectionModel().getSelectedItem();
-    if (scanNumber == null) {
+    Scan scan = comboScanNumber.getSelectionModel().getSelectedItem();
+    if (scan == null) {
       return;
     }
 
-    Scan currentScan = previewDataFile.getScan(scanNumber);
     updateParameterSetFromComponents();
-    loadPreview(spectrumPlot, currentScan);
-    updateTitle(currentScan);
+    loadPreview(spectrumPlot, scan);
+    updateTitle(scan);
   }
 }

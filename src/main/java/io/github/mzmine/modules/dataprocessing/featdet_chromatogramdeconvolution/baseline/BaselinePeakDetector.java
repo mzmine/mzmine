@@ -22,9 +22,11 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselinePeakDetectorParameters.MIN_PEAK_HEIGHT;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselinePeakDetectorParameters.PEAK_DURATION;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 
@@ -53,15 +55,15 @@ public class BaselinePeakDetector implements PeakResolver {
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) {
 
-    int scanNumbers[] = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
-    final int scanCount = scanNumbers.length;
+    ObservableList<Scan> scanNumbers = chromatogram.getScanNumbers();
+    final int scanCount = scanNumbers.size();
     double retentionTimes[] = new double[scanCount];
     double intensities[] = new double[scanCount];
     RawDataFile dataFile = chromatogram.getRawDataFile();
     for (int i = 0; i < scanCount; i++) {
-      final int scanNum = scanNumbers[i];
-      retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
-      DataPoint dp = chromatogram.getDataPoint(scanNum);
+      final Scan scanNum = scanNumbers.get(i);
+      retentionTimes[i] = scanNum.getRetentionTime();
+      DataPoint dp = chromatogram.getDataPointAtIndex(i);
       if (dp != null)
         intensities[i] = dp.getIntensity();
       else
@@ -80,7 +82,7 @@ public class BaselinePeakDetector implements PeakResolver {
     for (int currentRegionStart = 0; currentRegionStart < scanCount; currentRegionStart++) {
 
       // Find a start of the region.
-      final DataPoint startPeak = chromatogram.getDataPoint(scanNumbers[currentRegionStart]);
+      final DataPoint startPeak = chromatogram.getDataPointAtIndex(currentRegionStart);
       if (startPeak != null && startPeak.getIntensity() >= baselineLevel) {
 
         double currentRegionHeight = startPeak.getIntensity();
@@ -90,7 +92,7 @@ public class BaselinePeakDetector implements PeakResolver {
         for (currentRegionEnd =
             currentRegionStart + 1; currentRegionEnd < scanCount; currentRegionEnd++) {
 
-          final DataPoint endPeak = chromatogram.getDataPoint(scanNumbers[currentRegionEnd]);
+          final DataPoint endPeak = chromatogram.getDataPointAtIndex(currentRegionEnd);
           if (endPeak == null || endPeak.getIntensity() < baselineLevel) {
 
             break;

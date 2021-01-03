@@ -136,7 +136,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
 
     // Get all scans of this data file
-    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+    Scan scanNumbers[] = dataFile.getScanNumbers(msLevel).toArray(Scan[]::new);
     if (scanNumbers == null) {
       logger.log(Level.WARNING, "Could not read file with the MS level of " + msLevel);
       setStatus(TaskStatus.ERROR);
@@ -144,15 +144,12 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
 
     // Process each scan
-    for (int scanNumber : scanNumbers) {
+    for (Scan scan : scanNumbers) {
 
       // Canceled?
       if (isCanceled()) {
         return;
       }
-
-      // Get the scan
-      Scan scan = dataFile.getScan(scanNumber);
 
       // Feed this scan to all gaps
       for (Gap gap : gaps) {

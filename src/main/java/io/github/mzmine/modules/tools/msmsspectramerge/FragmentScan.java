@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
 
+import java.util.Comparator;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -72,7 +73,7 @@ class FragmentScan {
   /**
    * all consecutive(!) MS/MS scans. There should ne no other MS1 scan between them
    */
-  protected final int[] ms2ScanNumbers;
+  protected final Scan[] ms2ScanNumbers;
   /**
    * the intensity of the precursor peak in MS (left or right from MS/MS scans)
    */
@@ -91,21 +92,20 @@ class FragmentScan {
   static FragmentScan[] getAllFragmentScansFor(Feature feature, String massList,
       Range<Double> isolationWindow, MZTolerance massAccuracy) {
     final RawDataFile file = feature.getRawDataFile();
-    final Integer[] ms2 = (feature.getAllMS2FragmentScanNumbers().toArray(new Integer[0])).clone();
-    Arrays.sort(ms2);
+    final Scan[] ms2 = feature.getAllMS2FragmentScans().stream()
+        .sorted(Comparator.comparingInt(Scan::getScanNumber)).toArray(Scan[]::new).clone();
     final List<FragmentScan> fragmentScans = new ArrayList<>();
     // search for ms1 scans
     int i = 0;
     while (i < ms2.length) {
-      int scanNumber = ms2[i];
-      Scan scan = file.getScan(scanNumber);
+      Scan scan = ms2[i];
       Scan precursorScan = ScanUtils.findPrecursorScan(scan);
       Scan precursorScan2 = ScanUtils.findSucceedingPrecursorScan(scan);
       int j = precursorScan2 == null ? ms2.length
           : Arrays.binarySearch(ms2, precursorScan2.getScanNumber());
       if (j < 0)
         j = -j - 1;
-      final int[] subms2 = new int[j - i];
+      final Scan[] subms2 = new Scan[j - i];
       for (int k = i; k < j; ++k)
         subms2[k - i] = ms2[k];
 
@@ -119,7 +119,7 @@ class FragmentScan {
   }
 
   FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber,
-      Integer ms1ScanNumber2, int[] ms2ScanNumbers, Range<Double> isolationWindow,
+      Integer ms1ScanNumber2, Scan[] ms2ScanNumbers, Range<Double> isolationWindow,
       MZTolerance massAccuracy) {
     this.origin = origin;
     this.feature = feature;
@@ -166,7 +166,7 @@ class FragmentScan {
       Scan left = origin.getScan(ms1ScanNumber);
       Scan right = origin.getScan(ms1SucceedingScanNumber);
       for (int k = 0; k < ms2ScanNumbers.length; ++k) {
-        Scan ms2 = origin.getScan(ms2ScanNumbers[k]);
+        Scan ms2 = ms2ScanNumbers[k];
         float rtRange = (ms2.getRetentionTime() - left.getRetentionTime())
             / (right.getRetentionTime() - left.getRetentionTime());
         if (rtRange >= 0 && rtRange <= 1) {

@@ -21,6 +21,10 @@ package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
@@ -34,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 
 /**
@@ -102,48 +107,17 @@ public class GroupMS2Task extends AbstractTask {
             return;
 
           RawDataFile raw = f.getRawDataFile();
-          IntArrayList scans = new IntArrayList();
-          int best = f.getRepresentativeScanNumber();
           float frt = f.getRT();
           double fmz = f.getMZ();
           Range<Float> rtRange = f.getRawDataPointsRTRange();
-          int i = best;
-          // left
-          while (i > 1) {
-            i--;
-            Scan scan = raw.getScan(i);
-            if (scan != null) {
-              if ((!limitRTByFeature || rtRange.contains(scan.getRetentionTime()))
-                  && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) {
-                if (scan.getPrecursorMZ() != 0
-                    && mzTol.checkWithinTolerance(fmz, scan.getPrecursorMZ()))
-                  scans.add(i);
-              } else {
-                // end of loop - out of tolerance
-                break;
-              }
-            }
-          }
-          int[] scanNumbers = raw.getScanNumbers();
-          // right
-          while (i < scanNumbers[scanNumbers.length - 1]) {
-            i++;
-            Scan scan = raw.getScan(i);
-            // scanID does not have to be contiguous
-            if (scan != null) {
-              if ((!limitRTByFeature || rtRange.contains(scan.getRetentionTime()))
-                  && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) {
-                if (scan.getPrecursorMZ() != 0
-                    && mzTol.checkWithinTolerance(fmz, scan.getPrecursorMZ()))
-                  scans.add(i);
-              } else {
-                // end of loop - out of tolerance
-                break;
-              }
-            }
-          }
+
+          List<Scan> scans = ScanUtils.streamScans(f.getRawDataFile(), 2)
+              .filter(scan -> filterScan(scan, frt, fmz, rtRange)).collect(
+                  Collectors.toList());
+
           // set list to feature
-          f.setAllMS2FragmentScanNumbers(FXCollections.observableArrayList(scans));
+          f.setAllMS2FragmentScans(FXCollections.observableArrayList(scans));
+          f.setFragmentScan(scans.stream().max(Comparator.comparingDouble(Scan::getTIC)).orElse(null));
         }
         processedRows++;
       }
@@ -157,7 +131,13 @@ public class GroupMS2Task extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       logger.log(Level.SEVERE, "Error while adding all MS2 scans to their feautres", t);
     }
-
   }
 
+  private boolean filterScan(Scan scan, float frt, double fmz,
+      Range<Float> rtRange) {
+    return (!limitRTByFeature || rtRange.contains(scan.getRetentionTime()))
+        && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())
+        && scan.getPrecursorMZ() != 0
+          && mzTol.checkWithinTolerance(fmz, scan.getPrecursorMZ());
+  }
 }

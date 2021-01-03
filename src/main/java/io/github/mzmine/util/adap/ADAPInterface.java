@@ -15,12 +15,15 @@
  */
 package io.github.mzmine.util.adap;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.BetterPeak;
@@ -60,10 +63,13 @@ public class ADAPInterface {
 
     NavigableMap<Double, Double> chromatogram = new TreeMap<>();
 
-    for (final int scan : peak.getScanNumbers()) {
-      final DataPoint dataPoint = peak.getDataPoint(scan);
-      if (dataPoint != null)
-        chromatogram.put((double) dataFile.getScan(scan).getRetentionTime(), dataPoint.getIntensity());
+    ObservableList<DataPoint> dataPoints = peak.getDataPoints();
+    for (int i = 0; i < dataPoints.size(); i++) {
+      final DataPoint dataPoint = dataPoints.get(i);
+      if (dataPoint != null) {
+        float rt = peak.getRetentionTimeAtIndex(i);
+        chromatogram.put(Double.valueOf(String.valueOf(rt)), dataPoint.getIntensity());
+      }
     }
 
     return new Component(null,
@@ -77,11 +83,11 @@ public class ADAPInterface {
     Chromatogram chromatogram = peak.chromatogram;
 
     // Retrieve scan numbers
-    int representativeScan = 0;
-    int[] scanNumbers = new int[chromatogram.length];
+    Scan representativeScan = null;
+    Scan[] scanNumbers = new Scan[chromatogram.length];
     int count = 0;
-    for (int num : file.getScanNumbers()) {
-      double retTime = file.getScan(num).getRetentionTime();
+    for (Scan num : file.getScans()) {
+      double retTime = num.getRetentionTime();
       Double intensity = chromatogram.getIntensity(retTime, false);
       if (intensity != null)
         scanNumbers[count++] = num;
@@ -105,7 +111,7 @@ public class ADAPInterface {
 
     return new ModularFeature(featureList, file, peak.getMZ(), (float) peak.getRetTime(), (float) peak.getIntensity(),
         (float) area, scanNumbers, dataPoints, FeatureStatus.ESTIMATED, representativeScan, representativeScan,
-        new int[] {}, Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
+        new Scan[] {}, Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
         Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0.f, (float) peak.getIntensity()));
   }

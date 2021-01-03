@@ -22,6 +22,10 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import java.text.Format;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
@@ -51,13 +55,13 @@ public class SameRangePeak{
   private Range<Float> rtRange, intensityRange;
 
   // Map of scan number and data point
-  private TreeMap<Integer, DataPoint> mzPeakMap;
+  private TreeMap<Scan, DataPoint> mzPeakMap;
 
   // Number of most intense fragment scan
-  private int fragmentScan, representativeScan;
+  private Scan fragmentScan, representativeScan;
 
   // Numbers of all MS2 fragment scans
-  private int[] allMS2FragmentScanNumbers;
+  private Scan[] allMS2FragmentScanNumbers;
 
   // Isotope pattern. Null by default but can be set later by deisotoping
   // method.
@@ -69,7 +73,7 @@ public class SameRangePeak{
    */
   SameRangePeak(RawDataFile dataFile) {
     this.dataFile = dataFile;
-    mzPeakMap = new TreeMap<Integer, DataPoint>();
+    mzPeakMap = new TreeMap<Scan, DataPoint>();
   }
 
   /**
@@ -110,15 +114,15 @@ public class SameRangePeak{
   /**
    * This method returns numbers of scans that contain this peak
    */
-  public @Nonnull int[] getScanNumbers() {
-    return Ints.toArray(mzPeakMap.keySet());
+  public @Nonnull Scan[] getScanNumbers() {
+    return mzPeakMap.keySet().toArray(Scan[]::new);
   }
 
   /**
    * This method returns a representative datapoint of this peak in a given scan
    */
-  public DataPoint getDataPoint(int scanNumber) {
-    return mzPeakMap.get(scanNumber);
+  public DataPoint getDataPoint(Scan scan) {
+    return mzPeakMap.get(scan);
   }
 
   public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
@@ -133,9 +137,6 @@ public class SameRangePeak{
     return rtRange;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.Feature#getDataFile()
-   */
   public @Nonnull RawDataFile getRawDataFile() {
     return dataFile;
   }
@@ -159,13 +160,11 @@ public class SameRangePeak{
   /**
    * Adds a new data point to this peak
    *
-   * @param scanNumber
-   * @param dataPoints
-   * @param rawDataPoints
+   * @param scan
+   * @param dataPoint
    */
-  void addDatapoint(int scanNumber, DataPoint dataPoint) {
-
-    float rt = dataFile.getScan(scanNumber).getRetentionTime();
+  void addDatapoint(Scan scan, DataPoint dataPoint) {
+    float rt = scan.getRetentionTime();
 
     if (mzPeakMap.isEmpty()) {
       rtRange = Range.singleton(rt);
@@ -177,21 +176,20 @@ public class SameRangePeak{
       intensityRange = intensityRange.span(Range.singleton((float) dataPoint.getIntensity()));
     }
 
-    mzPeakMap.put(scanNumber, dataPoint);
-
+    mzPeakMap.put(scan, dataPoint);
   }
 
   void finalizePeak() {
 
     // Trim the zero-intensity data points from the beginning and end
     while (!mzPeakMap.isEmpty()) {
-      int scanNumber = mzPeakMap.firstKey();
+      Scan scanNumber = mzPeakMap.firstKey();
       if (mzPeakMap.get(scanNumber).getIntensity() > 0)
         break;
       mzPeakMap.remove(scanNumber);
     }
     while (!mzPeakMap.isEmpty()) {
-      int scanNumber = mzPeakMap.lastKey();
+      Scan scanNumber = mzPeakMap.lastKey();
       if (mzPeakMap.get(scanNumber).getIntensity() > 0)
         break;
       mzPeakMap.remove(scanNumber);
@@ -203,15 +201,15 @@ public class SameRangePeak{
     }
 
     // Get all scan numbers
-    int allScanNumbers[] = Ints.toArray(mzPeakMap.keySet());
+    Entry<Scan, DataPoint> [] allScanNumbers = mzPeakMap.entrySet().toArray(Entry[]::new);
 
     // Find the data point with top intensity and use its RT and height
-    for (int i = 0; i < allScanNumbers.length; i++) {
-      DataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
-      double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
+    for(Map.Entry<Scan, DataPoint> entry : allScanNumbers) {
+      DataPoint dataPoint = entry.getValue();
+      double rt = entry.getKey().getRetentionTime();
       if (dataPoint.getIntensity() > height) {
         height = dataPoint.getIntensity();
-        representativeScan = allScanNumbers[i];
+        representativeScan = entry.getKey();
         this.rt = rt;
       }
     }
@@ -219,21 +217,19 @@ public class SameRangePeak{
     // Calculate peak area
     area = 0;
     for (int i = 1; i < allScanNumbers.length; i++) {
-
       // For area calculation, we use retention time in seconds
-      double previousRT = dataFile.getScan(allScanNumbers[i - 1]).getRetentionTime() * 60d;
-      double currentRT = dataFile.getScan(allScanNumbers[i]).getRetentionTime() * 60d;
+      double previousRT = allScanNumbers[i - 1].getKey().getRetentionTime() * 60d;
+      double currentRT = allScanNumbers[i].getKey().getRetentionTime() * 60d;
 
       double rtDifference = currentRT - previousRT;
 
       // Intensity at the beginning and end of the interval
-      double previousIntensity = mzPeakMap.get(allScanNumbers[i - 1]).getIntensity();
-      double thisIntensity = mzPeakMap.get(allScanNumbers[i]).getIntensity();
+      double previousIntensity = allScanNumbers[i - 1].getValue().getIntensity();
+      double thisIntensity = allScanNumbers[i].getValue().getIntensity();
       double averageIntensity = (previousIntensity + thisIntensity) / 2;
 
       // Calculate area of the interval
       area += (rtDifference * averageIntensity);
-
     }
 
     // Calculate median MZ
@@ -246,28 +242,26 @@ public class SameRangePeak{
     fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
     allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
 
-    if (fragmentScan > 0) {
-      Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-      int precursorCharge = fragmentScanObject.getPrecursorCharge();
+    if (fragmentScan != null) {
+      int precursorCharge = fragmentScan.getPrecursorCharge();
       if ((precursorCharge > 0) && (this.charge == 0))
         this.charge = precursorCharge;
     }
-
   }
 
   public void setMZ(double mz) {
     this.mz = mz;
   }
 
-  public int getRepresentativeScanNumber() {
+  public Scan getRepresentativeScanNumber() {
     return representativeScan;
   }
 
-  public int getMostIntenseFragmentScanNumber() {
+  public Scan getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
-  public int[] getAllMS2FragmentScanNumbers() {
+  public Scan[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
@@ -324,19 +318,19 @@ public class SameRangePeak{
     return peakInfo;
   }
 
-  public void setFragmentScanNumber(int fragmentScanNumber) {
+  public void setFragmentScanNumber(Scan fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
 
-  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
+  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
     // also set best scan by TIC
-    int best = -1;
+    Scan best = null;
     double tic = 0;
     if (allMS2FragmentScanNumbers != null) {
-      for (int i : allMS2FragmentScanNumbers) {
-        if (tic < dataFile.getScan(i).getTIC())
-          best = i;
+      for (Scan scan : allMS2FragmentScanNumbers) {
+        if (tic < scan.getTIC())
+          best = scan;
       }
     }
     setFragmentScanNumber(best);
@@ -354,4 +348,7 @@ public class SameRangePeak{
   }
 
 
+  public Collection<DataPoint> getDataPoints() {
+    return mzPeakMap.values();
+  }
 }
