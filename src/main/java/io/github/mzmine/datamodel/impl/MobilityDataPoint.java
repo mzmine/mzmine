@@ -26,9 +26,9 @@ public class MobilityDataPoint implements DataPoint {
   private final double mz;
   private final double intensity;
   private final double mobility;
-  private final Scan scanNum;
+  private final int scanNum;
 
-  public MobilityDataPoint(double mz, double intensity, double mobility, Scan scanNum) {
+  public MobilityDataPoint(double mz, double intensity, double mobility, int scanNum) {
     this.mz = mz;
     this.intensity = intensity;
     this.mobility = mobility;
@@ -49,7 +49,7 @@ public class MobilityDataPoint implements DataPoint {
     return intensity;
   }
 
-  public Scan getScanNum() {
+  public int getScanNum() {
     return scanNum;
   }
 }

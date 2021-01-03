@@ -238,6 +238,9 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public DataPoint getDataPoint(Scan scan) {
+    if(!scan.getDataFile().equals(getRawDataFile())) {
+      throw new IllegalArgumentException("the scan data file must equal the feature data file");
+    }
     int index = getScanNumbers().indexOf(scan);
     if (index < 0) {
       return null;
