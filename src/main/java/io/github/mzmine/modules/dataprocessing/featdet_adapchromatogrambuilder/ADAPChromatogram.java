@@ -34,6 +34,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.Vector;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
@@ -58,7 +59,7 @@ public class ADAPChromatogram {
 
   // Data points of the chromatogram (map of scan number -> m/z feature)
   // private Hashtable<Integer, DataPoint> dataPointsMap;
-  private HashMap<Scan, DataPoint> dataPointsMap;
+  private TreeMap<Scan, DataPoint> dataPointsMap;
 
   // Chromatogram m/z, RT, height, area. The mz value will be the highest points mz value
   private double mz, rt, height, area, weightedMz;
@@ -118,7 +119,7 @@ public class ADAPChromatogram {
 
     rawDataPointsRTRange = dataFile.getDataRTRange(1);
 
-    dataPointsMap = new HashMap<Scan, DataPoint>();
+    dataPointsMap = new TreeMap<Scan, DataPoint>();
     buildingSegment = new Vector<Scan>();
     chromScanList = new ArrayList<Scan>();
   }
