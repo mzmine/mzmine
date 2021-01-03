@@ -43,6 +43,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.collections.ObservableList;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
 
@@ -71,7 +72,7 @@ public class MassCalibrationTask extends AbstractTask {
 
   // scan counter
   protected int processedScans = 0, totalScans;
-  protected int[] scanNumbers;
+  protected ObservableList<Scan> scanNumbers;
 
   // task timer
   protected Long startMillis;
@@ -208,13 +209,13 @@ public class MassCalibrationTask extends AbstractTask {
     }
 
 
-    scanNumbers = dataFile.getScanNumbers();
-    totalScans = scanNumbers.length;
+    scanNumbers = dataFile.getScans();
+    totalScans = scanNumbers.size();
 
     // Check if we have at least one scan with a mass list of given name
     boolean haveMassList = false;
     for (int i = 0; i < totalScans; i++) {
-      Scan scan = dataFile.getScan(scanNumbers[i]);
+      Scan scan = scanNumbers.get(i);
       MassList massList = scan.getMassList(massListName);
       if (massList != null) {
         haveMassList = true;
@@ -236,7 +237,7 @@ public class MassCalibrationTask extends AbstractTask {
         return;
       }
 
-      Scan scan = dataFile.getScan(scanNumbers[i]);
+      Scan scan = scanNumbers.get(i);
 
       MassList massList = scan.getMassList(massListName);
 
@@ -253,7 +254,7 @@ public class MassCalibrationTask extends AbstractTask {
        * scan.getRetentionTime(), massPeakMatches); errors.addAll(massListErrors);
        */
 
-      massCalibrator.addMassList(mzPeaks, scan.getRetentionTime(), scanNumbers[i],
+      massCalibrator.addMassList(mzPeaks, scan.getRetentionTime(), scanNumbers.get(i),
           intensityThreshold);
 
       processedScans++;
@@ -296,8 +297,7 @@ public class MassCalibrationTask extends AbstractTask {
         return;
       }
 
-      Scan scan = dataFile.getScan(scanNumbers[i]);
-
+      Scan scan = scanNumbers.get(i);
       MassList massList = scan.getMassList(massListName);
 
       // Skip those scans which do not have a mass list of given name

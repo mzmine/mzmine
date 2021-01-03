@@ -19,25 +19,26 @@
 package io.github.mzmine.modules.visualization.twod;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 
 /**
  * This class represents one peak datapoint (retention time and m/z)
  */
 class FeatureDataPoint {
 
-  private int scanNumber;
+  private Scan scanNumber;
   private float rt;
   private DataPoint dataPoint;
 
   /**
    */
-  FeatureDataPoint(int scanNumber, float rt, DataPoint dataPoint) {
+  FeatureDataPoint(Scan scanNumber, float rt, DataPoint dataPoint) {
     this.scanNumber = scanNumber;
     this.rt = rt;
     this.dataPoint = dataPoint;
   }
 
-  int getScanNumber() {
+  Scan getScan() {
     return scanNumber;
   }
 

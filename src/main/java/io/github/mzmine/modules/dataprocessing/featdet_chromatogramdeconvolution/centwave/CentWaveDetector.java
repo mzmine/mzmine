@@ -29,11 +29,13 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.PEAK_SCALES;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.SN_THRESHOLD;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 
@@ -104,15 +106,15 @@ public class CentWaveDetector implements PeakResolver {
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) throws RSessionWrapperException {
 
-    int scanNumbers[] = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
-    final int scanCount = scanNumbers.length;
+    ObservableList<Scan> scanNumbers = chromatogram.getScanNumbers();
+    final int scanCount = scanNumbers.size();
     double retentionTimes[] = new double[scanCount];
     double intensities[] = new double[scanCount];
     RawDataFile dataFile = chromatogram.getRawDataFile();
     for (int i = 0; i < scanCount; i++) {
-      final int scanNum = scanNumbers[i];
-      retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
-      DataPoint dp = chromatogram.getDataPoint(scanNum);
+      final Scan scanNum = scanNumbers.get(i);
+      retentionTimes[i] = scanNum.getRetentionTime();
+      DataPoint dp = chromatogram.getDataPointAtIndex(i);
       if (dp != null)
         intensities[i] = dp.getIntensity();
       else
@@ -151,11 +153,11 @@ public class CentWaveDetector implements PeakResolver {
         // a peak for each.
         for (int start = peakLeft; start < peakRight; start++) {
 
-          if (chromatogram.getDataPoint(scanNumbers[start]) != null) {
+          if (chromatogram.getDataPointAtIndex(start) != null) {
 
             int end = start;
 
-            while (end < peakRight && chromatogram.getDataPoint(scanNumbers[end + 1]) != null) {
+            while (end < peakRight && chromatogram.getDataPointAtIndex(end + 1) != null) {
 
               end++;
             }

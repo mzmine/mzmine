@@ -92,7 +92,7 @@ public class FeatureOverviewWindow extends Stage {
     splitPaneRight.getItems().add(addSpectraMS1());
 
     // add Spectra MS2
-    if (feature.getMostIntenseFragmentScanNumber() > 0) {
+    if (feature.getMostIntenseFragmentScan() != null) {
       splitPaneRight.getItems().add(addSpectraMS2());
     } else {
       FlowPane noMSMSPanel = new FlowPane();
@@ -174,7 +174,7 @@ public class FeatureOverviewWindow extends Stage {
     SplitPane pane = new SplitPane();
     pane.setOrientation(Orientation.HORIZONTAL);
     SpectraVisualizerTab spectraWindowMS1 = new SpectraVisualizerTab(rawFiles[0]);
-    spectraWindowMS1.loadRawData(rawFiles[0].getScan(feature.getRepresentativeScanNumber()));
+    spectraWindowMS1.loadRawData(feature.getRepresentativeScan());
     pane.getItems().add(spectraWindowMS1.getContent());
     return pane;
   }
@@ -183,7 +183,7 @@ public class FeatureOverviewWindow extends Stage {
     SplitPane pane = new SplitPane();
     pane.setOrientation(Orientation.HORIZONTAL);
     SpectraVisualizerTab spectraWindowMS2 = new SpectraVisualizerTab(rawFiles[0]);
-    spectraWindowMS2.loadRawData(rawFiles[0].getScan(feature.getMostIntenseFragmentScanNumber()));
+    spectraWindowMS2.loadRawData(feature.getMostIntenseFragmentScan());
     pane.getItems().add(spectraWindowMS2.getContent());
     return pane;
   }

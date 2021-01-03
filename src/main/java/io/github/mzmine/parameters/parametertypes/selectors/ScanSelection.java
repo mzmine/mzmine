@@ -18,22 +18,20 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.MobilityScan;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.TextUtils;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public class ScanSelection {
@@ -114,36 +112,22 @@ public class ScanSelection {
     return eligibleScans;
   }
 
-  public Scan[] getMatchingScans(RawDataFile dataFile) {
-
-    final List<Scan> matchingScans = new ArrayList<>();
-
-    int scanNumbers[] = dataFile.getScanNumbers();
-    for (int scanNumber : scanNumbers) {
-
-      Scan scan = dataFile.getScan(scanNumber);
-      if (matches(scan)) {
-        matchingScans.add(scan);
-      }
-    }
-
-    return matchingScans.toArray(new Scan[matchingScans.size()]);
+  public Stream<Scan> streamMatchingScans(RawDataFile dataFile) {
+    return dataFile.getScans().stream().filter(this::matches);
   }
 
+  public Scan[] getMatchingScans(RawDataFile dataFile) {
+    return streamMatchingScans(dataFile).toArray(Scan[]::new);
+  }
+
+  /**
+   * This method is deprecated as MZmine now uses the scans instead of the scan numbers
+   * @param dataFile
+   * @return
+   */
+  @Deprecated
   public int[] getMatchingScanNumbers(RawDataFile dataFile) {
-
-    final List<Integer> matchingScans = new ArrayList<>();
-
-    int scanNumbers[] = dataFile.getScanNumbers();
-
-    for (int scanNumber : scanNumbers) {
-      Scan scan = dataFile.getScan(scanNumber);
-      if (matches(scan)) {
-        matchingScans.add(scanNumber);
-      }
-    }
-
-    return Ints.toArray(matchingScans);
+    return streamMatchingScans(dataFile).mapToInt(Scan::getScanNumber).toArray();
   }
 
   public boolean matches(Scan scan) {
@@ -153,8 +137,8 @@ public class ScanSelection {
       offset = scanNumberRange.lowerEndpoint();
     } else {
       // first scan number
-      if (scan.getDataFile() != null && scan.getDataFile().getScanNumbers().length > 0) {
-        offset = scan.getDataFile().getScanNumbers()[0];
+      if (scan.getDataFile() != null && scan.getDataFile().getScans().size() > 0) {
+        offset = scan.getDataFile().getScans().get(0).getScanNumber();
       } else {
         offset = 1;
       }
@@ -229,8 +213,8 @@ public class ScanSelection {
     } else {
       // first scan number
       if (scan.getFrame().getDataFile() != null
-          && scan.getFrame().getDataFile().getScanNumbers().length > 0) {
-        offset = scan.getFrame().getDataFile().getScanNumbers()[0];
+          && scan.getFrame().getDataFile().getScans().size() > 0) {
+        offset = scan.getFrame().getDataFile().getScans().get(0).getScanNumber();
       } else {
         offset = 1;
       }

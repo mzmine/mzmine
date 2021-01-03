@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -186,9 +187,9 @@ class RansacAlignerTask extends AbstractTask {
 
       SortedMap<Double, Double> chromatogram = new TreeMap<>();
 
-      for (int scan : feature.getScanNumbers()) {
-        DataPoint dataPoint = feature.getDataPoint(scan);
-        double retTime = dataFile.getScan(scan).getRetentionTime() + retTimeDelta;
+      for (int i=0; i < feature.getNumberOfDataPoints(); i++) {
+        DataPoint dataPoint = feature.getDataPointAtIndex(i);
+        double retTime = feature.getRetentionTimeAtIndex(i) + retTimeDelta;
         if (dataPoint != null)
           chromatogram.put(retTime, dataPoint.getIntensity());
       }

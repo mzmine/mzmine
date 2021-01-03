@@ -80,10 +80,10 @@ public class Gap {
     GapDataPoint currentDataPoint;
     if (basePeak != null) {
       currentDataPoint =
-          new GapDataPoint(scan.getScanNumber(), basePeak.getMZ(), scanRT, basePeak.getIntensity());
+          new GapDataPoint(scan, basePeak.getMZ(), scanRT, basePeak.getIntensity());
     } else {
       currentDataPoint =
-          new GapDataPoint(scan.getScanNumber(), RangeUtils.rangeCenter(mzRange), scanRT, 0);
+          new GapDataPoint(scan, RangeUtils.rangeCenter(mzRange), scanRT, 0);
     }
 
     // If we have not yet started, just create a new peak
@@ -128,11 +128,11 @@ public class Gap {
 
       double mz = 0;
       float rt = 0, height = 0, area = 0;
-      int scanNumbers[] = new int[bestPeakDataPoints.size()];
+      Scan scanNumbers[] = new Scan[bestPeakDataPoints.size()];
       DataPoint finalDataPoint[] = new DataPoint[bestPeakDataPoints.size()];
       Range<Double> finalMZRange = null;
       Range<Float> finalRTRange = null, finalIntensityRange = null;
-      int representativeScan = 0;
+      Scan representativeScan = null;
 
       // Process all datapoints
       for (int i = 0; i < bestPeakDataPoints.size(); i++) {
@@ -150,7 +150,7 @@ public class Gap {
           finalIntensityRange = finalIntensityRange.span(Range.singleton((float) dp.getIntensity()));
         }
 
-        scanNumbers[i] = bestPeakDataPoints.get(i).getScanNumber();
+        scanNumbers[i] = bestPeakDataPoints.get(i).getScan();
         finalDataPoint[i] = new SimpleDataPoint(dp.getMZ(), dp.getIntensity());
         mz += bestPeakDataPoints.get(i).getMZ();
 
@@ -158,7 +158,7 @@ public class Gap {
         if (bestPeakDataPoints.get(i).getIntensity() > height) {
           height = (float) bestPeakDataPoints.get(i).getIntensity();
           rt = (float) bestPeakDataPoints.get(i).getRT();
-          representativeScan = bestPeakDataPoints.get(i).getScanNumber();
+          representativeScan = bestPeakDataPoints.get(i).getScan();
         }
 
         // Skip last data point
@@ -182,10 +182,10 @@ public class Gap {
       mz /= bestPeakDataPoints.size();
 
       // Find the best fragmentation scan, if available
-      int fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
+      Scan fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
 
       // Find all MS2 level scans
-      int[] allMS2FragmentScanNumbers =
+      Scan[] allMS2FragmentScanNumbers =
           ScanUtils.findAllMS2FragmentScans(rawDataFile, finalRTRange, finalMZRange);
 
       ModularFeature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),

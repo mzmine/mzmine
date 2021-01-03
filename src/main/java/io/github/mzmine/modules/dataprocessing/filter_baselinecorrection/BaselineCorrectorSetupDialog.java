@@ -217,7 +217,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         final ScanSelection sel = new ScanSelection(rtRange, 1);
         Scan scans[] = sel.getMatchingScans(dataFile);
 
-        TICDataSet ticDataset = new TICDataSet(dataFile, scans, mzRange, null, getPlotType());
+        TICDataSet ticDataset = new TICDataSet(dataFile, List.of(scans), mzRange, null, getPlotType());
         ticPlot.addTICDataSet(ticDataset);
 
         try {
@@ -235,7 +235,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
           if (newDataFile != null) {
             scans = sel.getMatchingScans(newDataFile);
             final TICDataSet newDataset =
-                new TICDataSet(newDataFile, scans, mzRange, null, getPlotType());
+                new TICDataSet(newDataFile, List.of(scans), mzRange, null, getPlotType());
             ticPlot.addTICDataSet(newDataset);
 
             // Show the trend line as well
@@ -442,12 +442,15 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     DataPoint dp, new_dp;
 
     // Get scan numbers from original file.
-    final int[] scanNumbers = dataFile.getScanNumbers(1);
-    final int numScans = scanNumbers.length;
+    final Scan[] scans = dataFile.getScanNumbers(1).toArray(Scan[]::new);
+    final Scan[] newScans = newDataFile.getScanNumbers(1).toArray(Scan[]::new);
+    assert scans.length == newScans.length;
+
+    final int numScans = scans.length;
     for (int scanIndex = 0; scanIndex < numScans; ++scanIndex) {
 
-      sc = dataFile.getScan(scanNumbers[scanIndex]);
-      new_sc = newDataFile.getScan(scanNumbers[scanIndex]);
+      sc = scans[scanIndex];
+      new_sc = newScans[scanIndex];
 
       if (plotType == TICPlotType.BASEPEAK) {
         dp = sc.getHighestDataPoint();

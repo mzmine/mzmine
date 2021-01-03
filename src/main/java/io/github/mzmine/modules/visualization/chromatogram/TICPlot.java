@@ -786,7 +786,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
           mz = dataSet.getZValue(0, index);
         }
         return new ChromatogramCursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),
-            dataSet.getScanNumber(index));
+            dataSet.getScan(index));
       }
     }
     return null;

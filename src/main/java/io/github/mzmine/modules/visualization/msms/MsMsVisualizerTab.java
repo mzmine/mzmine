@@ -233,7 +233,7 @@ public class MsMsVisualizerTab extends MZmineTab {
       double intensity = (double) dataset.getZ(0, index);
       ChromatogramCursorPosition pos = new ChromatogramCursorPosition(selectedRT, selectedMZ,
           intensity,
-          dataset.getDataFile(), dataset.getScanNumber(index));
+          dataset.getDataFile(), dataset.getScan(index));
       return pos;
     }
 

@@ -51,16 +51,12 @@ class FeatureDataSet extends AbstractXYDataset {
     Feature allFeatures[] = featureList.getFeatures(dataFile).toArray(Feature[]::new);
 
     for (Feature feature : allFeatures) {
-
-      int scanNumbers[] = feature.getScanNumbers().stream().mapToInt(n -> n).toArray();
-
-      for (int scan : scanNumbers) {
-
-        float rt = dataFile.getScan(scan).getRetentionTime();
-        DataPoint dp = feature.getDataPoint(scan);
+      for (int i=0; i<feature.getNumberOfDataPoints(); i++) {
+        float rt = feature.getRetentionTimeAtIndex(i);
+        DataPoint dp = feature.getDataPointAtIndex(i);
         if (dp != null) {
           if (rtRange.contains(rt) && mzRange.contains(dp.getMZ())) {
-            FeatureDataPoint newDP = new FeatureDataPoint(scan, rt, dp);
+            FeatureDataPoint newDP = new FeatureDataPoint(feature.getScanAtIndex(i), rt, dp);
             thisFeatureDataPoints.add(newDP);
           }
         }

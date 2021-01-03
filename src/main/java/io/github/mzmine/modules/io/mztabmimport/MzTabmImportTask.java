@@ -407,12 +407,12 @@ public class MzTabmImportTask extends AbstractTask {
             }
           }
         }
-        int scanNumbers[] = {};
+        Scan scanNumbers[] = {};
         DataPoint finalDataPoint[] = new DataPoint[1];
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
-        int representativeScan = 0;
-        int fragmentScan = 0;
-        int[] allFragmentScans = new int[]{0};
+        Scan representativeScan = null;
+        Scan fragmentScan = null;
+        Scan[] allFragmentScans = new Scan[]{};
 
         Range<Float> finalRTRange = Range.singleton(feature_rt);
         Range<Double> finalMZRange = Range.singleton(feature_mz);

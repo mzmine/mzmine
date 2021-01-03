@@ -557,8 +557,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
         continue;
       }
 
-      int bestScanNumber = feature.getMostIntenseFragmentScanNumber();
-      Scan theScan = rawData.getScan(bestScanNumber);
+      Scan theScan = feature.getMostIntenseFragmentScan();
       double theTIC = 0.0;
       if (theScan != null) {
         theTIC = theScan.getTIC();
@@ -578,10 +577,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     ObservableList<Scan> allMS2ScansList = FXCollections.observableArrayList();
     for (Feature feature : getFeatures()) {
       RawDataFile rawData = feature.getRawDataFile();
-      ObservableList<Integer> scanNumbers = feature.getAllMS2FragmentScanNumbers();
-      if (scanNumbers != null) {
-        for (int scanNumber : scanNumbers) {
-          Scan scan = rawData.getScan(scanNumber);
+      ObservableList<Scan> scans = feature.getAllMS2FragmentScans();
+      if (scans != null) {
+        for (Scan scan : scans) {
           allMS2ScansList.add(scan);
         }
       }

@@ -171,7 +171,7 @@ public class GnpsFbmnExportTask extends AbstractTask {
       Feature bestFeature = row.getBestFeature();
       if (bestFeature == null)
         continue;
-      int msmsScanNumber = bestFeature.getMostIntenseFragmentScanNumber();
+      Scan msmsScan = bestFeature.getMostIntenseFragmentScan();
       if (rowID != null) {
         // TODO why?
         FeatureListRow copyRow = new ModularFeatureListRow((ModularFeatureList)row.getFeatureList(), row, true);
@@ -180,26 +180,23 @@ public class GnpsFbmnExportTask extends AbstractTask {
         bestFeature = copyRow.getBestFeature();
 
         // Get the MS/MS scan number
-
-        msmsScanNumber = bestFeature.getMostIntenseFragmentScanNumber();
-        while (msmsScanNumber < 1) {
+        msmsScan = bestFeature.getMostIntenseFragmentScan();
+        while (msmsScan == null) {
           copyRow.removeFeature(bestFeature.getRawDataFile());
           if (copyRow.getFeatures().size() == 0)
             break;
 
           bestFeature = copyRow.getBestFeature();
-          msmsScanNumber = bestFeature.getMostIntenseFragmentScanNumber();
+          msmsScan = bestFeature.getMostIntenseFragmentScan();
         }
       }
-      if (msmsScanNumber >= 1) {
+      if (msmsScan != null) {
         // MS/MS scan must exist, because msmsScanNumber was > 0
-        Scan msmsScan = bestFeature.getRawDataFile().getScan(msmsScanNumber);
-
         MassList massList = msmsScan.getMassList(massListName);
 
         if (massList == null) {
           MZmineCore.getDesktop().displayErrorMessage("There is no mass list called " + massListName
-                  + " for MS/MS scan #" + msmsScanNumber + " (" + bestFeature.getRawDataFile() + ")");
+                  + " for MS/MS scan #" + msmsScan.getScanNumber() + " (" + bestFeature.getRawDataFile() + ")");
           return;
         }
 

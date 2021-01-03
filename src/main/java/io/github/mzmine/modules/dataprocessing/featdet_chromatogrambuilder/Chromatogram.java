@@ -21,6 +21,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -47,24 +49,25 @@ public class Chromatogram{
   private RawDataFile dataFile;
 
   // Data points of the chromatogram (map of scan number -> m/z peak)
-  private Hashtable<Integer, DataPoint> dataPointsMap;
+  private Hashtable<Scan, DataPoint> dataPointsMap;
 
   // Chromatogram m/z, RT, height, area
   private double mz, rt, height, area;
   private Double fwhm = null, tf = null, af = null;
 
   // Top intensity scan, fragment scan
-  private int representativeScan = -1, fragmentScan = -1;
+  private Scan representativeScan = null;
+  private Scan fragmentScan = null;
 
   // All MS2 fragment scan numbers
-  private int[] allMS2FragmentScanNumbers = new int[] {};
+  private Scan[] allMS2FragmentScanNumbers = new Scan[] {};
 
   // Ranges of raw data points
   private Range<Double> rawDataPointsMZRange;
   private Range<Float> rawDataPointsRTRange, rawDataPointsIntensityRange;
 
   // A set of scan numbers of a segment which is currently being connected
-  private Vector<Integer> buildingSegment;
+  private Vector<Scan> buildingSegment;
 
   // Keep track of last added data point
   private DataPoint lastMzPeak;
@@ -82,7 +85,7 @@ public class Chromatogram{
   private double mzSum = 0;
   private int mzN = 0;
 
-  private final int scanNumbers[];
+  private final Scan scanNumbers[];
 
   public void outputChromToFile() {
     System.out.println("does nothing");
@@ -91,14 +94,14 @@ public class Chromatogram{
   /**
    * Initializes this Chromatogram
    */
-  public Chromatogram(RawDataFile dataFile, int scanNumbers[]) {
+  public Chromatogram(RawDataFile dataFile, Scan scanNumbers[]) {
     this.dataFile = dataFile;
     this.scanNumbers = scanNumbers;
 
     rawDataPointsRTRange = dataFile.getDataRTRange(1);
 
-    dataPointsMap = new Hashtable<Integer, DataPoint>();
-    buildingSegment = new Vector<Integer>(128);
+    dataPointsMap = new Hashtable<Scan, DataPoint>();
+    buildingSegment = new Vector<Scan>(128);
   }
 
   /**
@@ -107,17 +110,16 @@ public class Chromatogram{
    *
    * @param mzValue
    */
-  public void addMzPeak(int scanNumber, DataPoint mzValue) {
+  public void addMzPeak(Scan scanNumber, DataPoint mzValue) {
     dataPointsMap.put(scanNumber, mzValue);
     lastMzPeak = mzValue;
     mzSum += mzValue.getMZ();
     mzN++;
     mz = mzSum / mzN;
     buildingSegment.add(scanNumber);
-
   }
 
-  public DataPoint getDataPoint(int scanNumber) {
+  public DataPoint getDataPoint(Scan scanNumber) {
     return dataPointsMap.get(scanNumber);
   }
 
@@ -153,11 +155,11 @@ public class Chromatogram{
     return height;
   }
 
-  public int getMostIntenseFragmentScanNumber() {
+  public Scan getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
-  public int[] getAllMS2FragmentScanNumbers() {
+  public Scan[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
@@ -181,11 +183,11 @@ public class Chromatogram{
     return rawDataPointsRTRange;
   }
 
-  public int getRepresentativeScanNumber() {
+  public Scan getRepresentativeScanNumber() {
     return representativeScan;
   }
 
-  public @Nonnull int[] getScanNumbers() {
+  public @Nonnull Scan[] getScanNumbers() {
     return scanNumbers;
   }
 
@@ -203,8 +205,8 @@ public class Chromatogram{
 
   public void finishChromatogram() {
 
-    int allScanNumbers[] = Ints.toArray(dataPointsMap.keySet());
-    Arrays.sort(allScanNumbers);
+    Scan allScanNumbers[] = dataPointsMap.keySet().stream().sorted(
+        Comparator.comparingInt(Scan::getScanNumber)).toArray(Scan[]::new);
 
     // Calculate median m/z
     double allMzValues[] = new double[allScanNumbers.length];
@@ -236,7 +238,7 @@ public class Chromatogram{
 
       if (height < mzPeak.getIntensity()) {
         height = mzPeak.getIntensity();
-        rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
+        rt = allScanNumbers[i].getRetentionTime();
         representativeScan = allScanNumbers[i];
       }
     }
@@ -245,8 +247,8 @@ public class Chromatogram{
     area = 0;
     for (int i = 1; i < allScanNumbers.length; i++) {
       // For area calculation, we use retention time in seconds
-      double previousRT = dataFile.getScan(allScanNumbers[i - 1]).getRetentionTime() * 60d;
-      double currentRT = dataFile.getScan(allScanNumbers[i]).getRetentionTime() * 60d;
+      double previousRT = allScanNumbers[i - 1].getRetentionTime() * 60d;
+      double currentRT = allScanNumbers[i].getRetentionTime() * 60d;
       double previousHeight = dataPointsMap.get(allScanNumbers[i - 1]).getIntensity();
       double currentHeight = dataPointsMap.get(allScanNumbers[i]).getIntensity();
       area += (currentRT - previousRT) * (currentHeight + previousHeight) / 2;
@@ -256,17 +258,16 @@ public class Chromatogram{
     fragmentScan =
         ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
-    if (fragmentScan > 0) {
-      Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-      int precursorCharge = fragmentScanObject.getPrecursorCharge();
+    if (fragmentScan != null) {
+      int precursorCharge = fragmentScan.getPrecursorCharge();
       if (precursorCharge > 0)
         this.charge = precursorCharge;
     }
 
     rawDataPointsRTRange = null;
 
-    for (int scanNum : allScanNumbers) {
-      double scanRt = dataFile.getScan(scanNum).getRetentionTime();
+    for (Scan scanNum : allScanNumbers) {
+      double scanRt = scanNum.getRetentionTime();
       DataPoint dp = getDataPoint(scanNum);
 
       if ((dp == null) || (dp.getIntensity() == 0.0))
@@ -287,10 +288,10 @@ public class Chromatogram{
   public double getBuildingSegmentLength() {
     if (buildingSegment.size() < 2)
       return 0;
-    int firstScan = buildingSegment.firstElement();
-    int lastScan = buildingSegment.lastElement();
-    double firstRT = dataFile.getScan(firstScan).getRetentionTime();
-    double lastRT = dataFile.getScan(lastScan).getRetentionTime();
+    Scan firstScan = buildingSegment.firstElement();
+    Scan lastScan = buildingSegment.lastElement();
+    double firstRT = firstScan.getRetentionTime();
+    double lastRT = lastScan.getRetentionTime();
     return (lastRT - firstRT);
   }
 
@@ -299,7 +300,7 @@ public class Chromatogram{
   }
 
   public void removeBuildingSegment() {
-    for (int scanNumber : buildingSegment)
+    for (Scan scanNumber : buildingSegment)
       dataPointsMap.remove(scanNumber);
     buildingSegment.clear();
   }
@@ -310,7 +311,7 @@ public class Chromatogram{
   }
 
   public void addDataPointsFromChromatogram(Chromatogram ch) {
-    for (Entry<Integer, DataPoint> dp : ch.dataPointsMap.entrySet()) {
+    for (Entry<Scan, DataPoint> dp : ch.dataPointsMap.entrySet()) {
       addMzPeak(dp.getKey(), dp.getValue());
     }
   }
@@ -355,19 +356,21 @@ public class Chromatogram{
     return peakInfo;
   }
 
-  public void setFragmentScanNumber(int fragmentScanNumber) {
+  public void setFragmentScanNumber(Scan fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
 
-  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
+  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
     // also set best scan by TIC
-    int best = -1;
+    Scan best = null;
     double tic = 0;
     if (allMS2FragmentScanNumbers != null) {
-      for (int i : allMS2FragmentScanNumbers) {
-        if (tic < dataFile.getScan(i).getTIC())
-          best = i;
+      for (Scan scan : allMS2FragmentScanNumbers) {
+        if (tic < scan.getTIC()) {
+          best = scan;
+          tic = scan.getTIC();
+        }
       }
     }
     setFragmentScanNumber(best);
@@ -383,4 +386,7 @@ public class Chromatogram{
     this.peakList = peakList;
   }
 
+  public Collection<DataPoint> getDataPoints() {
+    return dataPointsMap.values();
+  }
 }

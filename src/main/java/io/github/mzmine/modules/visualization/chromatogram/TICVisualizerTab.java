@@ -152,7 +152,7 @@ public class TICVisualizerTab extends MZmineTab {
     showSpectrumBtn.setOnAction(e -> {
       ChromatogramCursorPosition pos = getCursorPosition();
       if (pos != null) {
-        SpectraVisualizerModule.addNewSpectrumTab(pos.getDataFile(), pos.getScanNumber());
+        SpectraVisualizerModule.addNewSpectrumTab(pos.getDataFile(), pos.getScan());
       }
     });
 
@@ -336,7 +336,7 @@ public class TICVisualizerTab extends MZmineTab {
 
     if (pos != null) {
       subTitle.append("Selected scan #");
-      subTitle.append(pos.getScanNumber());
+      subTitle.append(pos.getScan().getScanNumber());
       if (ticDataSets.size() > 1) {
         subTitle.append(" (" + pos.getDataFile() + ")");
       }
@@ -504,7 +504,7 @@ public class TICVisualizerTab extends MZmineTab {
         }
         ChromatogramCursorPosition pos = new ChromatogramCursorPosition(selectedRT, mz, selectedIT,
             dataSet.getDataFile(),
-            dataSet.getScanNumber(index));
+            dataSet.getScan(index));
         return pos;
       }
     }

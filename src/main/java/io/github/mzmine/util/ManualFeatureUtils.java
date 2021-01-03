@@ -42,13 +42,9 @@ public class ManualFeatureUtils {
     ManualFeature newFeature = new ManualFeature(dataFile);
     boolean dataPointFound = false;
 
-    int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+    Scan[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
 
-    for (int scanNumber : scanNumbers) {
-
-      // Get next scan
-      Scan scan = dataFile.getScan(scanNumber);
-
+    for (Scan scan : scanNumbers) {
       // Find most intense m/z feature
       DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
@@ -56,11 +52,11 @@ public class ManualFeatureUtils {
         if (basePeak.getIntensity() > 0) {
           dataPointFound = true;
         }
-        newFeature.addDatapoint(scan.getScanNumber(), basePeak);
+        newFeature.addDatapoint(scan, basePeak);
       } else {
         final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
         DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-        newFeature.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+        newFeature.addDatapoint(scan, fakeDataPoint);
       }
     }
 

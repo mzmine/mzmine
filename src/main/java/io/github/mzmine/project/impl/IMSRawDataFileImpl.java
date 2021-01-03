@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.MobilityDataPoint;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -51,8 +52,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   public static final String SAVE_IDENTIFIER = "Ion mobility Raw data file";
   private static Logger logger = Logger.getLogger(IMSRawDataFileImpl.class.getName());
   protected final MobilityDataPointStorage mdpStorage;
-  private final TreeMap<Integer, StorableFrame> frames;
-  private final Hashtable<Integer, Set<Integer>> frameNumbersCache;
+  private final List<StorableFrame> frames;
+  private final Hashtable<Integer, Set<Scan>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
   private final Hashtable<Integer, Collection<? extends Frame>> frameMsLevelCache;
 
@@ -69,7 +70,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   public IMSRawDataFileImpl(String dataFileName) throws IOException {
     super(dataFileName);
 
-    frames = new TreeMap<>();
+    frames = new ArrayList<>();
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
     frameMsLevelCache = new Hashtable<>();
@@ -109,8 +110,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     final int storageId = storeDataPoints(newFrame.getDataPoints());
     StorableFrame storedFrame = new StorableFrame(newFrame, this,
         newFrame.getNumberOfDataPoints(), storageId);
-    scans.put(storedFrame.getFrameId(), storedFrame);
-    frames.put(storedFrame.getFrameId(), storedFrame);
+    scans.add(storedFrame);
+    frames.add(storedFrame);
     return storedFrame;
       /*if (mobilityRange == null) {
         mobilityRange = Range.singleton(newScan.getMobility());
@@ -123,7 +124,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Nonnull
   @Override
   public Collection<? extends Frame> getFrames() {
-    return (Collection<? extends Frame>) frames.values();
+    return frames;
   }
 
   @Nonnull
@@ -148,19 +149,13 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   @Nonnull
   @Override
-  public Set<Integer> getFrameNumbers() {
-    return frames.keySet();
-  }
-
-  @Nonnull
-  @Override
-  public Set<Integer> getFrameNumbers(int msLevel) {
+  public Set<Scan> getFrameNumbers(int msLevel) {
     return frameNumbersCache.computeIfAbsent(msLevel, (key) -> {
-      Set<Integer> frameNums = new HashSet<>();
+      Set<Scan> frameNums = new HashSet<>();
       synchronized (frames) {
-        for (Entry<Integer, StorableFrame> e : frames.entrySet()) {
-          if (e.getValue().getMSLevel() == msLevel) {
-            frameNums.add(e.getKey());
+        for (Scan e : frames) {
+          if (e.getMSLevel() == msLevel) {
+            frameNums.add(e);
           }
         }
       }
@@ -175,10 +170,10 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   @Nonnull
   @Override
-  public Set<Integer> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
+  public Set<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
 //     since {@link getFrameNumbers(int)} is prefiltered, this shouldn't lead to NPE
     return getFrameNumbers(msLevel).stream()
-        .filter(frameNum -> rtRange.contains(getFrame(frameNum).getRetentionTime()))
+        .filter(frameNum -> rtRange.contains(frameNum.getRetentionTime()))
         .collect(Collectors.toSet());
   }
 

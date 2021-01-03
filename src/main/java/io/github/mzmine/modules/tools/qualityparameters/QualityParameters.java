@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import java.util.List;
 import com.google.common.collect.Range;
@@ -44,7 +45,7 @@ public class QualityParameters {
       Property<Float> height = peak.getHeightProperty();
       Property<Float> rt = peak.getRTProperty();
 
-      List<Integer> scanNumbers = peak.getScanNumbersProperty();
+      List<Scan> scanNumbers = peak.getScanNumbers();
       RawDataFile dataFile = peak.getRawDataFile();
       List<DataPoint> dps = peak.getDataPointsProperty();
       if (height.getValue() == null || rt.getValue() == null || dataFile == null
@@ -97,7 +98,7 @@ public class QualityParameters {
     Float height = feature.getHeight();
     Float rt = feature.getRT();
 
-    List<Integer> scanNumbers = feature.getScanNumbers();
+    List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
     List<DataPoint> dps = feature.getDataPoints();
     if (height == null || rt == null || dataFile == null
@@ -129,7 +130,7 @@ public class QualityParameters {
     Float height = feature.getHeight();
     Float rt = feature.getRT();
 
-    List<Integer> scanNumbers = feature.getScanNumbers();
+    List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
     List<DataPoint> dps = feature.getDataPoints();
     if (height == null || rt == null || dataFile == null
@@ -161,7 +162,7 @@ public class QualityParameters {
     Float height = feature.getHeight();
     Float rt = feature.getRT();
 
-    List<Integer> scanNumbers = feature.getScanNumbers();
+    List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
     List<DataPoint> dps = feature.getDataPoints();
     if (height == null || rt == null || dataFile == null
@@ -187,15 +188,15 @@ public class QualityParameters {
     return (float) af;
   }
 
-  private static double[] peakFindRTs(double intensity, float featureRT, List<Integer> scanNumbers,
+  private static double[] peakFindRTs(double intensity, float featureRT, List<Scan> scanNumbers,
       List<DataPoint> dps, RawDataFile dataFile, Range<Float> rtRange) {
     return peakFindRTs(intensity, featureRT,
-        scanNumbers.stream().mapToInt(i -> i.intValue()).toArray(), dps.toArray(DataPoint[]::new), //
+        scanNumbers, dps.toArray(DataPoint[]::new), //
         dataFile, //
         Range.closed(rtRange.lowerEndpoint().doubleValue(), rtRange.upperEndpoint().doubleValue()));
   }
 
-  private static double[] peakFindRTs(double intensity, double featureRT, int[] scanNumbers,
+  private static double[] peakFindRTs(double intensity, double featureRT, List<Scan> scanNumbers,
       DataPoint[] dps, RawDataFile dataFile, Range<Double> rtRange) {
 
     assert scanNumbers != null;
@@ -212,16 +213,16 @@ public class QualityParameters {
     // Find the data points closet to input intensity on both side of the
     // peak apex
     DataPoint lastDP = dps[0];
-    double lastRT = dataFile.getScan(scanNumbers[0]).getRetentionTime();
+    double lastRT = scanNumbers.get(0).getRetentionTime();
     DataPoint dp = dps[1];
-    double rt = dataFile.getScan(scanNumbers[1]).getRetentionTime();
-    for (int i = 1; i < scanNumbers.length - 1; i++) {
+    double rt = scanNumbers.get(1).getRetentionTime();
+    for (int i = 1; i < scanNumbers.size() - 1; i++) {
       DataPoint nextDP = dps[i + 1];
-      double nextRT = dataFile.getScan(scanNumbers[i + 1]).getRetentionTime();
+      double nextRT = scanNumbers.get(i + 1).getRetentionTime();
 
       if (dp != null) {
         currentDiff = Math.abs(intensity - dp.getIntensity());
-        currentRT = dataFile.getScan(scanNumbers[i]).getRetentionTime();
+        currentRT = scanNumbers.get(i).getRetentionTime();
         if (currentDiff < lastDiff1 && currentDiff > 0 && currentRT <= featureRT
             && nextDP != null) {
           x1 = rt;

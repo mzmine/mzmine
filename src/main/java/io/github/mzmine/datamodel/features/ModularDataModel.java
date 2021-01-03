@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.features;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -215,12 +216,18 @@ public interface ModularDataModel {
       property = realType.createProperty();
       setProperty(realType, property);
     }
+    if(value == null) {
+      property.setValue(null);
+      return;
+    }
+
     if(value instanceof Property)
       value = ((Property)value).getValue();
 
     // lists need to be ObservableList
-    if (value instanceof List && !(value instanceof ObservableList))
+    if (value instanceof List && !(value instanceof ObservableList)) {
       property.setValue(FXCollections.observableList((List) value));
+    }
     else if (value instanceof Map && !(value instanceof ObservableMap))
       property.setValue(FXCollections.observableMap((Map) value));
     else

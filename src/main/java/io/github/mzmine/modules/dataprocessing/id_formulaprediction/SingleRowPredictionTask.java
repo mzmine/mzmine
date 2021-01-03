@@ -242,15 +242,14 @@ public class SingleRowPredictionTask extends AbstractTask {
     Feature bestPeak = peakListRow.getBestFeature();
     RawDataFile dataFile = bestPeak.getRawDataFile();
     Map<DataPoint, String> msmsAnnotations = null;
-    int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+    Scan msmsScan = bestPeak.getMostIntenseFragmentScan();
 
-    if ((checkMSMS) && (msmsScanNumber > 0)) {
-      Scan msmsScan = dataFile.getScan(msmsScanNumber);
+    if ((checkMSMS) && (msmsScan != null)) {
       String massListName = msmsParameters.getParameter(MSMSScoreParameters.massList).getValue();
       MassList ms2MassList = msmsScan.getMassList(massListName);
       if (ms2MassList == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("The MS/MS scan #" + msmsScanNumber + " in file " + dataFile.getName()
+        setErrorMessage("The MS/MS scan #" + msmsScan.getScanNumber() + " in file " + dataFile.getName()
             + " does not have a mass list called '" + massListName + "'");
         return;
       }

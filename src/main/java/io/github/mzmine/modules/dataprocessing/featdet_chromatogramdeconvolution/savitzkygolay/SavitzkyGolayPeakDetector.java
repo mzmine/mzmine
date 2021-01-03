@@ -22,10 +22,13 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.MIN_PEAK_HEIGHT;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.PEAK_DURATION;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 
@@ -61,15 +64,14 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) {
 
-    int scanNumbers[] = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
-    final int scanCount = scanNumbers.length;
+    ObservableList<Scan> scanNumbers = chromatogram.getScanNumbers();
+    final int scanCount = scanNumbers.size();
     double retentionTimes[] = new double[scanCount];
     double intensities[] = new double[scanCount];
-    RawDataFile dataFile = chromatogram.getRawDataFile();
     for (int i = 0; i < scanCount; i++) {
-      final int scanNum = scanNumbers[i];
-      retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
-      DataPoint dp = chromatogram.getDataPoint(scanNum);
+      final Scan scanNum = scanNumbers.get(i);
+      retentionTimes[i] = scanNum.getRetentionTime();
+      DataPoint dp = chromatogram.getDataPointAtIndex(i);
       if (dp != null)
         intensities[i] = dp.getIntensity();
       else
@@ -102,7 +104,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
           parameters.getParameter(DERIVATIVE_THRESHOLD_LEVEL).getValue());
 
       // Search for peaks.
-      Arrays.sort(scanNumbers);
+      scanNumbers.sort(Comparator.comparingInt(Scan::getScanNumber));
       final ResolvedPeak[] resolvedOriginalPeaks = peaksSearch(chromatogram, scanNumbers,
           secondDerivative, noiseThreshold, mzCenterFunction, msmsRange, rTRangeMSMS);
 
@@ -133,7 +135,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
    * @param noiseThreshold noise threshold.
    * @return array of peaks found.
    */
-  private static ResolvedPeak[] peaksSearch(final Feature chromatogram, final int[] scanNumbers,
+  private static ResolvedPeak[] peaksSearch(final Feature chromatogram, final ObservableList<Scan> scanNumbers,
       final double[] derivativeOfIntensities, final double noiseThreshold,
       CenterFunction mzCenterFunction, final double msmsRange, final double rTRangeMSMS) {
 
@@ -234,14 +236,11 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 
       // If the peak starts in a region with no data points, move the
       // start to the first available data point.
-      while (currentPeakStart < scanNumbers.length - 1) {
+      while (currentPeakStart < scanNumbers.size() - 1) {
 
-        if (chromatogram.getDataPoint(scanNumbers[currentPeakStart]) == null) {
-
+        if (chromatogram.getDataPointAtIndex(currentPeakStart) == null) {
           currentPeakStart++;
-
         } else {
-
           break;
         }
       }
@@ -250,9 +249,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
       // point inside, we have to finish the
       // peak there.
       for (int newEnd = currentPeakStart; newEnd <= currentPeakEnd; newEnd++) {
-
-        if (chromatogram.getDataPoint(scanNumbers[newEnd]) == null) {
-
+        if (chromatogram.getDataPointAtIndex(newEnd) == null) {
           currentPeakEnd = newEnd - 1;
           break;
         }

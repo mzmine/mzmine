@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
@@ -56,9 +57,9 @@ public class FeatureDataSet extends AbstractXYDataset {
     feature = p;
     name = id;
 
-    final ObservableList<Integer> scanNumbers = feature.getScanNumbers();
+    final ObservableList<Scan> scanNumbers = feature.getScanNumbers();
     final RawDataFile dataFile = feature.getRawDataFile();
-    final int peakScanNumber = feature.getRepresentativeScanNumber();
+    final Scan peakScanNumber = feature.getRepresentativeScan();
 
     // Copy peak data.
     final int scanCount = scanNumbers.size();
@@ -69,14 +70,14 @@ public class FeatureDataSet extends AbstractXYDataset {
     for (int i = 0; i < scanCount; i++) {
 
       // Representative scan number?
-      final int scanNumber = scanNumbers.get(i);
-      if (peakIndex < 0 && scanNumber == peakScanNumber) {
+      final Scan scanNumber = scanNumbers.get(i);
+      if (peakIndex < 0 && Objects.equals(scanNumber, peakScanNumber)) {
 
         peakIndex = i;
       }
 
       // Copy RT and m/z.
-      retentionTimes[i] = dataFile.getScan(scanNumber).getRetentionTime();
+      retentionTimes[i] = scanNumber.getRetentionTime();
       final DataPoint dataPoint = feature.getDataPoint(scanNumber);
       if (dataPoint == null) {
 

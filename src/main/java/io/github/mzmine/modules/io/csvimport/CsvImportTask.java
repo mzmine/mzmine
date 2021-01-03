@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -115,15 +116,15 @@ public class CsvImportTask extends AbstractTask {
         finalMZRange = Range.closed(mzMin, mzMax);
         finalRTRange = Range.closed(rtMin, rtMax);
         finalIntensityRange = Range.singleton(intensity);
-        int[] scanNumbers = {};
+        Scan[] scanNumbers = {};
         DataPoint[] finalDataPoint = new DataPoint[1];
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         FeatureStatus status = FeatureStatus.UNKNOWN; // abundance unknown
-        int representativeScan = 0;
-        for(int s_no : rawDataFile.getScanNumbers()){
-          if(rawDataFile.getScan(s_no).getRetentionTime() == feature_rt){
+        Scan representativeScan = null;
+        for(Scan s_no : rawDataFile.getScans()){
+          if(s_no.getRetentionTime() == feature_rt){
             representativeScan = s_no;
-            for(DataPoint dp : rawDataFile.getScan(s_no).getDataPoints()){
+            for(DataPoint dp : s_no.getDataPoints()){
               if(dp.getMZ() == feature_mz){
                 finalDataPoint[0] = dp;
                 break;
@@ -132,8 +133,8 @@ public class CsvImportTask extends AbstractTask {
           }
         }
 
-        int fragmentScan = -1;
-        int[] allFragmentScans = new int[]{0};
+        Scan fragmentScan = null;
+        Scan[] allFragmentScans = new Scan[]{};
 
         Feature feature = new ModularFeature(newFeatureList, rawDataFile, feature_mz, feature_rt, feature_height, abundance,
             scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,

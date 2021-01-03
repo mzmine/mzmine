@@ -224,7 +224,7 @@ public class ResultWindowController {
         Feature peak = peakListRow.getBestFeature();
 
         RawDataFile dataFile = peak.getRawDataFile();
-        int scanNumber = peak.getRepresentativeScanNumber();
+        Scan scanNumber = peak.getRepresentativeScan();
         SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null,
                 peak.getIsotopePattern(), predictedPattern);
     }
@@ -257,9 +257,9 @@ public class ResultWindowController {
         Feature bestPeak = peakListRow.getBestFeature();
 
         RawDataFile dataFile = bestPeak.getRawDataFile();
-        int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+        Scan msmsScanNumber = bestPeak.getMostIntenseFragmentScan();
 
-        if (msmsScanNumber < 1)
+        if (msmsScanNumber == null)
             return;
 
         SpectraVisualizerTab msmsPlot =

@@ -8,6 +8,7 @@ import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,11 +23,8 @@ import java.util.logging.Logger;
 public class ADAP3DecompositionV2Utils {
   private final Logger log;
 
-  private final Map<Integer, Float> retTimes;
-
   public ADAP3DecompositionV2Utils() {
     this.log = Logger.getLogger(ADAP3DecompositionV2Task.class.getName());
-    this.retTimes = new HashMap<>();
   }
 
   /**
@@ -43,15 +41,15 @@ public class ADAP3DecompositionV2Utils {
 
     for (FeatureListRow row : peakList.getRows()) {
       Feature peak = row.getBestFeature();
-      int[] scanNumbers = peak.getScanNumbers().stream().mapToInt(i -> i).toArray();
+      ObservableList<Scan> scanNumbers = peak.getScanNumbers();
 
       // Build chromatogram
-      double[] retTimes = new double[scanNumbers.length];
-      double[] intensities = new double[scanNumbers.length];
-      for (int i = 0; i < scanNumbers.length; ++i) {
-        int scan = scanNumbers[i];
-        retTimes[i] = getRetTime(dataFile, scan);
-        DataPoint dataPoint = peak.getDataPoint(scan);
+      double[] retTimes = new double[scanNumbers.size()];
+      double[] intensities = new double[scanNumbers.size()];
+      for (int i = 0; i < scanNumbers.size(); ++i) {
+        Scan scan = scanNumbers.get(i);
+        retTimes[i] = peak.getRetentionTimeAtIndex(i);
+        DataPoint dataPoint = peak.getDataPointAtIndex(i);
         if (dataPoint != null)
           intensities[i] = dataPoint.getIntensity();
       }
@@ -70,9 +68,9 @@ public class ADAP3DecompositionV2Utils {
         info.peakID = row.getID() - 1;
 
         double height = -Double.MIN_VALUE;
-        for (int scan : scanNumbers) {
-          DataPoint dataPoint = peak.getDataPoint(scan);
 
+        for (int i = 0; i < scanNumbers.size(); i++) {
+          DataPoint dataPoint = peak.getDataPointAtIndex(i);
           if (dataPoint == null)
             continue;
 
@@ -80,12 +78,12 @@ public class ADAP3DecompositionV2Utils {
 
           if (intensity > height) {
             height = intensity;
-            info.peakIndex = scan;
+            info.peakIndex = scanNumbers.get(i).getScanNumber();
           }
         }
 
-        info.leftApexIndex = scanNumbers[0];
-        info.rightApexIndex = scanNumbers[scanNumbers.length - 1];
+        info.leftApexIndex = scanNumbers.get(0).getScanNumber();
+        info.rightApexIndex = scanNumbers.get(scanNumbers.size() - 1).getScanNumber();
         info.retTime = peak.getRT();
         info.mzValue = peak.getMZ();
         info.intensity = peak.getHeight();
@@ -105,12 +103,4 @@ public class ADAP3DecompositionV2Utils {
     return peaks;
   }
 
-  private double getRetTime(RawDataFile dataFile, int scan) {
-    Float retTime = retTimes.get(scan);
-    if (retTime == null) {
-      retTime = dataFile.getScan(scan).getRetentionTime();
-      retTimes.put(scan, retTime);
-    }
-    return retTime;
-  }
 }

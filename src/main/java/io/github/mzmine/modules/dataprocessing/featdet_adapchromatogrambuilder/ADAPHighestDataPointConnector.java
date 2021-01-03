@@ -20,6 +20,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
+import io.github.mzmine.datamodel.Scan;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -39,12 +40,12 @@ public class ADAPHighestDataPointConnector {
   private final MZTolerance mzTolerance;
   private final double minimumTimeSpan, minimumHeight;
   private final RawDataFile dataFile;
-  private final int allScanNumbers[];
+  private final Scan allScanNumbers[];
 
   // Mapping of last data point m/z --> chromatogram
   private Set<ADAPChromatogram> buildingChromatograms;
 
-  public ADAPHighestDataPointConnector(RawDataFile dataFile, int allScanNumbers[],
+  public ADAPHighestDataPointConnector(RawDataFile dataFile, Scan allScanNumbers[],
       double minimumTimeSpan, double minimumHeight, MZTolerance mzTolerance) {
 
     this.mzTolerance = mzTolerance;
@@ -60,7 +61,7 @@ public class ADAPHighestDataPointConnector {
 
   }
 
-  public void addScan(int scanNumber, DataPoint mzValues[]) {
+  public void addScan(Scan scanNumber, DataPoint mzValues[]) {
 
     // Sort m/z features by descending intensity
     Arrays.sort(mzValues,

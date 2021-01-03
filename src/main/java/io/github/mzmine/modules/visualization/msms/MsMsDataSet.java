@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import org.jfree.data.xy.AbstractXYDataset;
 import com.google.common.collect.Range;
 
@@ -45,12 +46,19 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
   private RawDataFile rawDataFile;
   private Range<Double> totalMZRange;
   private Range<Float> totalRTRange;
-  private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans,
-      allProcessedScans, processedColors, totalEntries, lastMSIndex;
+  private ObservableList<Scan> allScanNumbers;
+  private Scan[] msmsScanNumbers;
+  private int totalScans;
+  private int totalmsmsScans;
+  private int processedScans;
+  private int allProcessedScans;
+  private int processedColors;
+  private int totalEntries;
+  private int lastMSIndex;
   private final double[] rtValues, mzValues, intensityValues;
   private IntensityType intensityType;
   private NormalizationType normalizationType;
-  private final int[] scanNumbers;
+  private final Scan[] scanNumbers;
   private double minFeatureInt, maxIntensity;
   private Color[] colorValues;
 
@@ -68,14 +76,14 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
     this.normalizationType = normalizationType;
     this.minFeatureInt = minFeatureInt - EPSILON;
 
-    allScanNumbers = rawDataFile.getScanNumbers();
+    allScanNumbers = rawDataFile.getScans();
     msmsScanNumbers = rawDataFile.getScanNumbers(2, rtRange);
 
-    totalScans = allScanNumbers.length;
+    totalScans = allScanNumbers.size();
     totalmsmsScans = msmsScanNumbers.length;
     totalEntries = totalmsmsScans;
 
-    scanNumbers = new int[totalScans];
+    scanNumbers = new Scan[totalScans];
     rtValues = new double[totalmsmsScans];
     mzValues = new double[totalmsmsScans];
     intensityValues = new double[totalmsmsScans];
@@ -97,7 +105,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
       if (status == TaskStatus.CANCELED)
         return;
 
-      Scan scan = rawDataFile.getScan(allScanNumbers[index]);
+      Scan scan = allScanNumbers.get(index);
 
       if (scan.getMSLevel() == 1) {
         // Store info about MS spectra for MS/MS to allow extraction of
@@ -112,7 +120,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
         totalScanIntensity = 0;
         if (intensityType == IntensityType.MS) {
           // Get intensity of precursor ion from MS scan
-          Scan msscan = rawDataFile.getScan(allScanNumbers[lastMSIndex]);
+          Scan msscan = allScanNumbers.get(lastMSIndex);
           Double mzTolerance = precursorMZ * 10 / 1000000;
           Range<Double> precursorMZRange =
               Range.closed(precursorMZ - mzTolerance, precursorMZ + mzTolerance);
@@ -142,7 +150,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
           rtValues[processedScans] = scanRT;
           mzValues[processedScans] = precursorMZ;
           intensityValues[processedScans] = totalScanIntensity;
-          scanNumbers[processedScans] = index + 1; // +1 because loop
+          scanNumbers[processedScans] = scan; // +1 because loop
           // runs from 0 not
           // 1
           processedScans++;
@@ -264,7 +272,6 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
    * Highlights all MS/MS spots for which a peak is found in the MS/MS spectrum with the m/z value
    *
    * @param mz m/z.
-   * @param ppm ppm value.
    * @param neutralLoss true or false.
    * @param c color.
    * 
@@ -277,10 +284,10 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
 
     // Loop through all scans
     for (int row = 0; row < scanNumbers.length; row++) {
-      Scan msscan = rawDataFile.getScan(scanNumbers[row]);
+      Scan msscan = scanNumbers[row];
 
       // Get total intensity of all features in MS/MS scan
-      if (scanNumbers[row] > 0) {
+      if (scanNumbers[row] != null) {
         DataPoint scanDataPoints[] = msscan.getDataPoints();
         double selectedIons[] = new double[scanDataPoints.length];
         int ions = 0;
@@ -351,7 +358,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
     return rawDataFile;
   }
 
-  public int getScanNumber(final int item) {
+  public Scan getScan(final int item) {
     return scanNumbers[item];
   }
 

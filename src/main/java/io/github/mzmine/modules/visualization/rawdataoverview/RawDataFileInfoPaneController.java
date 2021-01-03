@@ -123,8 +123,9 @@ public class RawDataFileInfoPaneController {
 
     String scansMSLevel = "Total scans (" + rawDataFile.getNumOfScans() + ") ";
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
-      scansMSLevel = scansMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level ("
-          + rawDataFile.getScanNumbers(i + 1).length + ") ";
+      int level = rawDataFile.getMSLevels()[i];
+      scansMSLevel = scansMSLevel + "MS" + level + " level ("
+          + rawDataFile.getScanNumbers(level).size() + ") ";
       lblNumScans.setText(scansMSLevel);
     }
 
@@ -236,8 +237,8 @@ public class RawDataFileInfoPaneController {
 
       tableData.clear();
 
-      final int[] scanNumbers = rawDataFile.getScanNumbers();
-      if (scanNumbers.length > 5E5) {
+      final ObservableList<Scan> scanNumbers = rawDataFile.getScans();
+      if (scanNumbers.size() > 5E5) {
         status = TaskStatus.FINISHED;
         // it's not the computation that takes long, it's putting the data into the table.
         // This bricks the MZmine window
@@ -249,9 +250,8 @@ public class RawDataFileInfoPaneController {
       }
 
       // add raw data to table
-      for (int i = 1; i < scanNumbers.length; i++) {
-        Scan scan = rawDataFile.getScan(scanNumbers[i]);
-
+      for (int i = 1; i < scanNumbers.size(); i++) {
+        Scan scan  = scanNumbers.get(i);
         if (scan == null) {
           continue;
         }
@@ -277,7 +277,7 @@ public class RawDataFileInfoPaneController {
           basePeakIntensity = itFormat.format(scan.getHighestDataPoint().getIntensity());
         }
 
-        tableData.add(new ScanDescription(Integer.toString(scan.getScanNumber()), // scan number
+        tableData.add(new ScanDescription(scan, Integer.toString(scan.getScanNumber()), // scan number
             rtFormat.format(scan.getRetentionTime()), // rt
             Integer.toString(scan.getMSLevel()), // MS level
             precursor, // precursor mz
@@ -289,7 +289,7 @@ public class RawDataFileInfoPaneController {
             basePeakIntensity) // base peak intensity
         );
 
-        perc = i / (scanNumbers.length + 1);
+        perc = i / (scanNumbers.size() + 1);
         if (isCanceled) {
           status = TaskStatus.CANCELED;
           return;
