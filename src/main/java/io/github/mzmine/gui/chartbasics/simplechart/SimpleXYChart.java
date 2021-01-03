@@ -248,6 +248,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     chart.setNotify(true);
     chart.fireChartChanged();
     notifyDatasetsChangedListeners();
+    nextDataSetNum = 0;
   }
 
   @Override

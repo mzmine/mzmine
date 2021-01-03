@@ -51,22 +51,29 @@ class Threads {
     private final IMSRawDataOverviewPane pane;
     private final IMSRawDataFile file;
     private final ScanSelection scanSelection;
+    private final Float rtWidth;
     private double finishedPercentage;
 
     protected BuildMultipleRanges(@Nonnull List<Range<Double>> mzRanges,
         @Nonnull Set<Frame> frames, @Nonnull IMSRawDataFile file,
         @Nonnull ScanSelection scanSelection,
-        @Nonnull IMSRawDataOverviewPane pane) {
+        @Nonnull IMSRawDataOverviewPane pane, Float rtWidth) {
       finishedPercentage = 0d;
       this.mzRanges = mzRanges;
       this.frames = frames;
       this.pane = pane;
       this.file = file;
+      this.rtWidth = rtWidth;
       this.scanSelection = scanSelection;
     }
 
     @Override
     public void run() {
+      Frame frame = frames.stream().findAny().orElse(null);
+      if (frame == null) {
+        setStatus(TaskStatus.FINISHED);
+        return;
+      }
       List<FastColoredXYDataset> mobilogramDataSets = new ArrayList<>();
       List<TICDataSet> ticDataSets = new ArrayList<>();
       List<Color> ticDataSeColors = new ArrayList<>();
@@ -84,7 +91,13 @@ class Threads {
           dataset.setColor(colors.getAWT(mzRanges.indexOf(mzRange)));
           mobilogramDataSets.add(dataset);
         }
-        TICDataSet ticDataSet = new TICDataSet(file, scanSelection.getMatchingScans(file),
+        ScanSelection scanSel = new ScanSelection(scanSelection.getScanNumberRange(),
+            scanSelection.getBaseFilteringInteger(),
+            Range.closed(frame.getRetentionTime() - rtWidth / 2,
+                frame.getRetentionTime() + rtWidth / 2), scanSelection.getScanMobilityRange(),
+            scanSelection.getPolarity(), scanSelection.getSpectrumType(),
+            scanSelection.getMsLevel(), scanSelection.getScanDefinition());
+        TICDataSet ticDataSet = new TICDataSet(file, scanSel.getMatchingScans(file),
             mzRange, null);
         ticDataSets.add(ticDataSet);
         ticDataSet.setCustomSeriesKey(seriesKey);
@@ -114,19 +127,25 @@ class Threads {
     private final IMSRawDataOverviewPane pane;
     private final IMSRawDataFile file;
     private final ScanSelection scanSelection;
+    private final Float rtWidth;
 
     protected BuildSelectedRanges(@Nonnull Range<Double> mzRange, @Nonnull Set<Frame> frames,
         @Nonnull IMSRawDataFile file, @Nonnull ScanSelection scanSelection,
-        @Nonnull IMSRawDataOverviewPane pane) {
+        @Nonnull IMSRawDataOverviewPane pane, Float rtWidth) {
       this.mzRange = mzRange;
       this.frames = frames;
       this.pane = pane;
       this.file = file;
       this.scanSelection = scanSelection;
+      this.rtWidth = rtWidth;
     }
 
     @Override
     public void run() {
+      Frame frame = frames.stream().findAny().orElse(null);
+      if (frame == null) {
+        return;
+      }
       SimpleMobilogram mobilogram = MobilogramUtils.buildMobilogramForMzRange(frames, mzRange);
       NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
       final String seriesKey =
@@ -136,7 +155,13 @@ class Threads {
       FastColoredXYDataset dataset = new FastColoredXYDataset(prev);
       Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
       dataset.setColor(color);
-      TICDataSet ticDataSet = new TICDataSet(file, scanSelection.getMatchingScans(file),
+      ScanSelection scanSel = new ScanSelection(scanSelection.getScanNumberRange(),
+          scanSelection.getBaseFilteringInteger(),
+          Range.closed(frame.getRetentionTime() - rtWidth / 2,
+              frame.getRetentionTime() + rtWidth / 2), scanSelection.getScanMobilityRange(),
+          scanSelection.getPolarity(), scanSelection.getSpectrumType(),
+          scanSelection.getMsLevel(), scanSelection.getScanDefinition());
+      TICDataSet ticDataSet = new TICDataSet(file, scanSel.getMatchingScans(file),
           mzRange, null);
       ticDataSet.setCustomSeriesKey(seriesKey);
       Platform.runLater(() -> pane.setSelectedRangesToChart(dataset, ticDataSet, color));

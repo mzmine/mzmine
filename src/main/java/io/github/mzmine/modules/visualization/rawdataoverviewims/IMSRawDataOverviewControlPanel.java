@@ -45,8 +45,8 @@ import javafx.scene.shape.Rectangle;
 
 public class IMSRawDataOverviewControlPanel extends GridPane {
 
-  public static final String TOOLTIP_MOBILITYSCAN_NL = "Noise level for mobility scan processing. "
-      + "Greatly impacts performance of this overview. Influences mobilogram, ion trace building "
+  public static final String TOOLTIP_MOBILITYSCAN_NL = "Noise level for mobility scan processing.\n"
+      + "Greatly impacts performance of this overview.\n Influences mobilogram, ion trace building "
       + "and the frame overview heatmap.";
 
   public static final String TOOLTIP_FRAME_NL = "Noise level for frame processing. Influences EIC"
@@ -58,27 +58,35 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
   public static final String TOOLTIP_SCANSEL = "Scan selection for EIC, ion trace and mobilogram "
       + "building";
 
+  public static final String TOOLTIP_RTRANGE = "Retention time range around the selected m/z to "
+      + "build EICs and ion traces.";
+
 
   private final IMSRawDataOverviewPane pane;
   private final NumberFormat mzFormat;
   private final NumberFormat intensityFormat;
+  private final NumberFormat rtFormat;
 
   private MZTolerance mzTolerance;
   private ScanSelection scanSelection;
+  private Float rtWidth;
   private ListView<Range<Double>> mobilogramRangesList;
 
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
 
   IMSRawDataOverviewControlPanel(IMSRawDataOverviewPane pane, double frameNoiseLevel,
-      double mobilityScanNoiseLevel, MZTolerance mzTolerance, ScanSelection scanSelection) {
+      double mobilityScanNoiseLevel, MZTolerance mzTolerance, ScanSelection scanSelection,
+      Float rtWidth) {
     this.pane = pane;
     this.frameNoiseLevel = frameNoiseLevel;
     this.mobilityScanNoiseLevel = mobilityScanNoiseLevel;
     this.mzTolerance = mzTolerance;
     this.scanSelection = scanSelection;
+    this.rtWidth = rtWidth;
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    rtFormat = MZmineCore.getConfiguration().getRTFormat();
     initControlPanel();
   }
 
@@ -91,6 +99,8 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     mobilityScanNoiseLevelComponent.setText(intensityFormat.format(mobilityScanNoiseLevel));
     MZToleranceComponent mzToleranceComponent = new MZToleranceComponent();
     mzToleranceComponent.setValue(mzTolerance);
+    DoubleComponent rtWidthComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE, rtFormat,
+        2d);
     ScanSelectionComponent scanSelectionComponent = new ScanSelectionComponent();
     scanSelectionComponent.setValue(scanSelection);
 
@@ -114,6 +124,10 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     lblScanSel.setTooltip(new Tooltip(TOOLTIP_SCANSEL));
     add(lblScanSel, 0, 3);
     add(scanSelectionComponent, 1, 3);
+    Label lblRtRange = new Label("Retention time range");
+    lblRtRange.setTooltip(new Tooltip(TOOLTIP_RTRANGE));
+    add(lblRtRange, 0, 4);
+    add(rtWidthComponent, 1, 4);
 
     DoubleRangeComponent mobilogramRangeComp = new DoubleRangeComponent(mzFormat);
     mobilogramRangesList = new ListView<>(
@@ -156,17 +170,20 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
       try {
         frameNoiseLevel =
             Double.parseDouble(frameNoiseLevelComponent.getText());
-        this.mobilityScanNoiseLevel =
+        mobilityScanNoiseLevel =
             Double.parseDouble(mobilityScanNoiseLevelComponent.getText());
         frameNoiseLevelComponent.setText(intensityFormat.format(frameNoiseLevel));
         mobilityScanNoiseLevelComponent
-            .setText(intensityFormat.format(this.mobilityScanNoiseLevel));
+            .setText(intensityFormat.format(mobilityScanNoiseLevel));
+        rtWidth = Float.parseFloat(rtWidthComponent.getText());
+        rtWidthComponent.setText(rtFormat.format(rtWidth));
         scanSelection = scanSelectionComponent.getValue();
         mzTolerance = mzToleranceComponent.getValue();
         pane.setMzTolerance(mzTolerance);
         pane.setScanSelection(scanSelection);
         pane.setFrameNoiseLevel(frameNoiseLevel);
-        pane.setMobilityScanNoiseLevel(this.mobilityScanNoiseLevel);
+        pane.setMobilityScanNoiseLevel(mobilityScanNoiseLevel);
+        pane.setRtWidth(rtWidth);
 
         pane.updateTicPlot();
         pane.onSelectedFrameChanged();
@@ -175,14 +192,14 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
       }
     });
 
-    add(new Label("EIC/Mobilogram ranges"), 0, 4);
-    add(mobilogramRangesList, 1, 4, 1, 1);
-    add(new Label("Range:"), 0, 5);
-    add(mobilogramRangeComp, 1, 5);
+    add(new Label("EIC/Mobilogram ranges"), 0, 5);
+    add(mobilogramRangesList, 1, 5, 1, 1);
+    add(new Label("Range:"), 0, 6);
+    add(mobilogramRangeComp, 1, 6);
     FlowPane buttons = new FlowPane(addMzRange, removeMzRange, update);
     buttons.setHgap(5);
     buttons.setAlignment(Pos.CENTER);
-    add(buttons, 0, 6, 2, 1);
+    add(buttons, 0, 7, 2, 1);
   }
 
   public MZTolerance getMzTolerance() {
