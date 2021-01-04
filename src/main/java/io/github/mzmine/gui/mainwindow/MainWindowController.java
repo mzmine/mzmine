@@ -23,6 +23,7 @@ import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.Ordering;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -485,7 +486,12 @@ public class MainWindowController {
     files.sort(Ordering.usingToString());
   }
 
-  public void handleRemoveFileExtension(Event event) {}
+  public void handleRemoveFileExtension(Event event) {
+    for (RawDataFile file : rawDataList.getSelectedItems()) {
+      file.setName(FilenameUtils.removeExtension(file.getName()));
+    }
+    rawDataList.refresh();
+  }
 
   public void handleExportFile(Event event) {}
 
