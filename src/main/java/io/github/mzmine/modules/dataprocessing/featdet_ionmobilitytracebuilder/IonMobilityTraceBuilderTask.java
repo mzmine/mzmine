@@ -401,9 +401,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
       newRow.set(MobilityType.class, ionTrace.getMobility());
       newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
-      newRow.set(FeatureShapeMobilogramType.class, newRow.getFeaturesProperty());
-      modular.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
-          true);
+      newRow.set(FeatureShapeMobilogramType.class, true);
+      modular.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class, true);
       featureList.addRow(newRow);
       featureId++;
     }

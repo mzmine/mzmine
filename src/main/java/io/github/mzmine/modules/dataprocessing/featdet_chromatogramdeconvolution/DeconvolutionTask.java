@@ -249,7 +249,7 @@ public class DeconvolutionTask extends AbstractTask {
     DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     if (originalFeatureList.getRawDataFile(0) instanceof IMSRawDataFile) {
       resolvedFeatureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
-      resolvedFeatureList.addRowType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
+      resolvedFeatureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
       resolvedFeatureList.addRowType(new FeatureShapeMobilogramType());
       resolvedFeatureList.addRowType(new MobilityType());
     }
@@ -300,9 +300,9 @@ public class DeconvolutionTask extends AbstractTask {
                   (ModularFeature) currentRow.getFeature(dataFile), mzCenterFunction, msmsRange,
                   RTRangeMSMS));
           newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
-          newRow.set(FeatureShapeMobilogramType.class, newRow.getFeaturesProperty());
-          newRow.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
-              newRow.getFeaturesProperty());
+          newRow.set(FeatureShapeMobilogramType.class, true);
+          newFeature.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
+              true);
         } else {
           newRow.addFeature(dataFile, newFeature);
         }
