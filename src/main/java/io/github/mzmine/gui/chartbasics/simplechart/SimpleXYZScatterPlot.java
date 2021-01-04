@@ -24,10 +24,13 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -40,6 +43,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -54,6 +59,7 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
+import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
@@ -63,6 +69,8 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
+import org.jfree.fx.FXGraphics2D;
+import org.jfree.fx.FXHints;
 
 /**
  * Used to plot XYZ datasets in a scatterplot-type of plot. Used to display spatial distribution in
@@ -81,14 +89,14 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
   protected final List<DatasetsChangedListener> datasetListeners;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
-
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
-
+  protected RectangleEdge defaultPaintscaleLocation = RectangleEdge.RIGHT;
   protected ColoredXYSmallBlockRenderer blockRenderer;
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
+  private Canvas legendCanvas;
 
   public SimpleXYZScatterPlot() {
     this("");
@@ -180,6 +188,10 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   public synchronized void removeAllDatasets() {
     chart.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
+      XYDataset ds = plot.getDataset(i);
+      if (ds instanceof Task) {
+        ((Task) ds).cancel();
+      }
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
     }
@@ -382,7 +394,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @param dataset
    * @return Paint scale based on the datasets min and max values.
    */
-  private LookupPaintScale makePaintScale(XYZDataset dataset) {
+  private PaintScale makePaintScale(XYZDataset dataset) {
     if (!(dataset instanceof ColoredXYZDataset)
         || ((ColoredXYZDataset) dataset).getPaintScale() == null
         || ((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
@@ -401,16 +413,45 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     if (dataset == null) {
       return;
     }
-    LookupPaintScale paintScale = makePaintScale(dataset);
+    PaintScale paintScale = makePaintScale(dataset);
     updateRenderer(paintScale);
     if (dataset instanceof ColoredXYZDataset
         && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
       PaintScaleLegend legend = generateLegend(((ColoredXYZDataset) dataset).getMinZValue(),
           ((ColoredXYZDataset) dataset).getMaxZValue(), paintScale);
       chart.clearSubtitles();
-      chart.addSubtitle(legend);
+      if (legendCanvas != null) {
+        drawLegendToSeparateCanvas(legend);
+      } else {
+        chart.addSubtitle(legend);
+      }
     }
     chart.fireChartChanged();
+  }
+
+  public Canvas getLegendCanvas() {
+    return legendCanvas;
+  }
+
+  /**
+   * Will draw the legend to a separate canvas on the next dataset changed event. Make sure the
+   * canvas is appropriately sized.
+   *
+   * @param canvas The canvas.
+   */
+  public void setLegendCanvas(@Nullable Canvas canvas) {
+    this.legendCanvas = canvas;
+  }
+
+  private void drawLegendToSeparateCanvas(PaintScaleLegend legend) {
+    GraphicsContext gc = legendCanvas.getGraphicsContext2D();
+    FXGraphics2D g2 = new FXGraphics2D(gc);
+    g2.setRenderingHint(FXHints.KEY_USE_FX_FONT_METRICS, true);
+    g2.setZeroStrokeWidth(0.1);
+    g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
+        RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+    g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+    legend.draw(g2, new Rectangle((int) legendCanvas.getWidth(), (int) legendCanvas.getHeight()));
   }
 
   /**
@@ -435,7 +476,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @param scale
    * @return Legend based on the {@link LookupPaintScale}.
    */
-  private PaintScaleLegend generateLegend(double min, double max, @Nonnull LookupPaintScale scale) {
+  private PaintScaleLegend generateLegend(double min, double max, @Nonnull PaintScale scale) {
     NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
@@ -447,9 +488,11 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     newLegend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     newLegend.setAxisOffset(5.0);
     newLegend.setSubdivisionCount(500);
-    newLegend.setPosition(RectangleEdge.RIGHT);
+    newLegend.setPosition(defaultPaintscaleLocation);
     newLegend.getAxis().setLabelFont(legendFont);
     newLegend.getAxis().setTickLabelFont(legendFont);
+//    double h =
+//        newLegend.getHeight() + newLegend.getStripWidth() + newLegend.getAxisOffset() ;
     return newLegend;
   }
 
@@ -458,7 +501,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    *
    * @param paintScale
    */
-  private void updateRenderer(LookupPaintScale paintScale) {
+  private void updateRenderer(PaintScale paintScale) {
     XYDataset dataset = plot.getDataset();
     if (!(dataset instanceof XYZDataset)) {
       // maybe add a case for that later
@@ -475,4 +518,14 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     blockRenderer.setBlockWidth(xyz.getBoxWidth());
     blockRenderer.setPaintScale(paintScale);
   }
+
+  public RectangleEdge getDefaultPaintscaleLocation() {
+    return defaultPaintscaleLocation;
+  }
+
+  public void setDefaultPaintscaleLocation(RectangleEdge defaultPaintscaleLocation) {
+    this.defaultPaintscaleLocation = defaultPaintscaleLocation;
+  }
+
+
 }

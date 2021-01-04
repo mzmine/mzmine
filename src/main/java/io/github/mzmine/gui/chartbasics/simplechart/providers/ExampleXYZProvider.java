@@ -139,13 +139,18 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public List<Double> getDomainValues() {
-    return xValuesSet;
+  public double getDomainValue(int index) {
+    return xValuesSet.get(index);
   }
 
   @Override
-  public List<Double> getRangeValues() {
-    return yValuesSet;
+  public double getRangeValue(int index) {
+    return yValuesSet.get(index);
+  }
+
+  @Override
+  public int getValueCount() {
+    return xValuesSet.size();
   }
 
   @Override
@@ -154,8 +159,8 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public List<Double> getZValues() {
-    return zValuesSet;
+  public double getZValue(int index) {
+    return zValuesSet.get(index);
   }
 
   @Override

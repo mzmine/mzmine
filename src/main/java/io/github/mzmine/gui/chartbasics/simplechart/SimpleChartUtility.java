@@ -22,8 +22,6 @@ import com.google.common.primitives.Ints;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -41,18 +39,14 @@ public class SimpleChartUtility {
    * @return true/false if the item is a local maximum.
    */
   public static boolean isLocalMaximum(XYDataset dataset, final int series, final int item) {
-
     final boolean isLocalMaximum;
     if (item <= 0 || item >= dataset.getItemCount(series) - 1) {
-
       isLocalMaximum = false;
-
     } else {
       final double intensity = dataset.getYValue(series, item);
       isLocalMaximum = dataset.getYValue(series, item - 1) <= intensity
           && intensity >= dataset.getYValue(series, item + 1);
     }
-
     return isLocalMaximum;
   }
 
@@ -68,37 +62,31 @@ public class SimpleChartUtility {
   public static int[] findLocalMaxima(XYDataset dataset, int series, final double xMin,
       final double xMax, final double yMin, final double yMax) {
 
-    // Save data set size.
-    final int currentSize = dataset.getItemCount(series);
-
-    // If the RT values array is not filled yet, create a smaller copy.
-//    if (currentSize < rtValues.length) {
-//      rtCopy = new double[currentSize];
-//      System.arraycopy(rtValues, 0, rtCopy, 0, currentSize);
-//    } else {
-//      rtCopy = rtValues;
-//    }
-
     if (!(dataset instanceof ColoredXYDataset) || dataset.getItemCount(series) == 0) {
       return new int[0];
     }
 
-    List<Double> xValues = ((ColoredXYDataset) dataset).getXValues();
-    List<Double> yValues = ((ColoredXYDataset) dataset).getYValues();
-//    int startIndex = Arrays.binarySearch(dataset.get, xMin);
-    int startIndex = Collections.binarySearch(xValues, xMin);
+    int startIndex = 0;
+    for (int i = 0; i < dataset.getItemCount(series); i++) {
+      if (dataset.getXValue(series, i) > xMin) {
+        startIndex = i;
+        break;
+      }
+    }
+
     if (startIndex < 0) {
       startIndex = -startIndex - 1;
     }
 
-    final int length = xValues.size();
+    final int length = dataset.getItemCount(series);
+    // todo: is size = lendth correct?
     final Collection<Integer> indices = new ArrayList<Integer>(length);
-    for (int index = startIndex; index < length && xValues.get(index) <= xMax; index++) {
+    for (int index = startIndex; index < length && dataset.getXValue(series, index) <= xMax;
+        index++) {
 
       // Check Y range..
-      final double intensity = yValues.get(index);
+      final double intensity = dataset.getYValue(series, index);
       if (yMin <= intensity && intensity <= yMax && isLocalMaximum(dataset, series, index)) {
-
         indices.add(index);
       }
     }

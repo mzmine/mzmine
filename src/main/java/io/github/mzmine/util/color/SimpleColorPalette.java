@@ -18,19 +18,19 @@
 
 package io.github.mzmine.util.color;
 
+import com.google.common.collect.ImmutableMap;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ModifiableObservableListBase;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
-import com.google.common.collect.ImmutableMap;
-import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.util.javafx.FxColorUtil;
-import javafx.collections.ModifiableObservableListBase;
-import javafx.scene.paint.Color;
 
 /**
  * Implementation of a color palette. It's an observable list to allow addition of listeners.
@@ -406,7 +406,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   // --- super type
   @Override
   public Color get(int index) {
-    return delegate.get(index);
+    if (index < delegate.size()) {
+      return delegate.get(index);
+    }
+    return delegate.get(index % delegate.size());
   }
 
   public java.awt.Color getAWT(int index) {

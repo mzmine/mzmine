@@ -19,8 +19,6 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 
-import java.text.NumberFormat;
-import java.util.Arrays;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -35,6 +33,8 @@ import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MobilityRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import java.text.NumberFormat;
+import java.util.Arrays;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -192,7 +192,7 @@ public class ScanSelectionComponent extends FlowPane {
 
   }
 
-  void setValue(ScanSelection newValue) {
+  public void setValue(ScanSelection newValue) {
     scanNumberRange = newValue.getScanNumberRange();
     baseFilteringInteger = newValue.getBaseFilteringInteger();
     scanRTRange = newValue.getScanRTRange();

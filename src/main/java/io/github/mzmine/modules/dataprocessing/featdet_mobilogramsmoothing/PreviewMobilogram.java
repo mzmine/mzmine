@@ -25,9 +25,9 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,28 +36,33 @@ import javafx.beans.property.SimpleObjectProperty;
 public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataProvider {
 
   private final String seriesKey;
-  private final Color awt;
-
-  private final List<Double> xValues;
-  private final List<Double> yValues;
-
   private final NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
   private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
   private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
   private final Mobilogram originalMobilogram;
+  private final boolean invertRangeAndDomain;
+  private Color awt;
   private List<MobilityDataPoint> sortedDps;
   private double finishedPercentage;
 
 
   public PreviewMobilogram(Mobilogram originalMobilogram, final String seriesKey) {
+    this(originalMobilogram, seriesKey, false);
+  }
+
+  public PreviewMobilogram(Mobilogram originalMobilogram, final String seriesKey,
+      boolean invertRangeAndDomain) {
     super(originalMobilogram.getMobilityType(), originalMobilogram.getRawDataFile());
     this.originalMobilogram = originalMobilogram;
-    this.awt = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
+    this.awt = originalMobilogram.getRawDataFile().getColorAWT();
     this.seriesKey = seriesKey;
-    yValues = new ArrayList<>();
-    xValues = new ArrayList<>();
+    this.invertRangeAndDomain = invertRangeAndDomain;
     finishedPercentage = 0d;
+  }
+
+  public void setColor(Color color) {
+    this.awt = color;
   }
 
   @Override
@@ -67,7 +72,7 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
 
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+    return FxColorUtil.awtColorToFX(awt);
   }
 
   @Override
@@ -84,9 +89,9 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
   public String getToolTipText(int itemIndex) {
     return "Mobility scan #" + sortedDps.get(itemIndex).getScanNum()
         + "\nm/z " + mzFormat.format(sortedDps.get(itemIndex).getMZ())
-        + "\nIntensity: " + intensityFormat.format(yValues.get(itemIndex))
-        + "\nMobility: " + mobilityFormat.format(xValues.get(itemIndex)) + " " + getMobilityType()
-        .getUnit();
+        + "\nIntensity: " + intensityFormat.format(sortedDps.get(itemIndex).getIntensity())
+        + "\nMobility: " + mobilityFormat.format(getDomainValue(itemIndex)) + " "
+        + getMobilityType().getUnit();
   }
 
   @Override
@@ -95,13 +100,20 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
   }
 
   @Override
-  public List<Double> getDomainValues() {
-    return xValues;
+  public double getDomainValue(int index) {
+    return (invertRangeAndDomain) ? sortedDps.get(index).getIntensity() :
+        sortedDps.get(index).getMobility();
   }
 
   @Override
-  public List<Double> getRangeValues() {
-    return yValues;
+  public double getRangeValue(int index) {
+    return (invertRangeAndDomain) ? sortedDps.get(index).getMobility() :
+        sortedDps.get(index).getIntensity();
+  }
+
+  @Override
+  public int getValueCount() {
+    return sortedDps.size();
   }
 
   @Override
@@ -113,11 +125,6 @@ public class PreviewMobilogram extends SimpleMobilogram implements PlotXYDataPro
     sortedDps = getDataPoints().stream()
         .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility))
         .collect(Collectors.toList());
-
-    for (MobilityDataPoint dp : sortedDps) {
-      xValues.add(dp.getMobility());
-      yValues.add(dp.getIntensity());
-    }
 
     finishedPercentage = 1.d;
   }

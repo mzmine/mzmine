@@ -29,14 +29,14 @@ import javafx.beans.property.SimpleObjectProperty;
  * <p></p>
  * The values are not grabbed during the creation of the dataset. After initialising the dataset
  * (e.g. {@link ColoredXYDataset}) a thread is started where the values of the dataset can be
- * calculated or loaded from disk. For that operation, the {@link XYValueProvider#computeValues(TaskStatus)}
+ * calculated or loaded from disk. For that operation, the {@link XYValueProvider#computeValues(SimpleObjectProperty)}
  * method is used. The implementing class can supply information on the progress of the operation
  * via the method {@link XYValueProvider#getComputationFinishedPercentage()}, which will be
  * represented in the task bar.
  * <p></p>
  * When the computation ({@link XYValueProvider#computeValues} has finished, the values are loaded
- * into the dataset via the {@link XYValueProvider#getDomainValues()} and {@link
- * XYValueProvider#getRangeValues()} methods.
+ * into the dataset via the {@link XYValueProvider#getDomainValue(int)} and {@link
+ * XYValueProvider#getRangeValue(int)} methods.
  * <p></p>
  * After the dataset has been loaded successfully, the chart is automatically updated via a {@link
  * org.jfree.chart.JFreeChart#fireChartChanged()} event.
@@ -59,12 +59,19 @@ public interface XYValueProvider {
   /**
    * @return A sorted list of domain values. Index has to match the range value indices.
    */
-  public List<Double> getDomainValues();
+  public double getDomainValue(int index);
 
   /**
    * @return A sorted (ascending) list of range values. Index has to match the domain value indices.
    */
-  public List<Double> getRangeValues();
+  public double getRangeValue(int index);
+
+  /**
+   * Called after {@link XYValueProvider#computeValues}.
+   *
+   * @return The number of values in this data set.
+   */
+  public int getValueCount();
 
   /**
    * Helper method to provide the user with progress information during {@link

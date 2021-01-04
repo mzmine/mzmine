@@ -80,6 +80,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   private TaskStatus status;
   private String errorMessage;
 
+  private String customSeriesKey = null;
+
   // Plot type
   private TICPlotType plotType;
 
@@ -215,8 +217,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
   @Override
   public Comparable<String> getSeriesKey(final int series) {
-
-    return dataFile.getName();
+    return (customSeriesKey == null) ? dataFile.getName() : customSeriesKey;
   }
 
   @Override
@@ -433,6 +434,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   @Override
   public TaskPriority getTaskPriority() {
     return TaskPriority.NORMAL;
+  }
+
+  public void setCustomSeriesKey(String customSeriesKey) {
+    this.customSeriesKey = customSeriesKey;
   }
 
 }

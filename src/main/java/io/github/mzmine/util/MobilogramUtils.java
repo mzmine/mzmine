@@ -18,15 +18,28 @@
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Mobilogram;
 import io.github.mzmine.datamodel.impl.MobilityDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleMobilogram;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 public class MobilogramUtils {
 
@@ -160,4 +173,56 @@ public class MobilogramUtils {
     return newMobilogram;
   }
 
+  /**
+   * Builds a Mobilogram for the selected Frames. Should not be used to build multiple mobilograms
+   * du to lower performance than the {@link io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilogramBuilderTask}.
+   *
+   * @param frames
+   * @param mzRange
+   * @return
+   */
+  @Nullable
+  public static SimpleMobilogram buildMobilogramForMzRange(Collection<Frame> frames,
+      Range<Double> mzRange) {
+    Frame anyFrame = frames.stream().findAny().orElse(null);
+    if (anyFrame == null) {
+      throw new IllegalArgumentException(
+          "Collection of frames was empty. Cannot build mobilogram.");
+    }
+    SimpleMobilogram mobilogram = new SimpleMobilogram(anyFrame.getMobilityType(),
+        (IMSRawDataFile) anyFrame.getDataFile());
+
+    // collect all eligible data points from all frame-subscans
+    Map<Integer, Set<DataPoint>> eligibleDataPoints = new HashMap<>(); // k = subscan number
+    for (Frame frame : frames) {
+      for (MobilityScan scan : frame.getMobilityScans()) {
+        Set<DataPoint> dpSet = eligibleDataPoints.computeIfAbsent(scan.getMobilityScamNumber(),
+            key -> new HashSet<>());
+        DataPoint[] dps = scan.getDataPoints();
+        Arrays.sort(dps, Comparator.comparingDouble(DataPoint::getMZ));
+        DataPoint[] foundDps = ScanUtils.getDataPointsByMass(dps, mzRange);
+        Collections.addAll(dpSet, foundDps);
+      }
+    }
+
+    if (eligibleDataPoints.size() == 0) {
+      return null;
+    }
+
+    for (var entry : eligibleDataPoints.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        continue;
+      }
+      double intensity = entry.getValue().stream().mapToDouble(DataPoint::getIntensity).sum();
+      double mz = entry.getValue().stream().mapToDouble(DataPoint::getMZ).average().getAsDouble();
+      mobilogram.addDataPoint(new MobilityDataPoint(mz, intensity,
+          anyFrame.getMobilityForMobilityScanNumber(entry.getKey()), entry.getKey()));
+    }
+    if (mobilogram.getDataPoints().isEmpty()) {
+      return null;
+    }
+    mobilogram.calc();
+    fillMissingScanNumsWithZero(mobilogram);
+    return mobilogram;
+  }
 }
