@@ -45,7 +45,7 @@ public class ResampleFilter implements ScanFilter {
     }
 
     // ScanUtils.binValues needs arrays
-    DataPoint dps[] = scan.getDataPoints();
+    DataPoint dps[] = ScanUtils.extractDataPoints(scan);
     double[] x = new double[dps.length];
     double[] y = new double[dps.length];
     for (int i = 0; i < dps.length; i++) {

@@ -597,9 +597,9 @@ public class IsotopePatternUtils {
     // now add all new mzs to the isotopePattern
     // DataPoint[] newDataPoints = new SimpleDataPoint[dp.length +
     // newPeaks.size()];
-    for (DataPoint p : dp) {
-      newPeaks.add(p);
-    }
+    // for (DataPoint p : dp) {
+    // newPeaks.add(p);
+    // }
     newPeaks.sort((o1, o2) -> {
       return Double.compare(o1.getMZ(), o2.getMZ());
     });

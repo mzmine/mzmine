@@ -19,11 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import java.util.Map;
-
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 
 public class ResultFormula {
@@ -31,11 +28,11 @@ public class ResultFormula {
   private final IMolecularFormula cdkFormula;
   private Double rdbeValue, isotopeScore, msmsScore;
   private IsotopePattern predictedIsotopePattern;
-  private Map<DataPoint, String> msmsAnnotation;
+  private Map<Integer, String> msmsAnnotation;
 
   public ResultFormula(IMolecularFormula cdkFormula, IsotopePattern predictedIsotopePattern,
-                       Double rdbeValue, Double isotopeScore, Double msmsScore,
-                       Map<DataPoint, String> msmsAnnotation) {
+      Double rdbeValue, Double isotopeScore, Double msmsScore,
+      Map<Integer, String> msmsAnnotation) {
 
     this.cdkFormula = cdkFormula;
     this.predictedIsotopePattern = predictedIsotopePattern;
@@ -50,7 +47,7 @@ public class ResultFormula {
     return rdbeValue;
   }
 
-  public Map<DataPoint, String> getMSMSannotation() {
+  public Map<Integer, String> getMSMSannotation() {
     return msmsAnnotation;
   }
 

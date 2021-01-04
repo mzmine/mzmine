@@ -30,9 +30,9 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -85,10 +85,10 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
   private MolecularFormulaGenerator generator;
   private Range<Double> massRange;
 
-  public DPPSumFormulaPredictionTask(DataPoint[] dataPoints, SpectraPlot targetPlot,
+  public DPPSumFormulaPredictionTask(MassSpectrum spectrum, SpectraPlot targetPlot,
       ParameterSet parameterSet, DataPointProcessingController controller,
       TaskStatusListener listener) {
-    super(dataPoints, targetPlot, parameterSet, controller, listener);
+    super(spectrum, targetPlot, parameterSet, controller, listener);
 
     charge = parameterSet.getParameter(DPPSumFormulaPredictionParameters.charge).getValue();
     noiseLevel = parameterSet.getParameter(DPPSumFormulaPredictionParameters.noiseLevel).getValue();
@@ -130,9 +130,9 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (getDataPoints().length == 0)
+    if (getDataPoints().getNumberOfDataPoints() == 0)
       return 0;
-    return ((double) currentIndex / getDataPoints().length);
+    return ((double) currentIndex / getDataPoints().getNumberOfDataPoints());
   }
 
   @Override
@@ -142,21 +142,20 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       return;
     }
 
-    if (getDataPoints().length == 0) {
+    if (getDataPoints().getNumberOfDataPoints() == 0) {
       logger.info("Data point/Spectra processing: 0 data points were passed to "
           + getTaskDescription() + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
     }
-
-    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
-
-      logger.info("Data point/Spectra processing: The array of data points passed to "
-          + getTaskDescription()
-          + " is not an instance of ProcessedDataPoint. Make sure to run mass detection first.");
-      setStatus(TaskStatus.CANCELED);
-      return;
-    }
+    /*
+     * if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
+     * 
+     * logger.info("Data point/Spectra processing: The array of data points passed to " +
+     * getTaskDescription() +
+     * " is not an instance of ProcessedDataPoint. Make sure to run mass detection first.");
+     * setStatus(TaskStatus.CANCELED); return; }
+     */
 
     setStatus(TaskStatus.PROCESSING);
 
@@ -164,31 +163,30 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
-    for (int i = 0; i < dataPoints.length; i++) {
+    for (int i = 0; i < dataPoints.getNumberOfDataPoints(); i++) {
 
       if (isCanceled())
         return;
 
-      if (dataPoints[i].getIntensity() < noiseLevel)
+      if (dataPoints.getIntensityValue(i) < noiseLevel)
         continue;
 
-      massRange =
-          mzTolerance.getToleranceRange((dataPoints[i].getMZ() - ionType.getAddedMass()) / charge);
+      massRange = mzTolerance
+          .getToleranceRange((dataPoints.getMzValue(i) - ionType.getAddedMass()) / charge);
 
+      ProcessedDataPoint tmp = null; // dataPoints[i]
       MolecularFormulaRange elCounts =
-          DynamicParameterUtils.buildFormulaRangeOnIsotopePatternResults(
-              (ProcessedDataPoint) dataPoints[i], elementCounts);
+          DynamicParameterUtils.buildFormulaRangeOnIsotopePatternResults(tmp, elementCounts);
 
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
           massRange.upperEndpoint(), elCounts);
 
-      List<PredResult> formulas =
-          generateFormulas((ProcessedDataPoint) dataPoints[i], massRange, charge, generator);
+      List<PredResult> formulas = generateFormulas(tmp, massRange, charge, generator);
 
       DPPSumFormulaResult[] results = genereateResults(formulas, numResults);
 
-      ((ProcessedDataPoint) dataPoints[i]).addAllResults(results);
-      resultList.add((ProcessedDataPoint) dataPoints[i]);
+      tmp.addAllResults(results);
+      resultList.add(tmp);
       currentIndex++;
     }
 

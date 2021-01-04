@@ -108,10 +108,10 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
     } else {
       newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
     }
-    newRawDataFile.openDataPointsFile(scansFile);
+    // newRawDataFile.openDataPointsFile(scansFile);
 
-    dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
-    dataPointsLengths = newRawDataFile.getDataPointsLengths();
+    // dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
+    // dataPointsLengths = newRawDataFile.getDataPointsLengths();
 
     // Reads the XML file (raw data description)
     SAXParserFactory factory = SAXParserFactory.newInstance();

@@ -17,17 +17,14 @@
 
 package io.github.mzmine.datamodel;
 
-import com.google.common.collect.Range;
-import java.util.List;
 import java.io.IOException;
 import java.util.List;
-import javafx.collections.ObservableList;
-import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.MemoryMapStorage;
 import javafx.beans.property.ObjectProperty;
+import javafx.collections.ObservableList;
+import javafx.scene.paint.Color;
 
 public interface RawDataFile {
 
@@ -57,14 +54,6 @@ public interface RawDataFile {
   int[] getMSLevels();
 
   /**
-   * Returns sorted array of all scan numbers in this file
-   *
-   * @return Sorted array of scan numbers, never returns null
-   */
-  @Nonnull
-  int[] getScanNumbers();
-
-  /**
    * Returns sorted array of all scan numbers in given MS level
    *
    * @param msLevel MS level (0 for all scans)
@@ -82,15 +71,6 @@ public interface RawDataFile {
    */
   @Nonnull
   public Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
-
-  /**
-   * Scan could be null if scanID is not contained in the raw data file
-   *
-   * @param scan Desired scan number
-   * @return Desired scan
-   */
-//  @Nullable
-//  public Scan getScan(int scan);
 
   /**
    * @param rt The rt
@@ -163,8 +143,8 @@ public interface RawDataFile {
    * @return
    */
   default Scan getScanAtNumber(int scanNumber) {
-    return getScans().stream().filter(s -> s.getScanNumber() == scanNumber)
-        .findFirst().orElse(null);
+    return getScans().stream().filter(s -> s.getScanNumber() == scanNumber).findFirst()
+        .orElse(null);
   }
 
   /**

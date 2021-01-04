@@ -40,6 +40,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
 
 class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
@@ -138,7 +139,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       }
 
       // get m/z and intensity values
-      DataPoint scanDataPoints[] = scan.getDataPoints();
+      DataPoint scanDataPoints[] = ScanUtils.extractDataPoints(scan);
 
       // skip empty scans
       if (scan.getBasePeakMz() == null) {

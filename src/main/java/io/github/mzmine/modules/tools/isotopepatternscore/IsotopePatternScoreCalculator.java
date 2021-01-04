@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class IsotopePatternScoreCalculator {
 
@@ -77,12 +78,12 @@ public class IsotopePatternScoreCalculator {
     // Data points from first pattern will have positive intensities, data
     // points from second pattern will have negative intensities.
     ArrayList<DataPoint> mergedDataPoints = new ArrayList<DataPoint>();
-    for (DataPoint dp : nip1.getDataPoints()) {
+    for (DataPoint dp : ScanUtils.extractDataPoints(nip1)) {
       if (dp.getIntensity() * patternIntensity < noiseIntensity)
         continue;
       mergedDataPoints.add(dp);
     }
-    for (DataPoint dp : nip2.getDataPoints()) {
+    for (DataPoint dp : ScanUtils.extractDataPoints(nip2)) {
       if (dp.getIntensity() * patternIntensity < noiseIntensity)
         continue;
       DataPoint negativeDP = new SimpleDataPoint(dp.getMZ(), dp.getIntensity() * -1);

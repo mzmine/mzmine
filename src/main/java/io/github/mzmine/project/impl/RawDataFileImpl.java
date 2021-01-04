@@ -18,41 +18,24 @@
 
 package io.github.mzmine.project.impl;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 
 /**
@@ -80,18 +63,10 @@ public class RawDataFileImpl implements RawDataFile {
   // cache for MS level. key=0
   private final Hashtable<Integer, ObservableList<Scan>> scanNumbersCache;
 
-  private ByteBuffer buffer = ByteBuffer.allocate(20000);
-  private final TreeMap<Integer, Long> dataPointsOffsets;
-  private final TreeMap<Integer, Integer> dataPointsLengths;
-
   // Temporary file for scan data storage
-  private File storageFileName;
-  private RandomAccessFile storageFile;
   private final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
 
-
-
-  private ObjectProperty<Color> color;
+  private final ObjectProperty<Color> color;
 
   // To store mass lists that have been added but not yet reflected in the GUI
   // by the
@@ -116,8 +91,6 @@ public class RawDataFileImpl implements RawDataFile {
     dataRTRange = new Hashtable<>();
     dataMaxBasePeakIntensity = new Hashtable<>();
     dataMaxTIC = new Hashtable<>();
-    dataPointsOffsets = new TreeMap<>();
-    dataPointsLengths = new TreeMap<>();
 
     color = new SimpleObjectProperty<>();
     color.setValue(MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
@@ -134,54 +107,6 @@ public class RawDataFileImpl implements RawDataFile {
     return (RawDataFile) super.clone();
   }
 
-  /**
-   * Create a new temporary data points file
-   */
-  public static File createNewDataPointsFile() throws IOException {
-    return File.createTempFile("mzmine", ".scans");
-  }
-
-  /**
-   * Returns the (already opened) data points file. Warning: may return null in case no scans have
-   * been added yet to this RawDataFileImpl instance
-   */
-  public RandomAccessFile getDataPointsFile() {
-    return storageFile;
-  }
-
-  /**
-   * Opens the given file as a data points file for this RawDataFileImpl instance. If the file is
-   * not empty, the TreeMaps supplied as parameters have to describe the mapping of storage IDs to
-   * data points in the file.
-   */
-  public synchronized void openDataPointsFile(File dataPointsFileName) throws IOException {
-
-    if (this.storageFile != null) {
-      throw new IOException("Cannot open another data points file, because one is already open");
-    }
-
-    this.storageFileName = dataPointsFileName;
-    this.storageFile = new RandomAccessFile(dataPointsFileName, "rw");
-    FileChannel fileChannel = storageFile.getChannel();
-    // this.storageMemoryMap = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0,
-    // Integer.MAX_VALUE);
-
-    // Locks the temporary file so it is not removed when another instance
-    // of MZmine is starting. Lock will be automatically released when this
-    // instance of MZmine exits. Locking may fail on network-mounted
-    // filesystems.
-    try {
-      fileChannel.lock();
-    } catch (IOException e) {
-      logger.log(Level.WARNING, "Failed to lock the file " + dataPointsFileName, e);
-    }
-
-    // Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
-    // bug #4171239. We will try to remove the temporary files in a
-    // shutdown hook registered in the main.ShutDownHook class
-    dataPointsFileName.deleteOnExit();
-
-  }
 
   /**
    * @see io.github.mzmine.datamodel.RawDataFile#getNumOfScans()
@@ -191,11 +116,11 @@ public class RawDataFileImpl implements RawDataFile {
     return scans.size();
   }
 
-//  @Deprecated
-//  @Override
-//  public @Nullable Scan getScan(int scanNumber) {
-//    return scans.get(scanNumber);
-//  }
+  // @Deprecated
+  // @Override
+  // public @Nullable Scan getScan(int scanNumber) {
+  // return scans.get(scanNumber);
+  // }
 
   /**
    * @param rt The rt
@@ -226,8 +151,8 @@ public class RawDataFileImpl implements RawDataFile {
 
   /**
    * @param rt The rt
-   * @return The scan at a given retention time within a range of 2 (min/sec?) or null if no
-   *         scan can be found.
+   * @return The scan at a given retention time within a range of 2 (min/sec?) or null if no scan
+   *         can be found.
    */
   @Override
   public Scan getScanNumberAtRT(float rt) {
@@ -254,8 +179,7 @@ public class RawDataFileImpl implements RawDataFile {
   public ObservableList<Scan> getScanNumbers(int msLevel) {
     if (scanNumbersCache.containsKey(msLevel)) {
       return FXCollections.unmodifiableObservableList(scanNumbersCache.get(msLevel));
-    }
-    else {
+    } else {
       return FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
     }
   }
@@ -278,8 +202,8 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   @Nonnull
   public int[] getMSLevels() {
-    return scanNumbersCache.keySet().stream().filter(level -> level!=0).mapToInt(Integer::intValue)
-        .sorted().toArray();
+    return scanNumbersCache.keySet().stream().filter(level -> level != 0)
+        .mapToInt(Integer::intValue).sorted().toArray();
   }
 
   /**
@@ -294,7 +218,7 @@ public class RawDataFileImpl implements RawDataFile {
     }
 
     // find the value
-    for(Scan scan : scans) {
+    for (Scan scan : scans) {
       // ignore scans of other ms levels
       if (scan.getMSLevel() != msLevel) {
         continue;
@@ -334,7 +258,7 @@ public class RawDataFileImpl implements RawDataFile {
     }
 
     // find the value
-    for(Scan scan : scans) {
+    for (Scan scan : scans) {
       // ignore scans of other ms levels
       if (scan.getMSLevel() != msLevel) {
         continue;
@@ -358,92 +282,7 @@ public class RawDataFileImpl implements RawDataFile {
 
   }
 
-  public synchronized int storeDataPoints(DataPoint dataPoints[]) throws IOException {
 
-    if (storageFile == null) {
-      File newFile = RawDataFileImpl.createNewDataPointsFile();
-      openDataPointsFile(newFile);
-    }
-
-    final long currentOffset = storageFile.length();
-
-    final int currentID;
-    if (!dataPointsOffsets.isEmpty()) {
-      currentID = dataPointsOffsets.lastKey() + 1;
-    } else {
-      currentID = 1;
-    }
-
-    final int numOfDataPoints = dataPoints.length;
-
-    // Convert the dataPoints into a byte array. Each double takes 8 bytes,
-    // so we get the current double offset by dividing the size of the file
-    // by 8
-    final int numOfBytes = numOfDataPoints * 2 * 8;
-
-    if (buffer.capacity() < numOfBytes) {
-      buffer = ByteBuffer.allocate(numOfBytes * 2);
-    } else {
-      // JDK 9 breaks compatibility with JRE8: need to cast
-      // https://stackoverflow.com/questions/48693695/java-nio-buffer-not-loading-clear-method-on-runtime
-      ((Buffer) buffer).clear();
-    }
-
-    DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
-    for (DataPoint dp : dataPoints) {
-      doubleBuffer.put(dp.getMZ());
-      doubleBuffer.put(dp.getIntensity());
-    }
-
-    storageFile.seek(currentOffset);
-    storageFile.write(buffer.array(), 0, numOfBytes);
-
-    dataPointsOffsets.put(currentID, currentOffset);
-    dataPointsLengths.put(currentID, numOfDataPoints);
-
-    return currentID;
-  }
-
-  public synchronized DataPoint[] readDataPoints(int ID) throws IOException {
-
-    final Long currentOffset = dataPointsOffsets.get(ID);
-    final Integer numOfDataPoints = dataPointsLengths.get(ID);
-
-    if ((currentOffset == null) || (numOfDataPoints == null)) {
-      throw new IllegalArgumentException("Unknown storage ID " + ID);
-    }
-
-    final int numOfBytes = numOfDataPoints * 2 * 8;
-
-    if (buffer.capacity() < numOfBytes) {
-      buffer = ByteBuffer.allocate(numOfBytes * 2);
-    } else {
-      // JDK 9 breaks compatibility with JRE8: need to cast
-      // https://stackoverflow.com/questions/48693695/java-nio-buffer-not-loading-clear-method-on-runtime
-      ((Buffer) buffer).clear();
-    }
-
-    storageFile.seek(currentOffset);
-    storageFile.read(buffer.array(), 0, numOfBytes);
-
-    DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
-
-    DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
-
-    for (int i = 0; i < numOfDataPoints; i++) {
-      double mz = doubleBuffer.get();
-      double intensity = doubleBuffer.get();
-      dataPoints[i] = new SimpleDataPoint(mz, intensity);
-    }
-
-    return dataPoints;
-
-  }
-
-  public synchronized void removeStoredDataPoints(int ID) throws IOException {
-    dataPointsOffsets.remove(ID);
-    dataPointsLengths.remove(ID);
-  }
 
   @Override
   public synchronized void addScan(Scan newScan) throws IOException {
@@ -571,14 +410,6 @@ public class RawDataFileImpl implements RawDataFile {
     return getScanNumbers(msLevel).size();
   }
 
-  public synchronized TreeMap<Integer, Long> getDataPointsOffsets() {
-    return dataPointsOffsets;
-  }
-
-  public synchronized TreeMap<Integer, Integer> getDataPointsLengths() {
-    return dataPointsLengths;
-  }
-
   @Override
   public List<PolarityType> getDataPolarity() {
     return scans.stream().map(Scan::getPolarity).collect(Collectors.toList());
@@ -606,14 +437,7 @@ public class RawDataFileImpl implements RawDataFile {
 
   @Override
   public synchronized void close() {
-    try {
-      if (storageFileName != null) {
-        storageFile.close();
-        storageFileName.delete();
-      }
-    } catch (IOException e) {
-      logger.warning("Could not close file " + storageFileName + ": " + e.toString());
-    }
+
   }
 
   @Override
@@ -637,5 +461,6 @@ public class RawDataFileImpl implements RawDataFile {
   public ObservableList<Scan> getScans() {
     return scans;
   }
+
 
 }

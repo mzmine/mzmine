@@ -37,6 +37,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * The reason why we introduce this as a module, rather than simple utility class, is to remember
@@ -138,7 +139,7 @@ public class IsotopePatternCalculator implements MZmineModule {
   public static IsotopePattern removeDataPointsBelowIntensity(IsotopePattern pattern,
       double minIntensity) {
 
-    DataPoint[] dp = pattern.getDataPoints();
+    DataPoint[] dp = ScanUtils.extractDataPoints(pattern);
     for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
       if (dp[i].getIntensity() < minIntensity) {
         dp[i] = null;
@@ -186,7 +187,7 @@ public class IsotopePatternCalculator implements MZmineModule {
     final double maxIntensity = pattern.getIntensityValues().get(isotopeBasePeak);
 
 
-    DataPoint dataPoints[] = pattern.getDataPoints();
+    DataPoint dataPoints[] = ScanUtils.extractDataPoints(pattern);
 
     DataPoint newDataPoints[] = new DataPoint[dataPoints.length];
 
@@ -214,7 +215,7 @@ public class IsotopePatternCalculator implements MZmineModule {
    */
   public static IsotopePattern mergeIsotopes(IsotopePattern pattern, double mzTolerance) {
 
-    DataPoint dataPoints[] = pattern.getDataPoints().clone();
+    DataPoint dataPoints[] = ScanUtils.extractDataPoints(pattern);
 
     String newIsotopeComposition[] = new String[pattern.getNumberOfDataPoints()];
     if (pattern instanceof SimpleIsotopePattern

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,17 +20,16 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet;
 
 import java.util.TreeSet;
 import java.util.Vector;
-
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * This class implements the Continuous Wavelet Transform (CWT), Mexican Hat, over raw datapoints of
@@ -38,10 +37,6 @@ import io.github.mzmine.util.SortingProperty;
  * to detect possible peaks in the original raw datapoints.
  */
 public class WaveletMassDetector implements MassDetector {
-
-  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
-    return getMassValues(scan.getDataPoints(), parameters);
-  }
 
   /**
    * Parameters of the wavelet, NPOINTS is the number of wavelet values to use The WAVELET_ESL &
@@ -51,12 +46,16 @@ public class WaveletMassDetector implements MassDetector {
   private static final int WAVELET_ESL = -5;
   private static final int WAVELET_ESR = 5;
 
-  public DataPoint[] getMassValues(DataPoint originalDataPoints[], ParameterSet parameters) {
+  @Override
+  public DataPoint[] getMassValues(MassSpectrum scan, ParameterSet parameters) {
+
     double noiseLevel =
         parameters.getParameter(WaveletMassDetectorParameters.noiseLevel).getValue();
     int scaleLevel = parameters.getParameter(WaveletMassDetectorParameters.scaleLevel).getValue();
     double waveletWindow =
         parameters.getParameter(WaveletMassDetectorParameters.waveletWindow).getValue();
+
+    DataPoint originalDataPoints[] = ScanUtils.extractDataPoints(scan);
 
     DataPoint waveletDataPoints[] = performCWT(originalDataPoints, waveletWindow, scaleLevel);
 
@@ -67,7 +66,7 @@ public class WaveletMassDetector implements MassDetector {
 
   /**
    * Perform the CWT over raw data points in the selected scale level
-   * 
+   *
    * @param dataPoints
    */
   private SimpleDataPoint[] performCWT(DataPoint[] dataPoints, double waveletWindow,
@@ -104,7 +103,7 @@ public class WaveletMassDetector implements MassDetector {
       /* Perform convolution */
       double intensity = 0.0;
       for (int i = t1; i <= t2; i++) {
-        int ind = (int) (NPOINTS / 2) - (((int) d * (i - dx) / scaleLevel) * (-1));
+        int ind = (int) (NPOINTS / 2) - ((d * (i - dx) / scaleLevel) * (-1));
         if (ind < 0)
           ind = 0;
         if (ind >= NPOINTS)
@@ -115,7 +114,7 @@ public class WaveletMassDetector implements MassDetector {
       // Eliminate the negative part of the wavelet map
       if (intensity < 0)
         intensity = 0;
-      cwtDataPoints[dx] = new SimpleDataPoint(dataPoints[dx].getMZ(), (double) intensity);
+      cwtDataPoints[dx] = new SimpleDataPoint(dataPoints[dx].getMZ(), intensity);
     }
 
     return cwtDataPoints;
@@ -123,7 +122,7 @@ public class WaveletMassDetector implements MassDetector {
 
   /**
    * This function calculates the wavelets's coefficients in Time domain
-   * 
+   *
    * @param double x Step of the wavelet
    * @param double a Window Width of the wavelet
    * @param double b Offset from the center of the peak

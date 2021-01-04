@@ -182,12 +182,12 @@ public class MobilogramBuilderTask extends AbstractTask {
     // everything here at once
     int numDp = 0;
     for (MobilityScan scan : rawScans) {
-      numDp += scan.getDataPoints().length;
+      numDp += scan.getNumberOfDataPoints();
     }
     final List<MobilityDataPoint> allDps = new ArrayList<>(numDp);
     for (MobilityScan scan : rawScans) {
-      Arrays.stream(scan.getDataPoints()).forEach(dp -> allDps.add(new MobilityDataPoint(dp.getMZ(),
-          dp.getIntensity(), scan.getMobility(), scan.getMobilityScamNumber())));
+      scan.stream().forEach(dp -> allDps.add(new MobilityDataPoint(dp.getMZ(), dp.getIntensity(),
+          scan.getMobility(), scan.getMobilityScamNumber())));
     }
     // if we sort here, we can use break conditions later
     allDps.sort(Comparator.comparingDouble(MobilityDataPoint::getMZ));

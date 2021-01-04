@@ -31,6 +31,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
@@ -48,6 +49,7 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.IsotopePatternUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  *
@@ -75,10 +77,10 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
   private Range<Double> mzrange;
   private int maxCharge;
 
-  public DPPAnyElementIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot,
+  public DPPAnyElementIsotopeGrouperTask(MassSpectrum spectrum, SpectraPlot plot,
       ParameterSet parameterSet, DataPointProcessingController controller,
       TaskStatusListener listener) {
-    super(dataPoints, plot, parameterSet, controller, listener);
+    super(spectrum, plot, parameterSet, controller, listener);
 
     // Get parameter values for easier use
     mzTolerance =
@@ -120,27 +122,24 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
           "Data point/Spectra processing: Invalid element parameter in " + getTaskDescription());
     }
 
-    if (getDataPoints().length == 0) {
+    if (getDataPoints().getNumberOfDataPoints() == 0) {
       logger.info("Data point/Spectra processing: 0 data points were passed to "
           + getTaskDescription() + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
     }
 
-    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
-      logger.warning(
-          "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
-              + " Make sure to run mass detection first.");
-      setStatus(TaskStatus.CANCELED);
-      return;
-    }
+    /*
+     * if (!(getDataPoints() instanceof ProcessedDataPoint[])) { logger.warning(
+     * "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
+     * + " Make sure to run mass detection first."); setStatus(TaskStatus.CANCELED); return; }
+     */
 
     setStatus(TaskStatus.PROCESSING);
 
-    SimpleIsotopePattern[] elementPattern =
-        getIsotopePatterns(elements, mergeWidth, minAbundance);
+    SimpleIsotopePattern[] elementPattern = getIsotopePatterns(elements, mergeWidth, minAbundance);
 
-    ProcessedDataPoint[] originalDataPoints = (ProcessedDataPoint[]) getDataPoints();
+    ProcessedDataPoint[] originalDataPoints = {}; // (ProcessedDataPoint[]) getDataPoints();
 
     totalSteps = originalDataPoints.length * 2 + 1;
 
@@ -225,9 +224,8 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
     int i = 0;
     // create a isotope pattern for every element
     for (IIsotope element : form.isotopes()) {
-      isotopePatterns[i] =
-          (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(
-              element.getSymbol(), minAbundance, mergeWidth, 1, PolarityType.NEUTRAL, true);
+      isotopePatterns[i] = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(
+          element.getSymbol(), minAbundance, mergeWidth, 1, PolarityType.NEUTRAL, true);
       i++;
     }
     // also, we want to keep track of the isotope composition, to do that
@@ -240,7 +238,7 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
     for (SimpleIsotopePattern p : isotopePatterns) {
       String[] composition = p.getIsotopeCompositions();
       composition[0] = "";
-      cleanedPatterns[i] = new SimpleIsotopePattern(p.getDataPoints(), p.getStatus(),
+      cleanedPatterns[i] = new SimpleIsotopePattern(ScanUtils.extractDataPoints(p), p.getStatus(),
           p.getDescription(), composition);
       i++;
     }

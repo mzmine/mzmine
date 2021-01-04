@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,10 +20,7 @@ package io.github.mzmine.modules.visualization.fx3d;
 
 import java.util.Random;
 import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -65,7 +62,7 @@ class Fx3DSamplingTask extends AbstractTask {
 
   /**
    * Task constructor
-   * 
+   *
    * @param dataFile
    * @param msLevel
    * @param visualizer
@@ -85,6 +82,7 @@ class Fx3DSamplingTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Sampling 3D plot of " + dataFile;
   }
@@ -92,6 +90,7 @@ class Fx3DSamplingTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     return (double) retrievedScans / scans.length;
   }
@@ -99,6 +98,7 @@ class Fx3DSamplingTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -128,13 +128,10 @@ class Fx3DSamplingTask extends AbstractTask {
           return;
         }
 
-        DataPoint dataPoints[] = scan.getDataPoints();
-        double[] scanMZValues = new double[dataPoints.length];
-        double[] scanIntensityValues = new double[dataPoints.length];
-        for (int dp = 0; dp < dataPoints.length; dp++) {
-          scanMZValues[dp] = dataPoints[dp].getMZ();
-          scanIntensityValues[dp] = dataPoints[dp].getIntensity();
-        }
+        double[] scanMZValues = new double[scan.getNumberOfDataPoints()];
+        double[] scanIntensityValues = new double[scan.getNumberOfDataPoints()];
+        scan.getMzValues().get(scanMZValues);
+        scan.getIntensityValues().get(scanIntensityValues);
 
         double[] binnedIntensities = ScanUtils.binValues(scanMZValues, scanIntensityValues, mzRange,
             mzResolution, scan.getSpectrumType() != MassSpectrumType.CENTROIDED, BinningType.MAX);
@@ -156,7 +153,7 @@ class Fx3DSamplingTask extends AbstractTask {
             intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
           }
           if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity)
-            maxBinnedIntensity = (double) binnedIntensities[mzIndex];
+            maxBinnedIntensity = binnedIntensities[mzIndex];
         }
 
         rtDataSet[scanBinIndex] = true;

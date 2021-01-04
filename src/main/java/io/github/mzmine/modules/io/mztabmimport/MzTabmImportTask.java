@@ -18,6 +18,11 @@
 
 package io.github.mzmine.modules.io.mztabmimport;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import com.google.common.collect.Range;
 import de.isas.mztab2.io.MzTabFileParser;
 import de.isas.mztab2.model.Assay;
@@ -34,6 +39,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -411,12 +417,12 @@ public class MzTabmImportTask extends AbstractTask {
             }
           }
         }
-        int scanNumbers[] = {};
+        Scan scanNumbers[] = {};
         DataPoint finalDataPoint[] = new DataPoint[1];
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         Scan representativeScan = null;
         Scan fragmentScan = null;
-        Scan[] allFragmentScans = new Scan[]{};
+        Scan[] allFragmentScans = {};
 
         Range<Float> finalRTRange = Range.singleton(feature_rt);
         Range<Double> finalMZRange = Range.singleton(feature_mz);
@@ -430,6 +436,7 @@ public class MzTabmImportTask extends AbstractTask {
             new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt, feature_height,
                 (float) abundance, scanNumbers, finalDataPoint, status, representativeScan,
                 fragmentScan, allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
+
         feature.setCharge(charge);
         newRow.addFeature(rawData, feature);
       }

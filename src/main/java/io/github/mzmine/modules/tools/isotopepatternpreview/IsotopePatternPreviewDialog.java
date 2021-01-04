@@ -18,40 +18,20 @@
 
 package io.github.mzmine.modules.tools.isotopepatternpreview;
 
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import io.github.mzmine.taskcontrol.AbstractTask;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
-import javafx.beans.binding.DoubleBinding;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.gui.chartbasics.chartthemes.EIsotopePatternChartTheme;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ExtendedIsotopePatternDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraToolTipGenerator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -64,15 +44,22 @@ import io.github.mzmine.parameters.parametertypes.PercentComponent;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.scans.ScanUtils;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
-import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 /**
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
@@ -158,8 +145,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     tableData = FXCollections.observableArrayList();
     TableColumn<IsotopePatternTableData, String> mzColumn = new TableColumn<>("m/z");
     TableColumn<IsotopePatternTableData, String> intensityColumn = new TableColumn<>("Intensity");
-    TableColumn<IsotopePatternTableData, String> compositionColumn = new TableColumn<>(
-        "Composition");
+    TableColumn<IsotopePatternTableData, String> compositionColumn =
+        new TableColumn<>("Composition");
     mzColumn.setCellValueFactory(
         data -> new SimpleStringProperty(mzFormat.format(data.getValue().getMz())));
     intensityColumn.setCellValueFactory(
@@ -250,7 +237,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
    * @param pattern
    */
   protected void updateTable(SimpleIsotopePattern pattern) {
-    DataPoint[] dp = pattern.getDataPoints();
+    DataPoint[] dp = ScanUtils.extractDataPoints(pattern);
     tableData.clear();
     for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
       tableData.add(new IsotopePatternTableData(dp[i].getMZ(), dp[i].getIntensity(),

@@ -84,7 +84,7 @@ public class MZmineToMSDKMsScan implements MsScan {
 
   @Override
   public Float getTIC() {
-    return (float) mzmineScan.getTIC();
+    return mzmineScan.getTIC().floatValue();
   }
 
   @Override

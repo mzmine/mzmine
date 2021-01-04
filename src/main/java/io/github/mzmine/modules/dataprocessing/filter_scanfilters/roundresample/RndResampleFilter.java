@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class RndResampleFilter implements ScanFilter {
 
@@ -42,10 +43,10 @@ public class RndResampleFilter implements ScanFilter {
     // If CENTROIDED scan, use it as-is
     DataPoint dps[];
     if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
-      dps = scan.getDataPoints();
+      dps = ScanUtils.extractDataPoints(scan);
     // Otherwise, detect local maxima
     else
-      dps = LocMaxCentroidingAlgorithm.centroidScan(scan.getDataPoints());
+      dps = LocMaxCentroidingAlgorithm.centroidScan(ScanUtils.extractDataPoints(scan));
 
     // Cleanup first: Remove zero intensity data points (if requested)
     // Reuse dps array

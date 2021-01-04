@@ -354,8 +354,10 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       if (dataFile == null)
         throw new SAXException("Error in project: data file " + peakColumnID + " not found");
 
-      Scan[] scans = Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
-      Scan[] fragmentScans = currentAllMS2FragmentScans.stream().map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
+      Scan[] scans =
+          Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
+      Scan[] fragmentScans = currentAllMS2FragmentScans.stream()
+          .map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
       Scan bestMS1 = dataFile.getScanAtNumber(representativeScan);
       Scan bestMS2 = dataFile.getScanAtNumber(fragmentScan);
 
@@ -397,18 +399,17 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       if (peakRTRange == null)
         peakRTRange = Range.singleton(rt);
 
-      ModularFeature peak = new ModularFeature(buildingPeakList, dataFile, mass, rt, height, area,
-          scanNumbers, mzPeaks, status, representativeScan, fragmentScan, allMS2FragmentScanNumbers,
-          peakRTRange, peakMZRange, peakIntensityRange);
       // SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers,
       // mzPeaks,
       // status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
       // peakMZRange, peakIntensityRange);
-      ModularFeature peak = new ModularFeature(buildingPeakList, dataFile, mass, rt, height, area, scans, mzPeaks,
-          status, bestMS1, bestMS2, fragmentScans, peakRTRange, peakMZRange, peakIntensityRange);
-      //SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
-      //    status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
-      //    peakMZRange, peakIntensityRange);
+      ModularFeature peak = new ModularFeature(buildingPeakList, dataFile, mass, rt, height, area,
+          scans, mzPeaks, status, bestMS1, bestMS2, fragmentScans, peakRTRange, peakMZRange,
+          peakIntensityRange);
+      // SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers,
+      // mzPeaks,
+      // status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
+      // peakMZRange, peakIntensityRange);
 
       peak.setCharge(currentPeakCharge);
 

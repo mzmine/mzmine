@@ -20,7 +20,6 @@ package io.github.mzmine.modules.io.projectsave;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -79,8 +78,8 @@ class RawDataFileSaveHandler {
     numOfScans = rawDataFile.getNumOfScans();
 
     // Get the structure of the data points file
-    dataPointsOffsets = rawDataFile.getDataPointsOffsets();
-    dataPointsLengths = rawDataFile.getDataPointsLengths();
+    // dataPointsOffsets = rawDataFile.getDataPointsOffsets();
+    // dataPointsLengths = rawDataFile.getDataPointsLengths();
     consolidatedDataPointsOffsets = new TreeMap<Integer, Long>();
 
     // step 1 - save data file
@@ -105,26 +104,20 @@ class RawDataFileSaveHandler {
     // in the data points file, we don't want to copy those.
     long newOffset = 0;
     byte buffer[] = new byte[1 << 20];
-    RandomAccessFile dataPointsFile = rawDataFile.getDataPointsFile();
-    for (Integer storageID : dataPointsOffsets.keySet()) {
-
-      if (canceled) {
-        return;
-      }
-
-      final long offset = dataPointsOffsets.get(storageID);
-      dataPointsFile.seek(offset);
-
-      final int bytes = dataPointsLengths.get(storageID) * 4 * 2;
-      consolidatedDataPointsOffsets.put(storageID, newOffset);
-      if (buffer.length < bytes) {
-        buffer = new byte[bytes * 2];
-      }
-      dataPointsFile.read(buffer, 0, bytes);
-      zipOutputStream.write(buffer, 0, bytes);
-      newOffset += bytes;
-      progress = 0.9 * ((double) offset / dataPointsFile.length());
-    }
+    /*
+     * RandomAccessFile dataPointsFile = rawDataFile.getDataPointsFile(); for (Integer storageID :
+     * dataPointsOffsets.keySet()) {
+     * 
+     * if (canceled) { return; }
+     * 
+     * final long offset = dataPointsOffsets.get(storageID); dataPointsFile.seek(offset);
+     * 
+     * final int bytes = dataPointsLengths.get(storageID) * 4 * 2;
+     * consolidatedDataPointsOffsets.put(storageID, newOffset); if (buffer.length < bytes) { buffer
+     * = new byte[bytes * 2]; } dataPointsFile.read(buffer, 0, bytes); zipOutputStream.write(buffer,
+     * 0, bytes); newOffset += bytes; progress = 0.9 * ((double) offset / dataPointsFile.length());
+     * }
+     */
 
     if (canceled) {
       return;
@@ -211,7 +204,6 @@ class RawDataFileSaveHandler {
         return;
       }
 
-      Scan scan = rawDataFile.getScan(scanNumber);
       int storageID = 0;
       atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
           String.valueOf(storageID));

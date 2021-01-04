@@ -48,6 +48,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -110,6 +111,15 @@ public class ScanUtils {
      */
 
     return buf.toString();
+  }
+
+  @Deprecated
+  public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
+    DataPoint result[] = new DataPoint[spectrum.getNumberOfDataPoints()];
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      result[i] = new SimpleDataPoint(spectrum.getMzValue(i), spectrum.getIntensityValue(i));
+    }
+    return result;
   }
 
   /**
@@ -540,8 +550,7 @@ public class ScanUtils {
 
     return dataFile.getScanNumbers(2).stream()
         .filter(s -> rtRange.contains(s.getRetentionTime()) && mzRange.contains(s.getPrecursorMZ()))
-        .max(Comparator.comparingDouble(s -> s.getHighestDataPoint().getIntensity()))
-        .orElse(null);
+        .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
   }
 
   /**

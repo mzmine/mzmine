@@ -103,7 +103,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public @Nonnull int getBasePeakIndex() {
+  public @Nullable Integer getBasePeakIndex() {
     return highestIsotope;
   }
 
@@ -124,8 +124,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public double getTIC() {
-    return 0;
+  public @Nonnull Double getTIC() {
+    return 0.0;
   }
 
   @Override

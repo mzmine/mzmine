@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
 
 class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
@@ -98,7 +99,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
       }
 
       // get m/z and intensity values
-      DataPoint scanDataPoints[] = scan.getDataPoints();
+      DataPoint scanDataPoints[] = ScanUtils.extractDataPoints(scan);
 
       // skip empty scans
       if (scan.getBasePeakMz() == null) {

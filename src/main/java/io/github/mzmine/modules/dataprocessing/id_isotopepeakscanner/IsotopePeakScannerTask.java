@@ -18,14 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.datamodel.Scan;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -37,6 +35,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -56,6 +55,8 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.scans.ScanUtils;
+import javafx.collections.ObservableList;
 
 /**
  * This will scan a feature list for calculated isotope patterns. This class loops through every
@@ -668,7 +669,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
           continue;
 
         pattern[addCounter] = patternBuffer[p];
-        DataPoint[] points = patternBuffer[p].getDataPoints();
+        DataPoint[] points = ScanUtils.extractDataPoints(patternBuffer[p]);
         diff[addCounter] = new double[points.length];
 
         if (maxPatternSize < diff[addCounter].length) {
@@ -688,7 +689,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
           0.001, mergeWidth, charge, polarityType, true);
       pattern[0] = (SimpleIsotopePattern) IsotopePatternCalculator
           .removeDataPointsBelowIntensity(pattern[0], minPatternIntensity);
-      DataPoint[] points = pattern[0].getDataPoints();
+      DataPoint[] points = ScanUtils.extractDataPoints(pattern[0]);
       diff[0] = new double[points.length];
 
       if (maxPatternSize < diff[0].length) {
@@ -757,7 +758,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @return String of intensity ratios seperated by ":"
    */
   private static String getIntensityRatios(IsotopePattern pattern, int index) {
-    DataPoint[] dp = pattern.getDataPoints();
+    DataPoint[] dp = ScanUtils.extractDataPoints(pattern);
 
     String ratios = "";
     for (int i = 0; i < dp.length; i++)
@@ -811,8 +812,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   private PolarityType getPeakListPolarity(FeatureList peakList) {
-    return peakList.getRawDataFiles().stream().map(raw -> raw.getDataPolarity().stream().findFirst().orElse(PolarityType.UNKNOWN)).findFirst()
-        .orElse(PolarityType.UNKNOWN);
+    return peakList.getRawDataFiles().stream()
+        .map(raw -> raw.getDataPolarity().stream().findFirst().orElse(PolarityType.UNKNOWN))
+        .findFirst().orElse(PolarityType.UNKNOWN);
   }
 
   private boolean checkParameters() {

@@ -234,9 +234,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
         double intensity = 0.0;
 
         // Determine base peak value.
-        final DataPoint basePeak =
-            mzRange.encloses(scan.getDataPointMZRange()) ? scan.getHighestDataPoint()
-                : ScanUtils.findBasePeak(scan, mzRange);
+        final DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
         if (basePeak != null) {
           mzBasePeak = basePeak.getMZ();
           intensityBasePeak = basePeak.getIntensity();

@@ -18,29 +18,20 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.Color;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.*;
-import javafx.collections.ObservableList;
-import javafx.scene.control.Tab;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -72,6 +63,7 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -149,7 +141,7 @@ public class SpectraVisualizerTab extends MZmineTab {
   private static final double zoomCoefficient = 1.2f;
   private Color dataFileColor;
 
-  public SpectraVisualizerTab(RawDataFile dataFile, int scanNumber, String massList,
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, String massList,
       boolean enableProcessing) {
     super("Spectra visualizer", true, false);
     // setTitle("Spectrum loading...");
@@ -409,8 +401,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     logger.finest(
         "Loading a feature list " + selectedPeakList + " to a spectrum window"/* + getTitle() */);
 
-    PeakListDataSet peaksDataSet =
-        new PeakListDataSet(dataFile, currentScan, selectedPeakList);
+    PeakListDataSet peaksDataSet = new PeakListDataSet(dataFile, currentScan, selectedPeakList);
 
     // Set plot data sets
     spectrumPlot.addDataSet(peaksDataSet, peaksColor, true);
@@ -592,7 +583,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     }
   }
 
-  public void addAnnotation(Map<DataPoint, String> annotation) {
+  public void addAnnotation(Map<Integer, String> annotation) {
     spectrumDataSet.addAnnotation(annotation);
   }
 
@@ -641,8 +632,8 @@ public class SpectraVisualizerTab extends MZmineTab {
     // add new scan
     Scan newScan = newFile.getScanNumberAtRT(currentScan.getRetentionTime());
     if (newScan == null) {
-      MZmineCore.getDesktop().displayErrorMessage(
-          "Raw data file " + dataFile + " does not contain scan at retention time " + currentScan.getRetentionTime());
+      MZmineCore.getDesktop().displayErrorMessage("Raw data file " + dataFile
+          + " does not contain scan at retention time " + currentScan.getRetentionTime());
       return;
     }
 

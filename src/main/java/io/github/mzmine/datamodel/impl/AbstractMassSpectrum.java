@@ -18,117 +18,77 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.Vector;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Simple implementation of the Scan interface.
  */
-public abstract class AbstractStorableSpectrum implements MassSpectrum {
+public abstract class AbstractMassSpectrum implements MassSpectrum {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  protected final MemoryMapStorage storage;
-  protected DoubleBuffer mzValues, intensityValues;
-  protected Range<Double> mzRange;
-  protected int basePeak = -1;
-  protected double totalIonCurrent;
+  protected @Nullable Range<Double> mzRange;
+  protected @Nullable Integer basePeakIndex = null;
+  protected double totalIonCurrent = 0.0;
 
-  /**
-   * Constructor for creating scan with given data
-   */
-  public AbstractStorableSpectrum(@Nonnull MemoryMapStorage storage) {
+  protected synchronized void updateCacheValues(@Nonnull DoubleBuffer mzValues,
+      @Nonnull DoubleBuffer intensityValues) {
 
-    Preconditions.checkNotNull(storage);
+    assert mzValues != null;
+    assert intensityValues != null;
+    assert mzValues.capacity() == intensityValues.capacity();
 
-    // save scan data
-    this.storage = storage;
+    totalIonCurrent = 0.0;
 
-  }
-
-  public void setDataPoints(DataPoint dataPoints[]) {
-    double mzValues[] = new double[dataPoints.length];
-    double intensityValues[] = new double[dataPoints.length];
-    for (int i = 0; i < dataPoints.length; i++) {
-      mzValues[i] = dataPoints[i].getMZ();
-      intensityValues[i] = dataPoints[i].getIntensity();
+    if (mzValues.capacity() == 0) {
+      mzRange = null;
+      basePeakIndex = null;
+      return;
     }
-    setDataPoints(mzValues, intensityValues);
-  }
 
-  /**
-   * @param dataPoints
-   */
-  public synchronized void setDataPoints(double mzValues[], double intensityValues[]) {
+    totalIonCurrent = 0.0;
+    basePeakIndex = 0;
+    mzRange = Range.closed(mzValues.get(0), mzValues.get(mzValues.capacity() - 1));
 
-    assert mzValues.length == intensityValues.length;
+    for (int i = 0; i < mzValues.capacity() - 1; i++) {
 
-    for (int i = 0; i < mzValues.length - 1; i++) {
-      if (mzValues[i] > mzValues[i + 1]) {
+      // Check the order of the m/z values
+      if ((i < mzValues.capacity() - 1) && (mzValues.get(i) > mzValues.get(i + 1))) {
         throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
       }
-    }
 
-    try {
-      this.mzValues = storage.storeData(mzValues);
-      this.intensityValues = storage.storeData(intensityValues);
-    } catch (IOException e) {
-      e.printStackTrace();
-      logger.log(Level.SEVERE,
-          "Error while storing data points on disk, keeping them in memory instead", e);
-      this.mzValues = DoubleBuffer.wrap(mzValues);
-      this.intensityValues = DoubleBuffer.wrap(intensityValues);
-    }
-
-
-    totalIonCurrent = 0;
-
-    // find m/z range and base peak
-    if (intensityValues.length > 0) {
-
-      basePeak = 0;
-      mzRange = Range.closed(mzValues[0], mzValues[mzValues.length - 1]);
-
-      for (int i = 0; i < intensityValues.length; i++) {
-
-        if (intensityValues[i] > intensityValues[basePeak]) {
-          basePeak = i;
-        }
-
-        totalIonCurrent += intensityValues[i];
-
+      // Update base peak index
+      if (intensityValues.get(i) > intensityValues.get(basePeakIndex)) {
+        basePeakIndex = i;
       }
 
-    } else {
-      mzRange = Range.singleton(0.0);
-      basePeak = -1;
+      // Update TIC
+      totalIonCurrent += intensityValues.get(i);
+
     }
 
   }
+
 
   /**
    * @see io.github.mzmine.datamodel.Scan#getNumberOfDataPoints()
    */
   @Override
   public int getNumberOfDataPoints() {
-    return mzValues.capacity();
+    return getMzValues().capacity();
   }
-
-
 
   /**
    * @see io.github.mzmine.datamodel.Scan#
@@ -144,7 +104,7 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
    */
   @Override
   public @Nullable Integer getBasePeakIndex() {
-    return basePeak;
+    return basePeakIndex;
   }
 
 
@@ -152,26 +112,6 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
   @Override
   public @Nonnull Double getTIC() {
     return totalIonCurrent;
-  }
-
-
-
-  @Override
-  public DoubleBuffer getMzValues() {
-    return mzValues;
-  }
-
-  @Override
-  public DoubleBuffer getIntensityValues() {
-    return intensityValues;
-  }
-
-  private DataPoint[] getDataPoints() {
-    DataPoint d[] = new DataPoint[getNumberOfDataPoints()];
-    for (int i = 0; i < getNumberOfDataPoints(); i++) {
-      d[i] = new SimpleDataPoint(mzValues.get(i), intensityValues.get(i));
-    }
-    return d;
   }
 
   /*
@@ -209,6 +149,11 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
     return pointsWithinRange;
   }
 
+  @Deprecated
+  private DataPoint[] getDataPoints() {
+    return ScanUtils.extractDataPoints(this);
+  }
+
   /**
    * @return Returns scan datapoints over certain intensity
    */
@@ -231,30 +176,30 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
 
   @Override
   public double getMzValue(int index) {
-    return mzValues.get(index);
+    return getMzValues().get(index);
   }
 
   @Override
   public double getIntensityValue(int index) {
-    return intensityValues.get(index);
+    return getIntensityValues().get(index);
   }
 
   @Override
   @Nullable
   public Double getBasePeakMz() {
-    if (basePeak < 0)
+    if (basePeakIndex == null)
       return null;
     else
-      return mzValues.get(basePeak);
+      return getMzValues().get(basePeakIndex);
   }
 
   @Override
   @Nullable
   public Double getBasePeakIntensity() {
-    if (basePeak < 0)
+    if (basePeakIndex == null)
       return null;
     else
-      return intensityValues.get(basePeak);
+      return getIntensityValues().get(basePeakIndex);
   }
 
   @Override
@@ -302,7 +247,6 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
     public double getIntensity() {
       return spectrum.getIntensityValue(cursor);
     }
-
 
   }
 }

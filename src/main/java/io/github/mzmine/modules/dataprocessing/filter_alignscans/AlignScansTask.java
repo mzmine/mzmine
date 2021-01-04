@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class AlignScansTask extends AbstractTask {
 
@@ -129,7 +130,7 @@ public class AlignScansTask extends AbstractTask {
           // Load Data Points
           for (j = si; j <= sj; j++) {
             Scan xscan = scanNumbers[j];
-            mzValues[j - si] = xscan.getDataPoints();
+            mzValues[j - si] = ScanUtils.extractDataPoints(xscan);
           }
           // Estimate Correlations
           ii = i - si;

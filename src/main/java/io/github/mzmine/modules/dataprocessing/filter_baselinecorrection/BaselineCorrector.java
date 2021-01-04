@@ -34,6 +34,7 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * @description Abstract corrector class for baseline correction. Has to be specialized via the
@@ -196,7 +197,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final Scan origScan = scanNumbers[scanIndex];
 
       // Get data points (m/z and intensity pairs) of the original scan
-      final DataPoint[] origDataPoints = origScan.getDataPoints();
+      final DataPoint[] origDataPoints = ScanUtils.extractDataPoints(origScan);
       final DataPoint[] newDataPoints = new DataPoint[origDataPoints.length];
 
       // Copy original data points.
@@ -254,7 +255,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final Scan origScan = scanNumbers[scanIndex];
 
       // Get data points (m/z and intensity pairs) of the original scan
-      final DataPoint[] origDataPoints = origScan.getDataPoints();
+      final DataPoint[] origDataPoints = ScanUtils.extractDataPoints(origScan);
 
       // Create and write new corrected scan.
       final SimpleScan newScan = new SimpleScan(writer, origScan);
@@ -316,7 +317,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final Scan origScan = scanNumbers[scanIndex];
 
       // Get data points (m/z and intensity pairs) of the original scan
-      final DataPoint[] origDataPoints = origScan.getDataPoints();
+      final DataPoint[] origDataPoints = ScanUtils.extractDataPoints(origScan);
 
       // Create and write new corrected scan.
       final SimpleScan newScan = new SimpleScan(writer, origScan);
@@ -355,10 +356,8 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final Scan scan = scanNumbers[scanIndex];
 
       // Process data points.
-      for (final DataPoint dataPoint : scan.getDataPoints()) {
-
+      for (final DataPoint dataPoint : scan) {
         final int bin = RangeUtils.binNumber(mzRange, numBins, dataPoint.getMZ());
-
         final double value = chromatograms[bin][scanIndex];
         chromatograms[bin][scanIndex] = Math.max(value, dataPoint.getIntensity());
       }
@@ -395,10 +394,10 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final Scan scan = scanNumbers[scanIndex];
 
       // Process data points.
-      for (final DataPoint dataPoint : scan.getDataPoints()) {
+      for (final DataPoint dataPoint : scan) {
 
-        chromatograms[RangeUtils.binNumber(mzRange, numBins, dataPoint.getMZ())][scanIndex] +=
-            dataPoint.getIntensity();
+        final int bin = RangeUtils.binNumber(mzRange, numBins, dataPoint.getMZ());
+        chromatograms[bin][scanIndex] += dataPoint.getIntensity();
       }
       progressMap.get(origDataFile)[0]++;
     }

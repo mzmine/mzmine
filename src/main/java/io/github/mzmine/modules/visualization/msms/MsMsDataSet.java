@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,11 +19,8 @@
 package io.github.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import org.jfree.data.xy.AbstractXYDataset;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -32,9 +29,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
 
 /**
- * 
+ *
  */
 class MsMsDataSet extends AbstractXYDataset implements Task {
 
@@ -129,20 +129,10 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
             totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
           }
         } else if (intensityType == IntensityType.MSMS) {
-          // Get total intensity of all peaks in MS/MS scan
-          DataPoint scanDataPoints[] = scan.getDataPoints();
-          for (int x = 0; x < scanDataPoints.length; x++) {
-            totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
-          }
+          totalScanIntensity = scan.getTIC();
         }
 
-        maxFeatureIntensity = 0;
-        DataPoint scanDataPoints[] = scan.getDataPoints();
-        for (int x = 0; x < scanDataPoints.length; x++) {
-          if (maxFeatureIntensity < scanDataPoints[x].getIntensity()) {
-            maxFeatureIntensity = scanDataPoints[x].getIntensity();
-          }
-        }
+        maxFeatureIntensity = scan.getBasePeakIntensity();
 
         if (totalRTRange.contains(scanRT) && totalMZRange.contains(precursorMZ)
             && maxFeatureIntensity > minFeatureInt) {
@@ -215,6 +205,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
   private void refresh() {
     Platform.runLater(this::fireDatasetChanged);
   }
+
   @Override
   public int getSeriesCount() {
     return 1;
@@ -274,7 +265,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
    * @param mz m/z.
    * @param neutralLoss true or false.
    * @param c color.
-   * 
+   *
    */
   public void highlightSpectra(double mz, MZTolerance searchMZTolerance, double minIntensity,
       boolean neutralLoss, Color c) {
@@ -288,7 +279,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
 
       // Get total intensity of all features in MS/MS scan
       if (scanNumbers[row] != null) {
-        DataPoint scanDataPoints[] = msscan.getDataPoints();
+        DataPoint scanDataPoints[] = ScanUtils.extractDataPoints(msscan);
         double selectedIons[] = new double[scanDataPoints.length];
         int ions = 0;
         boolean colorSpectra = false;

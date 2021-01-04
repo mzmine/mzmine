@@ -43,14 +43,16 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    *
    * @return Base peak index
    */
-  int getBasePeakIndex();
+  @Nullable
+  Integer getBasePeakIndex();
 
   /**
    * Returns the sum of intensities of all data points.
    *
    * @return Total ion current
    */
-  double getTIC();
+  @Nonnull
+  Double getTIC();
 
   /**
    * Centroid / profile / thresholded

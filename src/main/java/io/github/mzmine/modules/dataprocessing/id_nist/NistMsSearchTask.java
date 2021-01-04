@@ -18,19 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
-import io.github.mzmine.datamodel.DataPoint;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_MATCH_FACTOR;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MS_LEVEL;
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MASS_LIST;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MERGE_PARAMETER;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
-
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_MATCH_FACTOR;
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR;
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MS_LEVEL;
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -38,13 +32,19 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
@@ -54,7 +54,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
-import java.util.Hashtable;
 
 /**
  * Performs NIST MS Search.
@@ -136,7 +135,7 @@ public class NistMsSearchTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list   the feature list to search.
+   * @param list the feature list to search.
    * @param params search parameters.
    */
   public NistMsSearchTask(final FeatureList list, final ParameterSet params) {
@@ -147,11 +146,12 @@ public class NistMsSearchTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param row    the feature list row to search for.
-   * @param list   the feature list to search.
+   * @param row the feature list row to search for.
+   * @param list the feature list to search.
    * @param params search parameters.
    */
-  public NistMsSearchTask(final FeatureListRow row, final FeatureList list, final ParameterSet params) {
+  public NistMsSearchTask(final FeatureListRow row, final FeatureList list,
+      final ParameterSet params) {
 
     // Initialize.
     peakList = list;
@@ -277,7 +277,7 @@ public class NistMsSearchTask extends AbstractTask {
             // Clustered Spectra.
             IsotopePattern ip = row.getBestIsotopePattern();
             if (ip != null) {
-              dataPoints = ip.getDataPoints();
+              dataPoints = ScanUtils.extractDataPoints(ip);
               comment = "Clustered spectra at RT= " + row.getAverageRT();
             }
           } else {
@@ -296,7 +296,7 @@ public class NistMsSearchTask extends AbstractTask {
 
               // Get best fragment scan.
               Scan scan = row.getBestFragmentation();
-              dataPoints = scan.getDataPoints();
+              dataPoints = ScanUtils.extractDataPoints(scan);
               comment =
                   "DATA_FILE = " + scan.getDataFile().getName() + " SCAN = " + scan.getScanNumber();
             }
@@ -328,8 +328,8 @@ public class NistMsSearchTask extends AbstractTask {
 
               for (final FeatureIdentity identity : identities) {
                 // Copy the identity.
-                final FeatureIdentity id =
-                    new SimpleFeatureIdentity((Hashtable<String, String>) identity.getAllProperties());
+                final FeatureIdentity id = new SimpleFeatureIdentity(
+                    (Hashtable<String, String>) identity.getAllProperties());
 
                 // Best match factor?
                 final boolean isPreferred;
@@ -481,9 +481,9 @@ public class NistMsSearchTask extends AbstractTask {
   /**
    * Writes a search spectrum file for the given row and data points.
    *
-   * @param peakRow   the row.
+   * @param peakRow the row.
    * @param dataPoint the chosen spectral results.
-   * @param comment   details of scan or merging stats.
+   * @param comment details of scan or merging stats.
    * @return the file.
    * @throws IOException if an i/o problem occurs.
    */

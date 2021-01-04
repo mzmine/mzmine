@@ -19,7 +19,6 @@
 package io.github.mzmine.project.impl;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -41,6 +39,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
+import javafx.collections.FXCollections;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -51,8 +50,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   public static final String SAVE_IDENTIFIER = "Ion mobility Raw data file";
   private static Logger logger = Logger.getLogger(IMSRawDataFileImpl.class.getName());
 
-  private final TreeMap<Integer, Frame> frames;
-  private final Hashtable<Integer, Set<Integer>> frameNumbersCache;
+  private final List<Frame> frames = FXCollections.observableArrayList();
+  private final Hashtable<Integer, Set<Scan>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
   private final Hashtable<Integer, Collection<? extends Frame>> frameMsLevelCache;
 
@@ -69,7 +68,6 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   public IMSRawDataFileImpl(String dataFileName) throws IOException {
     super(dataFileName);
 
-    frames = new ArrayList<>();
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
     frameMsLevelCache = new Hashtable<>();
@@ -104,7 +102,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     Range<Integer> segmentKey = getSegmentKeyForFrame((newFrame).getScanNumber());
     segmentMobilityRange.putIfAbsent(segmentKey, newFrame.getMobilities());
 
-    frames.put(newFrame.getFrameId(), newFrame);
+    frames.add(newFrame);
     /*
      * if (mobilityRange == null) { mobilityRange = Range.singleton(newScan.getMobility()); } else
      * if (!mobilityRange.contains(newScan.getMobility())) { mobilityRange =
@@ -134,8 +132,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Override
   @Nonnull
   public List<Frame> getFrames(int msLevel, Range<Float> rtRange) {
-    return getFrames(msLevel).stream()
-        .filter(frame -> rtRange.contains(frame.getRetentionTime())).collect(Collectors.toList());
+    return getFrames(msLevel).stream().filter(frame -> rtRange.contains(frame.getRetentionTime()))
+        .collect(Collectors.toList());
   }
 
   @Nonnull

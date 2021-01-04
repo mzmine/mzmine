@@ -12,7 +12,6 @@
 
 package io.github.mzmine.modules.io.siriusexport;
 
-import io.github.mzmine.datamodel.Scan;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -30,8 +29,8 @@ import java.util.stream.Collectors;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -43,6 +42,7 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameter
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class SiriusExportTask extends AbstractTask {
 
@@ -180,8 +180,7 @@ public class SiriusExportTask extends AbstractTask {
     // get row charge and polarity
     char polarity = 0;
     for (Feature f : row.getFeatures()) {
-      char pol = f.getRepresentativeScan().getPolarity()
-          .asSingleChar().charAt(0);
+      char pol = f.getRepresentativeScan().getPolarity().asSingleChar().charAt(0);
       if (pol != polarity && polarity != 0) {
         setErrorMessage(
             "Joined features have different polarity. This is most likely a bug. If not, please separate them as individual features and/or write a feature request on github.");
@@ -227,7 +226,8 @@ public class SiriusExportTask extends AbstractTask {
         }
       } else {
         // write correlation spectrum
-        writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED, -1, null);
+        writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED,
+            -1, null);
         writeCorrelationSpectrum(writer, row.getBestFeature());
         // merge everything into one
         MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row, massListName)
@@ -361,7 +361,7 @@ public class SiriusExportTask extends AbstractTask {
 
   private void writeCorrelationSpectrum(BufferedWriter writer, Feature feature) throws IOException {
     if (feature.getIsotopePattern() != null) {
-      writeSpectrum(writer, feature.getIsotopePattern());
+      writeSpectrum(writer, ScanUtils.extractDataPoints(feature.getIsotopePattern()));
     } else {
       // write nothing
       writer.write(String.valueOf(feature.getMZ()));
@@ -374,11 +374,11 @@ public class SiriusExportTask extends AbstractTask {
     }
   }
 
-  private void writeSpectrum(BufferedWriter writer, MassSpectrum spectrum) throws IOException {
-    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
-      writer.write(String.valueOf(spectrum.getMzValue(i)));
+  private void writeSpectrum(BufferedWriter writer, DataPoint[] spectrum) throws IOException {
+    for (int i = 0; i < spectrum.length; i++) {
+      writer.write(String.valueOf(spectrum[i].getMZ()));
       writer.write(' ');
-      writer.write(intensityForm.format(spectrum.getIntensityValue(i)));
+      writer.write(intensityForm.format(spectrum[i].getIntensity()));
       writer.newLine();
 
     }

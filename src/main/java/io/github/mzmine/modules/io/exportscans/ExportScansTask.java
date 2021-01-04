@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Exports a spectrum to a file.
@@ -163,7 +164,7 @@ public class ExportScansTask extends AbstractTask {
             dataPoints = list.getDataPoints();
         }
         if (dataPoints == null)
-          dataPoints = scan.getDataPoints();
+          dataPoints = ScanUtils.extractDataPoints(scan);
 
         final int itemCount = dataPoints.length;
         progressMax = itemCount;

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,17 +18,17 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * This class is used to calculate ratings and store the peak with the best rating. Intensities and
  * m/z are either taken directly from the peakListRow or given to this class by the Candidates
  * class.
- * 
+ *
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
@@ -63,7 +63,7 @@ public class Candidate {
   }
 
   /**
-   * 
+   *
    * @param parent row of parent peak
    * @param candidate row pf candidate peak
    * @param pParent data point of predicted parent mass and intensity
@@ -82,7 +82,7 @@ public class Candidate {
 
   /**
    * for RatingType.HIGHEST
-   * 
+   *
    * @param parent
    * @param candidate
    * @param pattern
@@ -95,7 +95,7 @@ public class Candidate {
       IsotopePattern pattern, int peakNum, double minRating, boolean checkIntensity) {
     double parentMZ = parent.getAverageMZ();
     double candMZ = candidate.getAverageMZ();
-    DataPoint[] points = pattern.getDataPoints();
+    DataPoint[] points = ScanUtils.extractDataPoints(pattern);
     double mzDiff = points[peakNum].getMZ() - points[0].getMZ();
 
     double tempRating = candMZ / (parentMZ + mzDiff);
@@ -134,7 +134,7 @@ public class Candidate {
 
   /**
    * for RatingType.TEMPAVG
-   * 
+   *
    * @param parent dataPoint containing MZ and average intensity of parent
    * @param candidateIntensity average candidate intensity
    * @param pattern isotope pattern
@@ -148,7 +148,7 @@ public class Candidate {
       boolean checkIntensity) {
     double parentMZ = parent.getMZ();
     double candMZ = candidate.getAverageMZ();
-    DataPoint[] points = pattern.getDataPoints();
+    DataPoint[] points = ScanUtils.extractDataPoints(pattern);
     double mzDiff = points[peakNum].getMZ() - points[0].getMZ();
 
     double tempRating = candMZ / (parentMZ + mzDiff);
@@ -186,7 +186,7 @@ public class Candidate {
 
   /**
    * method for neutralLoss
-   * 
+   *
    * @param pL
    * @param parentindex
    * @param candindex
@@ -227,7 +227,7 @@ public class Candidate {
 
   /**
    * done in the end, after all peaks have been identified, called by Candidates class
-   * 
+   *
    * @param parentMZ
    * @param pattern
    * @param peakNum
@@ -237,7 +237,7 @@ public class Candidate {
   public double recalcRatingWithAvgIntensities(double parentMZ, IsotopePattern pattern, int peakNum,
       double[] avgIntensity) {
     double candMZ = this.mz;
-    DataPoint[] points = pattern.getDataPoints();
+    DataPoint[] points = ScanUtils.extractDataPoints(pattern);
     double mzDiff = points[peakNum].getMZ() - points[0].getMZ();
 
     double tempRating = candMZ / (parentMZ + mzDiff);
@@ -263,7 +263,7 @@ public class Candidate {
   }
 
   /**
-   * 
+   *
    * @param iParent measured intensity of parent
    * @param iChild measured intensity of candidate
    * @param pParent parent dataPoint in pattern

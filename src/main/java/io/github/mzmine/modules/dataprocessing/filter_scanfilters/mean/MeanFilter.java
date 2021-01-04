@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class MeanFilter implements ScanFilter {
 
@@ -49,7 +50,7 @@ public class MeanFilter implements ScanFilter {
 
     double elSum;
 
-    DataPoint oldDataPoints[] = sc.getDataPoints();
+    DataPoint oldDataPoints[] = ScanUtils.extractDataPoints(sc);
     DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
 
     int addi = 0;

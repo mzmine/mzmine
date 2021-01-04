@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 import javafx.collections.ObservableList;
 
 public class ScanSmoothingTask extends AbstractTask {
@@ -166,7 +167,7 @@ public class ScanSmoothingTask extends AbstractTask {
               // Load Data Points
               for (j = si; j <= sj; j++) {
                 Scan xscan = scanNumbers.get(j);
-                mzValues[j - si] = xscan.getDataPoints();
+                mzValues[j - si] = ScanUtils.extractDataPoints(xscan);
               }
               // Estimate Averages
               ii = i - si;
@@ -204,7 +205,7 @@ public class ScanSmoothingTask extends AbstractTask {
               }
             }
           } else if (scan != null) {
-            newDP = scan.getDataPoints();
+            newDP = ScanUtils.extractDataPoints(scan);
           }
 
           // Smoothing in MZ space

@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule;
 
 import java.awt.Color;
-import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
@@ -42,11 +42,11 @@ public class DPPLearnerModuleTask extends DataPointProcessingTask {
 
   int currentIndex;
 
-  DPPLearnerModuleTask(DataPoint[] dataPoints, SpectraPlot targetPlot, ParameterSet parameterSet,
+  DPPLearnerModuleTask(MassSpectrum spectrum, SpectraPlot targetPlot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
     // call the super constructor, this is important to set up the
     // class-wide variables.
-    super(dataPoints, targetPlot, parameterSet, controller, listener);
+    super(spectrum, targetPlot, parameterSet, controller, listener);
     currentIndex = 0;
 
     // since these parameters are acquired by the parameter set, they have
@@ -60,9 +60,9 @@ public class DPPLearnerModuleTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (getDataPoints().length == 0)
+    if (getDataPoints().getNumberOfDataPoints() == 0)
       return 0;
-    return currentIndex / getDataPoints().length;
+    return currentIndex / getDataPoints().getNumberOfDataPoints();
   }
 
   @Override

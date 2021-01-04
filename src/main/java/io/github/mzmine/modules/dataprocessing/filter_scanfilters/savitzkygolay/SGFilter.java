@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class SGFilter implements ScanFilter {
 
@@ -87,7 +88,7 @@ public class SGFilter implements ScanFilter {
     int marginSize = (numOfDataPoints + 1) / 2 - 1;
     double sumOfInts;
 
-    DataPoint oldDataPoints[] = scan.getDataPoints();
+    DataPoint oldDataPoints[] = ScanUtils.extractDataPoints(scan);
     int newDataPointsLength = oldDataPoints.length - (marginSize * 2);
 
     // only process scans with datapoints
