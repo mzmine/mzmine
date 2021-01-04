@@ -20,11 +20,12 @@ package io.github.mzmine.project.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.Mobilogram;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.Mobilogram;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,7 +51,7 @@ public class StorableFrame extends StorableScan implements Frame {
   /**
    * key = scan num, value = mobility scan
    */
-  private final Map<Integer, MobilityScan> mobilitySubScans;
+  protected final Map<Integer, MobilityScan> mobilitySubScans;
   private final Set<ImsMsMsInfo> precursorInfos;
   private final MobilityType mobilityType;
   private final List<StorableMobilogram> mobilograms;
@@ -203,6 +204,25 @@ public class StorableFrame extends StorableScan implements Frame {
   @Override
   public MobilityType getMobilityType() {
     return mobilityType;
+  }
+
+  @Override
+  protected void updateValues() {
+    DataPoint[] dps = getDataPoints();
+    if (dps.length == 0) {
+      return;
+    }
+    basePeak = dps[0];
+    mzRange = Range.singleton(basePeak.getMZ());
+    for (DataPoint dp : dps) {
+      if (dp.getIntensity() > basePeak.getIntensity()) {
+        basePeak = dp;
+      }
+      if (!mzRange.contains(dp.getMZ())) {
+        mzRange = mzRange.span(Range.singleton(dp.getMZ()));
+      }
+      totalIonCurrent += dp.getIntensity();
+    }
   }
 
   @Override

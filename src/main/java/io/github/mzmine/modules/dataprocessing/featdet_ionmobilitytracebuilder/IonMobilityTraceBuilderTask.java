@@ -18,18 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
@@ -53,6 +41,18 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.logging.Logger;
 
 /**
  * Worker task to build ion mobility traces
@@ -388,10 +388,10 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         new ModularFeatureList(rawDataFile + " " + suffix, rawDataFile);
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(featureList);
-    featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
-    featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
-    featureList.addRowType(new FeatureShapeMobilogramType());
-    featureList.addRowType(new MobilityType());
+    featureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeType());
+    featureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
+    featureList.addFeatureType(new FeatureShapeMobilogramType());
+    featureList.addFeatureType(new MobilityType());
     int featureId = 1;
     for (IIonMobilityTrace ionTrace : ionMobilityTraces) {
       ionTrace.setFeatureList(featureList);

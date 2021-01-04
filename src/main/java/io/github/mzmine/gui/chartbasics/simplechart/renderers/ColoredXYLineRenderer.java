@@ -30,6 +30,7 @@ import org.jfree.chart.LegendItem;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CrosshairState;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
@@ -42,6 +43,8 @@ import org.jfree.data.xy.XYDataset;
  * <p></p>
  * This renderer has been modified to draw a dataset, generate labels and legend items based on the
  * color specified by the dataset.
+ * <p>
+ * Todo: pregenerate item labels to speed up gui. Maybe store all maxima and just compare those?
  *
  * @author https://github.com/SteffenHeu
  */
@@ -62,6 +65,13 @@ public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
     return (AlphaComposite.getInstance(type, (float) alpha));
   }
 
+  @Override
+  protected void drawItemLabel(Graphics2D g2, PlotOrientation orientation, XYDataset dataset,
+      int series, int item, double x, double y, boolean negative) {
+    super.drawItemLabel(g2, orientation, dataset, series, item, x, y, negative);
+  }
+
+  @Override
   public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea,
       PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis,
       XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
@@ -74,6 +84,7 @@ public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
 
   }
 
+  @Override
   protected void drawPrimaryLine(XYItemRendererState state, Graphics2D g2, XYPlot plot,
       XYDataset dataset, int pass, int series, int item, ValueAxis domainAxis, ValueAxis rangeAxis,
       Rectangle2D dataArea) {
@@ -85,6 +96,7 @@ public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
 
   }
 
+  @Override
   protected void drawFirstPassShape(Graphics2D g2, int pass, int series, int item, Shape shape) {
     g2.setComposite(makeComposite(transparency));
     g2.setStroke(getItemStroke(series, item));
@@ -103,6 +115,7 @@ public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
 
   }
 
+  @Override
   protected void drawSecondaryPass(Graphics2D g2, XYPlot plot, XYDataset dataset, int pass,
       int series, int item, ValueAxis domainAxis, Rectangle2D dataArea, ValueAxis rangeAxis,
       CrosshairState crosshairState, EntityCollection entities) {

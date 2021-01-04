@@ -50,7 +50,7 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
     this.chart = chart;
     this.plot = chart.getChart().getXYPlot();
     if (plot == null) {
-      throw new IllegalArgumentException("Char does not contain an XY-Plot.");
+      throw new IllegalArgumentException("Chart does not contain an XY-Plot.");
     }
   }
 
@@ -63,17 +63,18 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
     ColoredXYDataset coloredXYDataset = (ColoredXYDataset) dataSet;
 
     // X and Y values of current data point
-    double originalX = coloredXYDataset.getX(0, item).doubleValue();
-    double originalY = coloredXYDataset.getY(0, item).doubleValue();
+    double originalX = coloredXYDataset.getXValue(0, item);
+    double originalY = coloredXYDataset.getYValue(0, item);
 
     // Check if the intensity of this data point is above threshold
     if (originalY
-        < coloredXYDataset.getMinimumRangeValue().doubleValue() * THRESHOLD_FOR_ANNOTATION) {
+        < (coloredXYDataset.getMinimumRangeValue().doubleValue() + 0.0001)
+        * THRESHOLD_FOR_ANNOTATION) {
       return null;
     }
 
     // Check if this data point is local maximum
-    if (!SimpleChartUtility.isLocalMaximum(dataSet, series, item)) {
+    if (!coloredXYDataset.isLocalMaximum(item)) {
       return null;
     }
 
@@ -103,8 +104,9 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
       double searchMaxY = originalY + POINTS_RESERVE_Y * pixelY;
 
       // We don't want to search below the threshold level of the data set
-      if (searchMinY < (checkedDataSet.getMinimumRangeValue() * THRESHOLD_FOR_ANNOTATION)) {
-        searchMinY = checkedDataSet.getMinimumRangeValue() * THRESHOLD_FOR_ANNOTATION;
+      if (searchMinY < ((checkedDataSet.getMinimumRangeValue() + 0.0001)
+          * THRESHOLD_FOR_ANNOTATION)) {
+        searchMinY = (checkedDataSet.getMinimumRangeValue() + 0.0001) * THRESHOLD_FOR_ANNOTATION;
       }
 
       // Do search

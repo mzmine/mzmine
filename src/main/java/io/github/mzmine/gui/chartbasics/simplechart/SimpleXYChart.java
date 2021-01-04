@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.Task;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
@@ -192,6 +193,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
 
   public synchronized XYDataset removeDataSet(int index) {
     XYDataset ds = plot.getDataset(index);
+    if (ds instanceof Task) { // stop calculation in case it's still running
+      ((Task) ds).cancel();
+    }
     plot.setDataset(index, null);
     plot.setRenderer(index, null);
     notifyDatasetsChangedListeners();
@@ -202,7 +206,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    * @param datasetProviders
    * @return Mapping of the dataset index and the provider values.
    */
-  public Map<Integer, T> addDatasets(Collection<T> datasetProviders) {
+  public Map<Integer, T> addDatasetProviders(Collection<T> datasetProviders) {
     chart.setNotify(false);
     HashMap<Integer, T> map = new HashMap<>();
     for (T datasetProvider : datasetProviders) {
@@ -214,15 +218,37 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     return map;
   }
 
+  /**
+   * @param datasets
+   * @return Mapping of the dataset index and the datasets.
+   */
+  public Map<Integer, ColoredXYDataset> addDatasets(
+      Collection<? extends ColoredXYDataset> datasets) {
+    chart.setNotify(false);
+    HashMap<Integer, ColoredXYDataset> map = new HashMap<>();
+    for (ColoredXYDataset dataset : datasets) {
+      map.put(this.addDataset(dataset), dataset);
+    }
+    chart.setNotify(true);
+    chart.fireChartChanged();
+    notifyDatasetsChangedListeners();
+    return map;
+  }
+
   public synchronized void removeAllDatasets() {
     chart.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
+      XYDataset ds = plot.getDataset(i);
+      if (ds instanceof Task) {
+        ((Task) ds).cancel();
+      }
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
     }
     chart.setNotify(true);
     chart.fireChartChanged();
     notifyDatasetsChangedListeners();
+    nextDataSetNum = 0;
   }
 
   @Override

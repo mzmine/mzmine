@@ -34,6 +34,7 @@ import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -79,6 +80,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
   private TaskStatus status;
   private String errorMessage;
+
+  private String customSeriesKey = null;
 
   // Plot type
   private TICPlotType plotType;
@@ -215,8 +218,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
   @Override
   public Comparable<String> getSeriesKey(final int series) {
-
-    return dataFile.getName();
+    return (customSeriesKey == null) ? dataFile.getName() : customSeriesKey;
   }
 
   @Override
@@ -431,6 +433,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   @Override
   public TaskPriority getTaskPriority() {
     return TaskPriority.NORMAL;
+  }
+
+  public void setCustomSeriesKey(String customSeriesKey) {
+    this.customSeriesKey = customSeriesKey;
   }
 
 //  @Override
