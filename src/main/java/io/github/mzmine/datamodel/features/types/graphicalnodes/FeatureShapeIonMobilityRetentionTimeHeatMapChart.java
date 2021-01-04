@@ -108,6 +108,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
           new RetentionTimeMobilityHeatMapPlot(dataset, createPaintScale(zValues), dataPointWidth,
               dataPointHeight);
       this.getChildren().add(retentionTimeMobilityHeatMapPlot);
+      setPrefHeight(150);
     } catch (Exception ex) {
       logger.log(Level.WARNING, "error in DP", ex);
     }
