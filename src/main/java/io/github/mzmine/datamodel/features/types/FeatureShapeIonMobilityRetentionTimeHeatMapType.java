@@ -37,6 +37,7 @@ import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
+import org.apache.xpath.operations.Mod;
 
 public class FeatureShapeIonMobilityRetentionTimeHeatMapType
     extends DataType<BooleanProperty>
@@ -59,12 +60,14 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType
       TreeTableColumn<ModularFeatureListRow, Boolean> coll,
       Boolean cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null)
+    if(row == null || row.getFeature(raw) == null) {
       return null;
+    }
+    ModularFeature feature = row.getFeature(raw);
 
     // get existing buffered node from row (for column name)
     // TODO listen to changes in features data
-    Node node = row.getBufferedColChart(coll.getText());
+    Node node = feature.getBufferedColChart(coll.getText());
     if (node != null)
       return node;
 
@@ -72,7 +75,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType
 
     // TODO stop task if new task is started
     Task task = new FeatureGraphicalNodeTask(
-        FeatureShapeIonMobilityRetentionTimeHeatMapChart.class, pane, row.getFeature(raw), coll.getText());
+        FeatureShapeIonMobilityRetentionTimeHeatMapChart.class, pane, feature, coll.getText());
     MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
 
     return pane;

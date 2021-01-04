@@ -29,7 +29,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
 
 /**
- * Task for creating graphical nodes, having (ModularFeatureListRow row, AtomicDouble progress) constructor
+ * Task for creating graphical nodes, having (ModularFeature feature, AtomicDouble progress) constructor
  */
 public class FeatureGraphicalNodeTask extends AbstractTask {
 
@@ -63,7 +63,7 @@ public class FeatureGraphicalNodeTask extends AbstractTask {
     }
     final Node node = n;
     // save chart for later
-//    row.addBufferedColChart(collHeader, n);
+    feature.addBufferedColChart(collHeader, n);
 
     Platform.runLater(() -> pane.getChildren().add(node));
     setStatus(TaskStatus.FINISHED);
