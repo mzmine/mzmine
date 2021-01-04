@@ -217,6 +217,10 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   }
 
   private PaintScale createDefaultPaintScale(double min, double max) {
+    if(min >= max) {
+      min = 0;
+      max = 1;
+    }
     Range<Double> zValueRange = Range.closed(min, max);
     var paintScale =
         new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
