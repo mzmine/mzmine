@@ -18,13 +18,20 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -52,8 +59,22 @@ public class IMSRawDataOverviewModule implements MZmineRunnableModule {
   @Override
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    IMSRawDataOverviewTask task = new IMSRawDataOverviewTask(parameters);
-    tasks.add(task);
+    RawDataFilesParameter param = parameters
+        .getParameter(IMSRawDataOverviewParameters.rawDataFiles);
+    RawDataFilesSelection selection = param.getValue();
+    RawDataFile[] files = selection.getMatchingRawDataFiles();
+    for (RawDataFile file : files) {
+      if (!(file instanceof IMSRawDataFile)) {
+        MZmineCore.getDesktop().displayMessage("Invalid file type",
+            "Cannot display raw data file " + file.getName() + " in \"" + getName()
+                + "\", since it is does not possess an ion mobility dimension.");
+        continue;
+      }
+      MZmineTab tab = new IMSRawDataOverviewTab(parameters);
+      tab.onRawDataFileSelectionChanged(Set.of(file));
+      MZmineCore.getDesktop().addTab(tab);
+    }
+
     return ExitCode.OK;
   }
 
