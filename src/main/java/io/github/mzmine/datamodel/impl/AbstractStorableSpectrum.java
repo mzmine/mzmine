@@ -21,7 +21,6 @@ package io.github.mzmine.datamodel.impl;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -209,25 +208,6 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
     return pointsWithinRange;
   }
 
-  /**
-   * @return Returns scan datapoints over certain intensity
-   */
-  @Override
-  @Nonnull
-  public DataPoint[] getDataPointsOverIntensity(double intensity) {
-    int index;
-    Vector<DataPoint> points = new Vector<DataPoint>();
-    DataPoint[] dataPoints = getDataPoints();
-    for (index = 0; index < dataPoints.length; index++) {
-      if (dataPoints[index].getIntensity() >= intensity) {
-        points.add(dataPoints[index]);
-      }
-    }
-
-    DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
-
-    return pointsOverIntensity;
-  }
 
   @Override
   public double getMzValue(int index) {

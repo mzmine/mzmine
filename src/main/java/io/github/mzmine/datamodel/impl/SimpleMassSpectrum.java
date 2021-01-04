@@ -114,10 +114,5 @@ public class SimpleMassSpectrum implements MassSpectrum {
     return null;
   }
 
-  @Override
-  public DataPoint[] getDataPointsOverIntensity(double intensity) {
-    // TODO Auto-generated method stub
-    return null;
-  }
 
 }

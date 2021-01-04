@@ -105,11 +105,4 @@ public interface MassSpectrum extends Iterable<DataPoint> {
   @Nonnull
   DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange);
 
-
-  /**
-   * @return Returns scan datapoints over certain intensity
-   */
-  @Deprecated
-  @Nonnull
-  DataPoint[] getDataPointsOverIntensity(double intensity);
 }

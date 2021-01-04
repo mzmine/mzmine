@@ -20,7 +20,6 @@ package io.github.mzmine.datamodel.impl;
 
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
-import java.util.Vector;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -192,22 +191,6 @@ public class SimpleIsotopePattern implements IsotopePattern {
     System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
 
     return pointsWithinRange;
-  }
-
-  @Override
-  public DataPoint[] getDataPointsOverIntensity(double intensity) {
-    int index;
-    Vector<DataPoint> points = new Vector<DataPoint>();
-    DataPoint[] dataPoints = getDataPoints();
-    for (index = 0; index < dataPoints.length; index++) {
-      if (dataPoints[index].getIntensity() >= intensity) {
-        points.add(dataPoints[index]);
-      }
-    }
-
-    DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
-
-    return pointsOverIntensity;
   }
 
   @Override
