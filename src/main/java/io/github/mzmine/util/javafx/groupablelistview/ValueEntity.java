@@ -19,8 +19,42 @@
 package io.github.mzmine.util.javafx.groupablelistview;
 
 /**
- * Interface designed to be used as an item of {@link GroupableListView}.
+ * Class designed to be used as a value item of {@link GroupableListView}.
+ *
+ * @param <T> type of the value
  */
-public interface GroupableListViewEntity {
+public class ValueEntity<T> implements GroupableListViewEntity {
+
+  private T value;
+  private String group;
+
+  public ValueEntity(T value) {
+    this.value = value;
+  }
+
+  public T getValue() {
+    return value;
+  }
+
+  public void setValue(T value) {
+    this.value = value;
+  }
+
+  public void setGroup(String group) {
+    this.group = group;
+  }
+
+  public String getGroup() {
+    return group;
+  }
+
+  public boolean isGrouped() {
+    return getGroup() != null;
+  }
+
+  @Override
+  public String toString() {
+    return value.toString();
+  }
 
 }

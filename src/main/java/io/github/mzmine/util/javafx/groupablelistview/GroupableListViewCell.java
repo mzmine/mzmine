@@ -18,7 +18,7 @@
 
 package io.github.mzmine.util.javafx.groupablelistview;
 
-import io.github.mzmine.util.javafx.DraggableListCellWithDraggableFiles;
+import io.github.mzmine.util.javafx.DraggableListCell;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Platform;
@@ -35,10 +35,11 @@ import javafx.scene.text.Text;
 
 /**
  * Class designed to be used as a cell of {@link GroupableListView}.
+ *
  * @param <T> type of the cell content
  */
 public class GroupableListViewCell<T> extends
-    DraggableListCellWithDraggableFiles<GroupableListViewEntity<T>> {
+    DraggableListCell<GroupableListViewEntity> {
 
   private static final int INDENT = 20;
   private final String POSTFIX = "files";
@@ -60,31 +61,31 @@ public class GroupableListViewCell<T> extends
       }
     });
 
-    // Setup group headers expanding
+    // Setup group headers expanding/hiding
     expandButton.setOnMouseClicked(event -> {
       getListView().getItems().removeAll(((GroupableListView<T>) getListView())
-          .getGroupItems(getItem().getGroupHeader()));
+          .getGroupItems(((GroupEntity) getItem()).getGroupHeader()));
       setGraphic(hiddenButton);
-      getItem().invertState();
+      ((GroupEntity) getItem()).invertState();
     });
     hiddenButton.setOnMouseClicked(event -> {
       getListView().getItems().addAll(getIndex() + 1, ((GroupableListView<T>) getListView())
-          .getGroupItems(getItem().getGroupHeader()));
+          .getGroupItems(((GroupEntity) getItem()).getGroupHeader()));
       setGraphic(expandButton);
-      getItem().invertState();
+      ((GroupEntity) getItem()).invertState();
     });
 
     // Setup grouping context menu item
     Platform.runLater(() -> {
-      getListView().getSelectionModel().getSelectedItems().addListener(new ListChangeListener<GroupableListViewEntity<T>>() {
+      getListView().getSelectionModel().getSelectedItems().addListener(new ListChangeListener<GroupableListViewEntity>() {
         @Override
-        public void onChanged(Change<? extends GroupableListViewEntity<T>> change) {
-          if (((GroupableListView<T>) getListView()).onlyGroupHeadersSelected()) {
+        public void onChanged(Change<? extends GroupableListViewEntity> change) {
+          if (getGroupableListView().onlyGroupHeadersSelected()) {
             groupUngroupMenuItem.setText("Ungroup " + POSTFIX);
             groupUngroupMenuItem.setDisable(false);
           } else if (((GroupableListView<T>) getListView()).onlyItemsSelected()
               // TODO: do we need inherited grouping?
-              && !((GroupableListView<T>) getListView()).anyGroupedItemSelected()) {
+              && !getGroupableListView().anyGroupedItemSelected()) {
             groupUngroupMenuItem.setText("Group " + POSTFIX);
             groupUngroupMenuItem.setDisable(false);
           } else {
@@ -97,7 +98,7 @@ public class GroupableListViewCell<T> extends
   }
 
   @Override
-  protected void updateItem(GroupableListViewEntity<T> item, boolean empty) {
+  protected void updateItem(GroupableListViewEntity item, boolean empty) {
     super.updateItem(item, empty);
     if (empty || (item == null)) {
       setText("");
@@ -106,14 +107,17 @@ public class GroupableListViewCell<T> extends
     }
 
     setText(item.toString());
-    if (item.isGrouped()) {
+
+    // Shift item to the right, if it's grouped
+    if (item instanceof ValueEntity && ((ValueEntity<T>) item).isGrouped()) {
       setStyle("-fx-padding: 3 3 3 " + INDENT + ";");
     } else {
       setStyle("-fx-padding: 3 3 3 5;");
     }
 
-    if (item.isGroupHeader()) {
-      setGraphic(item.isExpanded() ? expandButton : hiddenButton);
+    // Set expand/hide button as item's graphic. if it's group header
+    if (item instanceof GroupEntity) {
+      setGraphic(((GroupEntity) item).isExpanded() ? expandButton : hiddenButton);
       textFillProperty().unbind();
       textFillProperty().setValue(Color.BLACK);
     }
@@ -128,6 +132,7 @@ public class GroupableListViewCell<T> extends
     super.startEdit();
     renameSavedGraphic = getGraphic();
 
+    // Create HBox with renaming text field
     renameTextField.setText(getItem().toString());
     setText(null);
     HBox hbox = new HBox();
@@ -153,14 +158,14 @@ public class GroupableListViewCell<T> extends
   }
 
   @Override
-  public void commitEdit(GroupableListViewEntity<T> item) {
+  public void commitEdit(GroupableListViewEntity item) {
     if (item == null) {
       return;
     }
     super.commitEdit(item);
 
-    if (item.isGroupHeader()) {
-      ((GroupableListView<T>) getListView()).renameGroupHeader(item, renameTextField.getText());
+    if (item instanceof GroupEntity) {
+      getGroupableListView().renameGroupHeader((GroupEntity) item, renameTextField.getText());
     }
     setGraphic(renameSavedGraphic);
     setText(renameTextField.getText());
@@ -170,39 +175,73 @@ public class GroupableListViewCell<T> extends
     getListView().getSelectionModel().select(getIndex());
   }
 
+  /**
+   * Swaps {@link GroupableListView} items, according to the dragged and this items' types and indices.
+   *
+   * @param draggedIdx index of the dragged item
+   * @param newIdx new index for the dragged item
+   */
   @Override
-  protected void dragDroppedAction(int draggedIdx) {
-    int thisIndex = getIndex();
-    GroupableListViewEntity<T> draggedItem = getListView().getItems().get(draggedIdx);
-    GroupableListViewEntity<T> thisItem = getListView().getItems().get(thisIndex);
+  protected void dragDroppedAction(int draggedIdx, int newIdx) {
+    GroupableListViewEntity draggedItem = getListView().getItems().get(draggedIdx);
+    GroupableListViewEntity thisItem = getListView().getItems().get(newIdx);
 
     // Define drop behavior depending on the active items
-    if (draggedItem.isValue()) {
-      if (thisItem.isGroupHeader() && thisIndex > draggedIdx) {
-        thisIndex += ((GroupableListView<T>) getListView()).getGroupSize(thisItem.getGroupHeader());
+
+    if (draggedItem instanceof ValueEntity) {
+
+      // Calculate new index as an index under group, if it's dragged to the group header
+      if (thisItem instanceof GroupEntity && ((GroupEntity) thisItem).isExpanded() && newIdx > draggedIdx) {
+        newIdx += getGroupableListView().getGroupSize(((GroupEntity) thisItem).getGroupHeader());
       }
 
-      super.dragDroppedAction(draggedIdx);
-      ((GroupableListView<T>) getListView()).removeFromGroup(draggedItem.getGroup(), draggedItem);
-      ((GroupableListView<T>) getListView()).addToGroup(thisItem.getGroup(), draggedItem);
-    } else if (draggedItem.isGroupHeader() && !thisItem.isGrouped()) {
-      List<GroupableListViewEntity<T>> groupItems
-          = new ArrayList<>(((GroupableListView<T>) getListView()).getGroupItems(draggedItem.getGroupHeader()));
+      // Swap dragged and this items
+      super.dragDroppedAction(draggedIdx, newIdx);
 
-      if (thisIndex > draggedIdx) {
-        thisIndex -= groupItems.size();
-        if (thisItem.isGroupHeader()) {
-          thisIndex += ((GroupableListView<T>) getListView()).getGroupSize(thisItem.getGroupHeader());
+      // Remove dragged item from group
+      getGroupableListView().removeFromGroup(((ValueEntity<?>) draggedItem).getGroup(), ((ValueEntity<T>) draggedItem));
+
+      // Add dragged item to group, if it's dragged inside the group
+      if (thisItem instanceof ValueEntity && ((ValueEntity<?>) thisItem).isGrouped()) {
+        getGroupableListView().addToGroup(((ValueEntity<?>) thisItem).getGroup(), ((ValueEntity<T>) draggedItem));
+      }
+    } else if (draggedItem instanceof GroupEntity
+        && !(thisItem instanceof ValueEntity && ((ValueEntity<?>) thisItem).isGrouped())) {
+
+      // If dragged group header is hidden, just swap it with this item
+      if (((GroupEntity) draggedItem).isHidden()) {
+
+        // Calculate new index as an index under group, if it's dragged to the group header
+        if (thisItem instanceof GroupEntity && ((GroupEntity) thisItem).isExpanded() && newIdx > draggedIdx) {
+          newIdx += getGroupableListView().getGroupSize(((GroupEntity) thisItem).getGroupHeader());
         }
-      }
+        super.dragDroppedAction(draggedIdx, newIdx);
+      } else {
+        List<GroupableListViewEntity> groupItems
+            = new ArrayList<>(
+            getGroupableListView().getGroupItems(((GroupEntity) draggedItem).getGroupHeader()));
 
-      getListView().getItems().remove(draggedItem);
-      getListView().getItems().removeAll(groupItems);
-      groupItems.add(0, draggedItem);
-      getListView().getItems().addAll(thisIndex, groupItems);
+        // Calculate new group header index
+        if (newIdx > draggedIdx) {
+          newIdx -= groupItems.size();
+          if (thisItem instanceof GroupEntity && ((GroupEntity) thisItem).isExpanded()) {
+            newIdx += getGroupableListView()
+                .getGroupSize(((GroupEntity) thisItem).getGroupHeader());
+          }
+        }
+
+        // Place all group items under their group header
+        getListView().getItems().remove(draggedItem);
+        getListView().getItems().removeAll(groupItems);
+        groupItems.add(0, draggedItem);
+        getListView().getItems().addAll(newIdx, groupItems);
+      }
     }
 
-    getListView().getSelectionModel().clearAndSelect(thisIndex);
+    getListView().getSelectionModel().clearAndSelect(newIdx);
   }
 
+  public GroupableListView<T> getGroupableListView() {
+    return (GroupableListView<T>) getListView();
+  }
 }

@@ -18,6 +18,8 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.util.javafx.groupablelistview.GroupEntity;
+import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.logging.Logger;
@@ -30,7 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import com.google.common.collect.ImmutableList;
-import io.github.mzmine.util.javafx.DraggableListCellWithDraggableFiles;
+import io.github.mzmine.util.javafx.DraggableListCell;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -198,30 +200,30 @@ public class MainWindowController {
     rawDataList.setCellFactory(rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
       @Override
-      protected void updateItem(GroupableListViewEntity<RawDataFile> item, boolean empty) {
+      protected void updateItem(GroupableListViewEntity item, boolean empty) {
         super.updateItem(item, empty);
         if (empty || (item == null)) {
           setText("");
           setGraphic(null);
           return;
         }
-        if (item.isGroupHeader()) {
+        if (item instanceof GroupEntity) {
           return;
         }
 
-        setText(item.getValue().getName());
+        setText(((ValueEntity<RawDataFile>) item).getValue().getName());
         setGraphic(new ImageView(rawDataFileIcon));
-        textFillProperty().bind(item.getValue().colorProperty());
+        textFillProperty().bind(((ValueEntity<RawDataFile>) item).getValue().colorProperty());
       }
 
       @Override
-      public void commitEdit(GroupableListViewEntity<RawDataFile> item) {
+      public void commitEdit(GroupableListViewEntity item) {
         super.commitEdit(item);
-        if (item == null || item.isGroupHeader()) {
+        if (item instanceof GroupEntity) {
           return;
         }
 
-        item.getValue().setName(getText());
+        ((ValueEntity<RawDataFile>) item).getValue().setName(getText());
       }
     });
 
@@ -257,7 +259,7 @@ public class MainWindowController {
       }
     });
 
-    featuresList.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
+    featuresList.setCellFactory(featureListView -> new DraggableListCell<>() {
       @Override
       protected void updateItem(FeatureList item, boolean empty) {
         super.updateItem(item, empty);
@@ -270,7 +272,7 @@ public class MainWindowController {
         setGraphic(new ImageView(featureListSingleIcon));
       }
     });
-    alignedFeaturesList.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
+    alignedFeaturesList.setCellFactory(featureListView -> new DraggableListCell<>() {
       @Override
       protected void updateItem(FeatureList item, boolean empty) {
         super.updateItem(item, empty);

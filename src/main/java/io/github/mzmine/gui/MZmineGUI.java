@@ -262,7 +262,7 @@ public class MZmineGUI extends Application implements Desktop {
       MZmineCore.getProjectManager().setCurrentProject(project);
 
       GroupableListView<RawDataFile> rawDataTree = mainWindowController.getRawDataList();
-      rawDataTree.setItemsValues(project.getRawDataFiles());
+      rawDataTree.setValues(project.getRawDataFiles());
 
       ListView<FeatureList> featureTree = mainWindowController.getFeaturesList();
       featureTree.setItems(project.getFeatureLists().filtered(featureList -> !featureList.isAligned()));

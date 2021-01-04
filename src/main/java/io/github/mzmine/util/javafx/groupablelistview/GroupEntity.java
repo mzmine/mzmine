@@ -19,8 +19,40 @@
 package io.github.mzmine.util.javafx.groupablelistview;
 
 /**
- * Interface designed to be used as an item of {@link GroupableListView}.
+ * Class designed to be used as a group header item of {@link GroupableListView}.
  */
-public interface GroupableListViewEntity {
+public class GroupEntity implements GroupableListViewEntity {
+
+  private String groupHeader;
+  private boolean isExpanded = true;
+
+  public GroupEntity(String groupHeader) {
+    this.groupHeader = groupHeader;
+  }
+
+  public String getGroupHeader() {
+    return groupHeader;
+  }
+
+  public void setGroupHeader(String groupHeader) {
+    this.groupHeader = groupHeader;
+  }
+
+  public void invertState() {
+    isExpanded = !isExpanded;
+  }
+
+  public boolean isExpanded() {
+    return isExpanded;
+  }
+
+  public boolean isHidden() {
+    return !isExpanded;
+  }
+
+  @Override
+  public String toString() {
+    return groupHeader;
+  }
 
 }
