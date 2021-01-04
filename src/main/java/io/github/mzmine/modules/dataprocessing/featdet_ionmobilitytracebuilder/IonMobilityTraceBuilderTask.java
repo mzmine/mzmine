@@ -389,7 +389,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(featureList);
     featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
-    featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
+    featureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
     featureList.addRowType(new FeatureShapeMobilogramType());
     featureList.addRowType(new MobilityType());
     int featureId = 1;
@@ -402,7 +402,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       newRow.set(MobilityType.class, ionTrace.getMobility());
       newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
       newRow.set(FeatureShapeMobilogramType.class, newRow.getFeaturesProperty());
-      newRow.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
+      modular.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
           true);
       featureList.addRow(newRow);
       featureId++;

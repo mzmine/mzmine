@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeIonMobilityRetentionTimeHeatMapChart;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.features.types.tasks.FeatureGraphicalNodeTask;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -70,8 +71,8 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType
     StackPane pane = new StackPane();
 
     // TODO stop task if new task is started
-    Task task = new FeaturesGraphicalNodeTask(
-        FeatureShapeIonMobilityRetentionTimeHeatMapChart.class, pane, row, coll.getText());
+    Task task = new FeatureGraphicalNodeTask(
+        FeatureShapeIonMobilityRetentionTimeHeatMapChart.class, pane, row.getFeature(raw), coll.getText());
     MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
 
     return pane;
