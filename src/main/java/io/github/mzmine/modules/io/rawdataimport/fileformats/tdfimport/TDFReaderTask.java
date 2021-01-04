@@ -142,6 +142,13 @@ public class TDFReaderTask extends AbstractTask {
     readMetadata();
 
     long handle = TDFUtils.openFile(tdfBin);
+
+    if (handle == 0l) {
+      setStatus(TaskStatus.PROCESSING);
+      setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
+      return;
+    }
+
     int numFrames = frameTable.getNumberOfFrames();
 
     Date start = new Date();
