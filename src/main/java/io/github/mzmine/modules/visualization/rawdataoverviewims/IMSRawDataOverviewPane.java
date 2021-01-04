@@ -33,7 +33,8 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
-import io.github.mzmine.modules.visualization.rawdataoverviewims.Threads.BuildMultipleRanges;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.Threads.BuildMultipleMobilogramRanges;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.Threads.BuildMultipleTICRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.Threads.BuildSelectedRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.CachedFrame;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameHeatmapProvider;
@@ -181,7 +182,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
       return;
     }
     try {
-      ticChart.removeDatasets(mzRangeTicDatasetIndices);
+//      ticChart.removeDatasets(mzRangeTicDatasetIndices);
       mzRangeTicDatasetIndices.clear();
       cachedFrame = new CachedFrame((StorableFrame) selectedFrame.get(), frameNoiseLevel,
           mobilityScanNoiseLevel);
@@ -197,8 +198,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
           new ValueMarker(selectedFrame.get().getRetentionTime(), markerColor, markerStroke),
           Layer.FOREGROUND);
       MZmineCore.getTaskController()
-          .addTask(new BuildMultipleRanges(controlsPanel.getMobilogramRangesList(),
-              Set.of(cachedFrame), rawDataFile, scanSelection, this, rtWidth));
+          .addTask(new BuildMultipleMobilogramRanges(controlsPanel.getMobilogramRangesList(),
+              Set.of(cachedFrame), rawDataFile, this));
       if (!RangeUtils
           .isJFreeRangeConnectedToGoogleRange(heatmapChart.getXYPlot().getRangeAxis().getRange(),
               selectedFrame.get().getMobilityRange())) {
@@ -367,18 +368,21 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }));
   }
 
-  public void addRangesToChart(List<? extends ColoredXYDataset> previewMobilograms,
-      List<TICDataSet> ticDataSets, List<Color> ticDatasetColors) {
+  public void addMobilogramRangesToChart(List<? extends ColoredXYDataset> previewMobilograms) {
     mobilogramChart.addDatasets(previewMobilograms);
+    updateValueMarkers();
+  }
+
+  public void setTICRangesToChart(List<TICDataSet> ticDataSets, List<Color> ticDatasetColors) {
     assert ticDatasetColors.size() == ticDataSets.size();
     ticChart.getChart().setNotify(false);
+    ticChart.removeDatasets(mzRangeTicDatasetIndices);
     for (int i = 0; i < ticDataSets.size(); i++) {
       mzRangeTicDatasetIndices.add(ticChart.addTICDataSet(ticDataSets.get(i),
           ticDatasetColors.get(i)));
     }
     ticChart.getChart().setNotify(true);
     ticChart.getChart().fireChartChanged();
-    updateValueMarkers();
   }
 
   public void setSelectedRangesToChart(ColoredXYDataset dataset, TICDataSet ticDataSet,
@@ -420,6 +424,11 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
   protected void updateTicPlot() {
     ticChart.removeAllDataSets();
+    mzRangeTicDatasetIndices.clear();
+    Thread thread = new Thread(
+        new BuildMultipleTICRanges(controlsPanel.getMobilogramRangesList(), rawDataFile,
+            scanSelection, this));
+    thread.start();
     TICDataSet dataSet = new TICDataSet(rawDataFile, scanSelection.getMatchingScans(rawDataFile),
         rawDataFile.getDataMZRange(), null);
     ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
@@ -436,8 +445,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
     summedSpectrumChart.removeAllDatasets();
     heatmapChart.removeAllDatasets();
     singleSpectrumChart.removeAllDatasets();
-//    ticChart.removeAllDataSets(true);
-//    ionTraceChart.removeAllDatasets();
   }
 
   public Frame getSelectedFrame() {
@@ -471,7 +478,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     this.rawDataFile = (IMSRawDataFile) rawDataFile;
     updateTicPlot();
     updateAxisLabels();
-    setSelectedFrame(0);
+    setSelectedFrame(((IMSRawDataFile) rawDataFile).getFrames().stream().findFirst().get());
   }
 
   public void setMzTolerance(MZTolerance mzTolerance) {

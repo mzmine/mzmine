@@ -44,27 +44,22 @@ class Threads {
   private Threads() {
   }
 
-  public static class BuildMultipleRanges extends AbstractTask {
+  public static class BuildMultipleMobilogramRanges extends AbstractTask {
 
     private final List<Range<Double>> mzRanges;
     private final Set<Frame> frames;
     private final IMSRawDataOverviewPane pane;
     private final IMSRawDataFile file;
-    private final ScanSelection scanSelection;
-    private final Float rtWidth;
     private double finishedPercentage;
 
-    protected BuildMultipleRanges(@Nonnull List<Range<Double>> mzRanges,
+    protected BuildMultipleMobilogramRanges(@Nonnull List<Range<Double>> mzRanges,
         @Nonnull Set<Frame> frames, @Nonnull IMSRawDataFile file,
-        @Nonnull ScanSelection scanSelection,
-        @Nonnull IMSRawDataOverviewPane pane, Float rtWidth) {
+        @Nonnull IMSRawDataOverviewPane pane) {
       finishedPercentage = 0d;
       this.mzRanges = mzRanges;
       this.frames = frames;
       this.pane = pane;
       this.file = file;
-      this.rtWidth = rtWidth;
-      this.scanSelection = scanSelection;
     }
 
     @Override
@@ -75,8 +70,6 @@ class Threads {
         return;
       }
       List<FastColoredXYDataset> mobilogramDataSets = new ArrayList<>();
-      List<TICDataSet> ticDataSets = new ArrayList<>();
-      List<Color> ticDataSeColors = new ArrayList<>();
       SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette().clone();
       colors.remove(file.getColor());
       NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -91,22 +84,11 @@ class Threads {
           dataset.setColor(colors.getAWT(mzRanges.indexOf(mzRange)));
           mobilogramDataSets.add(dataset);
         }
-        ScanSelection scanSel = new ScanSelection(scanSelection.getScanNumberRange(),
-            scanSelection.getBaseFilteringInteger(),
-            Range.closed(frame.getRetentionTime() - rtWidth / 2,
-                frame.getRetentionTime() + rtWidth / 2), scanSelection.getScanMobilityRange(),
-            scanSelection.getPolarity(), scanSelection.getSpectrumType(),
-            scanSelection.getMsLevel(), scanSelection.getScanDefinition());
-        TICDataSet ticDataSet = new TICDataSet(file, scanSel.getMatchingScans(file),
-            mzRange, null);
-        ticDataSets.add(ticDataSet);
-        ticDataSet.setCustomSeriesKey(seriesKey);
-        ticDataSeColors.add(colors.getAWT(mzRanges.indexOf(mzRange)));
         finishedPercentage = mzRanges.indexOf(mzRange) / (double) mzRanges.size();
       }
       setStatus(TaskStatus.FINISHED);
       Platform
-          .runLater(() -> pane.addRangesToChart(mobilogramDataSets, ticDataSets, ticDataSeColors));
+          .runLater(() -> pane.addMobilogramRangesToChart(mobilogramDataSets));
     }
 
     @Override
@@ -117,6 +99,59 @@ class Threads {
     @Override
     public double getFinishedPercentage() {
       return finishedPercentage;
+    }
+  }
+
+
+
+  public static class BuildMultipleTICRanges extends AbstractTask {
+
+    private final List<Range<Double>> mzRanges;
+    private final IMSRawDataOverviewPane pane;
+    private final IMSRawDataFile file;
+    private final ScanSelection scanSelection;
+    private double finishedPercentage;
+
+    BuildMultipleTICRanges(@Nonnull List<Range<Double>> mzRanges, @Nonnull IMSRawDataFile file,
+        @Nonnull ScanSelection scanSelection,
+        @Nonnull IMSRawDataOverviewPane pane) {
+      finishedPercentage = 0d;
+      this.mzRanges = mzRanges;
+      this.pane = pane;
+      this.file = file;
+      this.scanSelection = scanSelection;
+    }
+    @Override
+    public String getTaskDescription() {
+      return "Setting up EIC dataset calculations.";
+    }
+
+    @Override
+    public double getFinishedPercentage() {
+      return finishedPercentage;
+    }
+
+    @Override
+    public void run() {
+      List<TICDataSet> ticDataSets = new ArrayList<>();
+      List<Color> ticDataSeColors = new ArrayList<>();
+      SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette().clone();
+      colors.remove(file.getColor());
+      NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+      for (Range<Double> mzRange : mzRanges) {
+        final String seriesKey =
+            "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
+                .format(mzRange.upperEndpoint());
+        TICDataSet ticDataSet = new TICDataSet(file, scanSelection.getMatchingScans(file),
+            mzRange, null);
+        ticDataSets.add(ticDataSet);
+        ticDataSet.setCustomSeriesKey(seriesKey);
+        ticDataSeColors.add(colors.getAWT(mzRanges.indexOf(mzRange)));
+        finishedPercentage = mzRanges.indexOf(mzRange) / (double) mzRanges.size();
+      }
+      setStatus(TaskStatus.FINISHED);
+      Platform
+          .runLater(() -> pane.setTICRangesToChart(ticDataSets, ticDataSeColors));
     }
   }
 
@@ -172,5 +207,4 @@ class Threads {
       Platform.runLater(() -> pane.setSelectedRangesToChart(finalDataset, ticDataSet, color));
     }
   }
-
 }
