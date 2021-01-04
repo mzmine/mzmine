@@ -18,6 +18,7 @@
 package io.github.mzmine.datamodel;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -63,6 +64,9 @@ public interface Frame extends Scan {
   @Nonnull
   Collection<MobilityScan> getMobilityScans();
 
+  @Nonnull
+  List<MobilityScan> getSortedMobilityScans();
+
   /**
    * @param mobilityScanIndex
    * @return The mobility of this sub spectrum.
@@ -106,6 +110,7 @@ public interface Frame extends Scan {
   }
 
   void addMobilityScan(MobilityScan originalMobilityScan);
+
 
   // ImmutableList<Mobilogram> getMobilograms();
 

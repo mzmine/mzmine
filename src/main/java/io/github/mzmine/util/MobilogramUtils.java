@@ -18,17 +18,7 @@
 
 package io.github.mzmine.util;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.Mobilogram;
-import io.github.mzmine.datamodel.impl.MobilityDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleMobilogram;
-import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,6 +30,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Mobilogram;
+import io.github.mzmine.datamodel.impl.MobilityDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleMobilogram;
 
 public class MobilogramUtils {
 
@@ -75,8 +73,8 @@ public class MobilogramUtils {
       MobilityDataPoint nextDp = iterator.next();
 
       while (nextDp.getScanNum() != nextScanNum) {
-        MobilityDataPoint newDp = new MobilityDataPoint(mobilogram.getMZ(), 0.0d,
-            lastMobility - minDist, nextScanNum);
+        MobilityDataPoint newDp =
+            new MobilityDataPoint(mobilogram.getMZ(), 0.0d, lastMobility - minDist, nextScanNum);
         newDps.add(newDp);
         nextScanNum++;
         lastMobility -= minDist;
@@ -104,12 +102,10 @@ public class MobilogramUtils {
     for (MobilityDataPoint dp : dataPoints) {
       final int gap = getNumberOfConsecutiveEmptyScans(mobilogram, dp.getScanNum());
       if (gap > minGap) {
-        MobilityDataPoint firstDp = new MobilityDataPoint(
-            mobilogram.getMZ(), 0.0, dp.getMobility() - minStep,
-            dp.getScanNum() + 1);
+        MobilityDataPoint firstDp = new MobilityDataPoint(mobilogram.getMZ(), 0.0,
+            dp.getMobility() - minStep, dp.getScanNum() + 1);
         MobilityDataPoint lastDp = new MobilityDataPoint(mobilogram.getMZ(), 0.0,
-            dp.getMobility() - minStep * (gap - 1),
-            dp.getScanNum() + gap - 1);
+            dp.getMobility() - minStep * (gap - 1), dp.getScanNum() + gap - 1);
         newDataPoints.add(firstDp);
         newDataPoints.add(lastDp);
       }
@@ -125,8 +121,8 @@ public class MobilogramUtils {
   public static int getNextAvailableScanNumber(Mobilogram mobilogram, int startScanNum) {
     boolean foundStartKey = false;
     List<MobilityDataPoint> dataPoints = mobilogram.getDataPoints().stream()
-        .sorted(Comparator.comparingInt(MobilityDataPoint::getScanNum)).collect(
-            Collectors.toList());
+        .sorted(Comparator.comparingInt(MobilityDataPoint::getScanNum))
+        .collect(Collectors.toList());
 
     for (int i = 0; i < dataPoints.size(); i++) {
       int scanNum = dataPoints.get(i).getScanNum();
@@ -143,8 +139,8 @@ public class MobilogramUtils {
 
   private static double getMobilityStepSize(Mobilogram mobilogram) {
     List<MobilityDataPoint> dataPoints = mobilogram.getDataPoints().stream()
-        .sorted(Comparator.comparingInt(MobilityDataPoint::getScanNum)).collect(
-            Collectors.toList());
+        .sorted(Comparator.comparingInt(MobilityDataPoint::getScanNum))
+        .collect(Collectors.toList());
     // find smallest mobility distance between two points get two dp
     MobilityDataPoint aDp = null;
     for (MobilityDataPoint dp : dataPoints) {
@@ -159,8 +155,8 @@ public class MobilogramUtils {
   }
 
   public static SimpleMobilogram removeZeroIntensityDataPoints(Mobilogram mobilogram) {
-    SimpleMobilogram newMobilogram = new SimpleMobilogram(mobilogram.getMobilityType(),
-        mobilogram.getRawDataFile());
+    SimpleMobilogram newMobilogram =
+        new SimpleMobilogram(mobilogram.getMobilityType(), mobilogram.getRawDataFile());
 
     for (MobilityDataPoint dp : mobilogram.getDataPoints()) {
       if (Double.compare(dp.getIntensity(), 0) == 0.0d) {
@@ -175,7 +171,8 @@ public class MobilogramUtils {
 
   /**
    * Builds a Mobilogram for the selected Frames. Should not be used to build multiple mobilograms
-   * du to lower performance than the {@link io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilogramBuilderTask}.
+   * du to lower performance than the
+   * {@link io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilogramBuilderTask}.
    *
    * @param frames
    * @param mzRange
@@ -189,8 +186,8 @@ public class MobilogramUtils {
       throw new IllegalArgumentException(
           "Collection of frames was empty. Cannot build mobilogram.");
     }
-    SimpleMobilogram mobilogram = new SimpleMobilogram(anyFrame.getMobilityType(),
-        (IMSRawDataFile) anyFrame.getDataFile());
+    SimpleMobilogram mobilogram =
+        new SimpleMobilogram(anyFrame.getMobilityType(), (IMSRawDataFile) anyFrame.getDataFile());
 
     // collect all eligible data points from all frame-subscans
     Map<Integer, Set<DataPoint>> eligibleDataPoints = new HashMap<>(); // k = subscan number
@@ -198,9 +195,9 @@ public class MobilogramUtils {
       for (MobilityScan scan : frame.getMobilityScans()) {
         Set<DataPoint> dpSet = eligibleDataPoints.computeIfAbsent(scan.getMobilityScamNumber(),
             key -> new HashSet<>());
-        DataPoint[] dps = scan.getDataPoints();
-        Arrays.sort(dps, Comparator.comparingDouble(DataPoint::getMZ));
-        DataPoint[] foundDps = ScanUtils.getDataPointsByMass(dps, mzRange);
+        // DataPoint[] dps = scan.getDataPoints();
+        // Arrays.sort(dps, Comparator.comparingDouble(DataPoint::getMZ));
+        DataPoint[] foundDps = scan.getDataPointsByMass(mzRange);
         Collections.addAll(dpSet, foundDps);
       }
     }

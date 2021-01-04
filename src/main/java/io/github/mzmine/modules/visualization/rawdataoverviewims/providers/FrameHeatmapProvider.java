@@ -1,36 +1,37 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims.providers;
 
+import java.awt.Color;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
+import org.jfree.chart.renderer.PaintScale;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.awt.Color;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nullable;
-import org.jfree.chart.renderer.PaintScale;
 
 public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
@@ -39,7 +40,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   protected final NumberFormat mobilityFormat;
   protected final NumberFormat intensityFormat;
   protected final UnitFormat unitFormat;
-  private final CachedFrame cachedFrame;
+  private final Frame frame;
 
   private final List<Double> domainValues;
   private final List<Double> rangeValues;
@@ -48,9 +49,8 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   private double finishedPercentage;
 
-  public FrameHeatmapProvider(
-      CachedFrame cachedFrame) {
-    this.cachedFrame = cachedFrame;
+  public FrameHeatmapProvider(Frame frame) {
+    this.frame = frame;
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
@@ -66,12 +66,12 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public Color getAWTColor() {
-    return cachedFrame.getDataFile().getColorAWT();
+    return frame.getDataFile().getColorAWT();
   }
 
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return cachedFrame.getDataFile().getColor();
+    return frame.getDataFile().getColor();
   }
 
   @Override
@@ -87,8 +87,8 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return cachedFrame.getDataFile().getName() + " - Frame " + cachedFrame.getFrameId() + " "
-        + rtFormat.format(cachedFrame.getRetentionTime()) + " min";
+    return frame.getDataFile().getName() + " - Frame " + frame.getFrameId() + " "
+        + rtFormat.format(frame.getRetentionTime()) + " min";
   }
 
   @Override
@@ -98,10 +98,10 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    double numScans = cachedFrame.getNumberOfMobilityScans();
+    double numScans = frame.getNumberOfMobilityScans();
     int finishedScans = 0;
-    for (MobilityScan mobilityScan : cachedFrame.getSortedMobilityScans()) {
-      for (DataPoint dp : mobilityScan.getDataPoints()) {
+    for (MobilityScan mobilityScan : frame.getSortedMobilityScans()) {
+      for (DataPoint dp : mobilityScan) {
         rangeValues.add(mobilityScan.getMobility());
         domainValues.add(dp.getMZ());
         zValues.add(dp.getIntensity());

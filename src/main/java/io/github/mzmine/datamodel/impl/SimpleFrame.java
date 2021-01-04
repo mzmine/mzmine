@@ -18,9 +18,12 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -159,6 +162,13 @@ public class SimpleFrame extends SimpleScan implements Frame {
     Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
         .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
+  }
+
+  @Override
+  public List<MobilityScan> getSortedMobilityScans() {
+    List<MobilityScan> result = new ArrayList<>(mobilitySubScans.values());
+    result.sort(Comparator.comparingDouble(MobilityScan::getMobility));
+    return result;
   }
 
   /*
