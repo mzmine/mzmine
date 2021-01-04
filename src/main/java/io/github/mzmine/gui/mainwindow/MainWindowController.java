@@ -132,16 +132,10 @@ public class MainWindowController {
   private ListView<FeatureList> featuresList;
 
   @FXML
-  private ListView<FeatureList> alignedFeaturesList;
-
-  @FXML
   public ContextMenu rawDataContextMenu;
 
   @FXML
   public MenuItem rawDataGroupMenuItem;
-
-  @FXML
-  private Tab tvAligned;
 
   @FXML
   private AnchorPane tbRawData;
@@ -194,8 +188,6 @@ public class MainWindowController {
     rawDataList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
     featuresList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-    alignedFeaturesList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
     rawDataList.setCellFactory(rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
@@ -269,20 +261,11 @@ public class MainWindowController {
           return;
         }
         setText(item.getName());
-        setGraphic(new ImageView(featureListSingleIcon));
-      }
-    });
-    alignedFeaturesList.setCellFactory(featureListView -> new DraggableListCell<>() {
-      @Override
-      protected void updateItem(FeatureList item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || (item == null)) {
-          setText("");
-          setGraphic(null);
-          return;
+        if (item.isAligned()) {
+          setGraphic(new ImageView(featureListAlignedIcon));
+        } else {
+          setGraphic(new ImageView(featureListSingleIcon));
         }
-        setText(item.getName());
-        setGraphic(new ImageView(featureListAlignedIcon));
       }
     });
 
@@ -290,11 +273,6 @@ public class MainWindowController {
     featuresList.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         handleOpenFeatureList(event);
-      }
-    });
-    alignedFeaturesList.setOnMouseClicked(event -> {
-      if (event.getClickCount() == 2) {
-        handleOpenAlignedFeatureList(event);
       }
     });
 
@@ -317,17 +295,6 @@ public class MainWindowController {
           if (tab instanceof MZmineTab && tab.isSelected()
               && ((MZmineTab) tab).isUpdateOnSelection()) {
             ((MZmineTab) tab).onFeatureListSelectionChanged(c.getList());
-          }
-        }
-      });
-
-    alignedFeaturesList.getSelectionModel().getSelectedItems()
-      .addListener((ListChangeListener<FeatureList>) c -> {
-        c.next();
-        for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-          if (tab instanceof MZmineTab && tab.isSelected()
-              && ((MZmineTab) tab).isUpdateOnSelection()) {
-            ((MZmineTab) tab).onAlignedFeatureListSelectionChanged(c.getList());
           }
         }
       });
@@ -427,10 +394,6 @@ public class MainWindowController {
 
   public ListView<FeatureList> getFeaturesList() {
     return featuresList;
-  }
-
-  public ListView<FeatureList> getAlignedFeaturesList() {
-    return alignedFeaturesList;
   }
 
   /*
@@ -615,15 +578,6 @@ public class MainWindowController {
     }
   }
 
-  public void handleOpenAlignedFeatureList(Event event) {
-    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedAlignedFeatureLists();
-    for (FeatureList fl : selectedFeatureLists) {
-      Platform.runLater(() -> {
-        FeatureTableFXUtil.addFeatureTableTab(fl);
-      });
-    }
-  }
-
   public void handleShowFeatureListSummary(Event event) {}
 
   public void handleShowScatterPlot(Event event) {}
@@ -705,12 +659,6 @@ public class MainWindowController {
               .equals(featuresList.getSelectionModel().getSelectedItems())) {
             ((MZmineTab) tab)
                 .onFeatureListSelectionChanged(featuresList.getSelectionModel().getSelectedItems());
-          }
-
-          if(((MZmineTab) tab).getAlignedFeatureLists() != null && !((MZmineTab) tab).getAlignedFeatureLists()
-              .equals(alignedFeaturesList.getSelectionModel().getSelectedItems())) {
-            ((MZmineTab) tab)
-                .onAlignedFeatureListSelectionChanged(alignedFeaturesList.getSelectionModel().getSelectedItems());
           }
         }
       }));

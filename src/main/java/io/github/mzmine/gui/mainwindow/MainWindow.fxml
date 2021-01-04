@@ -27,7 +27,7 @@
               <!--              Left side-->
               <TabPane tabClosingPolicy="UNAVAILABLE">
                 <tabs>
-                  <Tab closable="false" text="Raw files">
+                  <Tab closable="false" text="Raw data files">
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
@@ -82,38 +82,6 @@
                       <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
                           <ListView fx:id="featuresList" editable="true"
-                            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                            <contextMenu>
-                              <ContextMenu>
-                                <items>
-                                  <MenuItem text="Open feature list"
-                                    onAction="#handleOpenFeatureList"/>
-                                  <MenuItem text="Show feature list summary"
-                                    onAction="#handleShowFeatureListSummary"/>
-                                  <MenuItem text="Show scatter plot"
-                                    onAction="#handleShowScatterPlot"/>
-
-                                  <SeparatorMenuItem/>
-                                  <MenuItem text="Sort alphabetically"
-                                    onAction="#handleSort"/>
-                                  <MenuItem text="Rename feature list"
-                                    onAction="#handleRenameFeatureList"/>
-                                  <MenuItem text="Remove feature list"
-                                    onAction="#handleRemoveFeatureList"/>
-                                </items>
-                              </ContextMenu>
-                            </contextMenu>
-                          </ListView>
-                        </children>
-                      </AnchorPane>
-                    </content>
-                  </Tab>
-                  <Tab fx:id="tvAligned" closable="false" text="Aligned feature lists">
-                    <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0">
-                        <children>
-                          <ListView fx:id="alignedFeaturesList" editable="true"
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <contextMenu>

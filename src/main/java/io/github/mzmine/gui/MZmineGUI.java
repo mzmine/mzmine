@@ -265,10 +265,8 @@ public class MZmineGUI extends Application implements Desktop {
       rawDataTree.setValues(project.getRawDataFiles());
 
       ListView<FeatureList> featureTree = mainWindowController.getFeaturesList();
-      featureTree.setItems(project.getFeatureLists().filtered(featureList -> !featureList.isAligned()));
+      featureTree.setItems(project.getFeatureLists());
 
-      ListView<FeatureList> alignedFeatureTree = mainWindowController.getAlignedFeaturesList();
-      alignedFeatureTree.setItems(project.getFeatureLists().filtered(featureList -> featureList.isAligned()));
     });
 
   }
@@ -285,14 +283,6 @@ public class MZmineGUI extends Application implements Desktop {
   public static List<FeatureList> getSelectedFeatureLists() {
 
     final ListView<FeatureList> featureListView = mainWindowController.getFeaturesList();
-    return ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
-
-  }
-
-  @Nonnull
-  public static List<FeatureList> getSelectedAlignedFeatureLists() {
-
-    final ListView<FeatureList> featureListView = mainWindowController.getAlignedFeaturesList();
     return ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
 
   }
