@@ -193,10 +193,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
         singleSpectrumChart.addDataset(new SingleSpectrumProvider(
             cachedFrame.getMobilityScan(selectedMobilityScan.get().getMobilityScamNumber())));
       }
-      ticChart.getXYPlot().clearDomainMarkers();
-      ticChart.getXYPlot().addDomainMarker(
-          new ValueMarker(selectedFrame.get().getRetentionTime(), markerColor, markerStroke),
-          Layer.FOREGROUND);
       MZmineCore.getTaskController()
           .addTask(new BuildMultipleMobilogramRanges(controlsPanel.getMobilogramRangesList(),
               Set.of(cachedFrame), rawDataFile, this));
@@ -214,7 +210,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
             .setRange(selectedFrame.get().getDataPointMZRange().lowerEndpoint(),
                 selectedFrame.get().getDataPointMZRange().upperEndpoint());
       }
-//      updateValueMarkers();
+      updateValueMarkers();
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -343,6 +339,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
         }));
     ticChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
+    ionTraceChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
+      MobilityScan selectedScan = ((IonTraceProvider) ((ColoredXYZDataset) newValue.getDataset())
+          .getXyzValueProvider()).getMobilityScanAtIndex(newValue.getValueIndex());
+      if (selectedScan != null) {
+        setSelectedFrame(selectedScan.getFrame());
+        selectedMobilityScan.set(selectedScan);
+      }
+    }));
   }
 
   private void initSelectedValueListeners() {
@@ -407,6 +411,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
       heatmapChart.getXYPlot().addRangeMarker(
           new ValueMarker(selectedMobilityScan.getValue().getMobility(), markerColor,
               markerStroke), Layer.FOREGROUND);
+      ionTraceChart.getXYPlot().clearRangeMarkers();
+      ionTraceChart.getXYPlot().addRangeMarker(
+          new ValueMarker(selectedMobilityScan.get().getMobility(), markerColor, markerStroke),
+          Layer.FOREGROUND);
     }
     if (selectedMz.getValue() != null) {
       summedSpectrumChart.getXYPlot().clearDomainMarkers();
@@ -419,6 +427,16 @@ public class IMSRawDataOverviewPane extends BorderPane {
       heatmapChart.getXYPlot()
           .addDomainMarker(new ValueMarker(selectedMz.get(), markerColor, markerStroke),
               Layer.FOREGROUND);
+    }
+    if (selectedFrame.get() != null) {
+      ticChart.getXYPlot().clearDomainMarkers();
+      ticChart.getXYPlot().addDomainMarker(
+          new ValueMarker(selectedFrame.get().getRetentionTime(), markerColor, markerStroke),
+          Layer.FOREGROUND);
+      ionTraceChart.getXYPlot().clearDomainMarkers();
+      ionTraceChart.getXYPlot().addDomainMarker(
+          new ValueMarker(selectedFrame.get().getRetentionTime(), markerColor, markerStroke),
+          Layer.FOREGROUND);
     }
   }
 

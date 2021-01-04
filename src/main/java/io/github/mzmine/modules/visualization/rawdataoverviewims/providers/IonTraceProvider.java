@@ -41,6 +41,7 @@ public class IonTraceProvider implements PlotXYZDataProvider {
   private final List<Double> rtValues;
   private final List<Double> mobilityValues;
   private final List<Double> intensityValues;
+  private final List<MobilityScan> mobilityScansAtIndex;
   private final IMSRawDataFile rawDataFile;
   private final Range<Double> mzRange;
   private final Range<Float> rtRange;
@@ -55,6 +56,7 @@ public class IonTraceProvider implements PlotXYZDataProvider {
     this.rtValues = new ArrayList<>();
     this.mobilityValues = new ArrayList<>();
     this.intensityValues = new ArrayList<>();
+    this.mobilityScansAtIndex = new ArrayList<>();
     this.rawDataFile = rawDataFile;
     this.mzRange = mzRange;
     this.rtRange = rtRange;
@@ -85,6 +87,7 @@ public class IonTraceProvider implements PlotXYZDataProvider {
         rtValues.add((double) scan.getRetentionTime());
         intensityValues.add(intensity);
         mobilityValues.add(scan.getMobility());
+        mobilityScansAtIndex.add(scan);
       }
       num++;
       finishedPerecentage = (double) num / numFrames;
@@ -99,6 +102,10 @@ public class IonTraceProvider implements PlotXYZDataProvider {
   @Override
   public double getRangeValue(int index) {
     return mobilityValues.get(index);
+  }
+
+  public MobilityScan getMobilityScanAtIndex(int index) {
+    return mobilityScansAtIndex.get(index);
   }
 
   @Override
