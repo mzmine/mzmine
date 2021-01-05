@@ -79,9 +79,4 @@ public class SimpleMsTimeSeries implements MsTimeSeries<Scan> {
   public float getRetentionTime(int index) {
     return scans.get(index).getRetentionTime();
   }
-
-  @Override
-  public Number getX(int index) {
-    return getRetentionTime(index);
-  }
 }

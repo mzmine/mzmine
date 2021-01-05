@@ -24,7 +24,7 @@ package io.github.mzmine.datamodel;
  * @param <T>
  * @author https://github.com/SteffenHeu
  */
-public interface MsTimeSeries<T extends MassSpectrum> extends MsXSeries<T> {
+public interface MsTimeSeries<T extends MassSpectrum> extends MsSeries<T> {
 
   float getRetentionTime(int index);
 }

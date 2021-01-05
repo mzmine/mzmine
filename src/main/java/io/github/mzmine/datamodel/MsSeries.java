@@ -3,7 +3,7 @@ package io.github.mzmine.datamodel;
 import java.nio.DoubleBuffer;
 import java.util.List;
 
-public interface MsXSeries<T extends MassSpectrum> {
+public interface MsSeries<T extends MassSpectrum> {
 
   DoubleBuffer getIntensityValues();
 
@@ -26,6 +26,4 @@ public interface MsXSeries<T extends MassSpectrum> {
   default int getNumberOfDataPoints() {
     return getMzValues().capacity();
   }
-
-  Number getX(int index);
 }

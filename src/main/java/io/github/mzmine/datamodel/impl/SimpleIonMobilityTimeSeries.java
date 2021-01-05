@@ -97,9 +97,4 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
     return frames;
   }
 
-  @Override
-  public Number getX(int index) {
-    return getRetentionTime(index);
-  }
-
 }

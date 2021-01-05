@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.MsXSeries;
+import io.github.mzmine.datamodel.MsSeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
  *
  * @author https://github.com/SteffenHeu
  */
-public class SimpleIonMobilitySeries implements MsXSeries<MobilityScan> {
+public class SimpleIonMobilitySeries implements MsSeries<MobilityScan> {
 
   private static final Logger logger = Logger.getLogger(SimpleIonMobilitySeries.class.getName());
 
@@ -68,11 +68,6 @@ public class SimpleIonMobilitySeries implements MsXSeries<MobilityScan> {
 
   public DoubleBuffer getMzValues() {
     return mzValues;
-  }
-
-  @Override
-  public Number getX(int index) {
-    return null;
   }
 
   public double getMobility(int index) {
