@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.MsTimeSeries;
+import io.github.mzmine.datamodel.MsXSeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
@@ -30,17 +30,20 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 /**
- * Stores data points of {@link MobilityScan}s. Usually wrapped in a {@link SimpleIonMobilityTimeSeries}.
+ * Stores data points of several {@link MobilityScan}s. Usually wrapped in a {@link
+ * SimpleIonMobilityTimeSeries} representing the same feature with mobility resolution.
+ *
+ * @author https://github.com/SteffenHeu
  */
-public class IonMobilitySeries implements MsTimeSeries<MobilityScan> {
+public class SimpleIonMobilitySeries implements MsXSeries<MobilityScan> {
 
-  private static final Logger logger = Logger.getLogger(IonMobilitySeries.class.getName());
+  private static final Logger logger = Logger.getLogger(SimpleIonMobilitySeries.class.getName());
 
   protected final List<MobilityScan> scans;
   protected DoubleBuffer intensityValues;
   protected DoubleBuffer mzValues;
 
-  public IonMobilitySeries(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
+  public SimpleIonMobilitySeries(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, @Nonnull List<MobilityScan> scans) {
     if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
@@ -59,27 +62,24 @@ public class IonMobilitySeries implements MsTimeSeries<MobilityScan> {
     }
   }
 
-  @Override
   public DoubleBuffer getIntensityValues() {
     return intensityValues;
   }
 
-  @Override
   public DoubleBuffer getMzValues() {
     return mzValues;
+  }
+
+  @Override
+  public Number getX(int index) {
+    return null;
   }
 
   public double getMobility(int index) {
     return getScans().get(index).getMobility();
   }
 
-  @Override
   public List<MobilityScan> getScans() {
     return scans;
-  }
-
-  @Override
-  public float getRetentionTime(int index) {
-    return scans.get(0).getRetentionTime();
   }
 }

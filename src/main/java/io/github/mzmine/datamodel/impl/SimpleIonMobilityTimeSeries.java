@@ -21,41 +21,71 @@ package io.github.mzmine.datamodel.impl;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IonMobilityTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 /**
  * Used to store ion mobility-LC-MS data
+ *
+ * @author https://github.com/SteffenHeu
  */
 public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
 
   private static final Logger logger = Logger.getLogger(SimpleMsTimeSeries.class.getName());
 
-  protected final List<IonMobilitySeries> ionMobilitySeries;
+  protected final List<SimpleIonMobilitySeries> simpleIonMobilitySeries;
   protected final List<Frame> frames;
   protected DoubleBuffer intensityValues;
   protected DoubleBuffer mzValues;
 
-  public SimpleIonMobilityTimeSeries(@Nonnull MemoryMapStorage storage, @Nonnull List<Frame> frames) {
+  public SimpleIonMobilityTimeSeries(@Nonnull MemoryMapStorage storage, @Nonnull List<SimpleIonMobilitySeries> simpleIonMobilitySeries) {
 
-    // todo calculate summed intensities/mzs based on the IonMobilitySeries
+    frames = new ArrayList<Frame>(simpleIonMobilitySeries.size());
+    this.simpleIonMobilitySeries = simpleIonMobilitySeries;
 
-    ionMobilitySeries = new ArrayList<>();
-    this.frames = frames;
+    double[] summedIntensities = new double[simpleIonMobilitySeries.size()];
+    double[] weightedMzs = new double[simpleIonMobilitySeries.size()];
+
+    for(int i = 0; i < simpleIonMobilitySeries.size(); i ++) {
+      SimpleIonMobilitySeries ims = simpleIonMobilitySeries.get(i);
+      frames.add(ims.getScans().get(0).getFrame());
+
+      double[] intensities = ims.getIntensityValues().array();
+      double[] mzValues = ims.getMzValues().array();
+      summedIntensities[i] = Arrays.stream(intensities).sum();
+
+      // calculate an intensity weighted average for mz
+      double weightedMz = 0;
+      for(int j = 0; j < mzValues.length; j++) {
+        weightedMz += mzValues[j] * (intensities[j] / summedIntensities[i]);
+      }
+      weightedMzs[i] = weightedMz;
+    }
+
+    try {
+      intensityValues = storage.storeData(weightedMzs);
+      mzValues = storage.storeData(weightedMzs);
+    } catch (IOException e) {
+      e.printStackTrace();
+      intensityValues = DoubleBuffer.wrap(summedIntensities);
+      mzValues = DoubleBuffer.wrap(weightedMzs);
+    }
 
   }
 
   @Override
   public DoubleBuffer getIntensityValues() {
-    return null;
+    return intensityValues;
   }
 
   @Override
   public DoubleBuffer getMzValues() {
-    return null;
+    return mzValues;
   }
 
   /**
@@ -64,11 +94,12 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
    */
   @Override
   public List<Frame> getScans() {
-    return null;
+    return frames;
   }
 
   @Override
-  public float getRetentionTime(int index) {
-    return getScans().get(index).getRetentionTime();
+  public Number getX(int index) {
+    return getRetentionTime(index);
   }
+
 }

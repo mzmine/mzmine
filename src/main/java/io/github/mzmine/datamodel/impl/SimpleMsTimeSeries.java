@@ -30,6 +30,8 @@ import javax.annotation.Nonnull;
 
 /**
  * Used to store LC-MS data.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public class SimpleMsTimeSeries implements MsTimeSeries<Scan> {
 
@@ -75,6 +77,11 @@ public class SimpleMsTimeSeries implements MsTimeSeries<Scan> {
 
   @Override
   public float getRetentionTime(int index) {
-    return 0;
+    return scans.get(index).getRetentionTime();
+  }
+
+  @Override
+  public Number getX(int index) {
+    return getRetentionTime(index);
   }
 }

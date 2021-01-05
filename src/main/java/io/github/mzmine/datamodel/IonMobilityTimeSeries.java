@@ -20,8 +20,15 @@ package io.github.mzmine.datamodel;
 
 /**
  * Stores data points from ion mobility frames (summed across the mobility axis at one retention
- * time).
+ * time). Used as a tag to do instanceof checks with MsTimeSeries objects in the feature model.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public interface IonMobilityTimeSeries extends MsTimeSeries<Frame> {
+
+  @Override
+  default float getRetentionTime(int index) {
+    return getScan(index).getRetentionTime();
+  }
 
 }
