@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,6 +56,9 @@ public class FeatureShapeMobilogramChart extends StackPane {
         XYChart.Series<Number, Number> data = new XYChart.Series<>();
         List<DataPoint> dataPoints = f.getDataPoints();
         RawDataFile raw = f.getRawDataFile();
+        if(! (raw instanceof IMSRawDataFile)) {
+          continue; // cannot create a chart otherwise.
+        }
         // add data points retention mobility -> intensity
         for (DataPoint dataPoint : dataPoints) {
           if (dataPoint instanceof RetentionTimeMobilityDataPoint) {

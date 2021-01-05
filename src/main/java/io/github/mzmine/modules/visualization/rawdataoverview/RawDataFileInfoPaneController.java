@@ -250,7 +250,7 @@ public class RawDataFileInfoPaneController {
       }
 
       // add raw data to table
-      for (int i = 1; i < scanNumbers.size(); i++) {
+      for (int i = 0; i < scanNumbers.size(); i++) {
         Scan scan  = scanNumbers.get(i);
         if (scan == null) {
           continue;
