@@ -18,10 +18,18 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.ionmobilitytraceplot;
 
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.chartutils.XYBlockRendererSmallBlocks;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Font;
-import java.text.DecimalFormat;
 import java.util.Arrays;
+import javax.annotation.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -33,12 +41,6 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYZDataset;
-import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockRendererSmallBlocks;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.main.MZmineCore;
 
 public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
 
@@ -48,11 +50,12 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
   private XYBlockRendererSmallBlocks blockRenderer;
   private double dataPointHeight;
   private double dataPointWidth;
+  private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
 
   public RetentionTimeMobilityHeatMapPlot(XYZDataset dataset, PaintScale paintScale,
-      double dataPointWidth, double dataPointHeight) {
+      double dataPointWidth, double dataPointHeight, @Nullable MobilityType mobilityType) {
 
-    super(ChartFactory.createScatterPlot("", "retention time", "mobility", dataset,
+    super(ChartFactory.createScatterPlot("", "Retention time", "Mobility", dataset,
         PlotOrientation.VERTICAL, true, true, true));
 
     this.dataPointWidth = dataPointWidth;
@@ -76,6 +79,10 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     // contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
 
     plot = chart.getXYPlot();
+    plot.getDomainAxis().setLabel(unitFormat.format("Retention time", "min"));
+    if (mobilityType != null) {
+      plot.getRangeAxis().setLabel(unitFormat.format("Mobility", mobilityType.getUnit()));
+    }
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
 
@@ -88,6 +95,7 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     plot.setRangeGridlinePaint(Color.black);
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
+    chart.clearSubtitles(); // don't show the dataset label, that should be clear.
     chart.addSubtitle(legend);
 
   }
@@ -100,7 +108,7 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
 
   private void prepareLegend(double min, double max, LookupPaintScale scale) {
     NumberAxis scaleAxis = new NumberAxis(null);
-    scaleAxis.setNumberFormatOverride(new DecimalFormat("0.0E0"));
+    scaleAxis.setNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
