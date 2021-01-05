@@ -51,7 +51,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
     double[] summedIntensities = new double[simpleIonMobilitySeries.size()];
     double[] weightedMzs = new double[simpleIonMobilitySeries.size()];
 
-    for(int i = 0; i < simpleIonMobilitySeries.size(); i ++) {
+    for (int i = 0; i < simpleIonMobilitySeries.size(); i++) {
       SimpleIonMobilitySeries ims = simpleIonMobilitySeries.get(i);
       frames.add(ims.getScans().get(0).getFrame());
 
@@ -60,8 +60,9 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
       summedIntensities[i] = Arrays.stream(intensities).sum();
 
       // calculate an intensity weighted average for mz
+      // todo use CenterFunction maybe?
       double weightedMz = 0;
-      for(int j = 0; j < mzValues.length; j++) {
+      for (int j = 0; j < mzValues.length; j++) {
         weightedMz += mzValues[j] * (intensities[j] / summedIntensities[i]);
       }
       weightedMzs[i] = weightedMz;
@@ -89,7 +90,6 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
   }
 
   /**
-   *
    * @return The frames.
    */
   @Override
