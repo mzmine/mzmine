@@ -56,7 +56,6 @@ public class SimpleMsTimeSeries implements MsTimeSeries<Scan> {
       this.mzValues = DoubleBuffer.wrap(mzValues);
       this.intensityValues = DoubleBuffer.wrap(intensityValues);
     }
-
   }
 
   @Override
