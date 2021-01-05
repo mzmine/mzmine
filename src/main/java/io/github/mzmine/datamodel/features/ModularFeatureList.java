@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -23,6 +24,9 @@ import javax.annotation.Nonnull;
 
 
 public class ModularFeatureList implements FeatureList {
+
+  // storage of data points in case features are edited
+  private MemoryMapStorage memoryMapStorage = null;
 
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
@@ -476,4 +480,12 @@ public class ModularFeatureList implements FeatureList {
   public List<RowBinding> getRowBindings() {
     return rowBindings;
   }
+
+  public MemoryMapStorage getMemoryMapStorage() {
+    if(memoryMapStorage == null) {
+      memoryMapStorage = new MemoryMapStorage();
+    }
+    return memoryMapStorage;
+  }
+
 }
