@@ -19,16 +19,16 @@
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.FeatureData;
 import io.github.mzmine.util.color.ColorsFX;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
@@ -40,6 +40,7 @@ import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 
 public class FeatureShapeChart extends StackPane {
+
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public FeatureShapeChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
@@ -54,19 +55,22 @@ public class FeatureShapeChart extends StackPane {
       int fi = 0;
       for (Feature f : row.getFeatures()) {
         // contains feature?
-        List<DataPoint> dps = f.getDataPoints();
-        if (dps == null || dps.isEmpty()) {
-          continue;
-        }
+//        List<DataPoint> dps = f.getDataPoints();
+//        if (dps == null || dps.isEmpty()) {
+//          continue;
+//        }
 
+//        ObservableList<Scan> scans = f.getScanNumbers();
         XYChart.Series<Number, Number> data = new XYChart.Series<>();
-        ObservableList<Scan> scans = f.getScanNumbers();
         RawDataFile raw = f.getRawDataFile();
         // add data points retention time -> intensity
-        for (int i = 0; i < scans.size(); i++) {
-          DataPoint dp = dps.get(i);
-          double retentionTime = scans.get(i).getRetentionTime();
-          double intensity = dp == null ? 0 : dp.getIntensity();
+        MsTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).get(FeatureData.class).get();
+
+        for (int i = 0; i < dpSeries.getNumberOfDataPoints(); i++) {
+//          DataPoint dp = dps.get(i);
+          float retentionTime = dpSeries.getRetentionTime(i);
+          double intensity = dpSeries.getIntensityValue(i);
+          logger.info("rt: " + retentionTime + "\tintensity: " + intensity);
           data.getData().add(new XYChart.Data<>(retentionTime, intensity));
           /*
            * if (dp != null && (max == null || max.getIntensity() < dp.getIntensity())) { max = dp;
@@ -78,8 +82,9 @@ public class FeatureShapeChart extends StackPane {
           if (retentionTime < minRT) {
             minRT = retentionTime;
           }
-          if (progress != null)
-            progress.addAndGet(1.0 / size / scans.size());
+          if (progress != null) {
+            progress.addAndGet(1.0 / size / dpSeries.getNumberOfDataPoints());
+          }
         }
         fi++;
         bc.getData().add(data);
@@ -92,8 +97,9 @@ public class FeatureShapeChart extends StackPane {
         }
         line.setStyle("-fx-stroke: " + ColorsFX.toHexString(fileColor) + ";");
 
-        if (progress != null)
+        if (progress != null) {
           progress.set((double) fi / size);
+        }
       }
 
       bc.setLegendVisible(false);

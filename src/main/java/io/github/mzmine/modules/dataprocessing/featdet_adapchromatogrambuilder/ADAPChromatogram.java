@@ -21,8 +21,16 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -31,20 +39,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.Vector;
 import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.scans.ScanUtils;
 
 
 
@@ -119,7 +118,8 @@ public class ADAPChromatogram {
 
     rawDataPointsRTRange = dataFile.getDataRTRange(1);
 
-    dataPointsMap = new TreeMap<Scan, DataPoint>();
+    dataPointsMap = new TreeMap<Scan, DataPoint>(
+        (o1, o2) -> Float.compare(o1.getRetentionTime(), o2.getRetentionTime()));
     buildingSegment = new Vector<Scan>();
     chromScanList = new ArrayList<Scan>();
   }
