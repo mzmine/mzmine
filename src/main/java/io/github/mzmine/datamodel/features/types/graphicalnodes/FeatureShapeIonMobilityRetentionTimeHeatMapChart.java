@@ -18,7 +18,15 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
+import com.google.common.collect.Range;
+import com.google.common.util.concurrent.AtomicDouble;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
+import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.ionmobilitytraceplot.RetentionTimeMobilityHeatMapPlot;
+import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.ionmobilitytraceplot.RetentionTimeMobilityXYZDataset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,18 +37,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 import org.jfree.data.xy.XYZDataset;
-import com.google.common.collect.Range;
-import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.ionmobilitytraceplot.RetentionTimeMobilityHeatMapPlot;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.ionmobilitytraceplot.RetentionTimeMobilityXYZDataset;
-import javafx.scene.layout.StackPane;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -108,7 +107,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
       XYZDataset dataset = new RetentionTimeMobilityXYZDataset(xValues, yValues, zValues, "Test");
       RetentionTimeMobilityHeatMapPlot retentionTimeMobilityHeatMapPlot =
           new RetentionTimeMobilityHeatMapPlot(dataset, createPaintScale(zValues), dataPointWidth,
-              dataPointHeight);
+              dataPointHeight, ((IMSRawDataFile)f.getRawDataFile()).getMobilityType());
       this.getChildren().add(retentionTimeMobilityHeatMapPlot);
       setPrefHeight(150);
     } catch (Exception ex) {

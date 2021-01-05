@@ -36,9 +36,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
-import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeType;
-import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -248,10 +245,10 @@ public class DeconvolutionTask extends AbstractTask {
             dataFile);
     DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     if (originalFeatureList.getRawDataFile(0) instanceof IMSRawDataFile) {
-      resolvedFeatureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
+//      resolvedFeatureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
       resolvedFeatureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
-      resolvedFeatureList.addRowType(new FeatureShapeMobilogramType());
-      resolvedFeatureList.addRowType(new MobilityType());
+//      resolvedFeatureList.addRowType(new FeatureShapeMobilogramType());
+//      resolvedFeatureList.addRowType(new MobilityType());
     }
 
     // Load previous applied methods.
@@ -299,10 +296,10 @@ public class DeconvolutionTask extends AbstractTask {
               .mapResolvedCollapsedFeaturesToImsFeature(newFeature,
                   (ModularFeature) currentRow.getFeature(dataFile), mzCenterFunction, msmsRange,
                   RTRangeMSMS));
-          newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
-          newRow.set(FeatureShapeMobilogramType.class, true);
-          newFeature.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
-              true);
+//          newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
+//          newRow.set(FeatureShapeMobilogramType.class, true);
+//          newFeature.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
+//              true);
         } else {
           newRow.addFeature(dataFile, newFeature);
         }
