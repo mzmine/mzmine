@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Mobilogram;
 import io.github.mzmine.datamodel.impl.MobilityDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleMobilogram;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class MobilogramUtils {
 
@@ -197,7 +198,8 @@ public class MobilogramUtils {
             key -> new HashSet<>());
         // DataPoint[] dps = scan.getDataPoints();
         // Arrays.sort(dps, Comparator.comparingDouble(DataPoint::getMZ));
-        DataPoint[] foundDps = scan.getDataPointsByMass(mzRange);
+        DataPoint[] foundDps =
+            ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange);
         Collections.addAll(dpSet, foundDps);
       }
     }

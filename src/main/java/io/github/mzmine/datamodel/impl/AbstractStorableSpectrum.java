@@ -181,33 +181,24 @@ public abstract class AbstractStorableSpectrum implements MassSpectrum {
 
   /**
    * @return Returns scan datapoints within a given range
+   * @Override
+   * @Nonnull public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
+   * 
+   *          DataPoint[] dataPoints = getDataPoints(); int startIndex, endIndex; for (startIndex =
+   *          0; startIndex < dataPoints.length; startIndex++) { if (dataPoints[startIndex].getMZ()
+   *          >= mzRange.lowerEndpoint()) { break; } }
+   * 
+   *          for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) { if
+   *          (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) { break; } }
+   * 
+   *          DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+   * 
+   *          // Copy the relevant points System.arraycopy(dataPoints, startIndex,
+   *          pointsWithinRange, 0, endIndex - startIndex);
+   * 
+   *          return pointsWithinRange; }
+   * 
    */
-  @Override
-  @Nonnull
-  public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
-
-    DataPoint[] dataPoints = getDataPoints();
-    int startIndex, endIndex;
-    for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
-        break;
-      }
-    }
-
-    for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
-        break;
-      }
-    }
-
-    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
-
-    // Copy the relevant points
-    System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
-
-    return pointsWithinRange;
-  }
-
 
   @Override
   public double getMzValue(int index) {
