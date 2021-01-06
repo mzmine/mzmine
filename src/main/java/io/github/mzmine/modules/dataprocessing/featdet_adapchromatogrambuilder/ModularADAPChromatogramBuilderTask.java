@@ -376,7 +376,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     }
 
-//    buildingChromatograms.forEach(c -> c.addZerosForEmptyScans(scans));
     buildingChromatograms.forEach(c -> c.addNZeros(scans, 2, 1));
 
     ADAPChromatogram[] chromatograms = buildingChromatograms.toArray(new ADAPChromatogram[0]);

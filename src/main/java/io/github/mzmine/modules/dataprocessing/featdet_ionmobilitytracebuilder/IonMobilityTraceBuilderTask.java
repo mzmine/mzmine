@@ -45,6 +45,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -57,10 +58,6 @@ import java.util.logging.Logger;
 public class IonMobilityTraceBuilderTask extends AbstractTask {
 
   private static Logger logger = Logger.getLogger(IonMobilityTraceBuilderTask.class.getName());
-
-  private RangeSet<Double> rangeSet = TreeRangeSet.create();
-  private HashMap<Range<Double>, IIonMobilityTrace> rangeToIonTraceMap = new HashMap<>();
-
   private final MZmineProject project;
   private final RawDataFile rawDataFile;
   private final String suffix;
@@ -71,6 +68,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final int minTotalSignals;
   private final ScanSelection scanSelection;
   private final PaintScale paintScaleParameter;
+  private RangeSet<Double> rangeSet = TreeRangeSet.create();
+  private HashMap<Range<Double>, IIonMobilityTrace> rangeToIonTraceMap = new HashMap<>();
   private double progress = 0.0;
   private String taskDescription = "";
   private double mobilityWidth;
@@ -275,18 +274,19 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     Range<Double> rawDataPointsMZRange = null;
     Range<Double> rawDataPointsMobilityRange = null;
     Range<Float> rawDataPointsRtRange = null;
-    Set<MobilityScan> scanNumbers = new HashSet<>();
+    LinkedHashSet<MobilityScan> scanNumbers = new LinkedHashSet<>();
     SortedSet<RetentionTimeMobilityDataPoint> sortedRetentionTimeMobilityDataPoints =
-        new TreeSet<>(new Comparator<RetentionTimeMobilityDataPoint>() {
-          @Override
-          public int compare(RetentionTimeMobilityDataPoint o1, RetentionTimeMobilityDataPoint o2) {
-            if (o1.getMobilityScan().getMobilityScamNumber() > o2.getMobilityScan().getMobilityScamNumber()) {
-              return 1;
-            } else {
-              return -1;
-            }
+        new TreeSet<>((o1, o2) -> {
+          int frameComp = Integer
+              .compare(o1.getFrame().getScanNumber(), o2.getFrame().getScanNumber());
+          if (frameComp != 0) {
+            return frameComp;
+          } else {
+            return Integer.compare(o1.getMobilityScan().getMobilityScamNumber(),
+                o2.getMobilityScan().getMobilityScamNumber());
           }
         });
+
     Float rt = 0.0f;
     double mobility = 0.0f;
     sortedRetentionTimeMobilityDataPoints.addAll(ionTrace.getDataPoints());
