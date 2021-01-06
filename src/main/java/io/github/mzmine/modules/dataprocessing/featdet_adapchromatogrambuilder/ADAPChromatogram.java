@@ -40,18 +40,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-
 
 
 /**
  * Chromatogram.
  */
 public class ADAPChromatogram {
+
+  private static Logger logger = Logger.getLogger(ADAPChromatogram.class.getName());
+
   private SimpleFeatureInformation featureInfo;
 
   // Data file of this chromatogram
@@ -559,12 +564,55 @@ public class ADAPChromatogram {
   }
 
   public void addZerosForEmptyScans(Scan[] scans) {
-    for(Scan scan : scans) {
+    for (Scan scan : scans) {
       dataPointsMap.computeIfAbsent(scan, s -> new SimpleDataPoint(getMZ(), 0d));
     }
   }
 
-  public void addNZeros(Scan[] scans, int zeros) {
+  /**
+   * Adds zeros on the side of each consecutive number of scans.
+   *
+   * @param scans  The original scans used to build this chromatogram.
+   * @param minGap The minimum number of missing scans to be found, to fill up with zeros.
+   * @param zeros  The number of zeros to add. zeros <= minGap
+   */
+  public void addNZeros(Scan[] scans, int minGap, int zeros) {
+    assert minGap >= zeros;
 
+    int allScansIndex = 0; // contains the index of the next dp after a gap
+    int lastScanIndex = 0; // contains the index of the last dp before a gap
+
+    final int numScans = scans.length;
+
+    Map<Scan, DataPoint> dataPointsToAdd = new HashMap<>();
+
+    for (Entry<Scan, DataPoint> entry : dataPointsMap.entrySet()) {
+      Scan nextScan = entry.getKey();
+
+      while (allScansIndex < numScans && scans[allScansIndex] != nextScan) { // find the next scan
+        allScansIndex++;
+      }
+
+      if (allScansIndex - lastScanIndex >= minGap) { // check if gap was big enough
+        for (int i = 1; i <= zeros; i++) {
+          if (lastScanIndex + i < numScans && lastScanIndex != 0) {
+            dataPointsToAdd.put(scans[lastScanIndex + i], new SimpleDataPoint(getMZ(), 0d));
+          }
+          if (allScansIndex - i >= 0) {
+            dataPointsToAdd.put(scans[allScansIndex - 1], new SimpleDataPoint(getMZ(), 0d));
+          }
+        }
+      }
+
+      lastScanIndex = allScansIndex;
+    }
+
+    if (lastScanIndex + 1 < numScans) {
+      dataPointsToAdd.put(scans[lastScanIndex + 1], new SimpleDataPoint(getMZ(), 0d));
+    }
+
+    dataPointsMap.putAll(dataPointsToAdd);
+    logger.info(
+        () -> String.format("mz: %f\t Added %d data points", getMZ(), dataPointsToAdd.size()));
   }
 }

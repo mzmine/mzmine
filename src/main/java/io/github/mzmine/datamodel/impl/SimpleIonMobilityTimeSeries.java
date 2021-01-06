@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.impl;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IonMobilityTimeSeries;
 import io.github.mzmine.datamodel.MsSeries;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
@@ -44,7 +45,8 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
   protected DoubleBuffer intensityValues;
   protected DoubleBuffer mzValues;
 
-  public SimpleIonMobilityTimeSeries(@Nonnull MemoryMapStorage storage, @Nonnull List<SimpleIonMobilitySeries> simpleIonMobilitySeries) {
+  public SimpleIonMobilityTimeSeries(@Nonnull MemoryMapStorage storage,
+      @Nonnull List<SimpleIonMobilitySeries> simpleIonMobilitySeries) {
 
     List<Frame> tempFrames = new ArrayList<Frame>(simpleIonMobilitySeries.size());
     this.simpleIonMobilitySeries = simpleIonMobilitySeries;
@@ -58,7 +60,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
 
       DoubleBuffer intensities = ims.getIntensityValues();
       DoubleBuffer mzValues = ims.getMzValues();
-      for(int j = 0; j < intensities.capacity(); j++) {
+      for (int j = 0; j < intensities.capacity(); j++) {
         summedIntensities[i] = intensities.get(j);
       }
 
@@ -72,8 +74,8 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
     }
 
     try {
-      intensityValues = storage.storeData(weightedMzs);
       mzValues = storage.storeData(weightedMzs);
+      intensityValues = storage.storeData(summedIntensities);
     } catch (IOException e) {
       e.printStackTrace();
       intensityValues = DoubleBuffer.wrap(summedIntensities);
@@ -81,6 +83,27 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
     }
 
     frames = Collections.unmodifiableList(tempFrames);
+  }
+
+  private SimpleIonMobilityTimeSeries(@Nonnull MemoryMapStorage storage,
+      IonMobilityTimeSeries series) {
+    this.frames = series.getScans();
+    this.simpleIonMobilitySeries = new ArrayList<>();
+
+    double[][] data = DataPointUtils
+        .getDataPointsAsDoubleArray(series.getMzValues(), series.getIntensityValues());
+
+    try {
+      mzValues = storage.storeData(data[0]);
+      intensityValues = storage.storeData(data[1]);
+    } catch (IOException e) {
+      e.printStackTrace();
+      mzValues = DoubleBuffer.wrap(data[0]);
+      intensityValues = DoubleBuffer.wrap(data[1]);
+    }
+
+    series.getMobilograms().forEach(m -> simpleIonMobilitySeries.add(
+        (SimpleIonMobilitySeries) m.copy(storage)));
   }
 
   @Override
@@ -108,8 +131,6 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
 
   @Override
   public MsSeries<Frame> copy(MemoryMapStorage storage) {
-    List<SimpleIonMobilitySeries> mobilograms = new ArrayList<>(getMobilograms().size());
-    getMobilograms().forEach(m -> mobilograms.add((SimpleIonMobilitySeries) m.copy(storage)));
-    return new SimpleIonMobilityTimeSeries(storage, mobilograms);
+    return new SimpleIonMobilityTimeSeries(storage, this);
   }
 }

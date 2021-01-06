@@ -1,6 +1,7 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.MsTimeSeries;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ListRowBinding;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
@@ -9,7 +10,8 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 
-public class FeatureDataType extends DataType<ObjectProperty<MsTimeSeries<?>>> implements NullColumnType {
+public class FeatureDataType extends
+    DataType<ObjectProperty<MsTimeSeries<? extends Scan>>> implements NullColumnType {
 
   @Nonnull
   @Override
@@ -18,7 +20,7 @@ public class FeatureDataType extends DataType<ObjectProperty<MsTimeSeries<?>>> i
   }
 
   @Override
-  public ObjectProperty<MsTimeSeries<?>> createProperty() {
+  public ObjectProperty<MsTimeSeries<? extends Scan>> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
