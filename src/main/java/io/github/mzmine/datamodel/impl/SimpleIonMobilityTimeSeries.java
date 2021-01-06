@@ -58,7 +58,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
       DoubleBuffer intensities = ims.getIntensityValues();
       DoubleBuffer mzValues = ims.getMzValues();
       for(int j = 0; j < intensities.capacity(); j++) {
-        summedIntensities[i] = intensities.get(i);
+        summedIntensities[i] = intensities.get(j);
       }
 
       // calculate an intensity weighted average for mz

@@ -22,6 +22,8 @@ import com.google.common.collect.Range;
 import io.github.msdk.datamodel.Feature;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IonMobilityTimeSeries;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -46,12 +48,15 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.impl.SimpleIonMobilitySeries;
+import io.github.mzmine.datamodel.impl.SimpleIonMobilityTimeSeries;
 import io.github.mzmine.datamodel.impl.SimpleMsTimeSeries;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.IImage;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IIonMobilityTrace;
+import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangePeak;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
@@ -59,6 +64,8 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -190,6 +197,19 @@ public class FeatureConvertors {
 //    List<DataPoint> dps = new ArrayList<>(ionTrace.getDataPoints());
 //    modularFeature.set(DataPointsType.class, dps);
 
+    MemoryMapStorage storage = ((ModularFeatureList) ionTrace.getFeatureList())
+        .getMemoryMapStorage();
+    List<SimpleIonMobilitySeries> mobilograms = new ArrayList<>();
+    var sortedDp = FeatureConvertorIonMobility.groupDataPointsByFrameId(ionTrace.getDataPoints());
+    for (Entry<Frame, Set<RetentionTimeMobilityDataPoint>> entry : sortedDp.entrySet()) {
+      double[][] data = DataPointUtils.getDataPointsAsDoubleArray(entry.getValue());
+      SimpleIonMobilitySeries mobilogram = new SimpleIonMobilitySeries(storage, data[0], data[1],
+          entry.getValue().stream().map(RetentionTimeMobilityDataPoint::getMobilityScan).collect(
+              Collectors.toList()));
+      mobilograms.add(mobilogram);
+    }
+    IonMobilityTimeSeries imTimeSeries = new SimpleIonMobilityTimeSeries(storage, mobilograms);
+    modularFeature.set(FeatureDataType.class, imTimeSeries);
 
     // Ranges
     Range<Float> rtRange = Range.closed(ionTrace.getRetentionTimeRange().lowerEndpoint(),
@@ -202,7 +222,6 @@ public class FeatureConvertors {
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
-
 
     // Quality parameters
     // float fwhm = QualityParameters.calculateFWHM(modularFeature);
@@ -498,7 +517,6 @@ public class FeatureConvertors {
         sameRangePeak.getDataPoints().stream().collect(Collectors.toList()),
         Arrays.asList(sameRangePeak.getScanNumbers()));
     modularFeature.set(FeatureDataType.class, timeSeries);
-
 
     // Ranges
     Range<Float> rtRange = Range.closed(sameRangePeak.getRawDataPointsRTRange().lowerEndpoint(),

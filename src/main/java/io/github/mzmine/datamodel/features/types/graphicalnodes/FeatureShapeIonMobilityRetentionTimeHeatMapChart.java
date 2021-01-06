@@ -107,7 +107,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
       XYZDataset dataset = new RetentionTimeMobilityXYZDataset(xValues, yValues, zValues, "Test");
       RetentionTimeMobilityHeatMapPlot retentionTimeMobilityHeatMapPlot =
           new RetentionTimeMobilityHeatMapPlot(dataset, createPaintScale(zValues), dataPointWidth,
-              dataPointHeight, ((IMSRawDataFile)f.getRawDataFile()).getMobilityType());
+              dataPointHeight, ((IMSRawDataFile) f.getRawDataFile()).getMobilityType());
       this.getChildren().add(retentionTimeMobilityHeatMapPlot);
       setPrefHeight(150);
     } catch (Exception ex) {
@@ -134,7 +134,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
       if (dpA == null) {
         dpA = dp;
         dataPointHeight = dp.getMobilityWidth();
-      } else if (!(dpA.getRetentionTime().equals(dp.getRetentionTime()))) {
+      } else if (!(Float.compare(dpA.getRetentionTime(), dp.getRetentionTime()) == 0)) {
         rtDeltas.add(dpA.getRetentionTime() - dp.getRetentionTime());
         dpA = dp;
       }
@@ -163,4 +163,3 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
   }
 
 }
-

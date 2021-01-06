@@ -109,7 +109,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
         // add data points retention time -> intensity
 
         for (RetentionTimeMobilityDataPoint dp : dataPoints) {
-          xValuesSet.add(dp.getRetentionTime().doubleValue());
+          xValuesSet.add((double)dp.getRetentionTime());
           yValuesSet.add(dp.getMobility());
           zValuesSet.add(dp.getIntensity());
           if (dp.getMobility() > maxMobility) {
@@ -193,7 +193,7 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
       if (dpA == null) {
         dpA = dp;
         dataPointHeight = Math.abs(dp.getMobilityWidth());
-      } else if (!(dpA.getRetentionTime().equals(dp.getRetentionTime()))) {
+      } else if (!(Float.compare(dpA.getRetentionTime(), dp.getRetentionTime()) == 0)) {
         rtDeltas.add(dpA.getRetentionTime() - dp.getRetentionTime());
         dpA = dp;
       }

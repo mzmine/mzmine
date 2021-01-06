@@ -20,42 +20,36 @@ package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 
 public class RetentionTimeMobilityDataPoint implements DataPoint {
 
-  private final double mobility;
   private final double mz;
-  private final Float retentionTime;
   private final double intensity;
-  private final Frame frame;
-  private final int scanNumber;
+  private final MobilityScan mobilityScan;
   private final double mobilityWidth;
   private final PaintScale paintScale;
 
-  public RetentionTimeMobilityDataPoint(double mobility, double mz, Float retentionTime,
-      double intensity, Frame frame, int scanNumber, double mobilityWidth,
-      PaintScale paintScale) {
-    this.mobility = mobility;
+  public RetentionTimeMobilityDataPoint(MobilityScan mobilityScan, double mz, double intensity,
+      Frame frame, double mobilityWidth, PaintScale paintScale) {
     this.mz = mz;
-    this.retentionTime = retentionTime;
     this.intensity = intensity;
-    this.frame = frame;
-    this.scanNumber = scanNumber;
     this.mobilityWidth = mobilityWidth;
     this.paintScale = paintScale;
+    this.mobilityScan = mobilityScan;
   }
 
   public double getMobility() {
-    return mobility;
+    return mobilityScan.getMobility();
   }
 
   public double getMZ() {
     return mz;
   }
 
-  public Float getRetentionTime() {
-    return retentionTime;
+  public float getRetentionTime() {
+    return mobilityScan.getRetentionTime();
   }
 
   public double getIntensity() {
@@ -63,11 +57,11 @@ public class RetentionTimeMobilityDataPoint implements DataPoint {
   }
 
   public Frame getFrame() {
-    return frame;
+    return mobilityScan.getFrame();
   }
 
-  public int getScanNumber() {
-    return scanNumber;
+  public MobilityScan getMobilityScan() {
+    return mobilityScan;
   }
 
   public double getMobilityWidth() {
@@ -78,7 +72,7 @@ public class RetentionTimeMobilityDataPoint implements DataPoint {
     return paintScale;
   }
 
-  @Override
+  /*@Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -95,25 +89,33 @@ public class RetentionTimeMobilityDataPoint implements DataPoint {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     RetentionTimeMobilityDataPoint other = (RetentionTimeMobilityDataPoint) obj;
-    if (Double.doubleToLongBits(intensity) != Double.doubleToLongBits(other.intensity))
+    if (Double.doubleToLongBits(intensity) != Double.doubleToLongBits(other.intensity)) {
       return false;
-    if (Double.doubleToLongBits(mobility) != Double.doubleToLongBits(other.mobility))
+    }
+    if (Double.doubleToLongBits(mobility) != Double.doubleToLongBits(other.mobility)) {
       return false;
-    if (Double.doubleToLongBits(mz) != Double.doubleToLongBits(other.mz))
+    }
+    if (Double.doubleToLongBits(mz) != Double.doubleToLongBits(other.mz)) {
       return false;
+    }
     if (retentionTime == null) {
-      if (other.retentionTime != null)
+      if (other.retentionTime != null) {
         return false;
-    } else if (!retentionTime.equals(other.retentionTime))
+      }
+    } else if (!retentionTime.equals(other.retentionTime)) {
       return false;
+    }
     return true;
-  }
+  }*/
 
 }

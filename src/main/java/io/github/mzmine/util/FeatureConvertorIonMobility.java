@@ -40,6 +40,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -222,6 +223,7 @@ public class FeatureConvertorIonMobility {
     return groupByFrameIdAndCacheDataPoints(originalFeature);
   }
 
+
   /**
    * NOT TO BE CALLED DIRECTLY!!! USE THE CACHED {@link FeatureConvertorIonMobility#groupDataPointsByFrameId(ModularFeature)}
    * INSTEAD!!!
@@ -232,8 +234,16 @@ public class FeatureConvertorIonMobility {
   @Nonnull
   private static Map<Frame, Set<RetentionTimeMobilityDataPoint>> groupByFrameIdAndCacheDataPoints(
       @Nonnull final ModularFeature originalFeature) {
-
     List<? extends DataPoint> originalDataPoints = originalFeature.getDataPoints();
+    Map<Frame, Set<RetentionTimeMobilityDataPoint>> sortedDataPoints = groupDataPointsByFrameId(
+        originalDataPoints);
+    cache.put(originalFeature, sortedDataPoints);
+    return sortedDataPoints;
+  }
+
+  public static Map<Frame, Set<RetentionTimeMobilityDataPoint>> groupDataPointsByFrameId(
+      @Nonnull final Collection<? extends DataPoint> originalDataPoints) {
+
     List<RetentionTimeMobilityDataPoint> mobilityDataPoints = new ArrayList<>(
         originalDataPoints.size());
     for (DataPoint dp : originalDataPoints) {
@@ -253,7 +263,6 @@ public class FeatureConvertorIonMobility {
       entry.add(dp);
     }
 
-    cache.put(originalFeature, sortedDataPoints);
     return sortedDataPoints;
   }
 
@@ -266,11 +275,13 @@ public class FeatureConvertorIonMobility {
         throw new IllegalArgumentException("IMS feature contains invalid data points.");
       } else {
         if (range == null) {
-          range = Range.singleton(((RetentionTimeMobilityDataPoint) dp).getScanNumber());
+          range = Range.singleton(
+              ((RetentionTimeMobilityDataPoint) dp).getMobilityScan().getMobilityScamNumber());
         } else {
-          if (!range.contains(((RetentionTimeMobilityDataPoint) dp).getScanNumber())) {
-            range = range
-                .span(Range.singleton(((RetentionTimeMobilityDataPoint) dp).getScanNumber()));
+          if (!range.contains(
+              ((RetentionTimeMobilityDataPoint) dp).getMobilityScan().getMobilityScamNumber())) {
+            range = range.span(Range.singleton(
+                ((RetentionTimeMobilityDataPoint) dp).getMobilityScan().getMobilityScamNumber()));
           }
         }
       }

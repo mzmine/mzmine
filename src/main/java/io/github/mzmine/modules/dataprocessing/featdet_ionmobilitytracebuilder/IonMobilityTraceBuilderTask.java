@@ -149,9 +149,9 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
               "Scan #" + scan.getMobilityScamNumber() + " does not have a mass list " + massList);
         } else {
           Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
-              dp -> allDataPoints.add(new RetentionTimeMobilityDataPoint(scan.getMobility(),
-                  dp.getMZ(), scan.getRetentionTime(), dp.getIntensity(), frame,
-                  scan.getMobilityScamNumber(), mobilityWidth, paintScaleParameter)));
+              dp -> allDataPoints.add(
+                  new RetentionTimeMobilityDataPoint(scan, dp.getMZ(), dp.getIntensity(), frame,
+                      mobilityWidth, paintScaleParameter)));
         }
       }
       progress = (processedFrame / (double) frames.size()) / 4;
@@ -218,9 +218,10 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         } else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
           IIonMobilityTrace currentIonMobilityIonTrace = rangeToIonTraceMap.get(plusRange);
           currentIonMobilityIonTrace.getDataPoints().add(rtMobilityDataPoint);
-        } else
+        } else {
           throw new IllegalStateException(String.format("Incorrect range [%f, %f] for m/z %f",
               toBeLowerBound, toBeUpperBound, rtMobilityDataPoint.getMZ()));
+        }
 
       } else {
         // In this case we do not need to update the rangeSet
@@ -274,12 +275,12 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     Range<Double> rawDataPointsMZRange = null;
     Range<Double> rawDataPointsMobilityRange = null;
     Range<Float> rawDataPointsRtRange = null;
-    Set<Integer> scanNumbers = new HashSet<>();
+    Set<MobilityScan> scanNumbers = new HashSet<>();
     SortedSet<RetentionTimeMobilityDataPoint> sortedRetentionTimeMobilityDataPoints =
         new TreeSet<>(new Comparator<RetentionTimeMobilityDataPoint>() {
           @Override
           public int compare(RetentionTimeMobilityDataPoint o1, RetentionTimeMobilityDataPoint o2) {
-            if (o1.getScanNumber() > o2.getScanNumber()) {
+            if (o1.getMobilityScan().getMobilityScamNumber() > o2.getMobilityScan().getMobilityScamNumber()) {
               return 1;
             } else {
               return -1;
@@ -292,7 +293,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     // Update raw data point ranges, height, rt and representative scan
     double maximumIntensity = Double.MIN_VALUE;
     for (RetentionTimeMobilityDataPoint retentionTimeMobilityDataPoint : sortedRetentionTimeMobilityDataPoints) {
-      scanNumbers.add(retentionTimeMobilityDataPoint.getScanNumber());
+      scanNumbers.add(retentionTimeMobilityDataPoint.getMobilityScan());
 
       // set ranges
       if (rawDataPointsIntensityRange == null && rawDataPointsMZRange == null
