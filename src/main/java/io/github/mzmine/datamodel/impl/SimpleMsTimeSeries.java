@@ -18,8 +18,10 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import io.github.mzmine.datamodel.MsSeries;
 import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
@@ -78,5 +80,13 @@ public class SimpleMsTimeSeries implements MsTimeSeries<Scan> {
   @Override
   public float getRetentionTime(int index) {
     return scans.get(index).getRetentionTime();
+  }
+
+  @Override
+  public MsSeries<Scan> copy(MemoryMapStorage storage) {
+    double[][] data = DataPointUtils
+        .getDataPointsAsDoubleArray(getMzValues(), getIntensityValues());
+
+    return new SimpleMsTimeSeries(storage, data[0], data[1], getScans());
   }
 }

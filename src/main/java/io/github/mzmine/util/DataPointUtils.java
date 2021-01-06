@@ -1,6 +1,7 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.DataPoint;
+import java.nio.DoubleBuffer;
 import java.util.Collection;
 import java.util.logging.Logger;
 
@@ -34,6 +35,20 @@ public class DataPointUtils {
       data[0][i] = dp.getMZ();
       data[1][i] = dp.getIntensity();
       i++;
+    }
+    return data;
+  }
+
+  public static double[][] getDataPointsAsDoubleArray(DoubleBuffer mzValues,
+      DoubleBuffer intensityValues) {
+    assert mzValues.capacity() == intensityValues.capacity();
+
+    double data[][] = new double[2][];
+    data[0]= new double[mzValues.capacity()];
+    data[1]= new double[mzValues.capacity()];
+    for(int i = 0; i < mzValues.capacity(); i++) {
+      data[0][i] = mzValues.get(i);
+      data[1][i] = intensityValues.get(i);
     }
     return data;
   }

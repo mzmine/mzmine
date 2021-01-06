@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MsSeries;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
@@ -62,10 +63,12 @@ public class SimpleIonMobilitySeries implements MsSeries<MobilityScan> {
     }
   }
 
+  @Override
   public DoubleBuffer getIntensityValues() {
     return intensityValues;
   }
 
+  @Override
   public DoubleBuffer getMzValues() {
     return mzValues;
   }
@@ -74,7 +77,16 @@ public class SimpleIonMobilitySeries implements MsSeries<MobilityScan> {
     return getScans().get(index).getMobility();
   }
 
+  @Override
   public List<MobilityScan> getScans() {
     return scans;
+  }
+
+  @Override
+  public MsSeries<MobilityScan> copy(MemoryMapStorage storage) {
+    double[][] data = DataPointUtils
+        .getDataPointsAsDoubleArray(getMzValues(), getIntensityValues());
+
+    return new SimpleIonMobilitySeries(storage, data[0], data[1], getScans());
   }
 }

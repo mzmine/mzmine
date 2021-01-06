@@ -2,6 +2,7 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +46,8 @@ public interface MsSeries<T extends MassSpectrum> extends Iterable<DataPoint> {
   default Stream<DataPoint> stream() {
     return Streams.stream(this);
   }
+
+  MsSeries<T> copy(MemoryMapStorage storage);
 
   static class DataPointIterator implements Iterator<DataPoint>, DataPoint {
 

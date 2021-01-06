@@ -18,6 +18,9 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.impl.SimpleIonMobilitySeries;
+import java.util.List;
+
 /**
  * Stores data points from ion mobility frames (summed across the mobility axis at one retention
  * time). Used as a tag to do instanceof checks with MsTimeSeries objects in the feature model.
@@ -31,4 +34,9 @@ public interface IonMobilityTimeSeries extends MsTimeSeries<Frame> {
     return getScan(index).getRetentionTime();
   }
 
+  List<SimpleIonMobilitySeries> getMobilograms();
+
+  default SimpleIonMobilitySeries getMobilogram(int index) {
+    return getMobilograms().get(index);
+  }
 }

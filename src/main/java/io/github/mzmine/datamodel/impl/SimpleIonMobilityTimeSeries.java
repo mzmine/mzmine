@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.MsSeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
@@ -100,4 +101,15 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
     return frames;
   }
 
+  @Override
+  public List<SimpleIonMobilitySeries> getMobilograms() {
+    return simpleIonMobilitySeries;
+  }
+
+  @Override
+  public MsSeries<Frame> copy(MemoryMapStorage storage) {
+    List<SimpleIonMobilitySeries> mobilograms = new ArrayList<>(getMobilograms().size());
+    getMobilograms().forEach(m -> mobilograms.add((SimpleIonMobilitySeries) m.copy(storage)));
+    return new SimpleIonMobilityTimeSeries(storage, mobilograms);
+  }
 }
