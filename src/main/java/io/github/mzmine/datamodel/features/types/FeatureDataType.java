@@ -9,7 +9,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 
-public class FeatureData extends DataType<ObjectProperty<MsTimeSeries<?>>> implements NullColumnType {
+public class FeatureDataType extends DataType<ObjectProperty<MsTimeSeries<?>>> implements NullColumnType {
 
   @Nonnull
   @Override

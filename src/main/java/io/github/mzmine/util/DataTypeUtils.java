@@ -23,6 +23,7 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
@@ -30,7 +31,6 @@ import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
@@ -55,7 +55,7 @@ public class DataTypeUtils {
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
       List.of(new ScanNumbersType(), new RawFileType(), new DetectionType(), new MZType(),
           new MZRangeType(), new RTType(), new RTRangeType(), new HeightType(), new AreaType(),
-          new BestScanNumberType(), new DataPointsType(), new IntensityRangeType(), new FwhmType(),
+          new BestScanNumberType(), new FeatureDataType(), new IntensityRangeType(), new FwhmType(),
               new TailingFactorType(), new AsymmetryFactorType());
 
   /**

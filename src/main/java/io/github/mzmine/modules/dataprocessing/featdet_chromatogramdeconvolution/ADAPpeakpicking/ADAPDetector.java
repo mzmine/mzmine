@@ -31,20 +31,13 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.ABS_WAV_COEFFS;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.HALF_WAVELET_WINDOW;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.PeakInfo;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
@@ -53,6 +46,12 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 /**
  * Use XCMS findPeaks.centWave to identify peaks.
@@ -107,7 +106,7 @@ public class ADAPDetector implements PeakResolver {
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) throws RSessionWrapperException {
 
-    ObservableList<Scan> scanNumbers = chromatogram.getScanNumbers();
+    List<Scan> scanNumbers = chromatogram.getScanNumbers();
     final int scanCount = scanNumbers.size();
     double retentionTimes[] = new double[scanCount];
     double intensities[] = new double[scanCount];

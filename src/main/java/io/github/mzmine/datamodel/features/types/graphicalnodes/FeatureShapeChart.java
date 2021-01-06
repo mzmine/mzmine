@@ -25,7 +25,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.FeatureData;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.util.color.ColorsFX;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,7 +64,7 @@ public class FeatureShapeChart extends StackPane {
         XYChart.Series<Number, Number> data = new XYChart.Series<>();
         RawDataFile raw = f.getRawDataFile();
         // add data points retention time -> intensity
-        MsTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).get(FeatureData.class).get();
+        MsTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).get(FeatureDataType.class).get();
 
         for (int i = 0; i < dpSeries.getNumberOfDataPoints(); i++) {
 //          DataPoint dp = dps.get(i);

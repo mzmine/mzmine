@@ -106,6 +106,7 @@ public class MsTimeSeriesTest {
         logger.info("MsTimeSeries created by makeIonMobilityTimeSeries() is an instance of " + SimpleMsTimeSeries.class.getSimpleName());
         throw new JUnitException("Illegal cast.");
       }
+      logger.info("Testing cast IonMobilityTimeSeries to MsTimeSeries<Scan> " + ((MsTimeSeries<Scan>) imFrameSeries).getRetentionTime(0));
       if(imFrameSeries instanceof IonMobilityTimeSeries) {
         logger.info("MsTimeSeries created by makeIonMobilityTimeSeries() is an instance of " + IonMobilityTimeSeries.class.getSimpleName());
       } else {

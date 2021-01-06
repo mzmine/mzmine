@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import java.util.List;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -69,7 +70,7 @@ public interface Feature {
    * This method returns numbers of scans that contain this feature
    */
   @Nonnull
-  ObservableList<Scan> getScanNumbers();
+  List<Scan> getScanNumbers();
 
   /**
    * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
@@ -79,7 +80,7 @@ public interface Feature {
    */
   @Nullable
   default Scan getScanAtIndex(int i) {
-    ObservableList<Scan> scans = getScanNumbers();
+    List<Scan> scans = getScanNumbers();
     return scans == null ? null : scans.get(i);
   }
 
@@ -92,7 +93,7 @@ public interface Feature {
    */
   @Nullable
   default float getRetentionTimeAtIndex(int i) {
-    ObservableList<Scan> scans = getScanNumbers();
+    List<Scan> scans = getScanNumbers();
     return scans == null ? null : scans.get(i).getRetentionTime();
   }
 
@@ -104,7 +105,7 @@ public interface Feature {
    */
   @Nullable
   default DataPoint getDataPointAtIndex(int i) {
-    ObservableList<DataPoint> dataPoints = getDataPoints();
+    List<DataPoint> dataPoints = getDataPoints();
     return dataPoints == null ? null : dataPoints.get(i);
   }
 
@@ -133,7 +134,7 @@ public interface Feature {
   /**
    * Returns all data points.
    */
-  ObservableList<DataPoint> getDataPoints();
+  List<DataPoint> getDataPoints();
 
   /**
    * Returns the retention time range of all raw data points used to detect this feature
@@ -268,7 +269,7 @@ public interface Feature {
   void setFeatureList(@Nonnull FeatureList featureList);
 
   default int getNumberOfDataPoints() {
-    ObservableList<DataPoint> dp = getDataPoints();
+    List<DataPoint> dp = getDataPoints();
     return dp == null? -1 : dp.size();
   }
 }

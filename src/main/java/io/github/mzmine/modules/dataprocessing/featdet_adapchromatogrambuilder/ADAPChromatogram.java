@@ -118,8 +118,7 @@ public class ADAPChromatogram {
 
     rawDataPointsRTRange = dataFile.getDataRTRange(1);
 
-    dataPointsMap = new TreeMap<Scan, DataPoint>(
-        (o1, o2) -> Float.compare(o1.getRetentionTime(), o2.getRetentionTime()));
+    dataPointsMap = new TreeMap<Scan, DataPoint>();
     buildingSegment = new Vector<Scan>();
     chromScanList = new ArrayList<Scan>();
   }

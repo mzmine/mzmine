@@ -15,10 +15,6 @@
  */
 package io.github.mzmine.util.adap;
 
-import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.datamodel.Chromatogram;
@@ -35,7 +31,11 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import javafx.collections.ObservableList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -62,7 +62,7 @@ public class ADAPInterface {
 
     NavigableMap<Double, Double> chromatogram = new TreeMap<>();
 
-    ObservableList<DataPoint> dataPoints = peak.getDataPoints();
+    List<DataPoint> dataPoints = peak.getDataPoints();
     for (int i = 0; i < dataPoints.size(); i++) {
       final DataPoint dataPoint = dataPoints.get(i);
       if (dataPoint != null) {

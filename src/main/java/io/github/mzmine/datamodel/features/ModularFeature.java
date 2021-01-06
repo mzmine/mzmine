@@ -22,10 +22,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
@@ -34,7 +36,6 @@ import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
-import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
@@ -43,14 +44,17 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.impl.SimpleMsTimeSeries;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
+import io.github.mzmine.util.DataPointUtils;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -65,11 +69,11 @@ import javax.annotation.Nullable;
  * Feature with modular DataTypes
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public class ModularFeature implements Feature, ModularDataModel {
 
-  private @Nonnull ModularFeatureList flist;
+  private @Nonnull
+  ModularFeatureList flist;
   private final ObservableMap<DataType, Property<?>> map =
       FXCollections.observableMap(new HashMap<>());
 
@@ -85,11 +89,11 @@ public class ModularFeature implements Feature, ModularDataModel {
     // register listener to types map to automatically generate default properties for new DataTypes
     flist.getFeatureTypes().addListener(
         (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
-          if(change.wasAdded()) {
+          if (change.wasAdded()) {
             // add type columns to maps
             DataType type = change.getValueAdded();
             this.setProperty(type, type.createProperty());
-          } else if(change.wasRemoved()) {
+          } else if (change.wasRemoved()) {
             // remove type columns to maps
             DataType<Property<?>> type = change.getValueRemoved();
             this.removeProperty((Class<DataType<Property<?>>>) type.getClass());
@@ -98,9 +102,9 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   // NOT TESTED
+
   /**
    * Initializes a new feature using given values
-   *
    */
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
       float height, float area,
@@ -123,7 +127,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     setFragmentScan(fragmentScanNumber);
     setRepresentativeScan(representativeScan);
     // add values to feature
-    set(ScanNumbersType.class, List.of(scanNumbers));
+//    set(ScanNumbersType.class, List.of(scanNumbers));
     set(RawFileType.class, dataFile);
     set(DetectionType.class, featureStatus);
     set(MZType.class, mz);
@@ -133,7 +137,11 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(BestScanNumberType.class, representativeScan);
 
     // datapoints of feature
-    set(DataPointsType.class, Arrays.asList(dataPointsPerScan));
+//    set(DataPointsType.class, Arrays.asList(dataPointsPerScan));
+    double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(dataPointsPerScan);
+    SimpleMsTimeSeries featureData = new SimpleMsTimeSeries(flist.getMemoryMapStorage(), dp[0],
+        dp[1], Arrays.asList(scanNumbers));
+    set(FeatureDataType.class, featureData);
 
     // ranges
     set(MZRangeType.class, mzRange);
@@ -143,15 +151,15 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(FragmentScanNumbersType.class, List.of(allMS2FragmentScanNumbers));
 
     float fwhm = QualityParameters.calculateFWHM(this);
-    if(!Float.isNaN(fwhm)) {
+    if (!Float.isNaN(fwhm)) {
       set(FwhmType.class, fwhm);
     }
     float tf = QualityParameters.calculateTailingFactor(this);
-    if(!Float.isNaN(tf)) {
+    if (!Float.isNaN(tf)) {
       set(TailingFactorType.class, tf);
     }
     float af = QualityParameters.calculateAsymmetryFactor(this);
-    if(!Float.isNaN(af)) {
+    if (!Float.isNaN(af)) {
       set(AsymmetryFactorType.class, af);
     }
   }
@@ -168,12 +176,11 @@ public class ModularFeature implements Feature, ModularDataModel {
    */
   public ModularFeature(@Nonnull ModularFeatureList flist, Feature f) {
     this(flist);
-    if(f instanceof ModularFeature) {
+    if (f instanceof ModularFeature) {
       ((ModularFeature) f).stream().forEach(entry -> this.set(entry.getKey(), entry.getValue()));
-    }
-    else {
+    } else {
       // add values to feature
-      set(ScanNumbersType.class, f.getScanNumbers());
+//      set(ScanNumbersType.class, f.getScanNumbers());
       set(RawFileType.class, (f.getRawDataFile()));
       set(DetectionType.class, (f.getFeatureStatus()));
       set(MZType.class, (f.getMZ()));
@@ -185,7 +192,15 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(FragmentScanNumbersType.class, (f.getAllMS2FragmentScans()));
 
       // datapoints of feature
-      set(DataPointsType.class, f.getDataPoints());
+//      set(DataPointsType.class, f.getDataPoints());
+//      if(f instanceof ModularFeature) {
+//        set(FeatureDataType.class, ((ModularFeature)f).getFeatureData());
+//      } else {
+      double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(f.getDataPoints());
+      SimpleMsTimeSeries featureData = new SimpleMsTimeSeries(flist.getMemoryMapStorage(), dp[0],
+          dp[1], f.getScanNumbers());
+      set(FeatureDataType.class, featureData);
+//      }
 
       // ranges
       set(MZRangeType.class, f.getRawDataPointsMZRange());
@@ -239,7 +254,7 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public DataPoint getDataPoint(Scan scan) {
-    if(!scan.getDataFile().equals(getRawDataFile())) {
+    if (!scan.getDataFile().equals(getRawDataFile())) {
       throw new IllegalArgumentException("the scan data file must equal the feature data file");
     }
     int index = getScanNumbers().indexOf(scan);
@@ -397,13 +412,13 @@ public class ModularFeature implements Feature, ModularDataModel {
     this.flist = (ModularFeatureList) flist;
   }
 
-  public ListProperty<Scan> getScanNumbersProperty() {
-    return get(ScanNumbersType.class);
-  }
+//  public ListProperty<Scan> getScanNumbersProperty() {
+//    return get(ScanNumbersType.class);
+//  }
 
-  public ListProperty<DataPoint> getDataPointsProperty() {
-    return get(DataPointsType.class);
-  }
+//  public ListProperty<DataPoint> getDataPointsProperty() {
+//    return get(DataPointsType.class);
+//  }
 
   @Nullable
   @Override
@@ -430,11 +445,13 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Nonnull
   @Override
-  public ObservableList<Scan> getScanNumbers() {
-    ListProperty<Scan> v = get(ScanNumbersType.class);
+  public List<Scan> getScanNumbers() {
+    /*ListProperty<Scan> v = get(ScanNumbersType.class);
     return v == null || v.getValue() == null ?
         FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-        : v.getValue();
+        : v.getValue();*/
+    MsTimeSeries<? extends Scan> data = getFeatureData();
+    return data == null ? Collections.emptyList() : (List<Scan>) data.getScans();
   }
 
   @Override
@@ -450,10 +467,18 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public ObservableList<DataPoint> getDataPoints() {
-    ListProperty<DataPoint> v = get(DataPointsType.class);
-    return v == null || v.getValue() == null ?
-        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-        : v.getValue();
+//    ListProperty<DataPoint> v = get(DataPointsType.class);
+//    return v == null || v.getValue() == null ?
+//        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
+//        : v.getValue();
+    MsTimeSeries<? extends Scan> data = getFeatureData();
+    return data == null ? null
+        : FXCollections.observableArrayList(data.stream().collect(Collectors.toList()));
+  }
+
+  public MsTimeSeries<? extends Scan> getFeatureData() {
+    ObjectProperty<MsTimeSeries<? extends Scan>> v = get(FeatureDataType.class);
+    return v == null || v.getValue() == null ? null : v.getValue();
   }
 
   public float getRT() {

@@ -18,17 +18,17 @@
 
 package io.github.mzmine.util.components;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import javafx.collections.ObservableList;
-import org.jfree.fx.FXGraphics2D;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
+import java.util.List;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Tooltip;
+import org.jfree.fx.FXGraphics2D;
 
 /**
  * Simple lightweight component for plotting peak shape
@@ -109,7 +109,7 @@ public class CombinedXICComponent extends Canvas {
         continue;
 
       // get scan numbers, one data point per each scan
-      ObservableList<Scan> scans = peak.getScanNumbers();
+      List<Scan> scans = peak.getScanNumbers();
       int numberOfScans = scans.size();
 
       // for each datapoint, find [X:Y] coordinates of its point in

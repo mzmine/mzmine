@@ -3,19 +3,16 @@ package io.github.mzmine.modules.dataprocessing.adap_mcr;
 import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.datamodel.Chromatogram;
 import dulab.adap.datamodel.PeakInfo;
-import io.github.mzmine.datamodel.*;
-
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 /**
  * @author Du-Lab Team <dulab.binf@gmail.com>
@@ -41,7 +38,7 @@ public class ADAP3DecompositionV2Utils {
 
     for (FeatureListRow row : peakList.getRows()) {
       Feature peak = row.getBestFeature();
-      ObservableList<Scan> scanNumbers = peak.getScanNumbers();
+      List<Scan> scanNumbers = peak.getScanNumbers();
 
       // Build chromatogram
       double[] retTimes = new double[scanNumbers.size()];

@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DetectionType;
-import io.github.mzmine.datamodel.features.types.FeatureData;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
@@ -136,7 +136,7 @@ public class FeatureConvertors {
         ((ModularFeatureList) chromatogram.getFeatureList()).getMemoryMapStorage(), mzs,
         intensities, scansList);
 
-    modularFeature.set(FeatureData.class, timeSeries);
+    modularFeature.set(FeatureDataType.class, timeSeries);
 
     // Ranges
     Range<Float> rtRange = Range.closed(chromatogram.getRawDataPointsRTRange().lowerEndpoint(),
