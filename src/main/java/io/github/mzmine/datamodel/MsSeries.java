@@ -1,7 +1,10 @@
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.Streams;
 import java.nio.DoubleBuffer;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Stores combinations of intensity and mz values
@@ -9,7 +12,7 @@ import java.util.List;
  * @param <T>
  * @author https://github.com/SteffenHeu
  */
-public interface MsSeries<T extends MassSpectrum> {
+public interface MsSeries<T extends MassSpectrum> extends Iterable<DataPoint> {
 
   DoubleBuffer getIntensityValues();
 
@@ -31,5 +34,45 @@ public interface MsSeries<T extends MassSpectrum> {
 
   default int getNumberOfDataPoints() {
     return getMzValues().capacity();
+  }
+
+  @Override
+  default Iterator<DataPoint> iterator() {
+    return new DataPointIterator(this);
+  }
+
+  default Stream<DataPoint> stream() {
+    return Streams.stream(this);
+  }
+
+  static class DataPointIterator implements Iterator<DataPoint>, DataPoint {
+
+    private int cursor = -1;
+    private final MsSeries<? extends MassSpectrum> data;
+
+    DataPointIterator(MsSeries<? extends MassSpectrum> data) {
+      this.data = data;
+    }
+
+    @Override
+    public double getMZ() {
+      return data.getMzValue(cursor);
+    }
+
+    @Override
+    public double getIntensity() {
+      return data.getIntensityValue(cursor);
+    }
+
+    @Override
+    public boolean hasNext() {
+      return (cursor + 1) < data.getNumberOfDataPoints();
+    }
+
+    @Override
+    public DataPoint next() {
+      cursor++;
+      return this;
+    }
   }
 }

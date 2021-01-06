@@ -27,4 +27,5 @@ package io.github.mzmine.datamodel;
 public interface MsTimeSeries<T extends Scan> extends MsSeries<T> {
 
   float getRetentionTime(int index);
+
 }

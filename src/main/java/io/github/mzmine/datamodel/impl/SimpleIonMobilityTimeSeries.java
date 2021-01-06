@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -45,7 +46,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
 
   public SimpleIonMobilityTimeSeries(@Nonnull MemoryMapStorage storage, @Nonnull List<SimpleIonMobilitySeries> simpleIonMobilitySeries) {
 
-    frames = new ArrayList<Frame>(simpleIonMobilitySeries.size());
+    List<Frame> tempFrames = new ArrayList<Frame>(simpleIonMobilitySeries.size());
     this.simpleIonMobilitySeries = simpleIonMobilitySeries;
 
     double[] summedIntensities = new double[simpleIonMobilitySeries.size()];
@@ -53,7 +54,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
 
     for (int i = 0; i < simpleIonMobilitySeries.size(); i++) {
       SimpleIonMobilitySeries ims = simpleIonMobilitySeries.get(i);
-      frames.add(ims.getScans().get(0).getFrame());
+      tempFrames.add(ims.getScans().get(0).getFrame());
 
       double[] intensities = ims.getIntensityValues().array();
       double[] mzValues = ims.getMzValues().array();
@@ -77,6 +78,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
       mzValues = DoubleBuffer.wrap(weightedMzs);
     }
 
+    frames = Collections.unmodifiableList(tempFrames);
   }
 
   @Override
