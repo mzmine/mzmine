@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
-import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
@@ -188,8 +187,9 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, -1);
 
     // Data points of feature
-    List<DataPoint> dps = new ArrayList<>(ionTrace.getDataPoints());
-    modularFeature.set(DataPointsType.class, dps);
+//    List<DataPoint> dps = new ArrayList<>(ionTrace.getDataPoints());
+//    modularFeature.set(DataPointsType.class, dps);
+
 
     // Ranges
     Range<Float> rtRange = Range.closed(ionTrace.getRetentionTimeRange().lowerEndpoint(),
@@ -202,9 +202,7 @@ public class FeatureConvertors {
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
-    // modularFeature.setAllMS2FragmentScanNumbers(IntStream
-    // .of(ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange)).boxed()
-    // .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+
 
     // Quality parameters
     // float fwhm = QualityParameters.calculateFWHM(modularFeature);

@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -53,7 +52,7 @@ public class DataTypeUtils {
           new FeatureShapeType(), new FeaturesType());
 
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
-      List.of(new ScanNumbersType(), new RawFileType(), new DetectionType(), new MZType(),
+      List.of(new RawFileType(), new DetectionType(), new MZType(),
           new MZRangeType(), new RTType(), new RTRangeType(), new HeightType(), new AreaType(),
           new BestScanNumberType(), new FeatureDataType(), new IntensityRangeType(), new FwhmType(),
               new TailingFactorType(), new AsymmetryFactorType());
