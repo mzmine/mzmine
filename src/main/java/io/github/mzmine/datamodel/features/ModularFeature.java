@@ -443,6 +443,11 @@ public class ModularFeature implements Feature, ModularDataModel {
     return get(AreaType.class);
   }
 
+  /**
+   * See {@link ModularFeature#getFeatureData()}
+   * @return
+   */
+  @Deprecated
   @Nonnull
   @Override
   public List<Scan> getScanNumbers() {
@@ -465,7 +470,12 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(BestScanNumberType.class, scan);
   }
 
+  /**
+   * See {@link ModularFeature#getFeatureData()}
+   * @return
+   */
   @Override
+  @Deprecated
   public ObservableList<DataPoint> getDataPoints() {
 //    ListProperty<DataPoint> v = get(DataPointsType.class);
 //    return v == null || v.getValue() == null ?

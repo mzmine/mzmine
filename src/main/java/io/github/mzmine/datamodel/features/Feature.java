@@ -70,6 +70,7 @@ public interface Feature {
    * This method returns numbers of scans that contain this feature
    */
   @Nonnull
+  @Deprecated
   List<Scan> getScanNumbers();
 
   /**
@@ -129,11 +130,13 @@ public interface Feature {
    * information
    */
   @Nullable
+  @Deprecated
   DataPoint getDataPoint(Scan scan);
 
   /**
    * Returns all data points.
    */
+  @Deprecated
   List<DataPoint> getDataPoints();
 
   /**
@@ -270,6 +273,6 @@ public interface Feature {
 
   default int getNumberOfDataPoints() {
     List<DataPoint> dp = getDataPoints();
-    return dp == null? -1 : dp.size();
+    return dp == null ? -1 : dp.size();
   }
 }
