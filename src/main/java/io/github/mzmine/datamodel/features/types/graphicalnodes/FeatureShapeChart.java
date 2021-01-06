@@ -70,7 +70,6 @@ public class FeatureShapeChart extends StackPane {
 //          DataPoint dp = dps.get(i);
           float retentionTime = dpSeries.getRetentionTime(i);
           double intensity = dpSeries.getIntensityValue(i);
-          logger.info("rt: " + retentionTime + "\tintensity: " + intensity);
           data.getData().add(new XYChart.Data<>(retentionTime, intensity));
           /*
            * if (dp != null && (max == null || max.getIntensity() < dp.getIntensity())) { max = dp;

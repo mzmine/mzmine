@@ -152,8 +152,8 @@ public class SmoothingTask extends AbstractTask {
 
                 final Scan scanNumber = scanNumbers.get(i);
                 final DataPoint dataPoint = peak.getDataPointAtIndex(i);
-                final double intensity = smoothed[i];
-                if (dataPoint != null && intensity > 0.0) {
+                final double intensity = smoothed[i] > 0 ? smoothed[i] : 0d;
+                if (dataPoint != null) {
 
                   // Create a new data point.
                   final double mz = dataPoint.getMZ();
@@ -236,7 +236,7 @@ public class SmoothingTask extends AbstractTask {
         setStatus(TaskStatus.FINISHED);
       }
     } catch (Throwable t) {
-
+      t.printStackTrace();
       logger.log(Level.SEVERE, "Smoothing error", t);
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);

@@ -1,6 +1,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Streams;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.List;
@@ -72,7 +73,7 @@ public interface MsSeries<T extends MassSpectrum> extends Iterable<DataPoint> {
     @Override
     public DataPoint next() {
       cursor++;
-      return this;
+      return new SimpleDataPoint(getMZ(), getIntensity());
     }
   }
 }

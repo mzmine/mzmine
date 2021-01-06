@@ -2,8 +2,13 @@ package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.DataPoint;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 public class DataPointUtils {
+
+  private static final Logger logger = Logger.getLogger(DataPointUtils.class.getName());
+
+  private static int counter = 0;
 
   /**
    * @param dataPoints
