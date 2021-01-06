@@ -132,16 +132,11 @@ public class ScanUtils {
   public static @Nullable DataPoint findBasePeak(@Nonnull Scan scan,
       @Nonnull Range<Double> mzRange) {
 
-    DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
-    DataPoint basePeak = null;
-
-    for (DataPoint dp : dataPoints) {
-      if ((basePeak == null) || (dp.getIntensity() > basePeak.getIntensity())) {
-        basePeak = dp;
-      }
-    }
-
-    return basePeak;
+    Integer basePeakIndex = scan.getBasePeakIndex();
+    if (basePeakIndex == null)
+      return null;
+    SimpleDataPoint dp = new SimpleDataPoint(scan.getBasePeakMz(), scan.getBasePeakIntensity());
+    return dp;
   }
 
   /**
@@ -154,7 +149,7 @@ public class ScanUtils {
   public static double calculateTIC(Scan scan, Range<Double> mzRange) {
 
     double tic = 0.0;
-    for (final DataPoint dataPoint : scan.getDataPointsByMass(mzRange)) {
+    for (final DataPoint dataPoint : selectDataPointsByMass(extractDataPoints(scan), mzRange)) {
       tic += dataPoint.getIntensity();
     }
     return tic;

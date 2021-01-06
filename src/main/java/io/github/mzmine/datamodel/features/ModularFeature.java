@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
@@ -62,6 +63,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.scene.Node;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -77,6 +79,8 @@ public class ModularFeature implements Feature, ModularDataModel {
   private final ObservableMap<DataType, Property<?>> map =
       FXCollections.observableMap(new HashMap<>());
 
+  // buffert col charts and nodes
+  private final Map<String, Node> buffertColCharts = new HashMap<>();
 
   public ModularFeature(@Nonnull ModularFeatureList flist) {
     this.flist = flist;
@@ -102,7 +106,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   // NOT TESTED
-
   /**
    * Initializes a new feature using given values
    */
@@ -221,6 +224,14 @@ public class ModularFeature implements Feature, ModularDataModel {
         set(AsymmetryFactorType.class, af);
       }
     }
+  }
+
+  public Node getBufferedColChart(String colname) {
+    return buffertColCharts.get(colname);
+  }
+
+  public void addBufferedColChart(String colname, Node node) {
+    buffertColCharts.put(colname, node);
   }
 
   @Override

@@ -124,7 +124,9 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
           Double mzTolerance = precursorMZ * 10 / 1000000;
           Range<Double> precursorMZRange =
               Range.closed(precursorMZ - mzTolerance, precursorMZ + mzTolerance);
-          DataPoint scanDataPoints[] = msscan.getDataPointsByMass(precursorMZRange);
+          DataPoint scanDataPoints[] = ScanUtils
+              .selectDataPointsByMass(ScanUtils.extractDataPoints(msscan), precursorMZRange);
+
           for (int x = 0; x < scanDataPoints.length; x++) {
             totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
           }

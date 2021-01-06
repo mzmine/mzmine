@@ -29,8 +29,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
-import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeType;
-import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.parameters.ParameterSet;
@@ -387,10 +385,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         new ModularFeatureList(rawDataFile + " " + suffix, rawDataFile);
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(featureList);
-    featureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeType());
+//    featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
     featureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
-    featureList.addFeatureType(new FeatureShapeMobilogramType());
-    featureList.addFeatureType(new MobilityType());
     int featureId = 1;
     for (IIonMobilityTrace ionTrace : ionMobilityTraces) {
       ionTrace.setFeatureList(featureList);
@@ -399,10 +395,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
       newRow.set(MobilityType.class, ionTrace.getMobility());
-      newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
-      newRow.set(FeatureShapeMobilogramType.class, newRow.getFeaturesProperty());
-      newRow.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
-          newRow.getFeaturesProperty());
       featureList.addRow(newRow);
       featureId++;
     }

@@ -29,7 +29,6 @@ import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Simple implementation of the Scan interface.
@@ -121,37 +120,25 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
   /**
    * @return Returns scan datapoints within a given range
+   * @Override
+   * @Nonnull public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
+   * 
+   *          DataPoint[] dataPoints = getDataPoints(); int startIndex, endIndex; for (startIndex =
+   *          0; startIndex < dataPoints.length; startIndex++) { if (dataPoints[startIndex].getMZ()
+   *          >= mzRange.lowerEndpoint()) { break; } }
+   * 
+   *          for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) { if
+   *          (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) { break; } }
+   * 
+   *          DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+   * 
+   *          // Copy the relevant points System.arraycopy(dataPoints, startIndex,
+   *          pointsWithinRange, 0, endIndex - startIndex);
+   * 
+   *          return pointsWithinRange; }
+   * 
+   * @Deprecated private DataPoint[] getDataPoints() { return ScanUtils.extractDataPoints(this); }
    */
-  @Override
-  @Nonnull
-  public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
-
-    DataPoint[] dataPoints = getDataPoints();
-    int startIndex, endIndex;
-    for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
-        break;
-      }
-    }
-
-    for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
-        break;
-      }
-    }
-
-    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
-
-    // Copy the relevant points
-    System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
-
-    return pointsWithinRange;
-  }
-
-  @Deprecated
-  private DataPoint[] getDataPoints() {
-    return ScanUtils.extractDataPoints(this);
-  }
 
 
   @Override

@@ -108,11 +108,6 @@ public class SimpleMassSpectrum implements MassSpectrum {
     return null;
   }
 
-  @Override
-  public DataPoint[] getDataPointsByMass(Range<Double> mzRange) {
-    // TODO Auto-generated method stub
-    return null;
-  }
 
 
 }

@@ -43,6 +43,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
 
 /*
@@ -131,7 +132,8 @@ public class ImageVisualizerTask extends AbstractTask {
       if (!(scan instanceof ImagingScan) || !scanSelection.matches(scan)) {
         continue;
       }
-      double intensitySum = Arrays.stream(scan.getDataPointsByMass(mzRange))
+      double intensitySum = Arrays
+          .stream(ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange))
           .mapToDouble(DataPoint::getIntensity).sum();
       allDataPoints.add(new ImageDataPoint(0.0, intensitySum, (ImagingScan) scan,
           (((ImagingScan) scan).getCoordinates().getX() + 1) * pixelWidth,

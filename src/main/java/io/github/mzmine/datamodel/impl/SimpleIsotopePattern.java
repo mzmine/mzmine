@@ -166,32 +166,23 @@ public class SimpleIsotopePattern implements IsotopePattern {
   /*
    * @Override public DataPoint getHighestDataPoint() { if (highestIsotope < 0) return null; return
    * getDataPoints()[highestIsotope]; }
+   * 
+   * @Override public DataPoint[] getDataPointsByMass(Range<Double> mzRange) {
+   * 
+   * DataPoint[] dataPoints = getDataPoints(); int startIndex, endIndex; for (startIndex = 0;
+   * startIndex < dataPoints.length; startIndex++) { if (dataPoints[startIndex].getMZ() >=
+   * mzRange.lowerEndpoint()) { break; } }
+   * 
+   * for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) { if
+   * (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) { break; } }
+   * 
+   * DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+   * 
+   * // Copy the relevant points System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0,
+   * endIndex - startIndex);
+   * 
+   * return pointsWithinRange; }
    */
-
-  @Override
-  public DataPoint[] getDataPointsByMass(Range<Double> mzRange) {
-
-    DataPoint[] dataPoints = getDataPoints();
-    int startIndex, endIndex;
-    for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
-        break;
-      }
-    }
-
-    for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
-        break;
-      }
-    }
-
-    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
-
-    // Copy the relevant points
-    System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
-
-    return pointsWithinRange;
-  }
 
   @Override
   public double getMzValue(int index) {
