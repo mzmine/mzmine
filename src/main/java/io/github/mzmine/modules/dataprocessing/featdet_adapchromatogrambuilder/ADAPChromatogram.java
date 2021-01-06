@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -557,4 +558,13 @@ public class ADAPChromatogram {
     this.featureList = featureList;
   }
 
+  public void addZerosForEmptyScans(Scan[] scans) {
+    for(Scan scan : scans) {
+      dataPointsMap.computeIfAbsent(scan, s -> new SimpleDataPoint(getMZ(), 0d));
+    }
+  }
+
+  public void addNZeros(Scan[] scans, int zeros) {
+
+  }
 }
