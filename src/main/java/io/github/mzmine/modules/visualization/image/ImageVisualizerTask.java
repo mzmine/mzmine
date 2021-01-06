@@ -133,7 +133,7 @@ public class ImageVisualizerTask extends AbstractTask {
       }
       double intensitySum = Arrays.stream(scan.getDataPointsByMass(mzRange))
           .mapToDouble(DataPoint::getIntensity).sum();
-      allDataPoints.add(new ImageDataPoint(0.0, intensitySum, scan.getScanNumber(),
+      allDataPoints.add(new ImageDataPoint(0.0, intensitySum, (ImagingScan) scan,
           (((ImagingScan) scan).getCoordinates().getX() + 1) * pixelWidth,
           (((ImagingScan) scan).getCoordinates().getY() + 1) * pixelHeight, 1, pixelHeight,
           pixelWidth, paintScaleParameter));

@@ -59,7 +59,6 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
@@ -117,25 +116,10 @@ public class FeatureConvertors {
           "Number of data points does not match number of scan numbers");
     }
 
-    int numDp = chromatogram.getDataPoints().size();
-    double[] mzs = new double[numDp];
-    double[] intensities = new double[numDp];
-    List<Scan> scansList = new ArrayList<>();
-    Iterator<DataPoint> iterator = chromatogram.getDataPoints().iterator();
-    Scan[] scans = chromatogram.getScanNumbers();
-    int i = 0;
-    while (iterator.hasNext()) {
-      DataPoint dp = iterator.next();
-      mzs[i] = dp.getMZ();
-      intensities[i] = dp.getIntensity();
-      scansList.add(scans[i]);
-      i++;
-    }
-
-    SimpleMsTimeSeries timeSeries = new SimpleMsTimeSeries(
-        ((ModularFeatureList) chromatogram.getFeatureList()).getMemoryMapStorage(), mzs,
-        intensities, scansList);
-
+    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+        ((ModularFeatureList) chromatogram.getFeatureList()).getMemoryMapStorage(),
+        chromatogram.getDataPoints().stream().collect(Collectors.toList()),
+        Arrays.asList(chromatogram.getScanNumbers()));
     modularFeature.set(FeatureDataType.class, timeSeries);
 
     // Ranges
@@ -257,7 +241,7 @@ public class FeatureConvertors {
     modularFeature.setFragmentScan(null);
     modularFeature.setRepresentativeScan(null);
     // Add values to feature
-    modularFeature.set(ScanNumbersType.class, new ArrayList<>(image.getScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, new ArrayList<>(image.getScanNumbers()));
     modularFeature.set(RawFileType.class, rawDataFile);
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.set(MZType.class, image.getMz());
@@ -270,8 +254,12 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, -1);
 
     // Data points of feature
-    List<DataPoint> dps = new ArrayList<>(image.getDataPoints());
-    modularFeature.set(DataPointsType.class, dps);
+//    List<DataPoint> dps = new ArrayList<>(image.getDataPoints());
+//    modularFeature.set(DataPointsType.class, dps);
+    double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(image.getDataPoints());
+    SimpleMsTimeSeries data = new SimpleMsTimeSeries(
+        ((ModularFeatureList) image.getFeatureList()).getMemoryMapStorage(), dp[0], dp[1],
+        image.getScanNumbers().stream().collect(Collectors.toList()));
 
     // Ranges
     Range<Float> rtRange = Range.closed(0.f, 0.f);
@@ -337,7 +325,7 @@ public class FeatureConvertors {
 
     modularFeature
         .set(FragmentScanNumbersType.class, List.of(manualFeature.getAllMS2FragmentScanNumbers()));
-    modularFeature.set(ScanNumbersType.class, List.of(manualFeature.getScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, List.of(manualFeature.getScanNumbers()));
 
     modularFeature.set(RawFileType.class, manualFeature.getRawDataFile());
     modularFeature.set(DetectionType.class, manualFeature.getFeatureStatus());
@@ -348,7 +336,12 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, manualFeature.getRepresentativeScanNumber());
 
     // Data points of feature
-    modularFeature.set(DataPointsType.class, new ArrayList<>(manualFeature.getDataPoints()));
+//    modularFeature.set(DataPointsType.class, new ArrayList<>(manualFeature.getDataPoints()));
+    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+        ((ModularFeatureList) manualFeature.getFeatureList()).getMemoryMapStorage(),
+        manualFeature.getDataPoints().stream().collect(Collectors.toList()),
+        Arrays.asList(manualFeature.getScanNumbers()));
+    modularFeature.set(FeatureDataType.class, timeSeries);
 
     // Ranges
     Range<Float> rtRange = Range.closed(manualFeature.getRawDataPointsRTRange().lowerEndpoint(),
@@ -407,7 +400,7 @@ public class FeatureConvertors {
 
     modularFeature
         .set(FragmentScanNumbersType.class, List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
-    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
 
     modularFeature
         .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
@@ -425,7 +418,12 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
 
     // Data points of feature
-    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
+//    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
+    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+        ((ModularFeatureList) sameRangePeak.getPeakList()).getMemoryMapStorage(),
+        sameRangePeak.getDataPoints().stream().collect(Collectors.toList()),
+        Arrays.asList(sameRangePeak.getScanNumbers()));
+    modularFeature.set(FeatureDataType.class, timeSeries);
 
     // Ranges
     Range<Float> rtRange = Range.closed(sameRangePeak.getRawDataPointsRTRange().lowerEndpoint(),
@@ -478,7 +476,7 @@ public class FeatureConvertors {
 
     modularFeature
         .set(FragmentScanNumbersType.class, List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
-    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
 
     modularFeature
         .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
@@ -496,7 +494,13 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
 
     // Data points of feature
-    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
+//    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
+    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+        ((ModularFeatureList) sameRangePeak.getPeakList()).getMemoryMapStorage(),
+        sameRangePeak.getDataPoints().stream().collect(Collectors.toList()),
+        Arrays.asList(sameRangePeak.getScanNumbers()));
+    modularFeature.set(FeatureDataType.class, timeSeries);
+
 
     // Ranges
     Range<Float> rtRange = Range.closed(sameRangePeak.getRawDataPointsRTRange().lowerEndpoint(),
@@ -544,13 +548,12 @@ public class FeatureConvertors {
           "Can not create modular feature from resolvedPeak of non-modular feature list.");
     }
 
-    ModularFeature modularFeature =
-        new ModularFeature(featureList);
+    ModularFeature modularFeature = new ModularFeature(featureList);
 
     // Add values to feature
     modularFeature
         .set(FragmentScanNumbersType.class, List.of(resolvedPeak.getAllMS2FragmentScanNumbers()));
-    modularFeature.set(ScanNumbersType.class, List.of(resolvedPeak.getScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, List.of(resolvedPeak.getScanNumbers()));
 
     modularFeature
         .set(BestFragmentScanNumberType.class, resolvedPeak.getMostIntenseFragmentScanNumber());
@@ -568,7 +571,12 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
 
     // Data points of feature
-    modularFeature.set(DataPointsType.class, resolvedPeak.getDataPoints());
+//    modularFeature.set(DataPointsType.class, resolvedPeak.getDataPoints());
+    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+        ((ModularFeatureList) resolvedPeak.getPeakList()).getMemoryMapStorage(),
+        resolvedPeak.getDataPoints().stream().collect(Collectors.toList()),
+        Arrays.asList(resolvedPeak.getScanNumbers()));
+    modularFeature.set(FeatureDataType.class, timeSeries);
 
     // Ranges
     Range<Float> rtRange = Range.closed(resolvedPeak.getRawDataPointsRTRange().lowerEndpoint(),
@@ -602,5 +610,25 @@ public class FeatureConvertors {
     }
 
     return modularFeature;
+  }
+
+  public static SimpleMsTimeSeries createSimpleTimeSeries(MemoryMapStorage storage,
+      List<? extends DataPoint> dataPoints, List<? extends Scan> scans) {
+    int numDp = dataPoints.size();
+    double[] mzs = new double[numDp];
+    double[] intensities = new double[numDp];
+    List<Scan> scansList = new ArrayList<>();
+    int i = 0;
+    for (DataPoint dp : dataPoints) {
+      mzs[i] = dp.getMZ();
+      intensities[i] = dp.getIntensity();
+      scansList.add(scans.get(i));
+      i++;
+    }
+
+    SimpleMsTimeSeries timeSeries = new SimpleMsTimeSeries(storage, mzs,
+        intensities, scansList);
+
+    return timeSeries;
   }
 }

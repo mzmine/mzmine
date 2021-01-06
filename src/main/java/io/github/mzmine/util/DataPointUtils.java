@@ -21,7 +21,7 @@ public class DataPointUtils {
     return data;
   }
 
-  public static double[][] getDataPointsAsDoubleArray(Collection<DataPoint> dataPoints) {
+  public static double[][] getDataPointsAsDoubleArray(Collection<? extends DataPoint> dataPoints) {
     double[][] data = new double[2][];
     data[0] = new double[dataPoints.size()];
     data[1] = new double[dataPoints.size()];

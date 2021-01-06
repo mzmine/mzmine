@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -36,7 +35,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Contains no data - listens to changes in all {@link ModularFeature} in a {@link
- * ModularFeatureListRow} On change of any {@link DataPointsType} - the chart is updated
+ * ModularFeatureListRow} On change of any {@link FeatureDataType} - the chart is updated
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */

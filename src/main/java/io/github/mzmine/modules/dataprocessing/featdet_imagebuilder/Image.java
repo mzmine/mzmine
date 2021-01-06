@@ -19,11 +19,13 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
-import java.util.Set;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
+import java.util.LinkedHashSet;
+import java.util.LinkedHashSet;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -36,8 +38,8 @@ public class Image implements IImage {
   private double maximumIntensity;
   private Range<Double> mzRange;
   private Range<Double> intensityRange;
-  private Set<ImageDataPoint> dataPoints;
-  private Set<Integer> scanNumbers;
+  private LinkedHashSet<ImageDataPoint> dataPoints;
+  private LinkedHashSet<Scan> scanNumbers;
   private String representativeString;
   private FeatureList featureList;
 
@@ -52,7 +54,7 @@ public class Image implements IImage {
 
   public Image(double mz, ImagingParameters imagingParameters, PaintScale paintScale,
       double maximumIntensity, Range<Double> mzRange, Range<Double> intensityRange,
-      Set<ImageDataPoint> dataPoints, Set<Integer> scanNumbers, String representativeString,
+      LinkedHashSet<ImageDataPoint> dataPoints, LinkedHashSet<Scan> scanNumbers, String representativeString,
       FeatureList featureList) {
     this.mz = mz;
     this.imagingParameters = imagingParameters;
@@ -114,19 +116,19 @@ public class Image implements IImage {
     this.intensityRange = intensityRange;
   }
 
-  public Set<ImageDataPoint> getDataPoints() {
+  public LinkedHashSet<ImageDataPoint> getDataPoints() {
     return dataPoints;
   }
 
-  public void setDataPoints(Set<ImageDataPoint> dataPoints) {
+  public void setDataPoints(LinkedHashSet<ImageDataPoint> dataPoints) {
     this.dataPoints = dataPoints;
   }
 
-  public Set<Integer> getScanNumbers() {
+  public LinkedHashSet<Scan> getScanNumbers() {
     return scanNumbers;
   }
 
-  public void setScanNumbers(Set<Integer> scanNumbers) {
+  public void setScanNumbers(LinkedHashSet<Scan> scanNumbers) {
     this.scanNumbers = scanNumbers;
   }
 
