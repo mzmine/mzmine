@@ -24,7 +24,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -56,15 +55,17 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
       SimpleIonMobilitySeries ims = simpleIonMobilitySeries.get(i);
       tempFrames.add(ims.getScans().get(0).getFrame());
 
-      double[] intensities = ims.getIntensityValues().array();
-      double[] mzValues = ims.getMzValues().array();
-      summedIntensities[i] = Arrays.stream(intensities).sum();
+      DoubleBuffer intensities = ims.getIntensityValues();
+      DoubleBuffer mzValues = ims.getMzValues();
+      for(int j = 0; j < intensities.capacity(); j++) {
+        summedIntensities[i] = intensities.get(i);
+      }
 
       // calculate an intensity weighted average for mz
       // todo use CenterFunction maybe?
       double weightedMz = 0;
-      for (int j = 0; j < mzValues.length; j++) {
-        weightedMz += mzValues[j] * (intensities[j] / summedIntensities[i]);
+      for (int j = 0; j < mzValues.capacity(); j++) {
+        weightedMz += mzValues.get(j) * (intensities.get(j) / summedIntensities[i]);
       }
       weightedMzs[i] = weightedMz;
     }
