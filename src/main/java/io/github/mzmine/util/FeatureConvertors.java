@@ -46,7 +46,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.impl.SimpleIonMobilityTimeSeries;
@@ -181,7 +180,7 @@ public class FeatureConvertors {
     modularFeature.setFragmentScan(null);
     modularFeature.setRepresentativeScan(null);
     // Add values to feature
-    modularFeature.set(ScanNumbersType.class, new ArrayList<>(ionTrace.getScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, new ArrayList<>(ionTrace.getScanNumbers()));
     modularFeature.set(RawFileType.class, rawDataFile);
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.set(MZType.class, ionTrace.getMz());

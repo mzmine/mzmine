@@ -8,8 +8,6 @@ public class DataPointUtils {
 
   private static final Logger logger = Logger.getLogger(DataPointUtils.class.getName());
 
-  private static int counter = 0;
-
   /**
    * @param dataPoints
    * @return 2-d array with dimension double[2][dataPoints.length]. [0][i] will contain mz, [1][i]
