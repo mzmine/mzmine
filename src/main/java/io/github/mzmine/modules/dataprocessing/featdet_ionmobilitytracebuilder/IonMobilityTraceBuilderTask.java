@@ -97,8 +97,9 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     this.scanSelection =
         parameters.getParameter(IonMobilityTraceBuilderParameters.scanSelection).getValue();
     this.frames = (Set<Frame>) scanSelection.getMachtingScans((frames));
-    this.sortedFrames = this.frames.stream().sorted(Comparator.comparingInt(Frame::getFrameId)).collect(
-        Collectors.toList());
+    this.sortedFrames = this.frames.stream().sorted(Comparator.comparingInt(Frame::getFrameId))
+        .collect(
+            Collectors.toList());
     this.paintScaleParameter =
         parameters.getParameter(IonMobilityTraceBuilderParameters.paintScale).getValue();
     this.suffix = parameters.getParameter(IonMobilityTraceBuilderParameters.suffix).getValue();
@@ -445,6 +446,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     int allFramesIndex = 0;
     int lastFrameIndex = 0;
     final int numFrames = frames.size();
+    final int offset = currentFrames.first().getMobilityScans().get(0).getMobilityScamNumber();
 
     Set<RetentionTimeMobilityDataPoint> dataPointsToAdd = new HashSet<>();
     for (Frame nextFrame : currentFrames) {
@@ -454,27 +456,24 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       if (allFramesIndex - lastFrameIndex >= minGap) {
         for (int i = 1; i <= zeros; i++) {
           if (lastFrameIndex + i < numFrames && lastFrameIndex != 0) {
-            dataPointsToAdd.add(
-                new RetentionTimeMobilityDataPoint(
-                    allFrames.get(lastFrameIndex + i).getMobilityScan(mobilityScanNumber - 1), mz, 0d,
-                    allFrames.get(lastFrameIndex + i), mobilityWidth, ps));
+            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(
+                allFrames.get(lastFrameIndex + i).getMobilityScan(mobilityScanNumber - offset),
+                mz, 0d, allFrames.get(lastFrameIndex + i), mobilityWidth, ps));
             // mobilityScanNumber - 1 <- i know this is dirty, but it should be fine
           }
           if (allFramesIndex - i >= 0) {
-            dataPointsToAdd.add(
-                new RetentionTimeMobilityDataPoint(
-                    allFrames.get(allFramesIndex - i).getMobilityScan(mobilityScanNumber - 1), mz, 0d,
-                    allFrames.get(allFramesIndex - i), mobilityWidth, ps));
+            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(
+                allFrames.get(allFramesIndex - i).getMobilityScan(mobilityScanNumber - offset),
+                mz, 0d, allFrames.get(allFramesIndex - i), mobilityWidth, ps));
           }
         }
       }
       lastFrameIndex = allFramesIndex;
     }
     if (lastFrameIndex + 1 < numFrames) {
-      dataPointsToAdd.add(
-          new RetentionTimeMobilityDataPoint(
-              allFrames.get(lastFrameIndex + 1).getMobilityScan(mobilityScanNumber - 1), mz, 0d,
-              allFrames.get(lastFrameIndex + 1), mobilityWidth, ps));
+      dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(
+          allFrames.get(lastFrameIndex + 1).getMobilityScan(mobilityScanNumber - offset), mz,
+          0d, allFrames.get(lastFrameIndex + 1), mobilityWidth, ps));
     }
     return dataPointsToAdd;
   }
@@ -502,9 +501,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         new ModularFeatureList(rawDataFile + " " + suffix, rawDataFile);
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(featureList);
-//    featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
+    featureList.addRowType(new FeatureShapeMobilogramType());
     featureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
-    featureList.addFeatureType(new FeatureShapeMobilogramType());
 
     int featureId = 1;
     for (IIonMobilityTrace ionTrace : ionMobilityTraces) {
@@ -519,7 +517,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     }
     project.addFeatureList(featureList);
   }
-
 
   private void calculateDataPointSizeForPlots(Set<Frame> frames) {
     List<Integer> numberOfScansPerFrame = new ArrayList<>();

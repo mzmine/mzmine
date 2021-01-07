@@ -76,6 +76,6 @@ public class FeatureShapeType extends LinkedDataType
 
   @Override
   public double getColumnWidth() {
-    return 205;
+    return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 }

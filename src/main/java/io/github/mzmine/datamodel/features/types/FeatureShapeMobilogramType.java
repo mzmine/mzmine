@@ -48,12 +48,8 @@ public class FeatureShapeMobilogramType extends LinkedDataType
       TreeTableColumn<ModularFeatureListRow, Boolean> coll,
       Boolean cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null) {
-      return null;
-    }
-
-    if (row.getRawDataFiles().stream().filter(file -> (file instanceof IMSRawDataFile))
-        .findAny().isEmpty()) {
+    if (row == null || row.getRawDataFiles().stream()
+        .filter(file -> (file instanceof IMSRawDataFile)).findAny().isEmpty()) {
       return null;
     }
 
@@ -76,6 +72,6 @@ public class FeatureShapeMobilogramType extends LinkedDataType
 
   @Override
   public double getColumnWidth() {
-    return 205;
+    return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 }

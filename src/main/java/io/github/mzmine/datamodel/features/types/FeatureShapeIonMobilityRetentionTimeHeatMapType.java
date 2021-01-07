@@ -34,8 +34,7 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 
-public class FeatureShapeIonMobilityRetentionTimeHeatMapType
-    extends LinkedDataType
+public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataType
     implements GraphicalColumType<Boolean> {
 
   @Nonnull
@@ -45,10 +44,8 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType
   }
 
   @Override
-  public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll,
-      Boolean cellData, RawDataFile raw) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
+      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)) {
       return null;
@@ -74,7 +71,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType
 
   @Override
   public double getColumnWidth() {
-    return 400;
+    return DEFAULT_GRAPHICAL_CELL_WIDTH + 50;
   }
 
 }

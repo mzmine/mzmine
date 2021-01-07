@@ -23,13 +23,12 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.provider.IonMobilityTimeSeriesXYZProvider;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
-import java.util.logging.Logger;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 
@@ -38,27 +37,23 @@ import javax.annotation.Nonnull;
  */
 public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private Float dataPointWidth;
-  private Double dataPointHeight;
-  private PaintScale paintScaleParameter;
-
   public FeatureShapeIonMobilityRetentionTimeHeatMapChart(@Nonnull ModularFeature f,
       AtomicDouble progress) {
 
     SimpleXYZScatterPlot<IonMobilityTimeSeriesXYZProvider> chart = new SimpleXYZScatterPlot<>();
     chart.setDataset(new FastColoredXYZDataset(new IonMobilityTimeSeriesXYZProvider(f)));
-    MobilityType mt = ((IMSRawDataFile)f.getRawDataFile()).getMobilityType();
+    MobilityType mt = ((IMSRawDataFile) f.getRawDataFile()).getMobilityType();
     UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
-    chart.setRangeAxisLabel(unitFormat.format("Mobility (" + mt.getAxisLabel() + ")", mt.getUnit()));
+    chart
+        .setRangeAxisLabel(unitFormat.format("Mobility (" + mt.getAxisLabel() + ")", mt.getUnit()));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
     chart.setDomainAxisLabel(unitFormat.format("Retention time", "min"));
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.setLegendNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
-    this.getChildren().add(chart);
-    setPrefHeight(150);
+    setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
+    getChildren().add(chart);
   }
 }
