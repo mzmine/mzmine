@@ -31,32 +31,32 @@ public interface ImsMsMsInfo {
    *
    * @return The most intense m/z of the detected precursor.
    */
-  public double getLargestPeakMz();
+  double getLargestPeakMz();
 
   /**
    *
    * @return The range of spectra numbers in this frame where this precursor was fragmented in.
    */
-  public Range<Integer> getSpectrumNumberRange();
+  Range<Integer> getSpectrumNumberRange();
 
   /**
    *
    * @return Collision energy this precursor was fragmented at in the given range.
    */
-  public float getCollisionEnergy();
+  float getCollisionEnergy();
 
   /**
    * @return The charge of the precursor. 0 = unknown.
    */
-  public int getPrecursorCharge();
+  int getPrecursorCharge();
 
   /**
    * @return The ms 1 frame this precursor was initially detected in.
    */
-  public int getParentFrameNumber();
+  int getParentFrameNumber();
 
   /**
    * @return The ms 2 frame number this belongs to.
    */
-  public int getFrameNumber();
+  int getFrameNumber();
 }

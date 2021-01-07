@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  *
  * @author aleksandrsmirnov
  */
-public interface FeatureInformation extends Cloneable {
+public interface FeatureInformation {
 
   /**
    * Returns the value of a property
@@ -50,12 +50,4 @@ public interface FeatureInformation extends Cloneable {
   @Nonnull
   Map<String, String> getAllProperties();
 
-  /**
-   * Returns a copy of FeatureInformation object
-   *
-   * @return
-   */
-
-  @Nonnull
-  public Object clone();
 }

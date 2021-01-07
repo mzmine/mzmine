@@ -28,9 +28,6 @@ import javafx.scene.paint.Color;
 
 public interface RawDataFile {
 
-  @Nonnull
-  RawDataFile clone() throws CloneNotSupportedException;
-
   /**
    * Returns the name of this data file (can be a descriptive name, not necessarily the original
    * file name)
@@ -70,7 +67,7 @@ public interface RawDataFile {
    * @return Sorted array of scan numbers, never returns null
    */
   @Nonnull
-  public Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
 
   /**
    * @param rt The rt
@@ -78,14 +75,14 @@ public interface RawDataFile {
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
    *         the rt range of this file.
    */
-  public Scan getScanNumberAtRT(float rt, int mslevel);
+  Scan getScanNumberAtRT(float rt, int mslevel);
 
   /**
    * @param rt The rt
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
    *         the rt range of this file.
    */
-  public Scan getScanNumberAtRT(float rt);
+  Scan getScanNumberAtRT(float rt);
 
   @Nonnull
   Range<Double> getDataMZRange();

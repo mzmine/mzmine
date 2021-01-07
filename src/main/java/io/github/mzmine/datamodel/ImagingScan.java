@@ -26,8 +26,9 @@ public interface ImagingScan extends Scan {
    *
    * @return the xyz coordinates. null if no coordinates were specified
    */
-  public @Nullable Coordinates getCoordinates();
+  @Nullable
+  Coordinates getCoordinates();
 
-  public void setCoordinates(@Nullable Coordinates coordinates);
+  void setCoordinates(@Nullable Coordinates coordinates);
 
 }
