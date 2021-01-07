@@ -49,8 +49,8 @@ import org.jfree.data.xy.XYZDataset;
  */
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
-  private final static PaintScaleColorStyle FALLBACK_PS_STYLE = PaintScaleColorStyle.RAINBOW;
-  private final static PaintScaleBoundStyle FALLBACK_PS_BOUND = PaintScaleBoundStyle.LOWER_AND_UPPER_BOUND;
+  protected final static PaintScaleColorStyle FALLBACK_PS_STYLE = PaintScaleColorStyle.RAINBOW;
+  protected final static PaintScaleBoundStyle FALLBACK_PS_BOUND = PaintScaleBoundStyle.LOWER_AND_UPPER_BOUND;
 
   private final XYZValueProvider xyzValueProvider;
   protected Double minZValue;
@@ -75,6 +75,12 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
       final boolean useAlphaInPaintscale, PaintScaleColorStyle paintScaleColorStyle,
       PaintScaleBoundStyle paintScaleBoundStyle) {
+    this(dataProvider, useAlphaInPaintscale, FALLBACK_PS_STYLE, FALLBACK_PS_BOUND, true);
+  }
+
+  ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
+      final boolean useAlphaInPaintscale, PaintScaleColorStyle paintScaleColorStyle,
+      PaintScaleBoundStyle paintScaleBoundStyle, boolean autocompute) {
     super(dataProvider, false);
     this.xyzValueProvider = dataProvider;
     this.defaultPaintScaleColorStyle = paintScaleColorStyle;
@@ -84,7 +90,9 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
     this.useAlphaInPaintscale = useAlphaInPaintscale;
-    MZmineCore.getTaskController().addTask(this);
+    if(autocompute) {
+      MZmineCore.getTaskController().addTask(this);
+    }
   }
 
   public boolean isUseAlphaInPaintscale() {
