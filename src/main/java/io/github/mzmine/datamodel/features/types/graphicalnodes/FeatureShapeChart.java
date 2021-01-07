@@ -27,9 +27,13 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.provider.MsTimeSeriesXYProvider;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 
@@ -47,17 +51,21 @@ public class FeatureShapeChart extends StackPane {
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.switchLegendVisible();
 
+    Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
     int size = row.getFilesFeatures().size();
     for (Feature f : row.getFeatures()) {
       MsTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).getFeatureData();
       if (dpSeries != null) {
-        chart.addDataset(new FastColoredXYDataset(new MsTimeSeriesXYProvider((ModularFeature) f)));
+        ColoredXYDataset dataset = new FastColoredXYDataset(
+            new MsTimeSeriesXYProvider((ModularFeature) f));
+        datasets.add(dataset);
       }
       if (progress != null) {
         progress.addAndGet(1.0 / size);
       }
     }
 
+    Platform.runLater(() -> chart.addDatasets(datasets));
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     getChildren().add(chart);
   }

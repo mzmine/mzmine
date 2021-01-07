@@ -25,10 +25,12 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.provider.IonMobilityTimeSeriesXYZProvider;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
+import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 
@@ -41,7 +43,9 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
       AtomicDouble progress) {
 
     SimpleXYZScatterPlot<IonMobilityTimeSeriesXYZProvider> chart = new SimpleXYZScatterPlot<>();
-    chart.setDataset(new FastColoredXYZDataset(new IonMobilityTimeSeriesXYZProvider(f)));
+    ColoredXYZDataset dataset = new FastColoredXYZDataset(new IonMobilityTimeSeriesXYZProvider(f));
+    Platform.runLater(() -> chart.setDataset(dataset));
+
     MobilityType mt = ((IMSRawDataFile) f.getRawDataFile()).getMobilityType();
     UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     chart

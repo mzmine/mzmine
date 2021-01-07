@@ -20,7 +20,6 @@ package io.github.mzmine.datamodel.features.types.tasks;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.lang.reflect.InvocationTargetException;
@@ -29,7 +28,8 @@ import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
 
 /**
- * Task for creating graphical nodes, having (ModularFeature feature, AtomicDouble progress) constructor
+ * Task for creating graphical nodes, having (ModularFeature feature, AtomicDouble progress)
+ * constructor
  */
 public class FeatureGraphicalNodeTask extends AbstractTask {
 
@@ -65,7 +65,9 @@ public class FeatureGraphicalNodeTask extends AbstractTask {
     // save chart for later
     feature.addBufferedColChart(collHeader, n);
 
-    Platform.runLater(() -> pane.getChildren().add(node));
+    if (n != null) {
+      Platform.runLater(() -> pane.getChildren().add(node));
+    }
     setStatus(TaskStatus.FINISHED);
     progress.set(1d);
   }
