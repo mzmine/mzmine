@@ -53,6 +53,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   protected final static PaintScaleBoundStyle FALLBACK_PS_BOUND = PaintScaleBoundStyle.LOWER_AND_UPPER_BOUND;
 
   private final XYZValueProvider xyzValueProvider;
+  protected final boolean autocompute;
   protected Double minZValue;
   protected Double maxZValue;
   protected PaintScale paintScale;
@@ -85,11 +86,12 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     this.xyzValueProvider = dataProvider;
     this.defaultPaintScaleColorStyle = paintScaleColorStyle;
     this.defaultPaintScaleBoundStyle = paintScaleBoundStyle;
+    this.useAlphaInPaintscale = useAlphaInPaintscale;
     minZValue = Double.MAX_VALUE;
     maxZValue = Double.MIN_VALUE;
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
-    this.useAlphaInPaintscale = useAlphaInPaintscale;
+    this.autocompute = autocompute;
     if(autocompute) {
       MZmineCore.getTaskController().addTask(this);
     }
@@ -278,7 +280,12 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
     computed = true;
     status.set(TaskStatus.FINISHED);
-
-    Platform.runLater(this::fireDatasetChanged);
+//    if (!this.autocompute) {
+    if (Platform.isFxApplicationThread()) {
+      fireDatasetChanged();
+    } else {
+      Platform.runLater(this::fireDatasetChanged);
+    }
+//    }
   }
 }
