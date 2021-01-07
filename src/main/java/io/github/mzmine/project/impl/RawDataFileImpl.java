@@ -22,9 +22,11 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -412,7 +414,9 @@ public class RawDataFileImpl implements RawDataFile {
 
   @Override
   public List<PolarityType> getDataPolarity() {
-    return scans.stream().map(Scan::getPolarity).collect(Collectors.toList());
+    Set<PolarityType> polarities =
+        scans.stream().map(Scan::getPolarity).collect(Collectors.toSet());
+    return ImmutableList.copyOf(polarities);
   }
 
   @Override
