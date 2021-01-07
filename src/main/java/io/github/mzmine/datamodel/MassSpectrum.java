@@ -25,82 +25,100 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 
 /**
- * This class represent one mass spectrum.
+ * This class represent one mass spectrum. Typically the implementation will store the m/z and
+ * intensity values on disk using a MemoryMapStorage (see AbstractStorableSpectrum). This class is
+ * Iterable, but there is an important point - to avoid consuming memory for each DataPoint
+ * instance, we will iterate over the stored data points with a single DataPoint instance that is
+ * incrementing an internal cursor. That means this code will work:
+ *
+ * {@code for (DataPoint d : spectrum) System.out.println(d.getMz() + ":" + d.getIntensity();} but
+ * this code will NOT work:
+ * {@code ArrayList<DataPoint> list = new ArrayList<>(); list.addAll(spectrum);}
+ *
  */
 public interface MassSpectrum extends Iterable<DataPoint> {
 
   /**
-   * Returns the m/z range of this spectrum. Never returns null.
-   *
-   * @return m/z range of this Scan
+   * @return Number of m/z and intensity data points. This corresponds to the capacity of the
+   *         DoubleBuffers returned by getMzValues() and getIntensityValues()
    */
-  @Nonnull
-  Range<Double> getDataPointMZRange();
+  int getNumberOfDataPoints();
 
   /**
-   * Returns the index of the top intensity data point. May return -1 if there are no data points in
-   * this Scan.
+   * Centroid / profile / thresholded
    *
-   * @return Base peak index
+   * @return Spectrum type
+   */
+  MassSpectrumType getSpectrumType();
+
+  /**
+   * @return The m/z values of this spectrum sorted in m/z order. The capacity of the returned
+   *         buffer is equivalent to the number of data points in this spectrum.
+   */
+  @Nonnull
+  DoubleBuffer getMzValues();
+
+  /**
+   * @return The intensity values corresponding to the m/z values returned by getMzValues(). The
+   *         capacity of the returned buffer is equivalent to the number of data points in this
+   *         spectrum.
+   */
+  @Nonnull
+  DoubleBuffer getIntensityValues();
+
+  /**
+   * A shortcut method for {@code getMzValues().get(index)}
+   */
+  double getMzValue(int index);
+
+  /**
+   * A shortcut method for {@code getIntensityValues().get(index)}
+   */
+  double getIntensityValue(int index);
+
+  /**
+   * @return The m/z value of the highest data point of this spectrum or null if the spectrum has 0
+   *         data points.
+   */
+  @Nullable
+  Double getBasePeakMz();
+
+  /**
+   * @return The intensity value of the highest data point of this spectrum or null if the spectrum
+   *         has 0 data points.
+   */
+  @Nullable
+  Double getBasePeakIntensity();
+
+  /**
+   * @return The index of the top intensity data point or null if the spectrum has 0 data points.
    */
   @Nullable
   Integer getBasePeakIndex();
 
   /**
-   * Returns the sum of intensities of all data points.
-   *
-   * @return Total ion current
+   * @return The m/z range of this spectrum or null if the spectrum has 0 data points.
    */
-  @Nonnull
+  @Nullable
+  Range<Double> getDataPointMZRange();
+
+  /**
+   * @return The sum of intensities of all data points or null if the spectrum has 0 data points.
+   */
+  @Nullable
   Double getTIC();
 
-  /**
-   * Centroid / profile / thresholded
-   *
-   * @return
-   */
-  MassSpectrumType getSpectrumType();
 
   /**
-   * @return Number of m/z and intensity data points
-   */
-  int getNumberOfDataPoints();
-
-  /**
-   * Returns data points of this m/z table sorted in m/z order.
+   * Creates a stream of DataPoints to iterate over this array. To avoid consuming memory for each
+   * DataPoint instance, we will iterate over the stored data points with a single DataPoint
+   * instance that is incrementing an internal cursor. That means this code will NOT work:
    *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
+   * {@code ArrayList<DataPoint> list = spectrum.stream().collect();}
    *
-   * @return Data points (m/z and intensity pairs) of this scan
+   * @return A stream of DataPoint represented by a single DataPoint instance that is iterating over
+   *         the spectrum.
    */
-  @Nonnull
-  DoubleBuffer getMzValues();
-
-  @Nonnull
-  DoubleBuffer getIntensityValues();
-
-  double getMzValue(int index);
-
-  double getIntensityValue(int index);
-
-  @Nullable
-  Double getBasePeakMz();
-
-  @Nullable
-  Double getBasePeakIntensity();
-
   Stream<DataPoint> stream();
-
-
-
-  // @Deprecated DataPoint[] getDataPoints();
-
-  // DataPoint getHighestDataPoint();
-
-  /**
-   * @return Returns scan datapoints within a given range
-   */
-  // DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange);
 
 }

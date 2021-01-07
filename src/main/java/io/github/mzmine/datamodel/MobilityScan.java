@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
  */
 public interface MobilityScan extends MassSpectrum, Comparable<MobilityScan> {
 
-  public static final double DEFAULT_MOBILITY = -1.0d;
+  static final double DEFAULT_MOBILITY = -1.0d;
 
   @Nonnull
   RawDataFile getDataFile();

@@ -190,7 +190,7 @@
           text="Image builder"
           userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
       </Menu>
-      <Menu text="Ion Mobility">
+      <Menu text="Ion mobility">
         <MenuItem onAction="#runModule"
           text="Ion mobility trace builder"
           userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>

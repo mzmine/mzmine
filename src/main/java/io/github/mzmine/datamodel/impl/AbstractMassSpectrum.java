@@ -28,10 +28,11 @@ import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
 
 /**
- * Simple implementation of the Scan interface.
+ * A basic implementation of the MassSpectrum interface.
  */
 public abstract class AbstractMassSpectrum implements MassSpectrum {
 
@@ -40,9 +41,13 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
   protected @Nullable Range<Double> mzRange;
   protected @Nullable Integer basePeakIndex = null;
   protected double totalIonCurrent = 0.0;
+  private MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
 
-  protected synchronized void updateCacheValues(@Nonnull DoubleBuffer mzValues,
-      @Nonnull DoubleBuffer intensityValues) {
+
+  protected synchronized void updateMzRangeAndTICValues() {
+
+    final DoubleBuffer mzValues = getMzValues();
+    final DoubleBuffer intensityValues = getIntensityValues();
 
     assert mzValues != null;
     assert intensityValues != null;
@@ -105,41 +110,22 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
     return basePeakIndex;
   }
 
-
-
   @Override
   public @Nonnull Double getTIC() {
     return totalIonCurrent;
   }
 
-  /*
-   * @Override public DataPoint getHighestDataPoint() { if (basePeak < 0) return null; double
-   * basePeakMz = mzValues.get(basePeak); double basePeakInt = intensityValues.get(basePeak);
-   * DataPoint d = new SimpleDataPoint(basePeakMz, basePeakInt); return d; }
-   */
-
   /**
-   * @return Returns scan datapoints within a given range
-   * @Override
-   * @Nonnull public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
-   * 
-   *          DataPoint[] dataPoints = getDataPoints(); int startIndex, endIndex; for (startIndex =
-   *          0; startIndex < dataPoints.length; startIndex++) { if (dataPoints[startIndex].getMZ()
-   *          >= mzRange.lowerEndpoint()) { break; } }
-   * 
-   *          for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) { if
-   *          (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) { break; } }
-   * 
-   *          DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
-   * 
-   *          // Copy the relevant points System.arraycopy(dataPoints, startIndex,
-   *          pointsWithinRange, 0, endIndex - startIndex);
-   * 
-   *          return pointsWithinRange; }
-   * 
-   * @Deprecated private DataPoint[] getDataPoints() { return ScanUtils.extractDataPoints(this); }
+   * @see io.github.mzmine.datamodel.Scan#getSpectrumType()
    */
+  @Override
+  public MassSpectrumType getSpectrumType() {
+    return spectrumType;
+  }
 
+  public void setSpectrumType(MassSpectrumType spectrumType) {
+    this.spectrumType = spectrumType;
+  }
 
   @Override
   public double getMzValue(int index) {

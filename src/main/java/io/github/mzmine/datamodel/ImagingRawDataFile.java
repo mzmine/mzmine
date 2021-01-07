@@ -30,11 +30,11 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Imaging
  */
 public interface ImagingRawDataFile extends RawDataFile {
 
-  public void setImagingParam(ImagingParameters imagingParameters);
+  void setImagingParam(ImagingParameters imagingParameters);
 
-  public ImagingParameters getImagingParam();
+  ImagingParameters getImagingParam();
 
-  public Scan getScan(double x, double y);
+  Scan getScan(double x, double y);
 
   /**
    * all scans in this area
@@ -45,6 +45,6 @@ public interface ImagingRawDataFile extends RawDataFile {
    * @param y2 inclusive
    * @return
    */
-  public List<Scan> getScansInArea(float x, float y, float x2, float y2);
+  List<Scan> getScansInArea(float x, float y, float x2, float y2);
 
 }

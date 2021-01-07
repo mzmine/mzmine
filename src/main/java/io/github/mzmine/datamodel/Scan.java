@@ -43,6 +43,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
    *
    * @return Instrument-specific scan definition as String
    */
+  @Nonnull
   String getScanDefinition();
 
   /**
@@ -89,26 +90,22 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
 
   void removeMassList(@Nonnull MassList massList);
 
-  /**
-   * @see io.github.mzmine.datamodel.Scan#getSpectrumType()
-   */
-  @Override
-  MassSpectrumType getSpectrumType();
-
-  void setSpectrumType(MassSpectrumType spectrumType);
 
 
   /**
    * Standard method to sort scans
+   *
    * @param s
    * @return
    */
   @Override
   default int compareTo(@Nonnull Scan s) {
+    assert s != null;
     int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
-    if(result!=0)
+    if (result != 0)
       return result;
-    else return Float.compare(this.getRetentionTime(), s.getRetentionTime());
+    else
+      return Float.compare(this.getRetentionTime(), s.getRetentionTime());
   }
 }
 

@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -60,8 +61,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
       @Nonnull Range<Double> scanMZRange, MobilityType mobilityType, final int numMobilitySpectra,
       @Nonnull Map<Integer, Double> mobilities, @Nullable Set<ImsMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
-                                                                                       * fragmentScans,
-                                                                                       */
+         * fragmentScans,
+         */
         null, null, spectrumType, polarity, scanDefinition, scanMZRange);
 
     setDataPoints(dps);
@@ -134,7 +135,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Nonnull
   @Override
   public List<MobilityScan> getMobilityScans() {
-    return mobilitySubScans;
+    return ImmutableList.copyOf(mobilitySubScans);
   }
 
   @Override
@@ -165,7 +166,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   public List<MobilityScan> getSortedMobilityScans() {
     List<MobilityScan> result = new ArrayList<>(mobilitySubScans);
     result.sort(Comparator.comparingDouble(MobilityScan::getMobility));
-    return result;
+    return ImmutableList.copyOf(result);
   }
 
   /*

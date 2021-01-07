@@ -19,95 +19,70 @@
 package io.github.mzmine.datamodel.impl;
 
 import java.nio.DoubleBuffer;
-import java.util.Iterator;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.MassSpectrumType;
 
-public class SimpleMassSpectrum implements MassSpectrum {
+/**
+ * Simple implementation of MassSpectrum that stores all data in memory.
+ */
+public class SimpleMassSpectrum extends AbstractMassSpectrum {
 
-  @Override
-  public Iterator<DataPoint> iterator() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+  private static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
 
-  @Override
-  public Range<Double> getDataPointMZRange() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public @Nullable Integer getBasePeakIndex() {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public @Nonnull Double getTIC() {
-    // TODO Auto-generated method stub
-    return 0.0;
-  }
-
-  @Override
-  public MassSpectrumType getSpectrumType() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public int getNumberOfDataPoints() {
-    // TODO Auto-generated method stub
-    return 0;
-  }
+  private DoubleBuffer mzValues;
+  private DoubleBuffer intensityValues;
 
   @Override
   public DoubleBuffer getMzValues() {
-    // TODO Auto-generated method stub
-    return null;
+    if (mzValues == null)
+      return EMPTY_BUFFER;
+    else
+      return mzValues;
   }
 
   @Override
   public DoubleBuffer getIntensityValues() {
-    // TODO Auto-generated method stub
-    return null;
+    if (intensityValues == null)
+      return EMPTY_BUFFER;
+    else
+      return intensityValues;
   }
 
-  @Override
-  public double getMzValue(int index) {
-    // TODO Auto-generated method stub
-    return 0;
+  public synchronized void setDataPoints(@Nonnull double mzValues[],
+      @Nonnull double intensityValues[]) {
+
+    assert mzValues != null;
+    assert intensityValues != null;
+    assert mzValues.length == intensityValues.length;
+
+    for (int i = 0; i < mzValues.length - 1; i++) {
+      if (mzValues[i] > mzValues[i + 1]) {
+        throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
+      }
+    }
+
+    this.mzValues = DoubleBuffer.wrap(mzValues);
+    this.intensityValues = DoubleBuffer.wrap(intensityValues);
+
+    updateMzRangeAndTICValues();
   }
 
-  @Override
-  public double getIntensityValue(int index) {
-    // TODO Auto-generated method stub
-    return 0;
+  public synchronized void setDataPoints(@Nonnull DoubleBuffer mzValues,
+      DoubleBuffer intensityValues) {
+
+    assert mzValues != null;
+    assert intensityValues != null;
+    assert mzValues.capacity() == intensityValues.capacity();
+
+    for (int i = 0; i < mzValues.capacity() - 1; i++) {
+      if (mzValues.get(i) > mzValues.get(i + 1)) {
+        throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
+      }
+    }
+
+    this.mzValues = mzValues;
+    this.intensityValues = intensityValues;
+
+    updateMzRangeAndTICValues();
   }
-
-  @Override
-  public Double getBasePeakMz() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public Double getBasePeakIntensity() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-
 
 }
