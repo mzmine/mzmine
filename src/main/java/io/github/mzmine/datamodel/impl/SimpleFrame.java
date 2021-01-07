@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel.impl;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
@@ -136,8 +136,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Nonnull
   @Override
-  public Collection<MobilityScan> getMobilityScans() {
-    return mobilitySubScans.values();
+  public List<MobilityScan> getMobilityScans() {
+    return ImmutableList.copyOf(mobilitySubScans.values());
   }
 
   @Override
@@ -168,7 +168,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   public List<MobilityScan> getSortedMobilityScans() {
     List<MobilityScan> result = new ArrayList<>(mobilitySubScans.values());
     result.sort(Comparator.comparingDouble(MobilityScan::getMobility));
-    return result;
+    return ImmutableList.copyOf(result);
   }
 
   /*

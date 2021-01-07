@@ -17,7 +17,6 @@
 
 package io.github.mzmine.datamodel;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,7 +61,7 @@ public interface Frame extends Scan {
   MobilityScan getMobilityScan(int num);
 
   @Nonnull
-  Collection<MobilityScan> getMobilityScans();
+  List<MobilityScan> getMobilityScans();
 
   @Nonnull
   List<MobilityScan> getSortedMobilityScans();
