@@ -18,18 +18,6 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
@@ -39,6 +27,16 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -50,7 +48,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   /**
    * key = scan num, value = mobility scan
    */
-  private final Map<Integer, MobilityScan> mobilitySubScans = new HashMap<>();;
+  private final List<MobilityScan> mobilitySubScans = new ArrayList<>();
   private final MobilityType mobilityType;
   private Range<Double> mobilityRange;
   private final Map<Integer, Double> mobilities;
@@ -126,8 +124,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
       mobilityRange = mobilityRange.span(Range.singleton(originalMobilityScan.getMobility()));
     }
 
-    mobilitySubScans.put(originalMobilityScan.getMobilityScamNumber(), originalMobilityScan);
-
+    mobilitySubScans.add(originalMobilityScan);
   }
 
 
@@ -136,8 +133,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Nonnull
   @Override
-  public Collection<MobilityScan> getMobilityScans() {
-    return mobilitySubScans.values();
+  public List<MobilityScan> getMobilityScans() {
+    return mobilitySubScans;
   }
 
   @Override
@@ -166,7 +163,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public List<MobilityScan> getSortedMobilityScans() {
-    List<MobilityScan> result = new ArrayList<>(mobilitySubScans.values());
+    List<MobilityScan> result = new ArrayList<>(mobilitySubScans);
     result.sort(Comparator.comparingDouble(MobilityScan::getMobility));
     return result;
   }

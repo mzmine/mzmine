@@ -581,18 +581,14 @@ public class ADAPChromatogram {
 
     int allScansIndex = 0; // contains the index of the next dp after a gap
     int lastScanIndex = 0; // contains the index of the last dp before a gap
-
     final int numScans = scans.length;
-
     Map<Scan, DataPoint> dataPointsToAdd = new HashMap<>();
 
     for (Entry<Scan, DataPoint> entry : dataPointsMap.entrySet()) {
       Scan nextScan = entry.getKey();
-
       while (allScansIndex < numScans && scans[allScansIndex] != nextScan) { // find the next scan
         allScansIndex++;
       }
-
       if (allScansIndex - lastScanIndex >= minGap) { // check if gap was big enough
         for (int i = 1; i <= zeros; i++) {
           if (lastScanIndex + i < numScans && lastScanIndex != 0) {
@@ -603,7 +599,6 @@ public class ADAPChromatogram {
           }
         }
       }
-
       lastScanIndex = allScansIndex;
     }
 

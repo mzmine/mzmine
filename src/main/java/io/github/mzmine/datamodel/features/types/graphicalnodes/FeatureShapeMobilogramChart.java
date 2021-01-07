@@ -18,18 +18,17 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.IonMobilityTimeSeries;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
+import io.github.mzmine.datamodel.impl.SummedIonMobilitySeries;
 import io.github.mzmine.util.color.ColorsFX;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
@@ -38,8 +37,10 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javax.annotation.Nonnull;
 
 public class FeatureShapeMobilogramChart extends StackPane {
+
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public FeatureShapeMobilogramChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
@@ -54,34 +55,26 @@ public class FeatureShapeMobilogramChart extends StackPane {
       int fi = 0;
       for (Feature f : row.getFeatures()) {
         XYChart.Series<Number, Number> data = new XYChart.Series<>();
-        List<DataPoint> dataPoints = f.getDataPoints();
         RawDataFile raw = f.getRawDataFile();
-        if(! (raw instanceof IMSRawDataFile)) {
+        if (!(raw instanceof IMSRawDataFile)) {
           continue; // cannot create a chart otherwise.
         }
         // add data points retention mobility -> intensity
-        for (DataPoint dataPoint : dataPoints) {
-          if (dataPoint instanceof RetentionTimeMobilityDataPoint) {
-            RetentionTimeMobilityDataPoint dp = (RetentionTimeMobilityDataPoint) dataPoint;
-            double mobility = dp.getMobility();
-            double intensity = dp == null ? 0 : dp.getIntensity();
-            for (DataPoint dataPointCompare : dataPoints) {
-              RetentionTimeMobilityDataPoint dpComapre =
-                  (RetentionTimeMobilityDataPoint) dataPointCompare;
-              if (dp != dpComapre && dpComapre.getMobility() == mobility) {
-                intensity = intensity + (dpComapre == null ? 0 : dpComapre.getIntensity());
-              }
-            }
-            data.getData().add(new XYChart.Data<>(mobility, intensity));
-            if (mobility > maxMobility) {
-              maxMobility = mobility;
-            }
-            if (mobility < minMobility) {
-              minMobility = mobility;
-            }
-            if (progress != null)
-              progress.addAndGet(1.0 / size / dataPoints.size());
+        IonMobilityTimeSeries dpSeries = (IonMobilityTimeSeries) ((ModularFeature) f)
+            .getFeatureData();
+        SummedIonMobilitySeries mobilogram = dpSeries.getSummedMobilogram();
+        for (int i = 0; i < mobilogram.getNumberOfDataPoints(); i++) {
+          data.getData()
+              .add(new XYChart.Data<>(mobilogram.getMobility(i), mobilogram.getIntensity(i)));
+          /*if (mobilogram.getMobility(i) > maxMobility) {
+            maxMobility = mobility;
           }
+          if (mobility < minMobility) {
+            minMobility = mobility;
+          }
+          if (progress != null) {
+            progress.addAndGet(1.0 / size / dataPoints.size());
+          }*/
         }
         fi++;
         bc.getData().add(data);
@@ -94,8 +87,9 @@ public class FeatureShapeMobilogramChart extends StackPane {
         }
         line.setStyle("-fx-stroke: " + ColorsFX.toHexString(fileColor) + ";");
 
-        if (progress != null)
+        if (progress != null) {
           progress.set((double) fi / size);
+        }
       }
 
       bc.setLegendVisible(false);
@@ -108,8 +102,8 @@ public class FeatureShapeMobilogramChart extends StackPane {
       // do not add data to chart
       yAxis.setAutoRanging(true);
       xAxis.setAutoRanging(false);
-      xAxis.setUpperBound(maxMobility + 0.1);
-      xAxis.setLowerBound(minMobility == Double.MAX_VALUE ? 0 : minMobility - 0.1);
+//      xAxis.setUpperBound(maxMobility + 0.1);
+//      xAxis.setLowerBound(minMobility == Double.MAX_VALUE ? 0 : minMobility - 0.1);
 
       bc.setOnScroll(new EventHandler<>() {
         @Override

@@ -64,7 +64,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -200,7 +200,7 @@ public class FeatureConvertors {
         .getMemoryMapStorage();
     List<SimpleIonMobilitySeries> mobilograms = new ArrayList<>();
     var sortedDp = FeatureConvertorIonMobility.groupDataPointsByFrameId(ionTrace.getDataPoints());
-    for (Entry<Frame, Set<RetentionTimeMobilityDataPoint>> entry : sortedDp.entrySet()) {
+    for (Entry<Frame, SortedSet<RetentionTimeMobilityDataPoint>> entry : sortedDp.entrySet()) {
       double[][] data = DataPointUtils.getDataPointsAsDoubleArray(entry.getValue());
       SimpleIonMobilitySeries mobilogram = new SimpleIonMobilitySeries(storage, data[0], data[1],
           entry.getValue().stream().map(RetentionTimeMobilityDataPoint::getMobilityScan).collect(

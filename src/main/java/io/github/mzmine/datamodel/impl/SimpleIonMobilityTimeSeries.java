@@ -42,6 +42,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
 
   protected final List<SimpleIonMobilitySeries> simpleIonMobilitySeries;
   protected final List<Frame> frames;
+  protected SummedIonMobilitySeries summedMobilogram;
   protected DoubleBuffer intensityValues;
   protected DoubleBuffer mzValues;
 
@@ -54,6 +55,9 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
     double[] summedIntensities = new double[simpleIonMobilitySeries.size()];
     double[] weightedMzs = new double[simpleIonMobilitySeries.size()];
 
+    summedMobilogram = new SummedIonMobilitySeries(storage,
+        simpleIonMobilitySeries, summedIntensities[0]);
+
     for (int i = 0; i < simpleIonMobilitySeries.size(); i++) {
       SimpleIonMobilitySeries ims = simpleIonMobilitySeries.get(i);
       tempFrames.add(ims.getScans().get(0).getFrame());
@@ -63,7 +67,6 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
       for (int j = 0; j < intensities.capacity(); j++) {
         summedIntensities[i] += intensities.get(j);
       }
-
       // calculate an intensity weighted average for mz
       // todo use CenterFunction maybe?
       double weightedMz = 0;
@@ -133,4 +136,10 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
   public MsSeries<Frame> copy(MemoryMapStorage storage) {
     return new SimpleIonMobilityTimeSeries(storage, this);
   }
+
+  @Override
+  public SummedIonMobilitySeries getSummedMobilogram() {
+    return summedMobilogram;
+  }
+
 }

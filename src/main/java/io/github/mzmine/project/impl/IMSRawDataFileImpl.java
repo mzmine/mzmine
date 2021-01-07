@@ -112,7 +112,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   @Nonnull
   @Override
-  public Collection<? extends Frame> getFrames() {
+  public Collection<Frame> getFrames() {
     return frames;
   }
 

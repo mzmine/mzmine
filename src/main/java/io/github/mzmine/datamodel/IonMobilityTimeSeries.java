@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.impl.SimpleIonMobilitySeries;
+import io.github.mzmine.datamodel.impl.SummedIonMobilitySeries;
 import java.util.List;
 
 /**
@@ -39,4 +40,6 @@ public interface IonMobilityTimeSeries extends MsTimeSeries<Frame> {
   default SimpleIonMobilitySeries getMobilogram(int index) {
     return getMobilograms().get(index);
   }
+
+  SummedIonMobilitySeries getSummedMobilogram();
 }

@@ -17,13 +17,12 @@
 
 package io.github.mzmine.datamodel;
 
-import java.util.Collection;
+import com.google.common.collect.Range;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
 
 /**
  * A frame is a collection of mobility resolved spectra at one point in time.
@@ -62,7 +61,7 @@ public interface Frame extends Scan {
   MobilityScan getMobilityScan(int num);
 
   @Nonnull
-  Collection<MobilityScan> getMobilityScans();
+  List<MobilityScan> getMobilityScans();
 
   @Nonnull
   List<MobilityScan> getSortedMobilityScans();
