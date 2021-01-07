@@ -44,7 +44,6 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private double precursorMZ;
   private int precursorCharge;
   private float retentionTime;
-  private MassSpectrumType spectrumType;
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
@@ -77,14 +76,13 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.msLevel = msLevel;
     this.retentionTime = retentionTime;
     this.precursorMZ = precursorMZ;
-    this.spectrumType = spectrumType;
     this.precursorCharge = precursorCharge;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
     if (mzValues != null && intensityValues != null)
       setDataPoints(mzValues, intensityValues);
-
+    setSpectrumType(spectrumType);
   }
 
 
@@ -163,18 +161,6 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.retentionTime = retentionTime;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.Scan#getSpectrumType()
-   */
-  @Override
-  public MassSpectrumType getSpectrumType() {
-    return spectrumType;
-  }
-
-  @Override
-  public void setSpectrumType(MassSpectrumType spectrumType) {
-    this.spectrumType = spectrumType;
-  }
 
   @Override
   public String toString() {
