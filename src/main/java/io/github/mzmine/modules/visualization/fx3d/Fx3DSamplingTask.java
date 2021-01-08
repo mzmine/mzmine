@@ -130,8 +130,8 @@ class Fx3DSamplingTask extends AbstractTask {
 
         double[] scanMZValues = new double[scan.getNumberOfDataPoints()];
         double[] scanIntensityValues = new double[scan.getNumberOfDataPoints()];
-        scan.getMzValues().get(scanMZValues);
-        scan.getIntensityValues().get(scanIntensityValues);
+        scan.getMzValues().get(0, scanMZValues);
+        scan.getIntensityValues().get(0, scanIntensityValues);
 
         double[] binnedIntensities = ScanUtils.binValues(scanMZValues, scanIntensityValues, mzRange,
             mzResolution, scan.getSpectrumType() != MassSpectrumType.CENTROIDED, BinningType.MAX);
@@ -214,6 +214,7 @@ class Fx3DSamplingTask extends AbstractTask {
       });
 
     } catch (Throwable e) {
+      e.printStackTrace();
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Error while sampling 3D data," + ExceptionUtils.exceptionToString(e));
       return;
