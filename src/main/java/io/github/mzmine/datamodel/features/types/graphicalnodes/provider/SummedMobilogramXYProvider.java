@@ -18,11 +18,11 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes.provider;
 
-import io.github.mzmine.datamodel.IonMobilityTimeSeries;
-import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.impl.SummedIonMobilitySeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -40,7 +40,7 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
 
   public SummedMobilogramXYProvider(final ModularFeature f) {
     this.f = f;
-    MsTimeSeries<? extends Scan> series = f.getFeatureData();
+    IonTimeSeries<? extends Scan> series = f.getFeatureData();
     if (!(series instanceof IonMobilityTimeSeries)) {
       throw new IllegalArgumentException(
           "Feature does not possess an IonMobilityTime series, cannot create mobilogram chart");

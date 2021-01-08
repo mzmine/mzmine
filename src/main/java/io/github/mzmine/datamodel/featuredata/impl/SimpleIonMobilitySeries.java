@@ -1,25 +1,25 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
-package io.github.mzmine.datamodel.impl;
+package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.MsSeries;
+import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import javax.annotation.Nonnull;
  *
  * @author https://github.com/SteffenHeu
  */
-public class SimpleIonMobilitySeries implements MsSeries<MobilityScan> {
+public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> {
 
   private static final Logger logger = Logger.getLogger(SimpleIonMobilitySeries.class.getName());
 
@@ -69,7 +69,7 @@ public class SimpleIonMobilitySeries implements MsSeries<MobilityScan> {
   }
 
   @Override
-  public DoubleBuffer getMzValues() {
+  public DoubleBuffer getMZValues() {
     return mzValues;
   }
 
@@ -83,9 +83,9 @@ public class SimpleIonMobilitySeries implements MsSeries<MobilityScan> {
   }
 
   @Override
-  public MsSeries<MobilityScan> copy(MemoryMapStorage storage) {
+  public IonSpectrumSeries<MobilityScan> copy(MemoryMapStorage storage) {
     double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(getMzValues(), getIntensityValues());
+        .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
     return new SimpleIonMobilitySeries(storage, data[0], data[1], getScans());
   }

@@ -19,8 +19,8 @@
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -54,7 +54,7 @@ public class FeatureShapeChart extends StackPane {
     Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
     int size = row.getFilesFeatures().size();
     for (Feature f : row.getFeatures()) {
-      MsTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).getFeatureData();
+      IonTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).getFeatureData();
       if (dpSeries != null) {
         ColoredXYDataset dataset = new FastColoredXYDataset(
             new MsTimeSeriesXYProvider((ModularFeature) f));

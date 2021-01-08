@@ -22,9 +22,10 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -46,7 +47,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.datamodel.impl.SimpleMsTimeSeries;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
 import java.lang.reflect.InvocationTargetException;
@@ -142,7 +142,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     // datapoints of feature
 //    set(DataPointsType.class, Arrays.asList(dataPointsPerScan));
     double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(dataPointsPerScan);
-    SimpleMsTimeSeries featureData = new SimpleMsTimeSeries(flist.getMemoryMapStorage(), dp[0],
+    SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(flist.getMemoryMapStorage(), dp[0],
         dp[1], Arrays.asList(scanNumbers));
     set(FeatureDataType.class, featureData);
 
@@ -200,7 +200,7 @@ public class ModularFeature implements Feature, ModularDataModel {
 //        set(FeatureDataType.class, ((ModularFeature)f).getFeatureData());
 //      } else {
       double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(f.getDataPoints());
-      SimpleMsTimeSeries featureData = new SimpleMsTimeSeries(flist.getMemoryMapStorage(), dp[0],
+      SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(flist.getMemoryMapStorage(), dp[0],
           dp[1], f.getScanNumbers());
       set(FeatureDataType.class, featureData);
 //      }
@@ -466,7 +466,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     return v == null || v.getValue() == null ?
         FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
         : v.getValue();*/
-    MsTimeSeries<? extends Scan> data = getFeatureData();
+    IonTimeSeries<? extends Scan> data = getFeatureData();
     return data == null ? Collections.emptyList() : (List<Scan>) data.getScans();
   }
 
@@ -492,13 +492,13 @@ public class ModularFeature implements Feature, ModularDataModel {
 //    return v == null || v.getValue() == null ?
 //        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
 //        : v.getValue();
-    MsTimeSeries<? extends Scan> data = getFeatureData();
+    IonTimeSeries<? extends Scan> data = getFeatureData();
     return data == null ? null
         : FXCollections.observableArrayList(data.stream().collect(Collectors.toList()));
   }
 
-  public MsTimeSeries<? extends Scan> getFeatureData() {
-    ObjectProperty<MsTimeSeries<? extends Scan>> v = get(FeatureDataType.class);
+  public IonTimeSeries<? extends Scan> getFeatureData() {
+    ObjectProperty<IonTimeSeries<? extends Scan>> v = get(FeatureDataType.class);
     return v == null || v.getValue() == null ? null : v.getValue();
   }
 

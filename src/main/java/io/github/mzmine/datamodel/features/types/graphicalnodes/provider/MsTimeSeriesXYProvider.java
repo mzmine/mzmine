@@ -18,8 +18,8 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes.provider;
 
-import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
@@ -33,7 +33,7 @@ public class MsTimeSeriesXYProvider implements PlotXYDataProvider {
 
   private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final ModularFeature f;
-  private final MsTimeSeries<? extends Scan> data;
+  private final IonTimeSeries<? extends Scan> data;
 
   public MsTimeSeriesXYProvider(final ModularFeature f) {
     this.f = f;
@@ -78,12 +78,12 @@ public class MsTimeSeriesXYProvider implements PlotXYDataProvider {
 
   @Override
   public double getRangeValue(int index) {
-    return data.getIntensityValue(index);
+    return data.getIntensity(index);
   }
 
   @Override
   public int getValueCount() {
-    return data.getNumberOfDataPoints();
+    return data.getNumberOfValues();
   }
 
   @Override

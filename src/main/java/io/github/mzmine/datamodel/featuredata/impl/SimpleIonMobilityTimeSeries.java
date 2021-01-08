@@ -1,26 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
-package io.github.mzmine.datamodel.impl;
+package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IonMobilityTimeSeries;
-import io.github.mzmine.datamodel.MsSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
  */
 public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
 
-  private static final Logger logger = Logger.getLogger(SimpleMsTimeSeries.class.getName());
+  private static final Logger logger = Logger.getLogger(SimpleIonTimeSeries.class.getName());
 
   protected final List<SimpleIonMobilitySeries> simpleIonMobilitySeries;
   protected final List<Frame> frames;
@@ -63,7 +63,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
       tempFrames.add(ims.getScans().get(0).getFrame());
 
       DoubleBuffer intensities = ims.getIntensityValues();
-      DoubleBuffer mzValues = ims.getMzValues();
+      DoubleBuffer mzValues = ims.getMZValues();
       for (int j = 0; j < intensities.capacity(); j++) {
         summedIntensities[i] += intensities.get(j);
       }
@@ -94,7 +94,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
     this.simpleIonMobilitySeries = new ArrayList<>();
 
     double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(series.getMzValues(), series.getIntensityValues());
+        .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
 
     try {
       mzValues = storage.storeData(data[0]);
@@ -115,7 +115,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
   }
 
   @Override
-  public DoubleBuffer getMzValues() {
+  public DoubleBuffer getMZValues() {
     return mzValues;
   }
 
@@ -133,7 +133,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
   }
 
   @Override
-  public MsSeries<Frame> copy(MemoryMapStorage storage) {
+  public IonSpectrumSeries<Frame> copy(MemoryMapStorage storage) {
     return new SimpleIonMobilityTimeSeries(storage, this);
   }
 

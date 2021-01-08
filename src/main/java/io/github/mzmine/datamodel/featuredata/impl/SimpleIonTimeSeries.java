@@ -1,26 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
-package io.github.mzmine.datamodel.impl;
+package io.github.mzmine.datamodel.featuredata.impl;
 
-import io.github.mzmine.datamodel.MsSeries;
-import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
@@ -35,15 +35,15 @@ import javax.annotation.Nonnull;
  *
  * @author https://github.com/SteffenHeu
  */
-public class SimpleMsTimeSeries implements MsTimeSeries<Scan> {
+public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
-  private static final Logger logger = Logger.getLogger(SimpleMsTimeSeries.class.getName());
+  private static final Logger logger = Logger.getLogger(SimpleIonTimeSeries.class.getName());
 
   protected final List<Scan> scans;
   protected DoubleBuffer intensityValues;
   protected DoubleBuffer mzValues;
 
-  public SimpleMsTimeSeries(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
+  public SimpleIonTimeSeries(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, @Nonnull List<Scan> scans) {
     if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
@@ -68,7 +68,7 @@ public class SimpleMsTimeSeries implements MsTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getMzValues() {
+  public DoubleBuffer getMZValues() {
     return mzValues;
   }
 
@@ -83,10 +83,10 @@ public class SimpleMsTimeSeries implements MsTimeSeries<Scan> {
   }
 
   @Override
-  public MsSeries<Scan> copy(MemoryMapStorage storage) {
+  public IonSpectrumSeries<Scan> copy(MemoryMapStorage storage) {
     double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(getMzValues(), getIntensityValues());
+        .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
-    return new SimpleMsTimeSeries(storage, data[0], data[1], getScans());
+    return new SimpleIonTimeSeries(storage, data[0], data[1], getScans());
   }
 }

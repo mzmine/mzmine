@@ -18,9 +18,9 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes.provider;
 
-import io.github.mzmine.datamodel.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -90,7 +90,7 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     numValues = 0;
     for(int i = 0; i < data.getMobilograms().size(); i++) {
-      for (int j = 0; j < data.getMobilogram(i).getNumberOfDataPoints(); j++) {
+      for (int j = 0; j < data.getMobilogram(i).getNumberOfValues(); j++) {
         numValues++;
       }
     }
@@ -112,8 +112,8 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
   @Override
   public double getDomainValue(int index) {
     for(SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
-      if(index >= mobilitySeries.getNumberOfDataPoints()) {
-        index -= mobilitySeries.getNumberOfDataPoints();
+      if (index >= mobilitySeries.getNumberOfValues()) {
+        index -= mobilitySeries.getNumberOfValues();
       } else {
         return mobilitySeries.getScans().get(index).getRetentionTime();
       }
@@ -124,8 +124,8 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
   @Override
   public double getRangeValue(int index) {
     for(SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
-      if(index >= mobilitySeries.getNumberOfDataPoints()) {
-        index -= mobilitySeries.getNumberOfDataPoints();
+      if (index >= mobilitySeries.getNumberOfValues()) {
+        index -= mobilitySeries.getNumberOfValues();
       } else {
         return mobilitySeries.getMobility(index);
       }
@@ -146,10 +146,10 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
   @Override
   public double getZValue(int index) {
     for(SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
-      if(index >= mobilitySeries.getNumberOfDataPoints()) {
-        index -= mobilitySeries.getNumberOfDataPoints();
+      if (index >= mobilitySeries.getNumberOfValues()) {
+        index -= mobilitySeries.getNumberOfValues();
       } else {
-        return mobilitySeries.getIntensityValue(index);
+        return mobilitySeries.getIntensity(index);
       }
     }
     return 0;

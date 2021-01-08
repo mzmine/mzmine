@@ -23,9 +23,12 @@ import io.github.msdk.datamodel.Feature;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IonMobilityTimeSeries;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DetectionType;
@@ -49,9 +52,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
-import io.github.mzmine.datamodel.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.impl.SimpleIonMobilityTimeSeries;
-import io.github.mzmine.datamodel.impl.SimpleMsTimeSeries;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
@@ -123,7 +123,7 @@ public class FeatureConvertors {
           "Number of data points does not match number of scan numbers");
     }
 
-    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
         ((ModularFeatureList) chromatogram.getFeatureList()).getMemoryMapStorage(),
         chromatogram.getDataPoints().stream().collect(Collectors.toList()),
         Arrays.asList(chromatogram.getScanNumbers()));
@@ -277,7 +277,7 @@ public class FeatureConvertors {
 
     // Data points of feature
     double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(image.getDataPoints());
-    SimpleMsTimeSeries data = new SimpleMsTimeSeries(
+    SimpleIonTimeSeries data = new SimpleIonTimeSeries(
         ((ModularFeatureList) image.getFeatureList()).getMemoryMapStorage(), dp[0], dp[1],
         image.getScanNumbers().stream().collect(Collectors.toList()));
 
@@ -357,7 +357,7 @@ public class FeatureConvertors {
 
     // Data points of feature
 //    modularFeature.set(DataPointsType.class, new ArrayList<>(manualFeature.getDataPoints()));
-    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
         ((ModularFeatureList) manualFeature.getFeatureList()).getMemoryMapStorage(),
         manualFeature.getDataPoints().stream().collect(Collectors.toList()),
         Arrays.asList(manualFeature.getScanNumbers()));
@@ -439,7 +439,7 @@ public class FeatureConvertors {
 
     // Data points of feature
 //    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
-    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
         ((ModularFeatureList) sameRangePeak.getPeakList()).getMemoryMapStorage(),
         sameRangePeak.getDataPoints().stream().collect(Collectors.toList()),
         Arrays.asList(sameRangePeak.getScanNumbers()));
@@ -515,7 +515,7 @@ public class FeatureConvertors {
 
     // Data points of feature
 //    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
-    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
         ((ModularFeatureList) sameRangePeak.getPeakList()).getMemoryMapStorage(),
         sameRangePeak.getDataPoints().stream().collect(Collectors.toList()),
         Arrays.asList(sameRangePeak.getScanNumbers()));
@@ -591,7 +591,7 @@ public class FeatureConvertors {
 
     // Data points of feature
 //    modularFeature.set(DataPointsType.class, resolvedPeak.getDataPoints());
-    SimpleMsTimeSeries timeSeries = createSimpleTimeSeries(
+    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
         ((ModularFeatureList) resolvedPeak.getPeakList()).getMemoryMapStorage(),
         resolvedPeak.getDataPoints().stream().collect(Collectors.toList()),
         Arrays.asList(resolvedPeak.getScanNumbers()));
@@ -631,7 +631,7 @@ public class FeatureConvertors {
     return modularFeature;
   }
 
-  public static SimpleMsTimeSeries createSimpleTimeSeries(MemoryMapStorage storage,
+  public static SimpleIonTimeSeries createSimpleTimeSeries(MemoryMapStorage storage,
       List<? extends DataPoint> dataPoints, List<? extends Scan> scans) {
     int numDp = dataPoints.size();
     double[] mzs = new double[numDp];
@@ -645,7 +645,7 @@ public class FeatureConvertors {
       i++;
     }
 
-    SimpleMsTimeSeries timeSeries = new SimpleMsTimeSeries(storage, mzs,
+    SimpleIonTimeSeries timeSeries = new SimpleIonTimeSeries(storage, mzs,
         intensities, scansList);
 
     return timeSeries;

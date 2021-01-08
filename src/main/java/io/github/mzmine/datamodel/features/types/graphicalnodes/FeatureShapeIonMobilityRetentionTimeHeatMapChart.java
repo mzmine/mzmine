@@ -54,7 +54,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     chart.setLegendNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
     NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
-    axis.setAutoRangeMinimumSize(0.2);
+    axis.setAutoRangeMinimumSize(0.05);
     axis.setAutoRangeIncludesZero(false);
     axis.setAutoRangeStickyZero(false);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);

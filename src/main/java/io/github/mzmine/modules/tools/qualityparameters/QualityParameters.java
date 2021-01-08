@@ -18,18 +18,18 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
-import io.github.mzmine.datamodel.MsTimeSeries;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
-import java.util.List;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import java.util.List;
 import java.util.stream.Collectors;
 import javafx.beans.property.Property;
 
@@ -49,10 +49,11 @@ public class QualityParameters {
 
       List<Scan> scanNumbers = peak.getScanNumbers();
       RawDataFile dataFile = peak.getRawDataFile();
-      MsTimeSeries<? extends Scan> dps = peak.getFeatureData();
+      IonTimeSeries<? extends Scan> dps = peak.getFeatureData();
       if (height.getValue() == null || rt.getValue() == null || dataFile == null
-          || scanNumbers.isEmpty() || dps.getNumberOfDataPoints() == 0)
+          || scanNumbers.isEmpty() || dps.getNumberOfValues() == 0) {
         return;
+      }
 
       Range<Float> rtRange = peak.get(RTRangeType.class).getValue();
       if (rtRange == null)

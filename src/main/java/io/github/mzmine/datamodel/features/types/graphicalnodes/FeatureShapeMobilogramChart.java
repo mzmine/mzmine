@@ -20,10 +20,10 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.IonMobilityTimeSeries;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -56,7 +56,7 @@ public class FeatureShapeMobilogramChart extends StackPane {
     Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
     int size = row.getFilesFeatures().size();
     for (Feature f : row.getFeatures()) {
-      MsTimeSeries<? extends Scan> series = ((ModularFeature) f).getFeatureData();
+      IonTimeSeries<? extends Scan> series = ((ModularFeature) f).getFeatureData();
       if (series instanceof IonMobilityTimeSeries) {
         datasets.add(new FastColoredXYDataset(new SummedMobilogramXYProvider((ModularFeature) f)));
       }
