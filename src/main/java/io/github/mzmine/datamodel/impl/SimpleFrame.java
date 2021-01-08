@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
@@ -37,7 +38,6 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -45,15 +45,15 @@ import com.google.common.collect.ImmutableList;
  */
 public class SimpleFrame extends SimpleScan implements Frame {
 
-  private final int numMobilitySpectra;
+//  private final int numMobilitySpectra;
   /**
    * key = scan num, value = mobility scan
    */
   private final List<MobilityScan> mobilitySubScans = new ArrayList<>();
   private final MobilityType mobilityType;
-  private Range<Double> mobilityRange;
   private final Map<Integer, Double> mobilities;
   private final Set<ImsMsMsInfo> precursorInfos;
+  private Range<Double> mobilityRange;
 
   public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge, DataPoint dps[],
@@ -68,7 +68,26 @@ public class SimpleFrame extends SimpleScan implements Frame {
     setDataPoints(dps);
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-    this.numMobilitySpectra = numMobilitySpectra;
+//    this.numMobilitySpectra = numMobilitySpectra;
+    this.mobilities = mobilities;
+    this.precursorInfos = precursorInfos;
+  }
+
+  public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
+      float retentionTime, double precursorMZ, int precursorCharge, double[] mzValues,
+      double[] intensityValues, MassSpectrumType spectrumType, PolarityType polarity,
+      String scanDefinition, @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
+      final int numMobilitySpectra, @Nonnull Map<Integer, Double> mobilities,
+      @Nullable Set<ImsMsMsInfo> precursorInfos) {
+    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
+         * fragmentScans,
+         */
+        null, null, spectrumType, polarity, scanDefinition, scanMZRange);
+
+    setDataPoints(mzValues, intensityValues);
+    this.mobilityType = mobilityType;
+    mobilityRange = Range.singleton(0.d);
+//    this.numMobilitySpectra = numMobilitySpectra;
     this.mobilities = mobilities;
     this.precursorInfos = precursorInfos;
   }
@@ -78,7 +97,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   public int getNumberOfMobilityScans() {
-    return numMobilitySpectra;
+    return mobilitySubScans.size();
   }
 
   @Override
@@ -127,7 +146,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
     mobilitySubScans.add(originalMobilityScan);
   }
-
 
   /**
    * @return Collection of mobility sub scans sorted by increasing scan num.

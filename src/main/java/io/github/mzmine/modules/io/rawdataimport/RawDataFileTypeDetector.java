@@ -142,7 +142,24 @@ public class RawDataFileTypeDetector {
           if (fileName.getName().toLowerCase().endsWith("imzml")) {
             return RawDataFileType.IMZML;
           } else {
-            return RawDataFileType.MZML;
+            InputStreamReader reader2 =
+                new InputStreamReader(new FileInputStream(fileName), StandardCharsets.ISO_8859_1);
+            char buffer2[] = new char[4096];
+            String content = new String(buffer2);
+            boolean containsScan = false, containsAccession = false;
+            while (containsScan == false && containsAccession == false) {
+              reader2.read(buffer2);
+              content = new String(buffer2);
+              content.replaceAll("[^\\x00-\\x7F]", "");
+              containsScan = content.contains("/scan");
+              containsAccession = content.contains("1002476");
+            }
+            reader2.close();
+            if (content.contains("1002476")) { // accession for mobility
+              return RawDataFileType.MZML_IMS;
+            } else {
+              return RawDataFileType.MZML;
+            }
           }
         }
 
