@@ -65,8 +65,8 @@ public class FeatureShapeChart extends StackPane {
       }
     }
 
-    Platform.runLater(() -> chart.addDatasets(datasets));
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     getChildren().add(chart);
+    Platform.runLater(() -> chart.addDatasets(datasets));
   }
 }

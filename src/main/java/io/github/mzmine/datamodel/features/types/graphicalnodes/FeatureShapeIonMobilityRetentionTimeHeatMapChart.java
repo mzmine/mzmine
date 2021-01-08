@@ -33,6 +33,7 @@ import java.awt.Color;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
+import org.jfree.chart.axis.NumberAxis;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -44,20 +45,22 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
 
     SimpleXYZScatterPlot<IonMobilityTimeSeriesXYZProvider> chart = new SimpleXYZScatterPlot<>();
     ColoredXYZDataset dataset = new FastColoredXYZDataset(new IonMobilityTimeSeriesXYZProvider(f));
-    Platform.runLater(() -> chart.setDataset(dataset));
-
     MobilityType mt = ((IMSRawDataFile) f.getRawDataFile()).getMobilityType();
     UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
-    chart
-        .setRangeAxisLabel(unitFormat.format("Mobility (" + mt.getAxisLabel() + ")", mt.getUnit()));
+    chart.setRangeAxisLabel(mt.getAxisLabel());
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
     chart.setDomainAxisLabel(unitFormat.format("Retention time", "min"));
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.setLegendNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
-
+    NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
+    axis.setAutoRangeMinimumSize(0.2);
+    axis.setAutoRangeIncludesZero(false);
+    axis.setAutoRangeStickyZero(false);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
     getChildren().add(chart);
+
+    Platform.runLater(() -> chart.setDataset(dataset));
   }
 }

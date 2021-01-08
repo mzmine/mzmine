@@ -44,6 +44,8 @@ import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
@@ -185,6 +187,7 @@ public class FeatureConvertors {
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.set(MZType.class, ionTrace.getMz());
     modularFeature.set(RTType.class, (float) ionTrace.getRetentionTime());
+    modularFeature.set(MobilityType.class, ionTrace.getMobility());
 
     modularFeature.set(HeightType.class, (float) ionTrace.getMaximumIntensity());
     // TODO
@@ -218,23 +221,27 @@ public class FeatureConvertors {
     Range<Float> intensityRange =
         Range.closed(ionTrace.getIntensityRange().lowerEndpoint().floatValue(),
             ionTrace.getIntensityRange().upperEndpoint().floatValue());
+    Range<Float> mobilityRange = Range
+        .closed(ionTrace.getMobilityRange().lowerEndpoint().floatValue(),
+            ionTrace.getMobilityRange().upperEndpoint().floatValue());
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
+    modularFeature.set(MobilityRangeType.class, mobilityRange);
 
     // Quality parameters
-    // float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    // if (!Float.isNaN(fwhm)) {
-    modularFeature.set(FwhmType.class, -1);
-    // }
-    // float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    // if (!Float.isNaN(tf)) {
-    modularFeature.set(TailingFactorType.class, -1);
-    // }
-    // float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    // if (!Float.isNaN(af)) {
-    modularFeature.set(AsymmetryFactorType.class, -1);
-    // }
+    float fwhm = QualityParameters.calculateFWHM(modularFeature);
+    if (!Float.isNaN(fwhm)) {
+      modularFeature.set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(modularFeature);
+    if (!Float.isNaN(tf)) {
+      modularFeature.set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
+    if (!Float.isNaN(af)) {
+      modularFeature.set(AsymmetryFactorType.class, af);
+    }
 
     return modularFeature;
   }
@@ -257,7 +264,6 @@ public class FeatureConvertors {
     modularFeature.setFragmentScan(null);
     modularFeature.setRepresentativeScan(null);
     // Add values to feature
-//    modularFeature.set(ScanNumbersType.class, new ArrayList<>(image.getScanNumbers()));
     modularFeature.set(RawFileType.class, rawDataFile);
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.set(MZType.class, image.getMz());
@@ -270,8 +276,6 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, -1);
 
     // Data points of feature
-//    List<DataPoint> dps = new ArrayList<>(image.getDataPoints());
-//    modularFeature.set(DataPointsType.class, dps);
     double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(image.getDataPoints());
     SimpleMsTimeSeries data = new SimpleMsTimeSeries(
         ((ModularFeatureList) image.getFeatureList()).getMemoryMapStorage(), dp[0], dp[1],

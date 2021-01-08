@@ -28,9 +28,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
-import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -272,7 +269,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       IIonMobilityTrace ionTrace = rangeToIonTraceMap.get(currentRangeKey);
       if (ionTrace.getDataPoints().size() >= minTotalSignals
           && checkNumberOfRetentionTimeDataPoints(ionTrace.getDataPoints())) {
-        logger.info("Build ion trace for m/z range " + ionTrace.getMzRange());
+//        logger.info("Build ion trace for m/z range " + ionTrace.getMzRange());
         finishIonTrace(ionTrace);
         ionMobilityTraces.add(ionTrace);
       }
@@ -501,8 +498,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         new ModularFeatureList(rawDataFile + " " + suffix, rawDataFile);
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(featureList);
-    featureList.addRowType(new FeatureShapeMobilogramType());
-    featureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
+    DataTypeUtils.addDefaultIonMobilityTypeColumns(featureList);
 
     int featureId = 1;
     for (IIonMobilityTrace ionTrace : ionMobilityTraces) {
@@ -511,7 +507,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           FeatureConvertors.IonMobilityIonTraceToModularFeature(ionTrace, rawDataFile);
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
-      newRow.set(MobilityType.class, ionTrace.getMobility());
+//      newRow.set(MobilityType.class, ionTrace.getMobility());
       featureList.addRow(newRow);
       featureId++;
     }

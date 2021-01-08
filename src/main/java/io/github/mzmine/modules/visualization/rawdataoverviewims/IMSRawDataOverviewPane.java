@@ -18,19 +18,6 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Stroke;
-import java.text.NumberFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import javax.annotation.Nullable;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.title.TextTitle;
-import org.jfree.chart.ui.Layer;
-import org.jfree.chart.ui.RectangleEdge;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -57,6 +44,13 @@ import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildSe
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Stroke;
+import java.text.NumberFormat;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -67,6 +61,12 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.shape.Rectangle;
+import javax.annotation.Nullable;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.Layer;
+import org.jfree.chart.ui.RectangleEdge;
 
 public class IMSRawDataOverviewPane extends BorderPane {
 
@@ -213,10 +213,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private void updateAxisLabels() {
     String intensityLabel = unitFormat.format("Intensity", "cps");
     String mzLabel = "m/z";
-    String mobilityLabel = (rawDataFile != null)
-        ? unitFormat.format("Mobility (" + rawDataFile.getMobilityType().getAxisLabel() + ")",
-            rawDataFile.getMobilityType().getUnit())
-        : "Mobility";
+    String mobilityLabel =
+        (rawDataFile != null) ? rawDataFile.getMobilityType().getAxisLabel() : "Mobility";
     mobilogramChart.setRangeAxisLabel(mobilityLabel);
     mobilogramChart.setRangeAxisNumberFormatOverride(mobilityFormat);
     mobilogramChart.setDomainAxisLabel(intensityLabel);

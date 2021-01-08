@@ -19,7 +19,9 @@
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.MsTimeSeries;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -44,8 +46,9 @@ public class FeatureShapeMobilogramChart extends StackPane {
 
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
+    final MobilityType mt = ((IMSRawDataFile) row.getRawDataFiles().get(0)).getMobilityType();
     SimpleXYChart<SummedMobilogramXYProvider> chart = new SimpleXYChart<>(
-        uf.format("Retention time", "min"), uf.format("Intensity", "cps"));
+        mt.getAxisLabel(), uf.format("Intensity", "cps"));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
     chart.switchLegendVisible();
@@ -63,8 +66,8 @@ public class FeatureShapeMobilogramChart extends StackPane {
       }
     }
 
-    Platform.runLater(() -> chart.addDatasets(datasets));
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     getChildren().add(chart);
+    Platform.runLater(() -> chart.addDatasets(datasets));
   }
 }

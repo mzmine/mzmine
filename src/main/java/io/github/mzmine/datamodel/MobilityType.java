@@ -18,6 +18,9 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.main.MZmineCore;
+
 /**
  * Stores information on mobility type, axis labels and units.
  *
@@ -40,7 +43,11 @@ public enum MobilityType {
   }
 
   public String getAxisLabel() {
-    return axisLabel;
+    UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
+    StringBuilder sb = new StringBuilder("Mobility (");
+    sb.append(axisLabel);
+    sb.append(")");
+    return uf.format(sb.toString(), getUnit());
   }
 
   public String getUnit() {
