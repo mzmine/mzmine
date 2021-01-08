@@ -187,7 +187,7 @@ public class FeatureConvertors {
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.set(MZType.class, ionTrace.getMz());
     modularFeature.set(RTType.class, (float) ionTrace.getRetentionTime());
-    modularFeature.set(MobilityType.class, ionTrace.getMobility());
+    modularFeature.set(MobilityType.class, (float) ionTrace.getMobility());
 
     modularFeature.set(HeightType.class, (float) ionTrace.getMaximumIntensity());
     // TODO
