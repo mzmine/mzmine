@@ -19,23 +19,23 @@
 package io.github.mzmine.util.javafx.groupablelistview;
 
 /**
- * Class designed to be used as a group header item of {@link GroupableListView}.
+ * Class designed to be used as a group item of {@link GroupableListView}.
  */
 public class GroupEntity implements GroupableListViewEntity {
 
-  private String groupHeader;
+  private String groupName;
   private boolean isExpanded = true;
 
-  public GroupEntity(String groupHeader) {
-    this.groupHeader = groupHeader;
+  public GroupEntity(String groupName) {
+    this.groupName = groupName;
   }
 
-  public String getGroupHeader() {
-    return groupHeader;
+  public String getGroupName() {
+    return groupName;
   }
 
-  public void setGroupHeader(String groupHeader) {
-    this.groupHeader = groupHeader;
+  public void setGroupName(String groupName) {
+    this.groupName = groupName;
   }
 
   public void invertState() {
@@ -52,7 +52,7 @@ public class GroupEntity implements GroupableListViewEntity {
 
   @Override
   public String toString() {
-    return groupHeader;
+    return groupName;
   }
 
 }

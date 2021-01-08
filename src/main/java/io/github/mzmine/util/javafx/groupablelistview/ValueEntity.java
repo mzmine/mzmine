@@ -26,7 +26,7 @@ package io.github.mzmine.util.javafx.groupablelistview;
 public class ValueEntity<T> implements GroupableListViewEntity {
 
   private T value;
-  private String group;
+  private GroupEntity group;
 
   public ValueEntity(T value) {
     this.value = value;
@@ -40,11 +40,11 @@ public class ValueEntity<T> implements GroupableListViewEntity {
     this.value = value;
   }
 
-  public void setGroup(String group) {
+  public void setGroup(GroupEntity group) {
     this.group = group;
   }
 
-  public String getGroup() {
+  public GroupEntity getGroup() {
     return group;
   }
 

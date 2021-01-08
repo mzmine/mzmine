@@ -569,7 +569,7 @@ public class MainWindowController {
       MZmineCore.getProjectManager().getCurrentProject().removeFile(selectedItem);
     }
 
-    for (String group : ImmutableList.copyOf(rawDataList.getSelectedGroups())) {
+    for (GroupEntity group : ImmutableList.copyOf(rawDataList.getSelectedGroups())) {
       rawDataList.ungroupItems(group);
     }
   }
@@ -732,7 +732,7 @@ public class MainWindowController {
   }
 
   public void handleGroupRawDataFiles(Event event) {
-    if (rawDataList.onlyGroupHeadersSelected()) {
+    if (rawDataList.onlyGroupsSelected()) {
       rawDataList.ungroupItems(ImmutableList.copyOf(rawDataList.getSelectedGroups()));
     } else if (rawDataList.onlyItemsSelected()) {
       rawDataList.groupSelectedItems();

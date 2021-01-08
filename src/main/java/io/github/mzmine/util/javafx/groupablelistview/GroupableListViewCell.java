@@ -64,13 +64,13 @@ public class GroupableListViewCell<T> extends
     // Setup group headers expanding/hiding
     expandButton.setOnMouseClicked(event -> {
       getListView().getItems().removeAll(((GroupableListView<T>) getListView())
-          .getGroupItems(((GroupEntity) getItem()).getGroupHeader()));
+          .getGroupItems((GroupEntity) getItem()));
       setGraphic(hiddenButton);
       ((GroupEntity) getItem()).invertState();
     });
     hiddenButton.setOnMouseClicked(event -> {
       getListView().getItems().addAll(getIndex() + 1, ((GroupableListView<T>) getListView())
-          .getGroupItems(((GroupEntity) getItem()).getGroupHeader()));
+          .getGroupItems((GroupEntity) getItem()));
       setGraphic(expandButton);
       ((GroupEntity) getItem()).invertState();
     });
@@ -80,7 +80,7 @@ public class GroupableListViewCell<T> extends
       getListView().getSelectionModel().getSelectedItems().addListener(new ListChangeListener<GroupableListViewEntity>() {
         @Override
         public void onChanged(Change<? extends GroupableListViewEntity> change) {
-          if (getGroupableListView().onlyGroupHeadersSelected()) {
+          if (getGroupableListView().onlyGroupsSelected()) {
             groupUngroupMenuItem.setText("Ungroup " + POSTFIX);
             groupUngroupMenuItem.setDisable(false);
           } else if (((GroupableListView<T>) getListView()).onlyItemsSelected()
@@ -165,7 +165,7 @@ public class GroupableListViewCell<T> extends
     super.commitEdit(item);
 
     if (item instanceof GroupEntity) {
-      getGroupableListView().renameGroupHeader((GroupEntity) item, renameTextField.getText());
+      getGroupableListView().renameGroup((GroupEntity) item, renameTextField.getText());
     }
     setGraphic(renameSavedGraphic);
     setText(renameTextField.getText());
@@ -192,7 +192,7 @@ public class GroupableListViewCell<T> extends
 
       // Calculate new index as an index under group, if it's dragged to the group header
       if (thisItem instanceof GroupEntity && ((GroupEntity) thisItem).isExpanded() && newIdx > draggedIdx) {
-        newIdx += getGroupableListView().getGroupSize(((GroupEntity) thisItem).getGroupHeader());
+        newIdx += getGroupableListView().getGroupSize((GroupEntity) thisItem);
       }
 
       // Swap dragged and this items
@@ -213,20 +213,20 @@ public class GroupableListViewCell<T> extends
 
         // Calculate new index as an index under group, if it's dragged to the group header
         if (thisItem instanceof GroupEntity && ((GroupEntity) thisItem).isExpanded() && newIdx > draggedIdx) {
-          newIdx += getGroupableListView().getGroupSize(((GroupEntity) thisItem).getGroupHeader());
+          newIdx += getGroupableListView().getGroupSize((GroupEntity) thisItem);
         }
         super.dragDroppedAction(draggedIdx, newIdx);
       } else {
         List<GroupableListViewEntity> groupItems
             = new ArrayList<>(
-            getGroupableListView().getGroupItems(((GroupEntity) draggedItem).getGroupHeader()));
+            getGroupableListView().getGroupItems((GroupEntity) draggedItem));
 
         // Calculate new group header index
         if (newIdx > draggedIdx) {
           newIdx -= groupItems.size();
           if (thisItem instanceof GroupEntity && ((GroupEntity) thisItem).isExpanded()) {
             newIdx += getGroupableListView()
-                .getGroupSize(((GroupEntity) thisItem).getGroupHeader());
+                .getGroupSize((GroupEntity) thisItem);
           }
         }
 
