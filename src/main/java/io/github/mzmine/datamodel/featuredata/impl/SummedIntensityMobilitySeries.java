@@ -19,7 +19,9 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
+import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
@@ -27,13 +29,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class SummedIonMobilitySeries {
+/**
+ * Stores a summed mobilogram of a feature.
+ *
+ * @author https://github.com/SteffenHeu
+ */
+public class SummedIntensityMobilitySeries implements IntensitySeries, MobilitySeries {
 
   DoubleBuffer intensityValues;
   final double mz;
   DoubleBuffer mobilityValues;
 
-  SummedIonMobilitySeries(MemoryMapStorage storage, List<SimpleIonMobilitySeries> mobilograms,
+  SummedIntensityMobilitySeries(MemoryMapStorage storage, List<SimpleIonMobilitySeries> mobilograms,
       double mz) {
 
     this.mz = mz;
@@ -43,14 +50,14 @@ public class SummedIonMobilitySeries {
     for (int i = 0; i < mobilograms.size(); i++) {
       SimpleIonMobilitySeries mobilogram = mobilograms.get(i);
       for (int j = 0; j < mobilogram.getNumberOfValues(); j++) {
-        Integer scannum = mobilogram.getScan(j).getMobilityScamNumber();
+        Integer scannum = mobilogram.getSpectrum(j).getMobilityScamNumber();
         Double intensity = intensities.get(scannum);
         if (intensity != null) {
           intensity += mobilogram.getIntensity(j);
           intensities.put(scannum, intensity);
         } else {
           mobilities
-              .put(mobilogram.getScan(j).getMobilityScamNumber(), mobilogram.getMobility(j));
+              .put(mobilogram.getSpectrum(j).getMobilityScamNumber(), mobilogram.getMobility(j));
           intensities.put(scannum, mobilogram.getIntensity(j));
         }
       }
@@ -84,7 +91,12 @@ public class SummedIonMobilitySeries {
     return mobilityValues;
   }
 
+  public double getMZ() {
+    return mz;
+  }
+
   public IonSpectrumSeries<MobilityScan> copy(MemoryMapStorage storage) {
     return null;
   }
+
 }

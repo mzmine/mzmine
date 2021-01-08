@@ -73,7 +73,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public List<Scan> getScans() {
+  public List<Scan> getSpectra() {
     return scans;
   }
 
@@ -87,6 +87,6 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
-    return new SimpleIonTimeSeries(storage, data[0], data[1], getScans());
+    return new SimpleIonTimeSeries(storage, data[0], data[1], getSpectra());
   }
 }

@@ -21,6 +21,8 @@ package io.github.mzmine.datamodel.featuredata;
 import java.nio.DoubleBuffer;
 
 /**
+ * Stores a series of intensities.
+ *
  * @author https://github.com/SteffenHeu
  */
 public interface IntensitySeries extends SeriesValueCount {

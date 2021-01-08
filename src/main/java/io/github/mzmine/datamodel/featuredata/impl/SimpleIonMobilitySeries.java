@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Stores data points of several {@link MobilityScan}s. Usually wrapped in a {@link
- * SimpleIonMobilityTimeSeries} representing the same feature with mobility resolution.
+ * SimpleIonMobilogramTimeSeries} representing the same feature with mobility resolution.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -74,11 +74,11 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
   }
 
   public double getMobility(int index) {
-    return getScans().get(index).getMobility();
+    return getSpectra().get(index).getMobility();
   }
 
   @Override
-  public List<MobilityScan> getScans() {
+  public List<MobilityScan> getSpectra() {
     return scans;
   }
 
@@ -87,6 +87,6 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
-    return new SimpleIonMobilitySeries(storage, data[0], data[1], getScans());
+    return new SimpleIonMobilitySeries(storage, data[0], data[1], getSpectra());
   }
 }

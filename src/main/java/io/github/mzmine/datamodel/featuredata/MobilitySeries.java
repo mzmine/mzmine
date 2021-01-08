@@ -18,6 +18,11 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+/**
+ * Stores mobility values.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public interface MobilitySeries extends SeriesValueCount {
 
   // no FloatBuffer getMobilityValues(), because this usually occurs with scans and

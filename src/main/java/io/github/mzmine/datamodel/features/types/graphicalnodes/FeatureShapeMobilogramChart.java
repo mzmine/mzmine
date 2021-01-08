@@ -22,7 +22,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -57,7 +57,7 @@ public class FeatureShapeMobilogramChart extends StackPane {
     int size = row.getFilesFeatures().size();
     for (Feature f : row.getFeatures()) {
       IonTimeSeries<? extends Scan> series = ((ModularFeature) f).getFeatureData();
-      if (series instanceof IonMobilityTimeSeries) {
+      if (series instanceof IonMobilogramTimeSeries) {
         datasets.add(new FastColoredXYDataset(new SummedMobilogramXYProvider((ModularFeature) f)));
       }
 

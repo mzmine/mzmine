@@ -25,10 +25,10 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
@@ -85,7 +85,7 @@ public class IonTimeSeriesTest {
 
     SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(storage, new double[] {1d, 2d}, new double[] {2d, 4d}, mobilityScans);
 
-    return new SimpleIonMobilityTimeSeries(storage, List.of(ionMobilitySeries));
+    return new SimpleIonMobilogramTimeSeries(storage, List.of(ionMobilitySeries));
   }
 
   @Test
@@ -94,29 +94,29 @@ public class IonTimeSeriesTest {
     try {
       IonTimeSeries<? extends Scan> scanSeries = makeSimpleTimeSeries();
       if (scanSeries instanceof SimpleIonTimeSeries) {
-        logger.info("MsTimeSeries created by makeSimpleTimeSeries() is an instance of "
+        logger.info("IonTimeSeries created by makeSimpleTimeSeries() is an instance of "
             + SimpleIonTimeSeries.class.getSimpleName());
       }
-      if (scanSeries instanceof IonMobilityTimeSeries) {
-        logger.info("MsTimeSeries created by makeSimpleTimeSeries() is an instance of "
-            + IonMobilityTimeSeries.class.getSimpleName());
+      if (scanSeries instanceof IonMobilogramTimeSeries) {
+        logger.info("IonTimeSeries created by makeSimpleTimeSeries() is an instance of "
+            + IonMobilogramTimeSeries.class.getSimpleName());
         throw new JUnitException("Illegal cast.");
       }
 
       IonTimeSeries<? extends Scan> imFrameSeries = makeIonMobilityTimeSeries();
       if (imFrameSeries instanceof SimpleIonTimeSeries) {
-        logger.info("MsTimeSeries created by makeIonMobilityTimeSeries() is an instance of "
+        logger.info("IonTimeSeries created by makeIonMobilityTimeSeries() is an instance of "
             + SimpleIonTimeSeries.class.getSimpleName());
         throw new JUnitException("Illegal cast.");
       }
       logger.info("Testing cast IonMobilityTimeSeries to MsTimeSeries<Scan> "
           + ((IonTimeSeries<Scan>) imFrameSeries).getRetentionTime(0));
-      if (imFrameSeries instanceof IonMobilityTimeSeries) {
-        logger.info("MsTimeSeries created by makeIonMobilityTimeSeries() is an instance of "
-            + IonMobilityTimeSeries.class.getSimpleName());
+      if (imFrameSeries instanceof IonMobilogramTimeSeries) {
+        logger.info("IonTimeSeries created by makeIonMobilityTimeSeries() is an instance of "
+            + IonMobilogramTimeSeries.class.getSimpleName());
       } else {
-        logger.info("MsTimeSeries created by makeIonMobilityTimeSeries() is not an instance of "
-            + IonMobilityTimeSeries.class.getSimpleName());
+        logger.info("IonTimeSeries created by makeIonMobilityTimeSeries() is not an instance of "
+            + IonMobilogramTimeSeries.class.getSimpleName());
         throw new JUnitException("Illegal cast.");
       }
     } catch (IOException e) {

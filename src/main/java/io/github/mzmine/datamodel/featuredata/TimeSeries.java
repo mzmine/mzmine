@@ -18,6 +18,10 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+
+/**
+ * Stores retention time values.
+ */
 public interface TimeSeries extends SeriesValueCount {
 
   // no FloatBuffer getRetentionTimeValues(), because this usually occurs with scans and

@@ -25,9 +25,9 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -210,7 +210,7 @@ public class FeatureConvertors {
               Collectors.toList()));
       mobilograms.add(mobilogram);
     }
-    IonMobilityTimeSeries imTimeSeries = new SimpleIonMobilityTimeSeries(storage, mobilograms);
+    IonMobilogramTimeSeries imTimeSeries = new SimpleIonMobilogramTimeSeries(storage, mobilograms);
     modularFeature.set(FeatureDataType.class, imTimeSeries);
 
     // Ranges

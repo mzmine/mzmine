@@ -18,14 +18,8 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
-import com.google.common.collect.Streams;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Stores combinations of intensity and mz values.
@@ -33,59 +27,12 @@ import java.util.stream.Stream;
  * @param <T>
  * @author https://github.com/SteffenHeu
  */
-public interface IonSpectrumSeries<T extends MassSpectrum> extends Iterable<DataPoint>,
-    IntensitySeries, MzSeries {
+public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
 
-  List<T> getScans();
+  List<T> getSpectra();
 
-  default T getScan(int index) {
-    return getScans().get(index);
+  default T getSpectrum(int index) {
+    return getSpectra().get(index);
   }
 
-  @Override
-  default int getNumberOfValues() {
-    return getMZValues().capacity();
-  }
-
-  @Override
-  default Iterator<DataPoint> iterator() {
-    return new DataPointIterator(this);
-  }
-
-  default Stream<DataPoint> stream() {
-    return Streams.stream(this);
-  }
-
-  IonSpectrumSeries<T> copy(MemoryMapStorage storage);
-
-  static class DataPointIterator implements Iterator<DataPoint>, DataPoint {
-
-    private int cursor = -1;
-    private final IonSpectrumSeries<? extends MassSpectrum> data;
-
-    DataPointIterator(IonSpectrumSeries<? extends MassSpectrum> data) {
-      this.data = data;
-    }
-
-    @Override
-    public double getMZ() {
-      return data.getMZ(cursor);
-    }
-
-    @Override
-    public double getIntensity() {
-      return data.getIntensity(cursor);
-    }
-
-    @Override
-    public boolean hasNext() {
-      return (cursor + 1) < data.getNumberOfValues();
-    }
-
-    @Override
-    public DataPoint next() {
-      cursor++;
-      return new SimpleDataPoint(getMZ(), getIntensity());
-    }
-  }
 }

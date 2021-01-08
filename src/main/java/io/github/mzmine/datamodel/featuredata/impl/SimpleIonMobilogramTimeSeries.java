@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -36,17 +36,17 @@ import javax.annotation.Nonnull;
  *
  * @author https://github.com/SteffenHeu
  */
-public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
+public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   private static final Logger logger = Logger.getLogger(SimpleIonTimeSeries.class.getName());
 
   protected final List<SimpleIonMobilitySeries> simpleIonMobilitySeries;
   protected final List<Frame> frames;
-  protected SummedIonMobilitySeries summedMobilogram;
+  protected SummedIntensityMobilitySeries summedMobilogram;
   protected DoubleBuffer intensityValues;
   protected DoubleBuffer mzValues;
 
-  public SimpleIonMobilityTimeSeries(@Nonnull MemoryMapStorage storage,
+  public SimpleIonMobilogramTimeSeries(@Nonnull MemoryMapStorage storage,
       @Nonnull List<SimpleIonMobilitySeries> simpleIonMobilitySeries) {
 
     List<Frame> tempFrames = new ArrayList<Frame>(simpleIonMobilitySeries.size());
@@ -55,12 +55,12 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
     double[] summedIntensities = new double[simpleIonMobilitySeries.size()];
     double[] weightedMzs = new double[simpleIonMobilitySeries.size()];
 
-    summedMobilogram = new SummedIonMobilitySeries(storage,
+    summedMobilogram = new SummedIntensityMobilitySeries(storage,
         simpleIonMobilitySeries, summedIntensities[0]);
 
     for (int i = 0; i < simpleIonMobilitySeries.size(); i++) {
       SimpleIonMobilitySeries ims = simpleIonMobilitySeries.get(i);
-      tempFrames.add(ims.getScans().get(0).getFrame());
+      tempFrames.add(ims.getSpectra().get(0).getFrame());
 
       DoubleBuffer intensities = ims.getIntensityValues();
       DoubleBuffer mzValues = ims.getMZValues();
@@ -88,9 +88,9 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
     frames = Collections.unmodifiableList(tempFrames);
   }
 
-  private SimpleIonMobilityTimeSeries(@Nonnull MemoryMapStorage storage,
-      IonMobilityTimeSeries series) {
-    this.frames = series.getScans();
+  private SimpleIonMobilogramTimeSeries(@Nonnull MemoryMapStorage storage,
+      IonMobilogramTimeSeries series) {
+    this.frames = series.getSpectra();
     this.simpleIonMobilitySeries = new ArrayList<>();
 
     double[][] data = DataPointUtils
@@ -123,7 +123,7 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
    * @return The frames.
    */
   @Override
-  public List<Frame> getScans() {
+  public List<Frame> getSpectra() {
     return frames;
   }
 
@@ -134,11 +134,11 @@ public class SimpleIonMobilityTimeSeries implements IonMobilityTimeSeries {
 
   @Override
   public IonSpectrumSeries<Frame> copy(MemoryMapStorage storage) {
-    return new SimpleIonMobilityTimeSeries(storage, this);
+    return new SimpleIonMobilogramTimeSeries(storage, this);
   }
 
   @Override
-  public SummedIonMobilitySeries getSummedMobilogram() {
+  public SummedIntensityMobilitySeries getSummedMobilogram() {
     return summedMobilogram;
   }
 

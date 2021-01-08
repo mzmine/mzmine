@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes.provider;
 
-import io.github.mzmine.datamodel.featuredata.IonMobilityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
@@ -39,16 +39,16 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
   private final List<Double> rts;
   private final List<Double> mobilities;
   private final List<Double> intensities;
-  private final IonMobilityTimeSeries data;
+  private final IonMobilogramTimeSeries data;
   private double progress;
   int numValues = 0;
 
   public IonMobilityTimeSeriesXYZProvider(final ModularFeature f) {
-    if (!(f.getFeatureData() instanceof IonMobilityTimeSeries)) {
+    if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException("Cannot create IMS heatmap for non-IMS feature");
     }
     this.f = f;
-    data = (IonMobilityTimeSeries) f.getFeatureData();
+    data = (IonMobilogramTimeSeries) f.getFeatureData();
     rts = new ArrayList<>();
     mobilities = new ArrayList<>();
     intensities = new ArrayList<>();
@@ -115,7 +115,7 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
-        return mobilitySeries.getScans().get(index).getRetentionTime();
+        return mobilitySeries.getSpectra().get(index).getRetentionTime();
       }
     }
     return 0;

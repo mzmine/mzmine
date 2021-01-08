@@ -20,7 +20,7 @@ package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SummedIonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import java.util.List;
 
 /**
@@ -29,11 +29,11 @@ import java.util.List;
  *
  * @author https://github.com/SteffenHeu
  */
-public interface IonMobilityTimeSeries extends IonTimeSeries<Frame> {
+public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame> {
 
   @Override
   default float getRetentionTime(int index) {
-    return getScan(index).getRetentionTime();
+    return getSpectrum(index).getRetentionTime();
   }
 
   List<SimpleIonMobilitySeries> getMobilograms();
@@ -42,5 +42,5 @@ public interface IonMobilityTimeSeries extends IonTimeSeries<Frame> {
     return getMobilograms().get(index);
   }
 
-  SummedIonMobilitySeries getSummedMobilogram();
+  SummedIntensityMobilitySeries getSummedMobilogram();
 }

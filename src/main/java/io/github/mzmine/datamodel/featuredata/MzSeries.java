@@ -20,6 +20,11 @@ package io.github.mzmine.datamodel.featuredata;
 
 import java.nio.DoubleBuffer;
 
+/**
+ * Stores series of m/z values.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public interface MzSeries extends SeriesValueCount {
 
   DoubleBuffer getMZValues();

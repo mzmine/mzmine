@@ -467,7 +467,7 @@ public class ModularFeature implements Feature, ModularDataModel {
         FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
         : v.getValue();*/
     IonTimeSeries<? extends Scan> data = getFeatureData();
-    return data == null ? Collections.emptyList() : (List<Scan>) data.getScans();
+    return data == null ? Collections.emptyList() : (List<Scan>) data.getSpectra();
   }
 
   @Override
