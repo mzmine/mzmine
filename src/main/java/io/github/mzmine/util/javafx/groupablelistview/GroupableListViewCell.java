@@ -199,11 +199,14 @@ public class GroupableListViewCell<T> extends
       super.dragDroppedAction(draggedIdx, newIdx);
 
       // Remove dragged item from group
-      getGroupableListView().removeFromGroup(((ValueEntity<?>) draggedItem).getGroup(), ((ValueEntity<T>) draggedItem));
+      getGroupableListView().removeFromGroup(((ValueEntity<?>) draggedItem).getGroup(),
+          ((ValueEntity<T>) draggedItem));
 
       // Add dragged item to group, if it's dragged inside the group
       if (thisItem instanceof ValueEntity && ((ValueEntity<?>) thisItem).isGrouped()) {
-        getGroupableListView().addToGroup(((ValueEntity<?>) thisItem).getGroup(), ((ValueEntity<T>) draggedItem));
+        GroupEntity group = ((ValueEntity<?>) thisItem).getGroup();
+        getGroupableListView().addToGroup(group,
+            newIdx - getGroupableListView().getGroupIndex(group) - 1, ((ValueEntity<T>) draggedItem));
       }
     } else if (draggedItem instanceof GroupEntity
         && !(thisItem instanceof ValueEntity && ((ValueEntity<?>) thisItem).isGrouped())) {

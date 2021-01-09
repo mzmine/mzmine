@@ -478,12 +478,7 @@ public class MainWindowController {
   public void handleShowMsMsPlot(Event event) {}
 
   public void handleSort(Event event) {
-    if (!(event.getSource() instanceof ListView)) {
-      return;
-    }
-    ListView<?> sourceList = (ListView<?>) event.getSource();
-    List<?> files = sourceList.getItems();
-    files.sort(Ordering.usingToString());
+    rawDataList.sortSelectedItems();
   }
 
   public void handleRemoveFileExtension(Event event) {

@@ -19,11 +19,15 @@
 package io.github.mzmine.util.javafx.groupablelistview;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Ordering;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -201,13 +205,13 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     return false;
   }
 
-  public void addToGroup(GroupEntity group, ValueEntity<T> item) {
+  public void addToGroup(GroupEntity group, int index, ValueEntity<T> item) {
     if (group == null || !groups.containsKey(group)) {
       return;
     }
 
     item.setGroup(group);
-    groups.get(group).add(item);
+    groups.get(group).add(index, item);
   }
 
   public void removeFromGroup(GroupEntity group, ValueEntity<T> item) {
@@ -221,6 +225,143 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     if (groups.get(group).isEmpty()) {
       ungroupItems(group);
     }
+  }
+
+  public Integer getGroupIndex(GroupEntity group) {
+    if (group == null || !groups.containsKey(group)) {
+      return null;
+    }
+
+    for (int index = 0; index < items.size(); index++) {
+      if (items.get(index) instanceof GroupEntity
+          && (items.get(index)).equals(group)) {
+        return index;
+      }
+    }
+    return null;
+  }
+
+  public List<Integer> getGroupItemsIndices(GroupEntity group) {
+    Integer groupIndex = getGroupIndex(group);
+    return IntStream.rangeClosed(groupIndex + 1, groupIndex + getGroupSize(group))
+        .boxed().collect(Collectors.toList());
+  }
+
+  public void sortSelectedItems() {
+    sortItems(getSelectionModel().getSelectedIndices());
+  }
+
+  /**
+   * Sorts items of the list alphabetically. Cases:
+   *  - one item:
+   *    * item is group header: sort group items
+   *    * item is not group header: do nothing
+   *  - multiple items:
+   *    * sort group headers and not grouped elements together, sort grouped items within their groups
+   *
+   * Allows sorting of any possible list of list's indices.
+   *
+   * @param indices indices of items to sort
+   */
+  public void sortItems(List<Integer> indices) {
+    if (indices == null || indices.isEmpty()) {
+      return;
+    }
+
+    // Get items corresponding to indices
+    List<GroupableListViewEntity> itemsToSort = indices.stream()
+        .map(items::get)
+        .collect(Collectors.toList());
+
+    // One item is to be sorted
+    if (indices.size() == 1) {
+
+      // If item is group header, sort all group items, else do nothing
+      if (itemsToSort.get(0) instanceof GroupEntity) {
+
+        // Sort group items
+        sortHomogeneousItems(getGroupItemsIndices((GroupEntity) itemsToSort.get(0)));
+      }
+      return;
+    }
+
+    // Split grouped and not grouped elements indices, distribute group elements by their groups
+    List<Integer> notGroupedItemsIndices = new ArrayList<>();
+    HashMap<GroupEntity, List<Integer>> groupedItemsIndices = new HashMap<>();
+    for (Integer index : indices) {
+      GroupableListViewEntity item = items.get(index);
+      if (item instanceof ValueEntity && ((ValueEntity<?>) item).isGrouped()) {
+        groupedItemsIndices.putIfAbsent(((ValueEntity<?>) item).getGroup(), new ArrayList<>());
+        groupedItemsIndices.get(((ValueEntity<?>) item).getGroup()).add(index);
+      } else {
+        notGroupedItemsIndices.add(index);
+      }
+    }
+
+    // Sort splitted items indices
+    for (GroupEntity group : groupedItemsIndices.keySet()) {
+      sortHomogeneousItems(groupedItemsIndices.get(group));
+    }
+    sortHomogeneousItems(notGroupedItemsIndices);
+
+  }
+
+  /**
+   * Method designed to sort each part of splitted(e.g. : not grouped, belonging to group1,
+   * belonging to group2...) in {@link GroupableListView#sortItems} items.
+   * Optimized to sort only given indices, not affecting whole list.
+   *
+   * @param indices indices of items to sort
+   */
+  private void sortHomogeneousItems(List<Integer> indices) {
+    if (indices == null || indices.size() < 2) {
+      return;
+    }
+
+    // Get sorted items corresponding to indices
+    List<GroupableListViewEntity> sortedItems = indices.stream()
+        .map(items::get)
+        .sorted(Ordering.usingToString())
+        .collect(Collectors.toList());
+
+    // Place sorted items one by one to the initial indices
+
+    // List to save expanded groups to fill the list with their elements after sort
+    List<GroupEntity> expandedGroups = new ArrayList<>();
+    int shift = 0;
+    for (int i = 0; i < indices.size(); i++) {
+      indices.set(i, indices.get(i) - shift);
+      GroupableListViewEntity item = items.get(indices.get(i));
+      if (item instanceof GroupEntity && ((GroupEntity) item).isExpanded()) {
+        shift += getGroupSize((GroupEntity) item);
+        items.removeAll(groups.get(item));
+        expandedGroups.add((GroupEntity) item);
+      }
+    }
+
+    // Loop through initial indexes
+    int sortedItemsIndex = 0;
+    for (int index : indices) {
+
+      GroupableListViewEntity item = sortedItems.get(sortedItemsIndex);
+
+      // Put sorted element to the current index of the list view
+      items.set(index, item);
+
+      // If item is grouped, sort the group
+      if (item instanceof ValueEntity && ((ValueEntity<T>) item).isGrouped()) {
+        GroupEntity group = ((ValueEntity<?>) item).getGroup();
+        groups.get(group).set(index - getGroupIndex(group) - 1, (ValueEntity<T>) item);
+      }
+      sortedItemsIndex++;
+    }
+
+    // Fill the list view with sorted groups elements
+    for (GroupEntity expandedGroup : expandedGroups) {
+      items.addAll(getGroupIndex(expandedGroup) + 1, getGroupItems(expandedGroup));
+    }
+
+    setItems(items);
   }
 
   public Integer getGroupSize(GroupEntity group) {
