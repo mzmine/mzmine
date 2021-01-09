@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 
 public class RetentionTimeMobilityDataPoint implements DataPoint {
@@ -28,13 +28,13 @@ public class RetentionTimeMobilityDataPoint implements DataPoint {
   private final double mz;
   private final Float retentionTime;
   private final double intensity;
-  private final Scan frame;
+  private final Frame frame;
   private final int scanNumber;
   private final double mobilityWidth;
   private final PaintScale paintScale;
 
   public RetentionTimeMobilityDataPoint(double mobility, double mz, Float retentionTime,
-      double intensity, Scan frame, int scanNumber, double mobilityWidth,
+      double intensity, Frame frame, int scanNumber, double mobilityWidth,
       PaintScale paintScale) {
     this.mobility = mobility;
     this.mz = mz;
@@ -62,7 +62,7 @@ public class RetentionTimeMobilityDataPoint implements DataPoint {
     return intensity;
   }
 
-  public Scan getFrame() {
+  public Frame getFrame() {
     return frame;
   }
 
