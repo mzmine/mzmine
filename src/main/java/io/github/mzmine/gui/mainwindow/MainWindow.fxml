@@ -47,7 +47,8 @@
 
                                   <SeparatorMenuItem/>
                                   <MenuItem onAction="#handleSort" text="Sort alphabetically"/>
-                                  <MenuItem onAction="#handleRemoveFileExtension"
+                                  <MenuItem fx:id="rawDataRemoveExtensionMenuItem"
+                                    onAction="#handleRemoveFileExtension"
                                     text="Remove file extension"/>
 
                                   <SeparatorMenuItem/>
@@ -62,12 +63,16 @@
                                       onAction="#runModule"
                                       userData="io.github.mzmine.modules.io.exportscans.ExportScansModule" />
                                   </Menu>
-                                  <MenuItem onAction="#handleRenameFile" text="Rename file"/>
-                                  <MenuItem onAction="#handleRemoveRawData" text="Remove file"/>
-                                  <MenuItem fx:id="rawDataGroupMenuItem" onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
+                                  <MenuItem fx:id="rawDataRenameMenuItem"
+                                    onAction="#handleRenameFile" text="Rename file"/>
+                                  <MenuItem fx:id="rawDataRemoveMenuItem"
+                                    onAction="#handleRemoveRawData" text="Remove file"/>
+                                  <MenuItem fx:id="rawDataGroupMenuItem"
+                                    onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
 
                                   <SeparatorMenuItem/>
-                                  <MenuItem onAction="#handleSetRawDataFileColor" text="Set color"/>
+                                  <MenuItem fx:id="rawDataSetColorMenuItem"
+                                    onAction="#handleSetRawDataFileColor" text="Set color"/>
 
                                 </items>
                               </ContextMenu>

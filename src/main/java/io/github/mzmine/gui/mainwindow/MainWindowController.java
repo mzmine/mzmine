@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
-import com.google.common.collect.Ordering;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.MZmineGUI;
@@ -137,6 +136,14 @@ public class MainWindowController {
 
   @FXML
   public MenuItem rawDataGroupMenuItem;
+  @FXML
+  public MenuItem rawDataRemoveMenuItem;
+  @FXML
+  public MenuItem rawDataRenameMenuItem;
+  @FXML
+  public MenuItem rawDataRemoveExtensionMenuItem;
+  @FXML
+  public MenuItem rawDataSetColorMenuItem;
 
   @FXML
   private AnchorPane tbRawData;
@@ -384,6 +391,29 @@ public class MainWindowController {
      * instanceof MZmineTask) { MZmineTask mzmineTask = (MZmineTask) task;
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
      */
+
+    // Update rawDataList context menu depending on selected items
+    rawDataList.getSelectionModel().getSelectedItems().addListener(
+        (ListChangeListener<GroupableListViewEntity>) change -> {
+          while (change.next()) {
+            if (change.getList() == null) {
+              return;
+            }
+
+            if (rawDataList.getSelectedItems().size() == 1) {
+              rawDataRemoveMenuItem.setText("Remove file");
+              rawDataRemoveExtensionMenuItem.setText("Remove file extension");
+              rawDataRenameMenuItem.setDisable(false);
+              rawDataSetColorMenuItem.setDisable(false);
+            } else {
+              rawDataRemoveMenuItem.setText("Remove files");
+              rawDataRemoveExtensionMenuItem.setText("Remove files' extensions");
+              rawDataRenameMenuItem.setDisable(true);
+              rawDataSetColorMenuItem.setDisable(true);
+            }
+
+          }
+        });
 
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
     addTab(rop);
@@ -728,7 +758,9 @@ public class MainWindowController {
 
   public void handleGroupRawDataFiles(Event event) {
     if (rawDataList.onlyGroupsSelected()) {
-      rawDataList.ungroupItems(ImmutableList.copyOf(rawDataList.getSelectedGroups()));
+      rawDataList.ungroupItems(rawDataList.getSelectedGroups());
+    } else if (rawDataList.onlyGroupedItemsSelected()) {
+      rawDataList.removeFromGroup(rawDataList.getSelectedItems());
     } else if (rawDataList.onlyItemsSelected()) {
       rawDataList.groupSelectedItems();
     }

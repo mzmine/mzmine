@@ -42,7 +42,7 @@ public class GroupableListViewCell<T> extends
     DraggableListCell<GroupableListViewEntity> {
 
   private static final int INDENT = 20;
-  private final String POSTFIX = "files";
+  private final String POSTFIX = "file";
 
   private final Text expandButton = new Text("▼");
   private final Text hiddenButton = new Text("▶");
@@ -80,16 +80,21 @@ public class GroupableListViewCell<T> extends
       getListView().getSelectionModel().getSelectedItems().addListener(new ListChangeListener<GroupableListViewEntity>() {
         @Override
         public void onChanged(Change<? extends GroupableListViewEntity> change) {
-          if (getGroupableListView().onlyGroupsSelected()) {
-            groupUngroupMenuItem.setText("Ungroup " + POSTFIX);
+          String postfix = POSTFIX;
+          if (change.getList().size() > 1) {
+            postfix += "s";
+          }
+
+          if (getGroupableListView().onlyGroupsSelected()
+              || getGroupableListView().onlyGroupedItemsSelected()) {
+            groupUngroupMenuItem.setText("Ungroup " + postfix);
             groupUngroupMenuItem.setDisable(false);
-          } else if (((GroupableListView<T>) getListView()).onlyItemsSelected()
-              // TODO: do we need inherited grouping?
+          } else if (getGroupableListView().onlyItemsSelected()
               && !getGroupableListView().anyGroupedItemSelected()) {
-            groupUngroupMenuItem.setText("Group " + POSTFIX);
+            groupUngroupMenuItem.setText("Group " + postfix);
             groupUngroupMenuItem.setDisable(false);
           } else {
-            groupUngroupMenuItem.setText("Group/Ungroup " + POSTFIX);
+            groupUngroupMenuItem.setText("Group/Ungroup " + postfix);
             groupUngroupMenuItem.setDisable(true);
           }
         }
@@ -199,8 +204,7 @@ public class GroupableListViewCell<T> extends
       super.dragDroppedAction(draggedIdx, newIdx);
 
       // Remove dragged item from group
-      getGroupableListView().removeFromGroup(((ValueEntity<?>) draggedItem).getGroup(),
-          ((ValueEntity<T>) draggedItem));
+      getGroupableListView().removeFromGroup((ValueEntity<T>) draggedItem);
 
       // Add dragged item to group, if it's dragged inside the group
       if (thisItem instanceof ValueEntity && ((ValueEntity<?>) thisItem).isGrouped()) {

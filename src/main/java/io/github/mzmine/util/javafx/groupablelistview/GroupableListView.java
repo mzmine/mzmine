@@ -20,6 +20,7 @@ package io.github.mzmine.util.javafx.groupablelistview;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
+import com.sun.istack.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,7 +70,9 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
                   .map(ValueEntity::getValue)
                   .collect(Collectors.toList()));
             } else {
-              selectedItems.add(((ValueEntity<T>) item).getValue());
+              if (!selectedItems.contains(((ValueEntity<T>) item).getValue())) {
+                selectedItems.add(((ValueEntity<T>) item).getValue());
+              }
             }
           }
         }
@@ -145,8 +148,13 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     items.addAll(minIndex + 1, groupItems);
   }
 
-  public void ungroupItems(List<GroupEntity> groupNames) {
-    groupNames.forEach(this::ungroupItems);
+  public void ungroupItems(List<GroupEntity> groups) {
+    if (groups.equals(selectedGroups)) {
+      // Create list copy to avoid concurrent modification of selected groups
+      groups = List.copyOf(groups);
+    }
+
+    groups.forEach(this::ungroupItems);
   }
 
   public void ungroupItems(GroupEntity group) {
@@ -192,6 +200,15 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     return true;
   }
 
+  public boolean onlyGroupedItemsSelected() {
+    for (GroupableListViewEntity selectedItem : getSelectionModel().getSelectedItems()) {
+      if (!(selectedItem instanceof ValueEntity && ((ValueEntity<?>) selectedItem).isGrouped())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public boolean onlyItemsSelected() {
     return selectedGroups.isEmpty() && !selectedItems.isEmpty();
   }
@@ -214,10 +231,28 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     groups.get(group).add(index, item);
   }
 
-  public void removeFromGroup(GroupEntity group, ValueEntity<T> item) {
-    if (group == null) {
+  public void removeFromGroup(List<T> values) {
+    values.forEach(value -> removeFromGroup(0, getValueEntity(value)));
+  }
+
+  /**
+   * Removes item from it's group and places it to the given index of the list view.
+   *
+   * @param index new index of the item
+   * @param item item to remove from it's group
+   */
+  public void removeFromGroup(int index, ValueEntity<T> item) {
+    removeFromGroup(item);
+    items.remove(item);
+    items.add(index, item);
+  }
+
+  public void removeFromGroup(ValueEntity<T> item) {
+    if (item == null || !item.isGrouped()) {
       return;
     }
+
+    GroupEntity group = item.getGroup();
 
     item.setGroup(null);
     groups.get(group).remove(item);
@@ -245,6 +280,13 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     Integer groupIndex = getGroupIndex(group);
     return IntStream.rangeClosed(groupIndex + 1, groupIndex + getGroupSize(group))
         .boxed().collect(Collectors.toList());
+  }
+
+  public Integer getGroupSize(GroupEntity group) {
+    if (group == null || !groups.containsKey(group)) {
+      return null;
+    }
+    return groups.get(group).size();
   }
 
   public void sortSelectedItems() {
@@ -364,11 +406,21 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     setItems(items);
   }
 
-  public Integer getGroupSize(GroupEntity group) {
-    if (group == null || !groups.containsKey(group)) {
-      return null;
+  /**
+   * Returns {@link ValueEntity} of the list view, containing given value.
+   *
+   * @param value value
+   * @return {@link ValueEntity} containing given value or null,
+   * if such {@link ValueEntity} doesn't exist
+   */
+  @Nullable
+  private ValueEntity<T> getValueEntity(T value) {
+    for (GroupableListViewEntity item : items) {
+      if (item instanceof ValueEntity && ((ValueEntity<?>) item).getValue().equals(value)) {
+        return (ValueEntity<T>) item;
+      }
     }
-    return groups.get(group).size();
+    return null;
   }
 
   /**
