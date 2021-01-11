@@ -18,6 +18,19 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,20 +38,12 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
 import uk.ac.ebi.jmzml.model.mzml.CVParam;
@@ -58,19 +63,7 @@ import uk.ac.ebi.jmzml.xml.io.MzMLUnmarshaller;
  */
 public class MzMLReadTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private static final Pattern SCAN_PATTERN = Pattern.compile("scan=([0-9]+)");
-
-  private File file;
-  private MZmineProject project;
-  private RawDataFile newMZmineFile;
-  private int totalScans = 0, parsedScans;
-
-  private int lastScanNumber = 0;
-
-  private Map<String, Integer> scanIdTable = new Hashtable<String, Integer>();
-
   /*
    * This stack stores at most 20 consecutive scans. This window serves to find possible fragments
    * (current scan) that belongs to any of the stored scans in the stack. The reason of the size
@@ -79,12 +72,26 @@ public class MzMLReadTask extends AbstractTask {
    * scans.
    */
   private static final int PARENT_STACK_SIZE = 20;
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private File file;
+  private MZmineProject project;
+  private RawDataFile newMZmineFile;
+  private IMSRawDataFile newImsFile;
+  private int totalScans = 0, parsedScans;
+  private int lastScanNumber = 0;
+  private Map<String, Integer> scanIdTable = new Hashtable<String, Integer>();
   private LinkedList<io.github.mzmine.datamodel.Scan> parentStack = new LinkedList<>();
+
+  private SimpleFrame buildingFrame;
+  private Map<Integer, Double> buildingMobilities;
 
   public MzMLReadTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
+    if (newMZmineFile instanceof IMSRawDataFile) {
+      newImsFile = (IMSRawDataFile) newMZmineFile;
+    }
   }
 
   /**
@@ -110,17 +117,19 @@ public class MzMLReadTask extends AbstractTask {
 
       totalScans = unmarshaller.getObjectCountForXpath("/run/spectrumList/spectrum");
 
-      fillScanIdTable(
-          unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class),
-          totalScans);
+//      fillScanIdTable(
+//          unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class),
+//          totalScans);
 
       MzMLObjectIterator<Spectrum> spectrumIterator =
           unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class);
 
+      int mobilityScanNumberCounter = 1;
       while (spectrumIterator.hasNext()) {
 
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         Spectrum spectrum = spectrumIterator.next();
 
@@ -131,36 +140,50 @@ public class MzMLReadTask extends AbstractTask {
         }
 
         String scanId = spectrum.getId();
-        Integer scanNumber = scanIdTable.get(scanId);
-        if (scanNumber == null)
+//        Integer scanNumber = scanIdTable.get(scanId);
+        Integer scanNumber = getScanNumber(scanId).orElse(null);
+        if (scanNumber == null) {
           throw new IllegalStateException("Cannot determine scan number: " + scanId);
+        }
 
         // Extract scan data
         int msLevel = extractMSLevel(spectrum);
         float retentionTime = (float) extractRetentionTime(spectrum);
         PolarityType polarity = extractPolarity(spectrum);
-        int parentScan = extractParentScanNumber(spectrum);
+//        int parentScan = extractParentScanNumber(spectrum);
         double precursorMz = extractPrecursorMz(spectrum);
         int precursorCharge = extractPrecursorCharge(spectrum);
         String scanDefinition = extractScanDefinition(spectrum);
         double mzValues[] = extractMzValues(spectrum);
         double intensityValues[] = extractIntensityValues(spectrum);
-        double mobility = extractMobility(spectrum);
+        Mobility mobility = extractMobility(spectrum);
 
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
-        io.github.mzmine.datamodel.Scan scan;
+        io.github.mzmine.datamodel.Scan scan = null;
 
-        // if(Double.compare(mobility, -1.0d) == 0) {
-        scan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, precursorMz,
-            precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanDefinition,
-            null);
-        /*
-         * } else { scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-         * precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null, mobility,
-         * MobilityType.DRIFT_TUBE); }
-         */
+        if (mobility == null) {
+          scan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, precursorMz,
+              precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanDefinition,
+              null);
+        } else if (mobility != null && newImsFile != null) {
+          if (buildingFrame == null
+              || Float.compare(retentionTime, buildingFrame.getRetentionTime()) != 0) {
+            mobilityScanNumberCounter = 1;
+            buildingMobilities = new HashMap<>();
+            scan = buildingFrame; // for ims, we put the frame into the stack
+            // after all moblity scans have been loaded
+            buildingFrame = new SimpleFrame(newImsFile, scanNumber, msLevel, retentionTime,
+                precursorMz, precursorCharge, mzValues, intensityValues, spectrumType, polarity,
+                scanDefinition, null, mobility.mobilityType(), 0, buildingMobilities, null);
+          }
+          buildingFrame.addMobilityScan(
+              new SimpleMobilityScan(newImsFile, mobilityScanNumberCounter, buildingFrame,
+                  mzValues, intensityValues));
+          buildingMobilities.put(mobilityScanNumberCounter, mobility.mobility());
+          mobilityScanNumberCounter++;
+        }
 
         /*
          * for (io.github.mzmine.datamodel.Scan s : parentStack) { if (s.getScanNumber() ==
@@ -171,12 +194,13 @@ public class MzMLReadTask extends AbstractTask {
          * Verify the size of parentStack. The actual size of the window to cover possible
          * candidates is defined by limitSize.
          */
-        if (parentStack.size() > PARENT_STACK_SIZE) {
+        if (parentStack.size() > PARENT_STACK_SIZE && scan != null) {
           io.github.mzmine.datamodel.Scan firstScan = parentStack.removeLast();
           newMZmineFile.addScan(firstScan);
         }
-
-        parentStack.addFirst(scan);
+        if (scan != null) {
+          parentStack.addFirst(scan);
+        }
 
         parsedScans++;
 
@@ -216,7 +240,7 @@ public class MzMLReadTask extends AbstractTask {
 
   /**
    * Retrieves scan numbers from scan IDs and stores them in scanIdTable.
-   *
+   * <p>
    * If retrieved scan numbers are not unique, we replace them with new scan numbers.
    *
    * @param iterator iterator from MzMLUnmarshaller
@@ -233,15 +257,18 @@ public class MzMLReadTask extends AbstractTask {
     Set<Integer> scanNumberSet = new HashSet<>(scanIdTable.values());
 
     if (scanNumberSet.size() != totalScans)
-      // Scan Numbers are not unique! We replace them with numbers 1, 2,
-      // 3, ...
+    // Scan Numbers are not unique! We replace them with numbers 1, 2,
+    // 3, ...
+    {
       scanIdTable = alternativeScanIdTable;
+    }
   }
 
   private void saveScanNumberToTable(String scanId) {
 
-    if (scanIdTable.containsKey(scanId))
+    if (scanIdTable.containsKey(scanId)) {
       return;
+    }
 
     final Matcher matcher = SCAN_PATTERN.matcher(scanId);
     boolean scanNumberFound = matcher.find();
@@ -263,13 +290,15 @@ public class MzMLReadTask extends AbstractTask {
   private int extractMSLevel(Spectrum spectrum) {
     // Browse the spectrum parameters
     List<CVParam> cvParams = spectrum.getCvParam();
-    if (cvParams == null)
+    if (cvParams == null) {
       return 1;
+    }
     for (CVParam param : cvParams) {
       String accession = param.getAccession();
       String value = param.getValue();
-      if ((accession == null) || (value == null))
+      if ((accession == null) || (value == null)) {
         continue;
+      }
 
       // MS level MS:1000511
       if (accession.equals("MS:1000511")) {
@@ -283,23 +312,27 @@ public class MzMLReadTask extends AbstractTask {
   private double extractRetentionTime(Spectrum spectrum) {
 
     ScanList scanListElement = spectrum.getScanList();
-    if (scanListElement == null)
+    if (scanListElement == null) {
       return 0;
+    }
     List<Scan> scanElements = scanListElement.getScan();
-    if (scanElements == null)
+    if (scanElements == null) {
       return 0;
+    }
 
     for (Scan scan : scanElements) {
       List<CVParam> cvParams = scan.getCvParam();
-      if (cvParams == null)
+      if (cvParams == null) {
         continue;
+      }
 
       for (CVParam param : cvParams) {
         String accession = param.getAccession();
         String unitAccession = param.getUnitAccession();
         String value = param.getValue();
-        if ((accession == null) || (value == null))
+        if ((accession == null) || (value == null)) {
           continue;
+        }
 
         // Retention time (actually "Scan start time") MS:1000016
         if (accession.equals("MS:1000016")) {
@@ -324,8 +357,9 @@ public class MzMLReadTask extends AbstractTask {
   private double[] extractIntensityValues(Spectrum spectrum) {
     BinaryDataArrayList dataList = spectrum.getBinaryDataArrayList();
 
-    if ((dataList == null) || (dataList.getCount().equals(0)))
+    if ((dataList == null) || (dataList.getCount().equals(0))) {
       return new double[0];
+    }
 
     BinaryDataArray intensityArray = dataList.getBinaryDataArray().get(1);
     Number intensityValues[] = intensityArray.getBinaryDataAsNumberArray();
@@ -341,8 +375,9 @@ public class MzMLReadTask extends AbstractTask {
   private double[] extractMzValues(Spectrum spectrum) {
     BinaryDataArrayList dataList = spectrum.getBinaryDataArrayList();
 
-    if ((dataList == null) || (dataList.getCount().equals(0)))
+    if ((dataList == null) || (dataList.getCount().equals(0))) {
       return new double[0];
+    }
 
     BinaryDataArray mzArray = dataList.getBinaryDataArray().get(0);
     Number mzValues[] = mzArray.getBinaryDataAsNumberArray();
@@ -357,8 +392,9 @@ public class MzMLReadTask extends AbstractTask {
 
   private int extractParentScanNumber(Spectrum spectrum) {
     PrecursorList precursorListElement = spectrum.getPrecursorList();
-    if ((precursorListElement == null) || (precursorListElement.getCount().equals(0)))
+    if ((precursorListElement == null) || (precursorListElement.getCount().equals(0))) {
       return -1;
+    }
 
     List<Precursor> precursorList = precursorListElement.getPrecursor();
     for (Precursor parent : precursorList) {
@@ -368,8 +404,9 @@ public class MzMLReadTask extends AbstractTask {
         return -1;
       }
       Integer parentScan = scanIdTable.get(precursorScanId);
-      if (parentScan == null)
+      if (parentScan == null) {
         return -1;
+      }
 
       return parentScan;
     }
@@ -379,26 +416,30 @@ public class MzMLReadTask extends AbstractTask {
   private double extractPrecursorMz(Spectrum spectrum) {
 
     PrecursorList precursorListElement = spectrum.getPrecursorList();
-    if ((precursorListElement == null) || (precursorListElement.getCount().equals(0)))
+    if ((precursorListElement == null) || (precursorListElement.getCount().equals(0))) {
       return 0;
+    }
 
     List<Precursor> precursorList = precursorListElement.getPrecursor();
     for (Precursor parent : precursorList) {
 
       SelectedIonList selectedIonListElement = parent.getSelectedIonList();
-      if ((selectedIonListElement == null) || (selectedIonListElement.getCount().equals(0)))
+      if ((selectedIonListElement == null) || (selectedIonListElement.getCount().equals(0))) {
         return 0;
+      }
       List<ParamGroup> selectedIonParams = selectedIonListElement.getSelectedIon();
-      if (selectedIonParams == null)
+      if (selectedIonParams == null) {
         continue;
+      }
 
       for (ParamGroup pg : selectedIonParams) {
         List<CVParam> pgCvParams = pg.getCvParam();
         for (CVParam param : pgCvParams) {
           String accession = param.getAccession();
           String value = param.getValue();
-          if ((accession == null) || (value == null))
+          if ((accession == null) || (value == null)) {
             continue;
+          }
           // MS:1000040 is used in mzML 1.0,
           // MS:1000744 is used in mzML 1.1.0
           if (accession.equals("MS:1000040") || accession.equals("MS:1000744")) {
@@ -414,26 +455,30 @@ public class MzMLReadTask extends AbstractTask {
 
   private int extractPrecursorCharge(Spectrum spectrum) {
     PrecursorList precursorListElement = spectrum.getPrecursorList();
-    if ((precursorListElement == null) || (precursorListElement.getCount().equals(0)))
+    if ((precursorListElement == null) || (precursorListElement.getCount().equals(0))) {
       return 0;
+    }
 
     List<Precursor> precursorList = precursorListElement.getPrecursor();
     for (Precursor parent : precursorList) {
 
       SelectedIonList selectedIonListElement = parent.getSelectedIonList();
-      if ((selectedIonListElement == null) || (selectedIonListElement.getCount().equals(0)))
+      if ((selectedIonListElement == null) || (selectedIonListElement.getCount().equals(0))) {
         return 0;
+      }
       List<ParamGroup> selectedIonParams = selectedIonListElement.getSelectedIon();
-      if (selectedIonParams == null)
+      if (selectedIonParams == null) {
         continue;
+      }
 
       for (ParamGroup pg : selectedIonParams) {
         List<CVParam> pgCvParams = pg.getCvParam();
         for (CVParam param : pgCvParams) {
           String accession = param.getAccession();
           String value = param.getValue();
-          if ((accession == null) || (value == null))
+          if ((accession == null) || (value == null)) {
             continue;
+          }
           if (accession.equals("MS:1000041")) {
             int precursorCharge = Integer.parseInt(value);
             return precursorCharge;
@@ -452,12 +497,15 @@ public class MzMLReadTask extends AbstractTask {
       for (CVParam param : cvParams) {
         String accession = param.getAccession();
 
-        if (accession == null)
+        if (accession == null) {
           continue;
-        if (accession.equals("MS:1000130"))
+        }
+        if (accession.equals("MS:1000130")) {
           return PolarityType.POSITIVE;
-        if (accession.equals("MS:1000129"))
+        }
+        if (accession.equals("MS:1000129")) {
           return PolarityType.NEGATIVE;
+        }
       }
     }
     ScanList scanListElement = spectrum.getScanList();
@@ -466,16 +514,20 @@ public class MzMLReadTask extends AbstractTask {
       if (scanElements != null) {
         for (Scan scan : scanElements) {
           cvParams = scan.getCvParam();
-          if (cvParams == null)
+          if (cvParams == null) {
             continue;
+          }
           for (CVParam param : cvParams) {
             String accession = param.getAccession();
-            if (accession == null)
+            if (accession == null) {
               continue;
-            if (accession.equals("MS:1000130"))
+            }
+            if (accession.equals("MS:1000130")) {
               return PolarityType.POSITIVE;
-            if (accession.equals("MS:1000129"))
+            }
+            if (accession.equals("MS:1000129")) {
               return PolarityType.NEGATIVE;
+            }
           }
 
         }
@@ -491,10 +543,12 @@ public class MzMLReadTask extends AbstractTask {
       for (CVParam param : cvParams) {
         String accession = param.getAccession();
 
-        if (accession == null)
+        if (accession == null) {
           continue;
-        if (accession.equals("MS:1000512"))
+        }
+        if (accession.equals("MS:1000512")) {
           return param.getValue();
+        }
       }
     }
     ScanList scanListElement = spectrum.getScanList();
@@ -503,14 +557,17 @@ public class MzMLReadTask extends AbstractTask {
       if (scanElements != null) {
         for (Scan scan : scanElements) {
           cvParams = scan.getCvParam();
-          if (cvParams == null)
+          if (cvParams == null) {
             continue;
+          }
           for (CVParam param : cvParams) {
             String accession = param.getAccession();
-            if (accession == null)
+            if (accession == null) {
               continue;
-            if (accession.equals("MS:1000512"))
+            }
+            if (accession.equals("MS:1000512")) {
               return param.getValue();
+            }
           }
 
         }
@@ -530,11 +587,13 @@ public class MzMLReadTask extends AbstractTask {
     if (cvParams != null) {
       for (CVParam param : cvParams) {
         String accession = param.getAccession();
-        if (accession == null)
+        if (accession == null) {
           continue;
+        }
 
-        if (accession.equals("MS:1000804"))
+        if (accession.equals("MS:1000804")) {
           return false;
+        }
       }
     }
 
@@ -543,43 +602,77 @@ public class MzMLReadTask extends AbstractTask {
   }
 
   /**
-   * <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value=
-   * "0.217002108693" unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
+   * Agilent/Waters(?) <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time"
+   * value= "0.217002108693" unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
+   * <p>
+   * Bruker (converted by Proteowizard MSConvert): <cvParam cvRef="MS" accession="MS:1002815"
+   * name="inverse reduced ion mobility" value="1.582079103978" unitCvRef="MS"
+   * unitAccession="MS:1002814" unitName="volt-second per square centimeter"/>
    *
    * @param spectrum
    * @return
    */
-  private double extractMobility(Spectrum spectrum) {
+  private Mobility extractMobility(Spectrum spectrum) {
     ScanList scanListElement = spectrum.getScanList();
-    if (scanListElement == null)
-      return 0;
+    if (scanListElement == null) {
+      return null;
+    }
     List<Scan> scanElements = scanListElement.getScan();
-    if (scanElements == null)
-      return 0;
+    if (scanElements == null) {
+      return null;
+    }
     for (Scan scan : scanElements) {
       List<CVParam> cvParams = scan.getCvParam();
-      if (cvParams == null)
+      if (cvParams == null) {
         continue;
+      }
       for (CVParam param : cvParams) {
         String accession = param.getAccession();
         String unitAccession = param.getUnitAccession();
         String value = param.getValue();
-        if ((accession == null) || (value == null))
+        if ((accession == null) || (value == null)) {
           continue;
+        }
         // Retention time (actually "Scan start time") MS:1000016
         if (accession.equals("MS:1002476")) {
           // UO:0000028 unitAcession for mobility in Waters files converted to mzML
           double mobility;
+          MobilityType mobilityType;
           if ((unitAccession == null) || (unitAccession.equals("UO:0000028"))) {
             mobility = Double.parseDouble(value);
+            mobilityType = MobilityType.DRIFT_TUBE;
           } else {
             mobility = Double.parseDouble(value) / 60d;
+            mobilityType = MobilityType.NONE;
           }
-          return mobility;
+          return new Mobility(mobility, mobilityType);
+        } else if (accession.equals("MS:1002815") && unitAccession.equals("MS:1002814")) {
+          return new Mobility(Double.parseDouble(value), MobilityType.TIMS);
         }
       }
     }
-    return -1.0d;
+    logger.info("Could not extract mobility");
+    return null;
   }
 
+  public Optional<Integer> getScanNumber(String spectrumId) {
+    final Pattern pattern = Pattern.compile("scan=([0-9]+)");
+    final Matcher matcher = pattern.matcher(spectrumId);
+    boolean scanNumberFound = matcher.find();
+
+    // Some vendors include scan=XX in the ID, some don't, such as
+    // mzML converted from WIFF files. See the definition of nativeID in
+    // http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo
+    // So, get the value of the index tag if the scanNumber is not present in the ID
+    if (scanNumberFound) {
+      Integer scanNumber = Integer.parseInt(matcher.group(1));
+      return Optional.ofNullable(scanNumber);
+    }
+
+    return Optional.ofNullable(null);
+  }
+
+  private record Mobility(double mobility, MobilityType mobilityType) {
+
+  }
 }
