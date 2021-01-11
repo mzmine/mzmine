@@ -58,7 +58,7 @@ public class ConversionUtils {
 
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MsScan scan) {
     return new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        scan.getRetentionTime(), 0, 0, scan.getMzValues(),
+        (float) (scan.getRetentionTime() / 60), 0, 0, scan.getMzValues(),
         convertFloatsToDoubles(scan.getIntensityValues()),
         ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
         ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
