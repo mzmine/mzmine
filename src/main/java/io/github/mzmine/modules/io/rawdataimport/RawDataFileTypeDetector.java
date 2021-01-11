@@ -152,10 +152,10 @@ public class RawDataFileTypeDetector {
               content = new String(buffer2);
               content.replaceAll("[^\\x00-\\x7F]", "");
               containsScan = content.contains("/scan");
-              containsAccession = content.contains("1002476");
+              containsAccession = (content.contains("1002476") || content.contains("1002815"));
             }
             reader2.close();
-            if (content.contains("1002476")) { // accession for mobility
+            if (content.contains("1002476") || content.contains("1002815")) { // accession for mobility
               return RawDataFileType.MZML_IMS;
             } else {
               return RawDataFileType.MZML;

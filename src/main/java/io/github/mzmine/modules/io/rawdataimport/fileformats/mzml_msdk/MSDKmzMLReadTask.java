@@ -159,7 +159,8 @@ public class MSDKmzMLReadTask extends AbstractTask {
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
       if (buildingFrame == null
-          || Float.compare((scan.getRetentionTime() / 60f), buildingFrame.getRetentionTime()) != 0) {
+          || Float.compare((scan.getRetentionTime() / 60f), buildingFrame.getRetentionTime())
+          != 0) {
         mobilityScanNumberCounter = 0;
 
         if (buildingFrame != null) { // finish the frame
@@ -168,11 +169,12 @@ public class MSDKmzMLReadTask extends AbstractTask {
           finishedFrame
               .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
           newImsFile.addScan(buildingFrame);
+          mobilityScans.clear();
+          mobilities.clear();
         }
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
-            (float) (scan.getRetentionTime() / 60f),
-            0, 0, new double[] {}, new double[] {},
+            (float) (scan.getRetentionTime() / 60f), 0, 0, new double[]{}, new double[]{},
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()),
             scan.getScanDefinition(), scan.getScanningRange(), mzMLScan.getMobility().mt(), 0,
