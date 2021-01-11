@@ -65,9 +65,9 @@ public class ConversionUtils {
         scan.getScanningRange());
   }
 
-  public static MobilityScan msdkScanToMobilityScan(IMSRawDataFile rawDataFile, MsScan scan,
+  public static MobilityScan msdkScanToMobilityScan(IMSRawDataFile rawDataFile, int scannum, MsScan scan,
       Frame frame) {
-    return new SimpleMobilityScan(rawDataFile, scan.getScanNumber(), frame, scan.getMzValues(),
+    return new SimpleMobilityScan(rawDataFile, scannum, frame, scan.getMzValues(),
         convertFloatsToDoubles(scan.getIntensityValues()));
   }
 

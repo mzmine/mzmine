@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
@@ -33,7 +34,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -69,7 +71,7 @@ public class MSDKmzMLReadTask extends AbstractTask {
   public MSDKmzMLReadTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     this.file = fileToOpen;
     this.project = project;
-    if(newMZmineFile instanceof IMSRawDataFile) {
+    if (newMZmineFile instanceof IMSRawDataFile) {
       this.newImsFile = (IMSRawDataFile) newMZmineFile;
     } else {
       this.newMZmineFile = newMZmineFile;
@@ -102,8 +104,8 @@ public class MSDKmzMLReadTask extends AbstractTask {
         if (newImsFile == null) {
           buildLCMSFile(file);
         }
-        if(newImsFile != null) {
-          ((IMSRawDataFileImpl)newImsFile).addSegment(Range.closed(1, file.getScans().size()));
+        if (newImsFile != null) {
+          ((IMSRawDataFileImpl) newImsFile).addSegment(Range.closed(1, file.getScans().size()));
           buildIonMobilityFile(file);
         }
       }
@@ -123,7 +125,7 @@ public class MSDKmzMLReadTask extends AbstractTask {
 
     logger.info("Finished parsing " + file + ", parsed " + parsedScans + " scans");
     setStatus(TaskStatus.FINISHED);
-    if(newImsFile != null) {
+    if (newImsFile != null) {
       project.addFile(newImsFile);
     } else {
       project.addFile(newMZmineFile);
@@ -147,28 +149,40 @@ public class MSDKmzMLReadTask extends AbstractTask {
   }
 
   public void buildIonMobilityFile(io.github.msdk.datamodel.RawDataFile file) throws IOException {
-    int mobilityScanNumberCounter = 1;
+    int mobilityScanNumberCounter = 0;
     int frameNumber = 1;
     SimpleFrame buildingFrame = null;
+
+    List<MobilityScan> mobilityScans = new ArrayList<>();
+    List<Double> mobilities = new ArrayList<>();
+
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
       if (buildingFrame == null
           || Float.compare(scan.getRetentionTime(), buildingFrame.getRetentionTime()) != 0) {
-        mobilityScanNumberCounter = 1;
-        buildingMobilities = new HashMap<>();
+        mobilityScanNumberCounter = 0;
+
+        if (buildingFrame != null) { // finish the frame
+          final SimpleFrame finishedFrame = buildingFrame;
+          mobilityScans.forEach(s -> finishedFrame.addMobilityScan(s));
+          finishedFrame
+              .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
+          newImsFile.addScan(buildingFrame);
+        }
+
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
             scan.getRetentionTime(),
-            0, 0, scan.getMzValues(),
-            ConversionUtils.convertFloatsToDoubles(scan.getIntensityValues()),
+            0, 0, new double[] {}, new double[] {},
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()),
             scan.getScanDefinition(), scan.getScanningRange(), mzMLScan.getMobility().mt(), 0,
             buildingMobilities, null);
-        newImsFile.addScan(buildingFrame);
         frameNumber++;
       }
-      buildingFrame.addMobilityScan(ConversionUtils.msdkScanToMobilityScan(newImsFile, scan, buildingFrame));
-      buildingMobilities.put(mobilityScanNumberCounter, mzMLScan.getMobility().mobility());
+
+      mobilityScans.add(ConversionUtils
+          .msdkScanToMobilityScan(newImsFile, mobilityScanNumberCounter, scan, buildingFrame));
+      mobilities.add(mzMLScan.getMobility().mobility());
       mobilityScanNumberCounter++;
       parsedScans++;
     }
