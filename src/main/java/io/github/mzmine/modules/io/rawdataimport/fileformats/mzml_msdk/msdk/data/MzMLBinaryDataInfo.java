@@ -13,9 +13,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data;
 
-import io.github.msdk.io.mzml.data.MzMLArrayType;
-import io.github.msdk.io.mzml.data.MzMLBitLength;
-import io.github.msdk.io.mzml.data.MzMLCompressionType;
 import javax.annotation.Nonnull;
 
 /**
@@ -27,7 +24,8 @@ public class MzMLBinaryDataInfo {
   private final int encodedLength;
   private final int arrayLength;
   private long position;
-  private @Nonnull MzMLCompressionType compressionType;
+  private @Nonnull
+  MzMLCompressionType compressionType;
   private MzMLBitLength bitLength;
   private MzMLArrayType arrayType;
 

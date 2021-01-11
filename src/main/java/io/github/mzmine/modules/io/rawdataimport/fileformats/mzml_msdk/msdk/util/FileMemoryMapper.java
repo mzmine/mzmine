@@ -13,7 +13,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.util;
 
-import io.github.msdk.io.mzml.util.ByteBufferInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -22,7 +21,7 @@ import java.nio.channels.FileChannel;
 /**
  * <p>
  * Used to load a {@link File File} onto a
- * {@link ByteBufferInputStream ByteBufferInputStream}
+ * {@link io.github.msdk.io.mzml.util.ByteBufferInputStream ByteBufferInputStream}
  * </p>
  */
 public abstract class FileMemoryMapper {
@@ -30,7 +29,7 @@ public abstract class FileMemoryMapper {
   /**
    * <p>
    * Used to load a {@link File File} onto a
-   * {@link ByteBufferInputStream ByteBufferInputStream} *
+   * {@link io.github.msdk.io.mzml.util.ByteBufferInputStream ByteBufferInputStream} *
    * </p>
    *
    * @param file the {@link File File} to be mapped
@@ -41,7 +40,8 @@ public abstract class FileMemoryMapper {
 
     RandomAccessFile aFile = new RandomAccessFile(file, "r");
     FileChannel inChannel = aFile.getChannel();
-    ByteBufferInputStream is = ByteBufferInputStream.map(inChannel, FileChannel.MapMode.READ_ONLY);
+    ByteBufferInputStream is = ByteBufferInputStream
+        .map(inChannel, FileChannel.MapMode.READ_ONLY);
     aFile.close();
 
     return is;

@@ -23,24 +23,11 @@ import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.msdk.datamodel.PolarityType;
 import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
-import io.github.msdk.io.mzml.MzMLFileImportMethod;
-import io.github.msdk.io.mzml.data.MzMLBinaryDataInfo;
-import io.github.msdk.io.mzml.data.MzMLCV;
-import io.github.msdk.io.mzml.data.MzMLCVGroup;
-import io.github.msdk.io.mzml.data.MzMLCVParam;
-import io.github.msdk.io.mzml.data.MzMLIsolationWindow;
-import io.github.msdk.io.mzml.data.MzMLPeaksDecoder;
-import io.github.msdk.io.mzml.data.MzMLPrecursorElement;
-import io.github.msdk.io.mzml.data.MzMLPrecursorList;
-import io.github.msdk.io.mzml.data.MzMLProductList;
-import io.github.msdk.io.mzml.data.MzMLRawDataFile;
-import io.github.msdk.io.mzml.data.MzMLScan;
-import io.github.msdk.io.mzml.data.MzMLScanList;
-import io.github.msdk.io.mzml.data.MzMLScanWindow;
-import io.github.msdk.io.mzml.data.MzMLScanWindowList;
 import io.github.msdk.spectra.centroidprofiledetection.SpectrumTypeDetectionAlgorithm;
 import io.github.msdk.util.MsSpectrumUtil;
 import io.github.msdk.util.tolerances.MzTolerance;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.MzMLFileImportMethod;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,6 +36,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,18 +46,23 @@ import org.slf4j.LoggerFactory;
  * </p>
  */
 public class MzMLMsScan implements MsScan {
-  private final @Nonnull MzMLRawDataFile dataFile;
-  private @Nonnull InputStream inputStream;
-  private final @Nonnull String id;
-  private final @Nonnull Integer scanNumber;
-  private final int numOfDataPoints;
 
-  private MzMLCVGroup cvParams;
-  private MzMLPrecursorList precursorList;
-  private MzMLProductList productList;
-  private MzMLScanList scanList;
+  private final @Nonnull
+  MzMLRawDataFile dataFile;
+  private final MzMLCVGroup cvParams;
+  private final MzMLPrecursorList precursorList;
+  private final MzMLProductList productList;
+  private final MzMLScanList scanList;
   private MzMLBinaryDataInfo mzBinaryDataInfo;
   private MzMLBinaryDataInfo intensityBinaryDataInfo;
+  private @Nonnull
+  InputStream inputStream;
+  private final @Nonnull
+  String id;
+  private final @Nonnull
+  Integer scanNumber;
+  private final int numOfDataPoints;
+
   private MsSpectrumType spectrumType;
   private Float tic;
   private Float retentionTime;
@@ -82,14 +75,14 @@ public class MzMLMsScan implements MsScan {
 
   /**
    * <p>
-   * Constructor for {@link io.github.msdk.io.mzml.data.MzMLMsScan MzMLMsScan}
+   * Constructor for {@link MzMLMsScan MzMLMsScan}
    * </p>
    *
-   * @param dataFile a {@link MzMLRawDataFile MzMLRawDataFile} object
-   *        the parser stores the data in
-   * @param is an {@link InputStream InputStream} of the MzML format data
-   * @param id the Scan ID
-   * @param scanNumber the Scan Number
+   * @param dataFile        a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the
+   *                        data in
+   * @param is              an {@link InputStream InputStream} of the MzML format data
+   * @param id              the Scan ID
+   * @param scanNumber      the Scan Number
    * @param numOfDataPoints the number of data points in the m/z and intensity arrays
    */
   public MzMLMsScan(MzMLRawDataFile dataFile, InputStream is, String id, Integer scanNumber,
@@ -236,13 +229,17 @@ public class MzMLMsScan implements MsScan {
     return id;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Integer getNumberOfDataPoints() {
     return getMzBinaryDataInfo().getArrayLength();
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public double[] getMzValues(double array[]) {
     if (mzValues == null) {
@@ -253,7 +250,8 @@ public class MzMLMsScan implements MsScan {
       }
 
       try {
-        mzValues = MzMLPeaksDecoder.decodeToDouble(inputStream, getMzBinaryDataInfo(), array);
+        mzValues = MzMLPeaksDecoder
+            .decodeToDouble(inputStream, getMzBinaryDataInfo(), array);
       } catch (Exception e) {
         throw (new MSDKRuntimeException(e));
       }
@@ -268,7 +266,9 @@ public class MzMLMsScan implements MsScan {
     return array;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public float[] getIntensityValues(float array[]) {
     if (intensityValues == null) {
@@ -295,18 +295,23 @@ public class MzMLMsScan implements MsScan {
     return array;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public MsSpectrumType getSpectrumType() {
     if (spectrumType == null) {
-      if (getCVValue(MzMLCV.cvCentroidSpectrum).isPresent())
+      if (getCVValue(MzMLCV.cvCentroidSpectrum).isPresent()) {
         spectrumType = MsSpectrumType.CENTROIDED;
+      }
 
-      if (getCVValue(MzMLCV.cvProfileSpectrum).isPresent())
+      if (getCVValue(MzMLCV.cvProfileSpectrum).isPresent()) {
         spectrumType = MsSpectrumType.PROFILE;
+      }
 
-      if (spectrumType != null)
+      if (spectrumType != null) {
         return spectrumType;
+      }
 
       spectrumType = SpectrumTypeDetectionAlgorithm.detectSpectrumType(getMzValues(),
           getIntensityValues(), numOfDataPoints);
@@ -314,21 +319,26 @@ public class MzMLMsScan implements MsScan {
     return spectrumType;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Float getTIC() {
-    if (tic == null)
+    if (tic == null) {
       try {
         tic = MsSpectrumUtil.getTIC(getIntensityValues(), getNumberOfDataPoints());
       } catch (NumberFormatException e) {
         throw (new MSDKRuntimeException(
             "Could not convert TIC value in mzML file to a float\n" + e));
       }
+    }
 
     return tic;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Range<Double> getMzRange() {
     if (mzRange == null) {
@@ -348,19 +358,25 @@ public class MzMLMsScan implements MsScan {
     return mzRange;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public RawDataFile getRawDataFile() {
     return dataFile;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Integer getScanNumber() {
     return scanNumber;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getScanDefinition() {
     Optional<String> scanDefinition = Optional.empty();
@@ -370,29 +386,38 @@ public class MzMLMsScan implements MsScan {
     return scanDefinition.orElse("");
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getMsFunction() {
     return null;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Integer getMsLevel() {
     Integer msLevel = 1;
     Optional<String> value = getCVValue(MzMLCV.cvMSLevel);
-    if (value.isPresent())
+    if (value.isPresent()) {
       msLevel = Integer.parseInt(value.get());
+    }
     return msLevel;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public MsScanType getMsScanType() {
     return MsScanType.UNKNOWN;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Range<Double> getScanningRange() {
     if (mzScanWindowRange == null) {
@@ -420,39 +445,50 @@ public class MzMLMsScan implements MsScan {
     return mzScanWindowRange;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public PolarityType getPolarity() {
-    if (getCVValue(MzMLCV.cvPolarityPositive).isPresent())
+    if (getCVValue(MzMLCV.cvPolarityPositive).isPresent()) {
       return PolarityType.POSITIVE;
+    }
 
-    if (getCVValue(MzMLCV.cvPolarityNegative).isPresent())
+    if (getCVValue(MzMLCV.cvPolarityNegative).isPresent()) {
       return PolarityType.NEGATIVE;
+    }
 
     // Check in the scans of the spectrum for Polarity
     if (!getScanList().getScans().isEmpty()) {
       MzMLScan scan = getScanList().getScans().get(0);
-      if (getCVValue(scan, MzMLCV.cvPolarityPositive).isPresent())
+      if (getCVValue(scan, MzMLCV.cvPolarityPositive).isPresent()) {
         return PolarityType.POSITIVE;
+      }
 
-      if (getCVValue(scan, MzMLCV.cvPolarityNegative).isPresent())
+      if (getCVValue(scan, MzMLCV.cvPolarityNegative).isPresent()) {
         return PolarityType.NEGATIVE;
+      }
     }
 
     return PolarityType.UNKNOWN;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ActivationInfo getSourceInducedFragmentation() {
     return null;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<IsolationInfo> getIsolations() {
-    if (precursorList.getPrecursorElements().size() == 0)
+    if (precursorList.getPrecursorElements().size() == 0) {
       return Collections.emptyList();
+    }
 
     List<IsolationInfo> isolations = new ArrayList<>();
 
@@ -464,13 +500,15 @@ public class MzMLMsScan implements MsScan {
       Optional<String> isolationWindowLower = Optional.empty();
       Optional<String> isolationWindowUpper = Optional.empty();
 
-      if (!precursor.getSelectedIonList().isPresent())
+      if (!precursor.getSelectedIonList().isPresent()) {
         return Collections.emptyList();
+      }
 
       for (MzMLCVGroup cvGroup : precursor.getSelectedIonList().get().getSelectedIonList()) {
         precursorMz = getCVValue(cvGroup, MzMLCV.cvPrecursorMz);
-        if (!precursorMz.isPresent())
+        if (!precursorMz.isPresent()) {
           precursorMz = getCVValue(cvGroup, MzMLCV.cvMz);
+        }
         precursorCharge = getCVValue(cvGroup, MzMLCV.cvChargeState);
       }
 
@@ -481,14 +519,16 @@ public class MzMLMsScan implements MsScan {
         isolationWindowUpper = getCVValue(isolationWindow, MzMLCV.cvIsolationWindowUpperOffset);
       }
 
-
       if (precursorMz.isPresent()) {
-        if (!isolationWindowTarget.isPresent())
+        if (!isolationWindowTarget.isPresent()) {
           isolationWindowTarget = precursorMz;
-        if (!isolationWindowLower.isPresent())
+        }
+        if (!isolationWindowLower.isPresent()) {
           isolationWindowLower = Optional.ofNullable("0.5");
-        if (!isolationWindowUpper.isPresent())
+        }
+        if (!isolationWindowUpper.isPresent()) {
           isolationWindowUpper = Optional.ofNullable("0.5");
+        }
         Range<Double> isolationRange = Range.closed(
             Double.valueOf(isolationWindowTarget.get())
                 - Double.valueOf(isolationWindowLower.get()),
@@ -509,11 +549,41 @@ public class MzMLMsScan implements MsScan {
     return Collections.unmodifiableList(isolations);
   }
 
-  /** {@inheritDoc} */
+  @Nullable
+  public MzMLMobility getMobility() {
+    if (!getScanList().getScans().isEmpty()) {
+      for (MzMLCVParam param : getScanList().getScans().get(0).getCVParamsList()) {
+        String accession = param.getAccession();
+        if(param.getValue().isEmpty()) {
+          continue;
+        }
+        switch (accession) {
+          case MzMLCV.cvMobilityDriftTime -> {
+            if (param.getUnitAccession().get().equals(MzMLCV.cvMobilityDriftTimeUnit)) {
+              return new MzMLMobility(Double.parseDouble(param.getValue().get()),
+                  MobilityType.DRIFT_TUBE);
+            }
+          }
+          case MzMLCV.cvMobilityInverseReduced -> {
+            if (param.getUnitAccession().get().equals(MzMLCV.cvMobilityInverseReducedUnit)) {
+              return new MzMLMobility(Double.parseDouble(param.getValue().get()),
+                  MobilityType.TIMS);
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Float getRetentionTime() {
-    if (retentionTime != null)
+    if (retentionTime != null) {
       return retentionTime;
+    }
 
     if (!getScanList().getScans().isEmpty()) {
       for (MzMLCVParam param : getScanList().getScans().get(0).getCVParamsList()) {
@@ -561,7 +631,9 @@ public class MzMLMsScan implements MsScan {
     return retentionTime;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public MzTolerance getMzTolerance() {
     return null;
@@ -569,14 +641,13 @@ public class MzMLMsScan implements MsScan {
 
   /**
    * <p>
-   * Search for the CV Parameter value for the given accession in the
-   * {@link MsScan MsScan}'s CV Parameters
+   * Search for the CV Parameter value for the given accession in the {@link MsScan MsScan}'s CV
+   * Parameters
    * </p>
    *
    * @param accession the CV Parameter accession as {@link String String}
-   * @return an {@link Optional Optional<String>} containing the CV Parameter value for
-   *         the given accession, if present <br>
-   *         An empty {@link Optional Optional<String>} otherwise
+   * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
+   * accession, if present <br> An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(String accession) {
     return getCVValue(cvParams, accession);
@@ -584,23 +655,23 @@ public class MzMLMsScan implements MsScan {
 
   /**
    * <p>
-   * Search for the CV Parameter value for the given accession in the given
-   * {@link MzMLCVGroup MzMLCVGroup}
+   * Search for the CV Parameter value for the given accession in the given {@link MzMLCVGroup
+   * MzMLCVGroup}
    * </p>
    *
-   * @param group the {@link MzMLCVGroup MzMLCVGroup} to search through
+   * @param group     the {@link MzMLCVGroup MzMLCVGroup} to search through
    * @param accession the CV Parameter accession as {@link String String}
-   * @return an {@link Optional Optional<String>} containing the CV Parameter value for
-   *         the given accession, if present <br>
-   *         An empty {@link Optional Optional<String>} otherwise
+   * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
+   * accession, if present <br> An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(MzMLCVGroup group, String accession) {
     Optional<String> value;
     for (MzMLCVParam cvParam : group.getCVParamsList()) {
       if (cvParam.getAccession().equals(accession)) {
         value = cvParam.getValue();
-        if (!value.isPresent())
+        if (!value.isPresent()) {
           value = Optional.ofNullable("");
+        }
         return value;
       }
     }

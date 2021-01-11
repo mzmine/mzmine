@@ -25,13 +25,13 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -125,6 +125,7 @@ public class MzMLReadTask extends AbstractTask {
           unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class);
 
       int mobilityScanNumberCounter = 1;
+      Date start = new Date();
       while (spectrumIterator.hasNext()) {
 
         if (isCanceled()) {
@@ -163,11 +164,11 @@ public class MzMLReadTask extends AbstractTask {
 
         io.github.mzmine.datamodel.Scan scan = null;
 
-        if (mobility == null) {
+//        if (mobility == null) {
           scan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, precursorMz,
               precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanDefinition,
               null);
-        } else if (mobility != null && newImsFile != null) {
+        /*} else if (mobility != null && newImsFile != null) {
           if (buildingFrame == null
               || Float.compare(retentionTime, buildingFrame.getRetentionTime()) != 0) {
             mobilityScanNumberCounter = 1;
@@ -183,7 +184,7 @@ public class MzMLReadTask extends AbstractTask {
                   mzValues, intensityValues));
           buildingMobilities.put(mobilityScanNumberCounter, mobility.mobility());
           mobilityScanNumberCounter++;
-        }
+        }*/
 
         /*
          * for (io.github.mzmine.datamodel.Scan s : parentStack) { if (s.getScanNumber() ==
@@ -203,6 +204,10 @@ public class MzMLReadTask extends AbstractTask {
         }
 
         parsedScans++;
+        if(getFinishedPercentage() >= 5) {
+          Date fivePerc = new Date();
+          logger.info("Extracted " + parsedScans + " in " + ((fivePerc.getTime() - start.getTime())/1000) + " s");
+        }
 
       }
 
@@ -578,7 +583,7 @@ public class MzMLReadTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Opening file " + file;
+    return "Opening file " + file + " " + " " + parsedScans + "/" + totalScans;
   }
 
   boolean isMsSpectrum(Spectrum spectrum) {
@@ -666,6 +671,14 @@ public class MzMLReadTask extends AbstractTask {
     // So, get the value of the index tag if the scanNumber is not present in the ID
     if (scanNumberFound) {
       Integer scanNumber = Integer.parseInt(matcher.group(1));
+      return Optional.ofNullable(scanNumber);
+    }
+
+    final Pattern pattern2 = Pattern.compile("scanId=([0-9]+)");
+    final Matcher matcher2 = pattern2.matcher(spectrumId);
+    scanNumberFound = matcher2.find();
+    if (scanNumberFound) {
+      Integer scanNumber = Integer.parseInt(matcher2.group(1));
       return Optional.ofNullable(scanNumber);
     }
 

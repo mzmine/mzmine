@@ -13,7 +13,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data;
 
-import io.github.msdk.io.mzml.data.MzMLCVParam;
 import java.util.ArrayList;
 
 /**
@@ -44,11 +43,11 @@ public class MzMLCVGroup {
   /**
    * <p>
    * Adds a {@link MzMLCVParam CV Parameter} to the
-   * {@link io.github.msdk.io.mzml.data.MzMLCVGroup MzMLCVGroup}
+   * {@link MzMLCVGroup MzMLCVGroup}
    * </p>
    *
    * @param cvParam the {@link MzMLCVParam CV Parameter} to be added to
-   *        the {@link io.github.msdk.io.mzml.data.MzMLCVGroup MzMLCVGroup}
+   *        the {@link MzMLCVGroup MzMLCVGroup}
    */
   public void addCVParam(MzMLCVParam cvParam) {
     cvParams.add(cvParam);

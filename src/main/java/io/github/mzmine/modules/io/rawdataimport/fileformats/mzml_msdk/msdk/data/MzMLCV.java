@@ -147,4 +147,14 @@ public class MzMLCV {
   /** Constant <code>cvUnitsIntensity1="MS:1000131"</code> */
   public static final String cvUnitsIntensity1 = "MS:1000131";
 
+  // Ion mobility
+  // <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="4.090608"
+  // unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
+  public static final String cvMobilityDriftTime = "MS:1002476";
+  public static final String cvMobilityDriftTimeUnit = "UO:0000028";
+  // <cvParam cvRef="MS" accession="MS:1002815" name="inverse reduced ion mobility"
+  // value="1.572618927197" unitCvRef="MS" unitAccession="MS:1002814" unitName="volt-second per
+  // square centimeter"/>
+  public static final String cvMobilityInverseReduced = "MS:1002815";
+  public static final String cvMobilityInverseReducedUnit = "MS:1002814";
 }

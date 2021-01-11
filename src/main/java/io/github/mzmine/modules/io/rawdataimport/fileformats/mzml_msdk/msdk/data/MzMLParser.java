@@ -15,25 +15,8 @@ package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.dat
 
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.io.mzml.MzMLFileImportMethod;
-import io.github.msdk.io.mzml.data.MzMLBinaryDataInfo;
-import io.github.msdk.io.mzml.data.MzMLCV;
-import io.github.msdk.io.mzml.data.MzMLCVParam;
-import io.github.msdk.io.mzml.data.MzMLCompressionType;
-import io.github.msdk.io.mzml.data.MzMLIsolationWindow;
-import io.github.msdk.io.mzml.data.MzMLMsScan;
-import io.github.msdk.io.mzml.data.MzMLPrecursorActivation;
-import io.github.msdk.io.mzml.data.MzMLPrecursorElement;
-import io.github.msdk.io.mzml.data.MzMLPrecursorSelectedIon;
-import io.github.msdk.io.mzml.data.MzMLPrecursorSelectedIonList;
-import io.github.msdk.io.mzml.data.MzMLProduct;
-import io.github.msdk.io.mzml.data.MzMLRawDataFile;
-import io.github.msdk.io.mzml.data.MzMLReferenceableParamGroup;
-import io.github.msdk.io.mzml.data.MzMLScan;
-import io.github.msdk.io.mzml.data.MzMLScanWindow;
-import io.github.msdk.io.mzml.data.MzMLScanWindowList;
-import io.github.msdk.io.mzml.data.MzMLTags;
-import io.github.msdk.io.mzml.util.TagTracker;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.MzMLFileImportMethod;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.util.TagTracker;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +43,7 @@ public class MzMLParser {
 
   /**
    * <p>
-   * Constructor for {@link io.github.msdk.io.mzml.data.MzMLParser MzMLParser}
+   * Constructor for {@link MzMLParser MzMLParser}
    * </p>
    *
    * @param importer an instance of an initialized
@@ -275,12 +258,13 @@ public class MzMLParser {
         Integer chromatogramNumber = getRequiredAttribute(xmlStreamReader, "index").toInt() + 1;
         vars.defaultArrayLength =
             getRequiredAttribute(xmlStreamReader, "defaultArrayLength").toInt();
-        vars.chromatogram = new io.github.msdk.io.mzml.data.MzMLChromatogram(newRawFile, is, chromatogramId, chromatogramNumber,
+        vars.chromatogram = new MzMLChromatogram(newRawFile, is, chromatogramId, chromatogramNumber,
             vars.defaultArrayLength);
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
         if (!tracker.inside(MzMLTags.TAG_BINARY_DATA_ARRAY)
-            && !tracker.inside(MzMLTags.TAG_PRECURSOR) && !tracker.inside(MzMLTags.TAG_PRODUCT)
+            && !tracker.inside(MzMLTags.TAG_PRECURSOR) && !tracker.inside(
+            MzMLTags.TAG_PRODUCT)
             && vars.chromatogram != null) {
           MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
           vars.chromatogram.getCVParams().addCVParam(cvParam);;
@@ -517,7 +501,7 @@ public class MzMLParser {
    * <p>
    * Call this method when the <code>xmlStreamReader</code> enters <code>&lt;cvParam&gt;</code> tag
    * </p>
-   *
+   * 
    * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl
    * XMLStreamReaderImpl
    * @return {@link MzMLCVParam MzMLCVParam} object notation of the
@@ -643,7 +627,7 @@ public class MzMLParser {
   }
 
   /**
-   *
+   * 
    * Static class for holding temporary instances of variables initialized while parsing
    */
   private static class Vars {
@@ -651,7 +635,7 @@ public class MzMLParser {
     int defaultArrayLength;
     boolean skipBinaryDataArray;
     MzMLMsScan spectrum;
-    io.github.msdk.io.mzml.data.MzMLChromatogram chromatogram;
+    MzMLChromatogram chromatogram;
     MzMLBinaryDataInfo binaryDataInfo;
     MzMLReferenceableParamGroup referenceableParamGroup;
     MzMLPrecursorElement precursor;

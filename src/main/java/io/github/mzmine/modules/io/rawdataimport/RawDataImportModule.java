@@ -29,12 +29,12 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.AgilentCsvReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.CsvReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.MzDataReadTask;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.MzMLReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.MzXMLReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.NativeFileReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.NetCDFReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.ZipReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImzMLReadTask;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.MSDKmzMLReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.TDFReaderTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -100,7 +100,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
         newTask = new MzDataReadTask(project, fileName, newMZmineFile);
         break;
       case MZML:
-        newTask = new MzMLReadTask(project, fileName, newMZmineFile);
+        newTask = new MSDKmzMLReadTask(project, fileName, newMZmineFile);
         break;
       case IMZML:
         newTask = new ImzMLReadTask(project, fileName, (ImagingRawDataFile) newMZmineFile);
@@ -126,7 +126,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
         newTask = new TDFReaderTask(project, fileName, (IMSRawDataFile) newMZmineFile);
         break;
       case MZML_IMS:
-        newTask = new MzMLReadTask(project, fileName, newMZmineFile);
+        newTask = new MSDKmzMLReadTask(project, fileName, newMZmineFile);
         break;
       default:
         break;

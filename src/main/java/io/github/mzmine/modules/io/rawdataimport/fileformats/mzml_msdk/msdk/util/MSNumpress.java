@@ -50,8 +50,7 @@ public class MSNumpress {
     switch (cvAccession) {
       case ACC_NUMPRESS_LINEAR: {
         double[] buffer = new double[dataSize * 2];
-        int nbrOfDoubles = io.github.msdk.io.mzml.util.MSNumpress
-            .decodeLinear(data, dataSize, buffer);
+        int nbrOfDoubles = MSNumpress.decodeLinear(data, dataSize, buffer);
         double[] result = new double[nbrOfDoubles];
         System.arraycopy(buffer, 0, result, 0, nbrOfDoubles);
         return result;
@@ -59,13 +58,13 @@ public class MSNumpress {
       }
       case ACC_NUMPRESS_SLOF: {
         double[] result = new double[dataSize / 2];
-        io.github.msdk.io.mzml.util.MSNumpress.decodeSlof(data, dataSize, result);
+        MSNumpress.decodeSlof(data, dataSize, result);
         return result;
 
       }
       case ACC_NUMPRESS_PIC: {
         double[] buffer = new double[dataSize * 2];
-        int nbrOfDoubles = io.github.msdk.io.mzml.util.MSNumpress.decodePic(data, dataSize, buffer);
+        int nbrOfDoubles = MSNumpress.decodePic(data, dataSize, buffer);
         double[] result = new double[nbrOfDoubles];
         System.arraycopy(buffer, 0, result, 0, nbrOfDoubles);
         return result;
@@ -420,7 +419,7 @@ public class MSNumpress {
     long[] ints = new long[3];
     long extrapol;
     long y;
-    io.github.msdk.io.mzml.util.IntDecoder dec = new io.github.msdk.io.mzml.util.IntDecoder(data, 16);
+    IntDecoder dec = new IntDecoder(data, 16);
 
     if (dataSize < 8)
       return -1;
@@ -524,7 +523,7 @@ public class MSNumpress {
     long[] ints = new long[3];
     long extrapol;
     long y;
-    io.github.msdk.io.mzml.util.IntDecoder dec = new io.github.msdk.io.mzml.util.IntDecoder(data, 16);
+    IntDecoder dec = new IntDecoder(data, 16);
 
     if (dataSize < 8)
       return -1;
@@ -712,7 +711,7 @@ public class MSNumpress {
   public static int decodePic(byte[] data, int dataSize, double[] result) {
     int ri = 0;
     long count;
-    io.github.msdk.io.mzml.util.IntDecoder dec = new io.github.msdk.io.mzml.util.IntDecoder(data, 0);
+    IntDecoder dec = new IntDecoder(data, 0);
 
     while (dec.pos < dataSize) {
       if (dec.pos == (dataSize - 1) && dec.half)
@@ -784,7 +783,7 @@ public class MSNumpress {
   public static int decodePic(byte[] data, int dataSize, float[] result) {
     int ri = 0;
     long count;
-    io.github.msdk.io.mzml.util.IntDecoder dec = new io.github.msdk.io.mzml.util.IntDecoder(data, 0);
+    IntDecoder dec = new IntDecoder(data, 0);
 
     while (dec.pos < dataSize) {
       if (dec.pos == (dataSize - 1) && dec.half)
@@ -1119,3 +1118,4 @@ class IntDecoder {
     return res;
   }
 }
+

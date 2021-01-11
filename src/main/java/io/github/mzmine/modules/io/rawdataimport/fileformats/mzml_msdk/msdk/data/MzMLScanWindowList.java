@@ -13,7 +13,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data;
 
-import io.github.msdk.io.mzml.data.MzMLScanWindow;
 import java.util.ArrayList;
 
 /**

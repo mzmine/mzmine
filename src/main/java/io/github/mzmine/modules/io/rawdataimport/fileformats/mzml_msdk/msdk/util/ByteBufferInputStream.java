@@ -119,7 +119,7 @@ public class ByteBufferInputStream extends InputStream {
    * @return a new byte-buffer input stream over the contents of <code>fileChannel</code>.
    * @throws IOException if any.
    */
-  public static io.github.msdk.io.mzml.util.ByteBufferInputStream map(final FileChannel fileChannel, final MapMode mapMode)
+  public static ByteBufferInputStream map(final FileChannel fileChannel, final MapMode mapMode)
       throws IOException {
     final long size = fileChannel.size();
     final int chunks = (int) ((size + (CHUNK_SIZE - 1)) / CHUNK_SIZE);
@@ -130,7 +130,7 @@ public class ByteBufferInputStream extends InputStream {
     byteBuffer[0].position(0);
     final boolean[] readyToUse = new boolean[chunks];
     Arrays.fill(readyToUse, true);
-    return new io.github.msdk.io.mzml.util.ByteBufferInputStream(byteBuffer, size, 0, readyToUse);
+    return new ByteBufferInputStream(byteBuffer, size, 0, readyToUse);
   }
 
   private ByteBuffer byteBuffer(final int n) {
@@ -258,10 +258,10 @@ public class ByteBufferInputStream extends InputStream {
   /**
    * <p>copy.</p>
    *
-   * @return a {@link io.github.msdk.io.mzml.util.ByteBufferInputStream} object.
+   * @return a {@link ByteBufferInputStream} object.
    */
-  public io.github.msdk.io.mzml.util.ByteBufferInputStream copy() {
-    return new io.github.msdk.io.mzml.util.ByteBufferInputStream(byteBuffer.clone(), size, curr, new boolean[n]);
+  public ByteBufferInputStream copy() {
+    return new ByteBufferInputStream(byteBuffer.clone(), size, curr, new boolean[n]);
   }
 
   /**

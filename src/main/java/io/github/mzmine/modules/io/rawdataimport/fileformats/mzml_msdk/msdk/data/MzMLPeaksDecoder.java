@@ -15,9 +15,8 @@ package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.dat
 
 import com.google.common.io.LittleEndianDataInputStream;
 import io.github.msdk.MSDKException;
-import io.github.msdk.io.mzml.data.MzMLBinaryDataInfo;
-import io.github.msdk.io.mzml.util.ByteBufferInputStream;
-import io.github.msdk.io.mzml.util.MSNumpress;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.util.ByteBufferInputStream;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.util.MSNumpress;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -144,7 +143,7 @@ public class MzMLPeaksDecoder {
     try {
       switch (precision) {
         case (32): {
-
+          
           for (int i = 0; i < numPoints; i++) {
             data[i] = dis.readFloat();
           }

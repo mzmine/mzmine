@@ -13,9 +13,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data;
 
-import io.github.msdk.io.mzml.data.MzMLIsolationWindow;
-import io.github.msdk.io.mzml.data.MzMLPrecursorActivation;
-import io.github.msdk.io.mzml.data.MzMLPrecursorSelectedIonList;
 import java.util.Optional;
 
 /**

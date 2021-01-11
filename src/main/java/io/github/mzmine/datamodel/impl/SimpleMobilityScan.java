@@ -104,7 +104,6 @@ public class SimpleMobilityScan extends AbstractStorableSpectrum implements Mobi
 
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
-
     // Remove all mass lists with same name, if there are any
     MassList currentMassLists[] = massLists.toArray(new MassList[0]);
     for (MassList ml : currentMassLists) {

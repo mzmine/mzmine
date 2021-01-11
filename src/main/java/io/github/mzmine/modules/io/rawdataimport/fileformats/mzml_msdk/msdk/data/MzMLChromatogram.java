@@ -25,16 +25,7 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SeparationType;
 import io.github.msdk.datamodel.SimpleActivationInfo;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
-import io.github.msdk.io.mzml.MzMLFileImportMethod;
-import io.github.msdk.io.mzml.data.MzMLBinaryDataInfo;
-import io.github.msdk.io.mzml.data.MzMLCV;
-import io.github.msdk.io.mzml.data.MzMLCVGroup;
-import io.github.msdk.io.mzml.data.MzMLCVParam;
-import io.github.msdk.io.mzml.data.MzMLIsolationWindow;
-import io.github.msdk.io.mzml.data.MzMLPeaksDecoder;
-import io.github.msdk.io.mzml.data.MzMLPrecursorElement;
-import io.github.msdk.io.mzml.data.MzMLProduct;
-import io.github.msdk.io.mzml.data.MzMLRawDataFile;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.MzMLFileImportMethod;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,7 +40,8 @@ import org.slf4j.LoggerFactory;
 
 class MzMLChromatogram implements Chromatogram {
 
-  private final @Nonnull MzMLRawDataFile dataFile;
+  private final @Nonnull
+  MzMLRawDataFile dataFile;
   private @Nonnull InputStream inputStream;
   private final @Nonnull String chromatogramId;
   private final @Nonnull Integer chromatogramNumber;
@@ -71,9 +63,9 @@ class MzMLChromatogram implements Chromatogram {
 
   /**
    * <p>
-   * Constructor for {@link io.github.msdk.io.mzml.data.MzMLChromatogram MzMLChromatogram}
+   * Constructor for {@link MzMLChromatogram MzMLChromatogram}
    * </p>
-   *
+   * 
    * @param dataFile a {@link MzMLRawDataFile MzMLRawDataFile} object
    *        the parser stores the data in
    * @param is an {@link InputStream InputStream} of the MzML format data

@@ -13,8 +13,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data;
 
-import io.github.msdk.io.mzml.data.MzMLCVGroup;
-import io.github.msdk.io.mzml.data.MzMLScan;
 import java.util.ArrayList;
 
 /**
@@ -43,7 +41,7 @@ public class MzMLScanList extends MzMLCVGroup {
   /**
    * <p>addScan.</p>
    *
-   * @param scan a {@link MzMLScan} object.
+   * @param scan a {@link io.github.msdk.io.mzml.data.MzMLScan} object.
    */
   public void addScan(MzMLScan scan) {
     scans.add(scan);

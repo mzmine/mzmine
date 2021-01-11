@@ -140,5 +140,4 @@ public class MzMLRawDataFile implements RawDataFile {
   @Override
   public void dispose() {}
 
-
 }

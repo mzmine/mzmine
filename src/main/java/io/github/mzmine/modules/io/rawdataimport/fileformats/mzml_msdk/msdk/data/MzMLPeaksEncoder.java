@@ -14,8 +14,7 @@
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data;
 
 import io.github.msdk.MSDKException;
-import io.github.msdk.io.mzml.data.MzMLCompressionType;
-import io.github.msdk.io.mzml.util.MSNumpress;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.util.MSNumpress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -40,7 +39,7 @@ public abstract class MzMLPeaksEncoder {
    * @return an array of byte.
    * @throws MSDKException if any.
    */
-  public static byte[] encodeDouble(double[] data, MzMLCompressionType compression)
+  public static byte[] encodeDouble(double[] data,MzMLCompressionType compression)
       throws MSDKException {
 
     byte[] encodedData = null;
