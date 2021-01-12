@@ -760,7 +760,7 @@ public class MainWindowController {
     if (rawDataList.onlyGroupsSelected()) {
       rawDataList.ungroupItems(rawDataList.getSelectedGroups());
     } else if (rawDataList.onlyGroupedItemsSelected()) {
-      rawDataList.removeFromGroup(rawDataList.getSelectedItems());
+      rawDataList.removeValuesFromGroup(rawDataList.getSelectedItems());
     } else if (rawDataList.onlyItemsSelected()) {
       rawDataList.groupSelectedItems();
     }

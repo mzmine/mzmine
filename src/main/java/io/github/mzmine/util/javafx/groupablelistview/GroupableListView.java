@@ -240,8 +240,18 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     addToGroup(group, index, List.of(item));
   }
 
-  public void removeFromGroup(List<T> values) {
-    values.forEach(value -> removeFromGroup(0, getValueEntity(value)));
+  public void removeValuesFromGroup(List<T> values) {
+    if (values.equals(selectedItems)) {
+      // Create list copy to avoid concurrent modification of selected items
+      values = List.copyOf(values);
+    }
+
+    // Remove values' entities from the list and place them to the end
+    values.forEach(value -> removeFromGroup(items.size() - 1, getValueEntity(value)));
+
+    // Select ungrouped items
+    getSelectionModel().clearSelection();
+    getSelectionModel().selectRange(items.size() - values.size(), items.size());
   }
 
   /**
@@ -257,7 +267,13 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
     removeFromGroup(item);
     items.remove(item);
+    // Compensate removed item
+    if (items.indexOf(item) > index) {
+      index++;
+    }
     items.add(index, item);
+
+    getSelectionModel().clearAndSelect(index);
   }
 
   public void removeFromGroup(ValueEntity<T> item) {
