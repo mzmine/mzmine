@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
+import io.github.mzmine.datamodel.MobilityScan;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -81,9 +82,9 @@ public interface IIonMobilityTrace {
   void setFrameNumbers(Set<Integer> frameNumbers);
 
   @Nonnull
-  Set<Integer> getScanNumbers();
+  Set<MobilityScan> getScanNumbers();
 
-  void setScanNumbers(Set<Integer> scanNumbers);
+  void setScanNumbers(Set<MobilityScan> scanNumbers);
 
   MobilityType getMobilityType();
 

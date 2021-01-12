@@ -23,6 +23,9 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
@@ -30,15 +33,15 @@ import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -46,21 +49,34 @@ import javax.annotation.Nonnull;
 @SuppressWarnings("null")
 public class DataTypeUtils {
 
-  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(
-          new RTType(), new RTRangeType(), // needed next to each other for switching between RTType and RTRangeType
-          new MZType(), new MZRangeType(), //
-          new HeightType(), new AreaType(), new ManualAnnotationType(),
-          new FeatureShapeType(), new FeaturesType());
+  public static final @Nonnull
+  List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(
+      new RTType(), new RTRangeType(),
+      // needed next to each other for switching between RTType and RTRangeType
+      new MZType(), new MZRangeType(), //
+      new HeightType(), new AreaType(), new ManualAnnotationType(),
+      new FeatureShapeType(), new FeaturesType());
 
-  public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
-      List.of(new ScanNumbersType(), new RawFileType(), new DetectionType(), new MZType(),
+  public static final @Nonnull
+  List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
+      List.of(new RawFileType(), new DetectionType(), new MZType(),
           new MZRangeType(), new RTType(), new RTRangeType(), new HeightType(), new AreaType(),
-          new BestScanNumberType(), new DataPointsType(), new IntensityRangeType(), new FwhmType(),
-              new TailingFactorType(), new AsymmetryFactorType());
+          new BestScanNumberType(), new FeatureDataType(), new IntensityRangeType(), new FwhmType(),
+          new TailingFactorType(), new AsymmetryFactorType());
+
+  @Nonnull
+  public static final List<DataType<?>> DEFAULT_ION_MOBILITY_COLUMNS_ROW = List
+      .of(new MobilityType(), new MobilityRangeType(),
+          new FeatureShapeMobilogramType());
+
+  @Nonnull
+  public static final List<DataType<?>> DEFAULT_ION_MOBILITY_COLUMNS_FEATURE = List
+      .of(new MobilityType(), new MobilityRangeType(),
+          new FeatureShapeIonMobilityRetentionTimeHeatMapType());
 
   /**
    * Adds the default chromatogram DataType columns to a feature list
-   * 
+   *
    * @param flist
    */
   public static void addDefaultChromatographicTypeColumns(ModularFeatureList flist) {
@@ -69,4 +85,8 @@ public class DataTypeUtils {
     // row bindigns are now added in the table
   }
 
+  public static void addDefaultIonMobilityTypeColumns(ModularFeatureList flist) {
+    flist.addRowType(DEFAULT_ION_MOBILITY_COLUMNS_ROW);
+    flist.addFeatureType(DEFAULT_ION_MOBILITY_COLUMNS_FEATURE);
+  }
 }

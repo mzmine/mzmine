@@ -18,17 +18,19 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
-import java.util.List;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import java.util.List;
+import java.util.stream.Collectors;
 import javafx.beans.property.Property;
 
 /**
@@ -47,10 +49,11 @@ public class QualityParameters {
 
       List<Scan> scanNumbers = peak.getScanNumbers();
       RawDataFile dataFile = peak.getRawDataFile();
-      List<DataPoint> dps = peak.getDataPointsProperty();
+      IonTimeSeries<? extends Scan> dps = peak.getFeatureData();
       if (height.getValue() == null || rt.getValue() == null || dataFile == null
-          || scanNumbers.isEmpty() || dps.isEmpty())
+          || scanNumbers.isEmpty() || dps.getNumberOfValues() == 0) {
         return;
+      }
 
       Range<Float> rtRange = peak.get(RTRangeType.class).getValue();
       if (rtRange == null)
@@ -59,9 +62,11 @@ public class QualityParameters {
       height = peak.getHeightProperty();
       rt = peak.getRTProperty();
 
+      // todo: make methods work with MsTimeSeries
+      List<DataPoint> dataPointsList = dps.stream().collect(Collectors.toList());
       // FWHM
       double rtValues[] =
-          peakFindRTs(height.getValue() / 2.0, rt.getValue(), scanNumbers, dps, dataFile, rtRange);
+          peakFindRTs(height.getValue() / 2.0, rt.getValue(), scanNumbers, dataPointsList, dataFile, rtRange);
       Double fwhm = rtValues[1] - rtValues[0];
       if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
         fwhm = null;
@@ -71,7 +76,7 @@ public class QualityParameters {
 
       // Tailing Factor - TF
       double rtValues2[] =
-          peakFindRTs(height.getValue() * 0.05, rt.getValue(), scanNumbers, dps, dataFile, rtRange);
+          peakFindRTs(height.getValue() * 0.05, rt.getValue(), scanNumbers, dataPointsList, dataFile, rtRange);
       Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt.getValue() - rtValues2[0]));
       if (tf <= 0 || Double.isNaN(tf) || Double.isInfinite(tf)) {
         tf = null;
@@ -81,7 +86,7 @@ public class QualityParameters {
 
       // Asymmetry factor - AF
       double rtValues3[] =
-          peakFindRTs(height.getValue() * 0.1, rt.getValue(), scanNumbers, dps, dataFile, rtRange);
+          peakFindRTs(height.getValue() * 0.1, rt.getValue(), scanNumbers, dataPointsList, dataFile, rtRange);
       Double af = (rtValues3[1] - rt.getValue()) / (rt.getValue() - rtValues3[0]);
       if (af <= 0 || Double.isNaN(af) || Double.isInfinite(af)) {
         af = null;

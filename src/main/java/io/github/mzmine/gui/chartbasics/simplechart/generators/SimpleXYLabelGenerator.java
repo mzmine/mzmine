@@ -62,6 +62,10 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
     }
     ColoredXYDataset coloredXYDataset = (ColoredXYDataset) dataSet;
 
+    if (coloredXYDataset.getLabel(item) == null) { // if there is no label, we skip right away
+      return null;
+    }
+
     // X and Y values of current data point
     double originalX = coloredXYDataset.getXValue(0, item);
     double originalY = coloredXYDataset.getYValue(0, item);

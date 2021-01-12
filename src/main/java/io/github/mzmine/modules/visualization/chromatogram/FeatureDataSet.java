@@ -18,16 +18,15 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
-import javafx.collections.ObservableList;
 import org.jfree.data.xy.AbstractXYDataset;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
 
 /**
  * Integrated peak area data set. Separate data set is created for every peak shown in this
@@ -57,7 +56,7 @@ public class FeatureDataSet extends AbstractXYDataset {
     feature = p;
     name = id;
 
-    final ObservableList<Scan> scanNumbers = feature.getScanNumbers();
+    final List<Scan> scanNumbers = feature.getScanNumbers();
     final RawDataFile dataFile = feature.getRawDataFile();
     final Scan peakScanNumber = feature.getRepresentativeScan();
 

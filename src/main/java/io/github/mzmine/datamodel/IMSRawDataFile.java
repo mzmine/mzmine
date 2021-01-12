@@ -17,12 +17,11 @@
 
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.Range;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
 
 /**
  * Represents a raw data file, that offers the additional mobility dimension within the scans.
@@ -117,7 +116,7 @@ public interface IMSRawDataFile extends RawDataFile {
   @Nonnull
   MobilityType getMobilityType();
 
-  double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber);
+//  double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber);
 
-  Map<Integer, Double> getMobilitiesForFrame(int frameNumber);
+//  Map<Integer, Double> getMobilitiesForFrame(int frameNumber);
 }

@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public interface MobilityScan extends MassSpectrum {
+public interface MobilityScan extends MassSpectrum, Comparable<MobilityScan> {
 
   static final double DEFAULT_MOBILITY = -1.0d;
 
@@ -74,4 +74,9 @@ public interface MobilityScan extends MassSpectrum {
   Set<MassList> getMassLists();
 
   MassList getMassList(@Nonnull String name);
+
+  @Override
+  default int compareTo(@Nonnull MobilityScan o) {
+    return Integer.compare(this.getMobilityScamNumber(), o.getMobilityScamNumber());
+  }
 }

@@ -17,12 +17,12 @@
 
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.Range;
+import java.nio.DoubleBuffer;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
 
 /**
  * A frame is a collection of mobility resolved spectra at one point in time.
@@ -48,7 +48,7 @@ public interface Frame extends Scan {
    *
    * @return Unsorted set of sub spectrum numbers.
    */
-  Set<Integer> getMobilityScanNumbers();
+//  Set<Integer> getMobilityScanNumbers();
 
   @Nonnull
   Range<Double> getMobilityRange();
@@ -72,11 +72,13 @@ public interface Frame extends Scan {
    */
   double getMobilityForMobilityScanNumber(int mobilityScanIndex);
 
+  double getMobilityForMobilityScan(MobilityScan scan);
+
   /**
    * @return Mapping of sub scan number <-> mobility
    */
   @Nullable
-  Map<Integer, Double> getMobilities();
+  DoubleBuffer getMobilities();
 
   /**
    * @return Set of ImsMsMsInfos for this frame. Empty set if this is not an MS/MS frame or no

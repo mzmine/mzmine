@@ -18,22 +18,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -58,6 +42,22 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMetaDataTable;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -358,7 +358,7 @@ public class TDFUtils {
 
     final double[] mobilities =
         convertScanNumsToOneOverK0(handle, frameId, createPopulatedArray(numScans));
-    Map<Integer, Double> mobilitiesMap = new HashMap<>();
+    Map<Integer, Double> mobilitiesMap = new LinkedHashMap<>();
 
     for (int i = 0; i < mobilities.length; i++) {
       mobilitiesMap.put(i, mobilities[i]);
@@ -366,11 +366,15 @@ public class TDFUtils {
 
     Range<Double> mzRange = metaDataTable.getMzRange();
 
-    return new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
+    SimpleFrame frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
         0.d, 0, dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
         MobilityType.TIMS, numScans, mobilitiesMap,
         framePrecursorTable.getMsMsInfoForFrame(Math.toIntExact(frameId)));
+
+    frame.setMobilities(mobilitiesMap.values().stream().mapToDouble(Double::doubleValue).toArray());
+
+    return frame;
   }
 
   @Nullable

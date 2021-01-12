@@ -18,10 +18,20 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -34,17 +44,6 @@ import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
-import io.github.mzmine.datamodel.ImagingScan;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
-import io.github.mzmine.project.impl.RawDataFileImpl;
 
 class RawDataFileSaveHandler {
 
@@ -397,7 +396,7 @@ class RawDataFileSaveHandler {
         frame.getMobilityRange().upperEndpoint().toString().toCharArray().length);
     hd.endElement("", "", RawDataElementName.UPPER_MOBILITY_RANGE.getElementName());
 
-    Set<Integer> mobilityScanNumbers = frame.getMobilityScanNumbers();
+    /*Set<Integer> mobilityScanNumbers = frame.getMobilityScanNumbers();
     atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
         String.valueOf(mobilityScanNumbers.size()));
     hd.startElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName(), atts);
@@ -407,7 +406,7 @@ class RawDataFileSaveHandler {
       hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
       hd.endElement("", "", RawDataElementName.MOBILITY_SCANNUM.getElementName());
     }
-    hd.endElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName());
+    hd.endElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName());*/
 
   }
 

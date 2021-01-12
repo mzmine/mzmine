@@ -78,6 +78,10 @@ public class RawDataFileImpl implements RawDataFile {
   protected final ObservableList<Scan> scans;
 
   public RawDataFileImpl(String dataFileName) throws IOException {
+    this(dataFileName, MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
+  }
+
+  public RawDataFileImpl(String dataFileName, Color color) throws IOException {
 
     this.dataFileName = dataFileName;
 
@@ -94,10 +98,11 @@ public class RawDataFileImpl implements RawDataFile {
     dataMaxBasePeakIntensity = new Hashtable<>();
     dataMaxTIC = new Hashtable<>();
 
-    color = new SimpleObjectProperty<>();
-    color.setValue(MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
-
+    this.color = new SimpleObjectProperty<>();
+    this.color.setValue(color);
   }
+
+
 
   @Override
   public @Nonnull MemoryMapStorage getMemoryMapStorage() {

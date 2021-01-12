@@ -25,13 +25,16 @@ import javafx.scene.control.TreeTableColumn;
 
 /**
  * This DataType creates a graphical cell content
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public interface GraphicalColumType<T> {
+
+  public static final int DEFAULT_GRAPHICAL_CELL_HEIGHT = 100;
+  public static final int DEFAULT_GRAPHICAL_CELL_WIDTH = 250;
+
   /**
-   * 
+   *
    * @param cell
    * @param coll
    * @param cellData same as cell.getItem

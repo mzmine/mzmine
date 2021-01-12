@@ -18,149 +18,49 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.ionmobilitytraceplot.RetentionTimeMobilityHeatMapPlot;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.ionmobilitytraceplot.RetentionTimeMobilityXYZDataset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.provider.IonMobilityTimeSeriesXYZProvider;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
+import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.main.MZmineCore;
+import java.awt.Color;
+import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
-import org.jfree.data.xy.XYZDataset;
+import org.jfree.chart.axis.NumberAxis;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private Float dataPointWidth;
-  private Double dataPointHeight;
-  private PaintScale paintScaleParameter;
-
   public FeatureShapeIonMobilityRetentionTimeHeatMapChart(@Nonnull ModularFeature f,
       AtomicDouble progress) {
-    try {
-      Float[] xValues = null;
-      Double[] yValues = null;
-      Double[] zValues = null;
 
-      int fi = 0;
-      double minMobility = Double.MAX_VALUE, maxMobility = 0;
-      double minRt = Double.MAX_VALUE, maxRt = 0;
-      List<? extends DataPoint> dps = f.getDataPoints();
-      List<RetentionTimeMobilityDataPoint> dataPoints = new ArrayList<>();
-      dataPoints.addAll((Collection<? extends RetentionTimeMobilityDataPoint>) dps);
-      calculateDataPointSizeForPlots(dataPoints);
-      // add data points retention time -> intensity
-      List<Float> xValuesSet = new ArrayList<>();
-      List<Double> yValuesSet = new ArrayList<>();
-      List<Double> zValuesSet = new ArrayList<>();
-      for (RetentionTimeMobilityDataPoint dp : dataPoints) {
-        if (paintScaleParameter == null) {
-          paintScaleParameter = dp.getPaintScale();
-        }
-        xValuesSet.add(dp.getRetentionTime());
-        yValuesSet.add(dp.getMobility());
-        zValuesSet.add(dp.getIntensity());
-        if (dp.getMobility() > maxMobility) {
-          maxMobility = dp.getMobility();
-        }
-        if (dp.getMobility() < minMobility) {
-          minMobility = dp.getMobility();
-        }
-        if (dp.getRetentionTime() > maxRt) {
-          maxRt = dp.getRetentionTime();
-        }
-        if (dp.getRetentionTime() < minRt) {
-          minRt = dp.getRetentionTime();
-        }
-        if (progress != null) {
-          progress.addAndGet(1.0 / dataPoints.size());
-        }
-      }
-      xValues = new Float[xValuesSet.size()];
-      xValues = xValuesSet.toArray(xValues);
-      yValues = new Double[yValuesSet.size()];
-      yValues = yValuesSet.toArray(yValues);
-      zValues = new Double[zValuesSet.size()];
-      zValues = zValuesSet.toArray(zValues);
+    SimpleXYZScatterPlot<IonMobilityTimeSeriesXYZProvider> chart = new SimpleXYZScatterPlot<>();
+    ColoredXYZDataset dataset = new FastColoredXYZDataset(new IonMobilityTimeSeriesXYZProvider(f));
+    MobilityType mt = ((IMSRawDataFile) f.getRawDataFile()).getMobilityType();
+    UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
+    chart.setRangeAxisLabel(mt.getAxisLabel());
+    chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
+    chart.setDomainAxisLabel(unitFormat.format("Retention time", "min"));
+    chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
+    chart.setLegendNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
+    chart.getXYPlot().setBackgroundPaint(Color.BLACK);
+    NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
+    axis.setAutoRangeMinimumSize(0.05);
+    axis.setAutoRangeIncludesZero(false);
+    axis.setAutoRangeStickyZero(false);
+    setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
+    getChildren().add(chart);
 
-      if (progress != null) {
-        progress.set((double) fi / dataPoints.size());
-      }
-
-      XYZDataset dataset = new RetentionTimeMobilityXYZDataset(xValues, yValues, zValues, "Test");
-      RetentionTimeMobilityHeatMapPlot retentionTimeMobilityHeatMapPlot =
-          new RetentionTimeMobilityHeatMapPlot(dataset, createPaintScale(zValues), dataPointWidth,
-              dataPointHeight, ((IMSRawDataFile)f.getRawDataFile()).getMobilityType());
-      this.getChildren().add(retentionTimeMobilityHeatMapPlot);
-      setPrefHeight(150);
-    } catch (Exception ex) {
-      logger.log(Level.WARNING, "error in DP", ex);
-    }
+    Platform.runLater(() -> chart.setDataset(dataset));
   }
-
-  private void calculateDataPointSizeForPlots(List<RetentionTimeMobilityDataPoint> dataPoints) {
-    SortedSet<RetentionTimeMobilityDataPoint> dataPointsSortedByRt =
-        new TreeSet<>(new Comparator<RetentionTimeMobilityDataPoint>() {
-          @Override
-          public int compare(RetentionTimeMobilityDataPoint o1, RetentionTimeMobilityDataPoint o2) {
-            if (o1.getRetentionTime() > o2.getRetentionTime()) {
-              return 1;
-            } else {
-              return -1;
-            }
-          }
-        });
-    dataPointsSortedByRt.addAll(dataPoints);
-    List<Float> rtDeltas = new ArrayList<>();
-    RetentionTimeMobilityDataPoint dpA = null;
-    for (RetentionTimeMobilityDataPoint dp : dataPointsSortedByRt) {
-      if (dpA == null) {
-        dpA = dp;
-        dataPointHeight = dp.getMobilityWidth();
-      } else if (!(dpA.getRetentionTime().equals(dp.getRetentionTime()))) {
-        rtDeltas.add(dpA.getRetentionTime() - dp.getRetentionTime());
-        dpA = dp;
-      }
-    }
-    Collections.sort(rtDeltas);
-    Float medianRt = 0.f;
-    if (rtDeltas.size() >= 2) {
-      if (rtDeltas.size() % 2 == 0) {
-        int indexA = rtDeltas.size() / 2;
-        int indexB = rtDeltas.size() / 2 - 1;
-        medianRt = (rtDeltas.get(indexA) + rtDeltas.get(indexB)) / 2;
-      } else {
-        int index = rtDeltas.size() / 2;
-        medianRt = rtDeltas.get(index);
-      }
-    }
-    dataPointWidth = medianRt;
-  }
-
-  private PaintScale createPaintScale(Double[] zValues) {
-    Double[] zValuesCopy = Arrays.copyOf(zValues, zValues.length);
-    Arrays.sort(zValuesCopy);
-    Range<Double> zValueRange = Range.closed(zValuesCopy[0], zValuesCopy[zValues.length - 1]);
-    return new PaintScale(paintScaleParameter.getPaintScaleColorStyle(),
-        paintScaleParameter.getPaintScaleBoundStyle(), zValueRange);
-  }
-
 }
-

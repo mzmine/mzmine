@@ -192,7 +192,7 @@ public class TDFReaderTask extends AbstractTask {
     logger.info("Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans()
         + " scans and " + newMZmineFile.getNumberOfFrames() + " frames.");
     MZmineCore.getProjectManager().getCurrentProject().addFile(newMZmineFile);
-    compareMobilities(newMZmineFile);
+//    compareMobilities(newMZmineFile);
 
     setStatus(TaskStatus.FINISHED);
 
@@ -362,7 +362,7 @@ public class TDFReaderTask extends AbstractTask {
     rawDataFile.addSegment(Range.closed(1, frameTable.getNumberOfFrames()));
   }
 
-  private void compareMobilities(IMSRawDataFile rawDataFile) {
+  /*private void compareMobilities(IMSRawDataFile rawDataFile) {
     for (int i = 1; i < rawDataFile.getNumberOfFrames() - 1; i++) {
       Frame thisFrame = rawDataFile.getFrame(i);
       Frame nextFrame = rawDataFile.getFrame(i + 1);
@@ -381,5 +381,5 @@ public class TDFReaderTask extends AbstractTask {
         }
       }
     }
-  }
+  }*/
 }

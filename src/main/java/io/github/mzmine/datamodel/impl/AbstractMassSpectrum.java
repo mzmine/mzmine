@@ -203,4 +203,3 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
   }
 }
-

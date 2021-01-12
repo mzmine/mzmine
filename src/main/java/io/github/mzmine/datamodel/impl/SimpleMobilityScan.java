@@ -18,6 +18,7 @@
 package io.github.mzmine.datamodel.impl;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -43,14 +44,14 @@ public class SimpleMobilityScan extends AbstractStorableSpectrum implements Mobi
   private final RawDataFile dataFile;
   private final Frame frame;
   private int mobilityScamNumber;
-  private Set<MassList> massLists;
+  private final Set<MassList> massLists;
 
   public SimpleMobilityScan(RawDataFile dataFile, int mobilityScamNumber, Frame frame,
       DataPoint dataPoints[]) {
     super(dataFile.getMemoryMapStorage());
     this.dataFile = dataFile;
     this.frame = frame;
-
+    this.massLists = new HashSet<>();
     this.mobilityScamNumber = mobilityScamNumber;
     setDataPoints(dataPoints);
   }
@@ -60,19 +61,15 @@ public class SimpleMobilityScan extends AbstractStorableSpectrum implements Mobi
     super(dataFile.getMemoryMapStorage());
     this.dataFile = dataFile;
     this.frame = frame;
-
+    this.massLists = new HashSet<>();
     this.mobilityScamNumber = mobilityScamNumber;
     setDataPoints(mzValues, intensityValues);
   }
-
-
 
   @Override
   public MassSpectrumType getSpectrumType() {
     return frame.getSpectrumType();
   }
-
-
 
   @Override
   public double getMobility() {
@@ -107,7 +104,6 @@ public class SimpleMobilityScan extends AbstractStorableSpectrum implements Mobi
 
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
-
     // Remove all mass lists with same name, if there are any
     MassList currentMassLists[] = massLists.toArray(new MassList[0]);
     for (MassList ml : currentMassLists) {
@@ -122,10 +118,8 @@ public class SimpleMobilityScan extends AbstractStorableSpectrum implements Mobi
 
   @Override
   public synchronized void removeMassList(final @Nonnull MassList massList) {
-
     // Remove the mass list
     massLists.remove(massList);
-
   }
 
   @Override
@@ -148,6 +142,5 @@ public class SimpleMobilityScan extends AbstractStorableSpectrum implements Mobi
   public RawDataFile getDataFile() {
     return dataFile;
   }
-
 
 }

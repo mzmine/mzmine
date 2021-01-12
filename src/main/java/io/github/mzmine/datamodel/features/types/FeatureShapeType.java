@@ -23,9 +23,10 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -34,7 +35,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Contains no data - listens to changes in all {@link ModularFeature} in a {@link
- * ModularFeatureListRow} On change of any {@link DataPointsType} - the chart is updated
+ * ModularFeatureListRow} On change of any {@link FeatureDataType} - the chart is updated
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
@@ -68,13 +69,13 @@ public class FeatureShapeType extends LinkedDataType
     // TODO stop task if new task is started
     Task task = new FeaturesGraphicalNodeTask(FeatureShapeChart.class, pane, row, coll.getText());
     // TODO change to TaskPriority.LOW priority
-    // MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
+    MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
 
     return pane;
   }
 
   @Override
   public double getColumnWidth() {
-    return 205;
+    return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 }

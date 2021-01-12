@@ -20,6 +20,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 
 /*
@@ -29,7 +30,7 @@ public class ImageDataPoint implements DataPoint {
 
   private final double mz;
   private final double intensity;
-  private final int scanNumber;
+  private final ImagingScan scanNumber;
   private final double xWorld;
   private final double yWorld;
   private final double zWorld;
@@ -37,7 +38,7 @@ public class ImageDataPoint implements DataPoint {
   private final double dataPointWidth;
   private final PaintScale paintScale;
 
-  public ImageDataPoint(double mz, double intensity, int scanNumber, double xWorld, double yWorld,
+  public ImageDataPoint(double mz, double intensity, ImagingScan scanNumber, double xWorld, double yWorld,
       double zWorld, double dataPointHeigth, double dataPointWidth, PaintScale paintScale) {
     super();
     this.mz = mz;
@@ -59,7 +60,7 @@ public class ImageDataPoint implements DataPoint {
     return intensity;
   }
 
-  public int getScanNumber() {
+  public ImagingScan getScanNumber() {
     return scanNumber;
   }
 
@@ -100,7 +101,7 @@ public class ImageDataPoint implements DataPoint {
     result = prime * result + (int) (temp ^ (temp >>> 32));
     temp = Double.doubleToLongBits(mz);
     result = prime * result + (int) (temp ^ (temp >>> 32));
-    result = prime * result + scanNumber;
+    result = prime * result + scanNumber.getScanNumber();
     temp = Double.doubleToLongBits(xWorld);
     result = prime * result + (int) (temp ^ (temp >>> 32));
     temp = Double.doubleToLongBits(yWorld);

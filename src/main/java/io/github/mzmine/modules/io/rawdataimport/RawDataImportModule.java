@@ -18,14 +18,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
@@ -37,22 +29,30 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.AgilentCsvReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.CsvReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.MzDataReadTask;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.MzMLReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.MzXMLReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.NativeFileReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.NetCDFReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.ZipReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImzMLReadTask;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.MSDKmzMLReadTask;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.TDFReaderTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javax.annotation.Nonnull;
 
 /**
  * Raw data import module
@@ -81,11 +81,69 @@ public class RawDataImportModule implements MZmineProcessingModule {
    *
    * @return String
    */
-  public @Nonnull String getLastCommonPrefix() {
+  public @Nonnull
+  String getLastCommonPrefix() {
     if (commonPrefix == null) {
       commonPrefix = "";
     }
     return commonPrefix;
+  }
+
+  public static Task createOpeningTask(RawDataFileType fileType, MZmineProject project,
+      File fileName, RawDataFile newMZmineFile) {
+    Task newTask = null;
+    switch (fileType) {
+      case ICPMSMS_CSV:
+        newTask = new CsvReadTask(project, fileName, newMZmineFile);
+        break;
+      case MZDATA:
+        newTask = new MzDataReadTask(project, fileName, newMZmineFile);
+        break;
+      case MZML:
+        newTask = new MSDKmzMLReadTask(project, fileName, newMZmineFile);
+        break;
+      case IMZML:
+        newTask = new ImzMLReadTask(project, fileName, (ImagingRawDataFile) newMZmineFile);
+        break;
+      case MZXML:
+        newTask = new MzXMLReadTask(project, fileName, newMZmineFile);
+        break;
+      case NETCDF:
+        newTask = new NetCDFReadTask(project, fileName, newMZmineFile);
+        break;
+      case AGILENT_CSV:
+        newTask = new AgilentCsvReadTask(project, fileName, newMZmineFile);
+        break;
+      case THERMO_RAW:
+      case WATERS_RAW:
+        newTask = new NativeFileReadTask(project, fileName, fileType, newMZmineFile);
+        break;
+      case ZIP:
+      case GZIP:
+        newTask = new ZipReadTask(project, fileName, fileType);
+        break;
+      case BRUKER_TDF:
+        newTask = new TDFReaderTask(project, fileName, (IMSRawDataFile) newMZmineFile);
+        break;
+      case MZML_IMS:
+        newTask = new MSDKmzMLReadTask(project, fileName, newMZmineFile);
+        break;
+      default:
+        break;
+    }
+    return newTask;
+  }
+
+  @Override
+  public @Nonnull
+  MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.RAWDATA;
+  }
+
+  @Override
+  public @Nonnull
+  Class<? extends ParameterSet> getParameterSetClass() {
+    return RawDataImportParameters.class;
   }
 
   @Override
@@ -179,7 +237,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
 
       RawDataFile newMZmineFile;
       try {
-        if (fileType == RawDataFileType.BRUKER_TDF) {
+        if (fileType == RawDataFileType.BRUKER_TDF || fileType == RawDataFileType.MZML_IMS) {
           newMZmineFile = MZmineCore.createNewIMSFile(newName);
         } else if (fileType == RawDataFileType.IMZML) {
           newMZmineFile = MZmineCore.createNewImagingFile(newName);
@@ -210,55 +268,6 @@ public class RawDataImportModule implements MZmineProcessingModule {
     }
 
     return ExitCode.OK;
-  }
-
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATA;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return RawDataImportParameters.class;
-  }
-
-  public static Task createOpeningTask(RawDataFileType fileType, MZmineProject project,
-      File fileName, RawDataFile newMZmineFile) {
-    Task newTask = null;
-    switch (fileType) {
-      case ICPMSMS_CSV:
-        newTask = new CsvReadTask(project, fileName, newMZmineFile);
-        break;
-      case MZDATA:
-        newTask = new MzDataReadTask(project, fileName, newMZmineFile);
-        break;
-      case MZML:
-        newTask = new MzMLReadTask(project, fileName, newMZmineFile);
-        break;
-      case IMZML:
-        newTask = new ImzMLReadTask(project, fileName, (ImagingRawDataFile) newMZmineFile);
-        break;
-      case MZXML:
-        newTask = new MzXMLReadTask(project, fileName, newMZmineFile);
-        break;
-      case NETCDF:
-        newTask = new NetCDFReadTask(project, fileName, newMZmineFile);
-        break;
-      case AGILENT_CSV:
-        newTask = new AgilentCsvReadTask(project, fileName, newMZmineFile);
-        break;
-      case THERMO_RAW:
-      case WATERS_RAW:
-        newTask = new NativeFileReadTask(project, fileName, fileType, newMZmineFile);
-        break;
-      case ZIP:
-      case GZIP:
-        newTask = new ZipReadTask(project, fileName, fileType);
-        break;
-      case BRUKER_TDF:
-        newTask = new TDFReaderTask(project, fileName, (IMSRawDataFile) newMZmineFile);
-    }
-    return newTask;
   }
 
 }

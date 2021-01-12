@@ -376,6 +376,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     }
 
+    buildingChromatograms.forEach(c -> c.addNZeros(scans, 2, 1));
+
     ADAPChromatogram[] chromatograms = buildingChromatograms.toArray(new ADAPChromatogram[0]);
 
     // Sort the final chromatograms by m/z
@@ -407,5 +409,3 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   }
 
 }
-
-

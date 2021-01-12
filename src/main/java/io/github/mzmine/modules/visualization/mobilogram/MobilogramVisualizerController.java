@@ -18,12 +18,6 @@
 
 package io.github.mzmine.modules.visualization.mobilogram;
 
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Logger;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
@@ -36,6 +30,11 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramChangeListener;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.PreviewMobilogram;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -47,6 +46,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import javax.annotation.Nullable;
 
 public class MobilogramVisualizerController {
 
@@ -116,11 +116,8 @@ public class MobilogramVisualizerController {
       return;
     }
 
-    UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     MobilityType type = ((IMSRawDataFile) selectedFile).getMobilityType();
-    String xLabel =
-        "Ion mobility " + unitFormat.format("(" + type.getAxisLabel() + ")", type.getUnit());
-    mobilogramChart.setDomainAxisLabel(xLabel);
+    mobilogramChart.setDomainAxisLabel(type.getAxisLabel());
     frameSelector.getItems().addAll(((IMSRawDataFile) selectedFile).getFrames());
   }
 

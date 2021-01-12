@@ -34,6 +34,7 @@ public enum RawDataFileType {
   ZIP, //
   GZIP, //
   ICPMSMS_CSV, //
-  BRUKER_TDF
+  BRUKER_TDF, //
+  MZML_IMS
 
 }

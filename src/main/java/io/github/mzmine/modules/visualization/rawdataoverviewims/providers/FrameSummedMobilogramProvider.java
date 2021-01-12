@@ -70,7 +70,11 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
 
   @Override
   public String getLabel(int index) {
-    return mzFormat.format(frame.getSortedMobilityScans().get(index).getBasePeakMz());
+    Double mz = frame.getSortedMobilityScans().get(index).getBasePeakMz();
+    if(mz != null) {
+      return mzFormat.format(mz);
+    }
+    return null;
   }
 
   @Override

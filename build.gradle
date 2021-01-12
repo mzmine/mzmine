@@ -13,8 +13,8 @@ description = "MZmine"
 
 // JDK 14+ is needed for jpackage, but we maintain Java 11 source/target
 // compatibility to avoid problems with JavaFX Scene Builder
-sourceCompatibility = "11"
-targetCompatibility = "11"
+sourceCompatibility = "15"
+targetCompatibility = "15"
 defaultTasks "jpackage"
 
 // Check the OS
@@ -165,6 +165,9 @@ dependencies {
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     implementation "com.alanmrace:jimzmlparser:1.0.5"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
 
 /*
@@ -303,4 +306,8 @@ processResources {
     filesMatching("mzmineversion.properties") {
         expand(project.properties)
     }
+}
+
+test {
+    useJUnitPlatform()
 }

@@ -24,6 +24,10 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -33,20 +37,14 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.RangeUtils;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import javafx.collections.ObservableList;
+import io.github.mzmine.util.RangeUtils;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Performs chromatographic smoothing of a peak-list.
@@ -130,7 +128,7 @@ public class SmoothingTask extends AbstractTask {
             if (!isCanceled()) {
 
               // Copy original peak intensities.
-              final ObservableList<Scan> scanNumbers = peak.getScanNumbers();
+              final List<Scan> scanNumbers = peak.getScanNumbers();
               final int numScans = scanNumbers.size();
               final double[] intensities = new double[numScans];
               for (int i = 0; i < numScans; i++) {
@@ -154,8 +152,8 @@ public class SmoothingTask extends AbstractTask {
 
                 final Scan scanNumber = scanNumbers.get(i);
                 final DataPoint dataPoint = peak.getDataPointAtIndex(i);
-                final double intensity = smoothed[i];
-                if (dataPoint != null && intensity > 0.0) {
+                final double intensity = smoothed[i] > 0 ? smoothed[i] : 0d;
+                if (dataPoint != null) {
 
                   // Create a new data point.
                   final double mz = dataPoint.getMZ();
@@ -238,7 +236,7 @@ public class SmoothingTask extends AbstractTask {
         setStatus(TaskStatus.FINISHED);
       }
     } catch (Throwable t) {
-
+      t.printStackTrace();
       logger.log(Level.SEVERE, "Smoothing error", t);
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
