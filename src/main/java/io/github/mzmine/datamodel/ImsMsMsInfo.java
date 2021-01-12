@@ -27,8 +27,11 @@ import com.google.common.collect.Range;
  */
 public interface ImsMsMsInfo {
 
+  public final int UNKNOWN_CHARGE = 0;
+  public final int UNKNOWN_PARENTFRAME = -1;
+  public final double UNKNOWN_COLISSIONENERGY = -1d;
+
   /**
-   *
    * @return The most intense m/z of the detected precursor.
    */
   double getLargestPeakMz();

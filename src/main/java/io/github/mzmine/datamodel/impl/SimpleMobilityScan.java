@@ -17,13 +17,6 @@
  */
 package io.github.mzmine.datamodel.impl;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
@@ -32,6 +25,18 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -63,7 +68,19 @@ public class SimpleMobilityScan extends AbstractStorableSpectrum implements Mobi
     this.frame = frame;
     this.massLists = new HashSet<>();
     this.mobilityScamNumber = mobilityScamNumber;
-    setDataPoints(mzValues, intensityValues);
+    try {
+      setDataPoints(mzValues, intensityValues);
+    } catch (IllegalArgumentException e) {
+      DataPoint[] dps = new DataPoint[mzValues.length];
+      for (int i = 0; i < mzValues.length; i++) {
+        dps[i] = new SimpleDataPoint(mzValues[i], intensityValues[i]);
+      }
+      DataPointSorter sorter = new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending);
+      Arrays.sort(dps, sorter);
+      double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
+      setDataPoints(data[0], data[1]);
+      logger.info("Sorted dps.");
+    }
   }
 
   @Override

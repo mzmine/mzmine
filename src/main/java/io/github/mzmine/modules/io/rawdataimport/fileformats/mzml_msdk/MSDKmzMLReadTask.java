@@ -21,6 +21,7 @@ package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk;
 import com.google.common.collect.Range;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -35,8 +36,10 @@ import io.github.mzmine.util.ExceptionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -56,17 +59,17 @@ public class MSDKmzMLReadTask extends AbstractTask {
    * scans.
    */
   private static final int PARENT_STACK_SIZE = 20;
+  private final File file;
+  private final MSDKIndexingTask msdkTask;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private MZmineProject project;
   private RawDataFile newMZmineFile;
   private IMSRawDataFile newImsFile;
   private int totalScans = 0, parsedScans;
   private int lastScanNumber = 0;
-  private final File file;
   private String description;
   private SimpleFrame buildingFrame;
   private Map<Integer, Double> buildingMobilities;
-  private final MSDKIndexingTask msdkTask;
 
   public MSDKmzMLReadTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     this.file = fileToOpen;
@@ -155,6 +158,8 @@ public class MSDKmzMLReadTask extends AbstractTask {
 
     List<MobilityScan> mobilityScans = new ArrayList<>();
     List<Double> mobilities = new ArrayList<>();
+    List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
+    Set<ImsMsMsInfo> finishedImsMsMsInfos = null;
 
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
@@ -171,6 +176,14 @@ public class MSDKmzMLReadTask extends AbstractTask {
           newImsFile.addScan(buildingFrame);
           mobilityScans.clear();
           mobilities.clear();
+          if (!buildingImsMsMsInfos.isEmpty()) {
+            finishedImsMsMsInfos = new HashSet<>();
+            for (BuildingImsMsMsInfo info : buildingImsMsMsInfos) {
+              finishedImsMsMsInfos.add(info.build());
+            }
+            finishedFrame.setPrecursorInfos(finishedImsMsMsInfos);
+          }
+          buildingImsMsMsInfos.clear();
         }
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
@@ -180,11 +193,23 @@ public class MSDKmzMLReadTask extends AbstractTask {
             scan.getScanDefinition(), scan.getScanningRange(), mzMLScan.getMobility().mt(), 0,
             buildingMobilities, null);
         frameNumber++;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Importing ");
+        sb.append(file.getName());
+        sb.append(". Parsed ");
+        sb.append(parsedScans);
+        sb.append("/");
+        sb.append(totalScans);
+        sb.append(" scans");
+        description = sb.toString();
       }
 
       mobilityScans.add(ConversionUtils
           .msdkScanToMobilityScan(newImsFile, mobilityScanNumberCounter, scan, buildingFrame));
       mobilities.add(mzMLScan.getMobility().mobility());
+      ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
+          mobilityScanNumberCounter);
       mobilityScanNumberCounter++;
       parsedScans++;
     }

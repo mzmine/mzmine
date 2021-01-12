@@ -53,8 +53,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   private final List<MobilityScan> mobilitySubScans = new ArrayList<>();
   private final MobilityType mobilityType;
-//  private final Map<Integer, Double> mobilities;
-  private final Set<ImsMsMsInfo> precursorInfos;
+  //  private final Map<Integer, Double> mobilities;
+  private Set<ImsMsMsInfo> precursorInfos;
   private Range<Double> mobilityRange;
 
   private DoubleBuffer mobilityBuffer;
@@ -189,6 +189,9 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Nullable
   @Override
   public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+    if (precursorInfos == null) {
+      return null;
+    }
     Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
         .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
@@ -208,13 +211,17 @@ public class SimpleFrame extends SimpleScan implements Frame {
       e.printStackTrace();
       mobilityBuffer = DoubleBuffer.wrap(mobilities);
     }
-    if(mobilities.length != mobilitySubScans.size()) {
+    if (mobilities.length != mobilitySubScans.size()) {
       System.out.println("Mobility length does not match number of mobility scans.");
     }
 
     mobilityRange = Range.singleton(mobilities[0]);
     mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
     return mobilityBuffer;
+  }
+
+  public void setPrecursorInfos(@Nullable Set<ImsMsMsInfo> precursorInfos) {
+    this.precursorInfos = precursorInfos;
   }
 
   /*
