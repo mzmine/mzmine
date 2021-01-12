@@ -211,9 +211,18 @@ public class MainWindowController {
           return;
         }
 
-        setText(((ValueEntity<RawDataFile>) item).getValue().getName());
-        setGraphic(new ImageView(rawDataFileIcon));
-        textFillProperty().bind(((ValueEntity<RawDataFile>) item).getValue().colorProperty());
+        RawDataFile rawDataFile = ((ValueEntity<RawDataFile>) item).getValue();
+
+        setText(rawDataFile.getName());
+        setGraphic(new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor())));
+
+        rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
+          // Check raw data file name to avoid 'setGraphic' invocation for other items from
+          // different thread, where 'updateItem' is called. Can it be done better?!
+          if (rawDataFile.getName().equals(getText())) {
+            setGraphic(new ImageView(FxIconUtil.getFileIcon(newColor)));
+          }
+        });
       }
 
       @Override
