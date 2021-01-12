@@ -91,8 +91,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
     setDataPoints(mzValues, intensityValues);
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-//    this.numMobilitySpectra = numMobilitySpectra;
-//    this.mobilities = mobilities;
     this.precursorInfos = precursorInfos;
   }
 
@@ -162,14 +160,14 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
-//    return mobilities.getOrDefault(mobilityScanIndex, MobilityScan.DEFAULT_MOBILITY);
     return mobilityBuffer.get(mobilityScanIndex);
   }
 
   @Override
   public double getMobilityForMobilityScan(MobilityScan scan) {
-    int index = mobilitySubScans.indexOf(scan);
-    if(index != -1) {
+    // correct the index with an offset in case there is one.
+    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScamNumber();
+    if (index >= 0) {
       return mobilityBuffer.get(index);
     }
     throw new IllegalArgumentException("Mobility scan does not belong to this frame.");
@@ -211,8 +209,9 @@ public class SimpleFrame extends SimpleScan implements Frame {
       e.printStackTrace();
       mobilityBuffer = DoubleBuffer.wrap(mobilities);
     }
-    if (mobilities.length != mobilitySubScans.size()) {
-      System.out.println("Mobility length does not match number of mobility scans.");
+    if (mobilities.length != mobilitySubScans.size() && !mobilitySubScans.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Mobility length does not match number of mobility scans.");
     }
 
     mobilityRange = Range.singleton(mobilities[0]);
