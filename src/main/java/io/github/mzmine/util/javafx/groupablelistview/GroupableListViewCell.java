@@ -181,71 +181,66 @@ public class GroupableListViewCell<T> extends
   }
 
   /**
-   * Swaps {@link GroupableListView} items, according to the dragged and this items' types and indices.
+   * Method extending {@link DraggableListCell#dragDroppedAction} to define drag and drop behaviour
+   * of {@link GroupableListViewCell}s.
    *
    * @param draggedIdx index of the dragged item
-   * @param newIdx new index for the dragged item
+   * @param draggedToIdx new index for the dragged item
    */
   @Override
-  protected void dragDroppedAction(int draggedIdx, int newIdx) {
+  protected void dragDroppedAction(int draggedIdx, int draggedToIdx) {
     GroupableListViewEntity draggedItem = getListView().getItems().get(draggedIdx);
-    GroupableListViewEntity thisItem = getListView().getItems().get(newIdx);
+    GroupableListViewEntity draggedToItem = getListView().getItems().get(draggedToIdx);
 
-    // Define drop behavior depending on the active items
+    // If item is dragged to selected item, do nothing
+    if (getListView().getSelectionModel().getSelectedItems().contains(draggedToItem)) {
+      return;
+    }
 
-    if (draggedItem instanceof ValueEntity) {
+    // If groups' headers selected along with grouped element, do nothing
+    if (getGroupableListView().anyGroupSelected()
+        && (draggedToItem instanceof ValueEntity && (((ValueEntity<?>) draggedToItem).isGrouped())
+        || (draggedItem instanceof ValueEntity && ((ValueEntity<?>) draggedItem).isGrouped()))) {
+      return;
+    }
 
-      // Calculate new index as an index under group, if it's dragged to the group header
-      if (thisItem instanceof GroupEntity && ((GroupEntity) thisItem).isExpanded() && newIdx > draggedIdx) {
-        newIdx += getGroupableListView().getGroupSize((GroupEntity) thisItem);
-      }
+    // Place selected elements to the new index
+    super.dragDroppedAction(draggedIdx, getListView().getItems().indexOf(draggedToItem));
 
-      // Swap dragged and this items
-      super.dragDroppedAction(draggedIdx, newIdx);
-
-      // Remove dragged item from group
-      getGroupableListView().removeFromGroup((ValueEntity<T>) draggedItem);
-
-      // Add dragged item to group, if it's dragged inside the group
-      if (thisItem instanceof ValueEntity && ((ValueEntity<?>) thisItem).isGrouped()) {
-        GroupEntity group = ((ValueEntity<?>) thisItem).getGroup();
-        getGroupableListView().addToGroup(group,
-            newIdx - getGroupableListView().getGroupIndex(group) - 1, ((ValueEntity<T>) draggedItem));
-      }
-    } else if (draggedItem instanceof GroupEntity
-        && !(thisItem instanceof ValueEntity && ((ValueEntity<?>) thisItem).isGrouped())) {
-
-      // If dragged group header is hidden, just swap it with this item
-      if (((GroupEntity) draggedItem).isHidden()) {
-
-        // Calculate new index as an index under group, if it's dragged to the group header
-        if (thisItem instanceof GroupEntity && ((GroupEntity) thisItem).isExpanded() && newIdx > draggedIdx) {
-          newIdx += getGroupableListView().getGroupSize((GroupEntity) thisItem);
-        }
-        super.dragDroppedAction(draggedIdx, newIdx);
-      } else {
-        List<GroupableListViewEntity> groupItems
-            = new ArrayList<>(
-            getGroupableListView().getGroupItems((GroupEntity) draggedItem));
-
-        // Calculate new group header index
-        if (newIdx > draggedIdx) {
-          newIdx -= groupItems.size();
-          if (thisItem instanceof GroupEntity && ((GroupEntity) thisItem).isExpanded()) {
-            newIdx += getGroupableListView()
-                .getGroupSize((GroupEntity) thisItem);
-          }
-        }
-
-        // Place all group items under their group header
-        getListView().getItems().remove(draggedItem);
-        getListView().getItems().removeAll(groupItems);
-        groupItems.add(0, draggedItem);
-        getListView().getItems().addAll(newIdx, groupItems);
+    // Replace expanded groups' elements to their new positions,
+    // save selected values and remove them from groups.
+    List<ValueEntity<T>> selectedValues = new ArrayList<>();
+    for (GroupableListViewEntity selectedItem : getListView().getSelectionModel().getSelectedItems()) {
+      if (selectedItem instanceof GroupEntity && ((GroupEntity) selectedItem).isExpanded()) {
+        getListView().getItems().removeAll(
+            getGroupableListView().getGroupItems((GroupEntity) selectedItem));
+        getListView().getItems().addAll(getListView().getItems().indexOf(selectedItem) + 1,
+            getGroupableListView().getGroupItems((GroupEntity) selectedItem));
+      } else if (selectedItem instanceof ValueEntity) {
+        getGroupableListView().removeFromGroup((ValueEntity<T>) selectedItem);
+        selectedValues.add((ValueEntity<T>) selectedItem);
       }
     }
 
-    getListView().getSelectionModel().clearAndSelect(newIdx);
+    // If drag target item is group, replace it's items to their new positions
+    if (draggedToItem instanceof GroupEntity && ((GroupEntity) draggedToItem).isExpanded()) {
+      getListView().getItems().removeAll(
+          getGroupableListView().getGroupItems((GroupEntity) draggedToItem));
+      getListView().getItems().addAll(getListView().getItems().indexOf(draggedToItem) + 1,
+          getGroupableListView().getGroupItems((GroupEntity) draggedToItem));
+    }
+
+    // If items are dragged inside the group, add them to this group
+    if (draggedToItem instanceof ValueEntity && ((ValueEntity<?>) draggedToItem).isGrouped()) {
+      GroupEntity group = ((ValueEntity<?>) draggedToItem).getGroup();
+
+      // Calculate new index relative to group and add items to that index
+      int groupedItemsIdx = getGroupableListView().getGroupItems(group).indexOf(draggedToItem);
+      if (draggedToIdx > draggedIdx) {
+        groupedItemsIdx++;
+      }
+      getGroupableListView().addToGroup(group, groupedItemsIdx, selectedValues);
+    }
   }
 
   public GroupableListView<T> getGroupableListView() {

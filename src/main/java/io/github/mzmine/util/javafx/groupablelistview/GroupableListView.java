@@ -222,13 +222,22 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     return false;
   }
 
-  public void addToGroup(GroupEntity group, int index, ValueEntity<T> item) {
+
+  public boolean anyGroupSelected() {
+    return !selectedGroups.isEmpty();
+  }
+
+  public void addToGroup(GroupEntity group, int index, List<ValueEntity<T>> items) {
     if (group == null || !groups.containsKey(group)) {
       return;
     }
 
-    item.setGroup(group);
-    groups.get(group).add(index, item);
+    items.forEach(item -> item.setGroup(group));
+    groups.get(group).addAll(index, items);
+  }
+
+  public void addToGroup(GroupEntity group, int index, ValueEntity<T> item) {
+    addToGroup(group, index, List.of(item));
   }
 
   public void removeFromGroup(List<T> values) {
@@ -242,6 +251,10 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
    * @param item item to remove from it's group
    */
   public void removeFromGroup(int index, ValueEntity<T> item) {
+    if (item == null || !item.isGrouped()) {
+      return;
+    }
+
     removeFromGroup(item);
     items.remove(item);
     items.add(index, item);

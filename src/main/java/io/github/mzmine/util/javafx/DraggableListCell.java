@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.javafx;
 
+import com.google.common.collect.ImmutableList;
 import io.github.mzmine.gui.MZmineGUI;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListCell;
@@ -98,19 +99,31 @@ public class DraggableListCell<T> extends ListCell<T> {
   }
 
   /**
-   * Swaps dragged and this items. This method is supposed to be called in setOnDragDropped
-   * event handler in case when {@link Dragboard#hasString()} is true.
+   * Places selected items to the new index. If new index is higher than dragged item index,
+   * shifts old item up, else shifts it down. This method is supposed to be called in
+   * setOnDragDropped event handler in case when {@link Dragboard#hasString()} is true.
    *
    * @param draggedIdx index of the dragged item
-   * @param newIdx new index for the dragged item
+   * @param draggedToIdx new index for the dragged item
    */
-  protected void dragDroppedAction(int draggedIdx, int newIdx) {
+  protected void dragDroppedAction(int draggedIdx, int draggedToIdx) {
     ObservableList<T> items = getListView().getItems();
-    T draggedItem = getListView().getItems().get(draggedIdx);
+    T draggedToItem = getListView().getItems().get(draggedToIdx);
 
-    items.remove(draggedItem);
-    items.add(newIdx, draggedItem);
-    getListView().getSelectionModel().clearAndSelect(newIdx);
+    ImmutableList<T> selectedItems =  ImmutableList.copyOf(getListView().getSelectionModel().getSelectedItems());
+    getListView().getSelectionModel().clearSelection();
+    items.removeAll(selectedItems);
+
+    // Calculate final index to place dragged item, after selected items were removed
+    int finalIdx = items.indexOf(draggedToItem);
+
+    // If dragged item is above this item, place it under this item
+    if (draggedToIdx > draggedIdx) {
+      finalIdx++;
+    }
+    items.addAll(finalIdx, selectedItems);
+
+    getListView().getSelectionModel().selectRange(finalIdx, finalIdx + selectedItems.size());
   }
 
 }
