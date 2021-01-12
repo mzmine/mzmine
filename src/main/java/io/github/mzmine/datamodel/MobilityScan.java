@@ -30,45 +30,48 @@ import javax.annotation.Nullable;
  */
 public interface MobilityScan extends MassSpectrum {
 
-  public static final double DEFAULT_MOBILITY = -1.0d;
+  static final double DEFAULT_MOBILITY = -1.0d;
+
+  @Nonnull
+  RawDataFile getDataFile();
 
   /**
    * @return The mobility of this sub-spectrum. The unit will depend on the respective mass
-   * spectrometer and can be checked via {@link MobilityScan#getMobilityType()}.
+   *         spectrometer and can be checked via {@link MobilityScan#getMobilityType()}.
    */
-  public double getMobility();
+  double getMobility();
 
   /**
    * See {@link MobilityType}
    *
    * @return The type of mobility acquired in this mass spectrum.
    */
-  public MobilityType getMobilityType();
+  MobilityType getMobilityType();
 
   /**
    * @return THe frame this spectrum belongs to.
    */
-  public Frame getFrame();
+  Frame getFrame();
 
   /**
    * @return The retention time of the frame when this spectrum was acquired.
    */
-  public float getRetentionTime();
+  float getRetentionTime();
 
   /**
    * @return The index of this mobility subscan.
    */
-  public int getMobilityScamNumber();
+  int getMobilityScamNumber();
 
   @Nullable
-  public ImsMsMsInfo getMsMsInfo();
+  ImsMsMsInfo getMsMsInfo();
 
-  public void addMassList(final @Nonnull MassList massList);
+  void addMassList(final @Nonnull MassList massList);
 
-  public void removeMassList(final @Nonnull MassList massList);
+  void removeMassList(final @Nonnull MassList massList);
 
   @Nonnull
-  public Set<MassList> getMassLists();
+  Set<MassList> getMassLists();
 
-  public MassList getMassList(@Nonnull String name);
+  MassList getMassList(@Nonnull String name);
 }

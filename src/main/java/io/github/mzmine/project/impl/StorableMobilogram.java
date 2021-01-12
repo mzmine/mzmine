@@ -18,19 +18,16 @@
 
 package io.github.mzmine.project.impl;
 
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Mobilogram;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.MobilityDataPoint;
 import io.github.mzmine.main.MZmineCore;
-import java.io.IOException;
-import java.text.NumberFormat;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 
 public class StorableMobilogram implements Mobilogram {
 
@@ -93,12 +90,10 @@ public class StorableMobilogram implements Mobilogram {
   @Nonnull
   @Override
   public List<MobilityDataPoint> getDataPoints() {
-    try {
-      return rawDataFile.loadDatapointsForMobilogram(this.storageID);
-    } catch (IOException e) {
-      e.printStackTrace();
-      return Collections.emptyList();
-    }
+    return null; // rawDataFile.loadDatapointsForMobilogram(this.storageID);
+    /*
+     * try { } catch (IOException e) { e.printStackTrace(); return Collections.emptyList(); }
+     */
   }
 
   @Nonnull
@@ -121,10 +116,9 @@ public class StorableMobilogram implements Mobilogram {
 
   @Override
   public String representativeString() {
-    return mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
-        .format(mzRange.upperEndpoint())
-        + " @" + mobilityFormat.format(getMobility()) + " " + getMobilityType().getUnit() + " ("
-        + getDataPoints().size() + ")";
+    return mzFormat.format(mzRange.lowerEndpoint()) + " - "
+        + mzFormat.format(mzRange.upperEndpoint()) + " @" + mobilityFormat.format(getMobility())
+        + " " + getMobilityType().getUnit() + " (" + getDataPoints().size() + ")";
   }
 
   @Override

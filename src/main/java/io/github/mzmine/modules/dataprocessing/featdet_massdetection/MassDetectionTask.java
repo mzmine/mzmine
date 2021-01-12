@@ -18,14 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.MobilityScan;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
@@ -34,7 +33,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import javax.xml.crypto.Data;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
@@ -86,6 +84,7 @@ public class MassDetectionTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Detecting masses in " + dataFile;
   }
@@ -93,6 +92,7 @@ public class MassDetectionTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalScans == 0) {
       return 0;
@@ -108,6 +108,7 @@ public class MassDetectionTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     // make arrays to contain everything you need
@@ -152,8 +153,8 @@ public class MassDetectionTask extends AbstractTask {
         if (scan instanceof Frame) {
           Frame frame = (Frame) scan;
           for (MobilityScan mobilityScan : frame.getMobilityScans()) {
-            DataPoint[] peaks = detector
-                .getMassValues(mobilityScan.getDataPoints(), massDetector.getParameterSet());
+            DataPoint[] peaks =
+                detector.getMassValues(mobilityScan, massDetector.getParameterSet());
             SimpleMassList simpleMassList = new SimpleMassList(name, null, peaks);
             mobilityScan.addMassList(simpleMassList);
           }

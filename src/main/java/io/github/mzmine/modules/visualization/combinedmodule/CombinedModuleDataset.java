@@ -18,6 +18,13 @@
 
 package io.github.mzmine.modules.visualization.combinedmodule;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
@@ -27,15 +34,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Vector;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import org.jfree.chart.labels.XYToolTipGenerator;
-import org.jfree.data.xy.AbstractXYDataset;
-import org.jfree.data.xy.XYDataset;
 
 public class CombinedModuleDataset extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
@@ -92,7 +92,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
         return;
       }
 
-      //ignore scans of MS level 1
+      // ignore scans of MS level 1
       if (scan.getMSLevel() == 1) {
         processedScans++;
         continue;
@@ -103,7 +103,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
       }
 
       // skip empty scans
-      if (scan.getHighestDataPoint() == null) {
+      if (scan.getBasePeakMz() == null) {
         processedScans++;
         continue;
       }

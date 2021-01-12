@@ -16,8 +16,6 @@
 
 package io.github.mzmine.modules.io.adapmgfexport;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -26,9 +24,10 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportParameters.MzMode;
 import io.github.mzmine.parameters.ParameterSet;
@@ -39,7 +38,7 @@ import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 
 /**
  * Export of a feature cluster (ADAP) to mgf. Used in GC-GNPS
- * 
+ *
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 public class AdapMgfExportTask extends AbstractTask {
@@ -163,9 +162,10 @@ public class AdapMgfExportTask extends AbstractTask {
     }
   }
 
-  private void exportRow(FileWriter writer, FeatureListRow row, IsotopePattern ip) throws IOException {
+  private void exportRow(FileWriter writer, FeatureListRow row, IsotopePattern ip)
+      throws IOException {
     // data points of this cluster
-    DataPoint[] dataPoints = ip.getDataPoints();
+    DataPoint dataPoints[] = ScanUtils.extractDataPoints(ip);
     if (!fractionalMZ)
       dataPoints = ScanUtils.integerDataPoints(dataPoints, roundMode);
     // get m/z and rt
@@ -193,7 +193,7 @@ public class AdapMgfExportTask extends AbstractTask {
 
   /**
    * Format as nominal or fractional
-   * 
+   *
    * @param mz
    * @return
    */

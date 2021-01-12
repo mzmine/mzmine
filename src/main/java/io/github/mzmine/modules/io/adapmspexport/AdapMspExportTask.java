@@ -16,16 +16,18 @@
 
 package io.github.mzmine.modules.io.adapmspexport;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -72,14 +74,17 @@ public class AdapMspExportTask extends AbstractTask {
         .getEmbeddedParameter().getValue();
   }
 
+  @Override
   public double getFinishedPercentage() {
     return 0.0;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to MSP file(s)";
   }
 
+  @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
@@ -192,7 +197,7 @@ public class AdapMspExportTask extends AbstractTask {
           writer.write(attributeName + ": " + value + newLine);
       }
 
-      DataPoint[] dataPoints = ip.getDataPoints();
+      DataPoint[] dataPoints = ScanUtils.extractDataPoints(ip);
 
       if (integerMZ)
         dataPoints = ScanUtils.integerDataPoints(dataPoints, roundMode);

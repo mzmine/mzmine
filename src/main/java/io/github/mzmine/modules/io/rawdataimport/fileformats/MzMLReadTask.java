@@ -18,18 +18,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +30,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
 import uk.ac.ebi.jmzml.model.mzml.CVParam;
@@ -67,8 +64,7 @@ public class MzMLReadTask extends AbstractTask {
 
   private File file;
   private MZmineProject project;
-  private RawDataFileWriter newMZmineFile;
-  private RawDataFile finalRawDataFile;
+  private RawDataFile newMZmineFile;
   private int totalScans = 0, parsedScans;
 
   private int lastScanNumber = 0;
@@ -85,7 +81,7 @@ public class MzMLReadTask extends AbstractTask {
   private static final int PARENT_STACK_SIZE = 20;
   private LinkedList<io.github.mzmine.datamodel.Scan> parentStack = new LinkedList<>();
 
-  public MzMLReadTask(MZmineProject project, File fileToOpen, RawDataFileWriter newMZmineFile) {
+  public MzMLReadTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
@@ -147,28 +143,29 @@ public class MzMLReadTask extends AbstractTask {
         double precursorMz = extractPrecursorMz(spectrum);
         int precursorCharge = extractPrecursorCharge(spectrum);
         String scanDefinition = extractScanDefinition(spectrum);
-        DataPoint dataPoints[] = extractDataPoints(spectrum);
+        double mzValues[] = extractMzValues(spectrum);
+        double intensityValues[] = extractIntensityValues(spectrum);
         double mobility = extractMobility(spectrum);
 
         // Auto-detect whether this scan is centroided
-        MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
+        MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
         io.github.mzmine.datamodel.Scan scan;
 
-        //if(Double.compare(mobility, -1.0d) == 0) {
-          scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-              precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null);
-        /*} else {
-          scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-              precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null, mobility,
-              MobilityType.DRIFT_TUBE);
-        }*/
+        // if(Double.compare(mobility, -1.0d) == 0) {
+        scan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, precursorMz,
+            precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanDefinition,
+            null);
+        /*
+         * } else { scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
+         * precursorCharge, dataPoints, spectrumType, polarity, scanDefinition, null, mobility,
+         * MobilityType.DRIFT_TUBE); }
+         */
 
-        /*for (io.github.mzmine.datamodel.Scan s : parentStack) {
-          if (s.getScanNumber() == parentScan) {
-            s.addFragmentScan(scanNumber);
-          }
-        }*/
+        /*
+         * for (io.github.mzmine.datamodel.Scan s : parentStack) { if (s.getScanNumber() ==
+         * parentScan) { s.addFragmentScan(scanNumber); } }
+         */
 
         /*
          * Verify the size of parentStack. The actual size of the window to cover possible
@@ -191,14 +188,12 @@ public class MzMLReadTask extends AbstractTask {
 
       }
 
-      finalRawDataFile = newMZmineFile.finishWriting();
-
       if (logger.isLoggable(Level.FINEST)) {
-        List<PolarityType> polarities = finalRawDataFile.getDataPolarity();
+        List<PolarityType> polarities = newMZmineFile.getDataPolarity();
         logger.finest("Scan polarities of file " + file + ": " + polarities);
       }
 
-      project.addFile(finalRawDataFile);
+      project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
       e.printStackTrace();
@@ -326,21 +321,35 @@ public class MzMLReadTask extends AbstractTask {
     return 0;
   }
 
-  private DataPoint[] extractDataPoints(Spectrum spectrum) {
+  private double[] extractIntensityValues(Spectrum spectrum) {
     BinaryDataArrayList dataList = spectrum.getBinaryDataArrayList();
 
     if ((dataList == null) || (dataList.getCount().equals(0)))
-      return new DataPoint[0];
+      return new double[0];
+
+    BinaryDataArray intensityArray = dataList.getBinaryDataArray().get(1);
+    Number intensityValues[] = intensityArray.getBinaryDataAsNumberArray();
+    double dataPoints[] = new double[intensityValues.length];
+    for (int i = 0; i < dataPoints.length; i++) {
+      double intensity = intensityValues[i].doubleValue();
+      dataPoints[i] = intensity;
+    }
+    return dataPoints;
+
+  }
+
+  private double[] extractMzValues(Spectrum spectrum) {
+    BinaryDataArrayList dataList = spectrum.getBinaryDataArrayList();
+
+    if ((dataList == null) || (dataList.getCount().equals(0)))
+      return new double[0];
 
     BinaryDataArray mzArray = dataList.getBinaryDataArray().get(0);
-    BinaryDataArray intensityArray = dataList.getBinaryDataArray().get(1);
     Number mzValues[] = mzArray.getBinaryDataAsNumberArray();
-    Number intensityValues[] = intensityArray.getBinaryDataAsNumberArray();
-    DataPoint dataPoints[] = new DataPoint[mzValues.length];
+    double dataPoints[] = new double[mzValues.length];
     for (int i = 0; i < dataPoints.length; i++) {
       double mz = mzValues[i].doubleValue();
-      double intensity = intensityValues[i].doubleValue();
-      dataPoints[i] = new SimpleDataPoint(mz, intensity);
+      dataPoints[i] = mz;
     }
     return dataPoints;
 

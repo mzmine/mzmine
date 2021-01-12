@@ -18,81 +18,107 @@
 
 package io.github.mzmine.datamodel;
 
+import java.nio.DoubleBuffer;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 
 /**
- * This class represent one mass spectrum.
+ * This class represent one mass spectrum. Typically the implementation will store the m/z and
+ * intensity values on disk using a MemoryMapStorage (see AbstractStorableSpectrum). This class is
+ * Iterable, but there is an important point - to avoid consuming memory for each DataPoint
+ * instance, we will iterate over the stored data points with a single DataPoint instance that is
+ * incrementing an internal cursor. That means this code will work:
+ *
+ * {@code for (DataPoint d : spectrum) System.out.println(d.getMz() + ":" + d.getIntensity();} but
+ * this code will NOT work:
+ * {@code ArrayList<DataPoint> list = new ArrayList<>(); list.addAll(spectrum);}
+ *
  */
-public interface MassSpectrum {
+public interface MassSpectrum extends Iterable<DataPoint> {
 
   /**
-   * Returns the m/z range of this Scan. Never returns null.
-   *
-   * @return m/z range of this Scan
+   * @return Number of m/z and intensity data points. This corresponds to the capacity of the
+   *         DoubleBuffers returned by getMzValues() and getIntensityValues()
    */
-  @Nonnull
-  public Range<Double> getDataPointMZRange();
-
-  /**
-   * Returns the top intensity data point. May return null if there are no data points in this Scan.
-   *
-   * @return Base peak
-   */
-  @Nullable
-  public DataPoint getHighestDataPoint();
-
-  /**
-   * Returns the sum of intensities of all data points.
-   *
-   * @return Total ion current
-   */
-  public double getTIC();
+  int getNumberOfDataPoints();
 
   /**
    * Centroid / profile / thresholded
-   * 
-   * @return
+   *
+   * @return Spectrum type
    */
-  public MassSpectrumType getSpectrumType();
+  MassSpectrumType getSpectrumType();
 
   /**
-   * @return Number of m/z and intensity data points
-   */
-  public int getNumberOfDataPoints();
-
-  /**
-   * Returns data points of this m/z table sorted in m/z order.
-   *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
-   *
-   * @return Data points (m/z and intensity pairs) of this scan
+   * @return The m/z values of this spectrum sorted in m/z order. The capacity of the returned
+   *         buffer is equivalent to the number of data points in this spectrum.
    */
   @Nonnull
-  public DataPoint[] getDataPoints();
+  DoubleBuffer getMzValues();
 
   /**
-   * Returns data points in given m/z range, sorted in m/z order.
-   *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
-   *
-   * @return Data points (m/z and intensity pairs) of this MzDataTable
+   * @return The intensity values corresponding to the m/z values returned by getMzValues(). The
+   *         capacity of the returned buffer is equivalent to the number of data points in this
+   *         spectrum.
    */
   @Nonnull
-  public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange);
+  DoubleBuffer getIntensityValues();
 
   /**
-   * Returns data points over given intensity, sorted in m/z order.
-   *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
-   *
-   * @return Data points (m/z and intensity pairs) of this MzDataTable
+   * A shortcut method for {@code getMzValues().get(index)}
    */
-  @Nonnull
-  public DataPoint[] getDataPointsOverIntensity(double intensity);
+  double getMzValue(int index);
+
+  /**
+   * A shortcut method for {@code getIntensityValues().get(index)}
+   */
+  double getIntensityValue(int index);
+
+  /**
+   * @return The m/z value of the highest data point of this spectrum or null if the spectrum has 0
+   *         data points.
+   */
+  @Nullable
+  Double getBasePeakMz();
+
+  /**
+   * @return The intensity value of the highest data point of this spectrum or null if the spectrum
+   *         has 0 data points.
+   */
+  @Nullable
+  Double getBasePeakIntensity();
+
+  /**
+   * @return The index of the top intensity data point or null if the spectrum has 0 data points.
+   */
+  @Nullable
+  Integer getBasePeakIndex();
+
+  /**
+   * @return The m/z range of this spectrum or null if the spectrum has 0 data points.
+   */
+  @Nullable
+  Range<Double> getDataPointMZRange();
+
+  /**
+   * @return The sum of intensities of all data points or null if the spectrum has 0 data points.
+   */
+  @Nullable
+  Double getTIC();
+
+
+  /**
+   * Creates a stream of DataPoints to iterate over this array. To avoid consuming memory for each
+   * DataPoint instance, we will iterate over the stored data points with a single DataPoint
+   * instance that is incrementing an internal cursor. That means this code will NOT work:
+   *
+   * {@code ArrayList<DataPoint> list = spectrum.stream().collect();}
+   *
+   * @return A stream of DataPoint represented by a single DataPoint instance that is iterating over
+   *         the spectrum.
+   */
+  Stream<DataPoint> stream();
 
 }

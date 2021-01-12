@@ -20,17 +20,11 @@ package io.github.mzmine.modules.io.rawdataimport.fileformats;
 
 import java.io.File;
 import java.util.Scanner;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -40,8 +34,7 @@ public class AgilentCsvReadTask extends AbstractTask {
   protected String dataSource;
   private File file;
   private MZmineProject project;
-  private RawDataFileImpl newMZmineFile;
-  private RawDataFile finalRawDataFile;
+  private RawDataFile newMZmineFile;
 
   private int totalScans, parsedScans;
 
@@ -49,19 +42,19 @@ public class AgilentCsvReadTask extends AbstractTask {
    * Creates a new AgilentCSVReadTask
    *
    * @param project
-   * @param fileToOpen    A File instance containing the file to be read
+   * @param fileToOpen A File instance containing the file to be read
    * @param newMZmineFile
    */
-  public AgilentCsvReadTask(MZmineProject project, File fileToOpen,
-      RawDataFileWriter newMZmineFile) {
+  public AgilentCsvReadTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     this.project = project;
     this.file = fileToOpen;
-    this.newMZmineFile = (RawDataFileImpl) newMZmineFile;
+    this.newMZmineFile = newMZmineFile;
   }
 
   /**
    * Reads the file.
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -101,19 +94,22 @@ public class AgilentCsvReadTask extends AbstractTask {
         scanner.next();
 
         int spectrumSize = scanner.nextInt();
-        DataPoint[] dataPoints = new DataPoint[spectrumSize];
+        double mzValues[] = new double[spectrumSize];
+        double intensityValues[] = new double[spectrumSize];
+
         for (int j = 0; j < spectrumSize; j++) {
-          dataPoints[j] = new SimpleDataPoint(scanner.nextDouble(), scanner.nextDouble());
+          mzValues[j] = scanner.nextDouble();
+          intensityValues[j] = scanner.nextDouble();
         }
-        newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1, msLevel, retentionTime, 0.0,
-            charge, dataPoints, ScanUtils.detectSpectrumType(dataPoints),
-            PolarityType.UNKNOWN, "", null));
+        newMZmineFile.addScan(
+            new SimpleScan(newMZmineFile, parsedScans + 1, msLevel, retentionTime, 0.0, charge,
+                mzValues, intensityValues, ScanUtils.detectSpectrumType(mzValues, intensityValues),
+                PolarityType.UNKNOWN, "", null));
 
         scanner.nextLine();
       }
 
-      finalRawDataFile = newMZmineFile.finishWriting();
-      project.addFile(finalRawDataFile);
+      project.addFile(newMZmineFile);
 
     } catch (Exception e) {
       setErrorMessage(e.getMessage());
@@ -130,7 +126,7 @@ public class AgilentCsvReadTask extends AbstractTask {
    * reset the scanner position after reading.
    *
    * @param scanner The Scanner which is reading this AgilentCSV file.
-   * @param key     The key for the metadata to return the value of.
+   * @param key The key for the metadata to return the value of.
    */
   private String getMetaData(Scanner scanner, String key) {
     String line = "";

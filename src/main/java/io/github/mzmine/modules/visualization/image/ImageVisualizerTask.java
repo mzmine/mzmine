@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine 3.
- * 
+ *
  * MZmine 3 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 3; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -30,6 +30,7 @@ import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
@@ -40,9 +41,9 @@ import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.Im
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.project.impl.StorableImagingScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
 
 /*
@@ -128,14 +129,15 @@ public class ImageVisualizerTask extends AbstractTask {
     });
     Scan[] scans = scanSelection.getMatchingScans(rawDataFile);
     for (Scan scan : scans) {
-      if (!(scan instanceof StorableImagingScan) || !scanSelection.matches(scan)) {
+      if (!(scan instanceof ImagingScan) || !scanSelection.matches(scan)) {
         continue;
       }
-      double intensitySum = Arrays.stream(scan.getDataPointsByMass(mzRange))
+      double intensitySum = Arrays
+          .stream(ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange))
           .mapToDouble(DataPoint::getIntensity).sum();
       allDataPoints.add(new ImageDataPoint(0.0, intensitySum, scan.getScanNumber(),
-          (((StorableImagingScan) scan).getCoordinates().getX() + 1) * pixelWidth,
-          (((StorableImagingScan) scan).getCoordinates().getY() + 1) * pixelHeight, 1, pixelHeight,
+          (((ImagingScan) scan).getCoordinates().getX() + 1) * pixelWidth,
+          (((ImagingScan) scan).getCoordinates().getY() + 1) * pixelHeight, 1, pixelHeight,
           pixelWidth, paintScaleParameter));
       progress = (processedScans / (double) scans.length);
       processedScans++;

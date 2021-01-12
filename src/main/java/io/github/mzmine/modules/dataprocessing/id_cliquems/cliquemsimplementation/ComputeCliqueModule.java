@@ -19,6 +19,14 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang3.mutable.MutableDouble;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -28,15 +36,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import io.github.mzmine.util.scans.ScanUtils;
 import javafx.util.Pair;
-import org.apache.commons.lang3.mutable.MutableDouble;
 
 /**
  * This class contains all the data members and functions for finding cliques or groups using
@@ -54,10 +55,10 @@ public class ComputeCliqueModule {
 
   private final CliqueMSTask drivertask;
 
-  //variables to update progress
+  // variables to update progress
   private final MutableDouble progress;
 
-  //cosine correlation matrix calculated over columns of EIC matrix
+  // cosine correlation matrix calculated over columns of EIC matrix
   private double[][] cosineCorrelation;
 
   public ComputeCliqueModule(FeatureList peakList, RawDataFile rdf, MutableDouble progress,
@@ -98,8 +99,8 @@ public class ComputeCliqueModule {
         rtmax = peak.getFeature(dataFile).getRawDataPointsRTRange().upperEndpoint();
         intensity = peak.getFeature(dataFile).getHeight();
         peakListRowID = peak.getID();
-        PeakData peakData = new PeakData(mz, mzmin, mzmax, rt, rtmin, rtmax, intensity, i + 1,
-            peakListRowID);
+        PeakData peakData =
+            new PeakData(mz, mzmin, mzmax, rt, rtmin, rtmax, intensity, i + 1, peakListRowID);
         peakDataList.add(peakData);
       }
     }
@@ -115,7 +116,7 @@ public class ComputeCliqueModule {
    * <p>
    * EIC matrix is further used to calculate cosine similarity matrix
    *
-   * @param file         raw data file
+   * @param file raw data file
    * @param peakDataList contains peak data
    * @return double [][] EIC matrix
    */
@@ -124,8 +125,8 @@ public class ComputeCliqueModule {
     List<Double> rts = new ArrayList<>(); // holds Retention Time values in seconds
     for (Scan scan : file.getScans()) {
       rts.add(scan.getRetentionTime() * 60.0); // conversion for minutes to seconds
-      List<DataPoint> dps = new ArrayList<DataPoint>(
-          Arrays.asList(scan.getDataPoints()));
+      List<DataPoint> dps =
+          new ArrayList<DataPoint>(Arrays.asList(ScanUtils.extractDataPoints(scan)));
 
       dataPoints.add(dps);
     }
@@ -168,7 +169,7 @@ public class ComputeCliqueModule {
 
 
       }
-//      progress update
+      // progress update
       this.progress.setValue(drivertask.EIC_PROGRESS * ((double) i / (double) peakDataList.size()));
     }
 
@@ -176,7 +177,7 @@ public class ComputeCliqueModule {
 
   }
 
-  //TODO make use of sparse matrix, make algo time efficient
+  // TODO make use of sparse matrix, make algo time efficient
 
   /**
    * Computes cosine correlation of data (EIC) matrix over the columns, so for ixj dimension EIC
@@ -211,7 +212,7 @@ public class ComputeCliqueModule {
         modj = Math.sqrt(modj);
         corr[i][j] = corr[i][j] / (modi * modj);
       }
-      //update progress
+      // update progress
       this.progress.setValue(
           drivertask.EIC_PROGRESS + drivertask.MATRIX_PROGRESS * ((double) (i + 1) / (double) col));
     }
@@ -222,17 +223,16 @@ public class ComputeCliqueModule {
   /**
    * identify peaks with very similar cosine correlation, m/z, rt and intensity
    *
-   * @param cosineCorr   cosine correlation matrix
+   * @param cosineCorr cosine correlation matrix
    * @param peakDataList contains features' information
-   * @param mzdiff       tolerance value for mz
-   * @param intdiff      tolerance value for intensity
-   * @param rtdiff       tolerance value for rt
+   * @param mzdiff tolerance value for mz
+   * @param intdiff tolerance value for intensity
+   * @param rtdiff tolerance value for rt
    * @return node ID of similar features
    */
   private List<Integer> similarFeatures(double[][] cosineCorr, List<PeakData> peakDataList,
-      MZTolerance mzdiff, RTTolerance rtdiff,
-      double intdiff) {
-    //find all elements in cosineCorr with i<j and value > 0.99
+      MZTolerance mzdiff, RTTolerance rtdiff, double intdiff) {
+    // find all elements in cosineCorr with i<j and value > 0.99
     List<Integer> edgeX = new ArrayList<>();
     List<Integer> edgeY = new ArrayList<>();
     for (int i = 0; i < cosineCorr.length; i++) {
@@ -252,8 +252,8 @@ public class ComputeCliqueModule {
         Range<Double> mz_Range = mzdiff.getToleranceRange(p1.getMz());
         Range<Float> rt_Range = rtdiff.getToleranceRange((float) p1.getRt());
         double error_int = Math.abs(p1.getIntensity() - p2.getIntensity()) / p1.getIntensity();
-        if ((mz_Range.contains(p2.getMz())) && (rt_Range.contains((float) p2.getRt())) && (error_int
-            < intdiff)) {
+        if ((mz_Range.contains(p2.getMz())) && (rt_Range.contains((float) p2.getRt()))
+            && (error_int < intdiff)) {
           Integer node = (edgeX.get(i) < edgeY.get(i) ? edgeX.get(i) : edgeY.get(i));
           identicalNodes.add((edgeX.get(i) >= edgeY.get(i) ? edgeX.get(i) : edgeY.get(i)));
           nodesToDelete.add(node);
@@ -270,7 +270,7 @@ public class ComputeCliqueModule {
       }
     }
 
-    //annotate peakList for nodes to be deleted
+    // annotate peakList for nodes to be deleted
     for (int i = 0; i < nodesToDelete.size(); i++) {
       Integer nodeToDeleted = nodesToDelete.get(i);
       Integer nodeToReplace = identicalNodes.get(i);
@@ -289,14 +289,13 @@ public class ComputeCliqueModule {
    * Removes nodes that are too similar in rt, mz and intensity values
    *
    * @param cosinus cosine correlation matrix
-   * @param peakDL  peak Data list
-   * @param mzdiff  tolerance values for similarity
-   * @param rtdiff  tolerance values for similarity
+   * @param peakDL peak Data list
+   * @param mzdiff tolerance values for similarity
+   * @param rtdiff tolerance values for similarity
    * @param intdiff tolerance values for similarity
    */
   private void filterFeatures(double[][] cosinus, List<PeakData> peakDL, MZTolerance mzdiff,
-      RTTolerance rtdiff,
-      double intdiff) {
+      RTTolerance rtdiff, double intdiff) {
     List<PeakData> modifiedPeakDataList = new ArrayList<>();
     List<Integer> deleteIndices = similarFeatures(cosinus, peakDL, mzdiff, rtdiff, intdiff);
     if (deleteIndices.size() == 0) {
@@ -304,7 +303,7 @@ public class ComputeCliqueModule {
       return;
     }
 
-    //remove the peakdata containing
+    // remove the peakdata containing
     for (int i = 0; i < peakDataList.size(); i++) {
       PeakData pd = peakDataList.get(i);
       if (deleteIndices.contains(i)) {
@@ -314,9 +313,9 @@ public class ComputeCliqueModule {
       modifiedPeakDataList.add(pdmod);
     }
 
-    double[][] modifiedCosineCorr = new double[cosinus.length - deleteIndices.size()][
-        cosinus[0].length - deleteIndices.size()];
-    //deleting row and columns of indices in deleteIndices
+    double[][] modifiedCosineCorr =
+        new double[cosinus.length - deleteIndices.size()][cosinus[0].length - deleteIndices.size()];
+    // deleting row and columns of indices in deleteIndices
     int colShift = 0;
 
     for (int i = 0; i < cosinus.length; i++) {
@@ -375,18 +374,17 @@ public class ComputeCliqueModule {
       nodeCliqueList.add(p);
     }
 
-    Collections.sort(nodeCliqueList, (o1, o2) -> (int) (o1.getKey() - o2.getKey()));
+    Collections.sort(nodeCliqueList, (o1, o2) -> (o1.getKey() - o2.getKey()));
   }
 
   /**
    * Driver function for calculating clique groups
    *
-   * @param filter  filter similar features
-   * @param mzdiff  tolerance for mz similarity
-   * @param rtdiff  tolerance for rt similarity
+   * @param filter filter similar features
+   * @param mzdiff tolerance for mz similarity
+   * @param rtdiff tolerance for rt similarity
    * @param intdiff tolerance for intensity similarity
-   * @param tol     tolerance for log likelihood function which is minimized for finding the
-   *                clique.
+   * @param tol tolerance for log likelihood function which is minimized for finding the clique.
    * @return AnClique object with calculated cliques.
    */
   public AnClique getClique(boolean filter, MZTolerance mzdiff, RTTolerance rtdiff, double intdiff,
@@ -413,8 +411,8 @@ public class ComputeCliqueModule {
     for (PeakData pd : peakDataList) {
       nodeIDList.add(pd.getNodeID());
     }
-    anClique.getNetwork()
-        .returnCliques(cosineCorrelation, nodeIDList, tol, false, this.progress, this.drivertask);
+    anClique.getNetwork().returnCliques(cosineCorrelation, nodeIDList, tol, false, this.progress,
+        this.drivertask);
     updateCliques();
     this.anClique.cliquesFound = true;
     this.anClique.computeCliqueFromResult();

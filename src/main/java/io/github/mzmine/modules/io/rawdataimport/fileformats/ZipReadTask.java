@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -27,15 +27,11 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.annotation.Nonnull;
-
 import org.apache.commons.io.FilenameUtils;
-
 import com.google.common.io.Files;
-
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFileWriter;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.rawdataimport.RawDataFileType;
 import io.github.mzmine.modules.io.rawdataimport.RawDataFileTypeDetector;
@@ -67,6 +63,7 @@ public class ZipReadTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     // Update task status
@@ -140,7 +137,7 @@ public class ZipReadTask extends AbstractTask {
       }
 
       // Run the import module on the decompressed file
-      RawDataFileWriter newMZmineFile = MZmineCore.createNewFile(newName);
+      RawDataFile newMZmineFile = MZmineCore.createNewFile(newName);
       decompressedOpeningTask =
           RawDataImportModule.createOpeningTask(fileType, project, tmpFile, newMZmineFile);
 
@@ -175,6 +172,7 @@ public class ZipReadTask extends AbstractTask {
 
   }
 
+  @Override
   public String getTaskDescription() {
     if (decompressedOpeningTask != null)
       return decompressedOpeningTask.getTaskDescription();
@@ -185,6 +183,7 @@ public class ZipReadTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (decompressedOpeningTask != null)
       return (decompressedOpeningTask.getFinishedPercentage() / 2.0) + 0.5; // Reports 50% to 100%

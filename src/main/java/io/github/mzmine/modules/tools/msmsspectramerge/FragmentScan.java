@@ -23,23 +23,24 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import org.slf4j.LoggerFactory;
+
 /**
  * A fragment scan consists of a list of MS/MS spectra surrounded by MS1 scans
  */
 
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
-
-import java.util.Comparator;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * An MS/MS scan with some statistics about its precursor in MS
@@ -150,7 +151,7 @@ class FragmentScan {
   /**
    * interpolate the precursor intensity and chimeric intensity of the MS1 scans linearly by
    * retention time to estimate this values for the MS2 scans
-   * 
+   *
    * @return two arrays, one for precursor intensities, one for chimeric intensities, for all MS2
    *         scans
    */
@@ -193,9 +194,10 @@ class FragmentScan {
     Scan spectrum = origin.getScan(ms1Scan);
     this.precursorCharge = spectrum.getPrecursorCharge();
     this.polarity = spectrum.getPolarity();
+    Range<Double> mzRange = Range.closed(precursorMass + isolationWindow.lowerEndpoint(),
+        precursorMass + isolationWindow.upperEndpoint());
     DataPoint[] dps =
-        spectrum.getDataPointsByMass(Range.closed(precursorMass + isolationWindow.lowerEndpoint(),
-            precursorMass + isolationWindow.upperEndpoint()));
+        ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(spectrum), mzRange);
     // for simplicity, just use the most intense peak within massAccuracy
     // range
     int bestPeak = -1;

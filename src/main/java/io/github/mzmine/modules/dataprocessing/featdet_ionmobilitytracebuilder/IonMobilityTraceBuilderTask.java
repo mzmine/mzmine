@@ -34,7 +34,6 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.project.impl.StorableFrame;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
@@ -140,7 +139,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           }
         });
     for (Frame frame : frames) {
-      if (!(frame instanceof StorableFrame) || !scanSelection.matches(frame)) {
+      if (!scanSelection.matches(frame)) {
         continue;
       }
       for (MobilityScan scan : frame.getMobilityScans()) {

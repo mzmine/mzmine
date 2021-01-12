@@ -27,8 +27,10 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import com.google.common.base.Strings;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFileWriter;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -175,7 +177,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
       RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
       logger.finest("File " + fileNames[i] + " type detected as " + fileType);
 
-      RawDataFileWriter newMZmineFile;
+      RawDataFile newMZmineFile;
       try {
         if (fileType == RawDataFileType.BRUKER_TDF) {
           newMZmineFile = MZmineCore.createNewIMSFile(newName);
@@ -221,7 +223,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
   }
 
   public static Task createOpeningTask(RawDataFileType fileType, MZmineProject project,
-      File fileName, RawDataFileWriter newMZmineFile) {
+      File fileName, RawDataFile newMZmineFile) {
     Task newTask = null;
     switch (fileType) {
       case ICPMSMS_CSV:
@@ -234,7 +236,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
         newTask = new MzMLReadTask(project, fileName, newMZmineFile);
         break;
       case IMZML:
-        newTask = new ImzMLReadTask(project, fileName, newMZmineFile);
+        newTask = new ImzMLReadTask(project, fileName, (ImagingRawDataFile) newMZmineFile);
         break;
       case MZXML:
         newTask = new MzXMLReadTask(project, fileName, newMZmineFile);
@@ -254,7 +256,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
         newTask = new ZipReadTask(project, fileName, fileType);
         break;
       case BRUKER_TDF:
-        newTask = new TDFReaderTask(project, fileName, newMZmineFile);
+        newTask = new TDFReaderTask(project, fileName, (IMSRawDataFile) newMZmineFile);
     }
     return newTask;
   }

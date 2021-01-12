@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,10 +20,8 @@ package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 
 import java.io.IOException;
 import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -38,7 +36,7 @@ class ScanFilteringTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private RawDataFile dataFile, filteredRawDataFile;
+  private RawDataFile dataFile, newFile;
 
   // scan counter
   private int processedScans = 0, totalScans;
@@ -111,7 +109,7 @@ class ScanFilteringTask extends AbstractTask {
       // Create new raw data file
 
       String newName = dataFile.getName() + " " + suffix;
-      RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(newName);
+      newFile = MZmineCore.createNewFile(newName);
 
       for (int i = 0; i < totalScans; i++) {
 
@@ -122,12 +120,13 @@ class ScanFilteringTask extends AbstractTask {
         Scan scan = scanNumbers.get(i);
         Scan newScan = null;
         if (select.matches(scan))
-          newScan = rawDataFilter.getModule().filterScan(scan, rawDataFilter.getParameterSet());
+          newScan =
+              rawDataFilter.getModule().filterScan(newFile, scan, rawDataFilter.getParameterSet());
         else
-          newScan = scan;
+          newScan = scan; // TODO need to create a copy of the scan
 
         if (newScan != null) {
-          rawDataFileWriter.addScan(newScan);
+          newFile.addScan(newScan);
         }
 
         processedScans++;
@@ -135,8 +134,7 @@ class ScanFilteringTask extends AbstractTask {
 
       // Finalize writing
       try {
-        filteredRawDataFile = rawDataFileWriter.finishWriting();
-        project.addFile(filteredRawDataFile);
+        project.addFile(newFile);
 
         // Remove the original file if requested
         if (removeOriginal) {

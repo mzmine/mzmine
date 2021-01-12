@@ -39,7 +39,7 @@ import javax.annotation.Nullable;
 /**
  * Mobilogram representation. Values have to be calculated after all data points have been added.
  * Datapoints passed to this mobilogram will be stored in RAM. Use {@link
- * io.github.mzmine.project.impl.StorableMobilogram} to store data points on the disc.
+ * io.github.mzmine.datamodel.impl.StorableMobilogram} to store data points on the disc.
  */
 public class SimpleMobilogram implements Mobilogram {
 

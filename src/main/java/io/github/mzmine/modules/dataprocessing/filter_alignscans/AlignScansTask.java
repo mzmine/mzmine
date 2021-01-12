@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,11 +20,9 @@ package io.github.mzmine.modules.dataprocessing.filter_alignscans;
 
 import java.io.IOException;
 import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
@@ -32,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class AlignScansTask extends AbstractTask {
 
@@ -50,7 +49,6 @@ public class AlignScansTask extends AbstractTask {
   private int scanSpan, mzSpan;
   private boolean logScale = false;
   private boolean removeOriginal;
-  RawDataFile newRDF = null;
 
   /**
    * @param dataFile
@@ -73,6 +71,7 @@ public class AlignScansTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Aligning scans in " + dataFile;
   }
@@ -80,6 +79,7 @@ public class AlignScansTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalScans == 0)
       return 0;
@@ -94,6 +94,7 @@ public class AlignScansTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -103,7 +104,7 @@ public class AlignScansTask extends AbstractTask {
     scanNumbers = dataFile.getScanNumbers(1).toArray(Scan[]::new);
     totalScans = scanNumbers.length;
 
-    RawDataFileWriter newRDFW = null;
+    RawDataFile newRDFW = null;
     try {
       newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix);
 
@@ -116,11 +117,11 @@ public class AlignScansTask extends AbstractTask {
           return;
 
         Scan scan = scanNumbers[i];
-        si = (int) Math.max(0, i - scanSpan);
-        sj = (int) (si + 2 * scanSpan);
+        si = Math.max(0, i - scanSpan);
+        sj = si + 2 * scanSpan;
         if (sj >= totalScans) {
-          si = (int) Math.max(0, si - (sj - totalScans + 1));
-          sj = (int) (si + 2 * scanSpan);
+          si = Math.max(0, si - (sj - totalScans + 1));
+          sj = si + 2 * scanSpan;
         }
         if (scan != null) {
           // Allocate
@@ -129,11 +130,11 @@ public class AlignScansTask extends AbstractTask {
           // Load Data Points
           for (j = si; j <= sj; j++) {
             Scan xscan = scanNumbers[j];
-            mzValues[j - si] = xscan.getDataPoints();
+            mzValues[j - si] = ScanUtils.extractDataPoints(xscan);
           }
           // Estimate Correlations
           ii = i - si;
-          final SimpleScan newScan = new SimpleScan(scan);
+          final SimpleScan newScan = new SimpleScan(newRDFW, scan);
           DataPoint[] newDP = new DataPoint[mzValues[ii].length];
           int maxShift = 0;
           double maxCorrelation = 0;
@@ -202,11 +203,8 @@ public class AlignScansTask extends AbstractTask {
 
       if (!isCanceled()) {
 
-        // Finalize writing
-        newRDF = newRDFW.finishWriting();
-
         // Add the newly created file to the project
-        project.addFile(newRDF);
+        project.addFile(newRDFW);
 
         // Remove the original data file if requested
         if (removeOriginal) {
@@ -219,7 +217,7 @@ public class AlignScansTask extends AbstractTask {
         for (i = -mzSpan; i <= mzSpan; i++) {
           shifts = shifts + i + ":" + shiftedScans[i + mzSpan] + " | ";
         }
-        logger.info("Finished Scan Alignment on " + dataFile + ". Scans per shift = " + shifts);
+        logger.info("Finished scan alignment on " + dataFile + ". Scans per shift = " + shifts);
 
       }
 

@@ -4,16 +4,15 @@
  * This file is part of MZmine.
  *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * General License as published by the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * You should have received a copy of the GNU General License along with MZmine; if not, write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel;
@@ -32,74 +31,81 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
    * @return RawDataFile containing this Scan
    */
   @Nonnull
-  public RawDataFile getDataFile();
+  RawDataFile getDataFile();
 
   /**
    *
    * @return Scan number
    */
-  public int getScanNumber();
+  int getScanNumber();
 
   /**
    *
    * @return Instrument-specific scan definition as String
    */
-  public String getScanDefinition();
+  @Nonnull
+  String getScanDefinition();
 
   /**
    *
    * @return MS level
    */
-  public int getMSLevel();
+  int getMSLevel();
 
   /**
    *
    * @return Retention time of this scan in minutes
    */
-  public float getRetentionTime();
+  float getRetentionTime();
 
   /**
    *
    * @return The actual scanning range of the instrument
    */
-  public @Nonnull Range<Double> getScanningMZRange();
+  @Nonnull
+  Range<Double> getScanningMZRange();
 
   /**
    *
    * @return Precursor m/z or 0 if this is not MSn scan
    */
-  public double getPrecursorMZ();
+  double getPrecursorMZ();
 
-  public @Nonnull PolarityType getPolarity();
+  @Nonnull
+  PolarityType getPolarity();
 
   /**
    *
    * @return Precursor charge or 0 if this is not MSn scan or charge is unknown
    */
-  public int getPrecursorCharge();
+  int getPrecursorCharge();
 
   @Nonnull
-  public MassList[] getMassLists();
+  MassList[] getMassLists();
 
   @Nullable
-  public MassList getMassList(@Nonnull String name);
+  MassList getMassList(@Nonnull String name);
 
-  public void addMassList(@Nonnull MassList massList);
+  void addMassList(@Nonnull MassList massList);
 
-  public void removeMassList(@Nonnull MassList massList);
+  void removeMassList(@Nonnull MassList massList);
+
 
 
   /**
    * Standard method to sort scans
+   *
    * @param s
    * @return
    */
   @Override
   default int compareTo(@Nonnull Scan s) {
+    assert s != null;
     int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
-    if(result!=0)
+    if (result != 0)
       return result;
-    else return Float.compare(this.getRetentionTime(), s.getRetentionTime());
+    else
+      return Float.compare(this.getRetentionTime(), s.getRetentionTime());
   }
 }
 

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.Scan;
@@ -37,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import javafx.collections.ObservableList;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -48,8 +48,15 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 import com.Ostermiller.util.Base64;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import javafx.collections.ObservableList;
 
 public class PeakListSaveHandler {
 
@@ -247,7 +254,8 @@ public class PeakListSaveHandler {
           String.valueOf(feature.getCharge()));
       atts.addAttribute("", "", PeakListElementName.PARENT_CHROMATOGRAM_ROW_ID.getElementName(),
           "CDATA",
-          feature.getParentChromatogramRowID() != null ? String.valueOf(feature.getParentChromatogramRowID())
+          feature.getParentChromatogramRowID() != null
+              ? String.valueOf(feature.getParentChromatogramRowID())
               : "");
       hd.startElement("", "", PeakListElementName.PEAK.getElementName(), atts);
 
@@ -405,7 +413,7 @@ public class PeakListSaveHandler {
 
     AttributesImpl atts = new AttributesImpl();
 
-    DataPoint isotopes[] = isotopePattern.getDataPoints();
+    DataPoint isotopes[] = new DataPoint[0]; // TODO isotopePattern.getDataPoints();
 
     for (DataPoint isotope : isotopes) {
       hd.startElement("", "", PeakListElementName.ISOTOPE.getElementName(), atts);

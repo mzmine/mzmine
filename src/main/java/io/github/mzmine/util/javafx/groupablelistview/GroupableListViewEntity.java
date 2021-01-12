@@ -20,6 +20,7 @@ package io.github.mzmine.util.javafx.groupablelistview;
 
 /**
  * Class designed to be used as an item of {@link GroupableListView}.
+ *
  * @param <T> type of the list view item value
  */
 public class GroupableListViewEntity<T> {
@@ -100,15 +101,16 @@ public class GroupableListViewEntity<T> {
   }
 
   public boolean isGroupHeader() {
-    assertVariables(true);
+    // assertVariables(true);
     return groupHeader != null;
   }
 
   private void assertVariables(boolean isGroupHeader) {
     if (isGroupHeader) {
-      assert groupHeader != null && value == null : "Invalid state of the group header " + toString();
+      assert groupHeader != null && value == null : "Invalid state of the group header "
+          + groupHeader;
     } else {
-      assert groupHeader == null && value != null : "Invalid state of the value " + toString();
+      assert groupHeader == null && value != null : "Invalid state of the value " + value;
     }
   }
 

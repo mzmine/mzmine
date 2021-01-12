@@ -17,7 +17,12 @@
  */
 package io.github.mzmine.datamodel.impl;
 
-import com.google.common.collect.Range;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
@@ -25,84 +30,49 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.util.scans.ScanUtils;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import io.github.mzmine.datamodel.RawDataFile;
 
 /**
  * @author https://github.com/SteffenHeu
  * @see io.github.mzmine.datamodel.MobilityScan
  */
-public class SimpleMobilityScan implements MobilityScan {
+public class SimpleMobilityScan extends AbstractStorableSpectrum implements MobilityScan {
 
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private final RawDataFile dataFile;
   private final Frame frame;
-  private final DataPoint[] dataPoints;
-  private final DataPoint highestDataPoint;
-  private final double totalIonCount;
-  private final int mobilityScamNumber;
-  private Range<Double> dataPointsMzRange;
+  private int mobilityScamNumber;
+  private Set<MassList> massLists;
 
-  public SimpleMobilityScan(int mobilityScamNumber, Frame frame, DataPoint[] dataPoints) {
+  public SimpleMobilityScan(RawDataFile dataFile, int mobilityScamNumber, Frame frame,
+      DataPoint dataPoints[]) {
+    super(dataFile.getMemoryMapStorage());
+    this.dataFile = dataFile;
     this.frame = frame;
-    this.dataPoints = dataPoints;
-    ScanUtils.sortDataPointsByMz(this.dataPoints);
-    this.totalIonCount = ScanUtils.getTIC(dataPoints, 0.d);
-    if(dataPoints.length == 0) {
-      highestDataPoint = null;
-    } else {
-      this.highestDataPoint = ScanUtils.findTopDataPoint(dataPoints);
-    }
+
     this.mobilityScamNumber = mobilityScamNumber;
+    setDataPoints(dataPoints);
   }
 
-  @Nonnull
-  @Override
-  public Range<Double> getDataPointMZRange() {
-    if (dataPointsMzRange == null) {
-      dataPointsMzRange = ScanUtils.findMzRange(dataPoints);
-    }
-    return dataPointsMzRange;
+  public SimpleMobilityScan(RawDataFile dataFile, int mobilityScamNumber, Frame frame,
+      double mzValues[], double intensityValues[]) {
+    super(dataFile.getMemoryMapStorage());
+    this.dataFile = dataFile;
+    this.frame = frame;
+
+    this.mobilityScamNumber = mobilityScamNumber;
+    setDataPoints(mzValues, intensityValues);
   }
 
-  @Nullable
-  @Override
-  public DataPoint getHighestDataPoint() {
-    return highestDataPoint;
-  }
 
-  @Override
-  public double getTIC() {
-    return totalIonCount;
-  }
 
   @Override
   public MassSpectrumType getSpectrumType() {
     return frame.getSpectrumType();
   }
 
-  @Override
-  public int getNumberOfDataPoints() {
-    return dataPoints.length;
-  }
 
-  @Nonnull
-  @Override
-  public DataPoint[] getDataPoints() {
-    return dataPoints;
-  }
-
-  @Nonnull
-  @Override
-  public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
-    return ScanUtils.getDataPointsByMass(dataPoints, mzRange);
-  }
-
-  @Nonnull
-  @Override
-  public DataPoint[] getDataPointsOverIntensity(double intensity) {
-    return ScanUtils.getFiltered(dataPoints, intensity);
-  }
 
   @Override
   public double getMobility() {
@@ -136,23 +106,48 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public synchronized void addMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException();
+  public synchronized void addMassList(final @Nonnull MassList massList) {
+
+    // Remove all mass lists with same name, if there are any
+    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
+    for (MassList ml : currentMassLists) {
+      if (ml.getName().equals(massList.getName())) {
+        removeMassList(ml);
+      }
+    }
+
+    // Add the new mass list
+    massLists.add(massList);
   }
 
   @Override
-  public synchronized void removeMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException();
+  public synchronized void removeMassList(final @Nonnull MassList massList) {
+
+    // Remove the mass list
+    massLists.remove(massList);
+
   }
 
   @Override
   @Nonnull
   public Set<MassList> getMassLists() {
-    throw new UnsupportedOperationException();
+    return Objects.requireNonNullElse(massLists, Collections.emptySet());
   }
 
   @Override
   public MassList getMassList(@Nonnull String name) {
-    throw new UnsupportedOperationException();
+    for (MassList ml : massLists) {
+      if (ml.getName().equals(name)) {
+        return ml;
+      }
+    }
+    return null;
   }
+
+  @Override
+  public RawDataFile getDataFile() {
+    return dataFile;
+  }
+
+
 }

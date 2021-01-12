@@ -19,12 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.roundresample;
 
 import java.util.ArrayList;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleScan;
 
 /*
  * Adapted from MSDK: https://github.com/msdk/msdk/blob/master/msdk-rawdata/
@@ -33,25 +29,10 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
  */
 public class LocMaxCentroidingAlgorithm {
 
-  private final DataPoint[] dataPoints;
-  private Scan inputScan;
-  private SimpleScan newScan;
+  public static DataPoint[] centroidScan(DataPoint dataPoints[]) {
 
-  // Data structures
-  private double mzBuffer[] = null;
-  private double intensityBuffer[] = null;
-
-  public LocMaxCentroidingAlgorithm(Scan inputScan) {
-    this.inputScan = inputScan;
-    this.dataPoints = inputScan.getDataPoints();
-    mzBuffer = new double[this.dataPoints.length];
-    intensityBuffer = new double[this.dataPoints.length];
-  }
-
-  public Scan centroidScan() {
-
-    // Copy all scan properties
-    this.newScan = new SimpleScan(inputScan);
+    double mzBuffer[] = new double[dataPoints.length];
+    double intensityBuffer[] = new double[dataPoints.length];
 
     // Load data points
     for (int i = 0; i < dataPoints.length; ++i) {
@@ -59,7 +40,7 @@ public class LocMaxCentroidingAlgorithm {
       intensityBuffer[i] = dataPoints[i].getIntensity();
     }
 
-    final int numOfDataPoints = inputScan.getNumberOfDataPoints();
+    final int numOfDataPoints = dataPoints.length;
     int newNumOfDataPoints = 0;
 
     // If there are no data points, just return the scan
@@ -68,9 +49,7 @@ public class LocMaxCentroidingAlgorithm {
       for (int i = 0; i < numOfDataPoints; ++i) {
         newDataPoints.add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
       }
-      newScan.setDataPoints(newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]));
-      newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
-      return newScan;
+      return newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]);
     }
 
     int localMaximumIndex = 0;
@@ -125,10 +104,8 @@ public class LocMaxCentroidingAlgorithm {
     for (int i = 0; i < newNumOfDataPoints; ++i) {
       newDataPoints.add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
     }
-    newScan.setDataPoints(newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]));
-    newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
 
-    return newScan;
+    return newDataPoints.toArray(new DataPoint[newDataPoints.size()]);
 
   }
 

@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
@@ -44,6 +45,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  *
@@ -65,9 +67,9 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private String element = "C";
   private boolean autoRemove;
 
-  public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
+  public DPPIsotopeGrouperTask(MassSpectrum spectrum, SpectraPlot plot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
-    super(dataPoints, plot, parameterSet, controller, listener);
+    super(spectrum, plot, parameterSet, controller, listener);
 
     // Get parameter values for easier use
     mzTolerance = parameterSet.getParameter(DPPIsotopeGrouperParameters.mzTolerance).getValue();
@@ -99,24 +101,22 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
           "Data point/Spectra processing: Invalid element parameter in " + getTaskDescription());
     }
 
-    if (getDataPoints().length == 0) {
+    if (getDataPoints().getNumberOfDataPoints() == 0) {
       logger.info("Data point/Spectra processing: 0 data points were passed to "
           + getTaskDescription() + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
     }
 
-    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
-      logger.warning(
-          "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
-              + " Make sure to run mass detection first.");
-      setStatus(TaskStatus.CANCELED);
-      return;
-    }
+    /*
+     * if (!(getDataPoints() instanceof ProcessedDataPoint[])) { logger.warning(
+     * "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
+     * + " Make sure to run mass detection first."); setStatus(TaskStatus.CANCELED); return; }
+     */
 
     setStatus(TaskStatus.PROCESSING);
 
-    ProcessedDataPoint[] dataPoints = (ProcessedDataPoint[]) getDataPoints();
+    ProcessedDataPoint[] dataPoints = {}; // (ProcessedDataPoint[]) getDataPoints();
 
     int charges[] = new int[maximumCharge];
     for (int i = 0; i < maximumCharge; i++)
@@ -124,8 +124,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
     IsotopePattern pattern =
         IsotopePatternCalculator.calculateIsotopePattern(element, 0.01, 1, PolarityType.POSITIVE);
-    double isotopeDistance =
-        pattern.getDataPoints()[1].getMZ() - pattern.getDataPoints()[0].getMZ();
+    double isotopeDistance = pattern.getMzValue(1) - pattern.getMzValue(0);
 
     ProcessedDataPoint[] sortedDataPoints = dataPoints.clone();
     Arrays.sort(sortedDataPoints, (d1, d2) -> {
@@ -306,9 +305,9 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (getDataPoints().length == 0)
+    if (getDataPoints().getNumberOfDataPoints() == 0)
       return 0.0f;
-    return (double) processedPeaks / (double) getDataPoints().length;
+    return processedPeaks / (double) getDataPoints().getNumberOfDataPoints();
   }
 
   @Override
@@ -342,7 +341,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     List<DataPoint> dpList = new ArrayList<>();
 
     for (IsotopePattern pattern : list) {
-      for (DataPoint dp : pattern.getDataPoints())
+      for (DataPoint dp : ScanUtils.extractDataPoints(pattern))
         dpList.add(dp);
     }
     if (dpList.isEmpty())

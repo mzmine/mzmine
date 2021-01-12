@@ -18,6 +18,12 @@
 
 package io.github.mzmine.modules.visualization.mobilogram;
 
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
@@ -30,12 +36,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramChangeListener;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.PreviewMobilogram;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.project.impl.StorableFrame;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -47,7 +47,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-import javax.annotation.Nullable;
 
 public class MobilogramVisualizerController {
 
@@ -119,8 +118,8 @@ public class MobilogramVisualizerController {
 
     UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     MobilityType type = ((IMSRawDataFile) selectedFile).getMobilityType();
-    String xLabel = "Ion mobility " + unitFormat.format("(" + type.getAxisLabel() + ")",
-        type.getUnit());
+    String xLabel =
+        "Ion mobility " + unitFormat.format("(" + type.getAxisLabel() + ")", type.getUnit());
     mobilogramChart.setDomainAxisLabel(xLabel);
     frameSelector.getItems().addAll(((IMSRawDataFile) selectedFile).getFrames());
   }
@@ -128,9 +127,8 @@ public class MobilogramVisualizerController {
   public void onFrameSelectionChanged(ActionEvent actionEvent) {
     Frame selectedFrame = frameSelector.getValue();
     mobilogramSelector.getItems().clear();
-    if (selectedFrame instanceof StorableFrame) { // simple frame cannot have mobilograms
-      mobilogramSelector.getItems().addAll(selectedFrame.getMobilograms());
-    }
+    // Temporarily disabled
+    // mobilogramSelector.getItems().addAll(selectedFrame.getMobilograms());
   }
 
   public void onMobilogramSelectionChanged(ActionEvent actionEvent) {
@@ -194,20 +192,20 @@ public class MobilogramVisualizerController {
 
   private void initFrameBox() {
     Callback<ListView<Frame>, ListCell<Frame>> listViewListCellCallback =
-        (ListView<Frame> param) ->
-            new ListCell<>() {
-              @Override
-              protected void updateItem(Frame item, boolean empty) {
-                super.updateItem(item, empty);
-                if (item == null || empty) {
-                  setGraphic(null);
-                } else {
-                  setText(item.getFrameId() + " MS" + item.getMSLevel() + " @" +
-                      rtFormat.format(item.getRetentionTime()) +
-                      " min (" + item.getMobilograms().size() + ")");
-                }
-              }
-            };
+        (ListView<Frame> param) -> new ListCell<>() {
+          @Override
+          protected void updateItem(Frame item, boolean empty) {
+            super.updateItem(item, empty);
+            if (item == null || empty) {
+              setGraphic(null);
+            } else {
+              // Temporarily disabled
+              // setText(item.getFrameId() + " MS" + item.getMSLevel() + " @"
+              // + rtFormat.format(item.getRetentionTime()) + " min ("
+              // + item.getMobilograms().size() + ")");
+            }
+          }
+        };
 
     frameSelector.setConverter(new StringConverter<>() {
       @Override
@@ -215,9 +213,9 @@ public class MobilogramVisualizerController {
         if (item == null) {
           return "";
         }
-        return item.getFrameId() + " MS" + item.getMSLevel() + " @" + rtFormat
-            .format(item.getRetentionTime()) +
-            " min (" + item.getMobilograms().size() + ")";
+        return item.getFrameId() + " MS" + item.getMSLevel() + " @"
+            + rtFormat.format(item.getRetentionTime()) + " min (" // + item.getMobilograms().size()
+            + ")";
       }
 
       @Override

@@ -18,24 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -47,7 +35,13 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.autocarbon.AutoCarbonParameters;
@@ -57,9 +51,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.scans.ScanUtils;
+import javafx.collections.ObservableList;
 
 /**
  * This will scan a feature list for calculated isotope patterns. This class loops through every
@@ -94,7 +91,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private MZmineProject project;
   private FeatureList peakList;
   private boolean checkRT;
-  private ExtendedIsotopePattern[] pattern;
+  private SimpleIsotopePattern[] pattern;
   private PolarityType polarityType;
   private int charge;
   private boolean accurateAvgIntensity;
@@ -241,7 +238,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
     PeakListHandler plh = new PeakListHandler();
     plh.setUp(peakList);
 
-    resultPeakList = new ModularFeatureList(peakList.getName() + suffix, peakList.getRawDataFiles());
+    resultPeakList =
+        new ModularFeatureList(peakList.getName() + suffix, peakList.getRawDataFiles());
     PeakListHandler resultMap = new PeakListHandler();
 
     for (int i = 0; i < totalRows; i++) {
@@ -482,13 +480,15 @@ public class IsotopePeakScannerTask extends AbstractTask {
                                                                     // groupedPeaks[0]/
       // ==candidates.get(0) which we added before
       {
-        ModularFeatureListRow originalChild = getRowFromCandidate(candidates, bestPatternIndex, k, plh);
+        ModularFeatureListRow originalChild =
+            getRowFromCandidate(candidates, bestPatternIndex, k, plh);
 
         if (originalChild == null) {
           allPeaksAddable = false;
           continue;
         }
-        ModularFeatureListRow child = new ModularFeatureListRow(resultPeakList, originalChild, true);
+        ModularFeatureListRow child =
+            new ModularFeatureListRow(resultPeakList, originalChild, true);
 
         if (accurateAvgIntensity) {
           dp[k] = new SimpleDataPoint(child.getAverageMZ(),
@@ -503,7 +503,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         }
 
         addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern[bestPatternIndex],
-            pattern[bestPatternIndex].getHighestDataPointIndex()));
+            pattern[bestPatternIndex].getBasePeakIndex()));
         if (accurateAvgIntensity)
           addComment(parent, " Avg pattern rating: "
               + round(candidates[bestPatternIndex].getAvgAccAvgRating(), 3));
@@ -518,7 +518,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
                 + " I(c)/I(p): "
                 + round(child.getAverageHeight() / plh
                     .getRowByID(candidates[bestPatternIndex]
-                        .get(pattern[bestPatternIndex].getHighestDataPointIndex()).getCandID())
+                        .get(pattern[bestPatternIndex].getBasePeakIndex()).getCandID())
                     .getAverageHeight(), 2)
                 + " Identity: " + pattern[bestPatternIndex].getIsotopeComposition(k) + " Rating: "
                 + round(candidates[bestPatternIndex].get(k).getRating(), 3) + average));
@@ -606,9 +606,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   /**
-   * This calculates the isotope pattern using ExtendedIsotopePattern and creates an
-   * ArrayList<Double> that will contain the mass shift for every expected isotope peak relative to
-   * the one with the lowest mass.
+   * This calculates the isotope pattern using SimpleIsotopePattern and creates an ArrayList<Double>
+   * that will contain the mass shift for every expected isotope peak relative to the one with the
+   * lowest mass.
    *
    * @return
    */
@@ -622,7 +622,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
       String[] strPattern = new String[carbonRange];
 
-      ExtendedIsotopePattern patternBuffer[] = new ExtendedIsotopePattern[carbonRange];
+      SimpleIsotopePattern patternBuffer[] = new SimpleIsotopePattern[carbonRange];
 
       // in the following for we calculate up the patterns
       for (int p = 0; p < carbonRange; p++) {
@@ -633,9 +633,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
         try {
           patternBuffer[p] =
-              (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(
-                  strPattern[p], 0.001, mergeWidth, charge, polarityType, true);
-          patternBuffer[p] = (ExtendedIsotopePattern) IsotopePatternCalculator
+              (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(strPattern[p],
+                  0.001, mergeWidth, charge, polarityType, true);
+          patternBuffer[p] = (SimpleIsotopePattern) IsotopePatternCalculator
               .removeDataPointsBelowIntensity(patternBuffer[p], minPatternIntensity);
         } catch (Exception e) {
           logger.warning("The entered Sum formula is invalid.");
@@ -662,14 +662,14 @@ public class IsotopePeakScannerTask extends AbstractTask {
       logger.info("about to add " + sizeCounter + " patterns to the scan.");
       diff = new double[sizeCounter][];
       int addCounter = 0;
-      pattern = new ExtendedIsotopePattern[sizeCounter];
+      pattern = new SimpleIsotopePattern[sizeCounter];
       for (int p = 0; p < carbonRange; p++) {
 
         if (patternBuffer[p] == null)
           continue;
 
         pattern[addCounter] = patternBuffer[p];
-        DataPoint[] points = patternBuffer[p].getDataPoints();
+        DataPoint[] points = ScanUtils.extractDataPoints(patternBuffer[p]);
         diff[addCounter] = new double[points.length];
 
         if (maxPatternSize < diff[addCounter].length) {
@@ -684,12 +684,12 @@ public class IsotopePeakScannerTask extends AbstractTask {
       }
     } else /* if(scanType == ScanType.SPECIFIC) */ {
       diff = new double[1][];
-      pattern = new ExtendedIsotopePattern[1];
-      pattern[0] = (ExtendedIsotopePattern) IsotopePatternCalculator
-          .calculateIsotopePattern(element, 0.001, mergeWidth, charge, polarityType, true);
-      pattern[0] = (ExtendedIsotopePattern) IsotopePatternCalculator
+      pattern = new SimpleIsotopePattern[1];
+      pattern[0] = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(element,
+          0.001, mergeWidth, charge, polarityType, true);
+      pattern[0] = (SimpleIsotopePattern) IsotopePatternCalculator
           .removeDataPointsBelowIntensity(pattern[0], minPatternIntensity);
-      DataPoint[] points = pattern[0].getDataPoints();
+      DataPoint[] points = ScanUtils.extractDataPoints(pattern[0]);
       diff[0] = new double[points.length];
 
       if (maxPatternSize < diff[0].length) {
@@ -712,7 +712,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @return will return ArrayList<PeakListRow> of all peaks within the range of pL[parentIndex].mz
    *         -> pL[parentIndex].mz+maxMass
    */
-  private ArrayList<FeatureListRow> groupPeaks(FeatureListRow[] pL, int parentIndex, double maxDiff) {
+  private ArrayList<FeatureListRow> groupPeaks(FeatureListRow[] pL, int parentIndex,
+      double maxDiff) {
 
     ArrayList<FeatureListRow> buf = new ArrayList<FeatureListRow>();
 
@@ -757,7 +758,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @return String of intensity ratios seperated by ":"
    */
   private static String getIntensityRatios(IsotopePattern pattern, int index) {
-    DataPoint[] dp = pattern.getDataPoints();
+    DataPoint[] dp = ScanUtils.extractDataPoints(pattern);
 
     String ratios = "";
     for (int i = 0; i < dp.length; i++)
@@ -793,8 +794,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   /**
-   * Add feature list to project, delete old if requested, add description to result,
-   * show new feature list in a new tab
+   * Add feature list to project, delete old if requested, add description to result, show new
+   * feature list in a new tab
    */
   public void addResultToProject() {
     // Add new peakList to the project
@@ -811,8 +812,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   private PolarityType getPeakListPolarity(FeatureList peakList) {
-    return peakList.getRawDataFiles().stream().map(raw -> raw.getDataPolarity().stream().findFirst().orElse(PolarityType.UNKNOWN)).findFirst()
-        .orElse(PolarityType.UNKNOWN);
+    return peakList.getRawDataFiles().stream()
+        .map(raw -> raw.getDataPolarity().stream().findFirst().orElse(PolarityType.UNKNOWN))
+        .findFirst().orElse(PolarityType.UNKNOWN);
   }
 
   private boolean checkParameters() {

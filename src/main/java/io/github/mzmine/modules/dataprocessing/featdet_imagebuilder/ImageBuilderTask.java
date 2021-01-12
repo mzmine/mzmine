@@ -33,6 +33,7 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -45,7 +46,6 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Imaging
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.project.impl.StorableImagingScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
@@ -137,7 +137,7 @@ public class ImageBuilderTask extends AbstractTask {
     });
     Scan[] scans = scanSelection.getMatchingScans(rawDataFile);
     for (Scan scan : scans) {
-      if (!(scan instanceof StorableImagingScan) || !scanSelection.matches(scan)) {
+      if (!(scan instanceof ImagingScan) || !scanSelection.matches(scan)) {
         continue;
       }
       if (scan.getMassList(massList) == null) {
@@ -145,11 +145,10 @@ public class ImageBuilderTask extends AbstractTask {
         setErrorMessage("Scan #" + scan.getScanNumber() + " does not have a mass list " + massList);
       } else {
         Arrays.stream(scan.getMassList(massList).getDataPoints())
-            .forEach(dp -> allDataPoints
-                .add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(), scan.getScanNumber(),
-                    ((StorableImagingScan) scan).getCoordinates().getX() * pixelWidth,
-                    ((StorableImagingScan) scan).getCoordinates().getY() * pixelHeight, 1,
-                    pixelHeight, pixelWidth, paintScaleParameter)));
+            .forEach(dp -> allDataPoints.add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(),
+                scan.getScanNumber(), ((ImagingScan) scan).getCoordinates().getX() * pixelWidth,
+                ((ImagingScan) scan).getCoordinates().getY() * pixelHeight, 1, pixelHeight,
+                pixelWidth, paintScaleParameter)));
       }
       progress = (processedScans / (double) scans.length) / 4;
       processedScans++;

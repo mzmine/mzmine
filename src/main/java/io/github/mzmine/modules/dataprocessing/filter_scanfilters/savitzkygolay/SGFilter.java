@@ -20,13 +20,14 @@ package io.github.mzmine.modules.dataprocessing.filter_scanfilters.savitzkygolay
 
 import java.util.Hashtable;
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class SGFilter implements ScanFilter {
 
@@ -72,7 +73,7 @@ public class SGFilter implements ScanFilter {
   }
 
   @Override
-  public Scan filterScan(Scan scan, ParameterSet parameters) {
+  public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
 
     int numOfDataPoints = parameters.getParameter(SGFilterParameters.datapoints).getValue();
 
@@ -87,7 +88,7 @@ public class SGFilter implements ScanFilter {
     int marginSize = (numOfDataPoints + 1) / 2 - 1;
     double sumOfInts;
 
-    DataPoint oldDataPoints[] = scan.getDataPoints();
+    DataPoint oldDataPoints[] = ScanUtils.extractDataPoints(scan);
     int newDataPointsLength = oldDataPoints.length - (marginSize * 2);
 
     // only process scans with datapoints
@@ -123,7 +124,7 @@ public class SGFilter implements ScanFilter {
 
     }
 
-    SimpleScan newScan = new SimpleScan(scan);
+    SimpleScan newScan = new SimpleScan(newFile, scan);
     newScan.setDataPoints(newDataPoints);
     return newScan;
 

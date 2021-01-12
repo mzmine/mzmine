@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,25 +18,22 @@
 
 package io.github.mzmine.modules.visualization.neutralloss;
 
-import io.github.mzmine.util.RangeUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
-
-import javafx.application.Platform;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
+import javafx.application.Platform;
 
 class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
@@ -102,10 +99,10 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
       }
 
       // get m/z and intensity values
-      DataPoint scanDataPoints[] = scan.getDataPoints();
+      DataPoint scanDataPoints[] = ScanUtils.extractDataPoints(scan);
 
       // skip empty scans
-      if (scan.getHighestDataPoint() == null) {
+      if (scan.getBasePeakMz() == null) {
         processedScans++;
         continue;
       }
@@ -123,7 +120,8 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
             return;
 
           if ((topFeatures[j] < 0)
-              || (scanDataPoints[i].getIntensity()) > scanDataPoints[topFeatures[j]].getIntensity()) {
+              || (scanDataPoints[i].getIntensity()) > scanDataPoints[topFeatures[j]]
+                  .getIntensity()) {
 
             // shift the top features array
             for (int k = numOfFragments - 1; k > j; k--)

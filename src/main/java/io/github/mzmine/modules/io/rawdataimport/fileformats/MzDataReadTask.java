@@ -25,21 +25,15 @@ import java.nio.ByteOrder;
 import java.util.Base64;
 import java.util.LinkedList;
 import java.util.logging.Logger;
-
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -55,8 +49,7 @@ public class MzDataReadTask extends AbstractTask {
 
   private File file;
   private MZmineProject project;
-  private RawDataFileWriter newMZmineFile;
-  private RawDataFile finalRawDataFile;
+  private RawDataFile newMZmineFile;
   private int totalScans = 0, parsedScans;
   private int peaksCount = 0;
   private StringBuilder charBuffer;
@@ -99,7 +92,7 @@ public class MzDataReadTask extends AbstractTask {
    */
   private LinkedList<SimpleScan> parentStack;
 
-  public MzDataReadTask(MZmineProject project, File fileToOpen, RawDataFileWriter newMZmineFile) {
+  public MzDataReadTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     // 256 kilo-chars buffer
     charBuffer = new StringBuilder(1 << 18);
     parentStack = new LinkedList<SimpleScan>();
@@ -111,6 +104,7 @@ public class MzDataReadTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
   }
@@ -118,6 +112,7 @@ public class MzDataReadTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -131,9 +126,7 @@ public class MzDataReadTask extends AbstractTask {
       SAXParser saxParser = factory.newSAXParser();
       saxParser.parse(file, handler);
 
-      // Close file
-      finalRawDataFile = newMZmineFile.finishWriting();
-      project.addFile(finalRawDataFile);
+      project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
       e.printStackTrace();
@@ -157,12 +150,14 @@ public class MzDataReadTask extends AbstractTask {
 
   }
 
+  @Override
   public String getTaskDescription() {
     return "Opening file " + file;
   }
 
   private class MzDataHandler extends DefaultHandler {
 
+    @Override
     public void startElement(String namespaceURI, String lName, // local
         // name
         String qName, // qualified name
@@ -284,6 +279,7 @@ public class MzDataReadTask extends AbstractTask {
      *
      * @throws IOException
      */
+    @Override
     public void endElement(String namespaceURI, String sName, // simple name
         String qName // qualified name
     ) throws SAXException {
@@ -301,20 +297,15 @@ public class MzDataReadTask extends AbstractTask {
       // <spectrum>
       if (qName.equalsIgnoreCase("spectrum")) {
 
-        DataPoint dataPoints[] = new DataPoint[peaksCount];
         spectrumInstrumentFlag = false;
 
-        // Copy m/z and intensity data
-        for (int i = 0; i < dataPoints.length; i++) {
-          dataPoints[i] =
-              new SimpleDataPoint((double) mzDataPoints[i], (double) intensityDataPoints[i]);
-        }
-
         // Auto-detect whether this scan is centroided
-        MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
+        MassSpectrumType spectrumType =
+            ScanUtils.detectSpectrumType(mzDataPoints, intensityDataPoints);
 
-        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-            precursorCharge, dataPoints, spectrumType, polarity, "", null);
+        buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
+            precursorMz, precursorCharge, mzDataPoints, intensityDataPoints, spectrumType, polarity,
+            "", null);
 
         /*
          * Verify the size of parentStack. The actual size of the window to cover possible
@@ -355,7 +346,7 @@ public class MzDataReadTask extends AbstractTask {
 
         for (int i = 0; i < mzDataPoints.length; i++) {
           if (precision == null || precision.equals("32")) {
-            mzDataPoints[i] = (double) currentMzBytes.getFloat();
+            mzDataPoints[i] = currentMzBytes.getFloat();
           } else {
             mzDataPoints[i] = currentMzBytes.getDouble();
           }
@@ -380,7 +371,7 @@ public class MzDataReadTask extends AbstractTask {
 
         for (int i = 0; i < intensityDataPoints.length; i++) {
           if (precision == null || precision.equals("32")) {
-            intensityDataPoints[i] = (double) currentIntensityBytes.getFloat();
+            intensityDataPoints[i] = currentIntensityBytes.getFloat();
           } else {
             intensityDataPoints[i] = currentIntensityBytes.getDouble();
           }
@@ -393,10 +384,12 @@ public class MzDataReadTask extends AbstractTask {
      *
      * @see org.xml.sax.ContentHandler#characters(char[], int, int)
      */
+    @Override
     public void characters(char buf[], int offset, int len) throws SAXException {
       charBuffer.append(buf, offset, len);
     }
 
+    @Override
     public void endDocument() throws SAXException {
       while (!parentStack.isEmpty()) {
         SimpleScan scan = parentStack.removeLast();
