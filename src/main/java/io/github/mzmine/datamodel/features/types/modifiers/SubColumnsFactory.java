@@ -42,6 +42,12 @@ public interface SubColumnsFactory<T> {
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       final @Nullable RawDataFile raw);
 
+  @Nonnull
+  public int getNumberOfSubColumns();
+
+  @Nullable
+  public String getHeader(int subcolumn);
+
   @Nullable
   public String getFormattedSubColValue(int subcolumn,
       TreeTableCell<ModularFeatureListRow, Object> cell,

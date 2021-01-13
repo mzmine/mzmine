@@ -112,6 +112,22 @@ public abstract class ModularType extends DataType<ModularTypeProperty>
     return index>=0 && index<getSubDataTypes().size()? getSubDataTypes().get(index) : null;
   }
 
+
+  @Nonnull
+  @Override
+  public int getNumberOfSubColumns() {
+    return getSubDataTypes().size();
+  }
+
+  @Nullable
+  @Override
+  public String getHeader(int subcolumn) {
+    List<DataType> list = getSubDataTypes();
+    if(subcolumn>=0 && subcolumn<list.size())
+    return list.get(subcolumn).getHeaderString();
+    else throw new IndexOutOfBoundsException("Sub column index "+subcolumn+" is out of range "+list.size());
+  }
+
   @Override
   @Nullable
   public String getFormattedSubColValue(int subcolumn,
