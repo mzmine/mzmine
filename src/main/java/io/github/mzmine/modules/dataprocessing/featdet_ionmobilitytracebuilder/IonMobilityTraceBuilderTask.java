@@ -39,10 +39,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertorIonMobility;
 import io.github.mzmine.util.FeatureConvertors;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,23 +65,21 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final MZmineProject project;
   private final RawDataFile rawDataFile;
   private final String suffix;
-  private final Set<Frame> frames;
+  private final List<Frame> frames;
   private final MZTolerance mzTolerance;
   private final String massList;
   private final int minDataPointsRt;
   private final int minTotalSignals;
   private final ScanSelection scanSelection;
-  private final PaintScale paintScaleParameter;
   private RangeSet<Double> rangeSet = TreeRangeSet.create();
   private HashMap<Range<Double>, IIonMobilityTrace> rangeToIonTraceMap = new HashMap<>();
   private double progress = 0.0;
   private String taskDescription = "";
-  private double mobilityWidth;
   private List<Frame> sortedFrames;
 
   @SuppressWarnings("unchecked")
   public IonMobilityTraceBuilderTask(MZmineProject project, RawDataFile rawDataFile,
-      Set<Frame> frames, ParameterSet parameters) {
+      List<Frame> frames, ParameterSet parameters) {
     this.project = project;
     this.rawDataFile = rawDataFile;
     this.mzTolerance =
@@ -95,12 +91,10 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         parameters.getParameter(IonMobilityTraceBuilderParameters.minTotalSignals).getValue();
     this.scanSelection =
         parameters.getParameter(IonMobilityTraceBuilderParameters.scanSelection).getValue();
-    this.frames = (Set<Frame>) scanSelection.getMachtingScans((frames));
+    this.frames = (List<Frame>) scanSelection.getMachtingScans((frames));
     this.sortedFrames = this.frames.stream().sorted(Comparator.comparingInt(Frame::getFrameId))
         .collect(
             Collectors.toList());
-    this.paintScaleParameter =
-        parameters.getParameter(IonMobilityTraceBuilderParameters.paintScale).getValue();
     this.suffix = parameters.getParameter(IonMobilityTraceBuilderParameters.suffix).getValue();
     setStatus(TaskStatus.WAITING);
   }
@@ -122,7 +116,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       return;
     }
     progress = 0.0;
-    calculateDataPointSizeForPlots(frames);
     Set<RetentionTimeMobilityDataPoint> rtMobilityDataPoints = extractAllDataPointsFromFrames();
     createIonMobilityTraceTargetSet(rtMobilityDataPoints);
     SortedSet<IIonMobilityTrace> ionMobilityTraces = finishIonMobilityTraces();
@@ -159,8 +152,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         } else {
           Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
               dp -> allDataPoints.add(
-                  new RetentionTimeMobilityDataPoint(scan, dp.getMZ(), dp.getIntensity(), frame,
-                      mobilityWidth, paintScaleParameter)));
+                  new RetentionTimeMobilityDataPoint(scan, dp.getMZ(), dp.getIntensity())));
         }
       }
       progress = (processedFrame / (double) frames.size()) / 4;
@@ -409,7 +401,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
 
     List<MobilityScan> mobilityScans = frame.getMobilityScans();
     Set<RetentionTimeMobilityDataPoint> dataPointsToAdd = new HashSet<>();
-    PaintScale ps = dataPoints.first().getPaintScale();
 
     for (RetentionTimeMobilityDataPoint dataPoint : dataPoints) {
       MobilityScan nextScan = dataPoint.getMobilityScan();
@@ -420,13 +411,11 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         for (int i = 1; i <= zeros; i++) {
           if (lastScanIndex + i < numScans && lastScanIndex != 0) {
             dataPointsToAdd.add(
-                new RetentionTimeMobilityDataPoint(mobilityScans.get(lastScanIndex + i), mz, 0d,
-                    frame, dataPoint.getMobilityWidth(), ps));
+                new RetentionTimeMobilityDataPoint(mobilityScans.get(lastScanIndex + i), mz, 0d));
           }
           if (allScansIndex - i >= 0) {
             dataPointsToAdd.add(
-                new RetentionTimeMobilityDataPoint(mobilityScans.get(allScansIndex - i), mz, 0d,
-                    frame, dataPoint.getMobilityWidth(), ps));
+                new RetentionTimeMobilityDataPoint(mobilityScans.get(allScansIndex - i), mz, 0d));
           }
         }
       }
@@ -434,8 +423,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     }
     if (lastScanIndex + 1 < numScans) {
       dataPointsToAdd.add(
-          new RetentionTimeMobilityDataPoint(mobilityScans.get(lastScanIndex + 1), mz, 0d, frame,
-              mobilityWidth, ps));
+          new RetentionTimeMobilityDataPoint(mobilityScans.get(lastScanIndex + 1), mz, 0d));
     }
     return dataPointsToAdd;
   }
@@ -477,8 +465,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
               mostFrequentScan = findMobilityScanWithClosestMobility(medianMobility,
                   firstEmptyFrame.getMobilityScans());
             }
-            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(mostFrequentScan, mz, 0d,
-                firstEmptyFrame, mobilityWidth, ps));
+            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(mostFrequentScan, mz, 0d));
             // mobilityScanNumber - offset <- i know this is dirty, but it should be fine
           }
           if (allFramesIndex - i >= 0) {
@@ -491,8 +478,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
               mostFrequentScan = findMobilityScanWithClosestMobility(medianMobility,
                   lastEmptyFrame.getMobilityScans());
             }
-            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(mostFrequentScan, mz, 0d,
-                lastEmptyFrame, mobilityWidth, ps));
+            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(mostFrequentScan, mz, 0d));
           }
         }
       }
@@ -509,7 +495,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
             firstEmptyFrame.getMobilityScans());
       }
       dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(
-          mostFrequentScan, mz, 0d, firstEmptyFrame, mobilityWidth, ps));
+          mostFrequentScan, mz, 0d));
     }
     return dataPointsToAdd;
   }
@@ -588,24 +574,5 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       featureId++;
     }
     project.addFeatureList(featureList);
-  }
-
-  private void calculateDataPointSizeForPlots(Set<Frame> frames) {
-    List<Integer> numberOfScansPerFrame = new ArrayList<>();
-    for (Frame frame : frames) {
-      numberOfScansPerFrame.add(frame.getNumberOfMobilityScans());
-    }
-    Collections.sort(numberOfScansPerFrame);
-    int medianScanNumbers;
-    if (numberOfScansPerFrame.size() % 2 == 0) {
-      int indexA = numberOfScansPerFrame.size() / 2;
-      int indexB = numberOfScansPerFrame.size() / 2 - 1;
-      medianScanNumbers =
-          (numberOfScansPerFrame.get(indexA) + numberOfScansPerFrame.get(indexB)) / 2;
-    } else {
-      int index = numberOfScansPerFrame.size() / 2;
-      medianScanNumbers = numberOfScansPerFrame.get(index);
-    }
-    mobilityWidth = 1 / (double) medianScanNumbers;
   }
 }
