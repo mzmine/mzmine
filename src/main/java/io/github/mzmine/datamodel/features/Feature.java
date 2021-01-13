@@ -104,6 +104,7 @@ public interface Feature {
    * @param i
    * @return
    */
+  @Deprecated
   @Nullable
   default DataPoint getDataPointAtIndex(int i) {
     List<DataPoint> dataPoints = getDataPoints();

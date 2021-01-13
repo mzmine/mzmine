@@ -33,7 +33,7 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
    * @return The intensity value for the given scan or 0 if the no intensity was measured at that
    * scan.
    */
-  default double getIntensityForScan(T scan) {
+  default double getIntensityForScan(Scan scan) {
     int index = getSpectra().indexOf(scan);
     if (index != -1) {
       return getIntensity(index);
@@ -45,7 +45,7 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
    * @param scan
    * @return The mz for the given scan or 0 if no intensity was measured at that scan.
    */
-  default double getMzForScan(T scan) {
+  default double getMzForScan(Scan scan) {
     int index = getSpectra().indexOf(scan);
     if (index != -1) {
       return getMZ(index);

@@ -110,6 +110,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   /**
    * Initializes a new feature using given values
    */
+  @Deprecated
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
       float height, float area,
       Scan[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
@@ -145,6 +146,64 @@ public class ModularFeature implements Feature, ModularDataModel {
     double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(dataPointsPerScan);
     SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(flist.getMemoryMapStorage(), dp[0],
         dp[1], Arrays.asList(scanNumbers));
+    set(FeatureDataType.class, featureData);
+
+    // ranges
+    set(MZRangeType.class, mzRange);
+    set(RTRangeType.class, rtRange);
+    set(IntensityRangeType.class, intensityRange);
+
+    set(FragmentScanNumbersType.class, List.of(allMS2FragmentScanNumbers));
+
+    float fwhm = QualityParameters.calculateFWHM(this);
+    if (!Float.isNaN(fwhm)) {
+      set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(this);
+    if (!Float.isNaN(tf)) {
+      set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(this);
+    if (!Float.isNaN(af)) {
+      set(AsymmetryFactorType.class, af);
+    }
+  }
+
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
+      float height, float area,
+      List<Scan> scans, double[] mzs, double[] intensities, FeatureStatus featureStatus,
+      Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers,
+      @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
+      @Nonnull Range<Float> intensityRange) {
+    this(flist);
+
+    assert dataFile != null;
+    assert scans != null;
+    assert mzs != null;
+    assert intensities != null;
+    assert featureStatus != null;
+
+    if (mzs.length == intensities.length && mzs.length == scans.size()) {
+      throw new IllegalArgumentException(
+          "Cannot create a ModularFeature instance with no data points");
+    }
+
+    setFragmentScan(fragmentScanNumber);
+    setRepresentativeScan(representativeScan);
+    // add values to feature
+//    set(ScanNumbersType.class, List.of(scanNumbers));
+    set(RawFileType.class, dataFile);
+    set(DetectionType.class, featureStatus);
+    set(MZType.class, mz);
+    set(RTType.class, rt);
+    set(HeightType.class, height);
+    set(AreaType.class, area);
+    set(BestScanNumberType.class, representativeScan);
+
+    // datapoints of feature
+//    set(DataPointsType.class, Arrays.asList(dataPointsPerScan));
+    SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(flist.getMemoryMapStorage(), mzs,
+        intensities, scans);
     set(FeatureDataType.class, featureData);
 
     // ranges

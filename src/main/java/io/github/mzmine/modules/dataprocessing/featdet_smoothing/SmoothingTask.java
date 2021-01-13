@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -48,7 +49,6 @@ import java.util.logging.Logger;
 
 /**
  * Performs chromatographic smoothing of a peak-list.
- *
  */
 public class SmoothingTask extends AbstractTask {
 
@@ -57,7 +57,7 @@ public class SmoothingTask extends AbstractTask {
 
   // Feature lists: original and processed.
   private final MZmineProject project;
-  private final FeatureList origPeakList;
+  private final ModularFeatureList origPeakList;
   private ModularFeatureList newPeakList;
 
   // Parameters.
@@ -72,7 +72,7 @@ public class SmoothingTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param peakList the peak-list.
+   * @param peakList            the peak-list.
    * @param smoothingParameters smoothing parameters.
    */
   public SmoothingTask(final MZmineProject project, final FeatureList peakList,
@@ -80,7 +80,7 @@ public class SmoothingTask extends AbstractTask {
 
     // Initialize.
     this.project = project;
-    origPeakList = peakList;
+    origPeakList = (ModularFeatureList) peakList;
     progress = 0;
     progressMax = peakList.getNumberOfRows();
 
@@ -111,7 +111,9 @@ public class SmoothingTask extends AbstractTask {
       final double[] filterWeights = SavitzkyGolayFilter.getNormalizedWeights(filterWidth);
 
       // Create new feature list
-      newPeakList = new ModularFeatureList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
+      newPeakList = origPeakList.createCopy(origPeakList.getName() + " " + suffix);
+      newPeakList = new ModularFeatureList(origPeakList + " " + suffix,
+          origPeakList.getRawDataFiles());
 
       // Process each row.
       for (final FeatureListRow row : origPeakList.getRows()) {
@@ -120,53 +122,58 @@ public class SmoothingTask extends AbstractTask {
 
           // Create a new peak-list row.
           final int originalID = row.getID();
-          final FeatureListRow newRow = new ModularFeatureListRow(newPeakList, originalID);
+          final ModularFeatureListRow newRow = new ModularFeatureListRow(newPeakList, originalID);
 
           // Process each peak.
           for (final Feature peak : row.getFeatures()) {
+            ModularFeature feature = (ModularFeature) peak;
+            // TODO feature data
 
             if (!isCanceled()) {
 
               // Copy original peak intensities.
-              final List<Scan> scanNumbers = peak.getScanNumbers();
-              final int numScans = scanNumbers.size();
+              final List<Scan> scans = (List<Scan>) ((ModularFeatureList) feature.getFeatureList())
+                  .getSeletedScans(feature.getRawDataFile());
+              final int numScans = scans.size();
               final double[] intensities = new double[numScans];
               for (int i = 0; i < numScans; i++) {
-
-                final DataPoint dataPoint = peak.getDataPointAtIndex(i);
-                intensities[i] = dataPoint == null ? 0.0 : dataPoint.getIntensity();
+                intensities[i] = feature.getFeatureData().getIntensityForScan(scans.get(i));
               }
 
               // Smooth peak.
               final double[] smoothed = convolve(intensities, filterWeights);
 
+              // keep track for new feature data
+              // we won't add intensities for point's that were 0 before!
+              double[] newIntensities = new double[feature.getFeatureData().getNumberOfValues()];
+              int newIntensitiesIndex = 0;
+
               // Measure peak (max, ranges, area etc.)
-              final RawDataFile dataFile = peak.getRawDataFile();
-              final DataPoint[] newDataPoints = new DataPoint[numScans];
+              final RawDataFile dataFile = feature.getRawDataFile();
               float maxIntensity = 0f;
-              Scan maxScanNumber = null;
-              DataPoint maxDataPoint = null;
+              Scan maxScan = null;
+              int maxIntensityIndex = -1;
               Range<Double> intensityRange = null;
               float area = 0f;
+
               for (int i = 0; i < numScans; i++) {
-
-                final Scan scanNumber = scanNumbers.get(i);
-                final DataPoint dataPoint = peak.getDataPointAtIndex(i);
+                final Scan scan = scans.get(i);
+//                final DataPoint dataPoint = peak.getDataPointAtIndex(i);
+                final double originalIntensity = feature.getFeatureData().getIntensityForScan(scan);
                 final double intensity = smoothed[i] > 0 ? smoothed[i] : 0d;
-                if (dataPoint != null) {
 
+                if (originalIntensity > 0d) {
                   // Create a new data point.
-                  final double mz = dataPoint.getMZ();
-                  final double rt = scanNumber.getRetentionTime();
-                  final DataPoint newDataPoint = new SimpleDataPoint(mz, intensity);
-                  newDataPoints[i] = newDataPoint;
+//                  final double mz = feature.getFeatureData().getMzForScan(scan);
+                  final double rt = scan.getRetentionTime();
+//                  final DataPoint newDataPoint = new SimpleDataPoint(mz, intensity);
+                  newIntensities[newIntensitiesIndex] = intensity;
 
                   // Track maximum intensity data point.
                   if (intensity > maxIntensity) {
-
                     maxIntensity = (float) intensity;
-                    maxScanNumber = scanNumber;
-                    maxDataPoint = newDataPoint;
+                    maxScan = scan;
+                    maxIntensityIndex = i;
                   }
 
                   // Update ranges.
@@ -178,25 +185,26 @@ public class SmoothingTask extends AbstractTask {
 
                   // Accumulate peak area.
                   if (i != 0) {
-
-                    final DataPoint lastDP = newDataPoints[i - 1];
-                    final double lastIntensity = lastDP == null ? 0.0 : lastDP.getIntensity();
-                    final double lastRT = scanNumbers.get(i - 1).getRetentionTime();
+                    final double lastIntensity = smoothed[i-1] < 0 ? 0.0 : smoothed[i];
+                    final double lastRT = scans.get(i - 1).getRetentionTime();
                     area += (rt - lastRT) * 60d * (intensity + lastIntensity) / 2.0;
                   }
                 }
               }
 
-              assert maxDataPoint != null;
+              assert maxIntensityIndex != -1;
 
-              if (!isCanceled() && maxScanNumber != null) {
-
+              if (!isCanceled() && maxScan != null) {
                 // Create a new peak.
+                // TODO
                 ModularFeature newFeature
-                    = new ModularFeature(newPeakList, dataFile, maxDataPoint.getMZ(), peak.getRT(), maxIntensity,
-                    area, scanNumbers.toArray(Scan[]::new), newDataPoints, peak.getFeatureStatus(), maxScanNumber,
+                    = new ModularFeature(newPeakList, dataFile, feature.getMZ(), peak.getRT(),
+                    maxIntensity,
+                    area, feature.getFeatureData().getSpectra(), newIntensities,  peak.getFeatureStatus(),
+                    maxScan,
                     peak.getMostIntenseFragmentScan(),
-                    peak.getAllMS2FragmentScans().toArray(Scan[]::new), peak.getRawDataPointsRTRange(),
+                    peak.getAllMS2FragmentScans().toArray(Scan[]::new),
+                    peak.getRawDataPointsRTRange(),
                     peak.getRawDataPointsMZRange(), RangeUtils.toFloatRange(intensityRange));
                 newRow.addFeature(dataFile, newFeature);
               }
@@ -229,7 +237,8 @@ public class SmoothingTask extends AbstractTask {
 
         // Add task description to peak-list.
         newPeakList.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod("Peaks smoothed by Savitzky-Golay filter", parameters));
+            new SimpleFeatureListAppliedMethod("Peaks smoothed by Savitzky-Golay filter",
+                parameters));
 
         logger.finest("Finished peak smoothing: " + progress + " rows processed");
 
@@ -247,7 +256,7 @@ public class SmoothingTask extends AbstractTask {
    * Convolve a set of weights with a set of intensities.
    *
    * @param intensities the intensities.
-   * @param weights the filter weights.
+   * @param weights     the filter weights.
    * @return the convolution results.
    */
   private static double[] convolve(final double[] intensities, final double[] weights) {
