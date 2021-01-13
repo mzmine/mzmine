@@ -53,8 +53,8 @@ public class BatchTask extends AbstractTask {
   private MZmineProject project;
   private final BatchQueue queue;
 
-  private List<RawDataFile> createdDataFiles, previousCreatedDataFiles;
-  private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists;
+  private List<RawDataFile> createdDataFiles, previousCreatedDataFiles, startDataFiles;
+  private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists, startFeatureLists;
 
   BatchTask(MZmineProject project, ParameterSet parameters) {
     this.project = project;
@@ -72,7 +72,8 @@ public class BatchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
-
+    startFeatureLists = ImmutableList.copyOf(project.getFeatureLists());
+    startDataFiles = ImmutableList.copyOf(project.getRawDataFiles());
 
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
@@ -128,11 +129,6 @@ public class BatchTask extends AbstractTask {
       }
     }
 
-    createdDataFiles = new ArrayList<>(project.getRawDataFiles());
-    createdFeatureLists = new ArrayList<>(project.getFeatureLists());
-    createdDataFiles.removeAll(beforeDataFiles);
-    createdFeatureLists.removeAll(beforeFeatureLists);
-
     // Update the FeatureListsParameter parameters to reflect the current
     // state of the batch
     for (Parameter<?> p : batchStepParameters.getParameters()) {
@@ -150,12 +146,6 @@ public class BatchTask extends AbstractTask {
       }
     }
 
-    // Clear the saved data files and feature lists. Save them to the
-    // "previous" lists, in case the next step does not produce any new data
-    if (!createdDataFiles.isEmpty())
-      previousCreatedDataFiles = createdDataFiles;
-    if (!createdFeatureLists.isEmpty())
-      previousCreatedFeatureLists = createdFeatureLists;
 
     // Check if the parameter settings are valid
     ArrayList<String> messages = new ArrayList<String>();
@@ -232,9 +222,18 @@ public class BatchTask extends AbstractTask {
           }
         }
       }
-
     }
 
+    createdDataFiles = new ArrayList<>(project.getRawDataFiles());
+    createdFeatureLists = new ArrayList<>(project.getFeatureLists());
+    createdDataFiles.removeAll(beforeDataFiles);
+    createdFeatureLists.removeAll(beforeFeatureLists);
+    // Clear the saved data files and feature lists. Save them to the
+    // "previous" lists, in case the next step does not produce any new data
+    if (!createdDataFiles.isEmpty())
+      previousCreatedDataFiles = createdDataFiles;
+    if (!createdFeatureLists.isEmpty())
+      previousCreatedFeatureLists = createdFeatureLists;
   }
 
   @Override
