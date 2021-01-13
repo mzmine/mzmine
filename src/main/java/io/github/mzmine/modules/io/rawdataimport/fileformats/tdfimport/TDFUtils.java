@@ -50,10 +50,8 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -358,21 +356,21 @@ public class TDFUtils {
 
     final double[] mobilities =
         convertScanNumsToOneOverK0(handle, frameId, createPopulatedArray(numScans));
-    Map<Integer, Double> mobilitiesMap = new LinkedHashMap<>();
+//    Map<Integer, Double> mobilitiesMap = new LinkedHashMap<>();
 
-    for (int i = 0; i < mobilities.length; i++) {
-      mobilitiesMap.put(i, mobilities[i]);
-    }
+//    for (int i = 0; i < mobilities.length; i++) {
+//      mobilitiesMap.put(i, mobilities[i]);
+//    }
 
     Range<Double> mzRange = metaDataTable.getMzRange();
 
     SimpleFrame frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
         0.d, 0, dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-        MobilityType.TIMS, numScans, mobilitiesMap,
+        MobilityType.TIMS, numScans, null,
         framePrecursorTable.getMsMsInfoForFrame(Math.toIntExact(frameId)));
 
-    frame.setMobilities(mobilitiesMap.values().stream().mapToDouble(Double::doubleValue).toArray());
+    frame.setMobilities(mobilities);
 
     return frame;
   }
