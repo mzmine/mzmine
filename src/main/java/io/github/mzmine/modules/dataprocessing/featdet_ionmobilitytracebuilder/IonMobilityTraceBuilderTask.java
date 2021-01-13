@@ -21,9 +21,11 @@ package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
+import com.google.common.math.Quantiles;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -306,9 +308,10 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     // fill borders of peaks with 0s
     Set<RetentionTimeMobilityDataPoint> frameFillers = addZerosForFrames(sortedFrames,
         (SortedSet<Frame>) groupedDps.keySet(), ionTrace.getMz(),
-        findMostFrequentMobilityScanNumber(
-            ionTrace.getDataPoints()), 0, null, 4, 1);
+        ionTrace.getDataPoints(), 0, null, 4, 1);
     Set<RetentionTimeMobilityDataPoint> mobilityScanFillers = new HashSet<>();
+
+    findMedianMobility(ionTrace.getDataPoints());
 
     for (var sortedRetentionTimeMobilityDataPoints : groupedDps.entrySet()) {
       mobilityScanFillers.addAll(
@@ -438,12 +441,22 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   }
 
   public Set<RetentionTimeMobilityDataPoint> addZerosForFrames(List<Frame> allFrames,
-      SortedSet<Frame> currentFrames, double mz, int mobilityScanNumber, int mobilityWidth,
+      SortedSet<Frame> currentFrames, double mz, Set<RetentionTimeMobilityDataPoint> currentDps,
+      int mobilityWidth,
       PaintScale ps, int minGap, int zeros) {
-    int allFramesIndex = 0;
-    int lastFrameIndex = 0;
     final int numFrames = frames.size();
     final int offset = currentFrames.first().getMobilityScans().get(0).getMobilityScamNumber();
+    final MobilityType mobilityType = currentFrames.first().getMobilityType();
+    int allFramesIndex = 0;
+    int lastFrameIndex = 0;
+
+    int timsMobilityScanNumber = -1;
+    double medianMobility = -1d;
+    if (mobilityType == MobilityType.TIMS) {
+      timsMobilityScanNumber = findMostFrequentMobilityScanNumber(currentDps);
+    } else {
+      medianMobility = findMedianMobility(currentDps);
+    }
 
     Set<RetentionTimeMobilityDataPoint> dataPointsToAdd = new HashSet<>();
     for (Frame nextFrame : currentFrames) {
@@ -453,34 +466,95 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       if (allFramesIndex - lastFrameIndex >= minGap) {
         for (int i = 1; i <= zeros; i++) {
           if (lastFrameIndex + i < numFrames && lastFrameIndex != 0) {
-            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(
-                allFrames.get(lastFrameIndex + i).getMobilityScan(mobilityScanNumber - offset),
-                mz, 0d, allFrames.get(lastFrameIndex + i), mobilityWidth, ps));
-            // mobilityScanNumber - 1 <- i know this is dirty, but it should be fine
+            Frame firstEmptyFrame = allFrames.get(lastFrameIndex + i); // the next frame
+            MobilityScan mostFrequentScan = null;
+            if (mobilityType == MobilityType.TIMS) {
+              mostFrequentScan = firstEmptyFrame
+                  .getMobilityScan(timsMobilityScanNumber - offset);
+            } else {
+              mostFrequentScan = findMobilityScanWithClosestMobility(medianMobility,
+                  firstEmptyFrame.getMobilityScans());
+            }
+            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(mostFrequentScan, mz, 0d,
+                firstEmptyFrame, mobilityWidth, ps));
+            // mobilityScanNumber - offset <- i know this is dirty, but it should be fine
           }
           if (allFramesIndex - i >= 0) {
-            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(
-                allFrames.get(allFramesIndex - i).getMobilityScan(mobilityScanNumber - offset),
-                mz, 0d, allFrames.get(allFramesIndex - i), mobilityWidth, ps));
+            Frame lastEmptyFrame = allFrames.get(allFramesIndex - i);
+            MobilityScan mostFrequentScan = null;
+            if (mobilityType == MobilityType.TIMS) {
+              mostFrequentScan = lastEmptyFrame
+                  .getMobilityScan(timsMobilityScanNumber - offset);
+            } else {
+              mostFrequentScan = findMobilityScanWithClosestMobility(medianMobility,
+                  lastEmptyFrame.getMobilityScans());
+            }
+            dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(mostFrequentScan, mz, 0d,
+                lastEmptyFrame, mobilityWidth, ps));
           }
         }
       }
       lastFrameIndex = allFramesIndex;
     }
     if (lastFrameIndex + 1 < numFrames) {
+      Frame firstEmptyFrame = allFrames.get(lastFrameIndex + 1); // the next frame
+      MobilityScan mostFrequentScan = null;
+      if (mobilityType == MobilityType.TIMS) {
+        mostFrequentScan = firstEmptyFrame
+            .getMobilityScan(timsMobilityScanNumber - offset);
+      } else {
+        mostFrequentScan = findMobilityScanWithClosestMobility(medianMobility,
+            firstEmptyFrame.getMobilityScans());
+      }
       dataPointsToAdd.add(new RetentionTimeMobilityDataPoint(
-          allFrames.get(lastFrameIndex + 1).getMobilityScan(mobilityScanNumber - offset), mz,
-          0d, allFrames.get(lastFrameIndex + 1), mobilityWidth, ps));
+          mostFrequentScan, mz, 0d, firstEmptyFrame, mobilityWidth, ps));
     }
     return dataPointsToAdd;
   }
 
+  /**
+   * In Bruker PASEF, every frame in a segment has the same ion mobility range & association of scan
+   * number <-> mobility
+   *
+   * @param dps
+   * @return
+   */
   private int findMostFrequentMobilityScanNumber(Collection<RetentionTimeMobilityDataPoint> dps) {
     Map<Integer, Long> count = dps.stream().collect(Collectors
         .groupingBy(dp -> dp.getMobilityScan().getMobilityScamNumber(), Collectors.counting()));
     Entry<Integer, Long> mostFrequent = count.entrySet().stream().max(
         Comparator.comparingLong(Entry::getValue)).get();
     return mostFrequent.getKey();
+  }
+
+  /**
+   * In DTIMS (at least agilent) the observed mobility window can change, therefore we can't just
+   * take the most frequent scan number
+   *
+   * @param dps
+   * @return
+   */
+  private double findMedianMobility(Collection<RetentionTimeMobilityDataPoint> dps) {
+    return Quantiles.median().compute(
+        dps.stream().map(RetentionTimeMobilityDataPoint::getMobility).collect(Collectors.toSet()));
+  }
+
+  private MobilityScan findMobilityScanWithClosestMobility(double mobility,
+      List<MobilityScan> mobilityScans) {
+    double delta = Double.MAX_VALUE;
+    for (int i = 0; i < mobilityScans.size(); i++) {
+      MobilityScan scan = mobilityScans.get(i);
+      double currentDelta = Math.abs(scan.getMobility() - mobility);
+      if (currentDelta < delta) {
+        delta = currentDelta;
+      }
+      if (currentDelta > delta) {
+        logger.info(String.format("Original mobility: %f\t closest mobility: %f", mobility,
+            mobilityScans.get(i - 1).getMobility()));
+        return mobilityScans.get(i - 1);
+      }
+    }
+    return mobilityScans.get(mobilityScans.size() - 1);
   }
 
   private boolean checkNumberOfRetentionTimeDataPoints(
