@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
@@ -272,7 +273,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     if (index < 0) {
       return null;
     }
-    return getDataPoints().get(index);
+    return new SimpleDataPoint(getFeatureData().getMZ(index), getFeatureData().getIntensity(index));
   }
 
   @Nonnull
