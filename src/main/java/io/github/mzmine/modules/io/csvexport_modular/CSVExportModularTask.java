@@ -23,11 +23,15 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.LinkedDataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
+import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.modules.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -162,11 +166,11 @@ public class CSVExportModularTask extends AbstractTask {
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
     List<DataType> rowTypes = flist.getRowTypes().values().stream()
-        .filter(type -> !(type instanceof NullColumnType))
+        .filter(this::filterType)
         .collect(Collectors.toList());
 
     List<DataType> featureTypes = flist.getFeatureTypes().values().stream()
-        .filter(type -> !(type instanceof NullColumnType))
+        .filter(this::filterType)
         .collect(Collectors.toList());
 
     // Write feature row headers
@@ -177,39 +181,9 @@ public class CSVExportModularTask extends AbstractTask {
     writer.append(header);
     writer.newLine();
 
-    // Buffer for writing
-    StringBuilder line = new StringBuilder();
-
+    // write data
     for(FeatureListRow row : flist.getRows()) {
-      writer.append(joinRowData(ModularFeatureListRow row, rowTypes, featureTypes));
-      writer.newLine();
-    }
-
-    // Write feature headers (for each data file)
-    int size = flist.getNumberOfRawDataFiles();
-    for (int df = 0; df < flist.getNumberOfRawDataFiles(); df++) {
-      for (int i = 0; i < length; i++) {
-        name = rawDataFiles.get(df).getName();
-        name = name + " " + dataFileElements[i].toString();
-        name = escapeStringForCSV(name);
-        line.append(name + fieldSeparator);
-      }
-    }
-
-    line.append("\n");
-
-    try {
-      writer.write(line.toString());
-    } catch (Exception e) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not write to file " + fileName);
-      return;
-    }
-
-    // Write data rows
-    for (FeatureListRow featureListRow : flist.getRows()) {
-
-      if (!filter.filter(featureListRow)) {
+      if (!filter.filter(row)) {
         processedRows++;
         continue;
       }
@@ -218,184 +192,60 @@ public class CSVExportModularTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-
-      // Reset the buffer
-      line.setLength(0);
-
-      // Common elements
-      length = commonElements.length;
-      for (int i = 0; i < length; i++) {
-        switch (commonElements[i]) {
-          case ROW_ID:
-            line.append(featureListRow.getID() + fieldSeparator);
-            break;
-          case ROW_MZ:
-            line.append(featureListRow.getAverageMZ() + fieldSeparator);
-            break;
-          case ROW_RT:
-            line.append(featureListRow.getAverageRT() + fieldSeparator);
-            break;
-          case ROW_IDENTITY:
-            // Identity elements
-            FeatureIdentity featureId = featureListRow.getPreferredFeatureIdentity();
-            if (featureId == null) {
-              line.append(fieldSeparator);
-              break;
-            }
-            String propertyValue = featureId.toString();
-            propertyValue = escapeStringForCSV(propertyValue);
-            line.append(propertyValue + fieldSeparator);
-            break;
-          case ROW_IDENTITY_ALL:
-            // Identity elements
-            FeatureIdentity[] featureIdentities = featureListRow.getPeakIdentities()
-                .toArray(new FeatureIdentity[0]);
-            propertyValue = "";
-            for (int x = 0; x < featureIdentities.length; x++) {
-              if (x > 0)
-                propertyValue += idSeparator;
-              propertyValue += featureIdentities[x].toString();
-            }
-            propertyValue = escapeStringForCSV(propertyValue);
-            line.append(propertyValue + fieldSeparator);
-            break;
-          case ROW_IDENTITY_DETAILS:
-            featureId = featureListRow.getPreferredFeatureIdentity();
-            if (featureId == null) {
-              line.append(fieldSeparator);
-              break;
-            }
-            propertyValue = featureId.getDescription();
-            if (propertyValue != null)
-              propertyValue = propertyValue.replaceAll("\\n", ";");
-            propertyValue = escapeStringForCSV(propertyValue);
-            line.append(propertyValue + fieldSeparator);
-            break;
-          case ROW_COMMENT:
-            String comment = escapeStringForCSV(featureListRow.getComment());
-            line.append(comment + fieldSeparator);
-            break;
-          case ROW_FEATURE_NUMBER:
-            int numDetected = 0;
-            for (Feature p : featureListRow.getFeatures()) {
-              if (p.getFeatureStatus() == FeatureStatus.DETECTED) {
-                numDetected++;
-              }
-            }
-            line.append(numDetected + fieldSeparator);
-            break;
-        }
-      }
-
-      // feature Information
-      if (exportAllFeatureInfo) {
-        if (featureListRow.getFeatureInformation() != null) {
-          Map<String, String> allPropertiesMap =
-              featureListRow.getFeatureInformation().getAllProperties();
-
-          for (String key : featureInformationFields) {
-            String value = allPropertiesMap.get(key);
-            if (value == null)
-              value = "";
-            line.append(value + fieldSeparator);
-          }
-        }
-      }
-
-      // Data file elements
-      length = dataFileElements.length;
-      for (RawDataFile dataFile : rawDataFiles) {
-        for (int i = 0; i < length; i++) {
-          Feature feature = featureListRow.getFeature(dataFile);
-          if (feature != null) {
-            switch (dataFileElements[i]) {
-              case FEATURE_STATUS:
-                line.append(feature.getFeatureStatus() + fieldSeparator);
-                break;
-              case FEATURE_NAME:
-                line.append(FeatureUtils.featureToString(feature) + fieldSeparator);
-                break;
-              case FEATURE_MZ:
-                line.append(feature.getMZ() + fieldSeparator);
-                break;
-              case FEATURE_RT:
-                line.append(feature.getRT() + fieldSeparator);
-                break;
-              case FEATURE_RT_START:
-                line.append(feature.getRawDataPointsRTRange().lowerEndpoint() + fieldSeparator);
-                break;
-              case FEATURE_RT_END:
-                line.append(feature.getRawDataPointsRTRange().upperEndpoint() + fieldSeparator);
-                break;
-              case FEATURE_DURATION:
-                line.append(
-                    RangeUtils.rangeLength(feature.getRawDataPointsRTRange()) + fieldSeparator);
-                break;
-              case FEATURE_HEIGHT:
-                line.append(feature.getHeight() + fieldSeparator);
-                break;
-              case FEATURE_AREA:
-                line.append(feature.getArea() + fieldSeparator);
-                break;
-              case FEATURE_CHARGE:
-                line.append(feature.getCharge() + fieldSeparator);
-                break;
-              case FEATURE_DATAPOINTS:
-                line.append(feature.getScanNumbers().size() + fieldSeparator);
-                break;
-              case FEATURE_FWHM:
-                line.append(feature.getFWHM() + fieldSeparator);
-                break;
-              case FEATURE_TAILINGFACTOR:
-                line.append(feature.getTailingFactor() + fieldSeparator);
-                break;
-              case FEATURE_ASYMMETRYFACTOR:
-                line.append(feature.getAsymmetryFactor() + fieldSeparator);
-                break;
-              case FEATURE_MZMIN:
-                line.append(feature.getRawDataPointsMZRange().lowerEndpoint() + fieldSeparator);
-                break;
-              case FEATURE_MZMAX:
-                line.append(feature.getRawDataPointsMZRange().upperEndpoint() + fieldSeparator);
-                break;
-            }
-          } else {
-            switch (dataFileElements[i]) {
-              case FEATURE_STATUS:
-                line.append(FeatureStatus.UNKNOWN + fieldSeparator);
-                break;
-              default:
-                line.append("0" + fieldSeparator);
-                break;
-            }
-          }
-        }
-      }
-
-      line.append("\n");
-
-      try {
-        writer.write(line.toString());
-      } catch (Exception e) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not write to file " + fileName);
-        return;
-      }
+      writer.append(joinRowData((ModularFeatureListRow) row, rawDataFiles, rowTypes, featureTypes));
+      writer.newLine();
 
       processedRows++;
     }
   }
 
-  private String joinRowData(ModularFeatureListRow row, List<DataType> rowTypes,
-      List<DataType> featureTypes) {
+  public boolean filterType(DataType type) {
+    return !(type instanceof NoTextColumn || type instanceof NullColumnType || type instanceof LinkedDataType);
+  }
+
+  private String joinRowData(ModularFeatureListRow row,
+      List<RawDataFile> raws, List<DataType> rowTypes, List<DataType> featureTypes) {
     StringBuilder b = new StringBuilder();
-    for (DataType type : rowTypes) {
-      Property property = row.get(type);
+    joinData(b, row, rowTypes);
+
+    // add feature types
+    for(RawDataFile raw : raws) {
+      ModularFeature feature = row.getFeature(raw);
       if(!b.isEmpty())
         b.append(fieldSeparator);
-      b.append(type.getFormattedString(property));
+      joinData(b, feature, featureTypes);
+    }
+    return b.toString();
+  }
+
+  /**
+   *
+   * @param b
+   * @param data {@link ModularFeatureListRow}, {@link ModularFeature}, {@link ModularTypeProperty}
+   * @param types
+   * @return
+   */
+  private void joinData(StringBuilder b, ModularDataModel data, List<DataType> types) {
+    for (DataType type : types) {
+      if(type instanceof ModularType) {
+        ModularType modType = (ModularType) type;
+        ModularTypeProperty modProp = data.get(modType);
+        // join all the sub types of a modular data type
+        List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
+            .filter(this::filterType).collect(Collectors.toList());
+        if (!b.isEmpty())
+          b.append(fieldSeparator);
+        joinData(b, modProp, filteredSubTypes);
+      }
+      else {
+        Property property = data.get(type);
+        if (!b.isEmpty())
+          b.append(fieldSeparator);
+        b.append(escapeStringForCSV(type.getFormattedString(property)));
+      }
     }
   }
+
 
   /**
    * Join headers by field separator and sub data types by headerSeparator (Standard is colon :)
@@ -411,18 +261,19 @@ public class CSVExportModularTask extends AbstractTask {
         if(t instanceof ModularType) {
           ModularType modType = (ModularType) t;
           // join all the sub headers
-          header = getJoinedHeader(modType.getSubDataTypes(), header);
+          List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
+              .filter(this::filterType).collect(Collectors.toList());
+          header = getJoinedHeader(filteredSubTypes, header);
         }
         if(!b.isEmpty())
           b.append(fieldSeparator);
-        b.append(header);
+        b.append(escapeStringForCSV(header));
       }
     }
     return b.toString();
   }
 
   private String escapeStringForCSV(final String inputString) {
-
     if (inputString == null)
       return "";
 

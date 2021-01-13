@@ -15,18 +15,15 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.modifiers;
 
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
+import io.github.mzmine.datamodel.features.types.DataType;
 
 /**
+ * Tag for {@link DataType} that does not return a formatted string in {@link DataType#getFormattedString}
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class LinkedDataType extends DataType<TypeListenerProperty> implements
-    NoTextColumn {
+public interface NoTextColumn {
 
-  @Override
-  public TypeListenerProperty createProperty() {
-    return new TypeListenerProperty();
-  }
 }

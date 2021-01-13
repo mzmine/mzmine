@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -52,7 +53,7 @@ import javafx.scene.layout.StackPane;
  */
 // TODO: remove implements SubColumnsFactory...
 public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeature>>
-    implements SubColumnsFactory<MapProperty<RawDataFile, ModularFeature>> {
+    implements NoTextColumn, SubColumnsFactory<MapProperty<RawDataFile, ModularFeature>> {
 
   @Override
   public String getHeaderString() {
