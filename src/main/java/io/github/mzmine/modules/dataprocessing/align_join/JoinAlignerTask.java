@@ -129,8 +129,9 @@ public class JoinAlignerTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0f;
+    }
     return (double) processedRows / (double) totalRows;
   }
 
@@ -175,10 +176,21 @@ public class JoinAlignerTask extends AbstractTask {
     }
 
     // Create a new aligned feature list
-    alignedFeatureList = new ModularFeatureList(featureListName, allDataFiles.toArray(new RawDataFile[0]));
+    alignedFeatureList = new ModularFeatureList(featureListName,
+        allDataFiles.toArray(new RawDataFile[0]));
 
     // Iterate source feature lists
-    for (FeatureList featureList : featureLists) {
+    for (ModularFeatureList featureList : featureLists) {
+
+      // this should not be possible
+      for (RawDataFile file : featureList.getRawDataFiles()) {
+        if (alignedFeatureList.getRawDataFiles().contains(file)) {
+          throw new IllegalArgumentException("Raw data file: " + file.getName()
+              + " already included in " + alignedFeatureList.getName());
+        }
+      }
+      featureList.getRawDataFiles().forEach(
+          file -> alignedFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
 
       // Create a sorted set of scores matching
       TreeSet<RowVsRowScore> scoreSet = new TreeSet<RowVsRowScore>();
@@ -188,8 +200,9 @@ public class JoinAlignerTask extends AbstractTask {
       // Calculate scores for all possible alignments of this row
       for (FeatureListRow row : allRows) {
 
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         // Calculate limits for a row with which the row can be aligned
         Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
@@ -203,13 +216,15 @@ public class JoinAlignerTask extends AbstractTask {
         for (FeatureListRow candidate : candidateRows) {
 
           if (sameChargeRequired) {
-            if (!FeatureUtils.compareChargeState(row, candidate))
+            if (!FeatureUtils.compareChargeState(row, candidate)) {
               continue;
+            }
           }
 
           if (sameIDRequired) {
-            if (!FeatureUtils.compareIdentities(row, candidate))
+            if (!FeatureUtils.compareIdentities(row, candidate)) {
               continue;
+            }
           }
 
           if (compareIsotopePattern) {
@@ -238,8 +253,10 @@ public class JoinAlignerTask extends AbstractTask {
             // scans
             if (msLevel == 1) {
               rowDPs =
-                  row.getBestFeature().getRepresentativeScan().getMassList(massList).getDataPoints();
-              candidateDPs = candidate.getBestFeature().getRepresentativeScan().getMassList(massList)
+                  row.getBestFeature().getRepresentativeScan().getMassList(massList)
+                      .getDataPoints();
+              candidateDPs = candidate.getBestFeature().getRepresentativeScan()
+                  .getMassList(massList)
                   .getDataPoints();
             }
 
@@ -250,8 +267,9 @@ public class JoinAlignerTask extends AbstractTask {
                 rowDPs = row.getBestFragmentation().getMassList(massList).getDataPoints();
                 candidateDPs =
                     candidate.getBestFragmentation().getMassList(massList).getDataPoints();
-              } else
+              } else {
                 continue;
+              }
             }
 
             // compare mass list data points of selected scans
@@ -285,12 +303,14 @@ public class JoinAlignerTask extends AbstractTask {
       for (RowVsRowScore score : scoreSet) {
 
         // Check if the row is already mapped
-        if (alignmentMapping.containsKey(score.getPeakListRow()))
+        if (alignmentMapping.containsKey(score.getPeakListRow())) {
           continue;
+        }
 
         // Check if the aligned row is already filled
-        if (alignmentMapping.containsValue(score.getAlignedRow()))
+        if (alignmentMapping.containsValue(score.getAlignedRow())) {
           continue;
+        }
 
         alignmentMapping.put(score.getPeakListRow(), score.getAlignedRow());
 
@@ -324,7 +344,8 @@ public class JoinAlignerTask extends AbstractTask {
 
     // Add task description to peakList
     alignedFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Join aligner", parameters));
+        .addDescriptionOfAppliedTask(
+            new SimpleFeatureListAppliedMethod("Join aligner", parameters));
 
     logger.info("Finished join aligner");
 
