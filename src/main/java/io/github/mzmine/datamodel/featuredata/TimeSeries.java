@@ -27,6 +27,14 @@ public interface TimeSeries extends SeriesValueCount {
   // no FloatBuffer getRetentionTimeValues(), because this usually occurs with scans and
   // thus rt is stored in the scan object and present in ram
 
+  /**
+   * Note that the index does not correspond to scan numbers. Usually, {@link
+   * io.github.mzmine.datamodel.Scan} are associated with series, making {@link
+   * IonSpectrumSeries#getSpectra()} or {@link IonSpectrumSeries#getSpectrum(int)} more convenient.
+   *
+   * @param index
+   * @return The rt value at the index position.
+   */
   float getRetentionTime(int index);
 
 }

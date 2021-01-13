@@ -64,8 +64,10 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     }
 
     try {
-      intensityValues = storage.storeData(intensities.values().stream().mapToDouble(Double::doubleValue).toArray());
-      mobilityValues = storage.storeData(mobilities.values().stream().mapToDouble(Double::doubleValue).toArray());
+      intensityValues = storage
+          .storeData(intensities.values().stream().mapToDouble(Double::doubleValue).toArray());
+      mobilityValues = storage
+          .storeData(mobilities.values().stream().mapToDouble(Double::doubleValue).toArray());
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -79,6 +81,13 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     return getIntensityValues().get(index);
   }
 
+  /**
+   * Note: Since this is a summed mobilogram, the data points were summed at a given mobility, not
+   * necessarily at the same mobility scan number. Therefore, a list of scans is not provided.
+   *
+   * @param index
+   * @return
+   */
   public double getMobility(int index) {
     return getMobilityValues().get(index);
   }

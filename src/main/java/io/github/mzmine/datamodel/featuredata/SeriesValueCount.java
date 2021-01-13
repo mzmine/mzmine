@@ -26,5 +26,9 @@ package io.github.mzmine.datamodel.featuredata;
  */
 interface SeriesValueCount {
 
+  /**
+   *
+   * @return The number of non-zero values in this series.
+   */
   int getNumberOfValues();
 }
