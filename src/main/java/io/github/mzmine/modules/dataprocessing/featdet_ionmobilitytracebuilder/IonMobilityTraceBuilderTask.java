@@ -452,6 +452,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
 
     int timsMobilityScanNumber = -1;
     double medianMobility = -1d;
+    // in tims, each subscan number in different frames has the same mobility
     if (mobilityType == MobilityType.TIMS) {
       timsMobilityScanNumber = findMostFrequentMobilityScanNumber(currentDps);
     } else {
@@ -468,6 +469,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           if (lastFrameIndex + i < numFrames && lastFrameIndex != 0) {
             Frame firstEmptyFrame = allFrames.get(lastFrameIndex + i); // the next frame
             MobilityScan mostFrequentScan = null;
+            // in tims, each subscan number in different frames has the same mobility
             if (mobilityType == MobilityType.TIMS) {
               mostFrequentScan = firstEmptyFrame
                   .getMobilityScan(timsMobilityScanNumber - offset);
