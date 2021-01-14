@@ -18,9 +18,9 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,12 +31,12 @@ import javafx.collections.ObservableList;
  */
 public class TaskQueue {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   /**
    * This observable list stores the actual tasks
    */
-  private final ObservableList<WrappedTask> queue = FXCollections.observableArrayList();
+  private final ObservableList<WrappedTask> queue = FXCollections
+      .synchronizedObservableList(FXCollections.observableArrayList());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public int getNumOfWaitingTasks() {
     final WrappedTask snapshot[] = getQueueSnapshot();
