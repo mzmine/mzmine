@@ -64,6 +64,24 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
   }
 
   @Override
+  public double getIntensityForSpectrum(MobilityScan spectrum) {
+    int index = scans.indexOf(spectrum);
+    if (index != -1) {
+      return getIntensity(index);
+    }
+    return 0d;
+  }
+
+  @Override
+  public double getMzForSpectrum(MobilityScan spectrum) {
+    int index = scans.indexOf(spectrum);
+    if (index != -1) {
+      return getMZ(index);
+    }
+    return 0d;
+  }
+
+  @Override
   public DoubleBuffer getIntensityValues() {
     return intensityValues;
   }

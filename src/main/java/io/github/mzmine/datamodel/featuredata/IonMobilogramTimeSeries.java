@@ -43,4 +43,31 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame> {
   }
 
   SummedIntensityMobilitySeries getSummedMobilogram();
+
+  /**
+   * @param scan
+   * @return The intensity value for the given scan or 0 if the no intensity was measured at that
+   * scan.
+   */
+  @Override
+  default double getIntensityForSpectrum(Frame scan) {
+    int index = getSpectra().indexOf(scan);
+    if (index != -1) {
+      return getIntensity(index);
+    }
+    return 0;
+  }
+
+  /**
+   * @param scan
+   * @return The mz for the given scan or 0 if no intensity was measured at that scan.
+   */
+  @Override
+  default double getMzForSpectrum(Frame scan) {
+    int index = getSpectra().indexOf(scan);
+    if (index != -1) {
+      return getMZ(index);
+    }
+    return 0;
+  }
 }

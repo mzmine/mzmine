@@ -36,7 +36,7 @@ public interface MzSeries extends SeriesValueCount {
   /**
    * @param index
    * @return The value at the index position. Note the index does not correspond to scan numbers.
-   * @see IonTimeSeries#getMzForScan(Scan)
+   * @see IonTimeSeries#getMzForSpectrum(Scan)
    */
   default double getMZ(int index) {
     return getMZValues().get(index);

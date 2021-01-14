@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.featuredata.impl;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
@@ -89,7 +90,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   }
 
   private SimpleIonMobilogramTimeSeries(@Nonnull MemoryMapStorage storage,
-      IonMobilogramTimeSeries series) {
+      @Nonnull IonMobilogramTimeSeries series) {
     this.frames = series.getSpectra();
     this.simpleIonMobilitySeries = new ArrayList<>();
 
@@ -142,4 +143,9 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     return summedMobilogram;
   }
 
+  @Override
+  public IonTimeSeries<Frame> copyAndReplace(MemoryMapStorage storage, double[] newMzValues,
+      double[] newIntensityValues, List<Frame> newScans) {
+    return null;
+  }
 }

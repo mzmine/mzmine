@@ -35,4 +35,22 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
     return getSpectra().get(index);
   }
 
+  /**
+   * @param spectrum
+   * @return The intensity value for the given spectrum or 0 if the no intensity was measured at
+   * that spectrum.
+   */
+  double getIntensityForSpectrum(T spectrum);
+
+  /**
+   * @param spectrum
+   * @return The mz for the given spectrum or 0 if no intensity was measured at that spectrum.
+   */
+  default double getMzForSpectrum(T spectrum) {
+    int index = getSpectra().indexOf(spectrum);
+    if (index != -1) {
+      return getMZ(index);
+    }
+    return 0;
+  }
 }

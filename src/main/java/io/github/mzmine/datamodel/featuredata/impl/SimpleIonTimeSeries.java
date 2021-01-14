@@ -87,6 +87,13 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
-    return new SimpleIonTimeSeries(storage, data[0], data[1], getSpectra());
+    return copyAndReplace(storage, data[0], data[1], getSpectra());
+  }
+
+  @Override
+  public IonTimeSeries<Scan> copyAndReplace(MemoryMapStorage storage, double[] newMzValues,
+      double[] newIntensityValues, List<Scan> newScans) {
+
+    return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, newScans);
   }
 }
