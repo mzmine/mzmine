@@ -44,11 +44,40 @@ public class DataPointUtils {
     assert mzValues.capacity() == intensityValues.capacity();
 
     double data[][] = new double[2][];
-    data[0]= new double[mzValues.capacity()];
-    data[1]= new double[mzValues.capacity()];
-    for(int i = 0; i < mzValues.capacity(); i++) {
+    data[0] = new double[mzValues.capacity()];
+    data[1] = new double[mzValues.capacity()];
+    for (int i = 0; i < mzValues.capacity(); i++) {
       data[0][i] = mzValues.get(i);
       data[1][i] = intensityValues.get(i);
+    }
+    return data;
+  }
+
+  public static double[] getDoubleBufferAsArray(DoubleBuffer values) {
+    double[] data = new double[values.capacity()];
+
+    for (int i = 0; i < values.capacity(); i++) {
+      data[i] = values.get(i);
+    }
+    return data;
+  }
+
+  @Deprecated
+  public static double[] getMZsAsDoubleArray(DataPoint[] dataPoints) {
+    double[] data = new double[dataPoints.length];
+
+    for (int i = 0; i < dataPoints.length; i++) {
+      data[i] = dataPoints[i].getMZ();
+    }
+    return data;
+  }
+
+  @Deprecated
+  public static double[] getIntenstiesAsDoubleArray(DataPoint[] dataPoints) {
+    double[] data = new double[dataPoints.length];
+
+    for (int i = 0; i < dataPoints.length; i++) {
+      data[i] = dataPoints[i].getIntensity();
     }
     return data;
   }
