@@ -21,10 +21,13 @@ package io.github.mzmine.datamodel.featuredata;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import java.nio.DoubleBuffer;
 import java.util.List;
@@ -138,6 +141,26 @@ public class FeatureDataUtils {
     feature.set(IntensityRangeType.class, intensityRange);
     feature.setRepresentativeScan(mostIntenseSpectrum);
     feature.setHeight(intensityRange.upperEndpoint());
+    feature.setRT(mostIntenseSpectrum.getRetentionTime());
+
+    if (featureData instanceof IonMobilogramTimeSeries) {
+      SummedIntensityMobilitySeries summedMobilogram = ((IonMobilogramTimeSeries) featureData)
+          .getSummedMobilogram();
+      Range<Float> mobilityRange = getMobilityRange(summedMobilogram);
+      feature.set(MobilityRangeType.class, mobilityRange);
+
+      int mostIntenseMobilityScanIndex = -1;
+      double intensity = Double.MIN_VALUE;
+      for (int i = 0; i < summedMobilogram.getNumberOfValues(); i++) {
+        double currentIntensity = summedMobilogram.getIntensity(i);
+        if (currentIntensity > intensity) {
+          intensity = currentIntensity;
+          mostIntenseMobilityScanIndex = i;
+        }
+      }
+      feature.set(MobilityType.class,
+          (float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
+    }
 
     // todo recalc quality parameters
   }

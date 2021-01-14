@@ -25,29 +25,37 @@ import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.ArrayList;
 import java.util.List;
 
 public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
 
   private final T origSeries;
-  private final List<MassSpectrum> allSpectra;
+  private final List<? extends MassSpectrum> allSpectra;
   private final MemoryMapStorage newStorage;
 
   IonSpectrumSeriesSmoothing(T origSeries, MemoryMapStorage newStorage,
-      List<MassSpectrum> allSpectra) {
-    if (origSeries instanceof SimpleIonMobilogramTimeSeries) {
-      throw new IllegalArgumentException(
-          "Direct smoothing of " + SimpleIonMobilogramTimeSeries.class.getName()
-              + " is not supported, since averaged intensities and mobilities are calculated based "
-              + "on the individual " + SimpleIonMobilitySeries.class.getName()
-              + ". Smooth those instead.");
-    }
+      List<? extends MassSpectrum> allSpectra) {
     this.origSeries = origSeries;
     this.newStorage = newStorage;
     this.allSpectra = allSpectra;
   }
 
   public T smooth(double[] weights) {
+    // smooth mobilograms in case there are any
+    List<SimpleIonMobilitySeries> smoothedMobilograms = null;
+    if (origSeries instanceof SimpleIonMobilogramTimeSeries) {
+      smoothedMobilograms = new ArrayList<>();
+      for (SimpleIonMobilitySeries mobilogram : ((SimpleIonMobilogramTimeSeries) origSeries)
+          .getMobilograms()) {
+        List<? extends MassSpectrum> mobilityScans = mobilogram.getSpectrum(0).getFrame()
+            .getMobilityScans();
+        IonSpectrumSeriesSmoothing<SimpleIonMobilitySeries> smoothing = new IonSpectrumSeriesSmoothing<>(
+            mobilogram, newStorage, (List<MassSpectrum>) mobilityScans);
+        smoothedMobilograms.add(smoothing.smooth(weights));
+      }
+    }
+
     int numScans = allSpectra.size();
 
     final double[] origIntensities = new double[numScans];
@@ -78,8 +86,11 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
       return (T) new SimpleIonMobilitySeries(newStorage, origMz, newIntensities,
           origSeries.getSpectra());
     } else if (origSeries instanceof SimpleIonTimeSeries) {
-      return (T) new SimpleIonTimeSeries(newStorage, origMz, newIntensities,
-          origSeries.getSpectra());
+      return (T) ((SimpleIonTimeSeries) origSeries)
+          .copyAndReplace(newStorage, origMz, newIntensities);
+    } else if (origSeries instanceof SimpleIonMobilogramTimeSeries) {
+      return (T) ((SimpleIonMobilogramTimeSeries) origSeries)
+          .copyAndReplace(newStorage, origMz, newIntensities, smoothedMobilograms);
     } else {
       throw new IllegalArgumentException(
           "Smoothing of " + origSeries.getClass().getName() + " is not yet supported.");

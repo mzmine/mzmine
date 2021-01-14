@@ -30,14 +30,15 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Stores a summed mobilogram of a feature.
+ * Stores a summed mobilogram based on the intesities of the frame-specific mobilograms in the
+ * constructor.
  *
  * @author https://github.com/SteffenHeu
  */
 public class SummedIntensityMobilitySeries implements IntensitySeries, MobilitySeries {
 
-  DoubleBuffer intensityValues;
   final double mz;
+  DoubleBuffer intensityValues;
   DoubleBuffer mobilityValues;
 
   SummedIntensityMobilitySeries(MemoryMapStorage storage, List<SimpleIonMobilitySeries> mobilograms,

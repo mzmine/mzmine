@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
@@ -50,7 +51,14 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
     }
 
-    this.scans = Collections.unmodifiableList(scans);
+    final Frame frame = scans.get(0).getFrame();
+    for (MobilityScan scan : scans) {
+      if (frame != scan.getFrame()) {
+        throw new IllegalArgumentException("All mobility scans must belong to the same frame.");
+      }
+    }
+
+    this.scans = scans;
     try {
       this.mzValues = storage.storeData(mzValues);
       this.intensityValues = storage.storeData(intensityValues);
@@ -97,7 +105,7 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
 
   @Override
   public List<MobilityScan> getSpectra() {
-    return scans;
+    return Collections.unmodifiableList(scans);
   }
 
   @Override
@@ -105,6 +113,6 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
-    return new SimpleIonMobilitySeries(storage, data[0], data[1], getSpectra());
+    return new SimpleIonMobilitySeries(storage, data[0], data[1], scans);
   }
 }

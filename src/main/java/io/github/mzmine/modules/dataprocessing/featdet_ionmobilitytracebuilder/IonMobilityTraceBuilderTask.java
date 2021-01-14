@@ -561,6 +561,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(featureList);
     DataTypeUtils.addDefaultIonMobilityTypeColumns(featureList);
+    featureList.setSelectedScans(rawDataFile, frames);
 
     int featureId = 1;
     for (IIonMobilityTrace ionTrace : ionMobilityTraces) {

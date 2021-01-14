@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.featuredata;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
 
 /**
@@ -43,6 +44,19 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame> {
   }
 
   SummedIntensityMobilitySeries getSummedMobilogram();
+
+  /**
+   * Creates a copy of this series using the same frame list, but with new mz/intensities and new
+   * mobilograms, e.g. after smoothing.
+   *
+   * @param storage
+   * @param newMzValues
+   * @param newIntensityValues
+   * @param newMobilograms
+   * @return
+   */
+  IonMobilogramTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newMzValues,
+      double[] newIntensityValues, List<SimpleIonMobilitySeries> newMobilograms);
 
   /**
    * @param scan

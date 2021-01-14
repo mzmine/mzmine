@@ -30,8 +30,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -45,7 +43,6 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -136,28 +133,18 @@ public class SmoothingTask extends AbstractTask {
             IonTimeSeries<? extends Scan> smoothedSeries = null;
             if (featureData instanceof SimpleIonTimeSeries) {
 
-              IonSpectrumSeriesSmoothing smoother = new IonSpectrumSeriesSmoothing(featureData,
-                  newPeakList.getMemoryMapStorage(),
-                  origPeakList.getSeletedScans(feature.getRawDataFile()));
-              smoothedSeries = (IonTimeSeries<? extends Scan>) smoother.smooth(filterWeights);
+              IonSpectrumSeriesSmoothing<SimpleIonTimeSeries> smoother = new IonSpectrumSeriesSmoothing<>(
+                  ((SimpleIonTimeSeries) featureData), newPeakList.getMemoryMapStorage(),
+                  (List<? extends MassSpectrum>) origPeakList
+                      .getSeletedScans(feature.getRawDataFile()));
+              smoothedSeries = smoother.smooth(filterWeights);
 
             } else if (featureData instanceof IonMobilogramTimeSeries) {
-
-              // for ims, we smooth every mobilogram indivudually instead of the summed intensities
-              List<SimpleIonMobilitySeries> smoothedMobilograms = new ArrayList<>();
-              for (SimpleIonMobilitySeries mobilogram : ((IonMobilogramTimeSeries) featureData)
-                  .getMobilograms()) {
-                List<? extends MassSpectrum> spectra = mobilogram.getSpectrum(0).getFrame()
-                    .getMobilityScans();
-                IonSpectrumSeriesSmoothing<SimpleIonMobilitySeries> smoother =
-                    new IonSpectrumSeriesSmoothing<>(mobilogram, newPeakList.getMemoryMapStorage(),
-                        (List<MassSpectrum>) spectra);
-                smoothedMobilograms.add(smoother.smooth(filterWeights));
-
-              }
-
-              smoothedSeries = new SimpleIonMobilogramTimeSeries(newPeakList.getMemoryMapStorage(),
-                  smoothedMobilograms);
+              IonSpectrumSeriesSmoothing<IonMobilogramTimeSeries> smoother = new IonSpectrumSeriesSmoothing<>(
+                  ((IonMobilogramTimeSeries) featureData), newPeakList.getMemoryMapStorage(),
+                  (List<? extends MassSpectrum>) origPeakList
+                      .getSeletedScans(feature.getRawDataFile()));
+              smoothedSeries = smoother.smooth(filterWeights);
             } else {
               logger.info("Could not smooth feature, unknown ion series type.");
               continue;
