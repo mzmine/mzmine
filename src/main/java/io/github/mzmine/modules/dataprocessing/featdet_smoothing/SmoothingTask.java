@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -62,9 +61,10 @@ public class SmoothingTask extends AbstractTask {
   private final ParameterSet parameters;
   private final String suffix;
   private final boolean removeOriginal;
-  private final int filterWidth;
+  private final int rtFilterWidth;
+  private final int mobilityFilterWitdth;
   private final int progressMax;
-  private ModularFeatureList newPeakList;
+  private ModularFeatureList newFeatureList;
   private int progress;
 
   /**
@@ -86,7 +86,9 @@ public class SmoothingTask extends AbstractTask {
     parameters = smoothingParameters;
     suffix = parameters.getParameter(SmoothingParameters.SUFFIX).getValue();
     removeOriginal = parameters.getParameter(SmoothingParameters.REMOVE_ORIGINAL).getValue();
-    filterWidth = parameters.getParameter(SmoothingParameters.FILTER_WIDTH).getValue();
+    rtFilterWidth = parameters.getParameter(SmoothingParameters.FILTER_WIDTH).getValue();
+    mobilityFilterWitdth = parameters.getParameter(SmoothingParameters.MOBILITY_FILTER_WIDTH)
+        .getValue();
   }
 
   @Override
@@ -101,24 +103,22 @@ public class SmoothingTask extends AbstractTask {
 
   @Override
   public void run() {
-
     setStatus(TaskStatus.PROCESSING);
 
     try {
-      // Get filter weights.
-      final double[] filterWeights = SavitzkyGolayFilter.getNormalizedWeights(filterWidth);
+      // Create a copy of the old feature list
+      // this way we can directly process the rows and don't need to create new ones
+      newFeatureList = origPeakList.createCopy(origPeakList + " " + suffix);
 
-      // Create new feature list
-      newPeakList = origPeakList.createEmptyCopyWithSameTypes(origPeakList + " " + suffix);
+      // Get filter weights.
+      final double[] rtFilterWeights = SavitzkyGolayFilter.getNormalizedWeights(rtFilterWidth);
+      final double[] mobilityFilterWeights = SavitzkyGolayFilter
+          .getNormalizedWeights(mobilityFilterWitdth);
 
       // Process each row.
-      for (final FeatureListRow row : origPeakList.getRows()) {
+      for (final FeatureListRow row : newFeatureList.getRows()) {
 
         if (!isCanceled()) {
-
-          // Create a new peak-list row.
-          final int originalID = row.getID();
-          final ModularFeatureListRow newRow = new ModularFeatureListRow(newPeakList, originalID);
 
           // Process each peak.
           for (final Feature peak : row.getFeatures()) {
@@ -127,36 +127,31 @@ public class SmoothingTask extends AbstractTask {
             }
 
             ModularFeature feature = (ModularFeature) peak;
-            // TODO feature data
             IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
-
             IonTimeSeries<? extends Scan> smoothedSeries = null;
-            if (featureData instanceof SimpleIonTimeSeries) {
 
+            if (featureData instanceof SimpleIonTimeSeries) {
               IonSpectrumSeriesSmoothing<SimpleIonTimeSeries> smoother = new IonSpectrumSeriesSmoothing<>(
-                  ((SimpleIonTimeSeries) featureData), newPeakList.getMemoryMapStorage(),
+                  ((SimpleIonTimeSeries) featureData), newFeatureList.getMemoryMapStorage(),
                   (List<? extends MassSpectrum>) origPeakList
                       .getSeletedScans(feature.getRawDataFile()));
-              smoothedSeries = smoother.smooth(filterWeights);
+              smoothedSeries = smoother.smooth(rtFilterWeights);
 
             } else if (featureData instanceof IonMobilogramTimeSeries) {
               IonSpectrumSeriesSmoothing<IonMobilogramTimeSeries> smoother = new IonSpectrumSeriesSmoothing<>(
-                  ((IonMobilogramTimeSeries) featureData), newPeakList.getMemoryMapStorage(),
+                  ((IonMobilogramTimeSeries) featureData), newFeatureList.getMemoryMapStorage(),
                   (List<? extends MassSpectrum>) origPeakList
                       .getSeletedScans(feature.getRawDataFile()));
-              smoothedSeries = smoother.smooth(filterWeights);
+              smoothedSeries = smoother.smooth(rtFilterWeights, mobilityFilterWeights);
             } else {
-              logger.info("Could not smooth feature, unknown ion series type.");
-              continue;
+              throw new IllegalArgumentException(
+                  "Cannot smooth feature, unknown ion series type. " + featureData.getClass()
+                      .getName());
             }
 
-            ModularFeature newFeature = new ModularFeature(newPeakList, feature);
-            newFeature.set(FeatureDataType.class, smoothedSeries);
-            FeatureDataUtils.recalculateIonSeriesDependingTypes(newFeature);
-
-            newRow.addFeature(newFeature.getRawDataFile(), newFeature);
+            feature.set(FeatureDataType.class, smoothedSeries);
+            FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
           }
-          newPeakList.addRow(newRow);
           progress++;
         }
       }
@@ -165,7 +160,7 @@ public class SmoothingTask extends AbstractTask {
       if (!isCanceled()) {
 
         // Add new peak-list to the project.
-        project.addFeatureList(newPeakList);
+        project.addFeatureList(newFeatureList);
 
         // Add quality parameters to peaks
         //QualityParameters.calculateQualityParameters(newPeakList);
@@ -178,11 +173,11 @@ public class SmoothingTask extends AbstractTask {
         // Copy previously applied methods
         for (final FeatureListAppliedMethod method : origPeakList.getAppliedMethods()) {
 
-          newPeakList.addDescriptionOfAppliedTask(method);
+          newFeatureList.addDescriptionOfAppliedTask(method);
         }
 
         // Add task description to peak-list.
-        newPeakList.addDescriptionOfAppliedTask(
+        newFeatureList.addDescriptionOfAppliedTask(
             new SimpleFeatureListAppliedMethod("Peaks smoothed by Savitzky-Golay filter",
                 parameters));
 

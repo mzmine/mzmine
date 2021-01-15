@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -308,7 +309,15 @@ public class ModularFeature implements Feature, ModularDataModel {
     return map;
   }
 
+  /**
+   * Use {@link ModularFeature#getFeatureData()} and {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensityForSpectrum(MassSpectrum)}
+   * or {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensity} instead.
+   *
+   * @param scan
+   * @return
+   */
   @Override
+  @Deprecated
   public DataPoint getDataPoint(Scan scan) {
     if (!scan.getDataFile().equals(getRawDataFile())) {
       throw new IllegalArgumentException("the scan data file must equal the feature data file");

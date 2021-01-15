@@ -508,21 +508,6 @@ public class ModularFeatureList implements FeatureList {
     return flist;
   }
 
-  public ModularFeatureList createEmptyCopyWithSameTypes(String title) {
-    ModularFeatureList flist = new ModularFeatureList(title, getRawDataFiles());
-
-    // Load previous applied methods
-    for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
-      flist.addDescriptionOfAppliedTask(proc);
-    }
-
-    rowTypes.values().forEach(flist::addRowType);
-    featureTypes.values().forEach(flist::addFeatureType);
-
-    selectedScans.forEach(flist::setSelectedScans);
-    return flist;
-  }
-
   public List<RowBinding> getRowBindings() {
     return rowBindings;
   }

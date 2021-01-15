@@ -117,12 +117,14 @@ public class FeatureDataUtils {
     float area = 0f;
     DoubleBuffer intensities = series.getIntensityValues();
     List<? extends Scan> scans = series.getSpectra();
+    double lastIntensity = intensities.get(0);
+    float lastRT = scans.get(0).getRetentionTime();
     for (int i = 1; i < series.getNumberOfValues(); i++) {
-      final double lastIntensity = intensities.get(i - 1);
       final double thisIntensity = intensities.get(i);
-      final float lastRT = scans.get(i - 1).getRetentionTime();
       final float thisRT = scans.get(i).getRetentionTime();
       area += (thisRT - lastRT) * (thisIntensity + lastIntensity) / 2.0 /* 60d*/;
+      lastIntensity = thisIntensity;
+      lastRT = thisRT;
     }
     return area;
   }
