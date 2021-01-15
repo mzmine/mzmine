@@ -19,7 +19,10 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
+import io.github.mzmine.datamodel.featuredata.MobilitySeries;
+import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
@@ -27,6 +30,7 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
 
@@ -34,6 +38,14 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
   private final List<? extends MassSpectrum> allSpectra;
   private final MemoryMapStorage newStorage;
 
+  /**
+   * @param origSeries
+   * @param newStorage
+   * @param allSpectra List of all spectra/scans/frames used to build the feature. A list of these
+   *                   can usually be obtained from the {@link io.github.mzmine.datamodel.features.ModularFeatureList}
+   *                   via {@link io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
+   *                   For ion mobility,
+   */
   IonSpectrumSeriesSmoothing(T origSeries, MemoryMapStorage newStorage,
       List<? extends MassSpectrum> allSpectra) {
     this.origSeries = origSeries;
@@ -41,8 +53,16 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
     this.allSpectra = allSpectra;
   }
 
-  public T smooth(double[] weights) {
-    // smooth mobilograms in case there are any
+  /**
+   * Smooths the given {@link IonSpectrumSeries} with the specified weights. If no mobility
+   * dimension was included in the series, the value of mobilityWeights will have no effect.
+   *
+   * @param rtWeights       weights for rt-intensity smoothing
+   * @param mobilityWeights weights for mobility-intensity smoothing
+   * @return the smoothed series.
+   */
+  public T smooth(@Nonnull double[] rtWeights, @Nonnull double[] mobilityWeights) {
+    // smooth mobilograms in case there are any, use the mobilityWeights there.
     List<SimpleIonMobilitySeries> smoothedMobilograms = null;
     if (origSeries instanceof SimpleIonMobilogramTimeSeries) {
       smoothedMobilograms = new ArrayList<>();
@@ -52,8 +72,15 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
             .getMobilityScans();
         IonSpectrumSeriesSmoothing<SimpleIonMobilitySeries> smoothing = new IonSpectrumSeriesSmoothing<>(
             mobilogram, newStorage, (List<MassSpectrum>) mobilityScans);
-        smoothedMobilograms.add(smoothing.smooth(weights));
+        smoothedMobilograms.add(smoothing.smooth(rtWeights, mobilityWeights));
       }
+    }
+
+    // this is the case if 0 was selected.
+    if (rtWeights.length == 1 && origSeries instanceof TimeSeries) {
+      return (T) origSeries.copy(newStorage);
+    } else if (mobilityWeights.length == 1 && origSeries instanceof MobilitySeries) {
+      return (T) origSeries.copy(newStorage);
     }
 
     int numScans = allSpectra.size();
@@ -63,6 +90,9 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
       origIntensities[i] = origSeries.getIntensityForSpectrum(allSpectra.get(i));
     }
 
+    // use mobilityWeights for SimpleIonMobilitySeries
+    final double[] weights =
+        (origSeries instanceof SimpleIonMobilitySeries) ? mobilityWeights : rtWeights;
     final double[] smoothed = SavitzkyGolayFilter.convolve(origIntensities, weights);
 
     // add no new data points for scans, just use smoothed ones where we had dps in the first place
@@ -95,5 +125,15 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
       throw new IllegalArgumentException(
           "Smoothing of " + origSeries.getClass().getName() + " is not yet supported.");
     }
+  }
+
+  /**
+   * Smooths the given {@link IonSpectrumSeries} with the specified weights.
+   *
+   * @param weights Weights in rt dimension. If the given series also posess
+   * @return
+   */
+  public T smooth(@Nonnull double[] weights) {
+    return smooth(weights, weights);
   }
 }

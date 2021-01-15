@@ -61,7 +61,8 @@ public class SmoothingTask extends AbstractTask {
   private final ParameterSet parameters;
   private final String suffix;
   private final boolean removeOriginal;
-  private final int filterWidth;
+  private final int rtFilterWidth;
+  private final int mobilityFilterWitdth;
   private final int progressMax;
   private ModularFeatureList newFeatureList;
   private int progress;
@@ -85,7 +86,9 @@ public class SmoothingTask extends AbstractTask {
     parameters = smoothingParameters;
     suffix = parameters.getParameter(SmoothingParameters.SUFFIX).getValue();
     removeOriginal = parameters.getParameter(SmoothingParameters.REMOVE_ORIGINAL).getValue();
-    filterWidth = parameters.getParameter(SmoothingParameters.FILTER_WIDTH).getValue();
+    rtFilterWidth = parameters.getParameter(SmoothingParameters.FILTER_WIDTH).getValue();
+    mobilityFilterWitdth = parameters.getParameter(SmoothingParameters.MOBILITY_FILTER_WIDTH)
+        .getValue();
   }
 
   @Override
@@ -103,12 +106,14 @@ public class SmoothingTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     try {
-      // Get filter weights.
-      final double[] filterWeights = SavitzkyGolayFilter.getNormalizedWeights(filterWidth);
-
       // Create a copy of the old feature list
       // this way we can directly process the rows and don't need to create new ones
       newFeatureList = origPeakList.createCopy(origPeakList + " " + suffix);
+
+      // Get filter weights.
+      final double[] rtFilterWeights = SavitzkyGolayFilter.getNormalizedWeights(rtFilterWidth);
+      final double[] mobilityFilterWeights = SavitzkyGolayFilter
+          .getNormalizedWeights(mobilityFilterWitdth);
 
       // Process each row.
       for (final FeatureListRow row : newFeatureList.getRows()) {
@@ -126,19 +131,18 @@ public class SmoothingTask extends AbstractTask {
             IonTimeSeries<? extends Scan> smoothedSeries = null;
 
             if (featureData instanceof SimpleIonTimeSeries) {
-
               IonSpectrumSeriesSmoothing<SimpleIonTimeSeries> smoother = new IonSpectrumSeriesSmoothing<>(
                   ((SimpleIonTimeSeries) featureData), newFeatureList.getMemoryMapStorage(),
                   (List<? extends MassSpectrum>) origPeakList
                       .getSeletedScans(feature.getRawDataFile()));
-              smoothedSeries = smoother.smooth(filterWeights);
+              smoothedSeries = smoother.smooth(rtFilterWeights);
 
             } else if (featureData instanceof IonMobilogramTimeSeries) {
               IonSpectrumSeriesSmoothing<IonMobilogramTimeSeries> smoother = new IonSpectrumSeriesSmoothing<>(
                   ((IonMobilogramTimeSeries) featureData), newFeatureList.getMemoryMapStorage(),
                   (List<? extends MassSpectrum>) origPeakList
                       .getSeletedScans(feature.getRawDataFile()));
-              smoothedSeries = smoother.smooth(filterWeights);
+              smoothedSeries = smoother.smooth(rtFilterWeights, mobilityFilterWeights);
             } else {
               throw new IllegalArgumentException(
                   "Cannot smooth feature, unknown ion series type. " + featureData.getClass()
