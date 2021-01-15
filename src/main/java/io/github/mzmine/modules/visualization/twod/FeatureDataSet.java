@@ -18,13 +18,17 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.Vector;
-import org.jfree.data.xy.AbstractXYDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import java.util.Vector;
+import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * Picked peaks data set
@@ -52,7 +56,19 @@ class FeatureDataSet extends AbstractXYDataset {
 
     for (Feature feature : allFeatures) {
 
-      feature.getScanNumbers().forEach(scan -> {
+      if (feature instanceof ModularFeature) {
+        IonTimeSeries<? extends Scan> featureData = ((ModularFeature) feature).getFeatureData();
+        featureData.getSpectra().forEach(scan -> {
+          float rt = scan.getRetentionTime();
+          if (rtRange.contains(rt) && mzRange.contains(featureData.getIntensityForSpectrum(scan))) {
+            FeatureDataPoint newDP = new FeatureDataPoint(scan, rt, new SimpleDataPoint(
+                featureData.getMzForSpectrum(scan), featureData.getIntensityForSpectrum(scan)));
+            thisFeatureDataPoints.add(newDP);
+          }
+        });
+
+      } else {
+        feature.getScanNumbers().forEach(scan -> {
           DataPoint dp = feature.getDataPoint(scan);
           if (dp != null) {
             float rt = scan.getRetentionTime();
@@ -61,7 +77,8 @@ class FeatureDataSet extends AbstractXYDataset {
               thisFeatureDataPoints.add(newDP);
             }
           }
-      });
+        });
+      }
 
       if (thisFeatureDataPoints.size() > 0) {
         FeatureDataPoint dpArray[] = thisFeatureDataPoints.toArray(new FeatureDataPoint[0]);

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +49,7 @@ public class FeatureDataSet extends AbstractXYDataset {
   /**
    * Create the data set.
    *
-   * @param p the feature.
+   * @param p  the feature.
    * @param id peak identity to use as a label.
    */
   public FeatureDataSet(final Feature p, final String id) {
@@ -77,16 +78,20 @@ public class FeatureDataSet extends AbstractXYDataset {
 
       // Copy RT and m/z.
       retentionTimes[i] = scanNumber.getRetentionTime();
-      final DataPoint dataPoint = feature.getDataPoint(scanNumber);
-      if (dataPoint == null) {
 
-        mzValues[i] = 0.0;
-        intensities[i] = 0.0;
-
-      } else {
-
-        mzValues[i] = dataPoint.getMZ();
-        intensities[i] = dataPoint.getIntensity();
+      if (feature instanceof ModularFeature) {
+        mzValues[i] = ((ModularFeature) feature).getFeatureData().getMzForSpectrum(scanNumber);
+        intensities[i] = ((ModularFeature) feature).getFeatureData()
+            .getIntensityForSpectrum(scanNumber);
+      } else { // todo remove this when everything is a ModularFeature
+        final DataPoint dataPoint = feature.getDataPoint(scanNumber);
+        if (dataPoint == null) {
+          mzValues[i] = 0.0;
+          intensities[i] = 0.0;
+        } else {
+          mzValues[i] = dataPoint.getMZ();
+          intensities[i] = dataPoint.getIntensity();
+        }
       }
     }
 
