@@ -265,12 +265,20 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
       return;
     }
 
+    GroupEntity itemOldGroup = item.getGroup();
+
     removeFromGroup(item);
     items.remove(item);
     // Compensate removed item
     if (items.indexOf(item) > index) {
       index++;
     }
+
+    // If item was last group element, group header was removed
+    if (!groups.containsKey(itemOldGroup)) {
+      index--;
+    }
+
     items.add(index, item);
 
     getSelectionModel().clearAndSelect(index);
