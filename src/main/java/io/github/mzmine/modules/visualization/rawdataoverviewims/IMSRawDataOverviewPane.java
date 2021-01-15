@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
@@ -33,6 +34,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.CachedFrame;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameHeatmapProvider;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameSummedMobilogramProvider;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameSummedSpectrumProvider;
@@ -182,7 +184,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
     mzRangeTicDatasetIndices.clear();
-    cachedFrame = selectedFrame.get();// , frameNoiseLevel, mobilityScanNoiseLevel);
+    cachedFrame = new CachedFrame((SimpleFrame) selectedFrame.get(), frameNoiseLevel,
+        mobilityScanNoiseLevel);//selectedFrame.get();//
     heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
     mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame));
     summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));

@@ -18,20 +18,19 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims.providers;
 
-import java.awt.Color;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nullable;
-import org.jfree.chart.renderer.PaintScale;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.awt.Color;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.annotation.Nullable;
+import org.jfree.chart.renderer.PaintScale;
 
 public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
@@ -101,16 +100,15 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
     double numScans = frame.getNumberOfMobilityScans();
     int finishedScans = 0;
     for (MobilityScan mobilityScan : frame.getSortedMobilityScans()) {
-      for (DataPoint dp : mobilityScan) {
+      for (int i = 0; i < mobilityScan.getNumberOfDataPoints(); i++) {
         rangeValues.add(mobilityScan.getMobility());
-        domainValues.add(dp.getMZ());
-        zValues.add(dp.getIntensity());
+        domainValues.add(mobilityScan.getMzValue(i));
+        zValues.add(mobilityScan.getIntensityValue(i));
         mobilityScanAtValueIndex.add(mobilityScan);
       }
       finishedScans++;
       finishedPercentage = finishedScans / numScans;
     }
-
   }
 
   public MobilityScan getMobilityScanAtValueIndex(int index) {

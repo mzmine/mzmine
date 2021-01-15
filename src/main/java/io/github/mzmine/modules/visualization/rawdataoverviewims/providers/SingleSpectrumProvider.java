@@ -18,15 +18,13 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims.providers;
 
-import java.awt.Color;
-import java.text.NumberFormat;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
 
 public class SingleSpectrumProvider implements PlotXYDataProvider {
@@ -38,7 +36,7 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
   protected final UnitFormat unitFormat;
   private final MobilityScan scan;
   private double finishedPercentage;
-  private DataPoint[] dataPoints;
+//  private DataPoint[] dataPoints;
 
   public SingleSpectrumProvider(MobilityScan scan) {
     this.scan = scan;
@@ -63,7 +61,7 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
 
   @Override
   public String getLabel(int index) {
-    return mzFormat.format(dataPoints[index].getMZ());
+    return mzFormat.format(scan.getMzValue(index));
   }
 
   @Override
@@ -77,30 +75,29 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
     return "Frame #" + scan.getFrame().getFrameId() + "\nMobility scan #"
         + scan.getMobilityScamNumber() + "\nMobility: " + mobilityFormat.format(scan.getMobility())
         + " " + scan.getMobilityType().getUnit() + "\nm/z: "
-        + mzFormat.format(dataPoints[itemIndex].getMZ()) + "\nIntensity: "
-        + intensityFormat.format(dataPoints[itemIndex].getIntensity());
+        + mzFormat.format(scan.getMzValue(itemIndex)) + "\nIntensity: "
+        + intensityFormat.format(scan.getIntensityValue(itemIndex));
 
   }
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    dataPoints = ScanUtils.extractDataPoints(scan);
     finishedPercentage = 1.d;
   }
 
   @Override
   public double getDomainValue(int index) {
-    return dataPoints[index].getMZ();
+    return scan.getMzValue(index);
   }
 
   @Override
   public double getRangeValue(int index) {
-    return dataPoints[index].getIntensity();
+    return scan.getIntensityValue(index);
   }
 
   @Override
   public int getValueCount() {
-    return dataPoints.length;
+    return scan.getNumberOfDataPoints();
   }
 
   @Override
