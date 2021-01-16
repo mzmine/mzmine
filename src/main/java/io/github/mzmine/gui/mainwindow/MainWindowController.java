@@ -23,6 +23,7 @@ import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -293,16 +294,24 @@ public class MainWindowController {
       }
     });
 
-    // notify selected tab about raw file selection change
-    rawDataList.getSelectedItems().addListener((ListChangeListener<RawDataFile>) c -> {
-      c.next();
-      for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-        if (tab instanceof MZmineTab && tab.isSelected()
-            && ((MZmineTab) tab).isUpdateOnSelection()
-            && !c.getList().isEmpty()) {
-          ((MZmineTab) tab).onRawDataFileSelectionChanged(c.getList());
+    // Notify selected tab about raw data files selection change
+    rawDataList.getSelectedItems().addListener((ListChangeListener<RawDataFile>) change -> {
+
+      // Add listener body to the event queue to run it after all selected items are added to
+      // the observable list, so the collections' elements equality test in the if statement will
+      // compare final result of the multiple selection
+      Platform.runLater(() -> {
+        change.next();
+
+        for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
+          if (tab instanceof MZmineTab && tab.isSelected()
+              && ((MZmineTab) tab).isUpdateOnSelection()
+              && !(CollectionUtils.isEqualCollection(
+                  ((MZmineTab) tab).getRawDataFiles(), change.getList()))) {
+            ((MZmineTab) tab).onRawDataFileSelectionChanged(change.getList());
+          }
         }
-      }
+      });
     });
 
     featuresList.getSelectionModel().getSelectedItems()
