@@ -90,6 +90,20 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
   }
 
   @Override
+  public IonSpectrumSeries<MobilityScan> subSeries(MemoryMapStorage storage,
+      List<MobilityScan> subset) {
+    double[] mzs = new double[subset.size()];
+    double[] intensities = new double[subset.size()];
+
+    for (int i = 0; i < subset.size(); i++) {
+      mzs[i] = getMzForSpectrum(subset.get(i));
+      intensities[i] = getIntensityForSpectrum(subset.get(i));
+    }
+
+    return new SimpleIonMobilitySeries(storage, mzs, intensities, subset);
+  }
+
+  @Override
   public DoubleBuffer getIntensityValues() {
     return intensityValues;
   }

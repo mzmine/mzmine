@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
@@ -556,7 +557,7 @@ public class FeatureConvertors {
   }
 
   public static ModularFeature ResolvedPeakToMoularFeature(ModularFeatureList featureList,
-      ResolvedPeak resolvedPeak) {
+      ResolvedPeak resolvedPeak, IonTimeSeries<? extends Scan> originalData) {
 
     if (resolvedPeak.getPeakList() == null) {
       throw new NullPointerException("Feature list of the resolvedPeak is null.");
@@ -591,11 +592,25 @@ public class FeatureConvertors {
 
     // Data points of feature
 //    modularFeature.set(DataPointsType.class, resolvedPeak.getDataPoints());
-    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
-        ((ModularFeatureList) resolvedPeak.getPeakList()).getMemoryMapStorage(),
-        resolvedPeak.getDataPoints().stream().collect(Collectors.toList()),
-        Arrays.asList(resolvedPeak.getScanNumbers()));
-    modularFeature.set(FeatureDataType.class, timeSeries);
+//    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
+//        ((ModularFeatureList) resolvedPeak.getPeakList()).getMemoryMapStorage(),
+//        resolvedPeak.getDataPoints().stream().collect(Collectors.toList()),
+//        Arrays.asList(resolvedPeak.getScanNumbers()));
+    IonTimeSeries<? extends Scan> resolvedData = null;
+    if (originalData instanceof SimpleIonTimeSeries) {
+      resolvedData = ((SimpleIonTimeSeries) originalData).subSeries(
+          featureList.getMemoryMapStorage(),
+          Arrays.asList(resolvedPeak.getScanNumbers()));
+    } else if (originalData instanceof IonMobilogramTimeSeries) {
+      List<? extends Scan> scans = Arrays.asList(resolvedPeak.getScanNumbers());
+      List<Frame> frames = (List<Frame>) scans;
+      resolvedData = ((SimpleIonMobilogramTimeSeries) originalData).subSeries(
+          featureList.getMemoryMapStorage(), frames);
+    } else {
+      throw new IllegalArgumentException("Smoothing is not yet supported for this kind of data. " +
+          originalData.getClass().getName());
+    }
+    modularFeature.set(FeatureDataType.class, resolvedData);
 
     // Ranges
     Range<Float> rtRange = Range.closed(resolvedPeak.getRawDataPointsRTRange().lowerEndpoint(),

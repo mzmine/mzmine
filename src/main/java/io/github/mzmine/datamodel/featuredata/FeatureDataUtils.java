@@ -163,7 +163,6 @@ public class FeatureDataUtils {
       feature.set(MobilityType.class,
           (float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
     }
-
     // todo recalc quality parameters
   }
 }
