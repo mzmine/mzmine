@@ -32,6 +32,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javax.annotation.Nullable;
 
 /**
  * Class designed to be used as a cell of {@link GroupableListView}.
@@ -50,7 +51,7 @@ public class GroupableListViewCell<T> extends
   private final TextField renameTextField = new TextField();
   private Node renameSavedGraphic;
 
-  public GroupableListViewCell(MenuItem groupUngroupMenuItem) {
+  public GroupableListViewCell(@Nullable MenuItem groupUngroupMenuItem) {
     setEditable(true);
 
     // Setup renaming text fields
@@ -76,40 +77,47 @@ public class GroupableListViewCell<T> extends
     });
 
     // Setup grouping context menu item
-    Platform.runLater(() -> {
-      getListView().getSelectionModel().getSelectedItems().addListener(new ListChangeListener<GroupableListViewEntity>() {
-        @Override
-        public void onChanged(Change<? extends GroupableListViewEntity> change) {
-          String postfix = POSTFIX;
-          if (getGroupableListView().getSelectedValues().size() > 1) {
-            postfix += "s";
-          }
+    if (groupUngroupMenuItem != null) {
+      Platform.runLater(() -> {
+        getListView().getSelectionModel().getSelectedItems()
+            .addListener(new ListChangeListener<GroupableListViewEntity>() {
+              @Override
+              public void onChanged(Change<? extends GroupableListViewEntity> change) {
+                String postfix = POSTFIX;
+                if (getGroupableListView().getSelectedValues().size() > 1) {
+                  postfix += "s";
+                }
 
-          boolean groupedSelected = false;
-          boolean ungroupedSelected = false;
+                boolean groupedSelected = false;
+                boolean ungroupedSelected = false;
 
-          for (GroupableListViewEntity item : change.getList()) {
-            if ((item instanceof ValueEntity && ((ValueEntity<?>) item).isGrouped())
-                || item instanceof GroupEntity) {
-              groupedSelected = true;
-            } else if (item instanceof ValueEntity && !((ValueEntity<?>) item).isGrouped()) {
-              ungroupedSelected = true;
-            }
-          }
+                for (GroupableListViewEntity item : change.getList()) {
+                  if ((item instanceof ValueEntity && ((ValueEntity<?>) item).isGrouped())
+                      || item instanceof GroupEntity) {
+                    groupedSelected = true;
+                  } else if (item instanceof ValueEntity && !((ValueEntity<?>) item).isGrouped()) {
+                    ungroupedSelected = true;
+                  }
+                }
 
-          if (groupedSelected && ungroupedSelected) {
-            groupUngroupMenuItem.setText("Group/Ungroup " + postfix);
-            groupUngroupMenuItem.setDisable(true);
-          } else if (ungroupedSelected) {
-            groupUngroupMenuItem.setText("Group " + postfix);
-            groupUngroupMenuItem.setDisable(false);
-          } else {
-            groupUngroupMenuItem.setText("Ungroup " + postfix);
-            groupUngroupMenuItem.setDisable(false);
-          }
-        }
+                if (groupedSelected && ungroupedSelected) {
+                  groupUngroupMenuItem.setText("Group/Ungroup " + postfix);
+                  groupUngroupMenuItem.setDisable(true);
+                } else if (ungroupedSelected) {
+                  groupUngroupMenuItem.setText("Group " + postfix);
+                  groupUngroupMenuItem.setDisable(false);
+                } else {
+                  groupUngroupMenuItem.setText("Ungroup " + postfix);
+                  groupUngroupMenuItem.setDisable(false);
+                }
+              }
+            });
       });
-    });
+    }
+  }
+
+  public GroupableListViewCell() {
+    this(null);
   }
 
   @Override

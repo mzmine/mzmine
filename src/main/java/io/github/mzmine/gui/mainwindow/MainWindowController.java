@@ -33,7 +33,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import com.google.common.collect.ImmutableList;
-import io.github.mzmine.util.javafx.DraggableListCell;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -87,7 +86,6 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
@@ -111,9 +109,6 @@ import javafx.util.Duration;
 public class MainWindowController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private Boolean reorderListItem = false;
-  private static final Image rawDataFileIcon =
-      FxIconUtil.loadImageFromResources("icons/fileicon.png");
 
   private static final Image featureListSingleIcon =
       FxIconUtil.loadImageFromResources("icons/peaklisticon_single.png");
@@ -130,7 +125,7 @@ public class MainWindowController {
   private GroupableListView<RawDataFile> rawDataList;
 
   @FXML
-  private ListView<FeatureList> featuresList;
+  private GroupableListView<FeatureList> featureListsList;
 
   @FXML
   public ContextMenu rawDataContextMenu;
@@ -145,6 +140,15 @@ public class MainWindowController {
   public MenuItem rawDataRemoveExtensionMenuItem;
   @FXML
   public MenuItem rawDataSetColorMenuItem;
+
+  @FXML
+  public MenuItem openFeatureListMenuItem;
+  @FXML
+  public MenuItem showFeatureListSummaryMenuItem;
+  @FXML
+  public MenuItem featureListsRenameMenuItem;
+  @FXML
+  public MenuItem featureListsRemoveMenuItem;
 
   @FXML
   private AnchorPane tbRawData;
@@ -196,7 +200,10 @@ public class MainWindowController {
 
     rawDataList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-    featuresList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    featureListsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    featureListsList.setGrouping(featureList -> featureList.isAligned()
+        ? "Aligned feature lists"
+        : featureList.getRawDataFile(0).getName());
 
     rawDataList.setCellFactory(rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
@@ -269,17 +276,23 @@ public class MainWindowController {
       }
     });
 
-    featuresList.setCellFactory(featureListView -> new DraggableListCell<>() {
+    featureListsList.setCellFactory(featureListView ->  new GroupableListViewCell<FeatureList>() {
       @Override
-      protected void updateItem(FeatureList item, boolean empty) {
+      protected void updateItem(GroupableListViewEntity item, boolean empty) {
         super.updateItem(item, empty);
         if (empty || (item == null)) {
           setText("");
           setGraphic(null);
           return;
         }
-        setText(item.getName());
-        if (item.isAligned()) {
+        if (item instanceof GroupEntity) {
+          return;
+        }
+
+        FeatureList featureList = ((ValueEntity<FeatureList>) item).getValue();
+
+        setText(featureList.getName());
+        if (featureList.isAligned()) {
           setGraphic(new ImageView(featureListAlignedIcon));
         } else {
           setGraphic(new ImageView(featureListSingleIcon));
@@ -288,7 +301,7 @@ public class MainWindowController {
     });
 
     // Add mouse clicked event handler
-    featuresList.setOnMouseClicked(event -> {
+    featureListsList.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         handleOpenFeatureList(event);
       }
@@ -314,16 +327,19 @@ public class MainWindowController {
       });
     });
 
-    featuresList.getSelectionModel().getSelectedItems()
-      .addListener((ListChangeListener<FeatureList>) c -> {
-        c.next();
+    featureListsList.getSelectedValues().addListener((ListChangeListener<FeatureList>) change -> {
+      Platform.runLater(() -> {
+          change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
           if (tab instanceof MZmineTab && tab.isSelected()
-              && ((MZmineTab) tab).isUpdateOnSelection()) {
-            ((MZmineTab) tab).onFeatureListSelectionChanged(c.getList());
+              && ((MZmineTab) tab).isUpdateOnSelection()
+              && !(CollectionUtils.isEqualCollection(
+              ((MZmineTab) tab).getFeatureLists(), change.getList()))) {
+            ((MZmineTab) tab).onFeatureListSelectionChanged(change.getList());
           }
         }
       });
+    });
 
     /*
      * // update if tab selection in main window changes
@@ -421,17 +437,56 @@ public class MainWindowController {
             if (rawDataList.getSelectedValues().size() == 1) {
               rawDataRemoveMenuItem.setText("Remove file");
               rawDataRemoveExtensionMenuItem.setText("Remove file extension");
-              rawDataRenameMenuItem.setDisable(false);
               rawDataSetColorMenuItem.setDisable(false);
             } else {
               rawDataRemoveMenuItem.setText("Remove files");
               rawDataRemoveExtensionMenuItem.setText("Remove files' extensions");
-              rawDataRenameMenuItem.setDisable(true);
               rawDataSetColorMenuItem.setDisable(true);
             }
 
+            if (rawDataList.getSelectionModel().getSelectedItems().size() == 1) {
+              rawDataRenameMenuItem.setDisable(false);
+              if (rawDataList.getSelectionModel().getSelectedItems().get(0) instanceof GroupEntity) {
+                rawDataRenameMenuItem.setText("Rename group");
+              } else {
+                rawDataRenameMenuItem.setText("Rename file");
+              }
+            } else {
+              rawDataRenameMenuItem.setDisable(true);
+            }
           }
         });
+
+    featureListsList.getSelectionModel().getSelectedItems().addListener(
+        (ListChangeListener<GroupableListViewEntity>) change -> {
+          while (change.next()) {
+            if (change.getList() == null) {
+              return;
+            }
+
+            if (featureListsList.getSelectedValues().size() == 1) {
+              openFeatureListMenuItem.setText("Open feature list");
+              showFeatureListSummaryMenuItem.setText("Show feature list summary");
+              featureListsRemoveMenuItem.setText("Remove feature list");
+            } else {
+              openFeatureListMenuItem.setText("Open feature lists");
+              showFeatureListSummaryMenuItem.setText("Show feature lists summary");
+              featureListsRemoveMenuItem.setText("Remove feature lists");
+            }
+
+            if (featureListsList.getSelectionModel().getSelectedItems().size() == 1) {
+              featureListsRenameMenuItem.setDisable(false);
+              if (featureListsList.getSelectionModel().getSelectedItems().get(0) instanceof GroupEntity) {
+                featureListsRenameMenuItem.setText("Rename group");
+              } else {
+                featureListsRenameMenuItem.setText("Rename file");
+              }
+            } else {
+              featureListsRenameMenuItem.setDisable(true);
+            }
+          }
+        }
+    );
 
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
     addTab(rop);
@@ -441,8 +496,8 @@ public class MainWindowController {
     return rawDataList;
   }
 
-  public ListView<FeatureList> getFeaturesList() {
-    return featuresList;
+  public GroupableListView<FeatureList> getFeatureListsList() {
+    return featureListsList;
   }
 
   /*
@@ -525,8 +580,12 @@ public class MainWindowController {
 
   public void handleShowMsMsPlot(Event event) {}
 
-  public void handleSort(Event event) {
+  public void handleRawDataSort(Event event) {
     rawDataList.sortSelectedItems();
+  }
+
+  public void handleFeatureListsSort(Event event) {
+    featureListsList.sortSelectedItems();
   }
 
   public void handleRemoveFileExtension(Event event) {
@@ -538,7 +597,7 @@ public class MainWindowController {
 
   public void handleExportFile(Event event) {}
 
-  public void handleRenameFile(Event event) {
+  public void handleRenameRawData(Event event) {
     if (rawDataList.getSelectionModel() == null) {
       return;
     }
@@ -627,11 +686,27 @@ public class MainWindowController {
     }
   }
 
-  public void handleShowFeatureListSummary(Event event) {}
+  public void handleShowFeatureListSummary(Event event) {
+    // TODO
+  }
 
-  public void handleShowScatterPlot(Event event) {}
+  public void handleShowScatterPlot(Event event) {
+    // TODO
+  }
 
-  public void handleRenameFeatureList(Event event) {}
+  public void handleRenameFeatureList(Event event) {
+    if (featureListsList.getSelectionModel() == null) {
+      return;
+    }
+
+    // Only one item must be selected
+    if (featureListsList.getSelectionModel().getSelectedIndices().size() != 1) {
+      return;
+    }
+
+    featureListsList.setEditable(true);
+    featureListsList.edit(featureListsList.getSelectionModel().getSelectedIndex());
+  }
 
   @FXML
   public void handleRemoveFeatureList(Event event) {
@@ -705,9 +780,9 @@ public class MainWindowController {
           }
 
           if(((MZmineTab) tab).getFeatureLists() != null && !((MZmineTab) tab).getFeatureLists()
-              .equals(featuresList.getSelectionModel().getSelectedItems())) {
+              .equals(featureListsList.getSelectionModel().getSelectedItems())) {
             ((MZmineTab) tab)
-                .onFeatureListSelectionChanged(featuresList.getSelectionModel().getSelectedItems());
+                .onFeatureListSelectionChanged(featureListsList.getSelectedValues());
           }
         }
       }));
