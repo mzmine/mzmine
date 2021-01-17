@@ -43,8 +43,8 @@ import javax.annotation.Nonnull;
  */
 public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
-  private final Map<GroupEntity, ObservableList<ValueEntity<T>>> groups = FXCollections.observableHashMap();
-  private final ObservableList<GroupableListViewEntity> items = FXCollections.observableArrayList();
+  private final Map<GroupEntity, ObservableList<ValueEntity<T>>> listGroups = FXCollections.observableHashMap();
+  private final ObservableList<GroupableListViewEntity> listItems = FXCollections.observableArrayList();
 
   private final ObservableList<T> selectedValues = FXCollections.observableArrayList();
   private final ObservableList<GroupEntity> selectedGroups = FXCollections.observableArrayList();
@@ -66,7 +66,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
           for (GroupableListViewEntity item : items) {
             if (item instanceof GroupEntity) {
               selectedGroups.add((GroupEntity) item);
-              selectedValues.addAll(groups.get(item).stream()
+              selectedValues.addAll(listGroups.get(item).stream()
                   .map(ValueEntity::getValue)
                   .collect(Collectors.toList()));
             } else {
@@ -86,24 +86,24 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
    * @param values list to be binded
    */
   public final void setValues(@Nonnull ObservableList<T> values) {
-    items.clear();
-    groups.clear();
+    listItems.clear();
+    listGroups.clear();
 
     values.addListener(new ListChangeListener<T>() {
       @Override
       public void onChanged(Change<? extends T> change) {
         while (change.next()) {
           if (change.wasAdded()) {
-            change.getAddedSubList().forEach(item -> items.add(new ValueEntity<T>(item)));
+            change.getAddedSubList().forEach(item -> listItems.add(new ValueEntity<T>(item)));
           }
           if (change.wasRemoved()) {
             for (T removedItem : change.getRemoved()) {
-              for (GroupableListViewEntity item : items) {
+              for (GroupableListViewEntity item : listItems) {
                 if (item instanceof ValueEntity && ((ValueEntity<?>) item).getValue().equals(removedItem)) {
-                  items.remove(item);
+                  listItems.remove(item);
                   if (((ValueEntity<?>) item).isGrouped()) {
-                    groups.get(((ValueEntity<?>) item).getGroup()).remove(item);
-                    if (groups.get(((ValueEntity<?>) item).getGroup()).isEmpty()) {
+                    listGroups.get(((ValueEntity<?>) item).getGroup()).remove(item);
+                    if (listGroups.get(((ValueEntity<?>) item).getGroup()).isEmpty()) {
                       ungroupItems(((ValueEntity<?>) item).getGroup());
                     }
                   }
@@ -112,7 +112,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
               }
             }
           }
-          setItems(items);
+          setItems(listItems);
         }
       }
     });
@@ -140,12 +140,12 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
     groupItems.forEach(item -> item.setGroup(newGroup));
 
-    groups.put(newGroup, FXCollections.observableArrayList(groupItems));
+    listGroups.put(newGroup, FXCollections.observableArrayList(groupItems));
 
-    items.removeAll(groupItems);
+    listItems.removeAll(groupItems);
     int minIndex = Collections.min(itemsIndices);
-    items.add(minIndex, newGroup);
-    items.addAll(minIndex + 1, groupItems);
+    listItems.add(minIndex, newGroup);
+    listItems.addAll(minIndex + 1, groupItems);
   }
 
   public void ungroupItems(List<GroupEntity> groups) {
@@ -158,13 +158,13 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   public void ungroupItems(GroupEntity group) {
-    groups.get(group).forEach(item -> item.setGroup(null));
+    listGroups.get(group).forEach(item -> item.setGroup(null));
     if (group.isHidden()) {
-      items.addAll(groups.get(group));
+      listItems.addAll(listGroups.get(group));
     }
 
-    items.remove(group);
-    groups.remove(group);
+    listItems.remove(group);
+    listGroups.remove(group);
   }
 
   public ObservableList<T> getSelectedValues() {
@@ -177,7 +177,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
   public void renameGroup(GroupEntity group, String newName) {
     String oldName = group.getGroupName();
-    if (!groups.containsKey(group) || oldName.equals(newName)) {
+    if (!listGroups.containsKey(group) || oldName.equals(newName)) {
       return;
     }
 
@@ -188,7 +188,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   public ObservableList<ValueEntity<T>> getGroupItems(GroupEntity group) {
-    return groups.get(group);
+    return listGroups.get(group);
   }
 
   public boolean onlyGroupsSelected() {
@@ -228,12 +228,15 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   public void addToGroup(GroupEntity group, int index, List<ValueEntity<T>> items) {
-    if (group == null || !groups.containsKey(group)) {
+    if (group == null || !listGroups.containsKey(group)) {
       return;
     }
 
     items.forEach(item -> item.setGroup(group));
-    groups.get(group).addAll(index, items);
+    listGroups.get(group).addAll(index, items);
+
+    listItems.removeAll(items);
+    listItems.addAll(listItems.indexOf(group) + 1 + index, items);
   }
 
   public void addToGroup(GroupEntity group, int index, ValueEntity<T> item) {
@@ -247,11 +250,11 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     }
 
     // Remove values' entities from the list and place them to the end
-    values.forEach(value -> removeFromGroup(items.size() - 1, getValueEntity(value)));
+    values.forEach(value -> removeFromGroup(listItems.size() - 1, getValueEntity(value)));
 
     // Select ungrouped items
     getSelectionModel().clearSelection();
-    getSelectionModel().selectRange(items.size() - values.size(), items.size());
+    getSelectionModel().selectRange(listItems.size() - values.size(), listItems.size());
   }
 
   /**
@@ -268,18 +271,18 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     GroupEntity itemOldGroup = item.getGroup();
 
     removeFromGroup(item);
-    items.remove(item);
+    listItems.remove(item);
     // Compensate removed item
-    if (items.indexOf(item) > index) {
+    if (listItems.indexOf(item) > index) {
       index++;
     }
 
     // If item was last group element, group header was removed
-    if (!groups.containsKey(itemOldGroup)) {
+    if (!listGroups.containsKey(itemOldGroup)) {
       index--;
     }
 
-    items.add(index, item);
+    listItems.add(index, item);
 
     getSelectionModel().clearAndSelect(index);
   }
@@ -292,21 +295,21 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     GroupEntity group = item.getGroup();
 
     item.setGroup(null);
-    groups.get(group).remove(item);
+    listGroups.get(group).remove(item);
 
-    if (groups.get(group).isEmpty()) {
+    if (listGroups.get(group).isEmpty()) {
       ungroupItems(group);
     }
   }
 
   public Integer getGroupIndex(GroupEntity group) {
-    if (group == null || !groups.containsKey(group)) {
+    if (group == null || !listGroups.containsKey(group)) {
       return null;
     }
 
-    for (int index = 0; index < items.size(); index++) {
-      if (items.get(index) instanceof GroupEntity
-          && (items.get(index)).equals(group)) {
+    for (int index = 0; index < listItems.size(); index++) {
+      if (listItems.get(index) instanceof GroupEntity
+          && (listItems.get(index)).equals(group)) {
         return index;
       }
     }
@@ -320,10 +323,10 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   public Integer getGroupSize(GroupEntity group) {
-    if (group == null || !groups.containsKey(group)) {
+    if (group == null || !listGroups.containsKey(group)) {
       return null;
     }
-    return groups.get(group).size();
+    return listGroups.get(group).size();
   }
 
   public void sortSelectedItems() {
@@ -349,7 +352,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
     // Get items corresponding to indices
     List<GroupableListViewEntity> itemsToSort = indices.stream()
-        .map(items::get)
+        .map(listItems::get)
         .collect(Collectors.toList());
 
     // One item is to be sorted
@@ -368,7 +371,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     List<Integer> notGroupedItemsIndices = new ArrayList<>();
     HashMap<GroupEntity, List<Integer>> groupedItemsIndices = new HashMap<>();
     for (Integer index : indices) {
-      GroupableListViewEntity item = items.get(index);
+      GroupableListViewEntity item = listItems.get(index);
       if (item instanceof ValueEntity && ((ValueEntity<?>) item).isGrouped()) {
         groupedItemsIndices.putIfAbsent(((ValueEntity<?>) item).getGroup(), new ArrayList<>());
         groupedItemsIndices.get(((ValueEntity<?>) item).getGroup()).add(index);
@@ -399,7 +402,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
     // Get sorted items corresponding to indices
     List<GroupableListViewEntity> sortedItems = indices.stream()
-        .map(items::get)
+        .map(listItems::get)
         .sorted(Ordering.usingToString())
         .collect(Collectors.toList());
 
@@ -410,10 +413,10 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     int shift = 0;
     for (int i = 0; i < indices.size(); i++) {
       indices.set(i, indices.get(i) - shift);
-      GroupableListViewEntity item = items.get(indices.get(i));
+      GroupableListViewEntity item = listItems.get(indices.get(i));
       if (item instanceof GroupEntity && ((GroupEntity) item).isExpanded()) {
         shift += getGroupSize((GroupEntity) item);
-        items.removeAll(groups.get(item));
+        listItems.removeAll(listGroups.get(item));
         expandedGroups.add((GroupEntity) item);
       }
     }
@@ -425,22 +428,22 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
       GroupableListViewEntity item = sortedItems.get(sortedItemsIndex);
 
       // Put sorted element to the current index of the list view
-      items.set(index, item);
+      listItems.set(index, item);
 
       // If item is grouped, sort the group
       if (item instanceof ValueEntity && ((ValueEntity<T>) item).isGrouped()) {
         GroupEntity group = ((ValueEntity<?>) item).getGroup();
-        groups.get(group).set(index - getGroupIndex(group) - 1, (ValueEntity<T>) item);
+        listGroups.get(group).set(index - getGroupIndex(group) - 1, (ValueEntity<T>) item);
       }
       sortedItemsIndex++;
     }
 
     // Fill the list view with sorted groups elements
     for (GroupEntity expandedGroup : expandedGroups) {
-      items.addAll(getGroupIndex(expandedGroup) + 1, getGroupItems(expandedGroup));
+      listItems.addAll(getGroupIndex(expandedGroup) + 1, getGroupItems(expandedGroup));
     }
 
-    setItems(items);
+    setItems(listItems);
   }
 
   /**
@@ -452,7 +455,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
    */
   @Nullable
   private ValueEntity<T> getValueEntity(T value) {
-    for (GroupableListViewEntity item : items) {
+    for (GroupableListViewEntity item : listItems) {
       if (item instanceof ValueEntity && ((ValueEntity<?>) item).getValue().equals(value)) {
         return (ValueEntity<T>) item;
       }
@@ -470,7 +473,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
    * @return new group name
    */
   private String generateNewGroupName(String groupName) {
-    Set<String> groupsNames = groups.keySet().stream()
+    Set<String> groupsNames = listGroups.keySet().stream()
         .map(GroupEntity::getGroupName)
         .collect(Collectors.toSet());
 
