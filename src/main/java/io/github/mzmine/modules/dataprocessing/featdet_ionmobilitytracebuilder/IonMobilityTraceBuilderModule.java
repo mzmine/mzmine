@@ -18,12 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -34,6 +28,11 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class IonMobilityTraceBuilderModule implements MZmineRunnableModule {
 
@@ -56,9 +55,9 @@ public class IonMobilityTraceBuilderModule implements MZmineRunnableModule {
         continue;
       }
 
-      Set<Frame> frames = new LinkedHashSet<>(((IMSRawDataFile) file).getFrames());
+      List<Frame> frames = (List<Frame>) ((IMSRawDataFile) file).getFrames();
       IonMobilityTraceBuilderTask task =
-          new IonMobilityTraceBuilderTask(project, file, new HashSet<>(frames), parameters);
+          new IonMobilityTraceBuilderTask(project, file, frames, parameters);
       MZmineCore.getTaskController().addTask(task);
     }
 

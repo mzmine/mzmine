@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.MemoryMapStorage;
 
 /**
  * Used to store a consecutive number of data points (mz and intensity values).
@@ -28,4 +29,42 @@ import io.github.mzmine.datamodel.Scan;
  */
 public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, TimeSeries {
 
+  /**
+   * @param scan
+   * @return The intensity value for the given scan or 0 if the no intensity was measured at that
+   * scan.
+   */
+  @Override
+  default double getIntensityForSpectrum(Scan scan) {
+    int index = getSpectra().indexOf(scan);
+    if (index != -1) {
+      return getIntensity(index);
+    }
+    return 0;
+  }
+
+  /**
+   * @param scan
+   * @return The mz for the given scan or 0 if no intensity was measured at that scan.
+   */
+  @Override
+  default double getMzForSpectrum(Scan scan) {
+    int index = getSpectra().indexOf(scan);
+    if (index != -1) {
+      return getMZ(index);
+    }
+    return 0;
+  }
+
+  /**
+   * Creates a copy of this series using the same list of scans but possibly new mz/intensity
+   * values.
+   *
+   * @param storage
+   * @param newMzValues
+   * @param newIntensityValues
+   * @return
+   */
+  IonTimeSeries<T> copyAndReplace(MemoryMapStorage storage, double[] newMzValues,
+      double[] newIntensityValues);
 }

@@ -27,12 +27,25 @@ import java.nio.DoubleBuffer;
  */
 public interface IntensitySeries extends SeriesValueCount {
 
+  /**
+   *
+   * @return All non-zero intensities.
+   */
   DoubleBuffer getIntensityValues();
 
+  /**
+   *
+   * @param index
+   * @return The intensity at the index position. Note that this
+   */
   default double getIntensity(int index) {
     return getIntensityValues().get(index);
   }
 
+  /**
+   *
+   * @return The number of non-zero intensity values in this series.
+   */
   default int getNumberOfValues() {
     return getIntensityValues().capacity();
   }

@@ -70,6 +70,10 @@ public class SavitzkyGolayFilter {
    */
   public static double[] getNormalizedWeights(final int width) {
 
+    if (width == 0) {
+      return new double[]{1d};
+    }
+
     // Get the raw values.
     final int[] values = VALUES.get(width);
     if (values == null) {

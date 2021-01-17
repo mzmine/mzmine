@@ -28,5 +28,17 @@ public interface MobilitySeries extends SeriesValueCount {
   // no FloatBuffer getMobilityValues(), because this usually occurs with scans and
   // thus mobility is stored in the scan/rawdatafile object and present in ram
 
+  /**
+   * Note that the index does not correspond to scan numbers. Usually, {@link
+   * io.github.mzmine.datamodel.Scan} are associated with series, making {@link
+   * io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries#getSpectra()} or {@link
+   * io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries#getSpectrum(int)} more
+   * convenient.
+   *
+   * @param index
+   * @return The mobility value at the index position.
+   * @see io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries#getSpectrum(int)
+   * @see io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries#getSpectra()
+   */
   double getMobility(int index);
 }

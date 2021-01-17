@@ -27,9 +27,9 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.TextUtils;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.concurrent.Immutable;
 
@@ -102,8 +102,8 @@ public class ScanSelection {
     return scanDefinition;
   }
 
-  public Set<? extends Scan> getMachtingScans(Collection<? extends Scan> scans) {
-    Set<Scan> eligibleScans = new HashSet<>();
+  public List<? extends Scan> getMachtingScans(Collection<? extends Scan> scans) {
+    List<Scan> eligibleScans = new ArrayList<>();
     for (Scan scan : scans) {
       if (matches(scan)) {
         eligibleScans.add(scan);

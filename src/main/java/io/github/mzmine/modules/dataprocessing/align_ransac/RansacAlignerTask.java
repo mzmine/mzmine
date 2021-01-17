@@ -22,7 +22,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -124,7 +123,7 @@ class RansacAlignerTask extends AbstractTask {
     // Collect all data files
     List<RawDataFile> allDataFiles = new ArrayList<RawDataFile>();
 
-    for (FeatureList featureList : featureLists) {
+    for (ModularFeatureList featureList : featureLists) {
 
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
 
@@ -138,6 +137,9 @@ class RansacAlignerTask extends AbstractTask {
         }
 
         allDataFiles.add(dataFile);
+
+        featureList.getRawDataFiles().forEach(
+            file -> alignedFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
       }
     }
 

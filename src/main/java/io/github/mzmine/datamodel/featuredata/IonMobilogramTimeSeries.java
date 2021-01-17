@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.featuredata;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
 
 /**
@@ -43,4 +44,44 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame> {
   }
 
   SummedIntensityMobilitySeries getSummedMobilogram();
+
+  /**
+   * Creates a copy of this series using the same frame list, but with new mz/intensities and new
+   * mobilograms, e.g. after smoothing.
+   *
+   * @param storage
+   * @param newMzValues
+   * @param newIntensityValues
+   * @param newMobilograms
+   * @return
+   */
+  IonMobilogramTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newMzValues,
+      double[] newIntensityValues, List<SimpleIonMobilitySeries> newMobilograms);
+
+  /**
+   * @param scan
+   * @return The intensity value for the given scan or 0 if the no intensity was measured at that
+   * scan.
+   */
+  @Override
+  default double getIntensityForSpectrum(Frame scan) {
+    int index = getSpectra().indexOf(scan);
+    if (index != -1) {
+      return getIntensity(index);
+    }
+    return 0;
+  }
+
+  /**
+   * @param scan
+   * @return The mz for the given scan or 0 if no intensity was measured at that scan.
+   */
+  @Override
+  default double getMzForSpectrum(Frame scan) {
+    int index = getSpectra().indexOf(scan);
+    if (index != -1) {
+      return getMZ(index);
+    }
+    return 0;
+  }
 }

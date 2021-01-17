@@ -398,6 +398,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       newFeatureID++;
     }
 
+    newFeatureList.setSelectedScans(dataFile, Arrays.asList(scans));
+
     // Add new feature list to the project
     project.addFeatureList(newFeatureList);
 

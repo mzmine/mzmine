@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import io.github.mzmine.datamodel.Scan;
 import java.nio.DoubleBuffer;
 
 /**
@@ -27,12 +28,23 @@ import java.nio.DoubleBuffer;
  */
 public interface MzSeries extends SeriesValueCount {
 
+  /**
+   * @return All mz values corresponding to non-0 intensities.
+   */
   DoubleBuffer getMZValues();
 
+  /**
+   * @param index
+   * @return The value at the index position. Note the index does not correspond to scan numbers.
+   * @see IonTimeSeries#getMzForSpectrum(Scan)
+   */
   default double getMZ(int index) {
     return getMZValues().get(index);
   }
 
+  /**
+   * @return The number of mz values corresponding to non-0 intensities.
+   */
   default int getNumberOfValues() {
     return getMZValues().capacity();
   }

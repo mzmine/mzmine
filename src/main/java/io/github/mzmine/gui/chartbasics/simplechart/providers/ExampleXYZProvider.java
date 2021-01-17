@@ -192,7 +192,6 @@ public class ExampleXYZProvider implements PlotXYZDataProvider {
     for (RetentionTimeMobilityDataPoint dp : dataPointsSortedByRt) {
       if (dpA == null) {
         dpA = dp;
-        dataPointHeight = Math.abs(dp.getMobilityWidth());
       } else if (!(Float.compare(dpA.getRetentionTime(), dp.getRetentionTime()) == 0)) {
         rtDeltas.add(dpA.getRetentionTime() - dp.getRetentionTime());
         dpA = dp;
