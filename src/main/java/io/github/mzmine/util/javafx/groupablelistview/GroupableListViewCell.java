@@ -81,21 +81,31 @@ public class GroupableListViewCell<T> extends
         @Override
         public void onChanged(Change<? extends GroupableListViewEntity> change) {
           String postfix = POSTFIX;
-          if (change.getList().size() > 1) {
+          if (getGroupableListView().getSelectedItems().size() > 1) {
             postfix += "s";
           }
 
-          if (getGroupableListView().onlyGroupsSelected()
-              || getGroupableListView().onlyGroupedItemsSelected()) {
-            groupUngroupMenuItem.setText("Ungroup " + postfix);
-            groupUngroupMenuItem.setDisable(false);
-          } else if (getGroupableListView().onlyItemsSelected()
-              && !getGroupableListView().anyGroupedItemSelected()) {
+          boolean groupedSelected = false;
+          boolean ungroupedSelected = false;
+
+          for (GroupableListViewEntity item : change.getList()) {
+            if ((item instanceof ValueEntity && ((ValueEntity<?>) item).isGrouped())
+                || item instanceof GroupEntity) {
+              groupedSelected = true;
+            } else if (item instanceof ValueEntity && !((ValueEntity<?>) item).isGrouped()) {
+              ungroupedSelected = true;
+            }
+          }
+
+          if (groupedSelected && ungroupedSelected) {
+            groupUngroupMenuItem.setText("Group/Ungroup " + postfix);
+            groupUngroupMenuItem.setDisable(true);
+          } else if (ungroupedSelected) {
             groupUngroupMenuItem.setText("Group " + postfix);
             groupUngroupMenuItem.setDisable(false);
           } else {
-            groupUngroupMenuItem.setText("Group/Ungroup " + postfix);
-            groupUngroupMenuItem.setDisable(true);
+            groupUngroupMenuItem.setText("Ungroup " + postfix);
+            groupUngroupMenuItem.setDisable(false);
           }
         }
       });
@@ -241,6 +251,14 @@ public class GroupableListViewCell<T> extends
       }
       getGroupableListView().addToGroup(group, groupedItemsIdx, selectedValues);
     }
+
+    // Update selection
+    int newDraggedItemIdx = getGroupableListView().getItems().indexOf(draggedItem);
+    int selectedItemsSize = getListView().getSelectionModel().getSelectedItems().size();
+    getListView().getSelectionModel().clearSelection();
+    getListView().getSelectionModel().selectRange(newDraggedItemIdx,
+        newDraggedItemIdx + selectedItemsSize);
+
   }
 
   public GroupableListView<T> getGroupableListView() {
