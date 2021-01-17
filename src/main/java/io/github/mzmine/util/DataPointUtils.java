@@ -1,9 +1,12 @@
 package io.github.mzmine.util;
 
+import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class DataPointUtils {
@@ -124,6 +127,26 @@ public class DataPointUtils {
     for (int i = 0; i < dataPoints.length; i++) {
       data[i] = dataPoints[i].getIntensity();
     }
+    return data;
+  }
+
+  public static double[][] getDatapointsAboveNoiseLevel(DoubleBuffer rawMzs,
+      DoubleBuffer rawIntensities,
+      double noiseLevel) {
+    assert rawMzs.capacity() == rawIntensities.capacity();
+
+    List<Double> mzs = new ArrayList<>();
+    List<Double> intensities = new ArrayList<>();
+
+    for (int i = 0; i < rawMzs.capacity(); i++) {
+      if (rawIntensities.get(i) > noiseLevel) {
+        mzs.add(rawMzs.get(i));
+        intensities.add(rawIntensities.get(i));
+      }
+    }
+    double[][] data = new double[2][];
+    data[0] = Doubles.toArray(mzs);
+    data[1] = Doubles.toArray(intensities);
     return data;
   }
 }

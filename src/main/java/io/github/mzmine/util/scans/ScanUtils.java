@@ -18,28 +18,6 @@
 
 package io.github.mzmine.util.scans;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.text.Format;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
@@ -60,8 +38,30 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.text.Format;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Scan related utilities
@@ -125,18 +125,27 @@ public class ScanUtils {
   /**
    * Find a base peak of a given scan in a given m/z range
    *
-   * @param scan Scan to search
+   * @param scan    Scan to search
    * @param mzRange mz range to search in
    * @return double[2] containing base peak m/z and intensity
    */
-  public static @Nullable DataPoint findBasePeak(@Nonnull Scan scan,
-      @Nonnull Range<Double> mzRange) {
+  @Nullable
+  public static DataPoint findBasePeak(@Nonnull Scan scan, @Nonnull Range<Double> mzRange) {
 
-    Integer basePeakIndex = scan.getBasePeakIndex();
-    if (basePeakIndex == null)
-      return null;
-    SimpleDataPoint dp = new SimpleDataPoint(scan.getBasePeakMz(), scan.getBasePeakIntensity());
-    return dp;
+    double baseMz = 0d;
+    double baseIntensity = 0d;
+    for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
+      double mz = scan.getMzValue(i);
+      if (!mzRange.contains(mz)) {
+        continue;
+      }
+      double intensity = scan.getIntensityValue(i);
+      if (intensity > baseIntensity) {
+        baseIntensity = intensity;
+        baseMz = mz;
+      }
+    }
+    return new SimpleDataPoint(baseMz, baseIntensity);
   }
 
   /**

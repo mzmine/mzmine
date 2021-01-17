@@ -18,15 +18,15 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims.providers;
 
-import java.awt.Color;
-import java.text.NumberFormat;
-import java.util.List;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.awt.Color;
+import java.text.NumberFormat;
+import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
 
 public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
@@ -80,7 +80,7 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
   @Override
   public String getToolTipText(int itemIndex) {
     MobilityScan scan = frame.getSortedMobilityScans().get(itemIndex);
-    if (scan == null || scan.getBasePeakIndex() == null) {
+    if (scan == null || scan.getBasePeakMz() == null || scan.getBasePeakIntensity() == null) {
       return null;
     }
     return "Scan #" + scan.getMobilityScamNumber() + "\nMobility: "
