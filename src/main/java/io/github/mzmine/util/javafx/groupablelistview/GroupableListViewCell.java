@@ -81,7 +81,7 @@ public class GroupableListViewCell<T> extends
         @Override
         public void onChanged(Change<? extends GroupableListViewEntity> change) {
           String postfix = POSTFIX;
-          if (getGroupableListView().getSelectedItems().size() > 1) {
+          if (getGroupableListView().getSelectedValues().size() > 1) {
             postfix += "s";
           }
 

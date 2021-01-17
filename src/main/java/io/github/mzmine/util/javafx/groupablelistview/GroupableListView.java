@@ -46,7 +46,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   private final Map<GroupEntity, ObservableList<ValueEntity<T>>> groups = FXCollections.observableHashMap();
   private final ObservableList<GroupableListViewEntity> items = FXCollections.observableArrayList();
 
-  private final ObservableList<T> selectedItems = FXCollections.observableArrayList();
+  private final ObservableList<T> selectedValues = FXCollections.observableArrayList();
   private final ObservableList<GroupEntity> selectedGroups = FXCollections.observableArrayList();
 
   public GroupableListView() {
@@ -61,17 +61,17 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
             return;
           }
           ImmutableList<GroupableListViewEntity> items = ImmutableList.copyOf(change.getList());
-          selectedItems.clear();
+          selectedValues.clear();
           selectedGroups.clear();
           for (GroupableListViewEntity item : items) {
             if (item instanceof GroupEntity) {
               selectedGroups.add((GroupEntity) item);
-              selectedItems.addAll(groups.get(item).stream()
+              selectedValues.addAll(groups.get(item).stream()
                   .map(ValueEntity::getValue)
                   .collect(Collectors.toList()));
             } else {
-              if (!selectedItems.contains(((ValueEntity<T>) item).getValue())) {
-                selectedItems.add(((ValueEntity<T>) item).getValue());
+              if (!selectedValues.contains(((ValueEntity<T>) item).getValue())) {
+                selectedValues.add(((ValueEntity<T>) item).getValue());
               }
             }
           }
@@ -167,8 +167,8 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     groups.remove(group);
   }
 
-  public ObservableList<T> getSelectedItems() {
-    return selectedItems;
+  public ObservableList<T> getSelectedValues() {
+    return selectedValues;
   }
 
   public ObservableList<GroupEntity> getSelectedGroups() {
@@ -210,7 +210,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   public boolean onlyItemsSelected() {
-    return selectedGroups.isEmpty() && !selectedItems.isEmpty();
+    return selectedGroups.isEmpty() && !selectedValues.isEmpty();
   }
 
   public boolean anyGroupedItemSelected() {
@@ -241,7 +241,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   public void removeValuesFromGroup(List<T> values) {
-    if (values.equals(selectedItems)) {
+    if (values.equals(selectedValues)) {
       // Create list copy to avoid concurrent modification of selected items
       values = List.copyOf(values);
     }

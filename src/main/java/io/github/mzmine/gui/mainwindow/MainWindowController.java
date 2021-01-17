@@ -295,7 +295,7 @@ public class MainWindowController {
     });
 
     // Notify selected tab about raw data files selection change
-    rawDataList.getSelectedItems().addListener((ListChangeListener<RawDataFile>) change -> {
+    rawDataList.getSelectedValues().addListener((ListChangeListener<RawDataFile>) change -> {
 
       // Add listener body to the event queue to run it after all selected items are added to
       // the observable list, so the collections' elements equality test in the if statement will
@@ -418,7 +418,7 @@ public class MainWindowController {
               return;
             }
 
-            if (rawDataList.getSelectedItems().size() == 1) {
+            if (rawDataList.getSelectedValues().size() == 1) {
               rawDataRemoveMenuItem.setText("Remove file");
               rawDataRemoveExtensionMenuItem.setText("Remove file extension");
               rawDataRenameMenuItem.setDisable(false);
@@ -530,7 +530,7 @@ public class MainWindowController {
   }
 
   public void handleRemoveFileExtension(Event event) {
-    for (RawDataFile file : rawDataList.getSelectedItems()) {
+    for (RawDataFile file : rawDataList.getSelectedValues()) {
       file.setName(FilenameUtils.removeExtension(file.getName()));
     }
     rawDataList.refresh();
@@ -608,7 +608,7 @@ public class MainWindowController {
       return;
     }
 
-    for (RawDataFile selectedItem : ImmutableList.copyOf(rawDataList.getSelectedItems())) {
+    for (RawDataFile selectedItem : ImmutableList.copyOf(rawDataList.getSelectedValues())) {
       MZmineCore.getProjectManager().getCurrentProject().removeFile(selectedItem);
     }
 
@@ -701,7 +701,7 @@ public class MainWindowController {
           if (((MZmineTab) tab).getRawDataFiles() != null && !((MZmineTab) tab).getRawDataFiles()
               .equals(rawDataList.getSelectionModel().getSelectedItems())) {
             ((MZmineTab) tab)
-                .onRawDataFileSelectionChanged(rawDataList.getSelectedItems());
+                .onRawDataFileSelectionChanged(rawDataList.getSelectedValues());
           }
 
           if(((MZmineTab) tab).getFeatureLists() != null && !((MZmineTab) tab).getFeatureLists()
@@ -723,7 +723,7 @@ public class MainWindowController {
       return;
     }
 
-    ObservableList<RawDataFile> rows = rawDataList.getSelectedItems();
+    ObservableList<RawDataFile> rows = rawDataList.getSelectedValues();
     // Only one file must be selected
     if (rows == null || rows.size() != 1 || rows.get(0) == null) {
       return;
@@ -778,7 +778,7 @@ public class MainWindowController {
     if (rawDataList.onlyGroupsSelected()) {
       rawDataList.ungroupItems(rawDataList.getSelectedGroups());
     } else if (rawDataList.onlyGroupedItemsSelected()) {
-      rawDataList.removeValuesFromGroup(rawDataList.getSelectedItems());
+      rawDataList.removeValuesFromGroup(rawDataList.getSelectedValues());
     } else if (rawDataList.onlyItemsSelected()) {
       rawDataList.groupSelectedItems();
     }

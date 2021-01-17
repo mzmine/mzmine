@@ -275,7 +275,7 @@ public class MZmineGUI extends Application implements Desktop {
   public static List<RawDataFile> getSelectedRawDataFiles() {
 
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
-    return ImmutableList.copyOf(rawDataListView.getSelectedItems());
+    return ImmutableList.copyOf(rawDataListView.getSelectedValues());
 
   }
 
