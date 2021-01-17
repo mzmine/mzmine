@@ -4,24 +4,22 @@
  * This file is part of MZmine.
  *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * General License as published by the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * You should have received a copy of the GNU General License along with MZmine; if not, write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
-import java.util.Collection;
-import java.util.Map;
+import java.nio.DoubleBuffer;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,62 +31,68 @@ public interface Frame extends Scan {
 
   /**
    * Equivalent to {@link Scan#getScanNumber()}.
+   *
    * @return the scan number
    */
   @Deprecated
-  public default int getFrameId() {
+  default int getFrameId() {
     return getScanNumber();
   }
 
-  public int getNumberOfMobilityScans();
+  int getNumberOfMobilityScans();
 
   @Nonnull
-  public MobilityType getMobilityType();
+  MobilityType getMobilityType();
 
   /**
    *
    * @return Unsorted set of sub spectrum numbers.
    */
-  public Set<Integer> getMobilityScanNumbers();
+//  Set<Integer> getMobilityScanNumbers();
 
   @Nonnull
-  public Range<Double> getMobilityRange();
+  Range<Double> getMobilityRange();
 
   /**
    * @param num the number of the sub scan.
    * @return the mobility scan or null of no scan with that number exists.
    */
   @Nullable
-  public MobilityScan getMobilityScan(int num);
+  MobilityScan getMobilityScan(int num);
 
   @Nonnull
-  public Collection<MobilityScan> getMobilityScans();
+  List<MobilityScan> getMobilityScans();
+
+  @Nonnull
+  List<MobilityScan> getSortedMobilityScans();
 
   /**
    * @param mobilityScanIndex
    * @return The mobility of this sub spectrum.
    */
-  public double getMobilityForMobilityScanNumber(int mobilityScanIndex);
+  double getMobilityForMobilityScanNumber(int mobilityScanIndex);
+
+  double getMobilityForMobilityScan(MobilityScan scan);
 
   /**
    * @return Mapping of sub scan number <-> mobility
    */
   @Nullable
-  public Map<Integer, Double> getMobilities();
+  DoubleBuffer getMobilities();
 
   /**
    * @return Set of ImsMsMsInfos for this frame. Empty set if this is not an MS/MS frame or no
-   * precursors were fragmented or assigned.
+   *         precursors were fragmented or assigned.
    */
   @Nonnull
-  public Set<ImsMsMsInfo> getImsMsMsInfos();
+  Set<ImsMsMsInfo> getImsMsMsInfos();
 
   /**
    * @param mobilityScanNumber The sub scan number of the given sub scan.
    * @return ImsMsMsInfo or null if no precursor was fragmented at that scan.
    */
   @Nullable
-  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber);
+  ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber);
 
   /**
    * @return Always 0.0
@@ -106,9 +110,12 @@ public interface Frame extends Scan {
     return 0;
   }
 
-  public ImmutableList<Mobilogram> getMobilograms();
+  void addMobilityScan(MobilityScan originalMobilityScan);
 
-  public int addMobilogram(Mobilogram mobilogram);
 
-  public void clearMobilograms();
+  // ImmutableList<Mobilogram> getMobilograms();
+
+  // int addMobilogram(Mobilogram mobilogram);
+
+  // void clearMobilograms();
 }

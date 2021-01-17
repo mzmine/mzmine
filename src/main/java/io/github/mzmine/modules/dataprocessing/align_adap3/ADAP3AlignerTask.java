@@ -17,13 +17,6 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +37,13 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -115,7 +114,7 @@ public class ADAP3AlignerTask extends AbstractTask {
       if (!isCanceled()) {
         project.addFeatureList(peakList);
 
-        //QualityParameters.calculateQualityParameters(peakList);
+        // QualityParameters.calculateQualityParameters(peakList);
 
         setStatus(TaskStatus.FINISHED);
         logger.info("Finished ADAP Peak Alignment");
@@ -190,7 +189,8 @@ public class ADAP3AlignerTask extends AbstractTask {
         Peak peak = component.getBestPeak();
         peak.getInfo().mzValue(component.getMZ());
 
-        FeatureListRow row = findPeakListRow(referenceComponent.getSampleID(i), peak.getInfo().peakID);
+        FeatureListRow row =
+            findPeakListRow(referenceComponent.getSampleID(i), peak.getInfo().peakID);
 
         if (row == null)
           throw new IllegalStateException(
@@ -213,7 +213,8 @@ public class ADAP3AlignerTask extends AbstractTask {
       }
 
       // Save alignment score
-      SimpleFeatureInformation peakInformation = (SimpleFeatureInformation) newRow.getFeatureInformation();
+      SimpleFeatureInformation peakInformation =
+          (SimpleFeatureInformation) newRow.getFeatureInformation();
       if (peakInformation == null)
         peakInformation = new SimpleFeatureInformation();
       peakInformation.addProperty("Alignment score",
@@ -248,17 +249,18 @@ public class ADAP3AlignerTask extends AbstractTask {
       throw new IllegalArgumentException("ADAP Alignment requires mass "
           + "spectra (or isotopic patterns) of peaks. No spectra found.");
 
-    for (DataPoint dataPoint : pattern.getDataPoints())
+    for (DataPoint dataPoint : pattern)
       spectrum.put(dataPoint.getMZ(), dataPoint.getIntensity());
 
     // Read Chromatogram
     final Feature peak = row.getBestFeature();
     NavigableMap<Double, Double> chromatogram = new TreeMap<>();
 
-    for(int i=0; i<peak.getNumberOfDataPoints(); i++) {
+    for (int i = 0; i < peak.getNumberOfDataPoints(); i++) {
       final DataPoint dataPoint = peak.getDataPointAtIndex(i);
       if (dataPoint != null)
-        chromatogram.put(Double.valueOf(String.valueOf(peak.getRetentionTimeAtIndex(i))), dataPoint.getIntensity());
+        chromatogram.put(Double.valueOf(String.valueOf(peak.getRetentionTimeAtIndex(i))),
+            dataPoint.getIntensity());
     }
 
     return new Component(null,

@@ -242,19 +242,19 @@ public class ProjectOpeningTask extends AbstractTask {
         if (scansFileMatcher.matches()) {
           final String fileID = scansFileMatcher.group(1);
           final String fileName = scansFileMatcher.group(2);
-          loadScansFile(cis, fileID, fileName);
+          // loadScansFile(cis, fileID, fileName);
         }
         final Matcher imsScansFileMatcher = imsScansFilePattern.matcher(entryName);
         if (imsScansFileMatcher.matches()) {
           final String fileID = imsScansFileMatcher.group(1);
           final String fileName = imsScansFileMatcher.group(2);
-          loadScansFile(cis, fileID, fileName);
+          // loadScansFile(cis, fileID, fileName);
         }
         final Matcher imagingScansFileMatcher = imagingScansFilePattern.matcher(entryName);
         if (imagingScansFileMatcher.matches()) {
           final String fileID = imagingScansFileMatcher.group(1);
           final String fileName = imagingScansFileMatcher.group(2);
-          loadScansFile(cis, fileID, fileName);
+          // loadScansFile(cis, fileID, fileName);
         }
 
         // Load a feature list
@@ -445,27 +445,26 @@ public class ProjectOpeningTask extends AbstractTask {
 
   }
 
-  private void loadScansFile(InputStream is, String fileID, String fileName) throws IOException {
-
-    logger.info("Loading scans data #" + fileID + ": " + fileName);
-
-    currentLoadedObjectName = fileName + " scan data";
-
-    final File tempFile = RawDataFileImpl.createNewDataPointsFile();
-    logger.info("Saving scans data of #" + fileID + " to " + tempFile);
-
-    final FileOutputStream os = new FileOutputStream(tempFile);
-
-    // If the project was saved with 2.5 version < 3.0
-    copyMachine =
-        (rawDataFileOpenHandler instanceof RawDataFileOpenHandler_2_5) ? new StreamCopy32to64()
-            : new StreamCopy();
-    copyMachine.copy(is, os);
-    os.close();
-
-    scanFilesIDMap.put(fileID, tempFile);
-
-  }
+  /*
+   * private void loadScansFile(InputStream is, String fileID, String fileName) throws IOException {
+   * 
+   * logger.info("Loading scans data #" + fileID + ": " + fileName);
+   * 
+   * currentLoadedObjectName = fileName + " scan data";
+   * 
+   * final File tempFile = null;// RawDataFileImpl.createNewDataPointsFile();
+   * logger.info("Saving scans data of #" + fileID + " to " + tempFile);
+   * 
+   * final FileOutputStream os = new FileOutputStream(tempFile);
+   * 
+   * // If the project was saved with 2.5 version < 3.0 copyMachine = (rawDataFileOpenHandler
+   * instanceof RawDataFileOpenHandler_2_5) ? new StreamCopy32to64() : new StreamCopy();
+   * copyMachine.copy(is, os); os.close();
+   * 
+   * scanFilesIDMap.put(fileID, tempFile);
+   * 
+   * }
+   */
 
   private void loadFeatureList(InputStream is, String featureListName) throws IOException,
       ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {

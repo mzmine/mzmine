@@ -18,8 +18,10 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
-import java.util.logging.Logger;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -29,24 +31,26 @@ import javafx.collections.ObservableList;
  */
 public class TaskQueue {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   /**
    * This observable list stores the actual tasks
    */
-  private final ObservableList<WrappedTask> queue = FXCollections.observableArrayList();
+  private final ObservableList<WrappedTask> queue = FXCollections
+      .synchronizedObservableList(FXCollections.observableArrayList());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public synchronized int getNumOfWaitingTasks() {
-    final long numOfWaitingTasks =
-        queue.stream().filter(task -> ((task.getActualTask().getStatus() == TaskStatus.PROCESSING)
-            || (task.getActualTask().getStatus() == TaskStatus.WAITING))).count();
+  public int getNumOfWaitingTasks() {
+    final WrappedTask snapshot[] = getQueueSnapshot();
+    final long numOfWaitingTasks = Arrays.asList(snapshot).stream()
+        .filter(task -> ((task.getActualTask().getStatus() == TaskStatus.PROCESSING)
+            || (task.getActualTask().getStatus() == TaskStatus.WAITING)))
+        .count();
     return (int) numOfWaitingTasks;
   }
 
-  public synchronized int getTotalPercentComplete() {
+  public int getTotalPercentComplete() {
     double totalFinished = 0.0;
 
-    WrappedTask snapshot[] = getQueueSnapshot();
+    final WrappedTask snapshot[] = getQueueSnapshot();
 
     for (WrappedTask task : snapshot) {
       totalFinished += task.getActualTask().getFinishedPercentage();
@@ -55,26 +59,27 @@ public class TaskQueue {
     return totalPercentFinished;
   }
 
-  synchronized void addWrappedTask(WrappedTask task) {
+  void addWrappedTask(WrappedTask task) {
     logger.finest("Adding task \"" + task + "\" to the task controller queue");
-    queue.add(task);
+    Platform.runLater(() -> queue.add(task));
 
   }
 
-  synchronized void clear() {
-    queue.clear();
+  void clear() {
+    logger.finest("Clearing the task controller queue");
+    Platform.runLater(() -> queue.clear());
   }
 
-  synchronized boolean isEmpty() {
+  boolean isEmpty() {
     return queue.isEmpty();
   }
 
-  synchronized boolean allTasksFinished() {
+  boolean allTasksFinished() {
     final int numOfWaitingTasks = getNumOfWaitingTasks();
     return numOfWaitingTasks == 0;
   }
 
-  public synchronized WrappedTask[] getQueueSnapshot() {
+  public WrappedTask[] getQueueSnapshot() {
     return queue.toArray(new WrappedTask[0]);
   }
 

@@ -4,23 +4,21 @@
  * This file is part of MZmine.
  *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * General License as published by the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * You should have received a copy of the GNU General License along with MZmine; if not, write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,20 +35,20 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return The frame. Null if no frame with that number exists.
    */
   @Nullable
-  public Frame getFrame(int frameNum);
+  Frame getFrame(int frameNum);
 
   /**
    * @return Set of all frames in this raw data file. List may be empty if no frames exist.
    */
   @Nonnull
-  public Collection<? extends Frame> getFrames();
+  Collection<? extends Frame> getFrames();
 
   /**
    * @param msLevel The ms level
    * @return List of frames with the given msLevel. May be empty.
    */
   @Nonnull
-  public Collection<? extends Frame> getFrames(int msLevel);
+  Collection<? extends Frame> getFrames(int msLevel);
 
   /**
    * @param msLevel
@@ -58,20 +56,20 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return List of frames with given ms mlevel in the specified rt window. May be empty.
    */
   @Nonnull
-  public Collection<? extends Frame> getFrames(int msLevel, Range<Float> rtRange);
+  Collection<? extends Frame> getFrames(int msLevel, Range<Float> rtRange);
 
   /**
-   * @return The number of frames in this raw data file. equivalent to {@link
-   * IMSRawDataFile#getFrames()}.size()
+   * @return The number of frames in this raw data file. equivalent to
+   *         {@link IMSRawDataFile#getFrames()}.size()
    */
-  public int getNumberOfFrames();
+  int getNumberOfFrames();
 
   /**
    * @param msLevel The ms level of the given frames.
    * @return The frame numbers in the specified ms level. Might be empty.
    */
   @Nonnull
-  public Set<Scan> getFrameNumbers(int msLevel);
+  Set<Scan> getFrameNumbers(int msLevel);
 
   /**
    * @param msLevel
@@ -79,46 +77,46 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return The frame numbers in the specified ms level and rt range. Might be empty.
    */
   @Nonnull
-  public Set<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  Set<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange);
 
   /**
    * @return The mobility range of this raw data file. Might be empty.
    */
   @Nonnull
-  public Range<Double> getDataMobilityRange();
+  Range<Double> getDataMobilityRange();
 
   /**
    * @param msLevel
    * @return The mobility range for the given ms level. Might be empty.
    */
   @Nonnull
-  public Range<Double> getDataMobilityRange(int msLevel);
+  Range<Double> getDataMobilityRange(int msLevel);
 
   /**
    * @param rt the retention time (in minutes)
    * @return The frame closest to the specified retention time. null if the given time is outside of
-   * the {@link RawDataFile#getDataRTRange()} or no frames exist.
+   *         the {@link RawDataFile#getDataRTRange()} or no frames exist.
    */
   @Nullable
-  public Frame getFrameAtRt(double rt);
+  Frame getFrameAtRt(double rt);
 
   /**
-   * @param rt      the retention time (in seconds)
+   * @param rt the retention time (in seconds)
    * @param msLevel the ms level
    * @return The frame closest to the given retention time at the specified ms level. null if the
-   * given time is outside of the {@link RawDataFile#getDataRTRange()} or no frames exist.
+   *         given time is outside of the {@link RawDataFile#getDataRTRange()} or no frames exist.
    */
   @Nullable
-  public Frame getFrameAtRt(double rt, int msLevel);
+  Frame getFrameAtRt(double rt, int msLevel);
 
   /**
    * @return The {@link MobilityType} of this data file. {@link MobilityType#NONE} if no mobility
-   * dimension was recorded.
+   *         dimension was recorded.
    */
   @Nonnull
-  public MobilityType getMobilityType();
+  MobilityType getMobilityType();
 
-  public double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber);
+//  double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber);
 
-  public Map<Integer, Double> getMobilitiesForFrame(int frameNumber);
+//  Map<Integer, Double> getMobilitiesForFrame(int frameNumber);
 }

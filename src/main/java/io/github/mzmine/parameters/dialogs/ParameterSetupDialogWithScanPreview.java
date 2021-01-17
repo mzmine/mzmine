@@ -18,14 +18,13 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import io.github.mzmine.datamodel.DataPoint;
+import java.text.NumberFormat;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.CollectionUtils;
-import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -66,8 +65,8 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     // return;
     if (dataFiles.length == 0) {
       this.hide();
-      MZmineCore.getDesktop().displayMessage("Please load a raw data file before selecting a "
-          + "mass detector.");
+      MZmineCore.getDesktop()
+          .displayMessage("Please load a raw data file before selecting a " + "mass detector.");
       throw new UnsupportedOperationException(
           "Please load a raw data file before selecting a mass detector.");
     }
@@ -112,7 +111,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     pnlDataFile.setAlignment(Pos.TOP_CENTER);
 
     pnlScanArrows = new FlowPane();
-    final String leftArrow = new String(new char[]{'\u2190'});
+    final String leftArrow = new String(new char[] {'\u2190'});
     Button leftArrowButton = new Button(leftArrow);
     leftArrowButton.setOnAction(e -> {
       int ind = comboScanNumber.getSelectionModel().getSelectedIndex() - 1;
@@ -121,7 +120,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
       }
     });
 
-    final String rightArrow = new String(new char[]{'\u2192'});
+    final String rightArrow = new String(new char[] {'\u2192'});
     Button rightArrowButton = new Button(rightArrow);
     rightArrowButton.setOnAction(e -> {
       int ind = comboScanNumber.getSelectionModel().getSelectedIndex() + 1;
@@ -171,10 +170,11 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     String subTitle =
         "MS" + currentScan.getMSLevel() + ", RT " + rtFormat.format(currentScan.getRetentionTime());
 
-    DataPoint basePeak = currentScan.getHighestDataPoint();
-    if (basePeak != null) {
-      subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ()) + " m/z ("
-          + intensityFormat.format(basePeak.getIntensity()) + ")";
+    Double basePeakMz = currentScan.getBasePeakMz();
+    Double basePeakIntensity = currentScan.getBasePeakIntensity();
+    if (basePeakMz != null) {
+      subTitle += ", base peak: " + mzFormat.format(basePeakMz) + " m/z ("
+          + intensityFormat.format(basePeakIntensity) + ")";
     }
     spectrumPlot.setTitle(title, subTitle);
 

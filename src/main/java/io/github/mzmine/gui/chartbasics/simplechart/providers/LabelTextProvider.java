@@ -18,6 +18,8 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
+import javax.annotation.Nullable;
+
 /**
  * This interface is used to generate labels for a dataset within a specific plot.
  *
@@ -32,5 +34,6 @@ public interface LabelTextProvider {
    * @return A String representing the data at the given index in a plot. Has to be concise enough
    * to fit in the plot's area.
    */
+  @Nullable
   public String getLabel(int index);
 }

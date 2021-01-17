@@ -18,10 +18,6 @@
 
 package io.github.mzmine.modules.io.sqlexport;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.ByteArrayInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -29,10 +25,14 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -53,8 +53,8 @@ class SQLExportTask extends AbstractTask {
 
   SQLExportTask(ParameterSet parameters) {
 
-    this.featureList =
-        parameters.getParameter(SQLExportParameters.featureList).getValue().getMatchingFeatureLists()[0];
+    this.featureList = parameters.getParameter(SQLExportParameters.featureList).getValue()
+        .getMatchingFeatureLists()[0];
     this.connectionString =
         parameters.getParameter(SQLExportParameters.connectionString).getValue();
 
@@ -270,7 +270,7 @@ class SQLExportTask extends AbstractTask {
                 statement.setNull(i + 1, Types.BLOB);
                 break;
               }
-              DataPoint dataPoints[] = isotopes.getDataPoints();
+              DataPoint dataPoints[] = ScanUtils.extractDataPoints(isotopes);
               byte bytes[] = ScanUtils.encodeDataPointsToBytes(dataPoints);
               ByteArrayInputStream is = new ByteArrayInputStream(bytes);
               statement.setBlob(i + 1, is);

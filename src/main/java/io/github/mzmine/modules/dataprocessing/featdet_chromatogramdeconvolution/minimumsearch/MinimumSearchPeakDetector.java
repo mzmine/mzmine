@@ -25,16 +25,10 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.PEAK_DURATION;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.SEARCH_RT_RANGE;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
-import java.util.ArrayList;
-import java.util.List;
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.parameters.ParameterSet;
@@ -42,6 +36,9 @@ import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.maths.CenterFunction;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
  * This peak recognition method searches for local minima in the chromatogram. If a local minimum is
@@ -59,7 +56,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
   public ResolvedPeak[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) {
-    ObservableList<Scan> scanNumbers = chromatogram.getScanNumbers();
+    List<Scan> scanNumbers = chromatogram.getScanNumbers();
     final int scanCount = scanNumbers.size();
     double retentionTimes[] = new double[scanCount];
     double intensities[] = new double[scanCount];

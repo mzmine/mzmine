@@ -16,4 +16,6 @@ not-bio
 /*.log
 /out
 /*.xlsx
+/Ontologies
 src/main/resources/vendorlib/bruker/timsdata_x64.dll
+/src/test/log*

@@ -18,10 +18,9 @@
 
 package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.features.FeatureList;
 import java.io.File;
 import java.util.Hashtable;
-
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.UserParameter;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
@@ -52,33 +51,33 @@ public interface MZmineProject {
   /**
    * Return the filename of the project file
    */
-  public File getProjectFile();
+  File getProjectFile();
 
   /**
    * Adds a new experimental parameter to the project
    *
    * @param parameter
    */
-  public void addParameter(UserParameter<?, ?> parameter);
+  void addParameter(UserParameter<?, ?> parameter);
 
   /**
    * Removes an experimental parameter from the project
    *
    * @param parameter
    */
-  public void removeParameter(UserParameter<?, ?> parameter);
+  void removeParameter(UserParameter<?, ?> parameter);
 
   /**
    * Returns true if project contains the experimental parameter
    */
-  public boolean hasParameter(UserParameter<?, ?> parameter);
+  boolean hasParameter(UserParameter<?, ?> parameter);
 
   /**
    * Returns all experimental parameter of the project
    */
-  public UserParameter<?, ?>[] getParameters();
+  UserParameter<?, ?>[] getParameters();
 
-  public UserParameter<?,?> getParameterByName(String name);
+  UserParameter<?, ?> getParameterByName(String name);
 
   /**
    * Sets experimental parameter's value corresponding to a RawDataFile.
@@ -87,66 +86,66 @@ public interface MZmineProject {
    * already has a value corresponding the given file, previous value is replaced.
    *
    */
-  public void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile,
-      Object value);
+  void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile, Object value);
 
   /**
    * Returns experimental parameter's value corresponding to a RawDataFile.
    *
    */
-  public Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
+  Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
 
   /**
    * Adds a new RawDataFile to the project.
    */
-  public void addFile(RawDataFile newFile);
+  void addFile(RawDataFile newFile);
 
   /**
    * Removes a RawDataFile from the project.
    */
-  public void removeFile(RawDataFile file);
+  void removeFile(RawDataFile file);
 
   /**
    * Returns all RawDataFiles of the project.
    *
    */
-  public RawDataFile[] getDataFiles();
+  RawDataFile[] getDataFiles();
 
   /**
    * Adds a feature list to the project
    */
-  public void addFeatureList(FeatureList featureList);
+  void addFeatureList(FeatureList featureList);
 
   /**
    * Removes a feature list from the project
    */
-  public void removeFeatureList(FeatureList featureList);
+  void removeFeatureList(FeatureList featureList);
 
   /**
    * Returns all feature lists of the project
    */
-  public ObservableList<FeatureList> getFeatureLists();
+  ObservableList<FeatureList> getFeatureLists();
 
-  public ObservableList<RawDataFile> getRawDataFiles();
+  ObservableList<RawDataFile> getRawDataFiles();
 
-  public ListProperty<RawDataFile> rawDataFilesProperty();
+  ListProperty<RawDataFile> rawDataFilesProperty();
 
-  public ListProperty<FeatureList> featureListsProperty();
+  ListProperty<FeatureList> featureListsProperty();
 
   /**
    * Returns all feature lists which contain given data file
    */
-  public FeatureList[] getFeatureLists(RawDataFile file);
+  FeatureList[] getFeatureLists(RawDataFile file);
 
-  public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues();
+  Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues();
 
-  public void setProjectParametersAndValues(Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues);
+  void setProjectParametersAndValues(
+      Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues);
 
 
-    // public void notifyObjectChanged(Object object, boolean structureChanged);
+  // void notifyObjectChanged(Object object, boolean structureChanged);
 
-   // public void addProjectListener(MZmineProjectListener newListener);
+  // void addProjectListener(MZmineProjectListener newListener);
 
-  //public void removeProjectListener(MZmineProjectListener listener);
+  // void removeProjectListener(MZmineProjectListener listener);
 
 }

@@ -51,8 +51,13 @@ public class SmoothingParameters extends SimpleParameterSet {
    * Filter width.
    */
   public static final ComboParameter<Integer> FILTER_WIDTH = new ComboParameter<Integer>(
-      "Filter width", "Number of data point covered by the smoothing filter",
-      new Integer[] {5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5);
+      "Filter width (retention time)", "Number of data point covered by the smoothing filter",
+      new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5);
+
+  public static final ComboParameter<Integer> MOBILITY_FILTER_WIDTH = new ComboParameter<Integer>(
+      "Filter width (mobility)",
+      "Number of data point covered by the smoothing filter. Will not affect smoothing if there is no mobility dimension.",
+      new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5);
 
   /**
    * Remove original data file.
@@ -65,6 +70,6 @@ public class SmoothingParameters extends SimpleParameterSet {
    * Create the parameter set.
    */
   public SmoothingParameters() {
-    super(new Parameter[] {peakLists, SUFFIX, FILTER_WIDTH, REMOVE_ORIGINAL});
+    super(new Parameter[]{peakLists, SUFFIX, FILTER_WIDTH, MOBILITY_FILTER_WIDTH, REMOVE_ORIGINAL});
   }
 }

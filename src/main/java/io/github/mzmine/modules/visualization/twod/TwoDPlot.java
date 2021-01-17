@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -30,6 +29,7 @@ import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.title.TextTitle;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
@@ -96,11 +96,11 @@ class TwoDPlot extends EChartViewer {
     yAxis.setLowerMargin(0);
 
     // set the plot properties
-    if (whichPlotTypeStr == "default") {
-      plot = new TwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
-    } else if (whichPlotTypeStr == "point2D") {
-      plot = new PointTwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
-    }
+    // if (whichPlotTypeStr == "default") {
+    plot = new TwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
+    // } else if (whichPlotTypeStr == "point2D") {
+    // plot = new PointTwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
+    // }
     plot.setBackgroundPaint(Color.white);
     plot.setDomainGridlinesVisible(false);
     plot.setRangeGridlinesVisible(false);

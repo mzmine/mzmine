@@ -18,13 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
-import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
+import java.util.LinkedHashSet;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -57,14 +58,14 @@ public interface IImage {
 
   void setIntensityRange(Range<Double> intensityRange);
 
-  Set<ImageDataPoint> getDataPoints();
+  LinkedHashSet<ImageDataPoint> getDataPoints();
 
-  void setDataPoints(Set<ImageDataPoint> dataPoints);
+  void setDataPoints(LinkedHashSet<ImageDataPoint> dataPoints);
 
   @Nonnull
-  Set<Integer> getScanNumbers();
+  LinkedHashSet<Scan> getScanNumbers();
 
-  void setScanNumbers(Set<Integer> scanNumbers);
+  void setScanNumbers(LinkedHashSet<Scan> scanNumbers);
 
   String getRepresentativeString();
 

@@ -18,11 +18,20 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -35,20 +44,6 @@ import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
-import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.project.impl.StorableImagingScan;
-import io.github.mzmine.project.impl.StorableMassList;
-import io.github.mzmine.project.impl.StorableScan;
 
 class RawDataFileSaveHandler {
 
@@ -71,7 +66,7 @@ class RawDataFileSaveHandler {
    * same zip file.
    *
    * @param rawDataFile raw data file to be copied
-   * @param number      number of the raw data file
+   * @param number number of the raw data file
    * @throws java.io.IOException
    * @throws TransformerConfigurationException
    * @throws SAXException
@@ -82,8 +77,8 @@ class RawDataFileSaveHandler {
     numOfScans = rawDataFile.getNumOfScans();
 
     // Get the structure of the data points file
-    dataPointsOffsets = rawDataFile.getDataPointsOffsets();
-    dataPointsLengths = rawDataFile.getDataPointsLengths();
+    // dataPointsOffsets = rawDataFile.getDataPointsOffsets();
+    // dataPointsLengths = rawDataFile.getDataPointsLengths();
     consolidatedDataPointsOffsets = new TreeMap<Integer, Long>();
 
     // step 1 - save data file
@@ -108,26 +103,20 @@ class RawDataFileSaveHandler {
     // in the data points file, we don't want to copy those.
     long newOffset = 0;
     byte buffer[] = new byte[1 << 20];
-    RandomAccessFile dataPointsFile = rawDataFile.getDataPointsFile();
-    for (Integer storageID : dataPointsOffsets.keySet()) {
-
-      if (canceled) {
-        return;
-      }
-
-      final long offset = dataPointsOffsets.get(storageID);
-      dataPointsFile.seek(offset);
-
-      final int bytes = dataPointsLengths.get(storageID) * 4 * 2;
-      consolidatedDataPointsOffsets.put(storageID, newOffset);
-      if (buffer.length < bytes) {
-        buffer = new byte[bytes * 2];
-      }
-      dataPointsFile.read(buffer, 0, bytes);
-      zipOutputStream.write(buffer, 0, bytes);
-      newOffset += bytes;
-      progress = 0.9 * ((double) offset / dataPointsFile.length());
-    }
+    /*
+     * RandomAccessFile dataPointsFile = rawDataFile.getDataPointsFile(); for (Integer storageID :
+     * dataPointsOffsets.keySet()) {
+     * 
+     * if (canceled) { return; }
+     * 
+     * final long offset = dataPointsOffsets.get(storageID); dataPointsFile.seek(offset);
+     * 
+     * final int bytes = dataPointsLengths.get(storageID) * 4 * 2;
+     * consolidatedDataPointsOffsets.put(storageID, newOffset); if (buffer.length < bytes) { buffer
+     * = new byte[bytes * 2]; } dataPointsFile.read(buffer, 0, bytes); zipOutputStream.write(buffer,
+     * 0, bytes); newOffset += bytes; progress = 0.9 * ((double) offset / dataPointsFile.length());
+     * }
+     */
 
     if (canceled) {
       return;
@@ -214,7 +203,7 @@ class RawDataFileSaveHandler {
         return;
       }
 
-      int storageID = ((StorableScan)scan).getStorageID();
+      int storageID = 0;
       atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
           String.valueOf(storageID));
       hd.startElement("", "", RawDataElementName.SCAN.getElementName(), atts);
@@ -338,11 +327,11 @@ class RawDataFileSaveHandler {
     // <MASS_LIST>
     MassList massLists[] = scan.getMassLists();
     for (MassList massList : massLists) {
-      StorableMassList stMassList = (StorableMassList) massList;
+      MassList stMassList = massList;
       atts.addAttribute("", "", RawDataElementName.NAME.getElementName(), "CDATA",
           stMassList.getName());
-      atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
-          String.valueOf(stMassList.getStorageID()));
+      // atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+      // String.valueOf(stMassList.getStorageID()));
       hd.startElement("", "", RawDataElementName.MASS_LIST.getElementName(), atts);
       atts.clear();
       hd.endElement("", "", RawDataElementName.MASS_LIST.getElementName());
@@ -368,15 +357,15 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName());
 
     // <MOBILITY>
-    //hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
-    //double mobility = scan.getMobility();
-    //hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
-    //hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
+    // hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
+    // double mobility = scan.getMobility();
+    // hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
+    // hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
 
-    if (scan instanceof StorableImagingScan) {
+    if (scan instanceof ImagingScan) {
       // <COORDINATES>
       hd.startElement("", "", RawDataElementName.COORDINATES.getElementName(), atts);
-      Coordinates coordinates = ((StorableImagingScan) scan).getCoordinates();
+      Coordinates coordinates = ((ImagingScan) scan).getCoordinates();
       hd.characters(coordinates.toString().toCharArray(), 0, coordinates.toString().length());
       hd.endElement("", "", RawDataElementName.COORDINATES.getElementName());
     }
@@ -392,10 +381,10 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
 
     // <MOBILITY_TYPE>
-    //hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
-    //MobilityType mobilityType = scan.getMobilityType();
-    //hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
-    //hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
+    // hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
+    // MobilityType mobilityType = scan.getMobilityType();
+    // hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
+    // hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
 
     hd.startElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName(), atts);
     hd.characters(frame.getMobilityRange().lowerEndpoint().toString().toCharArray(), 0,
@@ -407,7 +396,7 @@ class RawDataFileSaveHandler {
         frame.getMobilityRange().upperEndpoint().toString().toCharArray().length);
     hd.endElement("", "", RawDataElementName.UPPER_MOBILITY_RANGE.getElementName());
 
-    Set<Integer> mobilityScanNumbers = frame.getMobilityScanNumbers();
+    /*Set<Integer> mobilityScanNumbers = frame.getMobilityScanNumbers();
     atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
         String.valueOf(mobilityScanNumbers.size()));
     hd.startElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName(), atts);
@@ -417,7 +406,7 @@ class RawDataFileSaveHandler {
       hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
       hd.endElement("", "", RawDataElementName.MOBILITY_SCANNUM.getElementName());
     }
-    hd.endElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName());
+    hd.endElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName());*/
 
   }
 

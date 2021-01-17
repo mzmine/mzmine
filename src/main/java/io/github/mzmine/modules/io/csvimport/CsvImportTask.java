@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.io.csvimport;
 
+import java.io.File;
+import java.io.FileReader;
 import com.google.common.collect.Range;
 import com.opencsv.CSVReader;
 import io.github.mzmine.datamodel.DataPoint;
@@ -26,7 +28,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -34,8 +35,6 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.io.File;
-import java.io.FileReader;
 
 public class CsvImportTask extends AbstractTask {
 
@@ -44,10 +43,11 @@ public class CsvImportTask extends AbstractTask {
   private final File fileName;
   private double percent = 0.0;
 
-  CsvImportTask(MZmineProject project, ParameterSet parameters){
+  CsvImportTask(MZmineProject project, ParameterSet parameters) {
     this.project = project;
-    //first file only
-    this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue().getMatchingRawDataFiles()[0];
+    // first file only
+    this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles()[0];
     this.fileName = parameters.getParameter(CsvImportParameters.filename).getValue()[0];
   }
 
@@ -66,28 +66,29 @@ public class CsvImportTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    try{
+    try {
       FileReader fileReader = new FileReader(fileName);
       CSVReader csvReader = new CSVReader(fileReader);
-      ModularFeatureList newFeatureList = new ModularFeatureList( fileName.getName(), rawDataFile);
+      ModularFeatureList newFeatureList = new ModularFeatureList(fileName.getName(), rawDataFile);
       String[] dataLine;
       int counter = 0;
-      while((dataLine = csvReader.readNext()) != null){
-        if(isCanceled()){
+      while ((dataLine = csvReader.readNext()) != null) {
+        if (isCanceled()) {
           return;
         }
-        if(counter++ == 0){
+        if (counter++ == 0) {
           continue;
         }
         double feature_mz = 0.0, mzMin = 0.0, mzMax = 0.0;
-        float feature_rt = 0f, intensity = 0f, rtMin = 0f, rtMax = 0f, feature_height = 0f, abundance = 0f;
+        float feature_rt = 0f, intensity = 0f, rtMin = 0f, rtMax = 0f, feature_height = 0f,
+            abundance = 0f;
         Range<Float> finalRTRange;
         Range<Double> finalMZRange;
         Range<Float> finalIntensityRange;
 
-        ModularFeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) newFeatureList, counter-1);
-        for(int j=0 ; j<dataLine.length ; j++){
-          switch(j){
+        ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, counter - 1);
+        for (int j = 0; j < dataLine.length; j++) {
+          switch (j) {
             case 1:
               feature_mz = Double.parseDouble(dataLine[j]);
               break;
@@ -98,14 +99,14 @@ public class CsvImportTask extends AbstractTask {
               mzMax = Double.parseDouble(dataLine[j]);
               break;
             case 4:
-              //Retention times are taken in minutes
-              feature_rt = (float) (Double.parseDouble(dataLine[j])/60.0);
+              // Retention times are taken in minutes
+              feature_rt = (float) (Double.parseDouble(dataLine[j]) / 60.0);
               break;
             case 5:
-              rtMin = (float) (Double.parseDouble(dataLine[j])/60.0);
+              rtMin = (float) (Double.parseDouble(dataLine[j]) / 60.0);
               break;
             case 6:
-              rtMax = (float) (Double.parseDouble(dataLine[j])/60.0);
+              rtMax = (float) (Double.parseDouble(dataLine[j]) / 60.0);
               break;
             case 9:
               intensity = (float) Double.parseDouble(dataLine[j]);
@@ -121,12 +122,12 @@ public class CsvImportTask extends AbstractTask {
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         FeatureStatus status = FeatureStatus.UNKNOWN; // abundance unknown
         Scan representativeScan = null;
-        for(Scan s_no : rawDataFile.getScans()){
-          if(s_no.getRetentionTime() == feature_rt){
+        for (Scan s_no : rawDataFile.getScans()) {
+          if (s_no.getRetentionTime() == feature_rt) {
             representativeScan = s_no;
-            for(DataPoint dp : s_no.getDataPoints()){
-              if(dp.getMZ() == feature_mz){
-                finalDataPoint[0] = dp;
+            for (DataPoint dp : s_no) {
+              if (dp.getMZ() == feature_mz) {
+                finalDataPoint[0] = new SimpleDataPoint(feature_mz, dp.getIntensity());
                 break;
               }
             }
@@ -134,24 +135,24 @@ public class CsvImportTask extends AbstractTask {
         }
 
         Scan fragmentScan = null;
-        Scan[] allFragmentScans = new Scan[]{};
+        Scan[] allFragmentScans = new Scan[] {};
 
-        Feature feature = new ModularFeature(newFeatureList, rawDataFile, feature_mz, feature_rt, feature_height, abundance,
-            scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
-            finalRTRange, finalMZRange, finalIntensityRange);
-        newRow.addFeature(rawDataFile,feature);
+        Feature feature = new ModularFeature(newFeatureList, rawDataFile, feature_mz, feature_rt,
+            feature_height, abundance, scanNumbers, finalDataPoint, status, representativeScan,
+            fragmentScan, allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
+        newRow.addFeature(rawDataFile, feature);
         newFeatureList.addRow(newRow);
       }
 
-    if(isCanceled())
-      return;
+      if (isCanceled())
+        return;
 
-    project.addFeatureList(newFeatureList);
-    }
-    catch (Exception e){
+      project.addFeatureList(newFeatureList);
+    } catch (Exception e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not import feature list from file " + fileName.getName() + ": " + e.getMessage());
+      setErrorMessage(
+          "Could not import feature list from file " + fileName.getName() + ": " + e.getMessage());
       return;
     }
     if (getStatus() == TaskStatus.PROCESSING) {

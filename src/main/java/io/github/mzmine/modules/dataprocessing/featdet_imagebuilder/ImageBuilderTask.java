@@ -20,19 +20,11 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -45,10 +37,18 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Imaging
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.project.impl.StorableImagingScan;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.logging.Logger;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -137,7 +137,7 @@ public class ImageBuilderTask extends AbstractTask {
     });
     Scan[] scans = scanSelection.getMatchingScans(rawDataFile);
     for (Scan scan : scans) {
-      if (!(scan instanceof StorableImagingScan) || !scanSelection.matches(scan)) {
+      if (!(scan instanceof ImagingScan) || !scanSelection.matches(scan)) {
         continue;
       }
       if (scan.getMassList(massList) == null) {
@@ -145,11 +145,10 @@ public class ImageBuilderTask extends AbstractTask {
         setErrorMessage("Scan #" + scan.getScanNumber() + " does not have a mass list " + massList);
       } else {
         Arrays.stream(scan.getMassList(massList).getDataPoints())
-            .forEach(dp -> allDataPoints
-                .add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(), scan.getScanNumber(),
-                    ((StorableImagingScan) scan).getCoordinates().getX() * pixelWidth,
-                    ((StorableImagingScan) scan).getCoordinates().getY() * pixelHeight, 1,
-                    pixelHeight, pixelWidth, paintScaleParameter)));
+            .forEach(dp -> allDataPoints.add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(),
+                (ImagingScan) scan, ((ImagingScan) scan).getCoordinates().getX() * pixelWidth,
+                ((ImagingScan) scan).getCoordinates().getY() * pixelHeight, 1, pixelHeight,
+                pixelWidth, paintScaleParameter)));
       }
       progress = (processedScans / (double) scans.length) / 4;
       processedScans++;
@@ -205,7 +204,7 @@ public class ImageBuilderTask extends AbstractTask {
           Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
           IImage newImage = new Image(imageDataPoint.getMZ(), imagingParameters,
               paintScaleParameter, imageDataPoint.getIntensity(), newRange);
-          Set<ImageDataPoint> dataPointsSetForImage = new HashSet<>();
+          LinkedHashSet<ImageDataPoint> dataPointsSetForImage = new LinkedHashSet<ImageDataPoint>();
           dataPointsSetForImage.add(imageDataPoint);
           newImage.setDataPoints(dataPointsSetForImage);
           rangeToImageMap.put(newRange, newImage);
@@ -264,12 +263,12 @@ public class ImageBuilderTask extends AbstractTask {
   private IImage finishImage(IImage image) {
     Range<Double> rawDataPointsIntensityRange = null;
     Range<Double> rawDataPointsMZRange = null;
-    Set<Integer> scanNumbers = new HashSet<>();
+    LinkedHashSet<Scan> scanNumbers = new LinkedHashSet<>();
     SortedSet<ImageDataPoint> sortedRetentionTimeMobilityDataPoints =
         new TreeSet<>(new Comparator<ImageDataPoint>() {
           @Override
           public int compare(ImageDataPoint o1, ImageDataPoint o2) {
-            if (o1.getScanNumber() > o2.getScanNumber()) {
+            if (o1.getScanNumber().getScanNumber() > o2.getScanNumber().getScanNumber()) {
               return 1;
             } else {
               return -1;
@@ -372,4 +371,3 @@ public class ImageBuilderTask extends AbstractTask {
   }
 
 }
-

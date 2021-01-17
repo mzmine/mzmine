@@ -40,6 +40,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -167,6 +168,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
+    assert Platform.isFxApplicationThread();
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
@@ -188,10 +190,12 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    * @return the dataset index
    */
   public synchronized int addDataset(XYDataset dataset) {
+    assert Platform.isFxApplicationThread();
     return addDataset(dataset, defaultRenderer.get());
   }
 
   public synchronized XYDataset removeDataSet(int index) {
+    assert Platform.isFxApplicationThread();
     XYDataset ds = plot.getDataset(index);
     if (ds instanceof Task) { // stop calculation in case it's still running
       ((Task) ds).cancel();
@@ -207,6 +211,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    * @return Mapping of the dataset index and the provider values.
    */
   public Map<Integer, T> addDatasetProviders(Collection<T> datasetProviders) {
+    assert Platform.isFxApplicationThread();
     chart.setNotify(false);
     HashMap<Integer, T> map = new HashMap<>();
     for (T datasetProvider : datasetProviders) {
@@ -236,6 +241,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   public synchronized void removeAllDatasets() {
+    assert Platform.isFxApplicationThread();
     chart.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset ds = plot.getDataset(i);

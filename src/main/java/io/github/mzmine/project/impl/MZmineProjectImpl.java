@@ -18,13 +18,14 @@
 
 package io.github.mzmine.project.impl;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.UserParameter;
 import javafx.application.Platform;
 import javafx.beans.property.ListProperty;
@@ -37,6 +38,8 @@ import javafx.collections.ObservableList;
  * parameters.
  */
 public class MZmineProjectImpl implements MZmineProject {
+
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
@@ -59,7 +62,8 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public void setProjectParametersAndValues(Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
+  public void setProjectParametersAndValues(
+      Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
     this.projectParametersAndValues = projectParametersAndValues;
   }
 
@@ -92,9 +96,9 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public UserParameter<?,?> getParameterByName(String name){
-    for(UserParameter<?,?> parameter:getParameters()){
-      if(parameter.getName().equals(name)){
+  public UserParameter<?, ?> getParameterByName(String name) {
+    for (UserParameter<?, ?> parameter : getParameters()) {
+      if (parameter.getName().equals(name)) {
         return parameter;
       }
     }
@@ -103,9 +107,9 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public boolean hasParameter(UserParameter<?, ?> parameter) {
-    //matching by name
-    UserParameter<?,?> param =  getParameterByName(parameter.getName());
-    if(param==null){
+    // matching by name
+    UserParameter<?, ?> param = getParameterByName(parameter.getName());
+    if (param == null) {
       return false;
     }
     return true;
@@ -141,6 +145,7 @@ public class MZmineProjectImpl implements MZmineProject {
   public void addFile(final RawDataFile newFile) {
 
     assert newFile != null;
+    logger.finest("Adding a new file to the project: " + newFile.getName());
 
     Platform.runLater(() -> {
       rawDataFilesProperty.get().add(newFile);
@@ -172,7 +177,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
     assert featureList != null;
     Platform.runLater(() -> {
-      featureListsProperty.get().add((ModularFeatureList) featureList);
+      featureListsProperty.get().add(featureList);
     });
 
   }
@@ -228,7 +233,7 @@ public class MZmineProjectImpl implements MZmineProject {
   /*
    * @Override public void addProjectListener(MZmineProjectListener newListener) {
    * listeners.add(newListener); }
-   * 
+   *
    * @Override public void removeProjectListener(MZmineProjectListener newListener) {
    * listeners.remove(newListener); }
    */

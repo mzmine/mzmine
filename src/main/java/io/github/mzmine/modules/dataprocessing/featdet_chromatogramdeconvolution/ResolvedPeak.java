@@ -18,31 +18,31 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.main.MZmineCore;
-import java.text.Format;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.text.Format;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * ResolvedPeak
- *
  */
-public class ResolvedPeak{
+public class ResolvedPeak {
 
   private SimpleFeatureInformation peakInfo;
 
@@ -81,6 +81,7 @@ public class ResolvedPeak{
   // set by
   // chromatogram deconvolution method.
   private Integer parentChromatogramRowID = null;
+  private FeatureList peakList;
 
   /**
    * Initializes this peak using data points from a given chromatogram - regionStart marks the index
@@ -115,36 +116,44 @@ public class ResolvedPeak{
 
       dataPointMZValues[i] = mzValue;
 
-      DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
-      if (dp == null) {
-        continue;
-        /*
-         * String error =
-         * "Cannot create a resolved peak in a region with missing data points: chromatogram " +
-         * chromatogram + " scans " + chromatogramScanNumbers[regionStart] + "-" +
-         * chromatogramScanNumbers[regionEnd] + ", missing data point in scan " + scanNumbers[i];
-         *
-         * throw new IllegalArgumentException(error);
-         */
+      if (chromatogram instanceof ModularFeature) {
+        dataPointMZValues[i] = ((ModularFeature) chromatogram).getFeatureData()
+            .getMzForSpectrum(scanNumbers[i]);
+        dataPointIntensityValues[i] = ((ModularFeature) chromatogram).getFeatureData()
+            .getIntensityForSpectrum(scanNumbers[i]);
+      } else {
+        DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
+
+        if (dp == null) {
+          continue;
+          /*
+           * String error =
+           * "Cannot create a resolved peak in a region with missing data points: chromatogram " +
+           * chromatogram + " scans " + chromatogramScanNumbers[regionStart] + "-" +
+           * chromatogramScanNumbers[regionEnd] + ", missing data point in scan " + scanNumbers[i];
+           *
+           * throw new IllegalArgumentException(error);
+           */
+        }
+
+        dataPointMZValues[i] = dp.getMZ();
+        dataPointIntensityValues[i] = dp.getIntensity();
       }
 
-      dataPointMZValues[i] = dp.getMZ();
-      dataPointIntensityValues[i] = dp.getIntensity();
-
       if (rawDataPointsIntensityRange == null) {
-        rawDataPointsIntensityRange = Range.singleton((float) dp.getIntensity());
+        rawDataPointsIntensityRange = Range.singleton((float) dataPointMZValues[i]);
         rawDataPointsRTRange = Range.singleton(scanNumbers[i].getRetentionTime());
-        rawDataPointsMZRange = Range.singleton(dp.getMZ());
+        rawDataPointsMZRange = Range.singleton(dataPointMZValues[i]);
       } else {
         rawDataPointsRTRange = rawDataPointsRTRange
             .span(Range.singleton(scanNumbers[i].getRetentionTime()));
         rawDataPointsIntensityRange =
-            rawDataPointsIntensityRange.span(Range.singleton((float) dp.getIntensity()));
-        rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(dp.getMZ()));
+            rawDataPointsIntensityRange.span(Range.singleton((float) dataPointIntensityValues[i]));
+        rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(dataPointMZValues[i]));
       }
 
-      if (height < dp.getIntensity()) {
-        height = dp.getIntensity();
+      if (height < dataPointMZValues[i]) {
+        height = dataPointMZValues[i];
         rt = scanNumbers[i].getRetentionTime();
         representativeScan = scanNumbers[i];
       }
@@ -186,19 +195,22 @@ public class ResolvedPeak{
     }
     Range<Float> searchingRangeRT = Range.closed(lowerBoundRT, upperBoundRT);
 
-    if (msmsRange == 0)
+    if (msmsRange == 0) {
       searchingRange = rawDataPointsMZRange;
-    if (RTRangeMSMS == 0)
+    }
+    if (RTRangeMSMS == 0) {
       searchingRangeRT = rawDataPointsRTRange;
+    }
 
     fragmentScan = ScanUtils.findBestFragmentScan(dataFile, searchingRangeRT, searchingRange);
     allMS2FragmentScanNumbers =
         ScanUtils.findAllMS2FragmentScans(dataFile, searchingRangeRT, searchingRange);
 
-    if (fragmentScan !=null) {
+    if (fragmentScan != null) {
       int precursorCharge = fragmentScan.getPrecursorCharge();
-      if (precursorCharge > 0)
+      if (precursorCharge > 0) {
         this.charge = precursorCharge;
+      }
     }
 
   }
@@ -208,8 +220,9 @@ public class ResolvedPeak{
    */
   public DataPoint getDataPoint(int scanNumber) {
     int index = Arrays.binarySearch(scanNumbers, scanNumber);
-    if (index < 0)
+    if (index < 0) {
       return null;
+    }
     SimpleDataPoint dp =
         new SimpleDataPoint(dataPointMZValues[index], dataPointIntensityValues[index]);
     return dp;
@@ -256,7 +269,24 @@ public class ResolvedPeak{
     return allMS2FragmentScanNumbers;
   }
 
-  public @Nonnull FeatureStatus getFeatureStatus() {
+  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
+    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
+    // also set best scan by TIC
+    Scan best = null;
+    double tic = 0;
+    if (allMS2FragmentScanNumbers != null) {
+      for (Scan scan : allMS2FragmentScanNumbers) {
+        if (tic < scan.getTIC()) {
+          best = scan;
+          tic = scan.getTIC();
+        }
+      }
+    }
+    setFragmentScanNumber(best);
+  }
+
+  public @Nonnull
+  FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
@@ -264,15 +294,18 @@ public class ResolvedPeak{
     return rt;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
+  public @Nonnull
+  Range<Float> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull Range<Double> getRawDataPointsMZRange() {
+  public @Nonnull
+  Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsRTRange() {
+  public @Nonnull
+  Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
@@ -280,11 +313,13 @@ public class ResolvedPeak{
     return representativeScan;
   }
 
-  public @Nonnull Scan[] getScanNumbers() {
+  public @Nonnull
+  Scan[] getScanNumbers() {
     return scanNumbers;
   }
 
-  public @Nonnull RawDataFile getRawDataFile() {
+  public @Nonnull
+  RawDataFile getRawDataFile() {
     return dataFile;
   }
 
@@ -332,18 +367,14 @@ public class ResolvedPeak{
   public void outputChromToFile() {
     int nothing = -1;
   }
-
-  public void setPeakInformation(SimpleFeatureInformation peakInfoIn) {
-    this.peakInfo = peakInfoIn;
-  }
+  // End dulab Edit
 
   public SimpleFeatureInformation getPeakInformation() {
     return peakInfo;
   }
-  // End dulab Edit
 
-  public void setParentChromatogramRowID(@Nullable Integer id) {
-    this.parentChromatogramRowID = id;
+  public void setPeakInformation(SimpleFeatureInformation peakInfoIn) {
+    this.peakInfo = peakInfoIn;
   }
 
   @Nullable
@@ -351,27 +382,13 @@ public class ResolvedPeak{
     return this.parentChromatogramRowID;
   }
 
+  public void setParentChromatogramRowID(@Nullable Integer id) {
+    this.parentChromatogramRowID = id;
+  }
+
   public void setFragmentScanNumber(Scan fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
-
-  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
-    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
-    // also set best scan by TIC
-    Scan best = null;
-    double tic = 0;
-    if (allMS2FragmentScanNumbers != null) {
-      for (Scan scan : allMS2FragmentScanNumbers) {
-        if (tic < scan.getTIC()) {
-          best = scan;
-          tic = scan.getTIC();
-        }
-      }
-    }
-    setFragmentScanNumber(best);
-  }
-
-  private FeatureList peakList;
 
   public FeatureList getPeakList() {
     return peakList;
@@ -384,7 +401,7 @@ public class ResolvedPeak{
 
   public List<DataPoint> getDataPoints() {
     List<DataPoint> dp = new ArrayList<>(dataPointMZValues.length);
-    for(int i=0; i<dataPointMZValues.length; i++) {
+    for (int i = 0; i < dataPointMZValues.length; i++) {
       dp.add(new SimpleDataPoint(dataPointMZValues[i], dataPointIntensityValues[i]));
     }
     return dp;

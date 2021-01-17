@@ -18,61 +18,279 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims.providers;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
-import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.project.impl.StorableFrame;
-import io.github.mzmine.util.scans.ScanUtils;
-import java.io.IOException;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.util.DataPointUtils;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Loads a frame and it's subscans into ram.
  *
  * @author https://github.com/SteffenHeu
  */
-public class CachedFrame extends StorableFrame {
+public class CachedFrame implements Frame {
 
+  private final double[] mzs;
+  private final double[] intensities;
+  private final Frame originalFrame;
+  private List<MobilityScan> mobilityScans;
   private List<MobilityScan> sortedMobilityScans;
-  private DataPoint[] summedDataPoints;
 
-  public CachedFrame(StorableFrame frame, double frameNoiseLevel, double mobilityScaNoiseLevel)
-      throws IOException {
-    super(frame, (RawDataFileImpl) frame.getDataFile(), frame.getNumberOfDataPoints(),
-        frame.getStorageID());
-    summedDataPoints = new DataPoint[0];
-    sortedMobilityScans = new ArrayList<>();
+  public CachedFrame(SimpleFrame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
+    originalFrame = frame;
 
-    summedDataPoints = ScanUtils.getFiltered(frame.getDataPoints(), frameNoiseLevel);
+    double[][] data = DataPointUtils
+        .getDatapointsAboveNoiseLevel(frame.getMzValues(), frame.getIntensityValues(),
+            frameNoiseLevel);
 
+    mzs = data[0];
+    intensities = data[1];
+
+    this.mobilityScans = new ArrayList<>();
     for (MobilityScan scan : frame.getMobilityScans()) {
-      DataPoint[] dataPoints = ScanUtils.getFiltered(scan.getDataPoints(), mobilityScaNoiseLevel);
-      mobilitySubScans.put(scan.getMobilityScamNumber(),
-          new SimpleMobilityScan(scan.getMobilityScamNumber(), this, dataPoints));
+      mobilityScans.add(new CachedMobilityScan(scan, mobilityScaNoiseLevel));
     }
-    sortedMobilityScans = mobilitySubScans.values().stream()
+    sortedMobilityScans = mobilityScans.stream()
         .sorted(Comparator.comparingDouble(MobilityScan::getMobility)).collect(Collectors.toList());
+  }
+
+
+  public double[] getIntensities() {
+    return intensities;
+  }
+
+  public double[] getMzs() {
+    return mzs;
+  }
+
+  @Override
+  public int getNumberOfMobilityScans() {
+    return mobilityScans.size();
   }
 
   @Nonnull
   @Override
-  public DataPoint[] getDataPoints() {
-    return summedDataPoints;
+  public MobilityType getMobilityType() {
+    return originalFrame.getMobilityType();
   }
 
+  @Nonnull
+  @Override
+  public Range<Double> getMobilityRange() {
+    return originalFrame.getMobilityRange();
+  }
+
+  @Nullable
+  @Override
+  public MobilityScan getMobilityScan(int num) {
+    return mobilityScans.get(num);
+  }
+
+  @Nonnull
+  @Override
+  public List<MobilityScan> getMobilityScans() {
+    return mobilityScans;
+  }
+
+  @Nonnull
+  @Override
   public List<MobilityScan> getSortedMobilityScans() {
     return sortedMobilityScans;
   }
 
+  @Override
+  public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
+    return originalFrame.getMobilityForMobilityScanNumber(mobilityScanIndex);
+  }
+
+  @Override
+  public double getMobilityForMobilityScan(MobilityScan scan) {
+    return originalFrame.getMobilityForMobilityScan(scan);
+  }
+
+  @Nullable
+  @Override
+  public DoubleBuffer getMobilities() {
+    return originalFrame.getMobilities();
+  }
+
   @Nonnull
   @Override
-  public Collection<MobilityScan> getMobilityScans() {
-    return getSortedMobilityScans();
+  public Set<ImsMsMsInfo> getImsMsMsInfos() {
+    return originalFrame.getImsMsMsInfos();
+  }
+
+  @Nullable
+  @Override
+  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+    return originalFrame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
+  }
+
+  @Override
+  public void addMobilityScan(MobilityScan originalMobilityScan) {
+    originalFrame.addMobilityScan(originalMobilityScan);
+  }
+
+  @Override
+  public int getNumberOfDataPoints() {
+    return mzs.length;
+  }
+
+  @Override
+  public MassSpectrumType getSpectrumType() {
+    return originalFrame.getSpectrumType();
+  }
+
+  @Nonnull
+  @Override
+  public DoubleBuffer getMzValues() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Nonnull
+  @Override
+  public DoubleBuffer getIntensityValues() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public double getMzValue(int index) {
+    return mzs[index];
+  }
+
+  @Override
+  public double getIntensityValue(int index) {
+    return intensities[index];
+  }
+
+  @Nullable
+  @Override
+  public Double getBasePeakMz() {
+    return originalFrame.getBasePeakMz();
+  }
+
+  @Nullable
+  @Override
+  public Double getBasePeakIntensity() {
+    return originalFrame.getBasePeakIntensity();
+  }
+
+  @Nullable
+  @Override
+  public Integer getBasePeakIndex() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Nullable
+  @Override
+  public Range<Double> getDataPointMZRange() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Nullable
+  @Override
+  public Double getTIC() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public Stream<DataPoint> stream() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Nonnull
+  @Override
+  public RawDataFile getDataFile() {
+    return originalFrame.getDataFile();
+  }
+
+  @Override
+  public int getScanNumber() {
+    return originalFrame.getScanNumber();
+  }
+
+  @Nonnull
+  @Override
+  public String getScanDefinition() {
+    return originalFrame.getScanDefinition();
+  }
+
+  @Override
+  public int getMSLevel() {
+    return originalFrame.getMSLevel();
+  }
+
+  @Override
+  public float getRetentionTime() {
+    return originalFrame.getRetentionTime();
+  }
+
+  @Nonnull
+  @Override
+  public Range<Double> getScanningMZRange() {
+    return originalFrame.getScanningMZRange();
+  }
+
+  @Nonnull
+  @Override
+  public PolarityType getPolarity() {
+    return originalFrame.getPolarity();
+  }
+
+  @Nonnull
+  @Override
+  public MassList[] getMassLists() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Nullable
+  @Override
+  public MassList getMassList(@Nonnull String name) {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public void addMassList(@Nonnull MassList massList) {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public void removeMassList(@Nonnull MassList massList) {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Nonnull
+  @Override
+  public Iterator<DataPoint> iterator() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
   }
 }

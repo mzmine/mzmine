@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,6 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
+import java.text.Format;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -33,11 +38,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.FeatureConvertors;
-import java.text.Format;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.logging.Logger;
+import io.github.mzmine.util.scans.ScanUtils;
 import javafx.collections.ObservableList;
 
 public class GridMassTask extends AbstractTask {
@@ -107,6 +108,7 @@ public class GridMassTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Detecting chromatograms (RT) in " + dataFile;
   }
@@ -114,6 +116,7 @@ public class GridMassTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     return procedure;
   }
@@ -125,6 +128,7 @@ public class GridMassTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -278,11 +282,13 @@ public class GridMassTask extends AbstractTask {
       if (scanOk[i]) {
         scan = scans[i];
         IndexedDataPoint mzv[] = data[i];
-        DataPoint mzvOriginal[] = scan.getDataPoints();
+        // DataPoint mzvOriginal[] = scan.getDataPoints();
         ArrayList<Datum> dal = new ArrayList<Datum>();
         for (j = 0; j < mzv.length; j++) {
           if (mzv[j].datapoint.getIntensity() >= minimumHeight) {
-            dal.add(new Datum(mzv[j].datapoint, i, mzvOriginal[mzv[j].index]));
+            SimpleDataPoint origDP = new SimpleDataPoint(scan.getMzValue(mzv[j].index),
+                scan.getIntensityValue(mzv[j].index));
+            dal.add(new Datum(mzv[j].datapoint, i, origDP));
             passed++;
           } else {
             nopassed++;
@@ -296,8 +302,7 @@ public class GridMassTask extends AbstractTask {
       setProcedure(i, totalScans, 2);
     }
     logger.info(passed + " intensities >= " + minimumHeight + " of " + (passed + nopassed) + " ("
-        + Math.round(passed * 10000.0 / (double) (passed + nopassed)) / 100.0 + "%) on "
-        + dataFile);
+        + Math.round(passed * 10000.0 / (passed + nopassed)) / 100.0 + "%) on " + dataFile);
 
     // New "probing" algorithm
     // (1) Generate probes all over chromatograms
@@ -564,7 +569,7 @@ public class GridMassTask extends AbstractTask {
     project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks
-    //QualityParameters.calculateQualityParameters(newPeakList);
+    // QualityParameters.calculateQualityParameters(newPeakList);
 
     setStatus(TaskStatus.FINISHED);
 
@@ -650,7 +655,7 @@ public class GridMassTask extends AbstractTask {
             if (mzValues[jsi] == null || jsi >= mzValuesScan.length - 1
                 || !mzValuesScan[jsi + 1].equals(scanNumbers.get(j))) {
               Scan xscan = scanNumbers.get(j);
-              mzValues[jsi] = xscan.getDataPoints();
+              mzValues[jsi] = ScanUtils.extractDataPoints(xscan);
               mzValuesScan[jsi] = scanNumbers.get(j);
             } else {
               mzValues[jsi] = mzValues[jsi + 1];
@@ -709,7 +714,7 @@ public class GridMassTask extends AbstractTask {
 
         }
       } else if (scan != null) {
-        xDP = scan.getDataPoints();
+        xDP = ScanUtils.extractDataPoints(scan);
         if (tmpDP.length < xDP.length)
           tmpDP = new IndexedDataPoint[xDP.length];
         for (k = 0; k < xDP.length; k++) {
@@ -774,8 +779,7 @@ public class GridMassTask extends AbstractTask {
         }
         if (max.intensity > 0) {
           adds++;
-          peak.addMzPeak(scans[i],
-              new SimpleDataPoint(max.mzOriginal, max.intensityOriginal));
+          peak.addMzPeak(scans[i], new SimpleDataPoint(max.mzOriginal, max.intensityOriginal));
         }
       }
     }
@@ -888,7 +892,7 @@ public class GridMassTask extends AbstractTask {
     double sum = 0;
     double maxValue = 0;
     for (int i = l; i <= r; i++) {
-      DataPoint mzs[] = getCachedDataPoints(scans[i]);
+      DataPoint mzs[] = ScanUtils.extractDataPoints(scans[i]);
       if (mzs != null) {
         for (int j = findFirstMass(min, mzs); j < mzs.length; j++) {
           double mass = mzs[j].getMZ();
@@ -1000,20 +1004,6 @@ public class GridMassTask extends AbstractTask {
       }
     }
     return s;
-  }
-
-  DataPoint[] getCachedDataPoints(Scan scan) {
-    if (scan == null)
-      return null;
-    if (dpCache == null)
-      dpCache = new HashMap<Scan, DataPoint[]>();
-    DataPoint[] dp = dpCache.get(scan);
-    if (dp != null) {
-      return dp;
-    }
-    dp = scan.getDataPoints();
-    dpCache.put(scan, dp);
-    return dp;
   }
 
 }

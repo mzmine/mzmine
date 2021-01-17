@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,7 +20,6 @@ package io.github.mzmine.modules.tools.msmsscore;
 
 import java.util.Hashtable;
 import java.util.Map;
-
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -28,9 +27,7 @@ import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
@@ -69,8 +66,9 @@ public class MSMSScoreCalculator {
     }
 
     int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
-    Map<DataPoint, String> msmsAnnotations = new Hashtable<DataPoint, String>();
+    Map<Integer, String> msmsAnnotations = new Hashtable<>();
 
+    int dpIndex = 0;
     msmsCycle: for (DataPoint dp : msmsIons) {
 
       // Check if this is an isotope
@@ -111,11 +109,12 @@ public class MSMSScoreCalculator {
       IMolecularFormula formula = msmsEngine.getNextFormula();
       if (formula != null) {
         String formulaString = MolecularFormulaManipulator.getString(formula);
-        msmsAnnotations.put(dp, formulaString);
+        msmsAnnotations.put(dpIndex, formulaString);
         interpretedMSMSpeaks++;
       }
 
       totalMSMSpeaks++;
+      dpIndex++;
 
     }
 

@@ -30,6 +30,7 @@ class TmpFileCleanup implements Runnable {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
+  @Override
   public void run() {
 
     logger.fine("Checking for old temporary files...");
@@ -38,8 +39,9 @@ class TmpFileCleanup implements Runnable {
       // Find all temporary files with the mask mzmine*.scans
       File tempDir = new File(System.getProperty("java.io.tmpdir"));
       File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
+        @Override
         public boolean accept(File dir, String name) {
-          if (name.matches("mzmine.*\\.scans") || name.matches("mzmine.*\\.mobilograms")) {
+          if (name.matches("mzmine.*\\.tmp")) {
             return true;
           }
           return false;

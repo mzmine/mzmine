@@ -18,10 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
-import java.util.Set;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.features.FeatureList;
+import java.util.Set;
 
 public class IonMobilityTrace implements IIonMobilityTrace {
 
@@ -35,7 +36,7 @@ public class IonMobilityTrace implements IIonMobilityTrace {
   private Range<Double> intensityRange;
   private Set<RetentionTimeMobilityDataPoint> dataPoints;
   private Set<Integer> frameNumbers;
-  private Set<Integer> scanNumbers;
+  private Set<MobilityScan> scanNumbers;
   private MobilityType mobilityType;
   private String representativeString;
   private FeatureList featureList;
@@ -52,7 +53,7 @@ public class IonMobilityTrace implements IIonMobilityTrace {
   public IonMobilityTrace(double mz, Float retentionTime, double mobility, double maximumIntensity,
       Range<Float> retentionTimeRange, Range<Double> mobilityRange, Range<Double> mzRange,
       Range<Double> intensityRange, Set<RetentionTimeMobilityDataPoint> dataPoints,
-      Set<Integer> frameNumbers, Set<Integer> scanNumbers, MobilityType mobilityType,
+      Set<Integer> frameNumbers, Set<MobilityScan> scanNumbers, MobilityType mobilityType,
       String representativeString, FeatureList featureList) {
     this.mz = mz;
     this.retentionTime = retentionTime;
@@ -150,11 +151,11 @@ public class IonMobilityTrace implements IIonMobilityTrace {
     this.frameNumbers = frameNumbers;
   }
 
-  public Set<Integer> getScanNumbers() {
+  public Set<MobilityScan> getScanNumbers() {
     return scanNumbers;
   }
 
-  public void setScanNumbers(Set<Integer> scanNumbers) {
+  public void setScanNumbers(Set<MobilityScan> scanNumbers) {
     this.scanNumbers = scanNumbers;
   }
 

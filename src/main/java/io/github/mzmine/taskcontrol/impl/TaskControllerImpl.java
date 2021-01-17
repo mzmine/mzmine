@@ -153,7 +153,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
       synchronized (this) {
         while (taskQueue.isEmpty()) {
           try {
-            this.wait();
+            this.wait(100);
           } catch (InterruptedException e) {
             // Ignore
           }

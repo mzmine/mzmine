@@ -1,24 +1,23 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims.providers;
 
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
@@ -37,7 +36,7 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
   protected final UnitFormat unitFormat;
   private final MobilityScan scan;
   private double finishedPercentage;
-  private DataPoint[] dataPoints;
+//  private DataPoint[] dataPoints;
 
   public SingleSpectrumProvider(MobilityScan scan) {
     this.scan = scan;
@@ -62,45 +61,43 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
 
   @Override
   public String getLabel(int index) {
-    return mzFormat.format(dataPoints[index].getMZ());
+    return mzFormat.format(scan.getMzValue(index));
   }
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return "Frame #" + scan.getFrame().getFrameId()
-        + " Mobility scan #" + scan.getMobilityScamNumber();
+    return "Frame #" + scan.getFrame().getFrameId() + " Mobility scan #"
+        + scan.getMobilityScamNumber();
   }
 
   @Override
   public String getToolTipText(int itemIndex) {
-    return "Frame #" + scan.getFrame().getFrameId()
-        + "\nMobility scan #" + scan.getMobilityScamNumber()
-        + "\nMobility: " + mobilityFormat.format(scan.getMobility()) + " " + scan.getMobilityType()
-        .getUnit()
-        + "\nm/z: " + mzFormat.format(dataPoints[itemIndex].getMZ())
-        + "\nIntensity: " + intensityFormat.format(dataPoints[itemIndex].getIntensity());
+    return "Frame #" + scan.getFrame().getFrameId() + "\nMobility scan #"
+        + scan.getMobilityScamNumber() + "\nMobility: " + mobilityFormat.format(scan.getMobility())
+        + " " + scan.getMobilityType().getUnit() + "\nm/z: "
+        + mzFormat.format(scan.getMzValue(itemIndex)) + "\nIntensity: "
+        + intensityFormat.format(scan.getIntensityValue(itemIndex));
 
   }
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    dataPoints = scan.getDataPoints();
     finishedPercentage = 1.d;
   }
 
   @Override
   public double getDomainValue(int index) {
-    return dataPoints[index].getMZ();
+    return scan.getMzValue(index);
   }
 
   @Override
   public double getRangeValue(int index) {
-    return dataPoints[index].getIntensity();
+    return scan.getIntensityValue(index);
   }
 
   @Override
   public int getValueCount() {
-    return dataPoints.length;
+    return scan.getNumberOfDataPoints();
   }
 
   @Override

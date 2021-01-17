@@ -18,6 +18,8 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
+import javax.annotation.Nullable;
+
 /**
  * This interface is used to generate tool-tips based on the index of a value. A tooltip is only
  * shown when the mouse is hovered over a datapoint within the chart, so it can be longer and more
@@ -34,5 +36,6 @@ public interface ToolTipTextProvider {
    * you might want to provide the m/z value, the exact retention time, the intensity of the highest
    * peak and maybe even the scan number as a tooltip.
    */
+  @Nullable
   public String getToolTipText(int itemIndex);
 }

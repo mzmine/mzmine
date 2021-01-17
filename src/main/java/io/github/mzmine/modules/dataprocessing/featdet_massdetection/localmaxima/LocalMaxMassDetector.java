@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,11 +19,10 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima;
 
 import java.util.ArrayList;
-
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 
@@ -32,11 +31,8 @@ import io.github.mzmine.parameters.ParameterSet;
  */
 public class LocalMaxMassDetector implements MassDetector {
 
-  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
-    return getMassValues(scan.getDataPoints(), parameters);
-  }
-
-  public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
+  @Override
+  public DataPoint[] getMassValues(MassSpectrum scan, ParameterSet parameters) {
 
     double noiseLevel =
         parameters.getParameter(LocalMaxMassDetectorParameters.noiseLevel).getValue();
@@ -47,17 +43,17 @@ public class LocalMaxMassDetector implements MassDetector {
     // All data points of current m/z peak
 
     // Top data point of current m/z peak
-    DataPoint currentMzPeakTop = null;
+    int currentMzPeakTop = 0;
 
     // True if we haven't reached the current local maximum yet
     boolean ascending = true;
 
     // Iterate through all data points
-    for (int i = 0; i < dataPoints.length - 1; i++) {
+    for (int i = 0; i < scan.getNumberOfDataPoints() - 1; i++) {
 
-      boolean nextIsBigger = dataPoints[i + 1].getIntensity() > dataPoints[i].getIntensity();
-      boolean nextIsZero = dataPoints[i + 1].getIntensity() == 0;
-      boolean currentIsZero = dataPoints[i].getIntensity() == 0;
+      boolean nextIsBigger = scan.getIntensityValue(i + 1) > scan.getIntensityValue(i);
+      boolean nextIsZero = scan.getIntensityValue(i + 1) == 0;
+      boolean currentIsZero = scan.getIntensityValue(i) == 0;
 
       // Ignore zero intensity regions
       if (currentIsZero)
@@ -65,19 +61,18 @@ public class LocalMaxMassDetector implements MassDetector {
 
       // Check for local maximum
       if (ascending && (!nextIsBigger)) {
-        currentMzPeakTop = dataPoints[i];
+        currentMzPeakTop = i;
         ascending = false;
         continue;
       }
-
-      assert currentMzPeakTop != null;
 
       // Check for the end of the peak
       if ((!ascending) && (nextIsBigger || nextIsZero)) {
 
         // Add the m/z peak if it is above the noise level
-        if (currentMzPeakTop.getIntensity() > noiseLevel) {
-          mzPeaks.add(currentMzPeakTop);
+        if (scan.getIntensityValue(currentMzPeakTop) > noiseLevel) {
+          mzPeaks.add(new SimpleDataPoint(scan.getMzValue(currentMzPeakTop),
+              scan.getIntensityValue(currentMzPeakTop)));
         }
 
         // Reset and start with new peak

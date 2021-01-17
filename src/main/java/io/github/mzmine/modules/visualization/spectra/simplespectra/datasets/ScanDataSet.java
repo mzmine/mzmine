@@ -18,12 +18,13 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import java.util.Hashtable;
 import java.util.Map;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Spectra visualizer data set for scan data points
@@ -35,22 +36,22 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   // For comparing small differences.
   private static final double EPSILON = 0.0000001;
 
-  private String label;
-  private Scan scan;
-  private Map<DataPoint, String> annotation;
+  private final String label;
+  private final Scan scan;
+  private final Map<Integer, String> annotation = new Hashtable<>();
 
   /*
    * Save a local copy of m/z and intensity values, because accessing the scan every time may cause
    * reloading the data from HDD
    */
-  private DataPoint dataPoints[];
+  // private DataPoint dataPoints[];
 
   public ScanDataSet(Scan scan) {
     this("Scan #" + scan.getScanNumber(), scan);
   }
 
   public ScanDataSet(String label, Scan scan) {
-    this.dataPoints = scan.getDataPoints();
+    // this.dataPoints = scan.getDataPoints();
     this.scan = scan;
     this.label = label;
 
@@ -80,17 +81,17 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 
   @Override
   public int getItemCount(int series) {
-    return dataPoints.length;
+    return scan.getNumberOfDataPoints();
   }
 
   @Override
   public Number getX(int series, int item) {
-    return dataPoints[item].getMZ();
+    return scan.getMzValue(item);
   }
 
   @Override
   public Number getY(int series, int item) {
-    return dataPoints[item].getIntensity();
+    return scan.getIntensityValue(item);
   }
 
   @Override
@@ -134,15 +135,13 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   }
 
   public int getIndex(final double mz, final double intensity) {
-    int index = -1;
-    for (int i = 0; index < 0 && i < dataPoints.length; i++) {
-      if (Math.abs(mz - dataPoints[i].getMZ()) < EPSILON
-          && Math.abs(intensity - dataPoints[i].getIntensity()) < EPSILON) {
-
-        index = i;
+    for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
+      if (Math.abs(mz - scan.getMzValue(i)) < EPSILON
+          && Math.abs(intensity - scan.getIntensityValue(i)) < EPSILON) {
+        return i;
       }
     }
-    return index;
+    return -1;
   }
 
   /**
@@ -150,36 +149,22 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
    * normalizing isotope patterns.
    */
   public double getHighestIntensity(Range<Double> mzRange) {
-
-    double maxIntensity = 0;
-    for (DataPoint dp : dataPoints) {
-      if ((mzRange.contains(dp.getMZ())) && (dp.getIntensity() > maxIntensity))
-        maxIntensity = dp.getIntensity();
-    }
-
-    return maxIntensity;
+    return ScanUtils.findBasePeak(scan, mzRange).getIntensity();
   }
 
   public Scan getScan() {
     return scan;
   }
 
-  public void addAnnotation(Map<DataPoint, String> annotation) {
-    this.annotation = annotation;
+  public void addAnnotation(Map<Integer, String> annotation) {
+    this.annotation.putAll(annotation);;
   }
 
   public String getAnnotation(int item) {
-    if (annotation == null)
-      return null;
-    DataPoint itemDataPoint = dataPoints[item];
-    for (DataPoint key : annotation.keySet()) {
-      if (Math.abs(key.getMZ() - itemDataPoint.getMZ()) < 0.001)
-        return annotation.get(key);
-    }
-    return null;
+    return annotation.get(item);
   }
 
-  public DataPoint[] getDataPoints() {
-    return dataPoints;
-  }
+  /*
+   * public DataPoint[] getDataPoints() { return dataPoints; }
+   */
 }

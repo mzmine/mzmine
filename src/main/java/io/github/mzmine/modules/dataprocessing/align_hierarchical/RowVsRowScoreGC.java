@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,17 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Arrays;
 import java.util.logging.Logger;
-
 import org.apache.commons.math.linear.ArrayRealVector;
 import org.apache.commons.math.stat.correlation.PearsonsCorrelation;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * This class represents a score between feature list row and aligned feature list row
@@ -198,7 +197,8 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       // peakListRow.getRawDataFiles()[0], true);
       // }
 
-      Scan apexScan = refRDF.getScanAtNumber(peakListRow.getBestFeature().getRepresentativeScan().getScanNumber());
+      Scan apexScan = refRDF
+          .getScanAtNumber(peakListRow.getBestFeature().getRepresentativeScan().getScanNumber());
       //
       // Get scan m/z vector.
       // logger.info("DPs MZ Range: " + apexScan.getMZRange());
@@ -208,7 +208,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       // dataPoints =
       // peakListRow.getBestPeak().getIsotopePattern().getDataPoints();//apexScan.getDataPoints();
       // else
-      dataPoints = apexScan.getDataPoints();
+      dataPoints = ScanUtils.extractDataPoints(apexScan);
       for (int j = 0; j < dataPoints.length; ++j) {
         DataPoint dp = dataPoints[j];
         vec1[(int) Math.round(dp.getMZ())] = dp.getIntensity();
@@ -244,7 +244,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
         // dataPoints =
         // alignedRow.getBestPeak().getIsotopePattern().getDataPoints();//apexScan.getDataPoints();
         // else
-        dataPoints = apexScan.getDataPoints();
+        dataPoints = ScanUtils.extractDataPoints(apexScan);
         for (int j = 0; j < dataPoints.length; ++j) {
           DataPoint dp = dataPoints[j];
           vec2[(int) Math.round(dp.getMZ())] += dp.getIntensity();
@@ -264,12 +264,14 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       // refRDF = DataFileUtils.getAncestorDataFile(this.project,
       // peakListRow.getRawDataFiles()[0], true);
       // }
-      Scan apexScan = refRDF.getScanAtNumber(peakListRow.getBestFeature().getRepresentativeScan().getScanNumber());
+      Scan apexScan = refRDF
+          .getScanAtNumber(peakListRow.getBestFeature().getRepresentativeScan().getScanNumber());
       //
       // vec1
       // Scan numbers to be averaged
       int apexScanNumber = apexScan.getScanNumber();
-      int[] peakScanNumbers = peakListRow.getBestFeature().getScanNumbers().stream().mapToInt(s -> s.getScanNumber()).toArray();
+      int[] peakScanNumbers = peakListRow.getBestFeature().getScanNumbers().stream()
+          .mapToInt(s -> s.getScanNumber()).toArray();
       int nbSideScans = (int) Math.round(peakScanNumbers.length * 5.0 / 100.0);
       int firstScanNum = Math.max(apexScanNumber - nbSideScans, peakScanNumbers[0]);
       int lastScanNum =
@@ -279,7 +281,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       // Compute average
       for (int i = firstScanNum; i < lastScanNum; ++i) {
         Scan curScan = refRDF.getScanAtNumber(i);
-        DataPoint[] dataPoints = curScan.getDataPoints();
+        DataPoint[] dataPoints = ScanUtils.extractDataPoints(curScan);
         for (int j = 0; j < dataPoints.length; ++j) {
           DataPoint dp = dataPoints[j];
           vec1[(int) Math.round(dp.getMZ())] += dp.getIntensity();
@@ -297,10 +299,12 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       // refRDF = DataFileUtils.getAncestorDataFile(this.project,
       // alignedRow.getRawDataFiles()[0], true);
       // }
-      apexScan = refRDF.getScanAtNumber(alignedRow.getBestFeature().getRepresentativeScan().getScanNumber());
+      apexScan = refRDF
+          .getScanAtNumber(alignedRow.getBestFeature().getRepresentativeScan().getScanNumber());
       // Scan numbers to be averaged
       apexScanNumber = apexScan.getScanNumber();
-      peakScanNumbers = alignedRow.getBestFeature().getScanNumbers().stream().mapToInt(s -> s.getScanNumber()).toArray();
+      peakScanNumbers = alignedRow.getBestFeature().getScanNumbers().stream()
+          .mapToInt(s -> s.getScanNumber()).toArray();
       firstScanNum = Math.max(apexScanNumber - nbSideScans, peakScanNumbers[0]);
       lastScanNum =
           Math.min(apexScanNumber + nbSideScans, peakScanNumbers[peakScanNumbers.length - 1]);
@@ -309,7 +313,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       // Compute average
       for (int i = firstScanNum; i < lastScanNum; ++i) {
         Scan curScan = refRDF.getScanAtNumber(i);
-        DataPoint[] dataPoints = curScan.getDataPoints();
+        DataPoint[] dataPoints = ScanUtils.extractDataPoints(curScan);
         for (int j = 0; j < dataPoints.length; ++j) {
           DataPoint dp = dataPoints[j];
           vec2[(int) Math.round(dp.getMZ())] += dp.getIntensity();
@@ -423,6 +427,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
   /**
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
+  @Override
   public int compareTo(RowVsRowScoreGC object) {
 
     // We must never return 0, because the TreeSet in JoinAlignerTask would

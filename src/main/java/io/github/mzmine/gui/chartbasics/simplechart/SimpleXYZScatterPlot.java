@@ -38,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
@@ -135,6 +136,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @param dataset the dataset. null to clear the plot. Removes all other datasets.
    */
   public void setDataset(@Nullable ColoredXYZDataset dataset) {
+    assert Platform.isFxApplicationThread();
+
     removeAllDatasets();
     plot.setDataset(dataset);
     plot.setRenderer(defaultRenderer.get());
@@ -164,6 +167,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @return The dataset index.
    */
   public synchronized int addDataset(XYZDataset dataset, XYItemRenderer renderer) {
+    assert Platform.isFxApplicationThread();
+
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
@@ -178,6 +183,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @return The dataset index
    */
   public synchronized int addDataset(T datasetProvider) {
+    assert Platform.isFxApplicationThread();
+
     if (datasetProvider instanceof XYZDataset) {
       return addDataset((XYZDataset) datasetProvider, plot.getRenderer());
     }
@@ -186,6 +193,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   public synchronized void removeAllDatasets() {
+    assert Platform.isFxApplicationThread();
+
     chart.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset ds = plot.getDataset(i);

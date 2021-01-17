@@ -22,26 +22,22 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.MIN_PEAK_HEIGHT;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.PEAK_DURATION;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.maths.CenterFunction;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
  * This class implements a peak builder using a match score to link MzPeaks in the axis of retention
@@ -64,7 +60,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) {
 
-    ObservableList<Scan> scanNumbers = chromatogram.getScanNumbers();
+    List<Scan> scanNumbers = chromatogram.getScanNumbers();
     final int scanCount = scanNumbers.size();
     double retentionTimes[] = new double[scanCount];
     double intensities[] = new double[scanCount];
@@ -135,7 +131,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
    * @param noiseThreshold noise threshold.
    * @return array of peaks found.
    */
-  private static ResolvedPeak[] peaksSearch(final Feature chromatogram, final ObservableList<Scan> scanNumbers,
+  private static ResolvedPeak[] peaksSearch(final Feature chromatogram, final List<Scan> scanNumbers,
       final double[] derivativeOfIntensities, final double noiseThreshold,
       CenterFunction mzCenterFunction, final double msmsRange, final double rTRangeMSMS) {
 

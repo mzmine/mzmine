@@ -57,6 +57,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   protected final LabelTextProvider labelTextProvider;
   protected final ToolTipTextProvider toolTipTextProvider;
+  protected final boolean autocompute;
+
   // dataset stuff
   private final int seriesCount = 1;
   protected ObjectProperty<javafx.scene.paint.Color> fxColor;
@@ -92,6 +94,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
 
     fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
 
+    this.autocompute = autocompute;
     if (autocompute) {
       MZmineCore.getTaskController().addTask(this);
     }
@@ -268,11 +271,13 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
 
     computed = true;
     status.set(TaskStatus.FINISHED);
+//    if (!autocompute) {
     if (Platform.isFxApplicationThread()) {
       fireDatasetChanged();
     } else {
       Platform.runLater(this::fireDatasetChanged);
     }
+//    }
   }
 
   @Override

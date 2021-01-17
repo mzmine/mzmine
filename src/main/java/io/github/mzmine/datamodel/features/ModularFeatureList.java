@@ -2,15 +2,18 @@ package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
@@ -20,19 +23,23 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 
 public class ModularFeatureList implements FeatureList {
+
+  // storage of data points in case features are edited
+  private MemoryMapStorage memoryMapStorage = null;
 
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
   private ObservableMap<Class<? extends DataType>, DataType> rowTypes =
-          FXCollections.observableMap(new LinkedHashMap<>());
+      FXCollections.observableMap(new LinkedHashMap<>());
 
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
   private ObservableMap<Class<? extends DataType>, DataType> featureTypes =
-          FXCollections.observableMap(new LinkedHashMap<>());
+      FXCollections.observableMap(new LinkedHashMap<>());
 
   // bindings for values
   private final List<RowBinding> rowBindings = new ArrayList<>();
@@ -41,6 +48,7 @@ public class ModularFeatureList implements FeatureList {
 
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
+  private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
   private ObservableList<FeatureListRow> featureListRows;
   private String name;
   private ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
@@ -62,6 +70,7 @@ public class ModularFeatureList implements FeatureList {
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
+    selectedScans = FXCollections.observableMap(new HashMap<>());
 
     // only a few standard types
     addRowType(new IDType());
@@ -78,9 +87,23 @@ public class ModularFeatureList implements FeatureList {
     return name;
   }
 
+  public void setSelectedScans(@Nonnull RawDataFile file, @Nullable List<? extends Scan> scans) {
+    selectedScans.put(file, scans);
+  }
+
+  /**
+   * @param file
+   * @return The scans used to build this feature list. For ion mobility data, the frames are
+   * returned.
+   */
+  @Nullable
+  public List<? extends Scan> getSeletedScans(@Nonnull RawDataFile file) {
+    return selectedScans.get(file);
+  }
+
   /**
    * Bind row types to feature types to calculate averages, sums, min, max, counts.
-   * 
+   *
    * @param bindings list of bindings
    */
   public void addRowBinding(@Nonnull List<RowBinding> bindings) {
@@ -99,7 +122,7 @@ public class ModularFeatureList implements FeatureList {
 
   /**
    * Apply all bindings to all this row
-   * 
+   *
    * @param row
    */
   private void applyRowBindings(ModularFeatureListRow row) {
@@ -108,7 +131,7 @@ public class ModularFeatureList implements FeatureList {
 
   /**
    * Summary of all feature type columns
-   * 
+   *
    * @return
    */
   public ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes() {
@@ -146,7 +169,7 @@ public class ModularFeatureList implements FeatureList {
 
   /**
    * Row type columns
-   * 
+   *
    * @return
    */
   public ObservableMap<Class<? extends DataType>, DataType> getRowTypes() {
@@ -163,6 +186,7 @@ public class ModularFeatureList implements FeatureList {
 
   /**
    * Returns all raw data files participating in the alignment
+   *
    * @return
    */
   @Override
@@ -172,10 +196,11 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public RawDataFile getRawDataFile(int i) {
-    if (i >= 0 && i < dataFiles.size())
+    if (i >= 0 && i < dataFiles.size()) {
       return dataFiles.get(i);
-    else
+    } else {
       return null;
+    }
   }
 
   /**
@@ -188,7 +213,7 @@ public class ModularFeatureList implements FeatureList {
 
   /**
    * Returns the feature of a given raw data file on a give row of the alignment result
-   * 
+   *
    * @param row Row of the alignment result
    * @param raw Raw data file where the feature is detected/estimated
    */
@@ -205,8 +230,9 @@ public class ModularFeatureList implements FeatureList {
     ObservableList<Feature> features = FXCollections.observableArrayList();
     for (int row = 0; row < getNumberOfRows(); row++) {
       ModularFeature f = getFeature(row, raw);
-      if (f != null)
+      if (f != null) {
         features.add(f);
+      }
     }
     return features;
   }
@@ -247,16 +273,18 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void addRow(FeatureListRow row) {
-    if(!(row instanceof ModularFeatureListRow)) {
-      throw new IllegalArgumentException("Can not add non-modular feature list row to modular feature list");
+    if (!(row instanceof ModularFeatureListRow)) {
+      throw new IllegalArgumentException(
+          "Can not add non-modular feature list row to modular feature list");
     }
     ModularFeatureListRow modularRow = (ModularFeatureListRow) row;
 
     ObservableList<RawDataFile> myFiles = this.getRawDataFiles();
     for (RawDataFile testFile : modularRow.getRawDataFiles()) {
-      if (!myFiles.contains(testFile))
+      if (!myFiles.contains(testFile)) {
         throw (new IllegalArgumentException(
             "Data file " + testFile + " is not in this feature list"));
+      }
     }
 
     featureListRows.add(modularRow);
@@ -270,7 +298,7 @@ public class ModularFeatureList implements FeatureList {
 
   /**
    * Returns all features overlapping with a retention time range
-   * 
+   *
    * @param rtRange Retention time range
    * @return List of features
    */
@@ -293,7 +321,8 @@ public class ModularFeatureList implements FeatureList {
    * @see io.github.mzmine.datamodel.features.FeatureList#getFeaturesInsideScanAndMZRange
    */
   @Override
-  public ObservableList<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
+  public ObservableList<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw,
+      Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO solve with bindings and check for rt or mz presence in row
     return modularStream().map(ModularFeatureListRow::getFilesFeatures).map(map -> map.get(raw))
@@ -368,8 +397,9 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public int getFeatureListRowNum(Feature feature) {
     for (int i = 0; i < featureListRows.size(); i++) {
-      if (featureListRows.get(i).hasFeature(feature))
+      if (featureListRows.get(i).hasFeature(feature)) {
         return i;
+      }
     }
     return -1;
   }
@@ -427,8 +457,9 @@ public class ModularFeatureList implements FeatureList {
   //  a private variable during rows initialization
   @Override
   public Range<Double> getRowsMZRange() {
-    if(getRows().isEmpty())
+    if (getRows().isEmpty()) {
       return Range.singleton(0d);
+    }
 
     updateMaxIntensity(); // Update range before returning value
 
@@ -443,8 +474,9 @@ public class ModularFeatureList implements FeatureList {
   //  a private variable during rows initialization
   @Override
   public Range<Float> getRowsRTRange() {
-    if(getRows().isEmpty())
+    if (getRows().isEmpty()) {
       return Range.singleton(0f);
+    }
 
     updateMaxIntensity(); // Update range before returning value
 
@@ -457,23 +489,34 @@ public class ModularFeatureList implements FeatureList {
 
   /**
    * create copy of all feature list rows and features
+   *
    * @param title
    * @return
    */
-    public ModularFeatureList createCopy(String title) {
-      ModularFeatureList flist = new ModularFeatureList(title, this.getRawDataFiles());
-      // copy all rows and features
-      this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true))
-          .forEach(newRow -> flist.addRow(newRow));
+  public ModularFeatureList createCopy(String title) {
+    ModularFeatureList flist = new ModularFeatureList(title, this.getRawDataFiles());
+    // copy all rows and features
+    this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true))
+        .forEach(newRow -> flist.addRow(newRow));
 
-      // Load previous applied methods
-      for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
-        flist.addDescriptionOfAppliedTask(proc);
-      }
-      return flist;
+    // Load previous applied methods
+    for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
+      flist.addDescriptionOfAppliedTask(proc);
     }
+
+    selectedScans.forEach(flist::setSelectedScans);
+    return flist;
+  }
 
   public List<RowBinding> getRowBindings() {
     return rowBindings;
   }
+
+  public MemoryMapStorage getMemoryMapStorage() {
+    if (memoryMapStorage == null) {
+      memoryMapStorage = new MemoryMapStorage();
+    }
+    return memoryMapStorage;
+  }
+
 }

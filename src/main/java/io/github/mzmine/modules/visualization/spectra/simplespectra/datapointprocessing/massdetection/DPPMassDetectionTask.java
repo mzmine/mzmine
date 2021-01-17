@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpr
 import java.awt.Color;
 import org.jmol.util.Logger;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -39,7 +40,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   // private MZmineProcessingStep<MassDetector> pMassDetector;
   private MZmineProcessingStep<MassDetector> massDetector;
 
-  DPPMassDetectionTask(DataPoint[] dataPoints, SpectraPlot targetPlot, ParameterSet parameterSet,
+  DPPMassDetectionTask(MassSpectrum dataPoints, SpectraPlot targetPlot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
     super(dataPoints, targetPlot, parameterSet, controller, listener);
     currentIndex = 0;
@@ -56,9 +57,9 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (getDataPoints().length == 0)
+    if (getDataPoints().getNumberOfDataPoints() == 0)
       return 0;
-    return currentIndex / getDataPoints().length;
+    return currentIndex / getDataPoints().getNumberOfDataPoints();
   }
 
   @Override
@@ -87,7 +88,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
 
     ProcessedDataPoint[] dp = ProcessedDataPoint.convert(masses);
 
-    currentIndex = dataPoints.length;
+    currentIndex = dataPoints.getNumberOfDataPoints();
 
     setResults(dp);
     setStatus(TaskStatus.FINISHED);

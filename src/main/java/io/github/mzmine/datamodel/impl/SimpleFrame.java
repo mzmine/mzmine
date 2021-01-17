@@ -26,11 +26,14 @@ import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.Mobilogram;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import java.util.Collection;
+import java.io.IOException;
+import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -44,29 +47,50 @@ import javax.annotation.Nullable;
  */
 public class SimpleFrame extends SimpleScan implements Frame {
 
-  private final int numMobilitySpectra;
+//  private final int numMobilitySpectra;
+  /**
+   * key = scan num, value = mobility scan
+   */
+  private final List<MobilityScan> mobilitySubScans = new ArrayList<>();
   private final MobilityType mobilityType;
-  private final Range<Double> mobilityRange;
-  private final Map<Integer, Double> mobilities;
-  private final Set<ImsMsMsInfo> precursorInfos;
+  //  private final Map<Integer, Double> mobilities;
+  private Set<ImsMsMsInfo> precursorInfos;
+  private Range<Double> mobilityRange;
 
-  public SimpleFrame(@Nullable RawDataFile dataFile, int scanNumber, int msLevel,
-      float retentionTime, double precursorMZ, int precursorCharge,
-      DataPoint[] dataPoints,
-      MassSpectrumType spectrumType,
-      PolarityType polarity, String scanDefinition,
-      @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
-      final int numMobilitySpectra,
-      @Nonnull Map<Integer, Double> mobilities,
-      @Nullable Set<ImsMsMsInfo> precursorInfos) {
-    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ,
-        precursorCharge, /*fragmentScans,*/
-        dataPoints, spectrumType, polarity, scanDefinition, scanMZRange);
+  private DoubleBuffer mobilityBuffer;
 
+  public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
+      float retentionTime, double precursorMZ, int precursorCharge, DataPoint dps[],
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      @Nonnull Range<Double> scanMZRange, MobilityType mobilityType, final int numMobilitySpectra,
+      @Nonnull Map<Integer, Double> mobilities, @Nullable Set<ImsMsMsInfo> precursorInfos) {
+    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
+         * fragmentScans,
+         */
+        null, null, spectrumType, polarity, scanDefinition, scanMZRange);
+
+    setDataPoints(dps);
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-    this.numMobilitySpectra = numMobilitySpectra;
-    this.mobilities = mobilities;
+//    this.numMobilitySpectra = numMobilitySpectra;
+//    this.mobilities = mobilities;
+    this.precursorInfos = precursorInfos;
+  }
+
+  public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
+      float retentionTime, double precursorMZ, int precursorCharge, double[] mzValues,
+      double[] intensityValues, MassSpectrumType spectrumType, PolarityType polarity,
+      String scanDefinition, @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
+      final int numMobilitySpectra, @Nonnull Map<Integer, Double> mobilities,
+      @Nullable Set<ImsMsMsInfo> precursorInfos) {
+    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
+         * fragmentScans,
+         */
+        null, null, spectrumType, polarity, scanDefinition, scanMZRange);
+
+    setDataPoints(mzValues, intensityValues);
+    this.mobilityType = mobilityType;
+    mobilityRange = Range.singleton(0.d);
     this.precursorInfos = precursorInfos;
   }
 
@@ -75,7 +99,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   public int getNumberOfMobilityScans() {
-    return numMobilitySpectra;
+    return mobilitySubScans.size();
   }
 
   @Override
@@ -87,42 +111,71 @@ public class SimpleFrame extends SimpleScan implements Frame {
   /**
    * @return Scan numbers of sub scans.
    */
-  @Override
-  public Set<Integer> getMobilityScanNumbers() {
-    return mobilities.keySet();
-  }
+//  @Override
+//  public Set<Integer> getMobilityScanNumbers() {
+//    return mobilities.keySet();
+//  }
 
   @Override
   @Nonnull
   public Range<Double> getMobilityRange() {
-    throw new UnsupportedOperationException(
-        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
+    if (mobilityRange != null) {
+      return mobilityRange;
+    }
+    return Range.singleton(0.0);
   }
 
+  @Nonnull
   @Override
   public MobilityScan getMobilityScan(int num) {
-    throw new UnsupportedOperationException(
-        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
+    return Objects.requireNonNull(mobilitySubScans.get(num));
+  }
+
+  /**
+   * Not to be used during processing. Can only be called during raw data file reading before
+   * finishWriting() was called.
+   *
+   * @param originalMobilityScan The mobility scan to store.
+   */
+  @Override
+  public void addMobilityScan(MobilityScan originalMobilityScan) {
+
+//    if (mobilityRange == null) {
+//      mobilityRange = Range.singleton(originalMobilityScan.getMobility());
+//    } else if (!mobilityRange.contains(originalMobilityScan.getMobility())) {
+//      mobilityRange = mobilityRange.span(Range.singleton(originalMobilityScan.getMobility()));
+//    }
+
+    mobilitySubScans.add(originalMobilityScan);
   }
 
   /**
    * @return Collection of mobility sub scans sorted by increasing scan num.
    */
-  @Override
   @Nonnull
-  public Collection<MobilityScan> getMobilityScans() {
-    throw new UnsupportedOperationException(
-        "Mobility scans are not associated with SimpleFrames, only StorableFrames");
+  @Override
+  public List<MobilityScan> getMobilityScans() {
+    return ImmutableList.copyOf(mobilitySubScans);
   }
 
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
-    return mobilities.getOrDefault(mobilityScanIndex, MobilityScan.DEFAULT_MOBILITY);
+    return mobilityBuffer.get(mobilityScanIndex);
   }
 
   @Override
-  public Map<Integer, Double> getMobilities() {
-    return mobilities;
+  public double getMobilityForMobilityScan(MobilityScan scan) {
+    // correct the index with an offset in case there is one.
+    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScamNumber();
+    if (index >= 0) {
+      return mobilityBuffer.get(index);
+    }
+    throw new IllegalArgumentException("Mobility scan does not belong to this frame.");
+  }
+
+  @Override
+  public DoubleBuffer getMobilities() {
+    return mobilityBuffer;
   }
 
   @Nonnull
@@ -134,58 +187,61 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Nullable
   @Override
   public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+    if (precursorInfos == null) {
+      return null;
+    }
     Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
         .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
   }
 
   @Override
-  public ImmutableList<Mobilogram> getMobilograms() {
-    throw new UnsupportedOperationException("getMobilograms is not supported by SimpleFrame");
+  public List<MobilityScan> getSortedMobilityScans() {
+    List<MobilityScan> result = new ArrayList<>(mobilitySubScans);
+    result.sort(Comparator.comparingDouble(MobilityScan::getMobility));
+    return ImmutableList.copyOf(result);
   }
 
-  @Override
-  public int addMobilogram(Mobilogram mobilogram) {
-    throw new UnsupportedOperationException("addMobilogram is not supported by SimpleFrame");
-  }
-
-  @Override
-  public void clearMobilograms() {
-    throw new UnsupportedOperationException("clearMobilograms is not supported by SimpleFrame");
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+  public DoubleBuffer setMobilities(double[] mobilities) {
+    try {
+      mobilityBuffer = getDataFile().getMemoryMapStorage().storeData(mobilities);
+    } catch (IOException e) {
+      e.printStackTrace();
+      mobilityBuffer = DoubleBuffer.wrap(mobilities);
     }
-    if (!(o instanceof SimpleFrame)) {
-      return false;
+    if (mobilities.length != mobilitySubScans.size() && !mobilitySubScans.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Mobility length does not match number of mobility scans.");
     }
-    SimpleFrame that = (SimpleFrame) o;
-    return getScanNumber() == that.getScanNumber() && getMSLevel() == that.getMSLevel()
-        && Double.compare(that.getPrecursorMZ(), getPrecursorMZ()) == 0
-        && getPrecursorCharge() == that.getPrecursorCharge()
-        && Float.compare(that.getRetentionTime(), getRetentionTime()) == 0
-        && getNumberOfDataPoints() == that.getNumberOfDataPoints()
-        && Objects.equals(getDataPointMZRange(), that.getDataPointMZRange()) && Objects
-        .equals(getHighestDataPoint(), that.getHighestDataPoint()) && Double.compare(getTIC(),
-        that.getTIC()) == 0
-        && getSpectrumType() == that.getSpectrumType() && getDataFile().equals(that.getDataFile())
-        && Objects.equals(getMassLists(), that.getMassLists()) && getPolarity() == that
-        .getPolarity() && Objects.equals(getScanDefinition(), that.getScanDefinition())
-        && getScanningMZRange().equals(that.getScanningMZRange()) && getMobilityType() == that
-        .getMobilityType() && getFrameId() == that.getFrameId();
+
+    mobilityRange = Range.singleton(mobilities[0]);
+    mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
+    return mobilityBuffer;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects
-        .hash(getScanNumber(), getMSLevel(), getPrecursorMZ(), getPrecursorCharge(),
-            getRetentionTime(),
-            getDataPointMZRange(), getHighestDataPoint(), getTIC(), getSpectrumType(),
-            getNumberOfDataPoints(),
-            getDataFile(), getMassLists(), getPolarity(), getScanDefinition(), getScanningMZRange(),
-            getMobilityType(), getFrameId());
+  public void setPrecursorInfos(@Nullable Set<ImsMsMsInfo> precursorInfos) {
+    this.precursorInfos = precursorInfos;
   }
+
+  /*
+   * @Override public boolean equals(Object o) { if (this == o) { return true; } if (!(o instanceof
+   * SimpleFrame)) { return false; } SimpleFrame that = (SimpleFrame) o; return getScanNumber() ==
+   * that.getScanNumber() && getMSLevel() == that.getMSLevel() &&
+   * Double.compare(that.getPrecursorMZ(), getPrecursorMZ()) == 0 && getPrecursorCharge() ==
+   * that.getPrecursorCharge() && Float.compare(that.getRetentionTime(), getRetentionTime()) == 0 &&
+   * getNumberOfDataPoints() == that.getNumberOfDataPoints() &&
+   * Objects.equals(getDataPointMZRange(), that.getDataPointMZRange()) &&
+   * Objects.equals(getHighestDataPoint(), that.getHighestDataPoint()) && Double.compare(getTIC(),
+   * that.getTIC()) == 0 && getSpectrumType() == that.getSpectrumType() &&
+   * getDataFile().equals(that.getDataFile()) && Objects.equals(getMassLists(), that.getMassLists())
+   * && getPolarity() == that.getPolarity() && Objects.equals(getScanDefinition(),
+   * that.getScanDefinition()) && getScanningMZRange().equals(that.getScanningMZRange()) &&
+   * getMobilityType() == that.getMobilityType() && getFrameId() == that.getFrameId(); }
+   *
+   * @Override public int hashCode() { return Objects.hash(getScanNumber(), getMSLevel(),
+   * getPrecursorMZ(), getPrecursorCharge(), getRetentionTime(), getDataPointMZRange(),
+   * getHighestDataPoint(), getTIC(), getSpectrumType(), getNumberOfDataPoints(), getDataFile(),
+   * getMassLists(), getPolarity(), getScanDefinition(), getScanningMZRange(), getMobilityType(),
+   * getFrameId()); }
+   */
 }

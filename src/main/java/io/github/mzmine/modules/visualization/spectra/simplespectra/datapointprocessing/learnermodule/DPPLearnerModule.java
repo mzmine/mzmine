@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule;
 
-import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
@@ -31,7 +31,7 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 /**
  * New modules need to implement DataPointProcessingModules. To make them show up in the list of
  * addable modules, they have to be added in the MZmineModulesList.java
- * 
+ *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
@@ -49,10 +49,10 @@ public class DPPLearnerModule implements DataPointProcessingModule {
   }
 
   @Override
-  public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
+  public DataPointProcessingTask createTask(MassSpectrum spectrum, ParameterSet parameterSet,
       SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener) {
 
-    return new DPPLearnerModuleTask(dataPoints, plot, parameterSet, controller, listener);
+    return new DPPLearnerModuleTask(spectrum, plot, parameterSet, controller, listener);
   }
 
   /**

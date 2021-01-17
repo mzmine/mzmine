@@ -15,6 +15,16 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
+import dulab.adap.common.algorithms.FeatureTools;
+import dulab.adap.datamodel.Component;
+import dulab.adap.datamodel.Peak;
+import dulab.adap.datamodel.PeakInfo;
+import dulab.adap.workflow.TwoStepDecomposition;
+import dulab.adap.workflow.TwoStepDecompositionParameters;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -23,7 +33,12 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,23 +50,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
-import dulab.adap.common.algorithms.FeatureTools;
-import dulab.adap.datamodel.Component;
-import dulab.adap.datamodel.Peak;
-import dulab.adap.datamodel.PeakInfo;
-import dulab.adap.workflow.TwoStepDecomposition;
-import dulab.adap.workflow.TwoStepDecompositionParameters;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
  *
@@ -263,7 +262,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
     for (FeatureListRow row : peakList.getRows()) {
       Feature peak = row.getBestFeature();
-      ObservableList<Scan> scanNumbers = peak.getScanNumbers();
+      List<Scan> scanNumbers = peak.getScanNumbers();
 
       // Build chromatogram
       NavigableMap<Double, Double> chromatogram = new TreeMap<>();

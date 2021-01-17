@@ -21,8 +21,17 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -33,25 +42,21 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.scans.ScanUtils;
-
 
 
 /**
  * Chromatogram.
  */
 public class ADAPChromatogram {
+
+  private static Logger logger = Logger.getLogger(ADAPChromatogram.class.getName());
+
   private SimpleFeatureInformation featureInfo;
 
   // Data file of this chromatogram
@@ -558,4 +563,51 @@ public class ADAPChromatogram {
     this.featureList = featureList;
   }
 
+  public void addZerosForEmptyScans(Scan[] scans) {
+    for (Scan scan : scans) {
+      dataPointsMap.computeIfAbsent(scan, s -> new SimpleDataPoint(getMZ(), 0d));
+    }
+  }
+
+  /**
+   * Adds zeros on the side of each consecutive number of scans.
+   *
+   * @param scans  The original scans used to build this chromatogram.
+   * @param minGap The minimum number of missing scans to be found, to fill up with zeros.
+   * @param zeros  The number of zeros to add. zeros <= minGap
+   */
+  public void addNZeros(Scan[] scans, int minGap, int zeros) {
+    assert minGap >= zeros;
+
+    int allScansIndex = 0; // contains the index of the next dp after a gap
+    int lastScanIndex = 0; // contains the index of the last dp before a gap
+    final int numScans = scans.length;
+    Map<Scan, DataPoint> dataPointsToAdd = new HashMap<>();
+
+    for (Entry<Scan, DataPoint> entry : dataPointsMap.entrySet()) {
+      Scan nextScan = entry.getKey();
+      while (allScansIndex < numScans && scans[allScansIndex] != nextScan) { // find the next scan
+        allScansIndex++;
+      }
+      if (allScansIndex - lastScanIndex >= minGap) { // check if gap was big enough
+        for (int i = 1; i <= zeros; i++) {
+          if (lastScanIndex + i < numScans && lastScanIndex != 0) {
+            dataPointsToAdd.put(scans[lastScanIndex + i], new SimpleDataPoint(getMZ(), 0d));
+          }
+          if (allScansIndex - i >= 0) {
+            dataPointsToAdd.put(scans[allScansIndex - 1], new SimpleDataPoint(getMZ(), 0d));
+          }
+        }
+      }
+      lastScanIndex = allScansIndex;
+    }
+
+    if (lastScanIndex + 1 < numScans) {
+      dataPointsToAdd.put(scans[lastScanIndex + 1], new SimpleDataPoint(getMZ(), 0d));
+    }
+
+    dataPointsMap.putAll(dataPointsToAdd);
+    logger.info(
+        () -> String.format("mz: %f\t Added %d data points", getMZ(), dataPointsToAdd.size()));
+  }
 }
