@@ -222,6 +222,8 @@ public class GroupableListViewCell<T> extends
       return;
     }
 
+    int selectedItemsSize = getListView().getSelectionModel().getSelectedItems().size();
+
     // Place selected elements to the new index
     super.dragDroppedAction(draggedIdx, getListView().getItems().indexOf(draggedToItem));
 
@@ -262,7 +264,6 @@ public class GroupableListViewCell<T> extends
 
     // Update selection
     int newDraggedItemIdx = getGroupableListView().getItems().indexOf(draggedItem);
-    int selectedItemsSize = getListView().getSelectionModel().getSelectedItems().size();
     getListView().getSelectionModel().clearSelection();
     getListView().getSelectionModel().selectRange(newDraggedItemIdx,
         newDraggedItemIdx + selectedItemsSize);
