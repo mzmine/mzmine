@@ -145,9 +145,10 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
   public void groupSelectedItems() {
     List<Integer> selectedIndices = ImmutableList.copyOf(getSelectionModel().getSelectedIndices());
+    getSelectionModel().clearSelection();
+
     groupItems(selectedIndices, generateNewGroupName("New group"));
 
-    getSelectionModel().clearSelection();
     int firstGroupIndex = Collections.min(selectedIndices) + 1;
     getSelectionModel().selectRange(firstGroupIndex, firstGroupIndex + selectedIndices.size());
 
