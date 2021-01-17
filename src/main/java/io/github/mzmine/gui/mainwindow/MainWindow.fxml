@@ -27,7 +27,7 @@
               <!--              Left side-->
               <TabPane tabClosingPolicy="UNAVAILABLE">
                 <tabs>
-                  <Tab closable="false" text="Raw data files">
+                  <Tab closable="false" text="MS data files">
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
