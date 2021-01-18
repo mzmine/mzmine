@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,20 +18,18 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch;
 
-import java.awt.Window;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolverSetupDialog;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
 
-public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
+public class MinimumSearchPeakDetectorParameters extends GeneralResolverParameters {
 
   public static final PercentParameter CHROMATOGRAPHIC_THRESHOLD_LEVEL = new PercentParameter(
       "Chromatographic threshold",
@@ -60,16 +58,21 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
   public MinimumSearchPeakDetectorParameters() {
-    super(new Parameter[] {CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
-        MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION});
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
+        CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
+        MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    final PeakResolverSetupDialog dialog =
-        new PeakResolverSetupDialog(valueCheckRequired, this, MinimumSearchPeakDetector.class);
+    final FeatureResolverSetupDialog dialog =
+        new FeatureResolverSetupDialog(valueCheckRequired, this,null);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
 
+  @Override
+  public PeakResolver getResolver() {
+    return new MinimumSearchPeakDetector();
+  }
 }
