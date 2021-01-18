@@ -146,6 +146,8 @@
     <Menu text="Export feature list">
       <MenuItem text="CSV" onAction="#runModule"
         userData="io.github.mzmine.modules.io.csvexport.CSVExportModule" />
+      <MenuItem text="CSV (modular)" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.csvexport_modular.CSVExportModularModule" />
       <MenuItem text="MetaboAnalyst" onAction="#runModule"
         userData="io.github.mzmine.modules.io.metaboanalystexport.MetaboAnalystExportModule" />
       <MenuItem text="mzTab" onAction="#runModule"

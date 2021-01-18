@@ -46,6 +46,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javafx.application.Platform;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -167,8 +168,12 @@ public class RawDataImportModule implements MZmineProcessingModule {
       }
       this.commonPrefix = commonPrefix;
 
-      if (!Strings.isNullOrEmpty(commonPrefix)) {
-
+      if(!Platform.isFxApplicationThread()) {
+        // todo how to handle this on the batch mode thread?
+        // todo how to handle this in headless
+        logger.log(Level.WARNING, "Raw data import was not called from fx thread. No dialog to remove common file prefix. (Ok in batch mode and headless)");
+      }
+      else if (!Strings.isNullOrEmpty(commonPrefix)) {
         // Show a dialog to allow user to remove common prefix
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Common prefix");

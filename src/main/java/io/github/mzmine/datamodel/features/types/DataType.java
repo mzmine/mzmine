@@ -67,8 +67,8 @@ public abstract class DataType<T extends Property<?>> {
    * @return the formatted representation of the value (or an empty String)
    */
   @Nonnull
-  public String getFormattedString(@Nonnull T property) {
-    return getFormattedString(property.getValue());
+  public String getFormattedString(T property) {
+    return property==null? "" : getFormattedString(property.getValue());
   }
 
   /**

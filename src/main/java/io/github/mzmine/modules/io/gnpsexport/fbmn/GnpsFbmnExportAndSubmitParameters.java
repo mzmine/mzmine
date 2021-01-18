@@ -72,7 +72,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
         case ONLY_WITH_MS2:
           return row.getBestFragmentation() != null;
       }
-      return false;
+      throw new UnsupportedOperationException("Unhandled enum case "+this.toString());
     }
   }
 
