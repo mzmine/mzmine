@@ -132,6 +132,59 @@
   </Menu>
 
 
+  <Menu text="Feature detection">
+    <Menu text="LC-MS">
+      <MenuItem onAction="#runModule"
+        text="ADAP chromatogram builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
+      <MenuItem text="GridMass" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>
+      <MenuItem onAction="#runModule"
+        text="Targeted feature detection"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
+    </Menu>
+    <Menu text="LC-IMS-MS">
+      <MenuItem onAction="#runModule"
+        text="Ion mobility trace builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>
+    </Menu>
+    <Menu text="Imaging">
+      <MenuItem onAction="#runModule"
+        text="Image builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
+    </Menu>
+    <Menu text="MSn">
+      <MenuItem onAction="#runModule"
+        text="MSn feature list builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule"/>
+    </Menu>
+    <Menu text="SRM">
+      <MenuItem onAction="#runModule"
+        text="SRM feature list builder (TODO)" userData="TODO"/>
+    </Menu>
+
+    <SeparatorMenuItem/>
+
+    <MenuItem text="Chromatogram smoothing"
+      onAction="#runModule"
+      userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule"/>
+
+    <Menu text="Chromatogram deconvolution">
+      <MenuItem text="ADAP resolver" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>
+      <MenuItem text="Baseline resolver" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule"/>
+      <MenuItem text="CentWave resolver" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverModule"/>
+      <MenuItem text="Local minimum resolver" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule"/>
+      <MenuItem text="Noise amplitude resolver" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule"/>
+      <MenuItem text="Savitzky Golay resolver" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule"/>
+    </Menu>
+  </Menu>
+
   <!-- FEATURE LIST METHODS -->
   <Menu text="Feature list methods">
     <Menu text="Import feature list">
@@ -168,56 +221,6 @@
         userData="io.github.mzmine.modules.io.gnpsexport.gc.GnpsGcExportAndSubmitModule"/>
       <MenuItem text="SIRIUS / CSI-FingerID" onAction="#runModule"
         userData="io.github.mzmine.modules.io.siriusexport.SiriusExportModule"/>
-    </Menu>
-
-    <Menu text="Feature detection">
-      <Menu text="MS1">
-        <MenuItem onAction="#runModule"
-          text="ADAP chromatogram builder"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
-        <MenuItem text="Chromatogram smoothing"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule"/>
-        <MenuItem text="GridMass" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>
-        <MenuItem onAction="#runModule"
-          text="Targeted feature detection"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
-      </Menu>
-      <Menu text="Imaging">
-        <MenuItem onAction="#runModule"
-          text="Image builder"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
-      </Menu>
-      <Menu text="Ion mobility">
-        <MenuItem onAction="#runModule"
-          text="Ion mobility trace builder"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>
-      </Menu>
-      <Menu text="MSn">
-        <MenuItem onAction="#runModule"
-          text="MSn feature list builder"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule"/>
-      </Menu>
-      <Menu text="SRM">
-        <MenuItem onAction="#runModule"
-          text="SRM feature list builder (TODO)" userData="TODO"/>
-      </Menu>
-    </Menu>
-
-    <Menu text="Chromatogram deconvolution">
-      <MenuItem text="ADAP resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>
-      <MenuItem text="Baseline resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule"/>
-      <MenuItem text="CentWave resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverModule"/>
-      <MenuItem text="Local minimum resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule"/>
-      <MenuItem text="Noise amplitude resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule"/>
-      <MenuItem text="Savitzky Golay resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule"/>
     </Menu>
 
     <Menu text="Spectral deconvolution">
