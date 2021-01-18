@@ -123,7 +123,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     return FxColorUtil.fxColorToAWT(fxColor.getValue());
   }
 
-  public void setAWTColor(java.awt.Color color) {
+  private void setAWTColor(java.awt.Color color) {
     this.fxColor.set(FxColorUtil.awtColorToFX(color));
   }
 
@@ -131,7 +131,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     return fxColor.getValue();
   }
 
-  public void setFXColor(javafx.scene.paint.Color colorfx) {
+  private void setFXColor(javafx.scene.paint.Color colorfx) {
     this.fxColor.set(colorfx);
   }
 

@@ -24,19 +24,19 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave;
 
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.INTEGRATION_METHOD;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.PEAK_DURATION;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.PEAK_SCALES;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.SN_THRESHOLD;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverParameters.INTEGRATION_METHOD;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverParameters.PEAK_DURATION;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverParameters.PEAK_SCALES;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverParameters.SN_THRESHOLD;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverParameters.PeakIntegrationMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
@@ -51,10 +51,10 @@ import javax.annotation.Nonnull;
 /**
  * Use XCMS findPeaks.centWave to identify peaks.
  */
-public class CentWaveDetector implements PeakResolver {
+public class CentWaveResolver implements FeatureResolver {
 
   // Logger.
-  private static final Logger logger = Logger.getLogger(CentWaveDetector.class.getName());
+  private static final Logger logger = Logger.getLogger(CentWaveResolver.class.getName());
 
   // Name.
   private static final String NAME = "Wavelets (XCMS)";
@@ -76,7 +76,7 @@ public class CentWaveDetector implements PeakResolver {
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
 
-    return CentWaveDetectorParameters.class;
+    return CentWaveResolverParameters.class;
   }
 
   @Override
@@ -96,7 +96,7 @@ public class CentWaveDetector implements PeakResolver {
 
   @Override
   public REngineType getREngineType(final ParameterSet parameters) {
-    return parameters.getParameter(CentWaveDetectorParameters.RENGINE_TYPE).getValue();
+    return parameters.getParameter(CentWaveResolverParameters.RENGINE_TYPE).getValue();
   }
 
   @Override

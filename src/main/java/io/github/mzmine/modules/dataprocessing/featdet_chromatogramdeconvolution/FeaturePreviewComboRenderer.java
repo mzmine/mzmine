@@ -24,9 +24,9 @@ import io.github.mzmine.main.MZmineCore;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 
-public class PeakPreviewComboRenderer extends BorderPane {
+public class FeaturePreviewComboRenderer extends BorderPane {
 
-  PeakPreviewComboRenderer(FeatureListRow row) {
+  FeaturePreviewComboRenderer(FeatureListRow row) {
 
     Feature peak = row.getFeatures().get(0);
 //    if(peak instanceof ModularFeature && peak.getRawDataFile() instanceof IMSRawDataFile) {

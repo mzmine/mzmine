@@ -29,20 +29,25 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
  * ResolvedPeak
  */
-public class ResolvedPeak {
+public class ResolvedPeak implements PlotXYDataProvider {
 
   private SimpleFeatureInformation peakInfo;
 
@@ -83,6 +88,8 @@ public class ResolvedPeak {
   private Integer parentChromatogramRowID = null;
   private FeatureList peakList;
 
+  private javafx.scene.paint.Color color;
+
   /**
    * Initializes this peak using data points from a given chromatogram - regionStart marks the index
    * of the first data point (inclusive), regionEnd marks the index of the last data point
@@ -96,6 +103,8 @@ public class ResolvedPeak {
 
     this.peakList = chromatogram.getFeatureList();
     this.dataFile = chromatogram.getRawDataFile();
+
+    color = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
 
     // Make an array of scan numbers of this peak
     scanNumbers = new Scan[regionEnd - regionStart + 1];
@@ -405,5 +414,60 @@ public class ResolvedPeak {
       dp.add(new SimpleDataPoint(dataPointMZValues[i], dataPointIntensityValues[i]));
     }
     return dp;
+  }
+
+  @Nonnull
+  @Override
+  public Color getAWTColor() {
+    return FxColorUtil.fxColorToAWT(color);
+  }
+
+  @Nonnull
+  @Override
+  public javafx.scene.paint.Color getFXColor() {
+    return color;
+  }
+
+  @Nullable
+  @Override
+  public String getLabel(int index) {
+    return null;
+  }
+
+  @Nonnull
+  @Override
+  public Comparable<?> getSeriesKey() {
+    return String.format("%f - %f min", getRawDataPointsIntensityRange().lowerEndpoint(), getRawDataPointsRTRange().upperEndpoint());
+  }
+
+  @Nullable
+  @Override
+  public String getToolTipText(int itemIndex) {
+    return null;
+  }
+
+  @Override
+  public void computeValues(SimpleObjectProperty<TaskStatus> status){
+    // nothing to compute
+  }
+
+  @Override
+  public double getDomainValue(int index) {
+    return getScanNumbers()[index].getRetentionTime();
+  }
+
+  @Override
+  public double getRangeValue(int index) {
+    return getDataPoints().get(index).getIntensity();
+  }
+
+  @Override
+  public int getValueCount() {
+    return getDataPoints().size();
+  }
+
+  @Override
+  public double getComputationFinishedPercentage() {
+    return 1d;
   }
 }

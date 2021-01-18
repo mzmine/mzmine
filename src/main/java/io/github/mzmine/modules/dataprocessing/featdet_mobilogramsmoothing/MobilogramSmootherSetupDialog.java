@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.MIN_RELATIVE_HEIGHT;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Mobilogram;

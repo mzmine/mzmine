@@ -32,46 +32,27 @@ import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 
-public class DeconvolutionModule implements MZmineProcessingModule {
+public abstract class FeatureResolverModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Chromatogram deconvolution";
   private static final String MODULE_DESCRIPTION =
       "This module separates each detected chromatogram into individual peaks.";
 
   @Override
-  public @Nonnull String getName() {
-
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-
     return MZmineModuleCategory.FEATURELISTDETECTION;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-
-    return DeconvolutionParameters.class;
   }
 
   @Override
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
       @Nonnull final Collection<Task> tasks) {
-    FeatureList[] peakLists = parameters.getParameter(DeconvolutionParameters.PEAK_LISTS).getValue()
+    FeatureList[] peakLists = parameters.getParameter(GeneralResolverParameters.PEAK_LISTS).getValue()
         .getMatchingFeatureLists();
 
     // function to calculate center mz
     CenterFunction mzCenterFunction =
-        parameters.getParameter(DeconvolutionParameters.MZ_CENTER_FUNCTION).getValue();
+        parameters.getParameter(GeneralResolverParameters.MZ_CENTER_FUNCTION).getValue();
 
     // use a logger weighted, noise corrected, maximum weight capped function
     if (mzCenterFunction.getMeasure().equals(CenterMeasure.AUTO)) {
@@ -96,7 +77,7 @@ public class DeconvolutionModule implements MZmineProcessingModule {
     }
 
     for (final FeatureList peakList : peakLists) {
-      tasks.add(new DeconvolutionTask(project, peakList, parameters, mzCenterFunction));
+      tasks.add(new FeatureResolverTask(project, peakList, parameters, mzCenterFunction));
     }
 
     return ExitCode.OK;

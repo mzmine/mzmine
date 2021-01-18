@@ -18,15 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude;
 
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.MIN_PEAK_HEIGHT;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.NOISE_AMPLITUDE;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.PEAK_DURATION;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeFeatureResolverParameters.MIN_PEAK_HEIGHT;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeFeatureResolverParameters.NOISE_AMPLITUDE;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeFeatureResolverParameters.PEAK_DURATION;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.R.REngineType;
@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 /**
  *
  */
-public class NoiseAmplitudePeakDetector implements PeakResolver {
+public class NoiseAmplitudeFeatureResolver implements FeatureResolver {
 
   // The maximum noise level relative to the maximum intensity.
   private static final double MAX_NOISE_LEVEL = 0.3;
@@ -190,7 +190,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return NoiseAmplitudePeakDetectorParameters.class;
+    return NoiseAmplitudeFeatureResolverParameters.class;
   }
 
   @Override

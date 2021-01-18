@@ -19,6 +19,7 @@
 package io.github.mzmine.util.deconvolution.impl;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
 import io.github.mzmine.util.deconvolution.IndexBasedXYResolver;
 import io.github.mzmine.util.deconvolution.XYResolver;
 import java.util.Collection;
@@ -36,12 +37,12 @@ public class LocalMinimumResolver implements XYResolver<Set<Double>, double[], d
   final double chromatographicThresholdLevel;
 
   /**
-   * @param xRange                        {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#PEAK_DURATION}
-   * @param searchXRange                  {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#SEARCH_RT_RANGE}
-   * @param minRatio                      {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#MIN_RATIO}
+   * @param xRange                        {@link MinimumSearchFeatureResolverParameters#PEAK_DURATION}
+   * @param searchXRange                  {@link MinimumSearchFeatureResolverParameters#SEARCH_RT_RANGE}
+   * @param minRatio                      {@link MinimumSearchFeatureResolverParameters#MIN_RATIO}
    * @param minHeight                     Minimum height to be recognised as a peak. Can be reset
    *                                      via {@link LocalMinimumResolver#setMinHeight(double)}
-   * @param chromatographicThresholdLevel {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchPeakDetectorParameters#CHROMATOGRAPHIC_THRESHOLD_LEVEL}
+   * @param chromatographicThresholdLevel {@link MinimumSearchFeatureResolverParameters#CHROMATOGRAPHIC_THRESHOLD_LEVEL}
    */
   public LocalMinimumResolver(Range<Double> xRange, float searchXRange, double minRatio,
       double minHeight, double chromatographicThresholdLevel) {

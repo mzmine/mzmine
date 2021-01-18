@@ -18,16 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline;
 
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselinePeakDetectorParameters.BASELINE_LEVEL;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselinePeakDetectorParameters.MIN_PEAK_HEIGHT;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselinePeakDetectorParameters.PEAK_DURATION;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverParameters.BASELINE_LEVEL;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverParameters.MIN_PEAK_HEIGHT;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverParameters.PEAK_DURATION;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.R.REngineType;
@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
  * This class implements a simple peak deconvolution algorithm. Continuous peaks above a given
  * baseline threshold level are detected.
  */
-public class BaselinePeakDetector implements PeakResolver {
+public class BaselineFeatureResolver implements FeatureResolver {
 
   @Override
   public @Nonnull String getName() {
@@ -124,7 +124,7 @@ public class BaselinePeakDetector implements PeakResolver {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return BaselinePeakDetectorParameters.class;
+    return BaselineFeatureResolverParameters.class;
   }
 
   @Override

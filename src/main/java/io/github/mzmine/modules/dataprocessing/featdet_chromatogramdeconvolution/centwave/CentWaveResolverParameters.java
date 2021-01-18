@@ -24,25 +24,22 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave;
 
-import java.awt.Window;
-import java.text.NumberFormat;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolverSetupDialog;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.R.REngineType;
+import java.text.NumberFormat;
 
 /**
  * Parameters used by CentWaveDetector.
  */
-public class CentWaveDetectorParameters extends SimpleParameterSet {
+public class CentWaveResolverParameters extends GeneralResolverParameters {
 
   /**
    * Peak integration methods.
@@ -57,7 +54,7 @@ public class CentWaveDetectorParameters extends SimpleParameterSet {
     /**
      * Create the method.
      *
-     * @param aName name
+     * @param aName   name
      * @param anIndex index (as used by findPeaks.centWave)
      */
     PeakIntegrationMethod(final String aName, final int anIndex) {
@@ -94,25 +91,23 @@ public class CentWaveDetectorParameters extends SimpleParameterSet {
           "Method used to determine RT extents of detected peaks", PeakIntegrationMethod.values(),
           PeakIntegrationMethod.UseSmoothedData);
 
-  /**
-   * R engine type.
-   */
-  public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
-      "R engine", "The R engine to be used for communicating with R.", REngineType.values(),
-      REngineType.RCALLER);
+  public CentWaveResolverParameters() {
 
-  public CentWaveDetectorParameters() {
-
-    super(new Parameter[] {SN_THRESHOLD, PEAK_SCALES, PEAK_DURATION, INTEGRATION_METHOD,
-        RENGINE_TYPE});
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters, SN_THRESHOLD,
+        PEAK_SCALES, PEAK_DURATION, INTEGRATION_METHOD, RENGINE_TYPE});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    final PeakResolverSetupDialog dialog =
-        new PeakResolverSetupDialog(valueCheckRequired, this, CentWaveDetector.class);
+    final FeatureResolverSetupDialog dialog =
+        new FeatureResolverSetupDialog(valueCheckRequired, this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public FeatureResolver getResolver() {
+    return new CentWaveResolver();
   }
 }
