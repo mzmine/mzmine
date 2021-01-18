@@ -84,4 +84,7 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame> {
     }
     return 0;
   }
+
+  @Override
+  IonMobilogramTimeSeries subSeries(MemoryMapStorage storage, List<Frame> subset);
 }

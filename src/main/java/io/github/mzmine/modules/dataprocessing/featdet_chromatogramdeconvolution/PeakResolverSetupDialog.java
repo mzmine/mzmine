@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -29,7 +28,6 @@ import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.util.FeatureConvertorIonMobility;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
@@ -246,11 +244,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
       final FeatureListRow previewRow = comboPeak.getSelectionModel().getSelectedItem();
       if (previewRow != null) {
         // Load the intensities and RTs into array.
-        final Feature previewPeak =
-            (previewRow.getFeatures().get(0).getRawDataFile() instanceof IMSRawDataFile)
-                ? FeatureConvertorIonMobility.collapseMobilityDimensionOfModularFeature(
-                (ModularFeature) previewRow.getFeatures().get(0)) : previewRow.getFeatures().get(0);
-
+        final Feature previewPeak = previewRow.getFeatures().get(0);
         logger.finest("Loading new preview peak " + previewRow);
 
         ticPlot.removeAllDataSets();
@@ -315,7 +309,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
           final FeatureDataSet featureDataSet
               = new FeatureDataSet(FeatureConvertors.ResolvedPeakToMoularFeature(
-              (ModularFeatureList) resolvedPeaks[i].getPeakList(), resolvedPeaks[i]));
+              (ModularFeatureList) resolvedPeaks[i].getPeakList(), resolvedPeaks[i],
+              ((ModularFeature) previewPeak).getFeatureData()));
           ticPlot.addFeatureDataSet(featureDataSet);
         }
 

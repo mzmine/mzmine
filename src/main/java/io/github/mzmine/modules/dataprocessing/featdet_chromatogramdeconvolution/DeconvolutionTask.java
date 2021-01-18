@@ -24,24 +24,19 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.SUFFIX;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.mzRangeMSMS;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
-import io.github.mzmine.util.FeatureConvertorIonMobility;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
@@ -145,7 +140,7 @@ public class DeconvolutionTask extends AbstractTask {
           }
 
           // Deconvolve features.
-          newPeakList = resolvePeaks(originalPeakList, this.rSession);
+          newPeakList = resolvePeaks((ModularFeatureList) originalPeakList, this.rSession);
 
           if (!isCanceled()) {
 
@@ -213,7 +208,7 @@ public class DeconvolutionTask extends AbstractTask {
    * @return a new feature list holding the resolved peaks.
    * @throws RSessionWrapperException
    */
-  private FeatureList resolvePeaks(final FeatureList originalFeatureList, RSessionWrapper rSession)
+  /*private FeatureList resolvePeaks(final FeatureList originalFeatureList, RSessionWrapper rSession)
       throws RSessionWrapperException {
 
     // Get data file information.
@@ -245,10 +240,7 @@ public class DeconvolutionTask extends AbstractTask {
             dataFile);
     DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     if (originalFeatureList.getRawDataFile(0) instanceof IMSRawDataFile) {
-//      resolvedFeatureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
-      resolvedFeatureList.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
-//      resolvedFeatureList.addRowType(new FeatureShapeMobilogramType());
-//      resolvedFeatureList.addRowType(new MobilityType());
+      DataTypeUtils.addDefaultIonMobilityTypeColumns(resolvedFeatureList);
     }
 
     // Load previous applied methods.
@@ -312,7 +304,7 @@ public class DeconvolutionTask extends AbstractTask {
     }
 
     return resolvedFeatureList;
-  }
+  }*/
 
   @Override
   public void cancel() {
@@ -328,5 +320,77 @@ public class DeconvolutionTask extends AbstractTask {
     }
   }
 
+  private FeatureList resolvePeaks(final ModularFeatureList originalFeatureList,
+      RSessionWrapper rSession)
+      throws RSessionWrapperException {
+
+    if (originalFeatureList.getRawDataFiles().size() > 1) {
+      throw new IllegalArgumentException(
+          "Deconvolution cannot be applied to aligned feature lists.");
+    }
+    final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
+
+    // create a new feature list and don't copy. Previous annotations of features are invalidated
+    // during deconvolution
+    final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
+        originalFeatureList.getName() + " " + parameters.getParameter(SUFFIX).getValue(), dataFile);
+    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+    final MZmineProcessingStep<PeakResolver> resolver =
+        parameters.getParameter(PEAK_RESOLVER).getValue();
+
+    this.setMSMSRange = parameters.getParameter(mzRangeMSMS).getValue();
+    if (setMSMSRange) {
+      this.msmsRange = parameters.getParameter(mzRangeMSMS).getEmbeddedParameter().getValue();
+    } else {
+      this.msmsRange = 0;
+    }
+    this.setMSMSRT = parameters.getParameter(RetentionTimeMSMS).getValue();
+    if (setMSMSRT) {
+      this.RTRangeMSMS =
+          parameters.getParameter(RetentionTimeMSMS).getEmbeddedParameter().getValue().floatValue();
+    } else {
+      this.RTRangeMSMS = 0;
+    }
+
+    resolvedFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Feature deconvolution",
+            resolver.getParameterSet()));
+
+    processedRows = 0;
+    totalRows = originalFeatureList.getNumberOfRows();
+    int peakId = 1;
+
+    // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
+    if (originalFeatureList.getFeature(0, originalFeatureList.getRawDataFile(0))
+        .getFeatureData() instanceof IonMobilogramTimeSeries) {
+      DataTypeUtils.addDefaultIonMobilityTypeColumns(resolvedFeatureList);
+    }
+
+    for (int i = 0; i < totalRows; i++) {
+      final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList
+          .getRow(i);
+      final ModularFeature originalFeature = originalRow.getFeature(dataFile);
+
+      final PeakResolver resolverModule = resolver.getModule();
+      final ParameterSet resolverParams = resolver.getParameterSet();
+      final ResolvedPeak[] peaks = resolverModule.resolvePeaks(originalFeature, resolverParams,
+          rSession, mzCenterFunction, msmsRange, RTRangeMSMS);
+
+      for (final ResolvedPeak peak : peaks) {
+        peak.setParentChromatogramRowID(originalRow.getID());
+        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
+            peakId++);
+        final ModularFeature newFeature = FeatureConvertors
+            .ResolvedPeakToMoularFeature(resolvedFeatureList, peak,
+                originalFeature.getFeatureData());
+
+        newRow.addFeature(dataFile, newFeature);
+        newRow.setFeatureInformation(peak.getPeakInformation());
+        resolvedFeatureList.addRow(newRow);
+      }
+      processedRows++;
+    }
+    return resolvedFeatureList;
+  }
 
 }

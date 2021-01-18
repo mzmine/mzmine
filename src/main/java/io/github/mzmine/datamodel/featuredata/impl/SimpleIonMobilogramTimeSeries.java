@@ -129,9 +129,10 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       @Nonnull double[] intensities, List<SimpleIonMobilitySeries> mobilograms,
       List<Frame> frames) {
 
-    if (mzs.length != intensities.length || mobilograms.size() != intensities.length) {
+    if (mzs.length != intensities.length || mobilograms.size() != intensities.length
+        || mzs.length != mobilograms.size()) {
       throw new IllegalArgumentException(
-          "Length of mz, intensity and/or mobilograms does not match.");
+          "Length of mz, intensity, frames and/or mobilograms does not match.");
     }
 
     this.mobilograms = mobilograms;
@@ -197,6 +198,26 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     }
     mzValues = tempMzs;
     intensityValues = tempIntensities;
+  }
+
+  @Override
+  public IonMobilogramTimeSeries subSeries(MemoryMapStorage storage, List<Frame> subset) {
+    double[] mzs = new double[subset.size()];
+    double[] intensities = new double[subset.size()];
+
+    for (int i = 0; i < subset.size(); i++) {
+      mzs[i] = getMzForSpectrum(subset.get(i));
+      intensities[i] = getIntensityForSpectrum(subset.get(i));
+    }
+
+    List<SimpleIonMobilitySeries> subMobilograms = new ArrayList<>(subset.size());
+    for (SimpleIonMobilitySeries mobilogram : mobilograms) {
+      if (subset.contains(mobilogram.getSpectrum(0).getFrame())) {
+        subMobilograms.add(mobilogram);
+      }
+    }
+
+    return new SimpleIonMobilogramTimeSeries(storage, mzs, intensities, subMobilograms, subset);
   }
 
   @Override
