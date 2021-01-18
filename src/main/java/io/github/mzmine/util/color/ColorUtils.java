@@ -16,11 +16,26 @@
  * USA
  */
 
-package io.github.mzmine.util.javafx.groupablelistview;
+package io.github.mzmine.util.color;
 
-/**
- * Interface designed to be used as an item of {@link GroupableListView}.
- */
-public interface GroupableListViewEntity {
+import javafx.scene.paint.Color;
+
+public class ColorUtils {
+
+  /**
+   * Returns tinted version of the given color.
+   *
+   * @param color input color
+   * @param factor tint factor, must be from [0, 1], higher value is, brighter output color is
+   * @return new color
+   */
+  public static Color tintColor(Color color, double factor) {
+    return new Color(
+        color.getRed() + (1d - color.getRed()) * factor,
+        color.getGreen() + (1d - color.getGreen()) * factor,
+        color.getBlue() + (1d - color.getBlue()) * factor,
+        color.getOpacity()
+    );
+  }
 
 }

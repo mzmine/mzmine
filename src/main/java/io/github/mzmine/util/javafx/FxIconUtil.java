@@ -18,11 +18,13 @@
 
 package io.github.mzmine.util.javafx;
 
+import io.github.mzmine.util.ImageUtils;
+import io.github.mzmine.util.color.ColorUtils;
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.util.HashMap;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
-
 import javafx.scene.image.Image;
 
 public class FxIconUtil {
@@ -39,6 +41,26 @@ public class FxIconUtil {
       e.printStackTrace();
     }
     return icon;
+  }
+
+  /**
+   * Returns file icon of the given color.
+   *
+   * @param color color of the icon
+   * @return file icon
+   */
+  public static Image getFileIcon(Color color) {
+    // Define colors mapping for the initial file icon
+    HashMap<Color, Color> colorsMapping = new HashMap<>();
+    colorsMapping.put(new Color(1.0, 0.5333333611488342, 0.0235294122248888, 1.0),
+        color);
+    colorsMapping.put(new Color(0.9921568632125854, 0.6078431606292725, 0.1882352977991104, 1.0),
+        ColorUtils.tintColor(color, 0.25));
+    colorsMapping.put(new Color(1.0, 0.7372549176216125, 0.4470588266849518, 1.0),
+        ColorUtils.tintColor(color, 0.5));
+
+    // Recolor file icon according to the mapping
+    return ImageUtils.recolor(loadImageFromResources("icons/fileicon.png"), colorsMapping);
   }
 
 }

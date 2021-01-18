@@ -27,7 +27,7 @@
               <!--              Left side-->
               <TabPane tabClosingPolicy="UNAVAILABLE">
                 <tabs>
-                  <Tab closable="false" text="Raw files">
+                  <Tab closable="false" text="MS data files">
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
@@ -46,8 +46,9 @@
                                   <MenuItem onAction="#handleShowMsMsPlot" text="Show MS/MS plot"/>
 
                                   <SeparatorMenuItem/>
-                                  <MenuItem onAction="#handleSort" text="Sort alphabetically"/>
-                                  <MenuItem onAction="#handleRemoveFileExtension"
+                                  <MenuItem onAction="#handleRawDataSort" text="Sort alphabetically"/>
+                                  <MenuItem fx:id="rawDataRemoveExtensionMenuItem"
+                                    onAction="#handleRemoveFileExtension"
                                     text="Remove file extension"/>
 
                                   <SeparatorMenuItem/>
@@ -62,12 +63,16 @@
                                       onAction="#runModule"
                                       userData="io.github.mzmine.modules.io.exportscans.ExportScansModule" />
                                   </Menu>
-                                  <MenuItem onAction="#handleRenameFile" text="Rename file"/>
-                                  <MenuItem onAction="#handleRemoveRawData" text="Remove file"/>
-                                  <MenuItem fx:id="rawDataGroupMenuItem" onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
+                                  <MenuItem fx:id="rawDataRenameMenuItem"
+                                    onAction="#handleRenameRawData" text="Rename"/>
+                                  <MenuItem fx:id="rawDataRemoveMenuItem"
+                                    onAction="#handleRemoveRawData" text="Remove file"/>
+                                  <MenuItem fx:id="rawDataGroupMenuItem"
+                                    onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
 
                                   <SeparatorMenuItem/>
-                                  <MenuItem onAction="#handleSetRawDataFileColor" text="Set color"/>
+                                  <MenuItem fx:id="rawDataSetColorMenuItem"
+                                    onAction="#handleSetRawDataFileColor" text="Set color"/>
 
                                 </items>
                               </ContextMenu>
@@ -81,62 +86,30 @@
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
-                          <ListView fx:id="featuresList" editable="true"
+                          <GroupableListView fx:id="featureListsList" editable="true"
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <contextMenu>
                               <ContextMenu>
                                 <items>
-                                  <MenuItem text="Open feature list"
-                                    onAction="#handleOpenFeatureList"/>
-                                  <MenuItem text="Show feature list summary"
-                                    onAction="#handleShowFeatureListSummary"/>
+                                  <MenuItem fx:id="openFeatureListMenuItem"
+                                    text="Open feature list" onAction="#handleOpenFeatureList"/>
+                                  <MenuItem fx:id="showFeatureListSummaryMenuItem"
+                                    text="Show feature list summary" onAction="#handleShowFeatureListSummary"/>
                                   <MenuItem text="Show scatter plot"
                                     onAction="#handleShowScatterPlot"/>
 
                                   <SeparatorMenuItem/>
                                   <MenuItem text="Sort alphabetically"
-                                    onAction="#handleSort"/>
-                                  <MenuItem text="Rename feature list"
-                                    onAction="#handleRenameFeatureList"/>
-                                  <MenuItem text="Remove feature list"
-                                    onAction="#handleRemoveFeatureList"/>
+                                    onAction="#handleFeatureListsSort"/>
+                                  <MenuItem fx:id="featureListsRenameMenuItem"
+                                    text="Rename" onAction="#handleRenameFeatureList"/>
+                                  <MenuItem fx:id="featureListsRemoveMenuItem"
+                                    text="Remove feature list" onAction="#handleRemoveFeatureList"/>
                                 </items>
                               </ContextMenu>
                             </contextMenu>
-                          </ListView>
-                        </children>
-                      </AnchorPane>
-                    </content>
-                  </Tab>
-                  <Tab fx:id="tvAligned" closable="false" text="Aligned feature lists">
-                    <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0">
-                        <children>
-                          <ListView fx:id="alignedFeaturesList" editable="true"
-                            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                            <contextMenu>
-                              <ContextMenu>
-                                <items>
-                                  <MenuItem text="Open feature list"
-                                    onAction="#handleOpenFeatureList"/>
-                                  <MenuItem text="Show feature list summary"
-                                    onAction="#handleShowFeatureListSummary"/>
-                                  <MenuItem text="Show scatter plot"
-                                    onAction="#handleShowScatterPlot"/>
-
-                                  <SeparatorMenuItem/>
-                                  <MenuItem text="Sort alphabetically"
-                                    onAction="#handleSort"/>
-                                  <MenuItem text="Rename feature list"
-                                    onAction="#handleRenameFeatureList"/>
-                                  <MenuItem text="Remove feature list"
-                                    onAction="#handleRemoveFeatureList"/>
-                                </items>
-                              </ContextMenu>
-                            </contextMenu>
-                          </ListView>
+                          </GroupableListView>
                         </children>
                       </AnchorPane>
                     </content>

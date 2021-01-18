@@ -261,14 +261,12 @@ public class MZmineGUI extends Application implements Desktop {
 
       MZmineCore.getProjectManager().setCurrentProject(project);
 
-      GroupableListView<RawDataFile> rawDataTree = mainWindowController.getRawDataList();
-      rawDataTree.setItemsValues(project.getRawDataFiles());
+      GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
+      rawDataList.setValues(project.getRawDataFiles());
 
-      ListView<FeatureList> featureTree = mainWindowController.getFeaturesList();
-      featureTree.setItems(project.getFeatureLists().filtered(featureList -> !featureList.isAligned()));
+      GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
+      featureListsList.setValues(project.getFeatureLists());
 
-      ListView<FeatureList> alignedFeatureTree = mainWindowController.getAlignedFeaturesList();
-      alignedFeatureTree.setItems(project.getFeatureLists().filtered(featureList -> featureList.isAligned()));
     });
 
   }
@@ -277,23 +275,15 @@ public class MZmineGUI extends Application implements Desktop {
   public static List<RawDataFile> getSelectedRawDataFiles() {
 
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
-    return ImmutableList.copyOf(rawDataListView.getSelectedItems());
+    return ImmutableList.copyOf(rawDataListView.getSelectedValues());
 
   }
 
   @Nonnull
   public static List<FeatureList> getSelectedFeatureLists() {
 
-    final ListView<FeatureList> featureListView = mainWindowController.getFeaturesList();
-    return ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
-
-  }
-
-  @Nonnull
-  public static List<FeatureList> getSelectedAlignedFeatureLists() {
-
-    final ListView<FeatureList> featureListView = mainWindowController.getAlignedFeaturesList();
-    return ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
+    final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
+    return ImmutableList.copyOf(featureListView.getSelectedValues());
 
   }
 
