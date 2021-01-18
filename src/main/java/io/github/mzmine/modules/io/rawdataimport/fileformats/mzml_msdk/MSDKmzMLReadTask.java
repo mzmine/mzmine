@@ -18,6 +18,14 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -26,23 +34,12 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data.MzMLMsScan;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
@@ -50,38 +47,20 @@ import java.util.regex.Pattern;
  */
 public class MSDKmzMLReadTask extends AbstractTask {
 
-  private static final Pattern SCAN_PATTERN = Pattern.compile("scan=([0-9]+)");
-  /*
-   * This stack stores at most 20 consecutive scans. This window serves to find possible fragments
-   * (current scan) that belongs to any of the stored scans in the stack. The reason of the size
-   * follows the concept of neighborhood of scans and all his fragments. These solution is
-   * implemented because exists the possibility to find fragments of one scan after one or more full
-   * scans.
-   */
-  private static final int PARENT_STACK_SIZE = 20;
   private final File file;
-  private final MSDKIndexingTask msdkTask;
+  private MzMLFileImportMethod msdkTask = null;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private MZmineProject project;
   private RawDataFile newMZmineFile;
-  private IMSRawDataFile newImsFile;
   private int totalScans = 0, parsedScans;
-  private int lastScanNumber = 0;
   private String description;
-  private SimpleFrame buildingFrame;
   private Map<Integer, Double> buildingMobilities;
 
   public MSDKmzMLReadTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     this.file = fileToOpen;
     this.project = project;
-    if (newMZmineFile instanceof IMSRawDataFile) {
-      this.newImsFile = (IMSRawDataFile) newMZmineFile;
-    } else {
-      this.newMZmineFile = newMZmineFile;
-    }
-    msdkTask = new MSDKIndexingTask(file);
-
-    description = "Waiting for MSDK indexing of raw data file: " + fileToOpen.getName();
+    this.newMZmineFile = newMZmineFile;
+    description = "Importing raw data file: " + fileToOpen.getName();
   }
 
 
@@ -91,27 +70,27 @@ public class MSDKmzMLReadTask extends AbstractTask {
   @Override
   public void run() {
 
-    MZmineCore.getTaskController().addTask(msdkTask);
-    setStatus(TaskStatus.WAITING);
+    setStatus(TaskStatus.PROCESSING);
+
     try {
-      while (msdkTask.getStatus() != TaskStatus.FINISHED) {
-        TimeUnit.MILLISECONDS.sleep(100);
-        if (getStatus() == TaskStatus.CANCELED) {
-          msdkTask.cancel();
-        }
+
+      msdkTask = new MzMLFileImportMethod(file);
+      msdkTask.execute();
+      io.github.msdk.datamodel.RawDataFile file = msdkTask.getResult();
+
+      if (file == null) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("MSDK returned null");
+        return;
+      }
+      totalScans = file.getScans().size();
+      if (newMZmineFile instanceof IMSRawDataFileImpl) {
+        ((IMSRawDataFileImpl) newMZmineFile).addSegment(Range.closed(1, file.getScans().size()));
+        buildIonMobilityFile(file);
+      } else {
+        buildLCMSFile(file);
       }
 
-      MzMLRawDataFile file = (MzMLRawDataFile) msdkTask.getImportMethod().getResult();
-      if (file != null) {
-        totalScans = file.getScans().size();
-        if (newImsFile == null) {
-          buildLCMSFile(file);
-        }
-        if (newImsFile != null) {
-          ((IMSRawDataFileImpl) newImsFile).addSegment(Range.closed(1, file.getScans().size()));
-          buildIonMobilityFile(file);
-        }
-      }
 
     } catch (Throwable e) {
       e.printStackTrace();
@@ -128,11 +107,14 @@ public class MSDKmzMLReadTask extends AbstractTask {
 
     logger.info("Finished parsing " + file + ", parsed " + parsedScans + " scans");
     setStatus(TaskStatus.FINISHED);
-    if (newImsFile != null) {
-      project.addFile(newImsFile);
-    } else {
-      project.addFile(newMZmineFile);
-    }
+    project.addFile(newMZmineFile);
+  }
+
+  @Override
+  public void cancel() {
+    if (msdkTask != null)
+      msdkTask.cancel();
+    super.cancel();
   }
 
   public void buildLCMSFile(io.github.msdk.datamodel.RawDataFile file) throws IOException {
@@ -156,16 +138,16 @@ public class MSDKmzMLReadTask extends AbstractTask {
     int frameNumber = 1;
     SimpleFrame buildingFrame = null;
 
-    List<MobilityScan> mobilityScans = new ArrayList<>();
-    List<Double> mobilities = new ArrayList<>();
-    List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
+    final List<MobilityScan> mobilityScans = new ArrayList<>();
+    final List<Double> mobilities = new ArrayList<>();
+    final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
     Set<ImsMsMsInfo> finishedImsMsMsInfos = null;
+    final IMSRawDataFile newImsFile = (IMSRawDataFile) file;
 
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
-      if (buildingFrame == null
-          || Float.compare((scan.getRetentionTime() / 60f), buildingFrame.getRetentionTime())
-          != 0) {
+      if (buildingFrame == null || Float.compare((scan.getRetentionTime() / 60f),
+          buildingFrame.getRetentionTime()) != 0) {
         mobilityScanNumberCounter = 0;
 
         if (buildingFrame != null) { // finish the frame
@@ -187,11 +169,10 @@ public class MSDKmzMLReadTask extends AbstractTask {
         }
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
-            (float) (scan.getRetentionTime() / 60f), 0, 0, new double[]{}, new double[]{},
+            scan.getRetentionTime() / 60f, 0, 0, new double[] {}, new double[] {},
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
-            ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()),
-            scan.getScanDefinition(), scan.getScanningRange(), mzMLScan.getMobility().mt(), 0,
-            buildingMobilities, null);
+            ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
+            scan.getScanningRange(), mzMLScan.getMobility().mt(), 0, buildingMobilities, null);
         frameNumber++;
 
         StringBuilder sb = new StringBuilder();
@@ -205,8 +186,8 @@ public class MSDKmzMLReadTask extends AbstractTask {
         description = sb.toString();
       }
 
-      mobilityScans.add(ConversionUtils
-          .msdkScanToMobilityScan(newImsFile, mobilityScanNumberCounter, scan, buildingFrame));
+      mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(newImsFile,
+          mobilityScanNumberCounter, scan, buildingFrame));
       mobilities.add(mzMLScan.getMobility().mobility());
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);
@@ -225,7 +206,10 @@ public class MSDKmzMLReadTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
+    final double msdkProgress =
+        msdkTask == null ? 0.0 : msdkTask.getFinishedPercentage().doubleValue();
+    final double parsingProgress = totalScans == 0 ? 0.0 : (double) parsedScans / totalScans;
+    return (msdkProgress * 0.25) + (parsingProgress * 0.75);
   }
 
 }
