@@ -16,35 +16,36 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude;
+package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
 
-public class NoiseAmplitudePeakDetectorParameters extends GeneralResolverParameters {
+public class SavitzkyGolayFeatureResolverParameters extends GeneralResolverParameters {
 
-  public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter("Min peak height",
-      "Minimum acceptable height (intensity) for a chromatographic peak",
-      MZmineCore.getConfiguration().getIntensityFormat());
+  public static final DoubleParameter MIN_PEAK_HEIGHT =
+      new DoubleParameter("Min peak height", "Minimum acceptable peak height (absolute intensity)",
+          MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final DoubleRangeParameter PEAK_DURATION =
       new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
-  public static final DoubleParameter NOISE_AMPLITUDE = new DoubleParameter("Amplitude of noise",
-      "This value is the intensity amplitude of the signal in the noise region",
-      MZmineCore.getConfiguration().getIntensityFormat());
+  public static final PercentParameter DERIVATIVE_THRESHOLD_LEVEL =
+      new PercentParameter("Derivative threshold level",
+          "Minimum acceptable intensity in the 2nd derivative for peak recognition");
 
-  public NoiseAmplitudePeakDetectorParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters, MIN_PEAK_HEIGHT,
-        PEAK_DURATION, NOISE_AMPLITUDE});
+  public SavitzkyGolayFeatureResolverParameters() {
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
+        MIN_PEAK_HEIGHT, PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, RENGINE_TYPE});
   }
 
   @Override
@@ -56,7 +57,7 @@ public class NoiseAmplitudePeakDetectorParameters extends GeneralResolverParamet
   }
 
   @Override
-  public PeakResolver getResolver() {
-    return new NoiseAmplitudePeakDetector();
+  public FeatureResolver getResolver() {
+    return new SavitzkyGolayFeatureResolver();
   }
 }

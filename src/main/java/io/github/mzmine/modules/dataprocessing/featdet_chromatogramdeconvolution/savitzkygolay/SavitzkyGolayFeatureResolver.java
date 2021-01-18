@@ -18,15 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay;
 
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.DERIVATIVE_THRESHOLD_LEVEL;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.MIN_PEAK_HEIGHT;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.PEAK_DURATION;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayFeatureResolverParameters.DERIVATIVE_THRESHOLD_LEVEL;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayFeatureResolverParameters.MIN_PEAK_HEIGHT;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayFeatureResolverParameters.PEAK_DURATION;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
@@ -45,7 +45,7 @@ import javax.annotation.Nonnull;
  * (smoothed) of raw data points (intensity) that conforms each peak. The first derivative is used
  * to determine the peak's range, and the second derivative to determine the intensity of the peak.
  */
-public class SavitzkyGolayPeakDetector implements PeakResolver {
+public class SavitzkyGolayFeatureResolver implements FeatureResolver {
 
   // Savitzky-Golay filter width.
   private static final int SG_FILTER_LEVEL = 12;
@@ -306,7 +306,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return SavitzkyGolayPeakDetectorParameters.class;
+    return SavitzkyGolayFeatureResolverParameters.class;
   }
 
   @Override

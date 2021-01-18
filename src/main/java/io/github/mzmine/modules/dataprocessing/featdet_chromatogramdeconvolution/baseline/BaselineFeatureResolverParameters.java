@@ -16,20 +16,19 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay;
+package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
 
-public class SavitzkyGolayPeakDetectorParameters extends GeneralResolverParameters {
+public class BaselineFeatureResolverParameters extends GeneralResolverParameters {
 
   public static final DoubleParameter MIN_PEAK_HEIGHT =
       new DoubleParameter("Min peak height", "Minimum acceptable peak height (absolute intensity)",
@@ -39,13 +38,13 @@ public class SavitzkyGolayPeakDetectorParameters extends GeneralResolverParamete
       new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
-  public static final PercentParameter DERIVATIVE_THRESHOLD_LEVEL =
-      new PercentParameter("Derivative threshold level",
-          "Minimum acceptable intensity in the 2nd derivative for peak recognition");
+  public static final DoubleParameter BASELINE_LEVEL = new DoubleParameter("Baseline level",
+      "Level below which all data points of the chromatogram are removed (absolute intensity)",
+      MZmineCore.getConfiguration().getIntensityFormat());
 
-  public SavitzkyGolayPeakDetectorParameters() {
+  public BaselineFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
-        MIN_PEAK_HEIGHT, PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, RENGINE_TYPE});
+        MIN_PEAK_HEIGHT, PEAK_DURATION, BASELINE_LEVEL});
   }
 
   @Override
@@ -57,7 +56,7 @@ public class SavitzkyGolayPeakDetectorParameters extends GeneralResolverParamete
   }
 
   @Override
-  public PeakResolver getResolver() {
-    return new SavitzkyGolayPeakDetector();
+  public FeatureResolver getResolver() {
+    return new BaselineFeatureResolver();
   }
 }

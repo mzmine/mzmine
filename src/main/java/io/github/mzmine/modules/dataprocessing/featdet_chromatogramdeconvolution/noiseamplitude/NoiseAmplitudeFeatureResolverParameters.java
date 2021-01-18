@@ -16,35 +16,35 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline;
+package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
 
-public class BaselinePeakDetectorParameters extends GeneralResolverParameters {
+public class NoiseAmplitudeFeatureResolverParameters extends GeneralResolverParameters {
 
-  public static final DoubleParameter MIN_PEAK_HEIGHT =
-      new DoubleParameter("Min peak height", "Minimum acceptable peak height (absolute intensity)",
-          MZmineCore.getConfiguration().getIntensityFormat());
+  public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter("Min peak height",
+      "Minimum acceptable height (intensity) for a chromatographic peak",
+      MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final DoubleRangeParameter PEAK_DURATION =
       new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
-  public static final DoubleParameter BASELINE_LEVEL = new DoubleParameter("Baseline level",
-      "Level below which all data points of the chromatogram are removed (absolute intensity)",
+  public static final DoubleParameter NOISE_AMPLITUDE = new DoubleParameter("Amplitude of noise",
+      "This value is the intensity amplitude of the signal in the noise region",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public BaselinePeakDetectorParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
-        MIN_PEAK_HEIGHT, PEAK_DURATION, BASELINE_LEVEL});
+  public NoiseAmplitudeFeatureResolverParameters() {
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters, MIN_PEAK_HEIGHT,
+        PEAK_DURATION, NOISE_AMPLITUDE});
   }
 
   @Override
@@ -56,7 +56,7 @@ public class BaselinePeakDetectorParameters extends GeneralResolverParameters {
   }
 
   @Override
-  public PeakResolver getResolver() {
-    return new BaselinePeakDetector();
+  public FeatureResolver getResolver() {
+    return new NoiseAmplitudeFeatureResolver();
   }
 }

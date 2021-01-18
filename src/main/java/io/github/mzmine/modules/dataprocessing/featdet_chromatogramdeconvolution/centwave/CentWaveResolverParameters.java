@@ -28,7 +28,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -39,7 +39,7 @@ import java.text.NumberFormat;
 /**
  * Parameters used by CentWaveDetector.
  */
-public class CentWaveDetectorParameters extends GeneralResolverParameters {
+public class CentWaveResolverParameters extends GeneralResolverParameters {
 
   /**
    * Peak integration methods.
@@ -91,7 +91,7 @@ public class CentWaveDetectorParameters extends GeneralResolverParameters {
           "Method used to determine RT extents of detected peaks", PeakIntegrationMethod.values(),
           PeakIntegrationMethod.UseSmoothedData);
 
-  public CentWaveDetectorParameters() {
+  public CentWaveResolverParameters() {
 
     super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters, SN_THRESHOLD,
         PEAK_SCALES, PEAK_DURATION, INTEGRATION_METHOD, RENGINE_TYPE});
@@ -107,7 +107,7 @@ public class CentWaveDetectorParameters extends GeneralResolverParameters {
   }
 
   @Override
-  public PeakResolver getResolver() {
-    return new CentWaveDetector();
+  public FeatureResolver getResolver() {
+    return new CentWaveResolver();
   }
 }

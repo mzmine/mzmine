@@ -40,10 +40,10 @@ import io.github.mzmine.util.maths.CenterFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DeconvolutionTask extends AbstractTask {
+public class FeatureResolverTask extends AbstractTask {
 
   // Logger.
-  private static final Logger logger = Logger.getLogger(DeconvolutionTask.class.getName());
+  private static final Logger logger = Logger.getLogger(FeatureResolverTask.class.getName());
 
   // Feature lists.
   private final MZmineProject project;
@@ -68,7 +68,7 @@ public class DeconvolutionTask extends AbstractTask {
    * @param list         feature list to operate on.
    * @param parameterSet task parameters.
    */
-  public DeconvolutionTask(final MZmineProject project, final FeatureList list,
+  public FeatureResolverTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet, CenterFunction mzCenterFunction) {
 
     // Initialize.
@@ -101,21 +101,21 @@ public class DeconvolutionTask extends AbstractTask {
     if (!isCanceled()) {
 
       setStatus(TaskStatus.PROCESSING);
-      logger.info("Started feature deconvolution on " + originalPeakList);
+      logger.info("Started feature resolving on " + originalPeakList);
 
       // Check raw data files.
       if (originalPeakList.getNumberOfRawDataFiles() > 1) {
 
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            "Peak deconvolution can only be performed on feature lists with a single raw data file");
+            "Feature resolving can only be performed on feature lists with a single raw data file");
 
       } else {
 
         try {
 
           // Peak resolver.
-          final PeakResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
+          final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
 
           if (resolver.getRequiresR()) {
             // Check R availability, by trying to open the
@@ -132,7 +132,7 @@ public class DeconvolutionTask extends AbstractTask {
             this.rSession = null;
           }
 
-          // Deconvolve features.
+          // Resolve features.
           newPeakList = resolvePeaks((ModularFeatureList) originalPeakList, this.rSession);
 
           if (parameters.getParameter(GeneralResolverParameters.groupMS2Parameters).getValue()) {
@@ -156,7 +156,7 @@ public class DeconvolutionTask extends AbstractTask {
             }
 
             setStatus(TaskStatus.FINISHED);
-            logger.info("Finished feature deconvolution on " + originalPeakList);
+            logger.info("Finished feature resolving on " + originalPeakList);
           }
           // Turn off R instance.
           if (this.rSession != null) {
@@ -172,7 +172,7 @@ public class DeconvolutionTask extends AbstractTask {
 
           setStatus(TaskStatus.ERROR);
           setErrorMessage(t.getMessage());
-          logger.log(Level.SEVERE, "Feature deconvolution error", t);
+          logger.log(Level.SEVERE, "Feature resolving error", t);
         }
 
         // Turn off R instance, once task ended UNgracefully.
@@ -325,20 +325,20 @@ public class DeconvolutionTask extends AbstractTask {
 
     if (originalFeatureList.getRawDataFiles().size() > 1) {
       throw new IllegalArgumentException(
-          "Deconvolution cannot be applied to aligned feature lists.");
+          "Resolving cannot be applied to aligned feature lists.");
     }
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
 
     // create a new feature list and don't copy. Previous annotations of features are invalidated
-    // during deconvolution
+    // during resolution
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters
             .getParameter(GeneralResolverParameters.SUFFIX).getValue(), dataFile);
     DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
-    final PeakResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
+    final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Feature deconvolution", parameters));
+        new SimpleFeatureListAppliedMethod("Feature resolving", parameters));
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
@@ -355,7 +355,7 @@ public class DeconvolutionTask extends AbstractTask {
           .getRow(i);
       final ModularFeature originalFeature = originalRow.getFeature(dataFile);
 
-      final PeakResolver resolverModule = resolver;
+      final FeatureResolver resolverModule = resolver;
       final ParameterSet resolverParams = parameters;
       final ResolvedPeak[] peaks = resolverModule.resolvePeaks(originalFeature, resolverParams,
           rSession, mzCenterFunction, msmsRange, RTRangeMSMS);

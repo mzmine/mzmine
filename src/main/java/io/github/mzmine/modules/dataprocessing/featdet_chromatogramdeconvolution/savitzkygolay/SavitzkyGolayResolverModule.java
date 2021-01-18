@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay;
 
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.parameters.ParameterSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class SavitzkyGolayResolverModule extends DeconvolutionModule {
+public class SavitzkyGolayResolverModule extends FeatureResolverModule {
 
   public static final String NAME = "Savitzky golay feature resolver";
 
@@ -36,7 +36,7 @@ public class SavitzkyGolayResolverModule extends DeconvolutionModule {
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return SavitzkyGolayPeakDetectorParameters.class;
+    return SavitzkyGolayFeatureResolverParameters.class;
   }
 
   @Nonnull

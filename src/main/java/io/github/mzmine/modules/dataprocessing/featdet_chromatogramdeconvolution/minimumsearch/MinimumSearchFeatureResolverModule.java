@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch;
 
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.parameters.ParameterSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class MinimumSearchFeatureResolverModule extends DeconvolutionModule {
+public class MinimumSearchFeatureResolverModule extends FeatureResolverModule {
 
   public static final String NAME = "Local minimum feature resolver";
 
@@ -36,7 +36,7 @@ public class MinimumSearchFeatureResolverModule extends DeconvolutionModule {
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return MinimumSearchPeakDetectorParameters.class;
+    return MinimumSearchFeatureResolverParameters.class;
   }
 
   @Nonnull

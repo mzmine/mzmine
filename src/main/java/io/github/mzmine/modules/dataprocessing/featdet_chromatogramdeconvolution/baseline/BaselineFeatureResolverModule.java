@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline;
 
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.parameters.ParameterSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class BaselineFeatureResolverModule extends DeconvolutionModule {
+public class BaselineFeatureResolverModule extends FeatureResolverModule {
 
   public static final String NAME = "Baseline resolver";
 
@@ -36,7 +36,7 @@ public class BaselineFeatureResolverModule extends DeconvolutionModule {
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return BaselinePeakDetectorParameters.class;
+    return BaselineFeatureResolverParameters.class;
   }
 
   @Nonnull

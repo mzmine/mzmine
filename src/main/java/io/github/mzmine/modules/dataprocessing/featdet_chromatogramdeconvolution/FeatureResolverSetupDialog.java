@@ -114,7 +114,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   }
 
   protected ResolvedPeak[] resolveFeature(ModularFeature feature) {
-    PeakResolver resolver = ((GeneralResolverParameters) parameterSet).getResolver();
+    FeatureResolver resolver = ((GeneralResolverParameters) parameterSet).getResolver();
     if (fBox.getValue() == null) {
       return null;
     }

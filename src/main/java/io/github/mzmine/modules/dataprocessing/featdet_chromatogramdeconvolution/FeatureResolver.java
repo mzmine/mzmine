@@ -26,7 +26,7 @@ import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
 
-public interface PeakResolver extends MZmineModule {
+public interface FeatureResolver extends MZmineModule {
 
   /**
    * Gets if resolver requires R, if applicable

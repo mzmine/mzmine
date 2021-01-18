@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.parameters.ParameterSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class AdapResolverModule extends DeconvolutionModule {
+public class AdapResolverModule extends FeatureResolverModule {
 
   public static final String NAME = "ADAP feature resolver";
 
@@ -36,7 +36,7 @@ public class AdapResolverModule extends DeconvolutionModule {
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return ADAPDetectorParameters.class;
+    return ADAPResolverParameters.class;
   }
 
   @Nonnull

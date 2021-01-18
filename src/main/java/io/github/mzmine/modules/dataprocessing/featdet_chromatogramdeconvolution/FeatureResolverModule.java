@@ -32,7 +32,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 
-public abstract class DeconvolutionModule implements MZmineProcessingModule {
+public abstract class FeatureResolverModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Chromatogram deconvolution";
   private static final String MODULE_DESCRIPTION =
@@ -77,7 +77,7 @@ public abstract class DeconvolutionModule implements MZmineProcessingModule {
     }
 
     for (final FeatureList peakList : peakLists) {
-      tasks.add(new DeconvolutionTask(project, peakList, parameters, mzCenterFunction));
+      tasks.add(new FeatureResolverTask(project, peakList, parameters, mzCenterFunction));
     }
 
     return ExitCode.OK;

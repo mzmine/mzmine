@@ -59,5 +59,5 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
     super(parameters);
   }
 
-  public abstract PeakResolver getResolver();
+  public abstract FeatureResolver getResolver();
 }

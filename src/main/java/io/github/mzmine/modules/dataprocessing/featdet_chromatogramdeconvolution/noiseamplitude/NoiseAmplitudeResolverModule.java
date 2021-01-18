@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude;
 
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.parameters.ParameterSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class NoiseAmplitudeResolverModule extends DeconvolutionModule {
+public class NoiseAmplitudeResolverModule extends FeatureResolverModule {
 
   public static final String NAME = "Noise amplitude feature resolver";
 
@@ -36,7 +36,7 @@ public class NoiseAmplitudeResolverModule extends DeconvolutionModule {
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return NoiseAmplitudePeakDetectorParameters.class;
+    return NoiseAmplitudeFeatureResolverParameters.class;
   }
 
   @Nonnull

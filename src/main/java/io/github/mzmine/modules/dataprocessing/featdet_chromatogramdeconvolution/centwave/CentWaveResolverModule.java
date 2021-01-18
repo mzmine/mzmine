@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave;
 
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.parameters.ParameterSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class CentWaveResolverModule extends DeconvolutionModule {
+public class CentWaveResolverModule extends FeatureResolverModule {
 
   public static final String NAME = "CentWave resolver";
 
@@ -36,7 +36,7 @@ public class CentWaveResolverModule extends DeconvolutionModule {
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return CentWaveDetectorParameters.class;
+    return CentWaveResolverParameters.class;
   }
 
   @Nonnull

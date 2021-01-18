@@ -22,12 +22,12 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
 import static dulab.adap.workflow.Deconvolution.DeconvoluteSignal;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPDetectorParameters.COEF_AREA_THRESHOLD;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPDetectorParameters.MIN_FEAT_HEIGHT;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPDetectorParameters.PEAK_DURATION;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPDetectorParameters.RT_FOR_CWT_SCALES_DURATION;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPDetectorParameters.SN_ESTIMATORS;
-import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPDetectorParameters.SN_THRESHOLD;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters.COEF_AREA_THRESHOLD;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters.MIN_FEAT_HEIGHT;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters.PEAK_DURATION;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters.RT_FOR_CWT_SCALES_DURATION;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters.SN_ESTIMATORS;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters.SN_THRESHOLD;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.ABS_WAV_COEFFS;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.HALF_WAVELET_WINDOW;
 
@@ -39,7 +39,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.R.REngineType;
@@ -56,10 +56,10 @@ import javax.annotation.Nonnull;
 /**
  * Use XCMS findPeaks.centWave to identify peaks.
  */
-public class ADAPDetector implements PeakResolver {
+public class ADAPResolver implements FeatureResolver {
 
   // Logger.
-  private static final Logger logger = Logger.getLogger(ADAPDetector.class.getName());
+  private static final Logger logger = Logger.getLogger(ADAPResolver.class.getName());
 
   // Name.
   private static final String NAME = "Wavelets (ADAP)";
@@ -78,7 +78,7 @@ public class ADAPDetector implements PeakResolver {
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
 
-    return ADAPDetectorParameters.class;
+    return ADAPResolverParameters.class;
   }
 
   @Override

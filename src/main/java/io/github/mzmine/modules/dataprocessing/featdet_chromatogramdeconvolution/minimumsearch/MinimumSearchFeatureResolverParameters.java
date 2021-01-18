@@ -22,14 +22,14 @@ import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
 
-public class MinimumSearchPeakDetectorParameters extends GeneralResolverParameters {
+public class MinimumSearchFeatureResolverParameters extends GeneralResolverParameters {
 
   public static final PercentParameter CHROMATOGRAPHIC_THRESHOLD_LEVEL = new PercentParameter(
       "Chromatographic threshold",
@@ -57,7 +57,7 @@ public class MinimumSearchPeakDetectorParameters extends GeneralResolverParamete
       new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
-  public MinimumSearchPeakDetectorParameters() {
+  public MinimumSearchFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
         CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
         MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION});
@@ -72,7 +72,7 @@ public class MinimumSearchPeakDetectorParameters extends GeneralResolverParamete
   }
 
   @Override
-  public PeakResolver getResolver() {
-    return new MinimumSearchPeakDetector();
+  public FeatureResolver getResolver() {
+    return new MinimumSearchFeatureResolver();
   }
 }

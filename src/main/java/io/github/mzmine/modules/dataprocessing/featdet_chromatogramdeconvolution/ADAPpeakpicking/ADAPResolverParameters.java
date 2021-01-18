@@ -25,7 +25,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.PeakResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
@@ -36,7 +36,7 @@ import java.text.NumberFormat;
 /**
  * Parameters used by CentWaveDetector.
  */
-public class ADAPDetectorParameters extends GeneralResolverParameters {
+public class ADAPResolverParameters extends GeneralResolverParameters {
 
   private static final SNEstimatorChoice[] SNESTIMATORS =
       {new IntensityWindowsSNEstimator(), new WaveletCoefficientsSNEstimator()};
@@ -72,7 +72,7 @@ public class ADAPDetectorParameters extends GeneralResolverParameters {
           + "set in the chromatogram building.",
       NumberFormat.getNumberInstance(), 10.0, 0.0, null);
 
-  public ADAPDetectorParameters() {
+  public ADAPResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters, SN_THRESHOLD,
         SN_ESTIMATORS, MIN_FEAT_HEIGHT, COEF_AREA_THRESHOLD,
         PEAK_DURATION, RT_FOR_CWT_SCALES_DURATION});
@@ -95,7 +95,7 @@ public class ADAPDetectorParameters extends GeneralResolverParameters {
   }
 
   @Override
-  public PeakResolver getResolver() {
-    return new ADAPDetector();
+  public FeatureResolver getResolver() {
+    return new ADAPResolver();
   }
 }
