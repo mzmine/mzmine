@@ -22,11 +22,13 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -136,10 +138,17 @@ public class FeatureResolverTask extends AbstractTask {
           newPeakList = resolvePeaks((ModularFeatureList) originalPeakList, this.rSession);
 
           if (parameters.getParameter(GeneralResolverParameters.groupMS2Parameters).getValue()) {
-            ParameterSet ms2params = parameters
+            GroupMS2SubParameters ms2params = parameters
                 .getParameter(GeneralResolverParameters.groupMS2Parameters).getEmbeddedParameters();
             GroupMS2Task task = new GroupMS2Task(project, newPeakList, ms2params);
-            MZmineCore.getTaskController().addTask(task);
+            // restart progress
+            processedRows = 0;
+            totalRows = newPeakList.getNumberOfRows();
+            // group all features with MS/MS
+            for(FeatureListRow row : newPeakList.getRows()) {
+              task.processRow(row);
+              processedRows++;
+            }
           }
 
           if (!isCanceled()) {
@@ -200,14 +209,6 @@ public class FeatureResolverTask extends AbstractTask {
     }
   }
 
-  /**
-   * Deconvolve a chromatogram into separate peaks.
-   *
-   * @param originalFeatureList holds the chromatogram to deconvolve.
-   * @param rSession
-   * @return a new feature list holding the resolved peaks.
-   * @throws RSessionWrapperException
-   */
   /*private FeatureList resolvePeaks(final FeatureList originalFeatureList, RSessionWrapper rSession)
       throws RSessionWrapperException {
 

@@ -100,25 +100,10 @@ public class GroupMS2Task extends AbstractTask {
       totalRows = list.getNumberOfRows();
       // for all features
       for (FeatureListRow row : list.getRows()) {
-        for (Feature f : row.getFeatures()) {
-          if (getStatus() == TaskStatus.ERROR)
-            return;
-          if (isCanceled())
-            return;
+        if (isCanceled())
+          return;
 
-          RawDataFile raw = f.getRawDataFile();
-          float frt = f.getRT();
-          double fmz = f.getMZ();
-          Range<Float> rtRange = f.getRawDataPointsRTRange();
-
-          List<Scan> scans = ScanUtils.streamScans(f.getRawDataFile(), 2)
-              .filter(scan -> filterScan(scan, frt, fmz, rtRange)).collect(
-                  Collectors.toList());
-
-          // set list to feature
-          f.setAllMS2FragmentScans(FXCollections.observableArrayList(scans));
-          f.setFragmentScan(scans.stream().max(Comparator.comparingDouble(Scan::getTIC)).orElse(null));
-        }
+        processRow(row);
         processedRows++;
       }
 
@@ -130,6 +115,27 @@ public class GroupMS2Task extends AbstractTask {
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
       logger.log(Level.SEVERE, "Error while adding all MS2 scans to their feautres", t);
+    }
+  }
+
+  /**
+   * Group all MS2 scans with the corresponding features (per raw data file)
+   * @param row
+   */
+  public void processRow(FeatureListRow row) {
+    for (Feature f : row.getFeatures()) {
+      RawDataFile raw = f.getRawDataFile();
+      float frt = f.getRT();
+      double fmz = f.getMZ();
+      Range<Float> rtRange = f.getRawDataPointsRTRange();
+
+      List<Scan> scans = ScanUtils.streamScans(raw, 2)
+          .filter(scan -> filterScan(scan, frt, fmz, rtRange)).collect(
+              Collectors.toList());
+
+      // set list to feature
+      f.setAllMS2FragmentScans(FXCollections.observableArrayList(scans));
+      f.setFragmentScan(scans.stream().max(Comparator.comparingDouble(Scan::getTIC)).orElse(null));
     }
   }
 
