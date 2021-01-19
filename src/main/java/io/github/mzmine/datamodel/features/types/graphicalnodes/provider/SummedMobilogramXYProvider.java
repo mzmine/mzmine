@@ -26,38 +26,48 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.awt.Color;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class SummedMobilogramXYProvider implements PlotXYDataProvider {
 
   private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-  private final ModularFeature f;
   private final SummedIntensityMobilitySeries data;
+  private final String seriesKey;
+  private final SimpleObjectProperty<Color> color;
 
   public SummedMobilogramXYProvider(final ModularFeature f) {
-    this.f = f;
     IonTimeSeries<? extends Scan> series = f.getFeatureData();
     if (!(series instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException(
           "Feature does not possess an IonMobilityTime series, cannot create mobilogram chart");
     }
     data = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
+    color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
+    seriesKey = "m/z " + mzFormat.format(f.getMZ());
+  }
+
+  public SummedMobilogramXYProvider(SummedIntensityMobilitySeries summedMobilogram,
+      SimpleObjectProperty<Color> color, String seriesKey) {
+    this.seriesKey = seriesKey;
+    this.color = color;
+    this.data = summedMobilogram;
   }
 
   @Nonnull
   @Override
-  public Color getAWTColor() {
-    return f.getRawDataFile().getColorAWT();
+  public java.awt.Color getAWTColor() {
+    return FxColorUtil.fxColorToAWT(color.get());
   }
 
   @Nonnull
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return f.getRawDataFile().getColor();
+    return color.get();
   }
 
   @Nullable
@@ -69,7 +79,7 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   @Nonnull
   @Override
   public Comparable<?> getSeriesKey() {
-    return "m/z " + mzFormat.format(f.getMZ());
+    return seriesKey;
   }
 
   @Nullable

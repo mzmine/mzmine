@@ -29,6 +29,10 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.maths.CenterFunction;
+import io.github.mzmine.util.maths.CenterMeasure;
+import io.github.mzmine.util.maths.Weighting;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -129,7 +133,18 @@ public class FeatureDataUtils {
     return area;
   }
 
+  public static double calculateMz(IonSeries series, CenterMeasure cm) {
+    CenterFunction cf = new CenterFunction(cm, Weighting.logger10);
+    double[][] data = DataPointUtils
+        .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
+    return cf.calcCenter(data[0], data[1]);
+  }
+
   public static void recalculateIonSeriesDependingTypes(ModularFeature feature) {
+    recalculateIonSeriesDependingTypes(feature, CenterMeasure.AUTO);
+  }
+
+  public static void recalculateIonSeriesDependingTypes(ModularFeature feature, CenterMeasure cm) {
     IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
     Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
     Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
@@ -144,6 +159,7 @@ public class FeatureDataUtils {
     feature.setRepresentativeScan(mostIntenseSpectrum);
     feature.setHeight(intensityRange.upperEndpoint());
     feature.setRT(mostIntenseSpectrum.getRetentionTime());
+    feature.setMZ(calculateMz(featureData, cm));
 
     if (featureData instanceof IonMobilogramTimeSeries) {
       SummedIntensityMobilitySeries summedMobilogram = ((IonMobilogramTimeSeries) featureData)

@@ -20,12 +20,17 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
 import io.github.mzmine.parameters.ParameterSet;
@@ -37,6 +42,8 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
+import io.github.mzmine.util.maths.CenterMeasure;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -115,25 +122,11 @@ public class FeatureResolverTask extends AbstractTask {
         try {
 
           // Peak resolver.
-          final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
-
-          if (resolver.getRequiresR()) {
-            // Check R availability, by trying to open the
-            // connection.
-            String[] reqPackages = resolver.getRequiredRPackages();
-            String[] reqPackagesVersions = resolver.getRequiredRPackagesVersions();
-            String callerFeatureName = resolver.getName();
-
-            REngineType rEngineType = resolver.getREngineType(parameters);
-            this.rSession = new RSessionWrapper(rEngineType, callerFeatureName, reqPackages,
-                reqPackagesVersions);
-            this.rSession.open();
+          if (((GeneralResolverParameters) parameters).getXYResolver(parameters) != null) {
+            dimensionIndependentResolve((ModularFeatureList) originalPeakList);
           } else {
-            this.rSession = null;
+            legacyResolve();
           }
-
-          // Resolve features.
-          newPeakList = resolvePeaks((ModularFeatureList) originalPeakList, this.rSession);
 
           if (parameters.getParameter(GeneralResolverParameters.groupMS2Parameters).getValue()) {
             ParameterSet ms2params = parameters
@@ -305,6 +298,64 @@ public class FeatureResolverTask extends AbstractTask {
 
     return resolvedFeatureList;
   }*/
+  private void legacyResolve() throws RSessionWrapperException {
+    final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
+
+    if (resolver.getRequiresR()) {
+      // Check R availability, by trying to open the
+      // connection.
+      String[] reqPackages = resolver.getRequiredRPackages();
+      String[] reqPackagesVersions = resolver.getRequiredRPackagesVersions();
+      String callerFeatureName = resolver.getName();
+
+      REngineType rEngineType = resolver.getREngineType(parameters);
+      this.rSession = new RSessionWrapper(rEngineType, callerFeatureName, reqPackages,
+          reqPackagesVersions);
+      this.rSession.open();
+    } else {
+      this.rSession = null;
+    }
+
+    // Resolve features.
+    newPeakList = resolvePeaks((ModularFeatureList) originalPeakList, this.rSession);
+  }
+
+  private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
+    final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
+        .getXYResolver(parameters);
+    final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
+    final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
+
+    processedRows = 0;
+    totalRows = originalFeatureList.getNumberOfRows();
+    int peakId = 1;
+
+    String dimension = parameters.getParameter(GeneralResolverParameters.dimension).getValue();
+
+    for (int i = 0; i < totalRows; i++) {
+      final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList
+          .getRow(i);
+      final ModularFeature originalFeature = originalRow.getFeature(dataFile);
+      final IonTimeSeries<? extends Scan> data = originalFeature.getFeatureData();
+
+      final List<IonTimeSeries<? extends Scan>> resolvedSeries = ResolvingUtil
+          .resolve(resolver, data, resolvedFeatureList.getMemoryMapStorage(), dimension);
+
+      for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
+        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
+            peakId++);
+        final ModularFeature f = new ModularFeature(resolvedFeatureList);
+        f.set(RawFileType.class, originalFeature.getRawDataFile());
+        f.set(FeatureDataType.class, resolved);
+        FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
+        newRow.addFeature(originalFeature.getRawDataFile(), f);
+        resolvedFeatureList.addRow(newRow);
+      }
+      processedRows++;
+    }
+    newPeakList = resolvedFeatureList;
+  }
+
   @Override
   public void cancel() {
 
@@ -323,32 +374,13 @@ public class FeatureResolverTask extends AbstractTask {
       RSessionWrapper rSession)
       throws RSessionWrapperException {
 
-    if (originalFeatureList.getRawDataFiles().size() > 1) {
-      throw new IllegalArgumentException(
-          "Resolving cannot be applied to aligned feature lists.");
-    }
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
-
-    // create a new feature list and don't copy. Previous annotations of features are invalidated
-    // during resolution
-    final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
-        originalFeatureList.getName() + " " + parameters
-            .getParameter(GeneralResolverParameters.SUFFIX).getValue(), dataFile);
-    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+    final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
     final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
-
-    resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Feature resolving", parameters));
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
-
-    // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
-    if (originalFeatureList.getFeature(0, originalFeatureList.getRawDataFile(0))
-        .getFeatureData() instanceof IonMobilogramTimeSeries) {
-      DataTypeUtils.addDefaultIonMobilityTypeColumns(resolvedFeatureList);
-    }
 
     for (int i = 0; i < totalRows; i++) {
       final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList
@@ -377,4 +409,29 @@ public class FeatureResolverTask extends AbstractTask {
     return resolvedFeatureList;
   }
 
+  private ModularFeatureList createNewFeatureList(ModularFeatureList originalFeatureList) {
+    if (originalFeatureList.getRawDataFiles().size() > 1) {
+      throw new IllegalArgumentException(
+          "Resolving cannot be applied to aligned feature lists.");
+    }
+    final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
+
+    // create a new feature list and don't copy. Previous annotations of features are invalidated
+    // during resolution
+    final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
+        originalFeatureList.getName() + " " + parameters
+            .getParameter(GeneralResolverParameters.SUFFIX).getValue(), dataFile);
+    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+
+    resolvedFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Feature resolving", parameters));
+
+    // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
+    if (originalFeatureList.getFeature(0, originalFeatureList.getRawDataFile(0))
+        .getFeatureData() instanceof IonMobilogramTimeSeries) {
+      DataTypeUtils.addDefaultIonMobilityTypeColumns(resolvedFeatureList);
+    }
+
+    return resolvedFeatureList;
+  }
 }
