@@ -22,6 +22,11 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * Interface for an resolver. This resolver should be usable multiple times without
+ * reinitialisation. A parameter set can be passed in the constructor of the resolver. If R is
+ * required, the resolver should be able to initialise it's own instance in the constructor. See
+ * {@link ResolvingUtil} and {@link FeatureResolverTask} for an example use-case.
+ *
  * @param <Rx> Return type x value
  * @param <Ry> Return type y value
  * @param <X>  X-value type
