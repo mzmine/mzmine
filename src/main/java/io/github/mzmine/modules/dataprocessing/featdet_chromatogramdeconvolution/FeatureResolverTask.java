@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -355,6 +356,7 @@ public class FeatureResolverTask extends AbstractTask {
       }
       processedRows++;
     }
+    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
     newPeakList = resolvedFeatureList;
   }
 
