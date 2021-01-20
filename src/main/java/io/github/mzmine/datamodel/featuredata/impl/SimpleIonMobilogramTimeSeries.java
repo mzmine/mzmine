@@ -91,6 +91,10 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       for (int j = 0; j < mzValues.capacity(); j++) {
         weightedMz += mzValues.get(j) * (intensities.get(j) / summedIntensities[i]);
       }
+      // due to added zeros, the summed intensity might have been 0 -> NaN
+      if (Double.compare(weightedMz, Double.NaN) == 0) {
+        weightedMz = 0d;
+      }
       weightedMzs[i] = weightedMz;
     }
 

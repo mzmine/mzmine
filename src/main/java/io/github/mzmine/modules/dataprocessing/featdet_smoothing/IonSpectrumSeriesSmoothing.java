@@ -105,10 +105,16 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
       if (index == -1) {
         continue;
       }
+      // smoothing might produce negative intensities
+      smoothed[i] = (smoothed[i] > 0) ? smoothed[i] : 0d;
       // keep zeros we put on flanking data points during chromatogram building
       newIntensities[newIntensityIndex] =
           (Double.compare(origSeries.getIntensity(index), 0d) != 0) ? smoothed[i] : 0d;
       newIntensityIndex++;
+      // once we found all values, we can stop
+      if (newIntensityIndex >= origSpectra.size()) {
+        break;
+      }
     }
 
     double[] origMz = DataPointUtils.getDoubleBufferAsArray(origSeries.getMZValues());

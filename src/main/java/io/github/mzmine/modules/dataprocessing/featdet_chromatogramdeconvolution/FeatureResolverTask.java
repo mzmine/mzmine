@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.main.MZmineCore;
@@ -347,6 +348,7 @@ public class FeatureResolverTask extends AbstractTask {
         final ModularFeature f = new ModularFeature(resolvedFeatureList);
         f.set(RawFileType.class, originalFeature.getRawDataFile());
         f.set(FeatureDataType.class, resolved);
+        f.set(DetectionType.class, originalFeature.get(DetectionType.class));
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
@@ -422,6 +424,7 @@ public class FeatureResolverTask extends AbstractTask {
         originalFeatureList.getName() + " " + parameters
             .getParameter(GeneralResolverParameters.SUFFIX).getValue(), dataFile);
     DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+    resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Feature resolving", parameters));
