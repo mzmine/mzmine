@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Used to store LC-MS data.
@@ -43,6 +44,8 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   protected final DoubleBuffer intensityValues;
   protected final DoubleBuffer mzValues;
 
+  protected final boolean forceStoreInRam;
+
   /**
    * @param storage
    * @param mzValues
@@ -52,21 +55,45 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
    */
   public SimpleIonTimeSeries(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, @Nonnull List<Scan> scans) {
+    this(storage, mzValues, intensityValues, scans, false);
+  }
+
+  /**
+   * @param storage         may be null if forceStoreInRam is true
+   * @param mzValues
+   * @param intensityValues
+   * @param scans
+   * @param forceStoreInRam Forces storage of mz and intensity values in ram. Note that all series
+   *                        created as subset or copy from this series will also be stored in ram.
+   */
+  public SimpleIonTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
+      @Nonnull double[] intensityValues, @Nonnull List<Scan> scans, boolean forceStoreInRam) {
     if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
     }
+    if (storage == null && !forceStoreInRam) {
+      throw new IllegalArgumentException("MemoryMapStorage is null, cannot store data.");
+    }
 
     this.scans = scans;
+    this.forceStoreInRam = forceStoreInRam;
+
     DoubleBuffer tempMzs;
     DoubleBuffer tempIntensities;
-    try {
-      tempMzs = storage.storeData(mzValues);
-      tempIntensities = storage.storeData(intensityValues);
-    } catch (IOException e) {
-      e.printStackTrace();
+    if (!forceStoreInRam) {
+      try {
+        tempMzs = storage.storeData(mzValues);
+        tempIntensities = storage.storeData(intensityValues);
+      } catch (IOException e) {
+        e.printStackTrace();
+        tempMzs = DoubleBuffer.wrap(mzValues);
+        tempIntensities = DoubleBuffer.wrap(intensityValues);
+      }
+    } else {
       tempMzs = DoubleBuffer.wrap(mzValues);
       tempIntensities = DoubleBuffer.wrap(intensityValues);
     }
+
     this.mzValues = tempMzs;
     this.intensityValues = tempIntensities;
   }

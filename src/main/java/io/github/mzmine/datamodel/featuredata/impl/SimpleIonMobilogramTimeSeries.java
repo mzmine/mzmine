@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Used to store ion mobility-LC-MS data.
@@ -47,6 +48,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   protected final DoubleBuffer intensityValues;
   protected final DoubleBuffer mzValues;
   protected final SummedIntensityMobilitySeries summedMobilogram;
+  protected final boolean forceStoreInRam;
 
   /**
    * Stores a list of mobilograms. A summed intensity of each mobilogram is automatically calculated
@@ -62,52 +64,60 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    */
   public SimpleIonMobilogramTimeSeries(@Nonnull MemoryMapStorage storage,
       @Nonnull List<SimpleIonMobilitySeries> mobilograms) {
+    this(storage, mobilograms, false);
+  }
+
+  /**
+   * Stores a list of mobilograms. A summed intensity of each mobilogram is automatically calculated
+   * and represents this series when plotted as a 2D intensity-vs time chart (accessed via {@link
+   * SimpleIonMobilogramTimeSeries#getMZ(int)} and {@link SimpleIonMobilogramTimeSeries#getIntensity(int)}).
+   * The mz representing a mobilogram is calculated by a weighted average based on the mzs in eah
+   * mobility scan.
+   *
+   * @param storage         May be null if forceStoreInRam is true
+   * @param mobilograms
+   * @param forceStoreInRam Forces storage of mz and intensity values in ram. Note that all series
+   *                        created as subset or copy from this series will also be stored in ram.
+   * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
+   * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[], List)
+   */
+  public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage,
+      @Nonnull List<SimpleIonMobilitySeries> mobilograms, boolean forceStoreInRam) {
+    if (storage == null && !forceStoreInRam) {
+      throw new IllegalArgumentException("MemoryMapStorage is null, cannot store data.");
+    }
+    if (!checkRawFileIntegrity(mobilograms)) {
+      throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
+    }
 
     frames = new ArrayList<>(mobilograms.size());
     this.mobilograms = mobilograms;
+    this.forceStoreInRam = forceStoreInRam;
 
-    double[] summedIntensities = new double[mobilograms.size()];
-    double[] weightedMzs = new double[mobilograms.size()];
-
-    // calc summed intensities for each mobilogram
-    final RawDataFile file = mobilograms.get(0).getSpectrum(0).getDataFile();
-    for (int i = 0; i < mobilograms.size(); i++) {
-      SimpleIonMobilitySeries ims = mobilograms.get(i);
+    for (SimpleIonMobilitySeries ims : mobilograms) {
       final Frame frame = ims.getSpectra().get(0).getFrame();
-      if (frame.getDataFile() != file) {
-        throw new IllegalArgumentException(
-            "Cannot combine mobilograms of different raw data files.");
-      }
       frames.add(frame);
-
-      DoubleBuffer intensities = ims.getIntensityValues();
-      DoubleBuffer mzValues = ims.getMZValues();
-      for (int j = 0; j < intensities.capacity(); j++) {
-        summedIntensities[i] += intensities.get(j);
-      }
-      // calculate an intensity weighted average for mz
-      // todo use CenterFunction maybe?
-      double weightedMz = 0;
-      for (int j = 0; j < mzValues.capacity(); j++) {
-        weightedMz += mzValues.get(j) * (intensities.get(j) / summedIntensities[i]);
-      }
-      // due to added zeros, the summed intensity might have been 0 -> NaN
-      if (Double.compare(weightedMz, Double.NaN) == 0) {
-        weightedMz = 0d;
-      }
-      weightedMzs[i] = weightedMz;
     }
+
+    double[] summedIntensities = sumIntensities(mobilograms);
+    double[] weightedMzs = weightMzs(mobilograms, summedIntensities);
 
     summedMobilogram = new SummedIntensityMobilitySeries(storage,
         mobilograms, weightedMzs[((int) weightedMzs.length / 2)]);
 
     DoubleBuffer tempMzs;
     DoubleBuffer tempIntensities;
-    try {
-      tempMzs = storage.storeData(weightedMzs);
-      tempIntensities = storage.storeData(summedIntensities);
-    } catch (IOException e) {
-      e.printStackTrace();
+
+    if (!forceStoreInRam) {
+      try {
+        tempMzs = storage.storeData(weightedMzs);
+        tempIntensities = storage.storeData(summedIntensities);
+      } catch (IOException e) {
+        e.printStackTrace();
+        tempMzs = DoubleBuffer.wrap(weightedMzs);
+        tempIntensities = DoubleBuffer.wrap(summedIntensities);
+      }
+    } else {
       tempMzs = DoubleBuffer.wrap(weightedMzs);
       tempIntensities = DoubleBuffer.wrap(summedIntensities);
     }
@@ -131,23 +141,19 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    */
   private SimpleIonMobilogramTimeSeries(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzs,
       @Nonnull double[] intensities, List<SimpleIonMobilitySeries> mobilograms,
-      List<Frame> frames) {
-
+      List<Frame> frames, boolean forceStoreInRam) {
     if (mzs.length != intensities.length || mobilograms.size() != intensities.length
         || mzs.length != mobilograms.size()) {
       throw new IllegalArgumentException(
           "Length of mz, intensity, frames and/or mobilograms does not match.");
     }
+    if (!checkRawFileIntegrity(mobilograms)) {
+      throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
+    }
 
     this.mobilograms = mobilograms;
     this.frames = frames;
-    final RawDataFile file = mobilograms.get(0).getSpectrum(0).getDataFile();
-    for (SimpleIonMobilitySeries mobilogram : mobilograms) {
-      if (mobilogram.getSpectrum(0).getDataFile() != file) {
-        throw new IllegalArgumentException(
-            "Cannot combine mobilograms of different raw data files.");
-      }
-    }
+    this.forceStoreInRam = forceStoreInRam;
 
     summedMobilogram = new SummedIntensityMobilitySeries(storage,
         mobilograms, mzs[((int) mzs.length / 2)]);
@@ -171,16 +177,16 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    *
    * @param storage
    * @param series
-   * @param frames  to be passed directly, sicne getSpectra wraps in a unmodifiable list. ->
+   * @param frames  to be passed directly, since getSpectra wraps in a unmodifiable list. ->
    *                wrapping over and over
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[], List)
    */
   private SimpleIonMobilogramTimeSeries(@Nonnull MemoryMapStorage storage,
-      @Nonnull IonMobilogramTimeSeries series, List<Frame> frames) {
+      @Nonnull IonMobilogramTimeSeries series, List<Frame> frames, boolean forceStoreInRam) {
     this.frames = frames;
-
     this.mobilograms = new ArrayList<>();
+    this.forceStoreInRam = forceStoreInRam;
     series.getMobilograms().forEach(m -> mobilograms.add(
         (SimpleIonMobilitySeries) m.copy(storage)));
 
@@ -221,7 +227,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       }
     }
 
-    return new SimpleIonMobilogramTimeSeries(storage, mzs, intensities, subMobilograms, subset);
+    return new SimpleIonMobilogramTimeSeries(storage, mzs, intensities, subMobilograms, subset, forceStoreInRam);
   }
 
   @Override
@@ -249,7 +255,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   @Override
   public IonSpectrumSeries<Frame> copy(MemoryMapStorage storage) {
-    return new SimpleIonMobilogramTimeSeries(storage, this, frames);
+    return new SimpleIonMobilogramTimeSeries(storage, this, frames, forceStoreInRam);
   }
 
   @Override
@@ -261,13 +267,55 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   public IonTimeSeries<Frame> copyAndReplace(MemoryMapStorage storage, double[] newMzValues,
       double[] newIntensityValues) {
     return new SimpleIonMobilogramTimeSeries(storage, newMzValues, newIntensityValues,
-        this.getMobilograms(), this.frames);
+        this.getMobilograms(), this.frames, forceStoreInRam);
   }
 
   public IonMobilogramTimeSeries copyAndReplace(MemoryMapStorage storage, double[] newMzValues,
       double[] newIntensityValues, List<SimpleIonMobilitySeries> newMobilograms) {
     return new SimpleIonMobilogramTimeSeries(storage, newMzValues, newIntensityValues,
-        newMobilograms,
-        this.frames);
+        newMobilograms, this.frames, forceStoreInRam);
+  }
+
+  private double[] weightMzs(List<SimpleIonMobilitySeries> mobilograms,
+      double[] summedIntensities) {
+    double[] weightedMzs = new double[mobilograms.size()];
+
+    for (int i = 0; i < mobilograms.size(); i++) {
+      SimpleIonMobilitySeries ims = mobilograms.get(i);
+      DoubleBuffer intensities = ims.getIntensityValues();
+      DoubleBuffer mzValues = ims.getMZValues();
+      double weightedMz = 0;
+      for (int j = 0; j < mzValues.capacity(); j++) {
+        weightedMz += mzValues.get(j) * (intensities.get(j) / summedIntensities[i]);
+      }
+      // due to added zeros, the summed intensity might have been 0 -> NaN
+      if (Double.compare(weightedMz, Double.NaN) == 0) {
+        weightedMz = 0d;
+      }
+      weightedMzs[i] = weightedMz;
+    }
+    return weightedMzs;
+  }
+
+  private double[] sumIntensities(List<SimpleIonMobilitySeries> mobilograms) {
+    double[] summedIntensities = new double[mobilograms.size()];
+    for (int i = 0; i < mobilograms.size(); i++) {
+      SimpleIonMobilitySeries ims = mobilograms.get(i);
+      DoubleBuffer intensities = ims.getIntensityValues();
+      for (int j = 0; j < intensities.capacity(); j++) {
+        summedIntensities[i] += intensities.get(j);
+      }
+    }
+    return summedIntensities;
+  }
+
+  private boolean checkRawFileIntegrity(List<SimpleIonMobilitySeries> mobilograms) {
+    final RawDataFile file = mobilograms.get(0).getSpectrum(0).getDataFile();
+    for (SimpleIonMobilitySeries mobilogram : mobilograms) {
+      if (mobilogram.getSpectrum(0).getDataFile() != file) {
+        return false;
+      }
+    }
+    return true;
   }
 }
