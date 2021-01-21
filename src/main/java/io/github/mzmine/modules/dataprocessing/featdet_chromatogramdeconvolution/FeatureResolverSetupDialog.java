@@ -109,16 +109,16 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
     previewChart.removeAllDatasets();
 
-    String dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
+    ResolvingDimension dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
     // add preview depending on which dimension is selected.
-    if (dimension.equals("Retention time")) {
+    if (dimension == ResolvingDimension.RETENTION_TIME) {
       Platform.runLater(() -> {
         previewChart.addDataset(new FastColoredXYDataset(new MsTimeSeriesXYProvider(newValue)));
         previewChart.setDomainAxisLabel(uf.format("Retention time", "min"));
         previewChart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
       });
 
-    } else if (dimension.equals("Mobility") && newValue
+    } else if (dimension == ResolvingDimension.MOBILITY && newValue
         .getFeatureData() instanceof IonMobilogramTimeSeries) {
       IonMobilogramTimeSeries data = (IonMobilogramTimeSeries) newValue.getFeatureData();
       Platform.runLater(() -> {
@@ -150,7 +150,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       }
 
       for (IonTimeSeries<? extends Scan> series : resolved) {
-        if (dimension.equals("Retention time")) {
+        if (dimension == ResolvingDimension.RETENTION_TIME) {
           FastColoredXYDataset ds = new FastColoredXYDataset(
               new IonTimeSeriesToXYProvider(series, "",
                   new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
