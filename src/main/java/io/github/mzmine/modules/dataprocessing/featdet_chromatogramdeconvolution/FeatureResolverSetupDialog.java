@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.logging.Level;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -85,9 +86,10 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
-          ObservableList<ModularFeature> features = (ObservableList<ModularFeature>)
-              (ObservableList<? extends Feature>) newValue.getFeatures(newValue.getRawDataFile(0));
-          fBox.setItems(features);
+          if(newValue!=null)
+            fBox.setItems((ObservableList<ModularFeature>)(ObservableList<? extends Feature>) newValue.getFeatures(newValue.getRawDataFile(0)));
+          else
+            fBox.setItems(FXCollections.emptyObservableList());
         }));
     fBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
@@ -107,16 +109,16 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
     previewChart.removeAllDatasets();
 
-    String dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
+    ResolvingDimension dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
     // add preview depending on which dimension is selected.
-    if (dimension.equals("Retention time")) {
+    if (dimension == ResolvingDimension.RETENTION_TIME) {
       Platform.runLater(() -> {
         previewChart.addDataset(new FastColoredXYDataset(new MsTimeSeriesXYProvider(newValue)));
         previewChart.setDomainAxisLabel(uf.format("Retention time", "min"));
         previewChart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
       });
 
-    } else if (dimension.equals("Mobility") && newValue
+    } else if (dimension == ResolvingDimension.MOBILITY && newValue
         .getFeatureData() instanceof IonMobilogramTimeSeries) {
       IonMobilogramTimeSeries data = (IonMobilogramTimeSeries) newValue.getFeatureData();
       Platform.runLater(() -> {
@@ -148,7 +150,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       }
 
       for (IonTimeSeries<? extends Scan> series : resolved) {
-        if (dimension.equals("Retention time")) {
+        if (dimension == ResolvingDimension.RETENTION_TIME) {
           FastColoredXYDataset ds = new FastColoredXYDataset(
               new IonTimeSeriesToXYProvider(series, "",
                   new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));

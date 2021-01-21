@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -48,12 +48,12 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
       "Remove original feature list",
       "If checked, original chromatogram will be removed and only the deconvolved version remains");
 
-  public static final OptionalModuleParameter<GroupMS2Parameters> groupMS2Parameters = new OptionalModuleParameter<>(
-      "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2Parameters());
+  public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
+      "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters());
 
-  public static final ComboParameter<String> dimension = new ComboParameter<>("Dimension",
+  public static final ComboParameter<ResolvingDimension> dimension = new ComboParameter<>("Dimension",
       "Select the dimension to be resolved.",
-      FXCollections.observableArrayList("Retention time", "Mobility"), "Retention time");
+      FXCollections.observableArrayList(ResolvingDimension.values()), ResolvingDimension.RETENTION_TIME);
 
   /**
    * R engine type. Only added in parameter sets that need R.

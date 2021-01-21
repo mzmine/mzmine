@@ -182,13 +182,6 @@ public class JoinAlignerTask extends AbstractTask {
     // Iterate source feature lists
     for (ModularFeatureList featureList : featureLists) {
 
-      // this should not be possible
-      for (RawDataFile file : featureList.getRawDataFiles()) {
-        if (alignedFeatureList.getRawDataFiles().contains(file)) {
-          throw new IllegalArgumentException("Raw data file: " + file.getName()
-              + " already included in " + alignedFeatureList.getName());
-        }
-      }
       featureList.getRawDataFiles().forEach(
           file -> alignedFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
 

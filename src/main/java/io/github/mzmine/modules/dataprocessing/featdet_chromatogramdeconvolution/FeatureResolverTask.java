@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -32,7 +33,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -131,10 +132,17 @@ public class FeatureResolverTask extends AbstractTask {
           }
 
           if (parameters.getParameter(GeneralResolverParameters.groupMS2Parameters).getValue()) {
-            ParameterSet ms2params = parameters
+            GroupMS2SubParameters ms2params = parameters
                 .getParameter(GeneralResolverParameters.groupMS2Parameters).getEmbeddedParameters();
             GroupMS2Task task = new GroupMS2Task(project, newPeakList, ms2params);
-            MZmineCore.getTaskController().addTask(task);
+            // restart progress
+            processedRows = 0;
+            totalRows = newPeakList.getNumberOfRows();
+            // group all features with MS/MS
+            for (FeatureListRow row : newPeakList.getRows()) {
+              task.processRow(row);
+              processedRows++;
+            }
           }
 
           if (!isCanceled()) {
@@ -300,6 +308,15 @@ public class FeatureResolverTask extends AbstractTask {
 
     return resolvedFeatureList;
   }*/
+
+  /**
+   * Used for compatibility with old {@link FeatureResolver}s. New methods should implement {@link
+   * XYResolver}. See {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
+   * as an example implementation.
+   *
+   * @throws RSessionWrapperException
+   */
+  @Deprecated
   private void legacyResolve() throws RSessionWrapperException {
     final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
 
@@ -332,7 +349,8 @@ public class FeatureResolverTask extends AbstractTask {
     totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
 
-    String dimension = parameters.getParameter(GeneralResolverParameters.dimension).getValue();
+    ResolvingDimension dimension = parameters.getParameter(GeneralResolverParameters.dimension)
+        .getValue();
 
     for (int i = 0; i < totalRows; i++) {
       final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList
@@ -425,7 +443,7 @@ public class FeatureResolverTask extends AbstractTask {
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters
             .getParameter(GeneralResolverParameters.SUFFIX).getValue(), dataFile);
-    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+//    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
     resolvedFeatureList.addDescriptionOfAppliedTask(

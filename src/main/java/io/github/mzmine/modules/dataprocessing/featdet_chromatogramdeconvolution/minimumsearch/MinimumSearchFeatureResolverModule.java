@@ -42,7 +42,7 @@ public class MinimumSearchFeatureResolverModule extends FeatureResolverModule {
   @Nonnull
   @Override
   public String getDescription() {
-    return "Resolves EICs to features by searching for local minima.";
+    return "Resolves EICs to features by searching for local minima. Supports retention time and mobility resolving.";
   }
 
 }

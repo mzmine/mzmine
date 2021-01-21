@@ -47,7 +47,7 @@ public class ResolvingUtil {
    * @return
    */
   public static List<IonTimeSeries<? extends Scan>> resolve(XYResolver resolver,
-      IonTimeSeries<? extends Scan> data, MemoryMapStorage storage, String dimension) {
+      IonTimeSeries<? extends Scan> data, MemoryMapStorage storage, ResolvingDimension dimension) {
     final double[][] extractedData = extractData(data, dimension);
 
     final List<IonTimeSeries<? extends Scan>> resolvedSeries = new ArrayList<>();
@@ -62,7 +62,7 @@ public class ResolvingUtil {
       ResolvedValue<Double, Double> firstPair = resolvedValues.get(0);
       ResolvedValue<Double, Double> lastPair = resolvedValues.get(resolvedValues.size() - 1);
 
-      if (dimension.equals("Retention time")) {
+      if (dimension == ResolvingDimension.RETENTION_TIME) {
         List<? extends Scan> subset = data.getSpectra().stream().filter(
             s -> Double.compare(s.getRetentionTime(), firstPair.x) >= 0
                 && Double.compare(s.getRetentionTime(), lastPair.x) <= 0).collect(
@@ -80,7 +80,7 @@ public class ResolvingUtil {
               + " not specified.");
         }
 
-      } else if (dimension.equals("Mobility") && data instanceof IonMobilogramTimeSeries) {
+      } else if (dimension == ResolvingDimension.MOBILITY && data instanceof IonMobilogramTimeSeries) {
         List<SimpleIonMobilitySeries> resolvedMobilograms = new ArrayList<>();
         for (SimpleIonMobilitySeries mobilogram : ((IonMobilogramTimeSeries) data)
             .getMobilograms()) {
@@ -112,12 +112,14 @@ public class ResolvingUtil {
    *
    * @param data
    * @param dimension
-   * @return
+   * @return 2d array of the requested dimension. [0][n] will represent the domain dimension, [1][n]
+   * will represent the range dimension.
    */
-  public static double[][] extractData(IonTimeSeries<? extends Scan> data, String dimension) {
+  public static double[][] extractData(IonTimeSeries<? extends Scan> data,
+      ResolvingDimension dimension) {
     double[] xdata;
     double[] ydata;
-    if (dimension.equals("Retention time")) {
+    if (dimension == ResolvingDimension.RETENTION_TIME) {
       xdata = new double[data.getNumberOfValues()];
       ydata = new double[data.getNumberOfValues()];
       for (int j = 0; j < data.getNumberOfValues(); j++) {
