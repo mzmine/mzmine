@@ -43,23 +43,9 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
   private static final Logger logger = Logger.getLogger(SimpleIonMobilitySeries.class.getName());
 
   protected final List<MobilityScan> scans;
-  protected final boolean forceStoreInRam;
 
   protected DoubleBuffer intensityValues;
   protected DoubleBuffer mzValues;
-
-  /**
-   * Creates a {@link SimpleIonMobilitySeries}.
-   *
-   * @param storage
-   * @param mzValues
-   * @param intensityValues
-   * @param scans
-   */
-  public SimpleIonMobilitySeries(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues, @Nonnull List<MobilityScan> scans) {
-    this(storage, mzValues, intensityValues, scans, false);
-  }
 
   /**
    * @param storage         May be null if forceStoreInRam is true.
@@ -70,13 +56,9 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
    *                        created as subset or copy from this series will also be stored in ram.
    */
   public SimpleIonMobilitySeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues, @Nonnull List<MobilityScan> scans,
-      boolean forceStoreInRam) {
+      @Nonnull double[] intensityValues, @Nonnull List<MobilityScan> scans) {
     if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
-    }
-    if (storage == null && !forceStoreInRam) {
-      throw new IllegalArgumentException("MemoryMapStorage is null, cannot store data.");
     }
 
     final Frame frame = scans.get(0).getFrame();
@@ -87,9 +69,8 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
     }
 
     this.scans = scans;
-    this.forceStoreInRam = forceStoreInRam;
 
-    if (!forceStoreInRam) {
+    if (storage != null) {
       try {
         this.mzValues = storage.storeData(mzValues);
         this.intensityValues = storage.storeData(intensityValues);
@@ -125,8 +106,8 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
   }
 
   @Override
-  public IonSpectrumSeries<MobilityScan> subSeries(MemoryMapStorage storage,
-      List<MobilityScan> subset) {
+  public IonSpectrumSeries<MobilityScan> subSeries(@Nullable MemoryMapStorage storage,
+      @Nonnull List<MobilityScan> subset) {
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
 
@@ -135,7 +116,7 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
       intensities[i] = getIntensityForSpectrum(subset.get(i));
     }
 
-    return new SimpleIonMobilitySeries(storage, mzs, intensities, subset, forceStoreInRam);
+    return new SimpleIonMobilitySeries(storage, mzs, intensities, subset);
   }
 
   @Override
@@ -158,10 +139,10 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
   }
 
   @Override
-  public IonSpectrumSeries<MobilityScan> copy(MemoryMapStorage storage) {
+  public IonSpectrumSeries<MobilityScan> copy(@Nullable MemoryMapStorage storage) {
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
-    return new SimpleIonMobilitySeries(storage, data[0], data[1], scans, forceStoreInRam);
+    return new SimpleIonMobilitySeries(storage, data[0], data[1], scans);
   }
 }

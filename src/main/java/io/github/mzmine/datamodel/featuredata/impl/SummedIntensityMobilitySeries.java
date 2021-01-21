@@ -32,6 +32,7 @@ import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.annotation.Nullable;
 
 /**
  * Stores a summed mobilogram based on the intesities of the frame-specific mobilograms in the
@@ -42,20 +43,29 @@ import java.util.Map.Entry;
 public class SummedIntensityMobilitySeries implements IntensitySeries, MobilitySeries {
 
   final double mz;
-  DoubleBuffer intensityValues;
-  DoubleBuffer mobilityValues;
+  final DoubleBuffer intensityValues;
+  final DoubleBuffer mobilityValues;
 
-  SummedIntensityMobilitySeries(MemoryMapStorage storage, List<SimpleIonMobilitySeries> mobilograms,
+  /**
+   * Creates a summed intensity and mobility series
+   *
+   * @param storage     May be null, if values shall be stored in ram.
+   * @param mobilograms
+   * @param mz
+   */
+  public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage,
+      List<SimpleIonMobilitySeries> mobilograms,
       double mz) {
 
     this.mz = mz;
     Frame exampleFrame = mobilograms.get(0).getSpectra().get(0).getFrame();
     double smallestDelta = IonMobilityUtils
         .getSmallestMobilityDelta(exampleFrame);
+
     // we want to preserve the order of mobilities as it is ordered in the Frame.
     boolean ascendingMobility = exampleFrame.getMobilityType() != MobilityType.TIMS;
-
     RangeMap<Double, Double> mobilityIntensityValues = TreeRangeMap.create();
+
     for (int i = 0; i < mobilograms.size(); i++) {
       SimpleIonMobilitySeries mobilogram = mobilograms.get(i);
       for (int j = 0; j < mobilogram.getNumberOfValues(); j++) {
@@ -80,14 +90,24 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     double[] mobilities = mapOfRanges.keySet().stream()
         .mapToDouble(key -> (key.upperEndpoint() + key.lowerEndpoint()) / 2).toArray();
     double[] intensities = mapOfRanges.values().stream().mapToDouble(Double::doubleValue).toArray();
-    try {
-      mobilityValues = storage.storeData(mobilities);
-      intensityValues = storage.storeData(intensities);
-    } catch (IOException e) {
-      mobilityValues = DoubleBuffer.wrap(mobilities);
-      intensityValues = DoubleBuffer.wrap(intensities);
-      e.printStackTrace();
+
+    DoubleBuffer tempMobility;
+    DoubleBuffer tempIntensities;
+    if (storage != null) {
+      try {
+        tempMobility = storage.storeData(mobilities);
+        tempIntensities = storage.storeData(intensities);
+      } catch (IOException e) {
+        tempMobility = DoubleBuffer.wrap(mobilities);
+        tempIntensities = DoubleBuffer.wrap(intensities);
+        e.printStackTrace();
+      }
+    } else {
+      tempMobility = DoubleBuffer.wrap(mobilities);
+      tempIntensities = DoubleBuffer.wrap(intensities);
     }
+    mobilityValues = tempMobility;
+    intensityValues = tempIntensities;
   }
 
   public int getNumberOfDataPoints() {

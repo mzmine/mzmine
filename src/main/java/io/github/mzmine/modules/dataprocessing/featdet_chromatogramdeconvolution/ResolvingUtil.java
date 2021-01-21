@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class ResolvingUtil {
 
@@ -42,12 +44,13 @@ public class ResolvingUtil {
    *
    * @param resolver
    * @param data
-   * @param storage
+   * @param storage   May be null, if the values shall be stored in ram (e.g. previews)
    * @param dimension
    * @return
    */
-  public static List<IonTimeSeries<? extends Scan>> resolve(XYResolver resolver,
-      IonTimeSeries<? extends Scan> data, MemoryMapStorage storage, ResolvingDimension dimension) {
+  public static List<IonTimeSeries<? extends Scan>> resolve(@Nonnull final XYResolver resolver,
+      @Nonnull final IonTimeSeries<? extends Scan> data, @Nullable final MemoryMapStorage storage,
+      @Nonnull final ResolvingDimension dimension) {
     final double[][] extractedData = extractData(data, dimension);
 
     final List<IonTimeSeries<? extends Scan>> resolvedSeries = new ArrayList<>();
@@ -63,6 +66,7 @@ public class ResolvingUtil {
       ResolvedValue<Double, Double> lastPair = resolvedValues.get(resolvedValues.size() - 1);
 
       if (dimension == ResolvingDimension.RETENTION_TIME) {
+        // make a sub list of the original scans
         List<? extends Scan> subset = data.getSpectra().stream().filter(
             s -> Double.compare(s.getRetentionTime(), firstPair.x) >= 0
                 && Double.compare(s.getRetentionTime(), lastPair.x) <= 0).collect(
@@ -80,10 +84,12 @@ public class ResolvingUtil {
               + " not specified.");
         }
 
-      } else if (dimension == ResolvingDimension.MOBILITY && data instanceof IonMobilogramTimeSeries) {
+      } else if (dimension == ResolvingDimension.MOBILITY
+          && data instanceof IonMobilogramTimeSeries) {
         List<SimpleIonMobilitySeries> resolvedMobilograms = new ArrayList<>();
         for (SimpleIonMobilitySeries mobilogram : ((IonMobilogramTimeSeries) data)
             .getMobilograms()) {
+          // make a sub list of the original scans
           List<MobilityScan> subset = mobilogram.getSpectra().stream()
               .filter(s -> Double.compare(s.getMobility(), firstPair.x) >= 0
                   && Double.compare(s.getMobility(), lastPair.x) <= 0).collect(
@@ -115,8 +121,8 @@ public class ResolvingUtil {
    * @return 2d array of the requested dimension. [0][n] will represent the domain dimension, [1][n]
    * will represent the range dimension.
    */
-  public static double[][] extractData(IonTimeSeries<? extends Scan> data,
-      ResolvingDimension dimension) {
+  public static double[][] extractData(@Nonnull IonTimeSeries<? extends Scan> data,
+      @Nonnull ResolvingDimension dimension) {
     double[] xdata;
     double[] ydata;
     if (dimension == ResolvingDimension.RETENTION_TIME) {

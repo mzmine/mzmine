@@ -36,7 +36,6 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
@@ -59,7 +58,6 @@ import javafx.scene.layout.GridPane;
 
 public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview {
 
-  protected static final MemoryMapStorage previewStorage = new MemoryMapStorage();
   protected final SimpleXYChart<MsTimeSeriesXYProvider> previewChart;
   protected final UnitFormat uf;
   protected final NumberFormat rtFormat;
@@ -144,7 +142,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameterSet)
           .getXYResolver(parameterSet);
       List<IonTimeSeries<? extends Scan>> resolved = ResolvingUtil
-          .resolve(resolver, newValue.getFeatureData(), previewStorage, dimension);
+          .resolve(resolver, newValue.getFeatureData(), null, dimension);
       if (resolved.isEmpty()) {
         return;
       }
@@ -177,6 +175,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
   }
 
+  @Deprecated
   protected ResolvedPeak[] resolveFeature(ModularFeature feature) {
     FeatureResolver resolver = ((GeneralResolverParameters) parameterSet).getResolver();
     if (fBox.getValue() == null) {
