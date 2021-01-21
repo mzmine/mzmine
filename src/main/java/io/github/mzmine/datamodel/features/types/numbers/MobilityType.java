@@ -39,7 +39,7 @@ public class MobilityType extends FloatType implements ExpandableType {
   @Override
   public NumberFormat getFormatter() {
     try {
-      return MZmineCore.getConfiguration().getRTFormat();
+      return MZmineCore.getConfiguration().getMobilityFormat();
     } catch (NullPointerException e) {
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;
@@ -54,7 +54,7 @@ public class MobilityType extends FloatType implements ExpandableType {
   @Nonnull
   @Override
   public Class<? extends DataType<?>> getExpandedTypeClass() {
-    return RTRangeType.class;
+    return MobilityRangeType.class;
   }
 
   @Nonnull
