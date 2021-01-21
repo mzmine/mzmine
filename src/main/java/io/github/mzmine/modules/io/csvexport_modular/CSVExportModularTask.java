@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.modules.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -55,6 +56,8 @@ import java.util.stream.Collectors;
 import javafx.beans.property.Property;
 
 public class CSVExportModularTask extends AbstractTask {
+
+  public static final String DATAFILE_PREFIX = "DATAFILE";
 
   private ModularFeatureList[] featureLists;
   private int processedRows = 0, totalRows = 0;
@@ -176,7 +179,8 @@ public class CSVExportModularTask extends AbstractTask {
     // Write feature row headers
     String header = getJoinedHeader(rowTypes, "");
     for(RawDataFile raw : rawDataFiles)
-      header += (header.isEmpty()? "" : fieldSeparator) + getJoinedHeader(featureTypes, raw.getName());
+      header += (header.isEmpty()? "" : fieldSeparator) + getJoinedHeader(featureTypes,
+          DATAFILE_PREFIX + headerSeparator + raw.getName());
 
     writer.append(header);
     writer.newLine();
@@ -211,8 +215,6 @@ public class CSVExportModularTask extends AbstractTask {
     // add feature types
     for(RawDataFile raw : raws) {
       ModularFeature feature = row.getFeature(raw);
-      if(!b.isEmpty())
-        b.append(fieldSeparator);
       joinData(b, feature, featureTypes);
     }
     return b.toString();
@@ -233,9 +235,17 @@ public class CSVExportModularTask extends AbstractTask {
         // join all the sub types of a modular data type
         List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
             .filter(this::filterType).collect(Collectors.toList());
-        if (!b.isEmpty())
-          b.append(fieldSeparator);
         joinData(b, modProp, filteredSubTypes);
+      }
+      else if(type instanceof SubColumnsFactory subCols) {
+        Property property = data.get(type);
+        int numberOfSub = subCols.getNumberOfSubColumns();
+        for(int i=0; i<numberOfSub; i++) {
+          String field = subCols.getFormattedSubColValue(i,null, null, property.getValue(), null);
+          if (!b.isEmpty())
+            b.append(fieldSeparator);
+          b.append(field==null? "" : field);
+        }
       }
       else {
         Property property = data.get(type);
@@ -256,7 +266,6 @@ public class CSVExportModularTask extends AbstractTask {
   private String getJoinedHeader(List<DataType> types, String prefix) {
     StringBuilder b = new StringBuilder();
     for(DataType t : types) {
-      if(!(t instanceof NullColumnType)) {
         String header = (prefix==null || prefix.isEmpty()? "" : prefix+headerSeparator) + t.getHeaderString();
         if(t instanceof ModularType) {
           ModularType modType = (ModularType) t;
@@ -264,11 +273,24 @@ public class CSVExportModularTask extends AbstractTask {
           List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
               .filter(this::filterType).collect(Collectors.toList());
           header = getJoinedHeader(filteredSubTypes, header);
+          if(!b.isEmpty())
+            b.append(fieldSeparator);
+          b.append(header);
         }
-        if(!b.isEmpty())
-          b.append(fieldSeparator);
-        b.append(escapeStringForCSV(header));
-      }
+        else if(t instanceof SubColumnsFactory subCols) {
+          int numberOfSub = subCols.getNumberOfSubColumns();
+          for(int i=0; i<numberOfSub; i++) {
+            String field = subCols.getHeader(i);
+            if (!b.isEmpty())
+              b.append(fieldSeparator);
+            b.append(field==null? "" : (header+headerSeparator+field));
+          }
+        }
+        else {
+          if(!b.isEmpty())
+            b.append(fieldSeparator);
+          b.append(header);
+        }
     }
     return b.toString();
   }

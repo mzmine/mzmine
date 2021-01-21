@@ -86,9 +86,9 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
       retentionTimes[index] = scan.getRetentionTime();
       basePeaks[index] = (scanBasePeakInt == null ? 0 : scanBasePeakInt);
       mzValues[index] = new double[scan.getNumberOfDataPoints()];
-      scan.getMzValues().get(mzValues[index]);
+      scan.getMzValues().get(0, mzValues[index]);
       intensityValues[index] = new double[scan.getNumberOfDataPoints()];
-      scan.getIntensityValues().get(intensityValues[index]);
+      scan.getIntensityValues().get(0, intensityValues[index]);
       processedScans++;
     }
 

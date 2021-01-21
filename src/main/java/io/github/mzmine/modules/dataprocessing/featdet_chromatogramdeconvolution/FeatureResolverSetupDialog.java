@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.logging.Level;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -85,9 +86,10 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
-          ObservableList<ModularFeature> features = (ObservableList<ModularFeature>)
-              (ObservableList<? extends Feature>) newValue.getFeatures(newValue.getRawDataFile(0));
-          fBox.setItems(features);
+          if(newValue!=null)
+            fBox.setItems((ObservableList<ModularFeature>)(ObservableList<? extends Feature>) newValue.getFeatures(newValue.getRawDataFile(0)));
+          else
+            fBox.setItems(FXCollections.emptyObservableList());
         }));
     fBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
