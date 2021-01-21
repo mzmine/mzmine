@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -62,8 +61,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
   public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge, DataPoint dps[],
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      @Nonnull Range<Double> scanMZRange, MobilityType mobilityType, final int numMobilitySpectra,
-      @Nonnull Map<Integer, Double> mobilities, @Nullable Set<ImsMsMsInfo> precursorInfos) {
+      @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
+      @Nullable Set<ImsMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
          * fragmentScans,
          */
@@ -81,7 +80,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
       float retentionTime, double precursorMZ, int precursorCharge, double[] mzValues,
       double[] intensityValues, MassSpectrumType spectrumType, PolarityType polarity,
       String scanDefinition, @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
-      final int numMobilitySpectra, @Nonnull Map<Integer, Double> mobilities,
       @Nullable Set<ImsMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
          * fragmentScans,
@@ -115,7 +113,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
 //  public Set<Integer> getMobilityScanNumbers() {
 //    return mobilities.keySet();
 //  }
-
   @Override
   @Nonnull
   public Range<Double> getMobilityRange() {

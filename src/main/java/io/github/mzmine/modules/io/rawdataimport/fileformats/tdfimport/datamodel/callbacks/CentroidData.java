@@ -19,15 +19,14 @@
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks;
 
 import com.sun.jna.Pointer;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.ConversionUtils;
 
 public class CentroidData implements CentroidCallback {
 
   private long precursorId;
   private int numPeaks;
   private double[] mzs;
-  private float[] intensites;
+  private float[] intensities;
 
   @Override
   public void invoke(long precursor_id, int num_peaks, Pointer pMz, Pointer pIntensites,
@@ -35,19 +34,16 @@ public class CentroidData implements CentroidCallback {
     precursorId = precursor_id;
     numPeaks = num_peaks;
     mzs = pMz.getDoubleArray(0, num_peaks);
-    intensites = pIntensites.getFloatArray(0, num_peaks);
+    intensities = pIntensites.getFloatArray(0, num_peaks);
   }
 
   /**
-   * Creates an array of data points. Dont call before
-   * @return
+   * @return [0][] mzs, [1][] intensities
    */
-  public final DataPoint[] toDataPoints() {
-    DataPoint[] dps = new DataPoint[numPeaks];
-
-    for(int i = 0; i < numPeaks; i++) {
-      dps[i] = new SimpleDataPoint(mzs[i], intensites[i]);
-    }
-    return dps;
+  public final double[][] toDoubles() {
+    double[][] data = new double[2][];
+    data[0] = mzs;
+    data[1] = ConversionUtils.convertFloatsToDoubles(intensities);
+    return data;
   }
 }

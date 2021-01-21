@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -54,7 +53,6 @@ public class MSDKmzMLReadTask extends AbstractTask {
   private RawDataFile newMZmineFile;
   private int totalScans = 0, parsedScans;
   private String description;
-  private Map<Integer, Double> buildingMobilities;
 
   public MSDKmzMLReadTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     this.file = fileToOpen;
@@ -169,10 +167,10 @@ public class MSDKmzMLReadTask extends AbstractTask {
         }
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
-            scan.getRetentionTime() / 60f, 0, 0, new double[] {}, new double[] {},
+            scan.getRetentionTime() / 60f, 0, 0, new double[]{}, new double[]{},
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-            scan.getScanningRange(), mzMLScan.getMobility().mt(), 0, buildingMobilities, null);
+            scan.getScanningRange(), mzMLScan.getMobility().mt(), null);
         frameNumber++;
 
         StringBuilder sb = new StringBuilder();
