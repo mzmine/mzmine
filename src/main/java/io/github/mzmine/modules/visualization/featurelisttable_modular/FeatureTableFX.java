@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.AreaBarType;
@@ -35,12 +36,15 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
@@ -108,6 +112,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     filteredRowItems = new FilteredList<>(rowItems);
     newColumnMap = new HashMap<>();
     initHandleDoubleClicks();
+    setContextMenu(new FeatureTableContextMenu(this));
   }
 
   private void setTableEditable(boolean state) {
@@ -474,5 +479,78 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   public List<ModularFeatureListRow> getSelectedRows() {
     return getSelectionModel().getSelectedItems().stream().map(item -> item.getValue())
         .collect(Collectors.toList());
+  }
+
+  /**
+   * @return A set of selected data types. Does not contain duplicates if multiple cells of the same
+   * type were selected. Does not contain null.
+   */
+  public Set<DataType<?>> getSelectedDataTypes(@Nonnull ColumnType columnType) {
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
+        .getSelectedCells();
+
+    // HashSet so we don't have to bother with duplicates.
+    Set<DataType<?>> dataTypes = new HashSet<>();
+    selectedCells.forEach(cell -> {
+      ColumnID columnID = newColumnMap.get(cell.getTableColumn());
+      if (columnID != null && columnID.getType() == columnType) {
+        dataTypes.add(columnID.getDataType());
+      }
+    });
+    return Collections.unmodifiableSet(dataTypes);
+  }
+
+  /**
+   * @return A set of selected data types. Does not contain duplicates if multiple cells of the same
+   * file were selected. Does not contain null.
+   */
+  public Set<RawDataFile> getSelectedRawDataFiles() {
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
+        .getSelectedCells();
+
+    // HashSet so we don't have to bother with duplicates.
+    Set<RawDataFile> rawDataFiles = new HashSet<>();
+    selectedCells.forEach(cell -> {
+      ColumnID columnID = newColumnMap.get(cell.getTableColumn());
+      if (columnID != null && columnID.getType() == ColumnType.FEATURE_TYPE) {
+        rawDataFiles.add(columnID.getRaw());
+      }
+    });
+    return Collections.unmodifiableSet(rawDataFiles);
+  }
+
+  /**
+   * @return A list of the selected features.
+   */
+  public List<ModularFeature> getSelectedFeatures() {
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
+        .getSelectedCells();
+
+    List<ModularFeature> features = new ArrayList<>();
+    selectedCells.forEach(cell -> {
+      // get file of the selected column
+      ColumnID id = newColumnMap.get(cell.getTableColumn());
+      if (id != null) {
+        RawDataFile file = id.getRaw();
+        ModularFeature feature = cell.getTreeItem().getValue().getFeature(file);
+        if (feature != null) {
+          features.add(feature);
+        }
+      }
+    });
+    return Collections.unmodifiableList(features);
+  }
+
+  @Nullable
+  public ModularFeature getSelectedFeature() {
+    TreeTablePosition<ModularFeatureListRow, ?> focusedCell = getFocusModel().getFocusedCell();
+    if (focusedCell == null) {
+      return null;
+    }
+    ColumnID id = newColumnMap.get(focusedCell.getTableColumn());
+    if (id != null && id.getRaw() != null) {
+      return focusedCell.getTreeItem().getValue().getFeature(id.getRaw());
+    }
+    return null;
   }
 }

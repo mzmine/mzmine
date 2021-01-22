@@ -45,7 +45,12 @@
 
     <SeparatorMenuItem/>
     <MenuItem text="Batch mode" onAction="#runModule"
-      userData="io.github.mzmine.modules.batchmode.BatchModeModule"/>
+      userData="io.github.mzmine.modules.batchmode.BatchModeModule">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="B"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
 
     <SeparatorMenuItem/>
     <MenuItem text="Set sample parameters"
