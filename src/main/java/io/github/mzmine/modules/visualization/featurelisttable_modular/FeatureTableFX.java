@@ -42,6 +42,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Random;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -67,16 +68,16 @@ import javax.annotation.Nullable;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class FeatureTableFX extends TreeTableView<FeatureListRow> {
+public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
-  private final FilteredList<TreeItem<FeatureListRow>> filteredRowItems;
-  private final ObservableList<TreeItem<FeatureListRow>> rowItems;
+  private final FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
+  private final ObservableList<TreeItem<ModularFeatureListRow>> rowItems;
   // parameters
   private final ParameterSet parameters;
   private final DataTypeCheckListParameter rowTypesParameter;
   private final DataTypeCheckListParameter featureTypesParameter;
   // column map to keep track of columns
-  private final Map<TreeTableColumn<FeatureListRow, ?>, ColumnID> newColumnMap;
+  private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   Random rand = new Random(System.currentTimeMillis());
   private Logger logger = Logger.getLogger(this.getClass().getName());
   // lists
@@ -84,7 +85,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
   public FeatureTableFX() {
     // add dummy root
-    TreeItem<FeatureListRow> root = new TreeItem<>();
+    TreeItem<ModularFeatureListRow> root = new TreeItem<>();
     root.setExpanded(true);
     this.setRoot(root);
     this.setShowRoot(false);
@@ -161,7 +162,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
   @SuppressWarnings("unchecked")
   private void editFocusedCell() {
-    TreeTablePosition<FeatureListRow, ?> focusedCell =
+    TreeTablePosition<ModularFeatureListRow, ?> focusedCell =
         this.focusModelProperty().get().focusedCellProperty().get();
     this.edit(focusedCell.getRow(), focusedCell.getTableColumn());
   }
@@ -187,11 +188,12 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     addColumns(flist);
 
     // add rows
-    TreeItem<FeatureListRow> root = getRoot();
+    TreeItem<ModularFeatureListRow> root = getRoot();
 //    logger.info("Add rows");
     for (FeatureListRow row : flist.getRows()) {
+      ModularFeatureListRow mrow = (ModularFeatureListRow) row;
 //      logger.info("Add row with id: " + row.getID());
-      root.getChildren().add(new TreeItem<>(row));
+      root.getChildren().add(new TreeItem<>(mrow));
     }
 
     rowItems.addAll(root.getChildren());
@@ -226,7 +228,8 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     if (dataType.getClass().equals(FeaturesType.class)) {
       addFeaturesColumns();
     } else {
-      TreeTableColumn<FeatureListRow, ? extends DataType> col = dataType.createColumn(null, null);
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType
+          .createColumn(null, null);
       if (col == null) {
         return;
       }
@@ -250,13 +253,15 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     }
   }
 
-  private void setupExpandableColumn(DataType<?> dataType, TreeTableColumn<FeatureListRow, ?> col,
+  private void setupExpandableColumn(DataType<?> dataType,
+      TreeTableColumn<ModularFeatureListRow, ?> col,
       ColumnType colType, RawDataFile dataFile) {
     // Initialize buddy(expanded/hidden for hidden/expanded respectively) column and it's data type
-    TreeTableColumn<FeatureListRow, ?> buddyCol = null;
+    TreeTableColumn<ModularFeatureListRow, ?> buddyCol = null;
     DataType<?> buddyDataType = null;
     // Find column's buddy
-    for (Entry<TreeTableColumn<FeatureListRow, ?>, ColumnID> entry : newColumnMap.entrySet()) {
+    for (Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> entry : newColumnMap
+        .entrySet()) {
       if (Objects.equals(entry.getValue().getDataType().getClass(),
           ((ExpandableType) dataType).getBuddyTypeClass())
           && Objects.equals(entry.getValue().getType(), colType)
@@ -283,8 +288,8 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     }
   }
 
-  Node createExpandableHeader(DataType<?> dataType, TreeTableColumn<FeatureListRow, ?> col,
-      TreeTableColumn<FeatureListRow, ?> buddyCol) {
+  Node createExpandableHeader(DataType<?> dataType, TreeTableColumn<ModularFeatureListRow, ?> col,
+      TreeTableColumn<ModularFeatureListRow, ?> buddyCol) {
     // Create labels to process mouse click event(text for sorting, button for expanding)
     Label headerText = new Label(dataType.getHeaderString());
 
@@ -315,7 +320,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
    * @param addHeader
    */
   @SuppressWarnings("rawtypes")
-  public void copySelectionToClipboard(final TreeTableView<FeatureListRow> table,
+  public void copySelectionToClipboard(final TreeTableView<ModularFeatureListRow> table,
       boolean addHeader) {
     // final Set<Integer> rows = new TreeSet<>();
     // for (final TreeTablePosition tablePosition : table.getSelectionModel().getSelectedCells()) {
@@ -359,7 +364,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
   }
 
   @Nonnull
-  public FilteredList<TreeItem<FeatureListRow>> getFilteredRowItems() {
+  public FilteredList<TreeItem<ModularFeatureListRow>> getFilteredRowItems() {
     return filteredRowItems;
   }
 
@@ -401,7 +406,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
   private void addFeaturesColumns() {
     // Add feature columns for each raw file
     for (RawDataFile dataFile : flist.getRawDataFiles()) {
-      TreeTableColumn<FeatureListRow, String> sampleCol =
+      TreeTableColumn<ModularFeatureListRow, String> sampleCol =
           new TreeTableColumn<>();
 
       // Add raw data file label
@@ -412,7 +417,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
       // Add sub columns of feature
       for (DataType ftype : ((ModularFeatureList) flist).getFeatureTypes().values()) {
-        TreeTableColumn<FeatureListRow, ?> subCol = ftype.createColumn(dataFile, null);
+        TreeTableColumn<ModularFeatureListRow, ?> subCol = ftype.createColumn(dataFile, null);
         if (subCol != null) {
           if (ftype instanceof ExpandableType) {
             setupExpandableColumn(ftype, subCol, ColumnType.FEATURE_TYPE, dataFile);
@@ -436,8 +441,8 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
         e.consume();
         logger.finest(() -> "Double click on " + e.getSource());
 
-        TreeTablePosition<FeatureListRow, ?> focusedCell = getFocusModel().getFocusedCell();
-        TreeTableColumn<FeatureListRow, ?> tableColumn = focusedCell.getTableColumn();
+        TreeTablePosition<ModularFeatureListRow, ?> focusedCell = getFocusModel().getFocusedCell();
+        TreeTableColumn<ModularFeatureListRow, ?> tableColumn = focusedCell.getTableColumn();
         Object userData = tableColumn.getUserData();
 
         if (userData instanceof DataType<?>) {
@@ -464,5 +469,10 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
         }
       }
     });
+  }
+
+  public List<ModularFeatureListRow> getSelectedRows() {
+    return getSelectionModel().getSelectedItems().stream().map(item -> item.getValue())
+        .collect(Collectors.toList());
   }
 }

@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
@@ -203,7 +204,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
   }
 
   void selectedRowChanged() {
-    TreeItem<FeatureListRow> selectedItem = featureTable.getSelectionModel()
+    TreeItem<ModularFeatureListRow> selectedItem = featureTable.getSelectionModel()
         .getSelectedItem();
 //    featureTable.getColumns().forEach(c -> logger.info(c.getText()));
     if (!featureTable.getSelectionModel().getSelectedCells().isEmpty()) {
