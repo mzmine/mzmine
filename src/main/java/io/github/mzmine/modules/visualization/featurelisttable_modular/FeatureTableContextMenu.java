@@ -58,6 +58,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javax.annotation.Nullable;
 import javax.swing.SwingUtilities;
 
@@ -112,17 +113,12 @@ public class FeatureTableContextMenu extends ContextMenu {
         .runManualDetection(selectedFeature.getRawDataFile(), selectedRows.get(0),
             table.getFeatureList(), table));
 
-    getItems().addAll(deleteRowsItem, manuallyDefineItem);
+    getItems().addAll(new SeparatorMenuItem(), manuallyDefineItem, deleteRowsItem);
   }
 
   private void initIdentitiesMenu() {
     final MenuItem openCompoundIdUrl = new ConditionalMenuItem("Open compound ID URL (disabled)",
         () -> false);
-
-    final MenuItem clearIdsItem = new ConditionalMenuItem("Clear identities",
-        () -> selectedRows.size() > 0 && selectedRows.get(0).getPeakIdentities().size() > 0);
-    clearIdsItem.setOnAction(e -> selectedRows
-        .forEach(row -> row.setPeakIdentities(FXCollections.observableArrayList())));
 
     final MenuItem copyIdsItem = new ConditionalMenuItem("Copy identities", () ->
         !selectedRows.isEmpty() && !selectedRows.get(0).getPeakIdentities().isEmpty());
@@ -136,43 +132,50 @@ public class FeatureTableContextMenu extends ContextMenu {
       selectedRows.get(0).setPeakIdentities(copy);
     });
 
-    idsMenu.getItems().addAll(openCompoundIdUrl, clearIdsItem, copyIdsItem, pasteIdsItem);
+    final MenuItem clearIdsItem = new ConditionalMenuItem("Clear identities",
+        () -> selectedRows.size() > 0 && selectedRows.get(0).getPeakIdentities().size() > 0);
+    clearIdsItem.setOnAction(e -> selectedRows
+        .forEach(row -> row.setPeakIdentities(FXCollections.observableArrayList())));
+
+    idsMenu.getItems().addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem);
   }
 
   private void initExportMenu() {
-    final MenuItem exportIsotopesItem = new ConditionalMenuItem("Isotope pattern",
+    final MenuItem exportIsotopesItem = new ConditionalMenuItem("Export isotope pattern",
         () -> selectedRows.size() == 1 && selectedRows.get(0).getBestIsotopePattern() != null);
     exportIsotopesItem
         .setOnAction(e -> IsotopePatternExportModule.exportIsotopePattern(selectedRows.get(0)));
 
-    final MenuItem exportMSMSItem = new ConditionalMenuItem("MS/MS pattern",
+    final MenuItem exportMSMSItem = new ConditionalMenuItem("Export MS/MS pattern",
         () -> selectedRows.size() == 1 && selectedRows.get(0).getBestFragmentation() != null);
     exportMSMSItem.setOnAction(e -> MSMSExportModule.exportMSMS(selectedRows.get(0)));
 
-    final MenuItem exportToSirius = new ConditionalMenuItem("To Sirius",
+    final MenuItem exportToSirius = new ConditionalMenuItem("Export to Sirius",
         () -> !selectedRows.isEmpty());
     exportToSirius.setOnAction(e -> SiriusExportModule
         .exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0])));
 
-    final MenuItem exportMSMSLibrary = new ConditionalMenuItem("To MS/MS library (Swing)",
-        () -> !selectedRows.isEmpty());
-    exportMSMSLibrary.setOnAction(e -> SwingUtilities.invokeLater(() -> {
-      MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
-      window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
-          SortingDirection.Ascending, true);
-    }));
-
-    final MenuItem exportMS1Library = new ConditionalMenuItem("To MS1 library (Swing)",
+    final MenuItem exportMS1Library = new ConditionalMenuItem("Export to MS1 library (Swing)",
         () -> !selectedRows.isEmpty());
     exportMS1Library.setOnAction(e -> SwingUtilities.invokeLater(() -> {
       MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
       window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
           SortingDirection.Ascending, false);
+      window.setVisible(true);
+    }));
+
+    final MenuItem exportMSMSLibrary = new ConditionalMenuItem("Export to MS/MS library (Swing)",
+        () -> !selectedRows.isEmpty());
+    exportMSMSLibrary.setOnAction(e -> SwingUtilities.invokeLater(() -> {
+      MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
+      window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
+          SortingDirection.Ascending, true);
+      window.setVisible(true);
     }));
 
     exportMenu.getItems()
-        .addAll(exportIsotopesItem, exportMSMSItem, exportToSirius, exportMSMSLibrary,
-            exportMS1Library);
+        .addAll(exportIsotopesItem, exportMSMSItem, exportToSirius, new SeparatorMenuItem(),
+            exportMS1Library, exportMSMSLibrary);
   }
 
   private void initSearchMenu() {
@@ -207,7 +210,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     searchMenu.getItems()
         .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem, siriusItem,
-            formulaPredictionItem);
+            new SeparatorMenuItem(), formulaPredictionItem);
   }
 
   private void initShowMenu() {
@@ -220,11 +223,6 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> !selectedRows.isEmpty() && selectedFeature != null);
     showXICSetupItem.setOnAction(e -> ChromatogramVisualizerModule
         .setUpVisualiserFromFeatures(selectedRows, selectedFeature.getRawDataFile()));
-
-    final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
-        () -> selectedFeature != null && selectedFeature.getRepresentativeScan() != null);
-    showSpectrumItem.setOnAction(
-        e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRepresentativeScan()));
 
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
         () -> selectedFeature != null);
@@ -239,14 +237,17 @@ public class FeatureTableContextMenu extends ContextMenu {
             selectedFeature.getRawDataPointsMZRange(), selectedFeature.getRawDataPointsRTRange(),
             selectedFeature));
 
-    final MenuItem plotRowsItem = new ConditionalMenuItem("Plot using Intensity plot module",
+    final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
+        "Plot using Intensity plot module",
         () -> !selectedRows.isEmpty());
-    plotRowsItem.setOnAction(e ->
+    showIntensityPlotItem.setOnAction(e ->
         IntensityPlotModule.showIntensityPlot(MZmineCore.getProjectManager().getCurrentProject(),
             selectedFeature.getFeatureList(), selectedRows.toArray(new ModularFeatureListRow[0])));
 
-    final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
-        /*!selectedRows.isEmpty()*/ false); // todo, not implemented yet
+    final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
+        () -> selectedFeature != null && selectedFeature.getRepresentativeScan() != null);
+    showSpectrumItem.setOnAction(
+        e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRepresentativeScan()));
 
     // TODO this should display selected features instead of rows. MultiMSMSWindow does not support that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
@@ -281,21 +282,25 @@ public class FeatureTableContextMenu extends ContextMenu {
       multi.setVisible(true);
     }));
 
-    final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
-        () -> selectedFeature != null && rowHasSpectralDBMatchResults(selectedRows.get(0)));
-    showSpectralDBResults
-        .setOnAction(e -> SpectraIdentificationResultsModule.showNewTab(selectedRows.get(0)));
-
     final MenuItem showIsotopePatternItem = new ConditionalMenuItem("Isotope pattern",
         () -> selectedFeature != null && selectedFeature.getIsotopePattern() != null);
     showIsotopePatternItem.setOnAction(e -> SpectraVisualizerModule
         .addNewSpectrumTab(selectedFeature.getRawDataFile(),
             selectedFeature.getRepresentativeScan(), selectedFeature.getIsotopePattern()));
 
+    final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
+        () -> selectedFeature != null && rowHasSpectralDBMatchResults(selectedRows.get(0)));
+    showSpectralDBResults
+        .setOnAction(e -> SpectraIdentificationResultsModule.showNewTab(selectedRows.get(0)));
+
+    final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
+        /*!selectedRows.isEmpty()*/ false); // todo, not implemented yet
+
     showMenu.getItems()
-        .addAll(showXICItem, showXICSetupItem, showSpectrumItem, show2DItem, show3DItem,
-            plotRowsItem, showPeakRowSummaryItem, showMSMSItem, showMSMSMirrorItem,
-            showAllMSMSItem, showSpectralDBResults, showIsotopePatternItem);
+        .addAll(showXICItem, showXICSetupItem, new SeparatorMenuItem(), show2DItem, show3DItem,
+            showIntensityPlotItem, new SeparatorMenuItem(), showSpectrumItem, showMSMSItem,
+            showMSMSMirrorItem, showAllMSMSItem, new SeparatorMenuItem(), showIsotopePatternItem,
+            showSpectralDBResults, new SeparatorMenuItem(), showPeakRowSummaryItem);
   }
 
   private void onShown() {
