@@ -166,7 +166,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
    * In case the parameters are changed in the setup dialog, they are applied to the window.
    */
   void updateWindowToParameterSetValues() {
-    featureTable.applyColumnsVisibility(
+    featureTable.updateColumnsVisibilityParameters(
         param.getParameter(FeatureTableFXParameters.showRowTypeColumns).getValue(),
         param.getParameter(FeatureTableFXParameters.showFeatureTypeColumns).getValue());
   }

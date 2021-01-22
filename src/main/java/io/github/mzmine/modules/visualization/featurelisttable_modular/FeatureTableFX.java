@@ -76,7 +76,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
   private final DataTypeCheckListParameter rowTypesParameter;
   private final DataTypeCheckListParameter featureTypesParameter;
   // column map to keep track of columns
-  private final Map<ColumnID, TreeTableColumn> columnMap;
+  private final Map<TreeTableColumn<FeatureListRow, ?>, ColumnID> newColumnMap;
   Random rand = new Random(System.currentTimeMillis());
   private Logger logger = Logger.getLogger(this.getClass().getName());
   // lists
@@ -105,7 +105,7 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);
-    columnMap = new HashMap<>();
+    newColumnMap = new HashMap<>();
     initHandleDoubleClicks();
   }
 
@@ -237,14 +237,14 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
       // Add column
       this.getColumns().add(col);
-      columnMap.put(new ColumnID(dataType, ColumnType.ROW_TYPE, null), col);
+      newColumnMap.put(col, new ColumnID(dataType, ColumnType.ROW_TYPE, null));
       if (!(dataType instanceof ExpandableType)) {
         // Hide area bars and area share columns, if there is only one raw data file in the feature list
         if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
             && flist.getNumberOfRawDataFiles() == 1) {
           col.setVisible(false);
         } else {
-          applyColumnVisibility(dataType, ColumnType.ROW_TYPE);
+          applyVisibilityParameterToColumn(col);
         }
       }
     }
@@ -256,13 +256,13 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     TreeTableColumn<FeatureListRow, ?> buddyCol = null;
     DataType<?> buddyDataType = null;
     // Find column's buddy
-    for (Entry<ColumnID, TreeTableColumn> entry : columnMap.entrySet()) {
-      if (Objects.equals(entry.getKey().getDataType().getClass(),
+    for (Entry<TreeTableColumn<FeatureListRow, ?>, ColumnID> entry : newColumnMap.entrySet()) {
+      if (Objects.equals(entry.getValue().getDataType().getClass(),
           ((ExpandableType) dataType).getBuddyTypeClass())
-          && Objects.equals(entry.getKey().getType(), colType)
-          && Objects.equals(entry.getKey().getRaw(), dataFile)) {
-        buddyCol = entry.getValue();
-        buddyDataType = entry.getKey().getDataType();
+          && Objects.equals(entry.getValue().getType(), colType)
+          && Objects.equals(entry.getValue().getRaw(), dataFile)) {
+        buddyCol = entry.getKey();
+        buddyDataType = entry.getValue().getDataType();
       }
     }
 
@@ -307,7 +307,6 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
     return headerLabel;
   }
-
 
   /**
    * Copy all rows of selected cells
@@ -364,21 +363,13 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     return filteredRowItems;
   }
 
-  @Nullable
-  private TreeTableColumn getColumn(ColumnID id) {
-    if (!columnMap.containsKey(id)) {
-      logger.info(id.getFormattedString());
-    }
-    return columnMap.get(id);
-  }
-
   /**
    * Sets visibility of all data type columns.
    *
    * @param rowVisibilityMap     Map containing row types names and their visibility values
    * @param featureVisibilityMap Map containing feature types names and their visibility values
    */
-  protected void applyColumnsVisibility(Map<String, Boolean> rowVisibilityMap,
+  protected void updateColumnsVisibilityParameters(Map<String, Boolean> rowVisibilityMap,
       Map<String, Boolean> featureVisibilityMap) {
     if (flist == null) {
       return;
@@ -387,66 +378,24 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
     // Update visibility parameters
     rowTypesParameter.setDataTypesAndVisibility(rowVisibilityMap);
     featureTypesParameter.setDataTypesAndVisibility(featureVisibilityMap);
-
-    // Apply visibility parameters to the table
-    for (DataType<?> dataType : ((ModularFeatureList) flist).getRowTypes().values()) {
-      TreeTableColumn<?, ?> col =
-          columnMap.get(new ColumnID(dataType, ColumnType.ROW_TYPE, null));
-      if (col != null) {
-        if (!(dataType instanceof ExpandableType && ((ExpandableType) dataType).isExpandedType())) {
-          col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
-        }
-      }
-    }
-
-    for (RawDataFile raw : flist.getRawDataFiles()) {
-      for (DataType<?> dataType : ((ModularFeatureList) flist).getFeatureTypes().values()) {
-        TreeTableColumn<?, ?> col =
-            columnMap.get(new ColumnID(dataType, ColumnType.FEATURE_TYPE, raw));
-        if (col != null) {
-          if (!(dataType instanceof ExpandableType && ((ExpandableType) dataType)
-              .isExpandedType())) {
-            col.setVisible(featureTypesParameter.isDataTypeVisible(dataType));
-          }
-        }
-      }
-    }
+    applyVisibilityParametersToAllColumns();
   }
 
-  /**
-   * Sets visibility of data type column depending on the rowTypesParameter and
-   * featureTypesParameter values.
-   *
-   * @param dataType The data type
-   */
-  private void applyColumnVisibility(DataType<?> dataType, ColumnType colType) {
-    if (flist == null) {
+  private void applyVisibilityParameterToColumn(TreeTableColumn column) {
+    ColumnID id = newColumnMap.get(column);
+    if (id == null) {
       return;
     }
 
-    if (colType == ColumnType.ROW_TYPE) {
-      if (!((ModularFeatureList) flist).getRowTypes().containsValue(dataType)) {
-        return;
-      }
-
-      // Set visibility of the data type column
-      TreeTableColumn col = columnMap.get(new ColumnID(dataType, colType, null));
-      if (col != null) {
-        col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
-      }
-    } else if (colType == ColumnType.FEATURE_TYPE) {
-      if (!((ModularFeatureList) flist).getFeatureTypes().containsValue(dataType)) {
-        return;
-      }
-
-      // Set visibility of the data type column of every raw data file
-      for (RawDataFile raw : flist.getRawDataFiles()) {
-        TreeTableColumn col = columnMap.get(new ColumnID(dataType, colType, raw));
-        if (col != null) {
-          col.setVisible(featureTypesParameter.isDataTypeVisible(dataType));
-        }
-      }
+    if (id.getType() == ColumnType.ROW_TYPE) {
+      column.setVisible(rowTypesParameter.isDataTypeVisible(id.getDataType()));
+    } else {
+      column.setVisible(featureTypesParameter.isDataTypeVisible(id.getDataType()));
     }
+  }
+
+  private void applyVisibilityParametersToAllColumns() {
+    this.getColumns().forEach(this::applyVisibilityParameterToColumn);
   }
 
   private void addFeaturesColumns() {
@@ -469,9 +418,9 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
             setupExpandableColumn(ftype, subCol, ColumnType.FEATURE_TYPE, dataFile);
           }
           sampleCol.getColumns().add(subCol);
-          columnMap.put(new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile), subCol);
+          newColumnMap.put(subCol, new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile));
           if (!(ftype instanceof ExpandableType)) {
-            applyColumnVisibility(ftype, ColumnType.FEATURE_TYPE);
+            applyVisibilityParameterToColumn(subCol);
           }
         }
       }
@@ -493,17 +442,16 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
 
         if (userData instanceof DataType<?>) {
           List<RawDataFile> files = new ArrayList<>();
-          for (Entry<ColumnID, TreeTableColumn> entry : columnMap.entrySet()) {
-            if (entry.getValue().equals(tableColumn)) {
-              if (entry.getKey().getType() == ColumnType.ROW_TYPE) {
-                files.addAll(getFeatureList().getRawDataFiles());
-                break;
-              } else {
-                RawDataFile file = entry.getKey().getRaw();
-                if (file != null) {
-                  files.add(file);
-                }
-              }
+          ColumnID id = newColumnMap.get(tableColumn);
+          if (id == null) {
+            return;
+          }
+          if (id.getType() == ColumnType.ROW_TYPE) {
+            files.addAll(getFeatureList().getRawDataFiles());
+          } else {
+            RawDataFile file = id.getRaw();
+            if (file != null) {
+              files.add(file);
             }
           }
 
