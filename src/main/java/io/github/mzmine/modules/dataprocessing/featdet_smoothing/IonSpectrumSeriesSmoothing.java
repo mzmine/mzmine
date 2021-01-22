@@ -83,16 +83,20 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
       return (T) origSeries.copy(newStorage);
     }
 
-    int numScans = allSpectra.size();
-
-    final double[] origIntensities = new double[numScans];
-    for (int i = 0; i < numScans; i++) {
-      origIntensities[i] = origSeries.getIntensityForSpectrum(allSpectra.get(i));
-    }
-
     // use mobilityWeights for SimpleIonMobilitySeries
     final double[] weights =
         (origSeries instanceof SimpleIonMobilitySeries) ? mobilityWeights : rtWeights;
+
+//    int numScans = allSpectra.size();
+    List<? extends MassSpectrum> eligibleSpectra = findEligibleSpectra(allSpectra,
+        origSeries.getSpectra(), weights.length);
+    int numScans = eligibleSpectra.size();
+
+    final double[] origIntensities = new double[numScans];
+    for (int i = 0; i < numScans; i++) {
+      origIntensities[i] = origSeries.getIntensityForSpectrum(eligibleSpectra.get(i));
+    }
+
     final double[] smoothed = SavitzkyGolayFilter.convolve(origIntensities, weights);
 
     // add no new data points for scans, just use smoothed ones where we had dps in the first place
@@ -101,7 +105,7 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
     List<MassSpectrum> origSpectra = origSeries.getSpectra();
     for (int i = 0; i < numScans; i++) {
       // check if we originally had a data point for that spectrum, otherwise continue.
-      int index = origSpectra.indexOf(allSpectra.get(i));
+      int index = origSpectra.indexOf(eligibleSpectra.get(i));
       if (index == -1) {
         continue;
       }
@@ -141,5 +145,25 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
    */
   public T smooth(@Nonnull double[] weights) {
     return smooth(weights, weights);
+  }
+
+  private List<? extends MassSpectrum> findEligibleSpectra(List<? extends MassSpectrum> allSpectra,
+      List<? extends MassSpectrum> featureSpectra, int filtersize) {
+    int firstSpectrumIndex = allSpectra.indexOf(featureSpectra.get(0));
+    int lastSpectrumIndex = allSpectra.indexOf(featureSpectra.get(featureSpectra.size() - 1));
+
+    if (firstSpectrumIndex - filtersize > 0) {
+      firstSpectrumIndex -= filtersize;
+    } else {
+      firstSpectrumIndex = 0;
+    }
+
+    if (lastSpectrumIndex + filtersize < allSpectra.size()) {
+      lastSpectrumIndex += filtersize;
+    } else {
+      lastSpectrumIndex = allSpectra.size() - 1;
+    }
+
+    return allSpectra.subList(firstSpectrumIndex, lastSpectrumIndex);
   }
 }
