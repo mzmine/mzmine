@@ -1,5 +1,10 @@
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.mzmine.datamodel.Frame;
@@ -19,11 +24,6 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data
 import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data.MzMLPrecursorSelectedIonList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 
 public class ConversionUtils {
 
@@ -82,18 +82,41 @@ public class ConversionUtils {
     }
   }
 
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MsScan scan) {
-    return new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        (float) (scan.getRetentionTime() / 60), 0, 0, scan.getMzValues(),
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan) {
+    double precursorMz = 0.0;
+    int precursorCharge = -1;
+    for (MzMLPrecursorElement precursorElement : scan.getPrecursorList().getPrecursorElements()) {
+      Optional<MzMLPrecursorSelectedIonList> selectedIonList =
+          precursorElement.getSelectedIonList();
+      if (selectedIonList.isPresent()) {
+        if (selectedIonList.get().getSelectedIonList().size() > 1) {
+          logger.info("Selection of more than one ion in a single scan is not supported.");
+        }
+        for (MzMLCVParam param : selectedIonList.get().getSelectedIonList().get(0)
+            .getCVParamsList()) {
+          if (param.getAccession().equals(MzMLCV.cvPrecursorMz)) {
+            precursorMz = Double.parseDouble(param.getValue().get());
+          }
+          if (param.getAccession().equals(MzMLCV.cvChargeState)) {
+            precursorCharge = Integer.parseInt(param.getValue().get());
+          }
+        }
+      }
+    }
+
+    final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
+        scan.getRetentionTime() / 60, precursorMz, precursorCharge, scan.getMzValues(),
         convertFloatsToDoubles(scan.getIntensityValues()),
         ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
         ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
         scan.getScanningRange());
+
+
+    return newScan;
   }
 
   public static MobilityScan msdkScanToMobilityScan(IMSRawDataFile rawDataFile, int scannum,
-      MsScan scan,
-      Frame frame) {
+      MsScan scan, Frame frame) {
     return new SimpleMobilityScan(rawDataFile, scannum, frame, scan.getMzValues(),
         convertFloatsToDoubles(scan.getIntensityValues()));
   }
@@ -103,8 +126,7 @@ public class ConversionUtils {
    * element is added to the list parameter.
    *
    * @param scan
-   * @param buildingInfos      Altered during this method. New Infos are added if not part of this
-   *                           list
+   * @param buildingInfos Altered during this method. New Infos are added if not part of this list
    * @param currentFrameNumber
    * @param currentScanNumber
    */
@@ -117,8 +139,8 @@ public class ConversionUtils {
     Integer charge = null;
     Float colissionEnergy = null;
     for (MzMLPrecursorElement precursorElement : scan.getPrecursorList().getPrecursorElements()) {
-      Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement
-          .getSelectedIonList();
+      Optional<MzMLPrecursorSelectedIonList> selectedIonList =
+          precursorElement.getSelectedIonList();
       if (selectedIonList.isPresent()) {
         if (selectedIonList.get().getSelectedIonList().size() > 1) {
           logger.info("Selection of more than one ion in a single scan is not supported.");
@@ -172,38 +194,25 @@ public class ConversionUtils {
           BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(isolationMz,
               Objects.requireNonNullElse(colissionEnergy, ImsMsMsInfo.UNKNOWN_COLISSIONENERGY)
                   .floatValue(),
-              Objects.requireNonNullElse(charge, ImsMsMsInfo.UNKNOWN_CHARGE),
-              currentFrameNumber, currentScanNumber);
+              Objects.requireNonNullElse(charge, ImsMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
+              currentScanNumber);
           buildingInfos.add(info);
         }
       }
     }
   }
 
-  /*@Nullable
-  public MzMLMobility getMobility(MsScan scan) {
-    if (!getScanList().getScans().isEmpty()) {
-      for (MzMLCVParam param : getScanList().getScans().get(0).getCVParamsList()) {
-        String accession = param.getAccession();
-        if(param.getValue().isEmpty()) {
-          continue;
-        }
-        switch (accession) {
-          case MzMLCV.cvMobilityDriftTime -> {
-            if (param.getUnitAccession().equals(MzMLCV.cvMobilityDriftTimeUnit)) {
-              return new MzMLMobility(Double.parseDouble(param.getValue().get()),
-                  MobilityType.DRIFT_TUBE);
-            }
-          }
-          case MzMLCV.cvMobilityInverseReduced -> {
-            if (param.getUnitAccession().equals(MzMLCV.cvMobilityInverseReducedUnit)) {
-              return new MzMLMobility(Double.parseDouble(param.getValue().get()),
-                  MobilityType.TIMS);
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }*/
+  /*
+   * @Nullable public MzMLMobility getMobility(MsScan scan) { if
+   * (!getScanList().getScans().isEmpty()) { for (MzMLCVParam param :
+   * getScanList().getScans().get(0).getCVParamsList()) { String accession = param.getAccession();
+   * if(param.getValue().isEmpty()) { continue; } switch (accession) { case
+   * MzMLCV.cvMobilityDriftTime -> { if
+   * (param.getUnitAccession().equals(MzMLCV.cvMobilityDriftTimeUnit)) { return new
+   * MzMLMobility(Double.parseDouble(param.getValue().get()), MobilityType.DRIFT_TUBE); } } case
+   * MzMLCV.cvMobilityInverseReduced -> { if
+   * (param.getUnitAccession().equals(MzMLCV.cvMobilityInverseReducedUnit)) { return new
+   * MzMLMobility(Double.parseDouble(param.getValue().get()), MobilityType.TIMS); } } } } } return
+   * null; }
+   */
 }

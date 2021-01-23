@@ -13,25 +13,24 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.data;
 
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.MsScan;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.MzMLFileImportMethod;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.util.TagTracker;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.io.IOUtils;
+import io.github.msdk.datamodel.Chromatogram;
+import io.github.msdk.datamodel.MsScan;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.MzMLFileImportMethod;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.msdk.util.TagTracker;
 import javolution.text.CharArray;
 import javolution.xml.internal.stream.XMLStreamReaderImpl;
 import javolution.xml.stream.XMLStreamReader;
-import org.apache.commons.io.IOUtils;
 
 /**
  * <p>
- * Used to parse mzML meta-data and initialize {@link MzMLBinaryDataInfo
- * MzMLBinaryDataInfo}
+ * Used to parse mzML meta-data and initialize {@link MzMLBinaryDataInfo MzMLBinaryDataInfo}
  * </p>
  */
 public class MzMLParser {
@@ -46,8 +45,7 @@ public class MzMLParser {
    * Constructor for {@link MzMLParser MzMLParser}
    * </p>
    *
-   * @param importer an instance of an initialized
-   *        {@link MzMLFileImportMethod MzMLFileImportMethod}
+   * @param importer an instance of an initialized {@link MzMLFileImportMethod MzMLFileImportMethod}
    */
   public MzMLParser(MzMLFileImportMethod importer) {
     this.vars = new Vars();
@@ -59,13 +57,11 @@ public class MzMLParser {
 
   /**
    * <p>
-   * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReaderImpl XMLStreamReaderImpl} enters the given
-   * tag
+   * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
+   * XMLStreamReaderImpl} enters the given tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl
-   * XMLStreamReaderImpl
+   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
    * @param is {@link InputStream InputStream} of the mzML data
    * @param openingTagName The tag <code>xmlStreamReader</code> entered
    */
@@ -263,8 +259,7 @@ public class MzMLParser {
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
         if (!tracker.inside(MzMLTags.TAG_BINARY_DATA_ARRAY)
-            && !tracker.inside(MzMLTags.TAG_PRECURSOR) && !tracker.inside(
-            MzMLTags.TAG_PRODUCT)
+            && !tracker.inside(MzMLTags.TAG_PRECURSOR) && !tracker.inside(MzMLTags.TAG_PRODUCT)
             && vars.chromatogram != null) {
           MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
           vars.chromatogram.getCVParams().addCVParam(cvParam);;
@@ -379,13 +374,11 @@ public class MzMLParser {
 
   /**
    * <p>
-   * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReaderImpl XMLStreamReaderImpl} exits the given
-   * tag
+   * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
+   * XMLStreamReaderImpl} exits the given tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl
-   * XMLStreamReaderImpl
+   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
    * @param closingTagName a {@link CharArray} object.
    */
   public void processClosingTag(XMLStreamReaderImpl xmlStreamReader, CharArray closingTagName) {
@@ -458,13 +451,12 @@ public class MzMLParser {
 
   /**
    * <p>
-   * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReaderImpl XMLStreamReaderImpl} when
-   * {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS CHARACTERS} are found
+   * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
+   * XMLStreamReaderImpl} when {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS
+   * CHARACTERS} are found
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl
-   *        XMLStreamReaderImpl
+   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
    */
   public void processCharacters(XMLStreamReaderImpl xmlStreamReader) {
     if (!newRawFile.getOriginalFile().isPresent()
@@ -501,11 +493,10 @@ public class MzMLParser {
    * <p>
    * Call this method when the <code>xmlStreamReader</code> enters <code>&lt;cvParam&gt;</code> tag
    * </p>
-   * 
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl
-   * XMLStreamReaderImpl
-   * @return {@link MzMLCVParam MzMLCVParam} object notation of the
-   *         <code>&lt;cvParam&gt;</code> entered
+   *
+   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
+   * @return {@link MzMLCVParam MzMLCVParam} object notation of the <code>&lt;cvParam&gt;</code>
+   *         entered
    */
   private MzMLCVParam createMzMLCVParam(XMLStreamReader xmlStreamReader) {
     CharArray accession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_ACCESSION);
@@ -619,15 +610,14 @@ public class MzMLParser {
    * getMzMLRawFile.
    * </p>
    *
-   * @return a {@link MzMLRawDataFile MzMLRawDataFile} containing the
-   *         parsed data
+   * @return a {@link MzMLRawDataFile MzMLRawDataFile} containing the parsed data
    */
   public MzMLRawDataFile getMzMLRawFile() {
     return newRawFile;
   }
 
   /**
-   * 
+   *
    * Static class for holding temporary instances of variables initialized while parsing
    */
   private static class Vars {
