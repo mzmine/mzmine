@@ -30,10 +30,12 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -201,6 +203,14 @@ public class FeatureResolverTask extends AbstractTask {
     }
   }
 
+  /**
+   * Deconvolve a chromatogram into separate peaks.
+   *
+   * @param originalFeatureList holds the chromatogram to deconvolve.
+   * @param rSession
+   * @return a new feature list holding the resolved peaks.
+   * @throws RSessionWrapperException
+   */
   /*private FeatureList resolvePeaks(final FeatureList originalFeatureList, RSessionWrapper rSession)
       throws RSessionWrapperException {
 
@@ -357,12 +367,14 @@ public class FeatureResolverTask extends AbstractTask {
         final ModularFeature f = new ModularFeature(resolvedFeatureList);
         f.set(RawFileType.class, originalFeature.getRawDataFile());
         f.set(FeatureDataType.class, resolved);
+        f.set(DetectionType.class, originalFeature.get(DetectionType.class));
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
       }
       processedRows++;
     }
+    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
     newPeakList = resolvedFeatureList;
   }
 
@@ -432,6 +444,7 @@ public class FeatureResolverTask extends AbstractTask {
         originalFeatureList.getName() + " " + parameters
             .getParameter(GeneralResolverParameters.SUFFIX).getValue(), dataFile);
 //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+    resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Feature resolving", parameters));

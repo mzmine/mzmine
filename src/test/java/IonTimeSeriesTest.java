@@ -38,9 +38,7 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Test;
@@ -68,22 +66,23 @@ public class IonTimeSeriesTest {
   public IonTimeSeries<Frame> makeIonMobilityTimeSeries() throws IOException {
     RawDataFile file = new RawDataFileImpl("test", Color.BLACK);
 
-    Map<Integer, Double> mobilities = new HashMap<>();
-    mobilities.put(0, 0.1d);
-    mobilities.put(1, 0.2d);
     MemoryMapStorage storage = new MemoryMapStorage();
 
     List<Frame> frames = new ArrayList<>();
-    Frame frame = new SimpleFrame(file, 1, 1, 1f, 0, 0,
+    SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f, 0, 0,
         new DataPoint[]{new SimpleDataPoint(1d, 1d)},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
-        Range.closed(11d, 11d), MobilityType.TIMS, 2, mobilities, null);
+        Range.closed(11d, 11d), MobilityType.TIMS, null);
+    frame.setMobilities(new double[]{1d, 2d});
 
     List<MobilityScan> mobilityScans = new ArrayList<>();
-    mobilityScans.add(new SimpleMobilityScan(file, 0, frame, new double[] {1d, 1d}, new double[] {2d, 2d}));
-    mobilityScans.add(new SimpleMobilityScan(file, 1, frame, new double[] {2d, 2d}, new double[] {4d, 4d}));
+    mobilityScans
+        .add(new SimpleMobilityScan(file, 0, frame, new double[]{1d, 1d}, new double[]{2d, 2d}));
+    mobilityScans
+        .add(new SimpleMobilityScan(file, 1, frame, new double[]{2d, 2d}, new double[]{4d, 4d}));
 
-    SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(storage, new double[] {1d, 2d}, new double[] {2d, 4d}, mobilityScans);
+    SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(storage,
+        new double[]{1d, 2d}, new double[]{2d, 4d}, mobilityScans);
 
     return new SimpleIonMobilogramTimeSeries(storage, List.of(ionMobilitySeries));
   }

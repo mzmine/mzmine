@@ -40,6 +40,17 @@ public class ConversionUtils {
     return output;
   }
 
+  public static double[] convertIntsToDoubles(int[] input) {
+    if (input == null) {
+      return null; // Or throw an exception - your choice
+    }
+    double[] output = new double[input.length];
+    for (int i = 0; i < input.length; i++) {
+      output[i] = input[i];
+    }
+    return output;
+  }
+
   public static MassSpectrumType msdkToMZmineSpectrumType(MsSpectrumType msdk) {
     switch (msdk) {
       case PROFILE -> {

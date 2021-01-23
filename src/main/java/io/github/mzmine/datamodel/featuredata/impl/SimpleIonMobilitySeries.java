@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Stores data points of several {@link MobilityScan}s. Usually wrapped in a {@link
@@ -42,10 +43,19 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
   private static final Logger logger = Logger.getLogger(SimpleIonMobilitySeries.class.getName());
 
   protected final List<MobilityScan> scans;
+
   protected DoubleBuffer intensityValues;
   protected DoubleBuffer mzValues;
 
-  public SimpleIonMobilitySeries(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
+  /**
+   * @param storage         May be null if forceStoreInRam is true.
+   * @param mzValues
+   * @param intensityValues
+   * @param scans
+   * @param forceStoreInRam Forces storage of mz and intensity values in ram. Note that all series
+   *                        created as subset or copy from this series will also be stored in ram.
+   */
+  public SimpleIonMobilitySeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, @Nonnull List<MobilityScan> scans) {
     if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
@@ -59,13 +69,19 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
     }
 
     this.scans = scans;
-    try {
-      this.mzValues = storage.storeData(mzValues);
-      this.intensityValues = storage.storeData(intensityValues);
-    } catch (IOException e) {
-      e.printStackTrace();
-      logger.log(Level.SEVERE,
-          "Error while storing data points on disk, keeping them in memory instead", e);
+
+    if (storage != null) {
+      try {
+        this.mzValues = storage.storeData(mzValues);
+        this.intensityValues = storage.storeData(intensityValues);
+      } catch (IOException e) {
+        e.printStackTrace();
+        logger.log(Level.SEVERE,
+            "Error while storing data points on disk, keeping them in memory instead", e);
+        this.mzValues = DoubleBuffer.wrap(mzValues);
+        this.intensityValues = DoubleBuffer.wrap(intensityValues);
+      }
+    } else {
       this.mzValues = DoubleBuffer.wrap(mzValues);
       this.intensityValues = DoubleBuffer.wrap(intensityValues);
     }
@@ -90,8 +106,8 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
   }
 
   @Override
-  public IonSpectrumSeries<MobilityScan> subSeries(MemoryMapStorage storage,
-      List<MobilityScan> subset) {
+  public IonSpectrumSeries<MobilityScan> subSeries(@Nullable MemoryMapStorage storage,
+      @Nonnull List<MobilityScan> subset) {
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
 
@@ -123,7 +139,7 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
   }
 
   @Override
-  public IonSpectrumSeries<MobilityScan> copy(MemoryMapStorage storage) {
+  public IonSpectrumSeries<MobilityScan> copy(@Nullable MemoryMapStorage storage) {
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 

@@ -21,6 +21,8 @@ package io.github.mzmine.datamodel.featuredata;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Stores combinations of intensity and mz values.
@@ -58,9 +60,9 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
   /**
    * Creates a sub series of this series with the data corresponding to the given list of spectra.
    *
-   * @param storage The new storage
+   * @param storage The new storage, may be null if data shall be stored in ram.
    * @param subset  The subset of spectra.
    * @return The subset series.
    */
-  IonSpectrumSeries<T> subSeries(MemoryMapStorage storage, List<T> subset);
+  IonSpectrumSeries<T> subSeries(@Nullable MemoryMapStorage storage, @Nonnull List<T> subset);
 }

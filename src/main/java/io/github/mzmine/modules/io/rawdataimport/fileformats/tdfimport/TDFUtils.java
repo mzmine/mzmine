@@ -21,7 +21,6 @@ package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 import com.google.common.collect.Range;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -30,10 +29,10 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk.ConversionUtils;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.TDFLibrary;
 import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks.CentroidData;
@@ -69,7 +68,8 @@ public class TDFUtils {
   public static int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private static TDFLibrary tdfLib = null;
 
-  private TDFUtils() {}
+  private TDFUtils() {
+  }
 
   /**
    * Initialises the tdf library. Is called when openFile is called.
@@ -122,7 +122,7 @@ public class TDFUtils {
    * <p>
    * Note: Separate Threads may not concurrently use the same handle!
    *
-   * @param path The path
+   * @param path                 The path
    * @param useRecalibratedState 0 or 1
    * @return 0 on error, the handle otherwise.
    */
@@ -166,16 +166,16 @@ public class TDFUtils {
   // -----------------------------------------------------------------------------------------------
 
   /**
-   * @param handle {@link TDFUtils#openFile(File)}
-   * @param frameId The id of the frame. See {@link TDFFrameTable}
+   * @param handle    {@link TDFUtils#openFile(File)}
+   * @param frameId   The id of the frame. See {@link TDFFrameTable}
    * @param scanBegin The first scan number
-   * @param scanEnd The last scan number
+   * @param scanEnd   The last scan number
    * @return List of DataPoint[]. Each array represents the data points of one scan
    */
-  public static List<DataPoint[]> loadDataPointsForFrame(final long handle, final long frameId,
+  public static List<double[][]> loadDataPointsForFrame(final long handle, final long frameId,
       final long scanBegin, final long scanEnd) {
 
-    final List<DataPoint[]> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
+    final List<double[][]> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
 
     // buffer to store our scans. allocation takes time, so we want to reuse it
     // cannot be final, since we might have to increase the buffer size on the run
@@ -217,14 +217,14 @@ public class TDFUtils {
         final int numPeaks = scanBuffer[i];
         final int[] indices = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
         d += numPeaks;
-        final int[] intensities = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
+        final double[] intensities = ConversionUtils
+            .convertIntsToDoubles(Arrays.copyOfRange(scanBuffer, d, d + numPeaks));
         d += numPeaks;
         final double[] masses = convertIndicesToMZ(handle, frameId, indices);
 
-        final DataPoint[] dps = new DataPoint[numPeaks];
-        for (int j = 0; j < numPeaks; j++) {
-          dps[j] = new SimpleDataPoint(masses[j], intensities[j]);
-        }
+        double[][] dps = new double[2][];
+        dps[0] = masses;
+        dps[1] = intensities;
         dataPoints.add(dps);
       }
       Arrays.fill(buffer, (byte) 0);
@@ -236,8 +236,8 @@ public class TDFUtils {
    * Loads mobility resolved scans of a specific frame. Tested with scan modes 0 and 8 (MS1 and
    * PASEF-MS/MS)
    *
-   * @param handle {@link TDFUtils#openFile(File)}
-   * @param frameId The id of the frame. See {@link TDFFrameTable}
+   * @param handle     {@link TDFUtils#openFile(File)}
+   * @param frameId    The id of the frame. See {@link TDFFrameTable}
    * @param frameTable The frame table // * @param metaDataTable The metadata table // *
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
@@ -248,7 +248,7 @@ public class TDFUtils {
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
     final LinkedHashSet<MobilityScan> spectra = new LinkedHashSet<>(numScans);
-    final List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
+    final List<double[][]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
       logger.warning(() -> "Number of scans for frame " + frameId + " in tdf (" + numScans
@@ -261,7 +261,8 @@ public class TDFUtils {
        * if (dataPoints.get(i).length == 0) { continue; }
        */
 
-      spectra.add(new SimpleMobilityScan(newFile, i, frame, dataPoints.get(i)));
+      spectra.add(
+          new SimpleMobilityScan(newFile, i, frame, dataPoints.get(i)[0], dataPoints.get(i)[1]));
     }
 
     return spectra;
@@ -277,7 +278,7 @@ public class TDFUtils {
     final long firstScanNum = frameTable.getFirstScanNumForFrame(frameId);
 
     List<Scan> scans = new ArrayList<>(numScans);
-    final List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
+    final List<double[][]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
     if (numScans != dataPoints.size()) {
       logger.warning(() -> "Number of scans for frame " + frameId + " in tdf (" + numScans
           + ") does not match number of loaded scans (" + dataPoints.size() + ").");
@@ -315,7 +316,7 @@ public class TDFUtils {
   // ---------------------------------------------------------------------------------------------
   // AVERAGE FRAMES
   // -----------------------------------------------------------------------------------------------
-  private static DataPoint[] extractCentroidsForFrame(final long handle, final long frameId,
+  private static double[][] extractCentroidsForFrame(final long handle, final long frameId,
       final int startScanNum, final int endScanNum) {
 
     final CentroidData data = new CentroidData();
@@ -325,10 +326,10 @@ public class TDFUtils {
     if (error == 0) {
       logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
           + startScanNum + " to " + endScanNum + ".");
-      return new DataPoint[0];
+      return new double[][]{{0}, {0}};
     }
 
-    return data.toDataPoints();
+    return data.toDoubles();
   }
 
   /**
@@ -345,7 +346,7 @@ public class TDFUtils {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
-    final DataPoint[] dps = extractCentroidsForFrame(handle, frameId, 0, numScans);
+    final double[][] data = extractCentroidsForFrame(handle, frameId, 0, numScans);
 
     final String scanDefinition = metaDataTable.getInstrumentType() + " - "
         + BrukerScanMode.fromScanMode(frameTable.getScanModeColumn().get(frameIndex).intValue());
@@ -366,9 +367,8 @@ public class TDFUtils {
 
     SimpleFrame frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-        0.d, 0, dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-        MobilityType.TIMS, numScans, null,
-        framePrecursorTable.getMsMsInfoForFrame(Math.toIntExact(frameId)));
+        0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
+        MobilityType.TIMS, framePrecursorTable.getMsMsInfoForFrame(Math.toIntExact(frameId)));
 
     frame.setMobilities(mobilities);
 
@@ -427,17 +427,17 @@ public class TDFUtils {
   // PASEF MS MS FUNCTIONS
   // -----------------------------------------------------------------------------------------------
   @Deprecated
-  public static DataPoint[] loadMsMsDataPointsForPrecursor_v2(final long handle,
+  public static double[][] loadMsMsDataPointsForPrecursor_v2(final long handle,
       final long precursorId) {
 
     final CentroidData data = new CentroidData();
     final long error =
-        tdfLib.tims_read_pasef_msms_v2(handle, new long[] {precursorId}, 1, data, Pointer.NULL);
+        tdfLib.tims_read_pasef_msms_v2(handle, new long[]{precursorId}, 1, data, Pointer.NULL);
     if (error == 0) {
       logger.warning(() -> "Could not extract MS/MS for precursor " + precursorId + ".");
-      return new DataPoint[0];
+      return new double[][]{{0}, {0}};
     }
-    return data.toDataPoints();
+    return data.toDoubles();
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -487,7 +487,7 @@ public class TDFUtils {
 
   /**
    * @param msMsType The MsMsType of the respective frame from the {@link TDFFrameTable}. The types
-   *        are also listed there.
+   *                 are also listed there.
    * @return The MS level as usually handled by MZmine
    */
   public static int getMZmineMsLevelFromBrukerMsMsType(final int msMsType) {

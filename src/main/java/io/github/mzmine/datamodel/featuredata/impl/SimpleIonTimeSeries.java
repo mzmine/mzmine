@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Used to store LC-MS data.
@@ -44,35 +45,42 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   protected final DoubleBuffer mzValues;
 
   /**
-   * @param storage
+   * @param storage         may be null if forceStoreInRam is true
    * @param mzValues
    * @param intensityValues
    * @param scans
-   * @see IonTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
    */
-  public SimpleIonTimeSeries(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
+  public SimpleIonTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, @Nonnull List<Scan> scans) {
     if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
     }
 
     this.scans = scans;
+
     DoubleBuffer tempMzs;
     DoubleBuffer tempIntensities;
-    try {
-      tempMzs = storage.storeData(mzValues);
-      tempIntensities = storage.storeData(intensityValues);
-    } catch (IOException e) {
-      e.printStackTrace();
+    if (storage != null) {
+      try {
+        tempMzs = storage.storeData(mzValues);
+        tempIntensities = storage.storeData(intensityValues);
+      } catch (IOException e) {
+        e.printStackTrace();
+        tempMzs = DoubleBuffer.wrap(mzValues);
+        tempIntensities = DoubleBuffer.wrap(intensityValues);
+      }
+    } else {
       tempMzs = DoubleBuffer.wrap(mzValues);
       tempIntensities = DoubleBuffer.wrap(intensityValues);
     }
+
     this.mzValues = tempMzs;
     this.intensityValues = tempIntensities;
   }
 
   @Override
-  public SimpleIonTimeSeries subSeries(MemoryMapStorage storage, List<Scan> subset) {
+  public SimpleIonTimeSeries subSeries(@Nullable MemoryMapStorage storage,
+      @Nonnull List<Scan> subset) {
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
 
@@ -113,8 +121,9 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public IonTimeSeries<Scan> copyAndReplace(MemoryMapStorage storage, double[] newMzValues,
-      double[] newIntensityValues) {
+  public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @Nonnull double[] newMzValues,
+      @Nonnull double[] newIntensityValues) {
 
     return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, this.scans);
   }

@@ -141,7 +141,7 @@ public class FeatureDataUtils {
   }
 
   public static void recalculateIonSeriesDependingTypes(ModularFeature feature) {
-    recalculateIonSeriesDependingTypes(feature, CenterMeasure.AUTO);
+    recalculateIonSeriesDependingTypes(feature, CenterMeasure.AVG);
   }
 
   public static void recalculateIonSeriesDependingTypes(ModularFeature feature, CenterMeasure cm) {

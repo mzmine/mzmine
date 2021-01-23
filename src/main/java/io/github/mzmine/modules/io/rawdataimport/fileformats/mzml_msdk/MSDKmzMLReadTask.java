@@ -18,14 +18,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.mzml_msdk;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -40,6 +32,13 @@ import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
@@ -54,7 +53,6 @@ public class MSDKmzMLReadTask extends AbstractTask {
   private RawDataFile newMZmineFile;
   private int totalScans = 0, parsedScans;
   private String description;
-  private Map<Integer, Double> buildingMobilities;
 
   public MSDKmzMLReadTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     this.file = fileToOpen;
@@ -142,7 +140,7 @@ public class MSDKmzMLReadTask extends AbstractTask {
     final List<Double> mobilities = new ArrayList<>();
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
     Set<ImsMsMsInfo> finishedImsMsMsInfos = null;
-    final IMSRawDataFile newImsFile = (IMSRawDataFile) file;
+    final IMSRawDataFile newImsFile = (IMSRawDataFile) newMZmineFile;
 
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
@@ -169,10 +167,10 @@ public class MSDKmzMLReadTask extends AbstractTask {
         }
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
-            scan.getRetentionTime() / 60f, 0, 0, new double[] {}, new double[] {},
+            scan.getRetentionTime() / 60f, 0, 0, new double[]{}, new double[]{},
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-            scan.getScanningRange(), mzMLScan.getMobility().mt(), 0, buildingMobilities, null);
+            scan.getScanningRange(), mzMLScan.getMobility().mt(), null);
         frameNumber++;
 
         StringBuilder sb = new StringBuilder();
