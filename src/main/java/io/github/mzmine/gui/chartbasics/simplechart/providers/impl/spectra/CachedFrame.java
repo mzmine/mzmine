@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.rawdataoverviewims.providers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -26,12 +26,17 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.util.DataPointUtils;
 import java.nio.DoubleBuffer;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,22 +46,107 @@ import javax.annotation.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public class CachedMobilityScan implements MobilityScan {
+public class CachedFrame implements Frame {
 
-  private final MobilityScan originalMobilityScan;
   private final double[] mzs;
   private final double[] intensities;
-  private final double tic;
+  private final Frame originalFrame;
+  private List<MobilityScan> mobilityScans;
+  private List<MobilityScan> sortedMobilityScans;
 
-  public CachedMobilityScan(MobilityScan scan, double noiseLevel) {
-    this.originalMobilityScan = scan;
+  public CachedFrame(SimpleFrame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
+    originalFrame = frame;
 
     double[][] data = DataPointUtils
-        .getDatapointsAboveNoiseLevel(scan.getMzValues(), scan.getIntensityValues(), noiseLevel);
+        .getDatapointsAboveNoiseLevel(frame.getMzValues(), frame.getIntensityValues(),
+            frameNoiseLevel);
 
     mzs = data[0];
     intensities = data[1];
-    tic = Arrays.stream(intensities).sum();
+
+    this.mobilityScans = new ArrayList<>();
+    for (MobilityScan scan : frame.getMobilityScans()) {
+      mobilityScans.add(new CachedMobilityScan(scan, mobilityScaNoiseLevel));
+    }
+    sortedMobilityScans = mobilityScans.stream()
+        .sorted(Comparator.comparingDouble(MobilityScan::getMobility)).collect(Collectors.toList());
+  }
+
+
+  public double[] getIntensities() {
+    return intensities;
+  }
+
+  public double[] getMzs() {
+    return mzs;
+  }
+
+  @Override
+  public int getNumberOfMobilityScans() {
+    return mobilityScans.size();
+  }
+
+  @Nonnull
+  @Override
+  public MobilityType getMobilityType() {
+    return originalFrame.getMobilityType();
+  }
+
+  @Nonnull
+  @Override
+  public Range<Double> getMobilityRange() {
+    return originalFrame.getMobilityRange();
+  }
+
+  @Nullable
+  @Override
+  public MobilityScan getMobilityScan(int num) {
+    return mobilityScans.get(num);
+  }
+
+  @Nonnull
+  @Override
+  public List<MobilityScan> getMobilityScans() {
+    return mobilityScans;
+  }
+
+  @Nonnull
+  @Override
+  public List<MobilityScan> getSortedMobilityScans() {
+    return sortedMobilityScans;
+  }
+
+  @Override
+  public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
+    return originalFrame.getMobilityForMobilityScanNumber(mobilityScanIndex);
+  }
+
+  @Override
+  public double getMobilityForMobilityScan(MobilityScan scan) {
+    return originalFrame.getMobilityForMobilityScan(scan);
+  }
+
+  @Nullable
+  @Override
+  public DoubleBuffer getMobilities() {
+    return originalFrame.getMobilities();
+  }
+
+  @Nonnull
+  @Override
+  public Set<ImsMsMsInfo> getImsMsMsInfos() {
+    return originalFrame.getImsMsMsInfos();
+  }
+
+  @Nullable
+  @Override
+  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+    return originalFrame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
+  }
+
+  @Override
+  public void addMobilityScan(MobilityScan originalMobilityScan) {
+    originalFrame.addMobilityScan(originalMobilityScan);
   }
 
   @Override
@@ -66,7 +156,7 @@ public class CachedMobilityScan implements MobilityScan {
 
   @Override
   public MassSpectrumType getSpectrumType() {
-    return originalMobilityScan.getSpectrumType();
+    return originalFrame.getSpectrumType();
   }
 
   @Nonnull
@@ -96,13 +186,13 @@ public class CachedMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Double getBasePeakMz() {
-    return originalMobilityScan.getBasePeakMz();
+    return originalFrame.getBasePeakMz();
   }
 
   @Nullable
   @Override
   public Double getBasePeakIntensity() {
-    return originalMobilityScan.getBasePeakIntensity();
+    return originalFrame.getBasePeakIntensity();
   }
 
   @Nullable
@@ -115,13 +205,15 @@ public class CachedMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Range<Double> getDataPointMZRange() {
-    return originalMobilityScan.getDataPointMZRange();
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
   }
 
   @Nullable
   @Override
   public Double getTIC() {
-    return tic;
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
   }
 
   @Override
@@ -133,37 +225,52 @@ public class CachedMobilityScan implements MobilityScan {
   @Nonnull
   @Override
   public RawDataFile getDataFile() {
-    return originalMobilityScan.getDataFile();
+    return originalFrame.getDataFile();
   }
 
   @Override
-  public double getMobility() {
-    return originalMobilityScan.getMobility();
+  public int getScanNumber() {
+    return originalFrame.getScanNumber();
+  }
+
+  @Nonnull
+  @Override
+  public String getScanDefinition() {
+    return originalFrame.getScanDefinition();
   }
 
   @Override
-  public MobilityType getMobilityType() {
-    return originalMobilityScan.getMobilityType();
-  }
-
-  @Override
-  public Frame getFrame() {
-    return originalMobilityScan.getFrame();
+  public int getMSLevel() {
+    return originalFrame.getMSLevel();
   }
 
   @Override
   public float getRetentionTime() {
-    return originalMobilityScan.getRetentionTime();
+    return originalFrame.getRetentionTime();
   }
 
+  @Nonnull
   @Override
-  public int getMobilityScamNumber() {
-    return originalMobilityScan.getMobilityScamNumber();
+  public Range<Double> getScanningMZRange() {
+    return originalFrame.getScanningMZRange();
+  }
+
+  @Nonnull
+  @Override
+  public PolarityType getPolarity() {
+    return originalFrame.getPolarity();
+  }
+
+  @Nonnull
+  @Override
+  public MassList[] getMassLists() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
   }
 
   @Nullable
   @Override
-  public ImsMsMsInfo getMsMsInfo() {
+  public MassList getMassList(@Nonnull String name) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
@@ -176,19 +283,6 @@ public class CachedMobilityScan implements MobilityScan {
 
   @Override
   public void removeMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
-  @Nonnull
-  @Override
-  public Set<MassList> getMassLists() {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
-  @Override
-  public MassList getMassList(@Nonnull String name) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }

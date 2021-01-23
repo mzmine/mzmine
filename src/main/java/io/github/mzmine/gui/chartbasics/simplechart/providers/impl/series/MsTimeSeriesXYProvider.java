@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.datamodel.features.types.graphicalnodes.provider;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -29,6 +29,9 @@ import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 
+/**
+ * TODO replace usages with IonTimeSeriesToXYProvider
+ */
 public class MsTimeSeriesXYProvider implements PlotXYDataProvider {
 
   private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();

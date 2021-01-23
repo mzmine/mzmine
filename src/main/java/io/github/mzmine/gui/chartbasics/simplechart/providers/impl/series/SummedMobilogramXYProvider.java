@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.datamodel.features.types.graphicalnodes.provider;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -33,6 +33,11 @@ import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Used to plot a {@link SummedIntensityMobilitySeries} in an XY chart.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class SummedMobilogramXYProvider implements PlotXYDataProvider {
 
   private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -44,7 +49,7 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     IonTimeSeries<? extends Scan> series = f.getFeatureData();
     if (!(series instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException(
-          "Feature does not possess an IonMobilityTime series, cannot create mobilogram chart");
+          "Feature does not possess an IonMobilogramTimeSeries, cannot create mobilogram chart");
     }
     data = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
     color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());

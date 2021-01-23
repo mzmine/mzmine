@@ -1,30 +1,23 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
-package io.github.mzmine.modules.visualization.rawdataoverviewims.providers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
-import java.awt.Color;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import javax.annotation.Nullable;
-import org.jfree.chart.renderer.PaintScale;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
@@ -34,9 +27,24 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvide
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.annotation.Nullable;
+import org.jfree.chart.renderer.PaintScale;
 
-public class IonTraceProvider implements PlotXYZDataProvider {
+/**
+ * Constructs an ion trace with a given mz and rt range from a raw data file. This trace is freshly
+ * calculated from the raw data. If a dataset has already been calculated in a {@link
+ * io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the {@link
+ * IonTimeSeriesToXYProvider} instead.
+ *
+ * @author https://github.com/SteffenHeu
+ */
+public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider {
 
   private final List<Double> rtValues;
   private final List<Double> mobilityValues;
@@ -50,9 +58,16 @@ public class IonTraceProvider implements PlotXYZDataProvider {
 
   private double finishedPerecentage;
 
-
-  public IonTraceProvider(IMSRawDataFile rawDataFile, Range<Double> mzRange, Range<Float> rtRange,
-      double noiseLevel) {
+  /**
+   * Constructs an ion trace with a given mz and rt range from a raw data file. This trace is
+   * freshly calculated from the raw data. If a dataset has already been calculated in a {@link
+   * io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the {@link
+   * IonMobilogramTimeSeriesHeatmapProvider} instead.
+   *
+   * @author https://github.com/SteffenHeu
+   */
+  public IMSIonTraceHeatmapProvider(IMSRawDataFile rawDataFile, Range<Double> mzRange,
+      Range<Float> rtRange, double noiseLevel) {
     this.rtValues = new ArrayList<>();
     this.mobilityValues = new ArrayList<>();
     this.intensityValues = new ArrayList<>();
