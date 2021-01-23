@@ -20,14 +20,17 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.XYResolver;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import javax.annotation.Nullable;
 
 public class MinimumSearchFeatureResolverParameters extends GeneralResolverParameters {
 
@@ -59,14 +62,14 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
 
   public MinimumSearchFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
-        CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
+        dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
         MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     final FeatureResolverSetupDialog dialog =
-        new FeatureResolverSetupDialog(valueCheckRequired, this,null);
+        new FeatureResolverSetupDialog(valueCheckRequired, this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -74,5 +77,11 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
   @Override
   public FeatureResolver getResolver() {
     return new MinimumSearchFeatureResolver();
+  }
+
+  @Nullable
+  @Override
+  public XYResolver<Double, Double, double[], double[]> getXYResolver(ParameterSet parameters) {
+    return new MinimumSearchFeatureResolver(parameters);
   }
 }

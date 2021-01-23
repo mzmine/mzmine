@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.CenterMeasureParameter;
@@ -30,6 +30,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.maths.CenterMeasure;
+import javafx.collections.FXCollections;
+import javax.annotation.Nullable;
 
 public abstract class GeneralResolverParameters extends SimpleParameterSet {
 
@@ -49,6 +51,10 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
       "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters());
 
+  public static final ComboParameter<ResolvingDimension> dimension = new ComboParameter<>("Dimension",
+      "Select the dimension to be resolved.",
+      FXCollections.observableArrayList(ResolvingDimension.values()), ResolvingDimension.RETENTION_TIME);
+
   /**
    * R engine type. Only added in parameter sets that need R.
    */
@@ -61,4 +67,9 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   }
 
   public abstract FeatureResolver getResolver();
+
+  @Nullable
+  public XYResolver<Double, Double, double[], double[]> getXYResolver(ParameterSet parameterSet) {
+    return null;
+  }
 }
