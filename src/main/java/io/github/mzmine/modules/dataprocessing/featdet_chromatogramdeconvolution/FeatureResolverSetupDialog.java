@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.MsTimeSeriesXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
@@ -58,7 +57,7 @@ import javafx.scene.layout.GridPane;
 
 public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview {
 
-  protected final SimpleXYChart<MsTimeSeriesXYProvider> previewChart;
+  protected final SimpleXYChart<IonTimeSeriesToXYProvider> previewChart;
   protected final UnitFormat uf;
   protected final NumberFormat rtFormat;
   protected final NumberFormat intensityFormat;
@@ -111,7 +110,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     // add preview depending on which dimension is selected.
     if (dimension == ResolvingDimension.RETENTION_TIME) {
       Platform.runLater(() -> {
-        previewChart.addDataset(new FastColoredXYDataset(new MsTimeSeriesXYProvider(newValue)));
+        previewChart.addDataset(new FastColoredXYDataset(new IonTimeSeriesToXYProvider(newValue)));
         previewChart.setDomainAxisLabel(uf.format("Retention time", "min"));
         previewChart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
       });

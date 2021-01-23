@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.MsTimeSeriesXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import java.util.LinkedHashSet;
@@ -44,7 +44,7 @@ public class FeatureShapeChart extends StackPane {
 
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
-    SimpleXYChart<MsTimeSeriesXYProvider> chart = new SimpleXYChart<>(
+    SimpleXYChart<IonTimeSeriesToXYProvider> chart = new SimpleXYChart<>(
         uf.format("Retention time", "min"),
         uf.format("Intensity", "cps"));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
@@ -57,7 +57,7 @@ public class FeatureShapeChart extends StackPane {
       IonTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).getFeatureData();
       if (dpSeries != null) {
         ColoredXYDataset dataset = new FastColoredXYDataset(
-            new MsTimeSeriesXYProvider((ModularFeature) f));
+            new IonTimeSeriesToXYProvider((ModularFeature) f));
         datasets.add(dataset);
       }
       if (progress != null) {
