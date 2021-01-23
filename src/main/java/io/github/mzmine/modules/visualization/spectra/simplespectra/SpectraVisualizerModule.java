@@ -18,17 +18,20 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
-import java.util.Collection;
-import javax.annotation.Nonnull;
-
-import io.github.mzmine.datamodel.*;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 /**
  * Spectrum visualizer
@@ -59,6 +62,10 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
     String massList = parameters.getParameter(SpectraVisualizerParameters.massList).getValue();
     addNewSpectrumTab(dataFiles[0], dataFiles[0].getScanAtNumber(scanNumber), massList);
     return ExitCode.OK;
+  }
+
+  public static SpectraVisualizerTab addNewSpectrumTab(Scan scan) {
+    return addNewSpectrumTab(scan.getDataFile(), scan);
   }
 
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile,

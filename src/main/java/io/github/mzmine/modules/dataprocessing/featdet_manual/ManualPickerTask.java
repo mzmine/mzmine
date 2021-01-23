@@ -123,6 +123,7 @@ class ManualPickerTask extends AbstractTask {
 
       if (dataPointFound) {
         newFeature.finalizeFeature();
+        newFeature.setFeatureList(featureList);
         if (newFeature.getArea() > 0) {
           featureListRow.addFeature(dataFile,
               FeatureConvertors.ManualFeatureToModularFeature(featureList, newFeature));

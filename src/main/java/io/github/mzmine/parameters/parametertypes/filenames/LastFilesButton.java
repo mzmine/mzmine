@@ -23,6 +23,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -69,7 +70,10 @@ public class LastFilesButton extends Button implements LastFilesComponent {
     lastFiles = new ArrayList<>();
     setLastFiles(lastFiles);
     // show menu on click
-    this.setOnAction(e -> menu.show(this, 0, 0));
+    this.setOnAction(e -> {
+      final Bounds boundsInScreen = this.localToScreen(this.getBoundsInLocal());
+      menu.show(this, boundsInScreen.getCenterX(), boundsInScreen.getCenterY());
+    });
   }
 
   @Override
