@@ -18,18 +18,6 @@
 
 package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -48,6 +36,18 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -171,6 +171,7 @@ public class TDFReaderTask extends AbstractTask {
         frameId++;
         loadedFrames++;
         if (isCanceled()) {
+          TDFUtils.close(handle);
           return;
         }
       }
@@ -180,12 +181,17 @@ public class TDFReaderTask extends AbstractTask {
 
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
+
     // } else {
     // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
     // metaDataTable, maldiFrameInfoTable);
     // }
 
     TDFUtils.close(handle);
+
+    if (isCanceled()) {
+      return;
+    }
 
     setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
     finishedPercentage = 1.0;
