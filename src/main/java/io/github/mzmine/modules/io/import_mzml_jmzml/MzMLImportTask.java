@@ -18,18 +18,6 @@
 
 package io.github.mzmine.modules.io.import_mzml_jmzml;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
@@ -44,6 +32,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
 import uk.ac.ebi.jmzml.model.mzml.CVParam;
@@ -117,9 +117,9 @@ public class MzMLImportTask extends AbstractTask {
 
       totalScans = unmarshaller.getObjectCountForXpath("/run/spectrumList/spectrum");
 
-//      fillScanIdTable(
-//          unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class),
-//          totalScans);
+      // fillScanIdTable(
+      // unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class),
+      // totalScans);
 
       MzMLObjectIterator<Spectrum> spectrumIterator =
           unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class);
@@ -141,7 +141,7 @@ public class MzMLImportTask extends AbstractTask {
         }
 
         String scanId = spectrum.getId();
-//        Integer scanNumber = scanIdTable.get(scanId);
+        // Integer scanNumber = scanIdTable.get(scanId);
         Integer scanNumber = getScanNumber(scanId).orElse(null);
         if (scanNumber == null) {
           throw new IllegalStateException("Cannot determine scan number: " + scanId);
@@ -151,7 +151,7 @@ public class MzMLImportTask extends AbstractTask {
         int msLevel = extractMSLevel(spectrum);
         float retentionTime = (float) extractRetentionTime(spectrum);
         PolarityType polarity = extractPolarity(spectrum);
-//        int parentScan = extractParentScanNumber(spectrum);
+        // int parentScan = extractParentScanNumber(spectrum);
         double precursorMz = extractPrecursorMz(spectrum);
         int precursorCharge = extractPrecursorCharge(spectrum);
         String scanDefinition = extractScanDefinition(spectrum);
@@ -164,27 +164,23 @@ public class MzMLImportTask extends AbstractTask {
 
         io.github.mzmine.datamodel.Scan scan = null;
 
-//        if (mobility == null) {
-          scan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, precursorMz,
-              precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanDefinition,
-              null);
-        /*} else if (mobility != null && newImsFile != null) {
-          if (buildingFrame == null
-              || Float.compare(retentionTime, buildingFrame.getRetentionTime()) != 0) {
-            mobilityScanNumberCounter = 1;
-            buildingMobilities = new HashMap<>();
-            scan = buildingFrame; // for ims, we put the frame into the stack
-            // after all moblity scans have been loaded
-            buildingFrame = new SimpleFrame(newImsFile, scanNumber, msLevel, retentionTime,
-                precursorMz, precursorCharge, mzValues, intensityValues, spectrumType, polarity,
-                scanDefinition, null, mobility.mobilityType(), 0, buildingMobilities, null);
-          }
-          buildingFrame.addMobilityScan(
-              new SimpleMobilityScan(newImsFile, mobilityScanNumberCounter, buildingFrame,
-                  mzValues, intensityValues));
-          buildingMobilities.put(mobilityScanNumberCounter, mobility.mobility());
-          mobilityScanNumberCounter++;
-        }*/
+        // if (mobility == null) {
+        scan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, precursorMz,
+            precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanDefinition,
+            null);
+        /*
+         * } else if (mobility != null && newImsFile != null) { if (buildingFrame == null ||
+         * Float.compare(retentionTime, buildingFrame.getRetentionTime()) != 0) {
+         * mobilityScanNumberCounter = 1; buildingMobilities = new HashMap<>(); scan =
+         * buildingFrame; // for ims, we put the frame into the stack // after all moblity scans
+         * have been loaded buildingFrame = new SimpleFrame(newImsFile, scanNumber, msLevel,
+         * retentionTime, precursorMz, precursorCharge, mzValues, intensityValues, spectrumType,
+         * polarity, scanDefinition, null, mobility.mobilityType(), 0, buildingMobilities, null); }
+         * buildingFrame.addMobilityScan( new SimpleMobilityScan(newImsFile,
+         * mobilityScanNumberCounter, buildingFrame, mzValues, intensityValues));
+         * buildingMobilities.put(mobilityScanNumberCounter, mobility.mobility());
+         * mobilityScanNumberCounter++; }
+         */
 
         /*
          * for (io.github.mzmine.datamodel.Scan s : parentStack) { if (s.getScanNumber() ==
@@ -204,9 +200,10 @@ public class MzMLImportTask extends AbstractTask {
         }
 
         parsedScans++;
-        if(getFinishedPercentage() >= 5) {
+        if (getFinishedPercentage() >= 5) {
           Date fivePerc = new Date();
-          logger.info("Extracted " + parsedScans + " in " + ((fivePerc.getTime() - start.getTime())/1000) + " s");
+          logger.info("Extracted " + parsedScans + " in "
+              + ((fivePerc.getTime() - start.getTime()) / 1000) + " s");
         }
 
       }
@@ -583,7 +580,10 @@ public class MzMLImportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Opening file " + file + " " + " " + parsedScans + "/" + totalScans;
+    if (totalScans == 0)
+      return "Opening file " + file;
+    else
+      return "Opening file " + file + ", parsed " + parsedScans + "/" + totalScans + " scans";
   }
 
   boolean isMsSpectrum(Spectrum spectrum) {
@@ -607,12 +607,14 @@ public class MzMLImportTask extends AbstractTask {
   }
 
   /**
-   * Agilent/Waters(?) <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time"
-   * value= "0.217002108693" unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
+   * Agilent/Waters(?)
+   * <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value=
+   * "0.217002108693" unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
    * <p>
-   * Bruker (converted by Proteowizard MSConvert): <cvParam cvRef="MS" accession="MS:1002815"
-   * name="inverse reduced ion mobility" value="1.582079103978" unitCvRef="MS"
-   * unitAccession="MS:1002814" unitName="volt-second per square centimeter"/>
+   * Bruker (converted by Proteowizard MSConvert):
+   * <cvParam cvRef="MS" accession="MS:1002815" name="inverse reduced ion mobility" value=
+   * "1.582079103978" unitCvRef="MS" unitAccession="MS:1002814" unitName="volt-second per square
+   * centimeter"/>
    *
    * @param spectrum
    * @return
@@ -656,7 +658,6 @@ public class MzMLImportTask extends AbstractTask {
         }
       }
     }
-    logger.info("Could not extract mobility");
     return null;
   }
 

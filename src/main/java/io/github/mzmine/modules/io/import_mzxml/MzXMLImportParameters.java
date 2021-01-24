@@ -29,8 +29,13 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MzXMLImportParameters extends SimpleParameterSet {
 
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("mzXML files", "*.mzXML"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+
   public static final FileNamesParameter fileNames =
-      new FileNamesParameter("File names", "", List.of(new ExtensionFilter("raw", "raw")));
+      new FileNamesParameter("File names", "", extensions);
 
   public MzXMLImportParameters() {
     super(new Parameter[] {fileNames});
@@ -41,24 +46,8 @@ public class MzXMLImportParameters extends SimpleParameterSet {
 
     FileChooser fileChooser = new FileChooser();
     fileChooser.setTitle("Import raw data files");
-    fileChooser.getExtensionFilters().addAll(
-        new ExtensionFilter("All raw data files", "*.cdf", "*.nc", "*.mzData", "*.mzML", "*.mzXML",
-            "*.xml", "*.raw", "*.csv", "*.zip", "*.gz", "*.tdf"), //
-        new ExtensionFilter("NetCDF files", "*.cdf", "*.nc"), //
-        new ExtensionFilter("mzML files", "*.mzML"), //
-        new ExtensionFilter("imzML files", "*.imzML"), //
-        new ExtensionFilter("mzData files", "*.mzData"), //
-        new ExtensionFilter("mzXML files", "*.mzXML"), //
-        new ExtensionFilter("Thermo RAW files", "*.raw"), //
-        new ExtensionFilter("Waters RAW folders", "*.raw"), //
-        new ExtensionFilter("Agilent CSV files", "*.csv"), //
-        new ExtensionFilter("Compressed files", "*.zip", "*.gz"), //
-        new ExtensionFilter("Bruker tdf files", "*.tdf"), //
-        new ExtensionFilter("All Files", "*.*"));
+    fileChooser.getExtensionFilters().addAll(extensions);
 
-    // We need to allow directories, because Waters raw data come in
-    // directories, not files
-    // chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
     File lastFiles[] = getParameter(fileNames).getValue();
     if ((lastFiles != null) && (lastFiles.length > 0)) {

@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -55,17 +54,19 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 public class TDFImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
-  private final File tdf;
-  private final File tdfBin;
-  private final String rawDataFileName;
-  private final TDFMetaDataTable metaDataTable;
-  private final TDFFrameTable frameTable;
-  private final TDFPrecursorTable precursorTable;
-  private final TDFPasefFrameMsMsInfoTable pasefFrameMsMsInfoTable;
-  private final TDFFrameMsMsInfoTable frameMsMsInfoTable;
-  private final FramePrecursorTable framePrecursorTable;
-  private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
-  private final IMSRawDataFile newMZmineFile;
+
+  private final MZmineProject project;
+  private File fileNameToOpen;
+  private File tdf, tdfBin;
+  private String rawDataFileName;
+  private TDFMetaDataTable metaDataTable;
+  private TDFFrameTable frameTable;
+  private TDFPrecursorTable precursorTable;
+  private TDFPasefFrameMsMsInfoTable pasefFrameMsMsInfoTable;
+  private TDFFrameMsMsInfoTable frameMsMsInfoTable;
+  private FramePrecursorTable framePrecursorTable;
+  private TDFMaldiFrameInfoTable maldiFrameInfoTable;
+  private IMSRawDataFile newMZmineFile;
   private boolean isMaldi;
 
   private String description;
@@ -87,42 +88,9 @@ public class TDFImportTask extends AbstractTask {
    *        {@link MZmineCore#createNewIMSFile(String)}.
    */
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile) {
-    File[] files = new File[2];
-    if (file.isDirectory()) {
-      files = getDataFilesFromDir(file);
-    } else {
-      files = getDataFilesFromDir(file.getParentFile());
-    }
-
-    this.tdf = files[0];
-    this.tdfBin = files[0];
-
-    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead() || !tdfBin.exists()
-        || !tdfBin.canRead()) {
-      throw new IllegalArgumentException(
-          "\"Cannot open sql or bin files: \" + tdf.getName() + \"; \" + tdfBin.getName()");
-    }
-
-    metaDataTable = new TDFMetaDataTable();
-    frameTable = new TDFFrameTable();
-    precursorTable = new TDFPrecursorTable();
-    pasefFrameMsMsInfoTable = new TDFPasefFrameMsMsInfoTable();
-    frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
-    framePrecursorTable = new FramePrecursorTable(frameTable);
-    maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
-    isMaldi = false;
-
-    rawDataFileName = tdfBin.getParentFile().getName();
-
-    if (!(newMZmineFile instanceof IMSRawDataFileImpl)) {
-      throw new IllegalArgumentException("Raw data file was not recognised as IMSRawDataFile.");
-    }
-
+    this.fileNameToOpen = file;
+    this.project = project;
     this.newMZmineFile = newMZmineFile;
-    newMZmineFile.setName(rawDataFileName);
-
-    loadedFrames = 0;
-    setStatus(TaskStatus.WAITING);
   }
 
   @Override
@@ -143,8 +111,45 @@ public class TDFImportTask extends AbstractTask {
 
     long handle = TDFUtils.openFile(tdfBin);
 
+    File[] files = new File[2];
+    if (fileNameToOpen.isDirectory()) {
+      files = getDataFilesFromDir(fileNameToOpen);
+    } else {
+      files = getDataFilesFromDir(fileNameToOpen.getParentFile());
+    }
+
+    this.tdf = files[0];
+    this.tdfBin = files[0];
+
+    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead() || !tdfBin.exists()
+        || !tdfBin.canRead()) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Cannot open sql or bin files: " + tdf.getName() + "; " + tdfBin.getName());
+    }
+
+    metaDataTable = new TDFMetaDataTable();
+    frameTable = new TDFFrameTable();
+    precursorTable = new TDFPrecursorTable();
+    pasefFrameMsMsInfoTable = new TDFPasefFrameMsMsInfoTable();
+    frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
+    framePrecursorTable = new FramePrecursorTable(frameTable);
+    maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
+    isMaldi = false;
+
+    rawDataFileName = tdfBin.getParentFile().getName();
+
+    if (!(newMZmineFile instanceof IMSRawDataFileImpl)) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Raw data file was not recognised as IMSRawDataFile.");
+      return;
+    }
+
+    newMZmineFile.setName(rawDataFileName);
+
+    loadedFrames = 0;
+
     if (handle == 0l) {
-      setStatus(TaskStatus.PROCESSING);
+      setStatus(TaskStatus.ERROR);
       setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
       return;
     }
@@ -191,8 +196,8 @@ public class TDFImportTask extends AbstractTask {
     finishedPercentage = 1.0;
     logger.info("Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans()
         + " scans and " + newMZmineFile.getNumberOfFrames() + " frames.");
-    MZmineCore.getProjectManager().getCurrentProject().addFile(newMZmineFile);
-//    compareMobilities(newMZmineFile);
+    project.addFile(newMZmineFile);
+    // compareMobilities(newMZmineFile);
 
     setStatus(TaskStatus.FINISHED);
 
@@ -252,10 +257,11 @@ public class TDFImportTask extends AbstractTask {
       }
 
       connection.close();
-    } catch (SQLException throwable) {
-      throwable.printStackTrace();
+    } catch (Throwable t) {
+      t.printStackTrace();
       logger.info("If stack trace contains \"out of memory\" the file was not found.");
       setStatus(TaskStatus.ERROR);
+      setErrorMessage(t.toString());
     }
   }
 
@@ -362,24 +368,17 @@ public class TDFImportTask extends AbstractTask {
     rawDataFile.addSegment(Range.closed(1, frameTable.getNumberOfFrames()));
   }
 
-  /*private void compareMobilities(IMSRawDataFile rawDataFile) {
-    for (int i = 1; i < rawDataFile.getNumberOfFrames() - 1; i++) {
-      Frame thisFrame = rawDataFile.getFrame(i);
-      Frame nextFrame = rawDataFile.getFrame(i + 1);
-
-      if (nextFrame == null) {
-        break;
-      }
-
-      Set<Integer> nums = thisFrame.getMobilityScanNumbers();
-      for (Integer num : nums) {
-        if (Double.compare(thisFrame.getMobilityForMobilityScanNumber(num),
-            nextFrame.getMobilityForMobilityScanNumber(num)) != 0) {
-          logger.info("Mobilities for num " + num + " dont match 1: "
-              + thisFrame.getMobilityForMobilityScanNumber(num) + " 2: "
-              + nextFrame.getMobilityForMobilityScanNumber(num));
-        }
-      }
-    }
-  }*/
+  /*
+   * private void compareMobilities(IMSRawDataFile rawDataFile) { for (int i = 1; i <
+   * rawDataFile.getNumberOfFrames() - 1; i++) { Frame thisFrame = rawDataFile.getFrame(i); Frame
+   * nextFrame = rawDataFile.getFrame(i + 1);
+   *
+   * if (nextFrame == null) { break; }
+   *
+   * Set<Integer> nums = thisFrame.getMobilityScanNumbers(); for (Integer num : nums) { if
+   * (Double.compare(thisFrame.getMobilityForMobilityScanNumber(num),
+   * nextFrame.getMobilityForMobilityScanNumber(num)) != 0) { logger.info("Mobilities for num " +
+   * num + " dont match 1: " + thisFrame.getMobilityForMobilityScanNumber(num) + " 2: " +
+   * nextFrame.getMobilityForMobilityScanNumber(num)); } } } }
+   */
 }

@@ -24,13 +24,18 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.ExitCode;
-import javafx.stage.FileChooser;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class WatersRawImportParameters extends SimpleParameterSet {
 
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("Waters RAW folders", "*.raw"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+
   public static final FileNamesParameter fileNames =
-      new FileNamesParameter("File names", "", List.of(new ExtensionFilter("raw", "raw")));
+      new FileNamesParameter("File names", "", extensions);
 
   public WatersRawImportParameters() {
     super(new Parameter[] {fileNames});
@@ -39,26 +44,8 @@ public class WatersRawImportParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    FileChooser fileChooser = new FileChooser();
+    DirectoryChooser fileChooser = new DirectoryChooser();
     fileChooser.setTitle("Import raw data files");
-    fileChooser.getExtensionFilters().addAll(
-        new ExtensionFilter("All raw data files", "*.cdf", "*.nc", "*.mzData", "*.mzML", "*.mzXML",
-            "*.xml", "*.raw", "*.csv", "*.zip", "*.gz", "*.tdf"), //
-        new ExtensionFilter("NetCDF files", "*.cdf", "*.nc"), //
-        new ExtensionFilter("mzML files", "*.mzML"), //
-        new ExtensionFilter("imzML files", "*.imzML"), //
-        new ExtensionFilter("mzData files", "*.mzData"), //
-        new ExtensionFilter("mzXML files", "*.mzXML"), //
-        new ExtensionFilter("Thermo RAW files", "*.raw"), //
-        new ExtensionFilter("Waters RAW folders", "*.raw"), //
-        new ExtensionFilter("Agilent CSV files", "*.csv"), //
-        new ExtensionFilter("Compressed files", "*.zip", "*.gz"), //
-        new ExtensionFilter("Bruker tdf files", "*.tdf"), //
-        new ExtensionFilter("All Files", "*.*"));
-
-    // We need to allow directories, because Waters raw data come in
-    // directories, not files
-    // chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
     File lastFiles[] = getParameter(fileNames).getValue();
     if ((lastFiles != null) && (lastFiles.length > 0)) {
@@ -68,11 +55,11 @@ public class WatersRawImportParameters extends SimpleParameterSet {
       }
     }
 
-    List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
-    if (selectedFiles == null) {
+    File selectedFile = fileChooser.showDialog(null);
+    if (selectedFile == null) {
       return ExitCode.CANCEL;
     }
-    getParameter(fileNames).setValue(selectedFiles.toArray(new File[0]));
+    getParameter(fileNames).setValue(new File[] {selectedFile});
 
     return ExitCode.OK;
 

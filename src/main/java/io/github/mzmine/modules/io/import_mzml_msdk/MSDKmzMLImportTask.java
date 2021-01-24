@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLMsScan;
@@ -117,17 +118,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   public void buildLCMSFile(io.github.msdk.datamodel.RawDataFile file) throws IOException {
     for (MsScan scan : file.getScans()) {
-      newMZmineFile.addScan(ConversionUtils.msdkScanToSimpleScan(newMZmineFile, (MzMLMsScan) scan));
+      MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      Scan newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan);
+      newMZmineFile.addScan(newScan);
       parsedScans++;
-      StringBuilder sb = new StringBuilder();
-      sb.append("Importing ");
-      sb.append(file.getName());
-      sb.append(". Parsed ");
-      sb.append(parsedScans);
-      sb.append("/");
-      sb.append(totalScans);
-      sb.append(" scans");
-      description = sb.toString();
+      description =
+          "Importing " + file.getName() + ", parsed " + parsedScans + "/" + totalScans + " scans";
     }
   }
 
@@ -173,15 +169,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
             scan.getScanningRange(), mzMLScan.getMobility().mt(), null);
         frameNumber++;
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("Importing ");
-        sb.append(file.getName());
-        sb.append(". Parsed ");
-        sb.append(parsedScans);
-        sb.append("/");
-        sb.append(totalScans);
-        sb.append(" scans");
-        description = sb.toString();
+        description =
+            "Importing " + file.getName() + ", parsed " + parsedScans + "/" + totalScans + " scans";
       }
 
       mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(newImsFile,

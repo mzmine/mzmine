@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.import_csv;
+package io.github.mzmine.modules.io.import_features_csv;
 
 import java.util.List;
 import io.github.mzmine.parameters.Parameter;

@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.export_csv;
+package io.github.mzmine.modules.io.export_features_csv;
 
 import io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
 import io.github.mzmine.parameters.Parameter;

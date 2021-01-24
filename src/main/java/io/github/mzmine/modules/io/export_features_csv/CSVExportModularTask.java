@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.export_csv;
+package io.github.mzmine.modules.io.export_features_csv;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;

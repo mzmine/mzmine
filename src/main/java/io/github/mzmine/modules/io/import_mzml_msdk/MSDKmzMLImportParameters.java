@@ -29,7 +29,13 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MSDKmzMLImportParameters extends SimpleParameterSet {
 
-  public static final FileNamesParameter fileNames = new FileNamesParameter("File names");
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("mzML files", "*.mzML"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+
+  public static final FileNamesParameter fileNames =
+      new FileNamesParameter("File names", "", extensions);
 
   public MSDKmzMLImportParameters() {
     super(new Parameter[] {fileNames});
@@ -40,9 +46,7 @@ public class MSDKmzMLImportParameters extends SimpleParameterSet {
 
     FileChooser fileChooser = new FileChooser();
     fileChooser.setTitle("Import mzML files");
-    fileChooser.getExtensionFilters().addAll(new ExtensionFilter("mzML files", "*.mzML"), //
-        new ExtensionFilter("Compressed files", "*.zip", "*.gz"), //
-        new ExtensionFilter("All Files", "*.*"));
+    fileChooser.getExtensionFilters().addAll(extensions);
 
     File lastFiles[] = getParameter(fileNames).getValue();
     if ((lastFiles != null) && (lastFiles.length > 0)) {

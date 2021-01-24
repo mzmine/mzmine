@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.export_csv;
+package io.github.mzmine.modules.io.export_features_csv;
 
 public enum ExportRowDataFileElement {
 
