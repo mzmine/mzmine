@@ -57,7 +57,7 @@ public class ConversionUtils {
         return MassSpectrumType.PROFILE;
       }
       case CENTROIDED -> {
-        return MassSpectrumType.PROFILE;
+        return MassSpectrumType.CENTROIDED;
       }
       case THRESHOLDED -> {
         return MassSpectrumType.THRESHOLDED;
