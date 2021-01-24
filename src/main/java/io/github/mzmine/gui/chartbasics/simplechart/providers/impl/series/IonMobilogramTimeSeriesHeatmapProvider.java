@@ -16,53 +16,59 @@
  *  USA
  */
 
-package io.github.mzmine.datamodel.features.types.graphicalnodes.provider;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
-public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
+/**
+ * Provides a {@link io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset} with a
+ * {@link IonMobilogramTimeSeries}. The underlying data is used, no calculations are needed.
+ *
+ * @author https://github.com/SteffenHeu
+ */
+public class IonMobilogramTimeSeriesHeatmapProvider implements PlotXYZDataProvider {
 
-  private final ModularFeature f;
-  private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-  private final List<Double> rts;
-  private final List<Double> mobilities;
-  private final List<Double> intensities;
   private final IonMobilogramTimeSeries data;
-  private double progress;
+  private final String seriesKey;
+  private final javafx.scene.paint.Color color;
   int numValues = 0;
+  private double progress;
 
-  public IonMobilityTimeSeriesXYZProvider(final ModularFeature f) {
+  public IonMobilogramTimeSeriesHeatmapProvider(final ModularFeature f) {
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException("Cannot create IMS heatmap for non-IMS feature");
     }
-    this.f = f;
     data = (IonMobilogramTimeSeries) f.getFeatureData();
-    rts = new ArrayList<>();
-    mobilities = new ArrayList<>();
-    intensities = new ArrayList<>();
-    progress = 0;
+    seriesKey = FeatureUtils.featureToString(f);
+    color = f.getRawDataFile().getColor();
+    progress = 1d;
+  }
+
+  public IonMobilogramTimeSeriesHeatmapProvider(final IonMobilogramTimeSeries data,
+      final String seriesKey, final javafx.scene.paint.Color color) {
+    this.data = data;
+    this.seriesKey = seriesKey;
+    this.color = color;
   }
 
   @Override
   public Color getAWTColor() {
-    return f.getRawDataFile().getColorAWT();
+    return FxColorUtil.fxColorToAWT(color);
   }
 
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return f.getRawDataFile().getColor();
+    return color;
   }
 
   @Override
@@ -78,7 +84,7 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return "m/z " + mzFormat.format(f.getMZ());
+    return seriesKey;
   }
 
   @Override
@@ -89,7 +95,7 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     numValues = 0;
-    for(int i = 0; i < data.getMobilograms().size(); i++) {
+    for (int i = 0; i < data.getMobilograms().size(); i++) {
       for (int j = 0; j < data.getMobilogram(i).getNumberOfValues(); j++) {
         numValues++;
       }
@@ -111,7 +117,7 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
 
   @Override
   public double getDomainValue(int index) {
-    for(SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
@@ -123,7 +129,7 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
 
   @Override
   public double getRangeValue(int index) {
-    for(SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
@@ -145,7 +151,7 @@ public class IonMobilityTimeSeriesXYZProvider implements PlotXYZDataProvider {
 
   @Override
   public double getZValue(int index) {
-    for(SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {

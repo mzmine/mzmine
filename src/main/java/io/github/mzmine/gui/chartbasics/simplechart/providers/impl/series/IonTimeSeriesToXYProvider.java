@@ -1,29 +1,31 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 
-package io.github.mzmine.datamodel.featuredata.plotproviders;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import javafx.beans.property.ObjectProperty;
@@ -31,17 +33,29 @@ import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Can be used to plot {@link IonTimeSeries<Scan>} and extending classes as a chromatogram.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPropertyProvider {
 
   private final IonTimeSeries<? extends Scan> series;
   private final String seriesKey;
   private final SimpleObjectProperty<javafx.scene.paint.Color> color;
 
-  public IonTimeSeriesToXYProvider(@Nonnull IonTimeSeries<? extends Scan> series, @Nonnull String seriesKey,
+  public IonTimeSeriesToXYProvider(@Nonnull IonTimeSeries<? extends Scan> series,
+      @Nonnull String seriesKey,
       @Nonnull SimpleObjectProperty<javafx.scene.paint.Color> color) {
     this.series = series;
     this.seriesKey = seriesKey;
     this.color = color;
+  }
+
+  public IonTimeSeriesToXYProvider(ModularFeature f) {
+    series = f.getFeatureData();
+    seriesKey = FeatureUtils.featureToString(f);
+    color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
   }
 
   @Nonnull
