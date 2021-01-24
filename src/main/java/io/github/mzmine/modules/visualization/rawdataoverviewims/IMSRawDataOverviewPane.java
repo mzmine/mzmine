@@ -29,17 +29,17 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IMSIonTraceHeatmapProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.CachedFrame;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.FrameHeatmapProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.FrameSummedMobilogramProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.FrameSummedSpectrumProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleMobilityScanProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
-import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.CachedFrame;
-import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameHeatmapProvider;
-import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameSummedMobilogramProvider;
-import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.FrameSummedSpectrumProvider;
-import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.IonTraceProvider;
-import io.github.mzmine.modules.visualization.rawdataoverviewims.providers.SingleSpectrumProvider;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleMobilogramRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleTICRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildSelectedRanges;
@@ -78,9 +78,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private final IMSRawDataOverviewControlPanel controlsPanel;
   private final SimpleXYChart<FrameSummedMobilogramProvider> mobilogramChart;
   private final SimpleXYChart<FrameSummedSpectrumProvider> summedSpectrumChart;
-  private final SimpleXYChart<SingleSpectrumProvider> singleSpectrumChart;
+  private final SimpleXYChart<SingleMobilityScanProvider> singleSpectrumChart;
   private final SimpleXYZScatterPlot<FrameHeatmapProvider> heatmapChart;
-  private final SimpleXYZScatterPlot<IonTraceProvider> ionTraceChart;
+  private final SimpleXYZScatterPlot<IMSIonTraceHeatmapProvider> ionTraceChart;
   private final TICPlot ticChart;
   private final Canvas heatmapLegendCanvas;
   private final Canvas ionTraceLegendCanvas;
@@ -190,7 +190,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame));
     summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
     if (selectedMobilityScan.get() != null) {
-      singleSpectrumChart.addDataset(new SingleSpectrumProvider(
+      singleSpectrumChart.addDataset(new SingleMobilityScanProvider(
           cachedFrame.getMobilityScan(selectedMobilityScan.get().getMobilityScamNumber())));
     }
     MZmineCore.getTaskController().addTask(new BuildMultipleMobilogramRanges(
@@ -334,7 +334,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
     ionTraceChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       MobilityScan selectedScan =
-          ((IonTraceProvider) ((ColoredXYZDataset) newValue.getDataset()).getXyzValueProvider())
+          ((IMSIonTraceHeatmapProvider) ((ColoredXYZDataset) newValue.getDataset())
+              .getXyzValueProvider())
               .getMobilityScanAtIndex(newValue.getValueIndex());
       if (selectedScan != null) {
         setSelectedFrame(selectedScan.getFrame());
@@ -346,7 +347,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private void initSelectedValueListeners() {
     selectedMobilityScan.addListener(((observable, oldValue, newValue) -> {
       singleSpectrumChart.removeAllDatasets();
-      singleSpectrumChart.addDataset(new SingleSpectrumProvider(selectedMobilityScan.get()));
+      singleSpectrumChart.addDataset(new SingleMobilityScanProvider(selectedMobilityScan.get()));
       updateValueMarkers();
     }));
 
@@ -359,7 +360,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
               Set.of(cachedFrame), rawDataFile, scanSelection, this, rtWidth));
       mobilogramCalc.start();
       ionTraceChart.setDataset(
-          new IonTraceProvider(rawDataFile, mzTolerance.getToleranceRange(selectedMz.get()),
+          new IMSIonTraceHeatmapProvider(rawDataFile,
+              mzTolerance.getToleranceRange(selectedMz.get()),
               rawDataFile.getDataRTRange(1), mobilityScanNoiseLevel));
       updateValueMarkers();
     }));

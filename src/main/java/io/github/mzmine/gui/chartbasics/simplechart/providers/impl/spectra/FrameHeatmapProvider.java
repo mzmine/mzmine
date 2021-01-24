@@ -1,22 +1,22 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
-package io.github.mzmine.modules.visualization.rawdataoverviewims.providers;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -32,6 +32,13 @@ import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
+/**
+ * Used to plot a Frame in a {@link io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot}.
+ * Domain axis = m/z, range axis = mobility and z = intensity. Usage of a thresholded  {@link
+ * CachedFrame} is encouraged to increase responsiveness of the GUI.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   protected final NumberFormat rtFormat;

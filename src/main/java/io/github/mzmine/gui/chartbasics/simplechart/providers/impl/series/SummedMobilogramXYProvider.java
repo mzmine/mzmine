@@ -16,40 +16,66 @@
  *  USA
  */
 
-package io.github.mzmine.datamodel.features.types.graphicalnodes.provider;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.awt.Color;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public class MsTimeSeriesXYProvider implements PlotXYDataProvider {
+/**
+ * Used to plot a {@link SummedIntensityMobilitySeries} in an XY chart.
+ *
+ * @author https://github.com/SteffenHeu
+ */
+public class SummedMobilogramXYProvider implements PlotXYDataProvider {
 
   private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-  private final ModularFeature f;
-  private final IonTimeSeries<? extends Scan> data;
+  private final SummedIntensityMobilitySeries data;
+  private final String seriesKey;
+  private final SimpleObjectProperty<Color> color;
 
-  public MsTimeSeriesXYProvider(final ModularFeature f) {
-    this.f = f;
-    this.data = f.getFeatureData();
+  public SummedMobilogramXYProvider(final ModularFeature f) {
+    IonTimeSeries<? extends Scan> series = f.getFeatureData();
+    if (!(series instanceof IonMobilogramTimeSeries)) {
+      throw new IllegalArgumentException(
+          "Feature does not possess an IonMobilogramTimeSeries, cannot create mobilogram chart");
+    }
+    data = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
+    color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
+    seriesKey = "m/z " + mzFormat.format(f.getMZ());
   }
 
+  public SummedMobilogramXYProvider(SummedIntensityMobilitySeries summedMobilogram,
+      SimpleObjectProperty<Color> color, String seriesKey) {
+    this.seriesKey = seriesKey;
+    this.color = color;
+    this.data = summedMobilogram;
+  }
+
+  @Nonnull
   @Override
-  public Color getAWTColor() {
-    return f.getRawDataFile().getColorAWT();
+  public java.awt.Color getAWTColor() {
+    return FxColorUtil.fxColorToAWT(color.get());
   }
 
+  @Nonnull
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return f.getRawDataFile().getColor();
+    return color.get();
   }
 
+  @Nullable
   @Override
   public String getLabel(int index) {
     return null;
@@ -58,9 +84,10 @@ public class MsTimeSeriesXYProvider implements PlotXYDataProvider {
   @Nonnull
   @Override
   public Comparable<?> getSeriesKey() {
-    return "m/z " + mzFormat.format(f.getMZ());
+    return seriesKey;
   }
 
+  @Nullable
   @Override
   public String getToolTipText(int itemIndex) {
     return null;
@@ -73,7 +100,7 @@ public class MsTimeSeriesXYProvider implements PlotXYDataProvider {
 
   @Override
   public double getDomainValue(int index) {
-    return data.getRetentionTime(index);
+    return data.getMobility(index);
   }
 
   @Override
@@ -83,7 +110,7 @@ public class MsTimeSeriesXYProvider implements PlotXYDataProvider {
 
   @Override
   public int getValueCount() {
-    return data.getNumberOfValues();
+    return data.getNumberOfDataPoints();
   }
 
   @Override
