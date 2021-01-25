@@ -22,6 +22,7 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -39,7 +40,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.scans.ScanUtils;
-import javafx.collections.ObservableList;
 
 public class GridMassTask extends AbstractTask {
 
@@ -588,7 +588,7 @@ public class GridMassTask extends AbstractTask {
 
   public IndexedDataPoint[][] smoothDataPoints(RawDataFile dataFile, double timeSpan,
       double timeMZSpan, int scanSpan, double mzTol, int mzPoints, double minimumHeight) {
-    ObservableList<Scan> scanNumbers = dataFile.getScanNumbers(1);
+    List<Scan> scanNumbers = dataFile.getScanNumbers(1);
     int totalScans = scanNumbers.size();
     DataPoint mzValues[][] = null; // [relative scan][j value]
     DataPoint mzValuesJ[] = null;

@@ -22,7 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
+import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
 import java.util.LinkedHashSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

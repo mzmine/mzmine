@@ -249,7 +249,7 @@ public class RawDataFileInfoPaneController {
 
       // add raw data to table
       for (int i = 0; i < scanNumbers.size(); i++) {
-        Scan scan  = scanNumbers.get(i);
+        Scan scan = scanNumbers.get(i);
         if (scan == null) {
           continue;
         }
@@ -263,8 +263,13 @@ public class RawDataFileInfoPaneController {
         }
 
         // format mzRange
-        String mzRange = mzFormat.format(scan.getDataPointMZRange().lowerEndpoint()) + "-"
-            + mzFormat.format(scan.getDataPointMZRange().upperEndpoint());
+        Range<Double> mzRange = scan.getDataPointMZRange();
+
+        String mzRangeStr = "";
+        if (mzRange != null) {
+          mzRangeStr = mzFormat.format(mzRange.lowerEndpoint()) + "-"
+              + mzFormat.format(mzRange.upperEndpoint());
+        }
 
         String basePeakMZ = "-";
         String basePeakIntensity = "-";
@@ -274,11 +279,12 @@ public class RawDataFileInfoPaneController {
           basePeakIntensity = itFormat.format(scan.getBasePeakIntensity());
         }
 
-        tableData.add(new ScanDescription(scan, Integer.toString(scan.getScanNumber()), // scan number
+        tableData.add(new ScanDescription(scan, Integer.toString(scan.getScanNumber()), // scan
+                                                                                        // number
             rtFormat.format(scan.getRetentionTime()), // rt
             Integer.toString(scan.getMSLevel()), // MS level
             precursor, // precursor mz
-            mzRange, // mz range
+            mzRangeStr, // mz range
             scan.getSpectrumType().toString(), // profile/centroid
             scan.getPolarity().toString(), // polarity
             scan.getScanDefinition(), // definition

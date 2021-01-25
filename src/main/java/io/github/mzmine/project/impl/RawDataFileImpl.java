@@ -19,7 +19,6 @@
 package io.github.mzmine.project.impl;
 
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
@@ -59,16 +58,15 @@ public class RawDataFileImpl implements RawDataFile {
   // Name of this raw data file - may be changed by the user
   private String dataFileName;
 
-  private final Hashtable<Integer, Range<Double>> dataMZRange;
-  private final Hashtable<Integer, Range<Float>> dataRTRange;
-  private final Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
-  // cache for MS level. key=0
-  private final Hashtable<Integer, ObservableList<Scan>> scanNumbersCache;
+  private final Hashtable<Integer, Range<Double>> dataMZRange = new Hashtable<>();
+  private final Hashtable<Integer, Range<Float>> dataRTRange = new Hashtable<>();;
+  private final Hashtable<Integer, Double> dataMaxBasePeakIntensity = new Hashtable<>();
+  private final Hashtable<Integer, Double> dataMaxTIC = new Hashtable<>();;
 
   // Temporary file for scan data storage
   private final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
 
-  private final ObjectProperty<Color> color;
+  private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
 
   // To store mass lists that have been added but not yet reflected in the GUI
   // by the
@@ -87,18 +85,6 @@ public class RawDataFileImpl implements RawDataFile {
 
     scans = FXCollections.observableArrayList();
 
-    // Prepare the hashtables for scan numbers and data limits.
-    scanNumbersCache = new Hashtable<>();
-    // msLevel 0 contains all scans
-    scanNumbersCache.put(0, scans);
-
-
-    dataMZRange = new Hashtable<>();
-    dataRTRange = new Hashtable<>();
-    dataMaxBasePeakIntensity = new Hashtable<>();
-    dataMaxTIC = new Hashtable<>();
-
-    this.color = new SimpleObjectProperty<>();
     this.color.setValue(color);
   }
 
@@ -183,12 +169,8 @@ public class RawDataFileImpl implements RawDataFile {
    */
   @Override
   @Nonnull
-  public ObservableList<Scan> getScanNumbers(int msLevel) {
-    if (scanNumbersCache.containsKey(msLevel)) {
-      return FXCollections.unmodifiableObservableList(scanNumbersCache.get(msLevel));
-    } else {
-      return FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
-    }
+  public List<Scan> getScanNumbers(int msLevel) {
+    return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
   }
 
   /**
@@ -197,10 +179,9 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public @Nonnull Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
     assert rtRange != null;
-    // TODO why do we sort by scan number? scans should already be sorted?
     return scans.stream()
         .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
-        .sorted(Comparator.comparingInt(Scan::getScanNumber)).toArray(Scan[]::new);
+        .toArray(Scan[]::new);
   }
 
   /**
@@ -209,8 +190,7 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   @Nonnull
   public int[] getMSLevels() {
-    return scanNumbersCache.keySet().stream().filter(level -> level != 0)
-        .mapToInt(Integer::intValue).sorted().toArray();
+    return scans.stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
   }
 
   /**
@@ -294,6 +274,12 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public synchronized void addScan(Scan newScan) throws IOException {
     scans.add(newScan);
+
+    // Remove cached values
+    dataMZRange.clear();
+    dataRTRange.clear();
+    dataMaxBasePeakIntensity.clear();
+    dataMaxTIC.clear();
   }
 
 
@@ -321,10 +307,12 @@ public class RawDataFileImpl implements RawDataFile {
         continue;
       }
 
+      final Range<Double> scanMzRange = scan.getDataPointMZRange();
       if (mzRange == null) {
-        mzRange = scan.getDataPointMZRange();
+        mzRange = scanMzRange;
       } else {
-        mzRange = mzRange.span(scan.getDataPointMZRange());
+        if (scanMzRange != null)
+          mzRange = mzRange.span(scanMzRange);
       }
 
     }

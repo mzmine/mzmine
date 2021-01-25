@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import javax.annotation.Nullable;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.Coordinates;
+import io.github.mzmine.modules.io.import_imzml.Coordinates;
 
 public interface ImagingScan extends Scan {
   /**
