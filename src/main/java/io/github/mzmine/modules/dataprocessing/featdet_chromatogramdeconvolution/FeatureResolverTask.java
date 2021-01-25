@@ -167,12 +167,13 @@ public class FeatureResolverTask extends AbstractTask {
           }
 
         } catch (RSessionWrapperException e) {
+          e.printStackTrace();
           errorMsg = "'R computing error' during CentWave detection. \n" + e.getMessage();
         } catch (Exception e) {
           e.printStackTrace();
           errorMsg = "'Unknown error' during CentWave detection. \n" + e.getMessage();
         } catch (Throwable t) {
-
+          t.printStackTrace();
           setStatus(TaskStatus.ERROR);
           setErrorMessage(t.getMessage());
           logger.log(Level.SEVERE, "Feature resolving error", t);
@@ -352,6 +353,7 @@ public class FeatureResolverTask extends AbstractTask {
     ResolvingDimension dimension = parameters.getParameter(GeneralResolverParameters.dimension)
         .getValue();
 
+    int c = 0;
     for (int i = 0; i < totalRows; i++) {
       final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList
           .getRow(i);
@@ -371,9 +373,13 @@ public class FeatureResolverTask extends AbstractTask {
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
+        if (resolved.getSpectra().size() <= 3) {
+          c++;
+        }
       }
       processedRows++;
     }
+    logger.info(c + "/" + resolvedFeatureList.getNumberOfRows() + " have less than 4 frames");
     QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
     newPeakList = resolvedFeatureList;
   }

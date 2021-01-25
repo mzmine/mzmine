@@ -38,6 +38,7 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.imsfeaturevisualizer.IMSFeatureVisualizerModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
@@ -244,6 +245,11 @@ public class FeatureTableContextMenu extends ContextMenu {
         IntensityPlotModule.showIntensityPlot(MZmineCore.getProjectManager().getCurrentProject(),
             selectedFeature.getFeatureList(), selectedRows.toArray(new ModularFeatureListRow[0])));
 
+    final MenuItem showInIMSFeatureVisualizerItem = new ConditionalMenuItem(
+        "Visualize ion mobility features", () -> !selectedFeatures.isEmpty());
+    showInIMSFeatureVisualizerItem
+        .setOnAction(e -> IMSFeatureVisualizerModule.visualizeFeaturesInNewTab(selectedFeatures));
+
     final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
         () -> selectedFeature != null && selectedFeature.getRepresentativeScan() != null);
     showSpectrumItem.setOnAction(
@@ -298,9 +304,10 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, new SeparatorMenuItem(), show2DItem, show3DItem,
-            showIntensityPlotItem, new SeparatorMenuItem(), showSpectrumItem, showMSMSItem,
-            showMSMSMirrorItem, showAllMSMSItem, new SeparatorMenuItem(), showIsotopePatternItem,
-            showSpectralDBResults, new SeparatorMenuItem(), showPeakRowSummaryItem);
+            showIntensityPlotItem, showInIMSFeatureVisualizerItem, new SeparatorMenuItem(),
+            showSpectrumItem, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
+            new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
+            new SeparatorMenuItem(), showPeakRowSummaryItem);
   }
 
   private void onShown() {

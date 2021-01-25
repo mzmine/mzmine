@@ -18,46 +18,37 @@
 
 package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class IMSFeatureVisualizerModule implements MZmineRunnableModule {
+public class IMSFeatureVisualizerModule implements MZmineModule {
+
+  public static final String NAME = "Ion mobility feature visualizer";
+
+  public static void visualizeFeaturesInNewTab(Collection<ModularFeature> features) {
+    if (!Platform.isFxApplicationThread()) {
+      Platform
+          .runLater(() -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(features)));
+    } else {
+      MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(features));
+    }
+  }
 
   @Nonnull
   @Override
   public String getName() {
-    return null;
+    return NAME;
   }
 
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return null;
-  }
-
-  @Nonnull
-  @Override
-  public String getDescription() {
-    return null;
-  }
-
-  @Nonnull
-  @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    return null;
-  }
-
-  @Nonnull
-  @Override
-  public MZmineModuleCategory getModuleCategory() {
-    return null;
+    return IMSFeatureVisualizerParameters.class;
   }
 }
