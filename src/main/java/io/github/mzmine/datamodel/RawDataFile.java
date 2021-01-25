@@ -57,7 +57,7 @@ public interface RawDataFile {
    * @return Sorted array of scan numbers, never returns null
    */
   @Nonnull
-  ObservableList<Scan> getScanNumbers(int msLevel);
+  List<Scan> getScanNumbers(int msLevel);
 
   /**
    * Returns sorted array of all scan numbers in given MS level and retention time range

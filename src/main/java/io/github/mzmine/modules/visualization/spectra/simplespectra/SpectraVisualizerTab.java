@@ -24,6 +24,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -63,7 +64,6 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -472,7 +472,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       return;
 
     int msLevel = currentScan.getMSLevel();
-    ObservableList<Scan> scans = dataFile.getScanNumbers(msLevel);
+    List<Scan> scans = dataFile.getScanNumbers(msLevel);
     int scanIndex = scans.indexOf(currentScan);
     if (scanIndex > 0) {
       final Scan prevScan = scans.get(scanIndex - 1);
@@ -497,7 +497,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       return;
 
     int msLevel = currentScan.getMSLevel();
-    ObservableList<Scan> scanNumbers = dataFile.getScanNumbers(msLevel);
+    List<Scan> scanNumbers = dataFile.getScanNumbers(msLevel);
     int scanIndex = scanNumbers.indexOf(currentScan);
 
     if (scanIndex < (scanNumbers.size() - 1)) {

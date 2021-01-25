@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_scansmoothing;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -31,7 +32,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
-import javafx.collections.ObservableList;
 
 public class ScanSmoothingTask extends AbstractTask {
 
@@ -42,7 +42,7 @@ public class ScanSmoothingTask extends AbstractTask {
 
   // scan counter
   private int processedScans = 0, totalScans;
-  private ObservableList<Scan> scanNumbers;
+  private List<Scan> scanNumbers;
 
   // User parameters
   private String suffix;
