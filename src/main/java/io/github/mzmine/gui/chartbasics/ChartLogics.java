@@ -220,8 +220,8 @@ public class ChartLogics {
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
    * 
-   * @param chart
-   * @param width
+   * @param myChart
+   * @param plotWidth
    * @return
    */
   public static Dimension calcSizeForPlotWidth(ChartPanel myChart, double plotWidth) {
@@ -232,7 +232,7 @@ public class ChartLogics {
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
    * 
-   * @param chart
+   * @param myChart
    * @param plotWidth
    * @return
    */
@@ -253,7 +253,7 @@ public class ChartLogics {
   /**
    * Calculates the size of a chart for a given fixed plot width and height
    * 
-   * @param chart
+   * @param myChart
    * @param plotWidth
    * @return
    */
@@ -265,7 +265,7 @@ public class ChartLogics {
   /**
    * Calculates the size of a chart for a given fixed plot width and height
    * 
-   * @param chart
+   * @param myChart
    * @param plotWidth
    * @return
    */
@@ -323,8 +323,7 @@ public class ChartLogics {
    * 
    * @param myChart
    * @param copyToNewPanel
-   * @param dataWidth width of data
-   * @param axis for width calculation
+   * @param chartWidth width of data
    * @return
    */
   public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
@@ -338,8 +337,7 @@ public class ChartLogics {
    * 
    * @param myChart
    * @param copyToNewPanel
-   * @param dataWidth width of data
-   * @param axis for width calculation
+   * @param chartWidth width of data
    * @return
    */
   public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
@@ -562,9 +560,6 @@ public class ChartLogics {
   /**
    * Zoom into a chart panel
    * 
-   * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void setZoomAxis(ValueAxis axis, Range zoom) {
     axis.setRange(zoom);
@@ -574,8 +569,6 @@ public class ChartLogics {
    * Auto range the range axis
    * 
    * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void autoRangeAxis(ChartPanel myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
@@ -590,8 +583,6 @@ public class ChartLogics {
    * Auto range the range axis
    * 
    * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void autoDomainAxis(ChartPanel myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
@@ -656,7 +647,6 @@ public class ChartLogics {
   /**
    * Apply an absolute offset to an axis and move it
    * 
-   * @param myChart
    * @param offset
    */
   public static void offsetAxisAbsolute(ValueAxis axis, double offset) {
@@ -668,11 +658,11 @@ public class ChartLogics {
    * Apply an relative offset to an axis and move it. LowerBound and UpperBound are defined by
    * {@link ValueAxis#getDefaultAutoRange()}
    * 
-   * @param myChart
+   * @param axis
    * @param offset percentage
    */
   public static void offsetAxis(ValueAxis axis, double offset) {
-    double distance = (axis.getUpperBound() - axis.getLowerBound()) * offset;
+    double distance = (axis.getRange().getLength()) * offset;
     Range range = new Range(axis.getLowerBound() + distance, axis.getUpperBound() + distance);
     setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
   }
@@ -707,7 +697,7 @@ public class ChartLogics {
   /**
    * Zoom in (negative zoom) or zoom out of axis.
    * 
-   * @param myChart
+   * @param axis
    * @param zoom percentage zoom factor
    * @param holdLowerBound if true only the upper bound will be zoomed
    */
@@ -735,7 +725,7 @@ public class ChartLogics {
   /**
    * Zoom in (negative zoom) or zoom out of axis.
    * 
-   * @param myChart
+   * @param axis
    * @param zoom percentage zoom factor
    * @param start point on this range (first click/pressed event), used as center
    */
