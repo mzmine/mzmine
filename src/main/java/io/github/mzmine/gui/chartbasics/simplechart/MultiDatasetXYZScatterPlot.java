@@ -25,6 +25,7 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorSt
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
@@ -38,6 +39,7 @@ import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,6 +105,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   private PaintScaleColorStyle defaultPaintScaleColorStyle;
   private PaintScaleBoundStyle defaultPaintScaleBoundStyle;
   private ObjectProperty<PaintScale> defaultPaintScale;
+  private Collection<ColoredXYZDataset> datasets;
 
   public MultiDatasetXYZScatterPlot() {
     super(ChartFactory.createScatterPlot("", "x", "y", null,
@@ -179,6 +182,13 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     ColoredXYSmallBlockRenderer renderer = (ColoredXYSmallBlockRenderer) createNewRenderer(dataset);
 
     return addDataset(dataset, renderer);
+  }
+
+  public void addFastDatasets(Collection<FastColoredXYZDataset> datasets) {
+    getChart().setNotify(false);
+    datasets.forEach(this::addDataset);
+    getChart().setNotify(true);
+    getChart().fireChartChanged();
   }
 
   public synchronized void removeAllDatasets() {
@@ -374,8 +384,11 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   }
 
   private void notifyDatasetsChangedListeners() {
-    Map<Integer, XYDataset> datasets = getAllDatasets();
+    if (!chart.isNotify()) {
+      return;
+    }
 
+    Map<Integer, XYDataset> datasets = getAllDatasets();
     for (DatasetsChangedListener listener : datasetListeners) {
       listener.datasetsChanged(datasets);
     }
@@ -425,12 +438,12 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
       ColoredXYZDataset coloredXYZDataset = (ColoredXYZDataset) dataset;
       boolean valsChanged = false;
       if (coloredXYZDataset.getMinZValue() < Objects
-          .requireNonNullElse(minZValue, minZValue)) {
+          .requireNonNullElse(minZValue, Double.MAX_VALUE)) {
         minZValue = ((ColoredXYZDataset) dataset).getMinZValue();
         valsChanged = true;
       }
       if (coloredXYZDataset.getMaxZValue() > Objects
-          .requireNonNullElse(minZValue, Double.MAX_VALUE)) {
+          .requireNonNullElse(maxZValue, Double.MIN_VALUE)) {
         maxZValue = coloredXYZDataset.getMaxZValue();
         valsChanged = true;
       }
@@ -446,7 +459,9 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
         chart.addSubtitle(legend);
       }
     }
-    chart.fireChartChanged();
+    if (chart.isNotify()) {
+      chart.fireChartChanged();
+    }
   }
 
   public Canvas getLegendCanvas() {

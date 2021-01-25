@@ -22,16 +22,20 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.chartbasics.simplechart.MultiDatasetXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.ScanBPCProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.FeatureUtils;
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Stroke;
 import java.text.NumberFormat;
@@ -40,6 +44,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.ScrollPane;
@@ -52,6 +57,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
 
   private final SimpleXYChart<IonTimeSeriesToXYProvider> ticChart;
   private final Map<ModularFeature, SingleIMSFeatureVisualiserPane> featureVisualisersMap;
+  private final MultiDatasetXYZScatterPlot<SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider> heatmap;
   private final ScrollPane scrollPane;
   private final VBox content;
 
@@ -73,6 +79,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
     getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
     ticChart = new SimpleXYChart<>();
+    heatmap = new MultiDatasetXYZScatterPlot<>();
     featureVisualisersMap = new LinkedHashMap<>();
     rawDataFiles = new ArrayList<>();
 
@@ -82,6 +89,13 @@ public class IMSFeaturesVisualizer extends BorderPane {
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
 
+    heatmap.setDomainAxisLabel("m/z");
+    heatmap.setDomainAxisNumberFormatOverride(mzFormat);
+    heatmap.setRangeAxisLabel("Mobility");
+    heatmap.setRangeAxisNumberFormatOverride(mobilityFormat);
+    heatmap.setLegendAxisLabel(unitFormat.format("Intensity", "counts"));
+    heatmap.setLegendNumberFormatOverride(intensityFormat);
+    heatmap.getXYPlot().setBackgroundPaint(Color.BLACK);
     ticChart.setDomainAxisLabel(unitFormat.format("Retention time", "min"));
     ticChart.setDomainAxisNumberFormatOverride(rtFormat);
     ticChart.setRangeAxisNumberFormatOverride(intensityFormat);
@@ -117,17 +131,24 @@ public class IMSFeaturesVisualizer extends BorderPane {
     selectedFeaturesPane.setCenter(scrollPane);
     selectedFeaturesPane.setMinWidth(400);
     setRight(selectedFeaturesPane);
-
-
+    setCenter(heatmap);
   }
 
   public void setFeatures(Collection<ModularFeature> features) {
     featureVisualisersMap.clear();
     content.getChildren().clear();
     ticChart.removeAllDatasets();
-    for (ModularFeature feature : features) {
-      addFeatureToRightSide(feature);
-    }
+
+    Thread thread = new Thread(() -> {
+      Collection<FastColoredXYZDataset> datasets = new ArrayList<>();
+      for (ModularFeature feature : features) {
+        datasets.add(new FastColoredXYZDataset(
+            new SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(feature)));
+      }
+      Platform.runLater(() -> heatmap.addFastDatasets(datasets));
+    });
+
+    thread.start();
   }
 
   public void addFeatureToRightSide(ModularFeature feature) {

@@ -141,8 +141,7 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
 
   @Override
   public double getRangeValue(int index) {
-    data.getMobility(index);
-    return 0;
+    return data.getMobility(index);
   }
 
   @Override
@@ -157,8 +156,7 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
 
   @Override
   public double getZValue(int index) {
-    data.getIntensity(index);
-    return 0;
+    return data.getIntensity(index);
   }
 
   @Nullable
