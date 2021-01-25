@@ -18,11 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
@@ -39,11 +35,9 @@ import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -100,12 +94,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   private Canvas legendCanvas;
   private String legendLabel = null;
 
-  private Double minZValue;
-  private Double maxZValue;
-  private PaintScaleColorStyle defaultPaintScaleColorStyle;
-  private PaintScaleBoundStyle defaultPaintScaleBoundStyle;
-  private ObjectProperty<PaintScale> defaultPaintScale;
-  private Collection<ColoredXYZDataset> datasets;
+  private ObjectProperty<PaintScale> legendPaintScale;
 
   public MultiDatasetXYZScatterPlot() {
     super(ChartFactory.createScatterPlot("", "x", "y", null,
@@ -130,16 +119,16 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     initializePlot();
     nextDataSetNum = 0;
 
-    minZValue = null;
-    maxZValue = null;
-    defaultPaintScaleBoundStyle = PaintScaleBoundStyle.LOWER_AND_UPPER_BOUND;
-    defaultPaintScaleColorStyle = PaintScaleColorStyle.RAINBOW;
-    defaultPaintScale = new SimpleObjectProperty<>(makePaintScale(0, 1));
-    defaultPaintScale
+    legendPaintScale = new SimpleObjectProperty<>();
+    legendPaintScale
         .addListener((observable, oldValue, newValue) -> onPaintScaleChanged(newValue));
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
+  }
+
+  private void onPaintScaleChanged(PaintScale newValue) {
+    updateLegend();
   }
 
   /**
@@ -161,32 +150,21 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
-    if (getXYPlot().isNotify()) {
+    if (chart.isNotify()) {
       notifyDatasetsChangedListeners();
     }
     return nextDataSetNum - 1;
   }
 
-  public synchronized int addDataset(ColoredXYZDataset dataset) {
-    assert Platform.isFxApplicationThread();
-
-    ColoredXYSmallBlockRenderer renderer = (ColoredXYSmallBlockRenderer) createNewRenderer(dataset);
-    return addDataset(dataset, renderer);
-  }
-
   @Override
   public int addDataset(T datasetProvider) {
-    assert Platform.isFxApplicationThread();
-
-    ColoredXYZDataset dataset = new ColoredXYZDataset(datasetProvider);
-    ColoredXYSmallBlockRenderer renderer = (ColoredXYSmallBlockRenderer) createNewRenderer(dataset);
-
-    return addDataset(dataset, renderer);
+    throw new UnsupportedOperationException("This operation is not supported by this plot.");
   }
 
-  public void addFastDatasets(Collection<FastColoredXYZDataset> datasets) {
+  public void addDatasetsAndRenderers(
+      Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> datasetsAndRenderers) {
     getChart().setNotify(false);
-    datasets.forEach(this::addDataset);
+    datasetsAndRenderers.entrySet().forEach(e -> addDataset(e.getKey(), e.getValue()));
     getChart().setNotify(true);
     getChart().fireChartChanged();
   }
@@ -195,6 +173,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     assert Platform.isFxApplicationThread();
 
     chart.setNotify(false);
+    plot.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset ds = plot.getDataset(i);
       if (ds instanceof Task) {
@@ -203,6 +182,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
     }
+    plot.setNotify(true);
     chart.setNotify(true);
     chart.fireChartChanged();
     notifyDatasetsChangedListeners();
@@ -402,30 +382,6 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   }
 
   /**
-   * @param min
-   * @param max
-   * @return Paint scale based on the datasets min and max values.
-   */
-  private PaintScale makePaintScale(double min, double max) {
-    if (min >= max) {
-      min = 0;
-      max = 1;
-    }
-    Range<Double> zValueRange = Range.closed(min, max);
-    var paintScale =
-        new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
-            defaultPaintScaleColorStyle, defaultPaintScaleBoundStyle, zValueRange, Color.WHITE);
-    PaintScaleFactory psf = new PaintScaleFactory();
-    paintScale = psf.createColorsForPaintScale(paintScale, false);
-
-    if (defaultRenderer.get() instanceof ColoredXYSmallBlockRenderer) {
-      ((ColoredXYSmallBlockRenderer) defaultRenderer.get()).setPaintScale(paintScale);
-    }
-
-    return paintScale;
-  }
-
-  /**
    * @param dataset Called when the dataset is changed, e.g. when the calculation finished.
    */
   private void onDatasetChanged(XYZDataset dataset) {
@@ -433,34 +389,18 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
       return;
     }
 
-    if (dataset instanceof ColoredXYZDataset
-        && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
-      ColoredXYZDataset coloredXYZDataset = (ColoredXYZDataset) dataset;
-      boolean valsChanged = false;
-      if (coloredXYZDataset.getMinZValue() < Objects
-          .requireNonNullElse(minZValue, Double.MAX_VALUE)) {
-        minZValue = ((ColoredXYZDataset) dataset).getMinZValue();
-        valsChanged = true;
-      }
-      if (coloredXYZDataset.getMaxZValue() > Objects
-          .requireNonNullElse(maxZValue, Double.MIN_VALUE)) {
-        maxZValue = coloredXYZDataset.getMaxZValue();
-        valsChanged = true;
-      }
-      if (valsChanged) {
-        defaultPaintScale.set(makePaintScale(minZValue, maxZValue));
-      }
-
-      PaintScaleLegend legend = generateLegend(minZValue, maxZValue, defaultPaintScale.get());
-      chart.clearSubtitles();
-      if (legendCanvas != null) {
-        drawLegendToSeparateCanvas(legend);
-      } else {
-        chart.addSubtitle(legend);
-      }
-    }
     if (chart.isNotify()) {
       chart.fireChartChanged();
+    }
+  }
+
+  private void updateLegend() {
+    PaintScaleLegend legend = generateLegend(legendPaintScale.get());
+    chart.clearSubtitles();
+    if (legendCanvas != null) {
+      drawLegendToSeparateCanvas(legend);
+    } else {
+      chart.addSubtitle(legend);
     }
   }
 
@@ -510,13 +450,13 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   }
 
   /**
-   * @param min
-   * @param max
    * @param scale
    * @return Legend based on the {@link LookupPaintScale}.
    */
-  private PaintScaleLegend generateLegend(double min, double max, @Nonnull PaintScale scale) {
+  private PaintScaleLegend generateLegend(@Nonnull PaintScale scale) {
     NumberAxis scaleAxis = new NumberAxis(null);
+    double min = scale.getLowerBound();
+    double max = scale.getUpperBound();
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
@@ -538,72 +478,15 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     return newLegend;
   }
 
-  /**
-   * updates the renderer to the block sizes provided by the dataset and uses the paint scale
-   * provided by the plot.
-   *
-   * @param dataset
-   */
-  private XYItemRenderer createNewRenderer(XYDataset dataset) {
-    if (!(dataset instanceof XYZDataset)) {
-      // maybe add a case for that later
-      return defaultRenderer.get();
-    }
-    if (!(dataset instanceof ColoredXYZDataset)) {
-      return defaultRenderer.get();
-    }
-    if (((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
-      return defaultRenderer.get();
-    }
-    ColoredXYZDataset xyz = (ColoredXYZDataset) dataset;
-    ColoredXYSmallBlockRenderer newRenderer = new ColoredXYSmallBlockRenderer();
-    newRenderer.setBlockHeight(xyz.getBoxHeight());
-    newRenderer.setBlockWidth(xyz.getBoxWidth());
-    newRenderer.setPaintScale(defaultPaintScale.get());
-    return newRenderer;
+  public PaintScale getLegendPaintScale() {
+    return legendPaintScale.get();
   }
 
-  public RectangleEdge getDefaultPaintscaleLocation() {
-    return defaultPaintscaleLocation;
+  public ObjectProperty<PaintScale> legendPaintScaleProperty() {
+    return legendPaintScale;
   }
 
-  public void setDefaultPaintscaleLocation(RectangleEdge defaultPaintscaleLocation) {
-    this.defaultPaintscaleLocation = defaultPaintscaleLocation;
-  }
-
-  public void setDefaultPaintScaleBoundStyle(
-      PaintScaleBoundStyle defaultPaintScaleBoundStyle) {
-    this.defaultPaintScaleBoundStyle = defaultPaintScaleBoundStyle;
-  }
-
-  public void setDefaultPaintScaleColorStyle(
-      PaintScaleColorStyle defaultPaintScaleColorStyle) {
-    this.defaultPaintScaleColorStyle = defaultPaintScaleColorStyle;
-  }
-
-  public PaintScale getDefaultPaintScale() {
-    return defaultPaintScale.get();
-  }
-
-  public void setDefaultPaintScale(PaintScale defaultPaintScale) {
-    this.defaultPaintScale.set(defaultPaintScale);
-  }
-
-  public ObjectProperty<PaintScale> defaultPaintScaleProperty() {
-    return defaultPaintScale;
-  }
-
-  /**
-   * Updates all renderers in case the paint scale has changed.
-   *
-   * @param newPaintScale
-   */
-  private void onPaintScaleChanged(PaintScale newPaintScale) {
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      XYItemRenderer renderer = plot.getRenderer(i);
-      if (renderer instanceof ColoredXYSmallBlockRenderer) {
-        ((ColoredXYSmallBlockRenderer) renderer).setPaintScale(newPaintScale);
-      }
-    }
+  public void setLegendPaintScale(PaintScale legendPaintScale) {
+    this.legendPaintScale.set(legendPaintScale);
   }
 }

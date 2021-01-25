@@ -49,10 +49,11 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
   private final UnitFormat unitFormat;
   private final double mz;
   private Double mzwidth;
-
+  private final ModularFeature feature;
 
   public SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(@Nonnull final ModularFeature f) {
     data = ((IonMobilogramTimeSeries) f.getFeatureData()).getSummedMobilogram();
+    feature = f;
     mz = f.getMZ();
     seriesKey = FeatureUtils.featureToString(f);
 
@@ -169,5 +170,15 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
   @Override
   public Double getBoxWidth() {
     return mzwidth;
+  }
+
+  @Nonnull
+  public SummedIntensityMobilitySeries getSourceSeries() {
+    return data;
+  }
+
+  @Nullable
+  public ModularFeature getSourceFeature() {
+    return feature;
   }
 }

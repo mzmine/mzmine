@@ -35,16 +35,15 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.Summed
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleSpectrumProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
@@ -73,9 +72,10 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 
     getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     this.feature = f;
-    this.heatmapChart = new SimpleXYZScatterPlot<>();
-    this.msmsSpectrumChart = new SimpleXYChart<>();
-    this.mobilogramChart = new SimpleXYChart<>();
+    String fstr = FeatureUtils.featureToString(f);
+    this.heatmapChart = new SimpleXYZScatterPlot<>("Ion trace - " + fstr);
+    this.msmsSpectrumChart = new SimpleXYChart<>("MS/MS - " + fstr);
+    this.mobilogramChart = new SimpleXYChart<>("Extracted mobilogram");
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -95,8 +95,8 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 
     initChartPanes();
 
-    ColumnConstraints col0 = new ColumnConstraints();
-    ColumnConstraints col1 = new ColumnConstraints();
+    ColumnConstraints col0 = new ColumnConstraints(150);
+    ColumnConstraints col1 = new ColumnConstraints(340);
 
     RowConstraints row0 = new RowConstraints(250);
     RowConstraints row1 = new RowConstraints(60);
@@ -150,6 +150,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     mobilogramChart.setRangeAxisNumberFormatOverride(mobilityFormat);
     mobilogramChart.getXYPlot().getDomainAxis().setInverted(true);
     mobilogramChart.setShowCrosshair(false);
+    mobilogramChart.switchLegendVisible();
     mobilogramChart.addDatasetsChangedListener(l -> {
       Platform.runLater(() -> {
         NumberAxis a = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
@@ -176,7 +177,6 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     add(new BorderPane(mobilogramChart), 0, 0);
     add(new BorderPane(heatmapChart), 1, 0);
     add(new BorderPane(legendCanvas), 1, 1);
-    add(new Separator(Orientation.HORIZONTAL), 0, 2, 2, 1);
 
     ComboBox<Scan> fragmentScanSelection = new ComboBox<>();
     fragmentScanSelection.setItems(feature.getAllMS2FragmentScans());
