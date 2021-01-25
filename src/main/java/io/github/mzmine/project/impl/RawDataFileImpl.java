@@ -322,10 +322,11 @@ public class RawDataFileImpl implements RawDataFile {
       }
 
       final Range<Double> scanMzRange = scan.getDataPointMZRange();
-      if (mzRange == null && scanMzRange != null) {
+      if (mzRange == null) {
         mzRange = scanMzRange;
       } else {
-        mzRange = mzRange.span(scanMzRange);
+        if (scanMzRange != null)
+          mzRange = mzRange.span(scanMzRange);
       }
 
     }
