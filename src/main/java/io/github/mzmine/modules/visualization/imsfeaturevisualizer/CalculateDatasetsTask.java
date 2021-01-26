@@ -8,6 +8,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider;
@@ -18,6 +19,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.jfree.chart.renderer.PaintScale;
 
@@ -33,10 +35,6 @@ public class CalculateDatasetsTask extends AbstractTask {
   private String description;
   private Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> datasetsRenderers;
 
-  public Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> getDatasetsRenderers() {
-    return datasetsRenderers;
-  }
-
   public CalculateDatasetsTask(Collection<ModularFeature> features) {
     this.features = features;
     description = "IMS Feature Visualizer: Waiting";
@@ -44,6 +42,10 @@ public class CalculateDatasetsTask extends AbstractTask {
     defaultPaintScaleColorStyle = PaintScaleColorStyle.RAINBOW;
     defaultPaintScaleBoundStyle = PaintScaleBoundStyle.LOWER_AND_UPPER_BOUND;
     progress = 0d;
+  }
+
+  public Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> getDatasetsRenderers() {
+    return datasetsRenderers;
   }
 
   @Override
@@ -73,10 +75,10 @@ public class CalculateDatasetsTask extends AbstractTask {
       Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(mobilogram);
 
       if (intensityRange.lowerEndpoint().doubleValue() < minZ) {
-        minZ = dataset.getMinZValue();
+        minZ = intensityRange.lowerEndpoint().doubleValue();
       }
       if (intensityRange.upperEndpoint().doubleValue() > maxZ) {
-        maxZ = dataset.getMaxZValue();
+        maxZ = intensityRange.upperEndpoint().doubleValue();
       }
       datasets.add(dataset);
       progress = datasets.size() / (double) features.size();
@@ -120,7 +122,11 @@ public class CalculateDatasetsTask extends AbstractTask {
         new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
             defaultPaintScaleColorStyle, defaultPaintScaleBoundStyle, zValueRange, Color.WHITE);
     PaintScaleFactory psf = new PaintScaleFactory();
-    paintScale = psf.createColorsForPaintScale(paintScale, true);
+    List<Color> clrs = List.of(new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
+        new Color(0.f, 0.620f, 0.451f, 1f), // bluish green
+        new Color(0.941f, 0.894f, 0.259f, 1f)); // yellow)
+    paintScale = psf
+        .createColorsForCustomPaintScale(paintScale, PaintScaleTransform.LOG10, clrs);
 
     return paintScale;
   }
