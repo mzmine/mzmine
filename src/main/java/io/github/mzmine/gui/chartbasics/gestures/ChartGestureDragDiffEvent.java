@@ -84,7 +84,7 @@ public class ChartGestureDragDiffEvent {
   }
 
   /**
-   * Difference value of the last two eventsin data space
+   * Difference value of the last two events in data space
    * 
    * @return
    */
