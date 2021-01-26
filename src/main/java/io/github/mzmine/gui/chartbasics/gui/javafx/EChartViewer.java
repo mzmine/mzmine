@@ -328,7 +328,7 @@ public class EChartViewer extends ChartViewer {
       if (standardGestures) {
         addStandardGestures();
       }
-      mouseAdapter.addDebugHandler();
+//      mouseAdapter.addDebugHandler();
     }
   }
 
