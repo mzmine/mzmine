@@ -37,11 +37,14 @@ import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.ValueAxisPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.Range;
 
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import org.jfree.data.RangeType;
 
 /**
  * Collection of methods for JFreeCharts <br>
@@ -669,18 +672,103 @@ public class ChartLogics {
 
   public static Range keepRangeWithinAutoBounds(ValueAxis axis, Range range) {
     // keep within auto range bounds
-    // Range auto = axis.getDefaultAutoRange();
-    // if(range.getLowerBound()<auto.getLowerBound()){
-    // double negative = range.getLowerBound()-auto.getLowerBound();
-    // range = new Range(auto.getLowerBound(),
-    // range.getUpperBound()-negative);
-    // }
-    // if(range.getUpperBound()>auto.getUpperBound()) {
-    // double positive = range.getUpperBound()-auto.getUpperBound();
-    // range = new Range(range.getLowerBound()-positive,
-    // auto.getUpperBound());
-    // }
-    return range;
+     Range auto = getAutoRange(axis);
+     if(auto==null)
+       return range;
+    return new Range(Math.max(auto.getLowerBound(), range.getLowerBound()), Math.min(auto.getUpperBound(), range.getUpperBound()));
+  }
+
+  /**
+   * The auto range - copied from {@link NumberAxis} autoAdjustRange
+   * @param axis
+   * @return
+   */
+  public static Range getAutoRange(ValueAxis axis) {
+
+    Plot plot = axis.getPlot();
+    if (plot == null) {
+      return null;  // no plot, no data
+    }
+
+    if (plot instanceof ValueAxisPlot) {
+      ValueAxisPlot vap = (ValueAxisPlot) plot;
+
+      Range r = vap.getDataRange(axis);
+      if (r == null) {
+        r = axis.getDefaultAutoRange();
+      }
+
+      double upper = r.getUpperBound();
+      double lower = r.getLowerBound();
+
+      if (axis instanceof NumberAxis) {
+        NumberAxis numberAxis = (NumberAxis) axis;
+        if (numberAxis.getRangeType() == RangeType.POSITIVE) {
+          lower = Math.max(0.0, lower);
+          upper = Math.max(0.0, upper);
+        } else if (numberAxis.getRangeType() == RangeType.NEGATIVE) {
+          lower = Math.min(0.0, lower);
+          upper = Math.min(0.0, upper);
+        }
+
+        if (numberAxis.getAutoRangeIncludesZero()) {
+          lower = Math.min(lower, 0.0);
+          upper = Math.max(upper, 0.0);
+        }
+      }
+      double range = upper - lower;
+
+      // if fixed auto range, then derive lower bound...
+      double fixedAutoRange = axis.getFixedAutoRange();
+      if (fixedAutoRange > 0.0) {
+        lower = upper - fixedAutoRange;
+      } else {
+        // ensure the autorange is at least <minRange> in size...
+        double minRange = axis.getAutoRangeMinimumSize();
+        if (range < minRange) {
+          double expand = (minRange - range) / 2;
+          upper = upper + expand;
+          lower = lower - expand;
+          if (lower == upper) { // see bug report 1549218
+            double adjust = Math.abs(lower) / 10.0;
+            lower = lower - adjust;
+            upper = upper + adjust;
+          }
+          if (axis instanceof NumberAxis) {
+            NumberAxis numberAxis = (NumberAxis) axis;
+            if (numberAxis.getRangeType() == RangeType.POSITIVE) {
+              if (lower < 0.0) {
+                upper = upper - lower;
+                lower = 0.0;
+              }
+            } else if (numberAxis.getRangeType() == RangeType.NEGATIVE) {
+              if (upper > 0.0) {
+                lower = lower - upper;
+                upper = 0.0;
+              }
+            }
+
+            if (numberAxis.getAutoRangeStickyZero()) {
+              if (upper <= 0.0) {
+                upper = Math.min(0.0, upper + axis.getUpperMargin() * range);
+              } else {
+                upper = upper + axis.getUpperMargin() * range;
+              }
+              if (lower >= 0.0) {
+                lower = Math.max(0.0, lower - axis.getLowerMargin() * range);
+              } else {
+                lower = lower - axis.getLowerMargin() * range;
+              }
+            }
+          }
+        } else {
+          upper = upper + axis.getUpperMargin() * range;
+          lower = lower - axis.getLowerMargin() * range;
+        }
+      }
+      return new Range(lower, upper);
+    }
+    else return null;
   }
 
   /**

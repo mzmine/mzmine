@@ -207,7 +207,7 @@ public class ChartGestureHandler {
           }
         };
       default:
-        throw new Exception("DragHandler not specified");
+        throw new IllegalArgumentException("Drag Gesture handler not created: "+handler.toString());
     }
   }
 
@@ -366,7 +366,7 @@ public class ChartGestureHandler {
         break;
     }
     if (newHandler == null)
-      return null;
+      throw new IllegalArgumentException("Gesture handler not created: "+handler.toString());
     else
       return new ChartGestureHandler(g, newHandler);
   }
