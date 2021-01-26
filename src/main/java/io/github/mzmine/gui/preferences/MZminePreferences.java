@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
@@ -86,8 +87,8 @@ public class MZminePreferences extends SimpleParameterSet {
       new ColorPaletteParameter("Default color palette",
           "Defines the default color palette used to create charts throughout MZmine");
 
-  public static final ColorPaletteParameter defaultPaintScale =
-      new ColorPaletteParameter("Default paint scale",
+  public static final PaintScalePaletteParameter defaultPaintScale =
+      new PaintScalePaletteParameter("Default paint scale",
           "Defines the default paint scale used to create charts throughout MZmine");
 
   public static final ParameterSetParameter chartParam =
