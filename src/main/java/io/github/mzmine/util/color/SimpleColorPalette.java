@@ -19,7 +19,11 @@
 package io.github.mzmine.util.color;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -227,6 +231,13 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     fireChange(new ColorPaletteChangedEvent(this, oldIndex, newIndex));
 
     return indexOf(clr);
+  }
+
+  public PaintScale toPaintScale(PaintScaleTransform transform, Range<Double> valueRange) {
+    var paintScale = new PaintScale(valueRange);
+    PaintScaleFactory psf = new PaintScaleFactory();
+    return psf
+        .createColorsForCustomPaintScaleFX(paintScale, transform, this);
   }
 
   /**
