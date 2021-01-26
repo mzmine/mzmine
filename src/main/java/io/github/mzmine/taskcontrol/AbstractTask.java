@@ -20,7 +20,6 @@ package io.github.mzmine.taskcontrol;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -35,7 +34,7 @@ public abstract class AbstractTask implements Task {
   // listener to control status changes
   private List<TaskStatusListener> listener;
 
-  private StringProperty name = new SimpleStringProperty("Gagaga");
+  private StringProperty name = new SimpleStringProperty("Task name");
 
   public final String getName() {
     return name.get();
@@ -64,7 +63,7 @@ public abstract class AbstractTask implements Task {
   /**
    * Convenience method for determining if this task has been canceled. Also returns true if the
    * task encountered an error.
-   * 
+   *
    * @return true if this task has been canceled or stopped due to an error
    */
   public final boolean isCanceled() {
@@ -73,7 +72,7 @@ public abstract class AbstractTask implements Task {
 
   /**
    * Convenience method for determining if this task has been completed
-   * 
+   *
    * @return true if this task is finished
    */
   public final boolean isFinished() {
@@ -109,7 +108,7 @@ public abstract class AbstractTask implements Task {
 
   /**
    * Returns the TaskStatus of this Task
-   * 
+   *
    * @return The current status of this task
    */
   @Override

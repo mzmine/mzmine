@@ -18,6 +18,13 @@
 
 package io.github.mzmine.project.impl;
 
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PolarityType;
@@ -26,19 +33,11 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.javafx.FxColorUtil;
-import java.io.IOException;
-import java.util.Comparator;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -53,25 +52,28 @@ import javax.annotation.Nonnull;
 public class RawDataFileImpl implements RawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
-  protected final ObservableList<Scan> scans;
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private final Hashtable<Integer, Range<Double>> dataMZRange;
-  private final Hashtable<Integer, Range<Float>> dataRTRange;
-  private final Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
-  // cache for MS level. key=0
-  private final Hashtable<Integer, ObservableList<Scan>> scanNumbersCache;
+
+  // Name of this raw data file - may be changed by the user
+  private String dataFileName;
+
+  private final Hashtable<Integer, Range<Double>> dataMZRange = new Hashtable<>();
+  private final Hashtable<Integer, Range<Float>> dataRTRange = new Hashtable<>();;
+  private final Hashtable<Integer, Double> dataMaxBasePeakIntensity = new Hashtable<>();
+  private final Hashtable<Integer, Double> dataMaxTIC = new Hashtable<>();;
 
   // Temporary file for scan data storage
   private final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
 
-  private final ObjectProperty<Color> color;
+  private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
 
   // To store mass lists that have been added but not yet reflected in the GUI
   // by the
   // notifyUpdatedMassLists() method
   // private final List<MassList> newMassLists = new ArrayList<>();
-  // Name of this raw data file - may be changed by the user
-  private String dataFileName;
+
+  protected final ObservableList<Scan> scans;
 
   public RawDataFileImpl(String dataFileName) throws IOException {
     this(dataFileName, MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
@@ -83,24 +85,13 @@ public class RawDataFileImpl implements RawDataFile {
 
     scans = FXCollections.observableArrayList();
 
-    // Prepare the hashtables for scan numbers and data limits.
-    scanNumbersCache = new Hashtable<>();
-    // msLevel 0 contains all scans
-    scanNumbersCache.put(0, scans);
-
-    dataMZRange = new Hashtable<>();
-    dataRTRange = new Hashtable<>();
-    dataMaxBasePeakIntensity = new Hashtable<>();
-    dataMaxTIC = new Hashtable<>();
-
-    this.color = new SimpleObjectProperty<>();
     this.color.setValue(color);
   }
 
 
+
   @Override
-  public @Nonnull
-  MemoryMapStorage getMemoryMapStorage() {
+  public @Nonnull MemoryMapStorage getMemoryMapStorage() {
     return storageMemoryMap;
   }
 
@@ -125,10 +116,10 @@ public class RawDataFileImpl implements RawDataFile {
   // }
 
   /**
-   * @param rt      The rt
+   * @param rt The rt
    * @param mslevel The ms level
    * @return The scan number at a given retention time within a range of 2 (min/sec?) or -1 if no
-   * scan can be found.
+   *         scan can be found.
    */
   @Override
   public Scan getScanNumberAtRT(float rt, int mslevel) {
@@ -154,7 +145,7 @@ public class RawDataFileImpl implements RawDataFile {
   /**
    * @param rt The rt
    * @return The scan at a given retention time within a range of 2 (min/sec?) or null if no scan
-   * can be found.
+   *         can be found.
    */
   @Override
   public Scan getScanNumberAtRT(float rt) {
@@ -178,25 +169,19 @@ public class RawDataFileImpl implements RawDataFile {
    */
   @Override
   @Nonnull
-  public ObservableList<Scan> getScanNumbers(int msLevel) {
-    if (scanNumbersCache.containsKey(msLevel)) {
-      return FXCollections.unmodifiableObservableList(scanNumbersCache.get(msLevel));
-    } else {
-      return FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
-    }
+  public List<Scan> getScanNumbers(int msLevel) {
+    return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
   }
 
   /**
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
    */
   @Override
-  public @Nonnull
-  Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
+  public @Nonnull Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
     assert rtRange != null;
-    // TODO why do we sort by scan number? scans should already be sorted?
     return scans.stream()
         .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
-        .sorted(Comparator.comparingInt(Scan::getScanNumber)).toArray(Scan[]::new);
+        .toArray(Scan[]::new);
   }
 
   /**
@@ -205,8 +190,7 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   @Nonnull
   public int[] getMSLevels() {
-    return scanNumbersCache.keySet().stream().filter(level -> level != 0)
-        .mapToInt(Integer::intValue).sorted().toArray();
+    return scans.stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
   }
 
   /**
@@ -286,13 +270,16 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
 
+
   @Override
   public synchronized void addScan(Scan newScan) throws IOException {
     scans.add(newScan);
 
-    List<Scan> scans = scanNumbersCache
-        .computeIfAbsent(newScan.getMSLevel(), msLevel -> FXCollections.observableArrayList());
-    scans.add(newScan);
+    // Remove cached values
+    dataMZRange.clear();
+    dataRTRange.clear();
+    dataMaxBasePeakIntensity.clear();
+    dataMaxTIC.clear();
   }
 
 
@@ -320,10 +307,12 @@ public class RawDataFileImpl implements RawDataFile {
         continue;
       }
 
+      final Range<Double> scanMzRange = scan.getDataPointMZRange();
       if (mzRange == null) {
-        mzRange = scan.getDataPointMZRange();
+        mzRange = scanMzRange;
       } else {
-        mzRange = mzRange.span(scan.getDataPointMZRange());
+        if (scanMzRange != null)
+          mzRange = mzRange.span(scanMzRange);
       }
 
     }
