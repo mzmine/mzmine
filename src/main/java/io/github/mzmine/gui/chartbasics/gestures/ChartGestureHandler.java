@@ -312,7 +312,6 @@ public class ChartGestureHandler {
             if (e.getMouseEvent().isMouseWheelEvent()) {
               // TODO actually get the mouse wheel distance and calculate percentage
               diff = 0.10 * (e.getMouseEvent().getWheelRotation()>0? 1 : -1);
-              System.out.println("ZOOM "+e.getMouseEvent().getWheelRotation());
             }
             ChartLogics.offsetAxis(axis, diff);
 
