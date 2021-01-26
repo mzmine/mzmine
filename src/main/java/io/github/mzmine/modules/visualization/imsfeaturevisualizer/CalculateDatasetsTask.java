@@ -7,19 +7,17 @@ import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import org.jfree.chart.renderer.PaintScale;
 
@@ -118,7 +116,7 @@ public class CalculateDatasetsTask extends AbstractTask {
       max = 1;
     }
     Range<Double> zValueRange = Range.closed(min, max);
-    var paintScale =
+    /*var paintScale =
         new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
             defaultPaintScaleColorStyle, defaultPaintScaleBoundStyle, zValueRange, Color.WHITE);
     PaintScaleFactory psf = new PaintScaleFactory();
@@ -126,7 +124,10 @@ public class CalculateDatasetsTask extends AbstractTask {
         new Color(0.f, 0.620f, 0.451f, 1f), // bluish green
         new Color(0.941f, 0.894f, 0.259f, 1f)); // yellow)
     paintScale = psf
-        .createColorsForCustomPaintScale(paintScale, PaintScaleTransform.LOG10, clrs);
+        .createColorsForCustomPaintScale(paintScale, PaintScaleTransform.LOG10, clrs);*/
+
+    paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
+        .toPaintScale(PaintScaleTransform.SQRT, zValueRange);
 
     return paintScale;
   }

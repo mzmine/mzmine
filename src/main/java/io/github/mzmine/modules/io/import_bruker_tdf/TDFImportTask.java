@@ -18,17 +18,6 @@
 
 package io.github.mzmine.modules.io.import_bruker_tdf;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -47,6 +36,17 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFPrecursorT
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -107,11 +107,8 @@ public class TDFImportTask extends AbstractTask {
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
-    readMetadata();
 
-    long handle = TDFUtils.openFile(tdfBin);
-
-    File[] files = new File[2];
+    File[] files;
     if (fileNameToOpen.isDirectory()) {
       files = getDataFilesFromDir(fileNameToOpen);
     } else {
@@ -136,6 +133,8 @@ public class TDFImportTask extends AbstractTask {
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     isMaldi = false;
 
+    readMetadata();
+
     rawDataFileName = tdfBin.getParentFile().getName();
 
     if (!(newMZmineFile instanceof IMSRawDataFileImpl)) {
@@ -144,6 +143,7 @@ public class TDFImportTask extends AbstractTask {
       return;
     }
 
+    long handle = TDFUtils.openFile(tdfBin);
     newMZmineFile.setName(rawDataFileName);
 
     loadedFrames = 0;
