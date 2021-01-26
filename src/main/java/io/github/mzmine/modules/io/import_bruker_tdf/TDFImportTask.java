@@ -120,8 +120,8 @@ public class TDFImportTask extends AbstractTask {
 
     if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead() || !tdfBin.exists()
         || !tdfBin.canRead()) {
-      setStatus(TaskStatus.ERROR);
       setErrorMessage("Cannot open sql or bin files: " + tdf.getName() + "; " + tdfBin.getName());
+      setStatus(TaskStatus.ERROR);
     }
 
     metaDataTable = new TDFMetaDataTable();
@@ -335,11 +335,13 @@ public class TDFImportTask extends AbstractTask {
   private File[] getDataFilesFromDir(File dir) {
 
     if (!dir.exists() || !dir.isDirectory()) {
+      setStatus(TaskStatus.CANCELED);
       throw new IllegalArgumentException("Invalid directory.");
     }
 
     if (!dir.getAbsolutePath().endsWith(".d")) {
-      throw new IllegalArgumentException("Invalid directory ending..");
+      setStatus(TaskStatus.CANCELED);
+      throw new IllegalArgumentException("Invalid directory ending.");
     }
 
     File[] files = dir.listFiles(pathname -> {

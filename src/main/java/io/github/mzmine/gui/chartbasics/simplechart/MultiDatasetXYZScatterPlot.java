@@ -20,6 +20,7 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
@@ -27,11 +28,13 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBloc
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.geom.Path2D;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -40,7 +43,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -52,6 +57,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
@@ -88,13 +94,16 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
+  private final BooleanProperty isDrawingRegion;
   protected RectangleEdge defaultPaintscaleLocation = RectangleEdge.RIGHT;
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
   private Canvas legendCanvas;
   private String legendLabel = null;
-
   private ObjectProperty<PaintScale> legendPaintScale;
+  private Path2D.Double currentRegion;
+  private XYShapeAnnotation currentRegionAnnotation;
+  private RegionSelectionListener currentRegionListener;
 
   public MultiDatasetXYZScatterPlot() {
     super(ChartFactory.createScatterPlot("", "x", "y", null,
@@ -111,6 +120,10 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
 
+    isDrawingRegion = new SimpleBooleanProperty(false);
+    currentRegionListener = null;
+    currentRegion = null;
+
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();
     datasetListeners = new ArrayList<>();
@@ -125,6 +138,41 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
+  }
+
+  public void startRegion() {
+    isDrawingRegion.set(true);
+
+    if (currentRegionListener != null) {
+      removeChartMouseListener(currentRegionListener);
+      currentRegion = null;
+    }
+    currentRegionListener = new RegionSelectionListener(isDrawingRegion::get,
+        this);
+    currentRegionListener.buildingPathProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentRegionAnnotation != null) {
+        getXYPlot().removeAnnotation(currentRegionAnnotation, false);
+      }
+      Color regionColor = new Color(0.6f, 0.6f, 0.6f, 0.4f);
+      currentRegionAnnotation = new XYShapeAnnotation(newValue, new BasicStroke(1f), regionColor,
+          regionColor);
+      getXYPlot().addAnnotation(currentRegionAnnotation, true);
+    }));
+    addChartMouseListener(currentRegionListener);
+  }
+
+  public Path2D finishRegion() {
+    if (isDrawingRegion.get() == false) {
+      return null;
+    }
+    if (currentRegionAnnotation != null) {
+      getXYPlot().removeAnnotation(currentRegionAnnotation);
+    }
+    isDrawingRegion.set(false);
+    removeChartMouseListener(currentRegionListener);
+    Path2D path = currentRegionListener.buildingPathProperty().get();
+    currentRegionListener = null;
+    return path;
   }
 
   private void onPaintScaleChanged(PaintScale newValue) {
@@ -482,11 +530,11 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     return legendPaintScale.get();
   }
 
-  public ObjectProperty<PaintScale> legendPaintScaleProperty() {
-    return legendPaintScale;
-  }
-
   public void setLegendPaintScale(PaintScale legendPaintScale) {
     this.legendPaintScale.set(legendPaintScale);
+  }
+
+  public ObjectProperty<PaintScale> legendPaintScaleProperty() {
+    return legendPaintScale;
   }
 }

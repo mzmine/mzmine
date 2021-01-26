@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -526,7 +527,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
         .getSelectedCells();
 
-    List<ModularFeature> features = new ArrayList<>();
+    Set<ModularFeature> features = new LinkedHashSet<>();
     selectedCells.forEach(cell -> {
       // get file of the selected column
       ColumnID id = newColumnMap.get(cell.getTableColumn());
@@ -538,7 +539,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
         }
       }
     });
-    return Collections.unmodifiableList(features);
+    return Collections.unmodifiableList(new ArrayList<>(features));
   }
 
   @Nullable

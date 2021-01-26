@@ -41,7 +41,6 @@ import java.text.NumberFormat;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -116,7 +115,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     heatmapChart.setRangeAxisNumberFormatOverride(mobilityFormat);
     heatmapChart.setLegendAxisLabel(unitFormat.format("Intensity", "counts"));
     heatmapChart.setLegendNumberFormatOverride(intensityFormat);
-    heatmapChart.setDefaultPaintscaleLocation(RectangleEdge.BOTTOM);
+    heatmapChart.setDefaultPaintscaleLocation(RectangleEdge.RIGHT);
     heatmapChart.getXYPlot().setBackgroundPaint(Color.BLACK);
     heatmapChart.setShowCrosshair(false);
     heatmapChart.cursorPositionProperty().addListener((observable, oldValue, newValue) -> {
@@ -137,6 +136,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     axis.setAutoRangeIncludesZero(false);
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeMinimumSize(0.005);
+    axis.setVisible(false);
 
     msmsSpectrumChart.setDomainAxisNumberFormatOverride(mzFormat);
     msmsSpectrumChart.setDomainAxisLabel("m/z");
@@ -169,14 +169,14 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
   }
 
   private void initChartPanes() {
-    Canvas legendCanvas = new Canvas();
-    heatmapChart.setLegendCanvas(legendCanvas);
-    legendCanvas.widthProperty().bind(heatmapChart.widthProperty());
-    legendCanvas.setHeight(60);
+//    Canvas legendCanvas = new Canvas();
+//    heatmapChart.setLegendCanvas(legendCanvas);
+//    legendCanvas.widthProperty().bind(heatmapChart.widthProperty());
+//    legendCanvas.setHeight(60);
 
     add(new BorderPane(mobilogramChart), 0, 0);
     add(new BorderPane(heatmapChart), 1, 0);
-    add(new BorderPane(legendCanvas), 1, 1);
+//    add(new BorderPane(legendCanvas), 1, 1);
 
     ComboBox<Scan> fragmentScanSelection = new ComboBox<>();
     fragmentScanSelection.setItems(feature.getAllMS2FragmentScans());
@@ -191,7 +191,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     controls.setAlignment(Pos.TOP_CENTER);
 
     BorderPane spectrumPane = new BorderPane(msmsSpectrumChart);
-    add(spectrumPane, 0, 3, 2, 1);
+    add(spectrumPane, 0, 2, 2, 1);
   }
 
   public SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> getHeatmapChart() {

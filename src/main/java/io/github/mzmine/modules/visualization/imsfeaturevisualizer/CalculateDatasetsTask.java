@@ -1,15 +1,18 @@
 package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
 
 import com.google.common.collect.Range;
+import com.google.common.math.Quantiles;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.FeaturesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
@@ -18,7 +21,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import javafx.scene.control.ButtonType;
 import org.jfree.chart.renderer.PaintScale;
 
 public class CalculateDatasetsTask extends AbstractTask {
@@ -61,33 +66,73 @@ public class CalculateDatasetsTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     final Collection<FastColoredXYZDataset> datasets = new ArrayList<>();
-    for (ModularFeature feature : features) {
-      description =
-          "IMS Feature Visualizer: Calculating dataset " + datasets.size() + "/" + features.size();
 
-      FastColoredXYZDataset dataset = new FastColoredXYZDataset(
-          new SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(feature));
-
-      SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) feature
-          .getFeatureData()).getSummedMobilogram();
-      Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(mobilogram);
-
-      if (intensityRange.lowerEndpoint().doubleValue() < minZ) {
-        minZ = intensityRange.lowerEndpoint().doubleValue();
+    boolean useMobilograms = true;
+    if (features.size() > 2000) {
+      ButtonType btnType = MZmineCore.getDesktop()
+          .displayConfirmation("You selected " + features.size()
+                  + " to visualize. This might take a long time or crash MZmine.\nWould you like to "
+                  + "visualize points instead of mobilograms for features?", ButtonType.YES,
+              ButtonType.NO);
+      if (btnType == ButtonType.YES) {
+        useMobilograms = false;
       }
-      if (intensityRange.upperEndpoint().doubleValue() > maxZ) {
-        maxZ = intensityRange.upperEndpoint().doubleValue();
-      }
-      datasets.add(dataset);
-      progress = datasets.size() / (double) features.size();
+    }
 
-      if (isCanceled()) {
-        return;
+    if (useMobilograms) {
+      for (ModularFeature feature : features) {
+        description =
+            "IMS Feature Visualizer: Calculating dataset " + datasets.size() + "/" + features
+                .size();
+
+        FastColoredXYZDataset dataset = new FastColoredXYZDataset(
+            new SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(feature));
+
+        SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) feature
+            .getFeatureData()).getSummedMobilogram();
+        Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(mobilogram);
+
+        if (intensityRange.lowerEndpoint().doubleValue() < minZ) {
+          minZ = intensityRange.lowerEndpoint().doubleValue();
+        }
+        if (intensityRange.upperEndpoint().doubleValue() > maxZ) {
+          maxZ = intensityRange.upperEndpoint().doubleValue();
+        }
+        datasets.add(dataset);
+        progress = datasets.size() / (double) features.size();
+
+        if (isCanceled()) {
+          return;
+        }
+      }
+    } else {
+      if (features instanceof List) {
+        FastColoredXYZDataset dataset = new FastColoredXYZDataset(
+            new FeaturesToMobilityMzHeatmapProvider((List<ModularFeature>) features));
+        datasets.add(dataset);
+      } else {
+        FastColoredXYZDataset dataset = new FastColoredXYZDataset(
+            new FeaturesToMobilityMzHeatmapProvider(
+                new ArrayList<>(features)));
+        datasets.add(dataset);
+      }
+      for (ModularFeature f : features) {
+        float height = f.getHeight();
+        if (height < minZ) {
+          minZ = height;
+        }
+        if (height > maxZ) {
+          maxZ = height;
+        }
       }
     }
 
     description = "IMS Feature Visualizer: Creating paint scale.";
-    paintScale = makePaintScale(minZ - minZ * 0.1, maxZ);
+
+    Map<Integer, Double> percentile = Quantiles.percentiles().indexes(5, 95)
+        .compute(features.stream().mapToDouble(Feature::getHeight).toArray());
+    paintScale = makePaintScale(percentile.get(5), percentile.get(95));
+//    paintScale = makePaintScale(minZ - minZ * 0.1, maxZ);
 
     datasetsRenderers = new LinkedHashMap<>();
     for (FastColoredXYZDataset dataset : datasets) {
@@ -115,19 +160,8 @@ public class CalculateDatasetsTask extends AbstractTask {
       min = 0;
       max = 1;
     }
-    Range<Double> zValueRange = Range.closed(min, max);
-    /*var paintScale =
-        new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
-            defaultPaintScaleColorStyle, defaultPaintScaleBoundStyle, zValueRange, Color.WHITE);
-    PaintScaleFactory psf = new PaintScaleFactory();
-    List<Color> clrs = List.of(new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
-        new Color(0.f, 0.620f, 0.451f, 1f), // bluish green
-        new Color(0.941f, 0.894f, 0.259f, 1f)); // yellow)
-    paintScale = psf
-        .createColorsForCustomPaintScale(paintScale, PaintScaleTransform.LOG10, clrs);*/
-
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
-        .toPaintScale(PaintScaleTransform.SQRT, zValueRange);
+        .toPaintScale(PaintScaleTransform.LOG2, Range.closed(min, max));
 
     return paintScale;
   }
