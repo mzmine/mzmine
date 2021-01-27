@@ -27,6 +27,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvide
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.IonMobilityUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.List;
@@ -126,26 +127,21 @@ public class FeaturesToMobilityMzHeatmapProvider implements
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    int numSamples = Math.min(features.size(), 20);
+    int numSamples = Math.min(features.size(), 100);
     double width = 0d;
-    double height = 0d;
     for (int i = 0; i < features.size(); i += (features.size() / numSamples)) {
       Range<Double> mzRange = features.get(i).getRawDataPointsMZRange();
       width += mzRange.upperEndpoint() - mzRange.lowerEndpoint();
 
-      Range<Float> mobRange = features.get(i).get(MobilityRangeType.class).get();
-      height += mobRange.upperEndpoint() - mobRange.lowerEndpoint();
     }
     width /= numSamples;
-//    height /= numSamples;
     boxWidth = width;
-//    boxHeight = width;
 
-//    if (features.isEmpty()) {
-//      boxHeight = IonMobilityUtils.getSmallestMobilityDelta(
-//          ((IMSRawDataFile) features.get(0).getRawDataFile()).getFrame(0)) * 3;
-//
-//    }
+    if (features.isEmpty()) {
+      boxHeight = IonMobilityUtils.getSmallestMobilityDelta(
+          ((IMSRawDataFile) features.get(0).getRawDataFile()).getFrame(0)) * 3;
+
+    }
 
   }
 

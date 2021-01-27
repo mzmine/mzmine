@@ -285,7 +285,6 @@ public class IMSFeaturesVisualizer extends BorderPane {
               clearRightSide();
             }
             addFeatureToRightSide(f);
-            ticChart.addDataset(new IonTimeSeriesToXYProvider(f));
           }
         }
         // if the mz + mobility of a feature was used to generate the plot
@@ -297,7 +296,6 @@ public class IMSFeaturesVisualizer extends BorderPane {
               clearRightSide();
             }
             addFeatureToRightSide(f);
-            ticChart.addDataset(new IonTimeSeriesToXYProvider(f));
           }
         }
       }
@@ -321,6 +319,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
     content.getChildren().clear();
     featureVisualisersMap.clear();
     ticChart.removeAllDatasets();
+    rawDataFiles.clear();
   }
 
 }

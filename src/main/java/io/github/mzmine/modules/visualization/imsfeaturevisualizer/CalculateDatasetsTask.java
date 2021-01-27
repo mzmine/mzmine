@@ -150,7 +150,7 @@ public class CalculateDatasetsTask extends AbstractTask {
       max = 1;
     }
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
-        .toPaintScale(PaintScaleTransform.LOG2, Range.closed(min, max));
+        .toPaintScale(PaintScaleTransform.SQRT, Range.closed(min, max));
 
     return paintScale;
   }
