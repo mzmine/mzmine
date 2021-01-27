@@ -20,20 +20,13 @@ package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import javafx.beans.property.Property;
 import javax.annotation.Nonnull;
 
@@ -55,55 +48,31 @@ public class IonMobilityUtils {
     return minDelta;
   }
 
-  public static ModularFeatureList extractRegionFromFeatureList(
-      @Nonnull final Collection<Path2D> regions,
-      @Nonnull final ModularFeatureList originalFeatureList, @Nonnull final String suffix) {
-    ModularFeatureList newFeatureList = originalFeatureList
-        .createCopy(originalFeatureList.getName() + suffix);
+  public static List<ModularFeature> getFeaturesWithinRegion(Collection<ModularFeature> features,
+      List<Path2D> regions) {
 
-    Map<ModularFeatureListRow, Set<ModularFeature>> featuresToRemove = new HashMap<>();
+    List<ModularFeature> contained = new ArrayList<>();
+    for (ModularFeature feature : features) {
+      if (isFeatureWithinMzMobilityRegion(feature, regions)) {
+        contained.add(feature);
+      }
+    }
+    return contained;
+  }
 
-    for (FeatureListRow r : newFeatureList.getRows()) {
-      ModularFeatureListRow row = (ModularFeatureListRow) r;
-      List<RawDataFile> rawDataFiles = row.getRawDataFiles();
-      for (RawDataFile file : rawDataFiles) {
-
-        ModularFeature feature = (ModularFeature) row.getFeature(file);
-        boolean contained = false;
-
-        if (feature != null) {
-          Property<Float> mobility = feature.get(MobilityType.class);
-
-          if (mobility != null) {
-
-            Point2D point = new Point2D.Double(feature.getMZ(), mobility.getValue().doubleValue());
-            for (Path2D region : regions) {
-
-              if (region.contains(point)) {
-                contained = true;
-                break;
-              }
-            }
+  public static boolean isFeatureWithinMzMobilityRegion(@Nonnull ModularFeature feature,
+      @Nonnull final Collection<Path2D> regions) {
+    if (feature != null) {
+      Property<Float> mobility = feature.get(MobilityType.class);
+      if (mobility != null) {
+        Point2D point = new Point2D.Double(feature.getMZ(), mobility.getValue().doubleValue());
+        for (Path2D region : regions) {
+          if (region.contains(point)) {
+            return true;
           }
         }
-
-        if (!contained) {
-//          Set<ModularFeature> set = featuresToRemove
-//              .computeIfAbsent((ModularFeatureListRow) row, key -> new HashSet<>());
-//          set.add(feature);
-          row.removeFeature(file);
-        }
       }
     }
-
-    List<FeatureListRow> rowsToRemove = new ArrayList<>();
-    for (FeatureListRow r : newFeatureList.getRows()) {
-      if (r.getNumberOfFeatures() == 0) {
-        rowsToRemove.add(r);
-      }
-    }
-    rowsToRemove.forEach(newFeatureList::removeRow);
-
-    return newFeatureList;
+    return false;
   }
 }

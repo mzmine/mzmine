@@ -35,6 +35,7 @@ import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -81,7 +82,7 @@ import org.jfree.fx.FXGraphics2D;
 import org.jfree.fx.FXHints;
 
 public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
-    EChartViewer implements SimpleChart<T> {
+    EChartViewer implements SimpleChart<T>, AllowsRegionSelection {
 
   protected static final Logger logger = Logger.getLogger(SimpleXYZScatterPlot.class.getName());
 
@@ -102,6 +103,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   private String legendLabel = null;
   private ObjectProperty<PaintScale> legendPaintScale;
   private Path2D.Double currentRegion;
+  private List<Point2D> currentPoints;
   private XYShapeAnnotation currentRegionAnnotation;
   private RegionSelectionListener currentRegionListener;
 
@@ -123,6 +125,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     isDrawingRegion = new SimpleBooleanProperty(false);
     currentRegionListener = null;
     currentRegion = null;
+    currentPoints = null;
 
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();
@@ -140,6 +143,11 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     theme.apply(chart);
   }
 
+  /**
+   * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
+   * added to a region. Region selection can be finished by {@link MultiDatasetXYZScatterPlot#finishPath()}.
+   */
+  @Override
   public void startRegion() {
     isDrawingRegion.set(true);
 
@@ -161,7 +169,14 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     addChartMouseListener(currentRegionListener);
   }
 
-  public Path2D finishRegion() {
+  /**
+   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
+   * from the listener object.
+   *
+   * @return
+   */
+  @Override
+  public RegionSelectionListener finishPath() {
     if (isDrawingRegion.get() == false) {
       return null;
     }
@@ -170,9 +185,9 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     }
     isDrawingRegion.set(false);
     removeChartMouseListener(currentRegionListener);
-    Path2D path = currentRegionListener.buildingPathProperty().get();
+    RegionSelectionListener tempRegionListener = currentRegionListener;
     currentRegionListener = null;
-    return path;
+    return tempRegionListener;
   }
 
   private void onPaintScaleChanged(PaintScale newValue) {

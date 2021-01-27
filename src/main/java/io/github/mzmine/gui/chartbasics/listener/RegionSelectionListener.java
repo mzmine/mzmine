@@ -22,12 +22,13 @@ import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.logging.Logger;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.scene.input.MouseButton;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
@@ -38,13 +39,13 @@ public class RegionSelectionListener implements ChartMouseListenerFX {
 
   private final BooleanSupplier mayPlaceCondition;
   private final ObjectProperty<java.awt.geom.Path2D> buildingPath;
-  private final List<Point2D> points;
+  private final ListProperty<Point2D> points;
   private final EChartViewer chart;
 
   public RegionSelectionListener(BooleanSupplier mayPlaceCondition, EChartViewer chart) {
     this.mayPlaceCondition = mayPlaceCondition;
     this.chart = chart;
-    points = new ArrayList<>();
+    points = new SimpleListProperty<>(FXCollections.observableArrayList());
     buildingPath = new SimpleObjectProperty<>();
   }
 
@@ -61,7 +62,7 @@ public class RegionSelectionListener implements ChartMouseListenerFX {
     Point2D p = ChartLogicsFX
         .mouseXYToPlotXY(chart, event.getTrigger().getX(), event.getTrigger().getY());
 
-    points.add(p);
+    points.get().add(p);
     buildingPath.set(getShape());
   }
 
@@ -86,5 +87,9 @@ public class RegionSelectionListener implements ChartMouseListenerFX {
 
   public ObjectProperty<Path2D> buildingPathProperty() {
     return buildingPath;
+  }
+
+  public ListProperty<Point2D> buildingPointsProperty() {
+    return points;
   }
 }

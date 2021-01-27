@@ -31,12 +31,13 @@ public class IMSFeatureVisualizerModule implements MZmineModule {
 
   public static final String NAME = "Ion mobility feature visualizer";
 
-  public static void visualizeFeaturesInNewTab(Collection<ModularFeature> features) {
+  public static void visualizeFeaturesInNewTab(Collection<ModularFeature> features,
+      boolean useMobilograms) {
     if (!Platform.isFxApplicationThread()) {
-      Platform
-          .runLater(() -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(features)));
+      Platform.runLater(() -> MZmineCore.getDesktop()
+          .addTab(new IMSFeatureVisualizerTab(features, useMobilograms)));
     } else {
-      MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(features));
+      MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(features, useMobilograms));
     }
   }
 

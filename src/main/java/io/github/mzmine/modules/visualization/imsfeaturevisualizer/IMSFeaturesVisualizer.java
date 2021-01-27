@@ -24,7 +24,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.MultiDatasetXYZScatterPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -37,14 +39,14 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTim
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.IonMobilityUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Stroke;
-import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,11 +57,8 @@ import java.util.Objects;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -68,15 +67,17 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import org.jfree.chart.annotations.XYAnnotation;
-import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.plot.ValueMarker;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public class IMSFeaturesVisualizer extends BorderPane {
 
   private final SimpleXYChart<IonTimeSeriesToXYProvider> ticChart;
   private final Map<ModularFeature, SingleIMSFeatureVisualiserPane> featureVisualisersMap;
   private final MultiDatasetXYZScatterPlot<SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider> heatmap;
+  private final RegionSelectionWrapper<MultiDatasetXYZScatterPlot<?>> selectionWrapper;
   private final ScrollPane scrollPane;
   private final VBox content;
 
@@ -91,11 +92,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
       .getPositiveColorAWT();
 
   private final ObjectProperty<Scan> selectedScan;
-  private final ObservableList<Path2D> finishedRegions;
-  private final Stroke roiStroke = new BasicStroke(1f);
-  private final Paint roiPaint = MZmineCore.getConfiguration().getDefaultColorPalette()
-      .getNegativeColorAWT();
-  private List<RawDataFile> rawDataFiles;
+  private List<RawDataFile> rawDataFiles; // raw data files in the ticChart
   private boolean isCtrlPressed = false;
 
   private Collection<ModularFeature> features;
@@ -109,7 +106,6 @@ public class IMSFeaturesVisualizer extends BorderPane {
     heatmap = new MultiDatasetXYZScatterPlot<>();
     featureVisualisersMap = new LinkedHashMap<>();
     rawDataFiles = new ArrayList<>();
-    finishedRegions = FXCollections.observableArrayList();
 //    isDrawing = new SimpleBooleanProperty(false);
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -144,8 +140,9 @@ public class IMSFeaturesVisualizer extends BorderPane {
     selectedFeaturesPane.setTop(ticChart);
     selectedFeaturesPane.setCenter(scrollPane);
     selectedFeaturesPane.setMinWidth(500);
+    selectionWrapper = new RegionSelectionWrapper<>(heatmap);
     setRight(selectedFeaturesPane);
-    setCenter(heatmap);
+    setCenter(selectionWrapper);
 
     initChartListeners();
     initSelectionPane();
@@ -172,65 +169,32 @@ public class IMSFeaturesVisualizer extends BorderPane {
   }
 
   private void initSelectionPane() {
-    final GridPane selectionControls = new GridPane();
-
-    Button btnStartRegion = new Button("Start region");
-    Button btnFinishRegion = new Button("Finish region");
-    Button btnCancelRegion = new Button("Cancel region");
-    Button btnClearRegions = new Button("Clear regions");
     Button btnExtractRegions = new Button("Extract regions");
     TextField tfSuffix = new TextField();
     tfSuffix.setPromptText("suffix");
 
-    btnStartRegion.setOnAction(e -> heatmap.startRegion());
+    GridPane selectionControls = selectionWrapper.getSelectionControls();
 
-    btnFinishRegion.setOnAction(e -> {
-      Path2D path = heatmap.finishRegion();
-      finishedRegions.add(path);
-    });
-
-    btnCancelRegion.setOnAction(e -> heatmap.finishRegion());
-
-    btnClearRegions.setOnAction(e -> {
-      List<XYAnnotation> annotations = heatmap.getXYPlot().getAnnotations();
-      new ArrayList<>(annotations).forEach(a -> heatmap.getXYPlot().removeAnnotation(a, true));
-      finishedRegions.clear();
-    });
-
+    btnExtractRegions.setDisable(true);
     btnExtractRegions
-        .setOnAction(e -> Platform.runLater(() -> MZmineCore.getProjectManager().getCurrentProject()
-            .addFeatureList(IonMobilityUtils.extractRegionFromFeatureList(finishedRegions,
-                (ModularFeatureList) features.stream().findFirst().get().getFeatureList(),
-                Objects.requireNonNullElse(tfSuffix.getText(), "extracted")))));
+        .setOnAction(e -> Platform.runLater(() -> {
+          List<List<Point2D>> regions = selectionWrapper.getFinishedRegionsAsListOfPointLists();
+          MobilityMzRegionExtractionModule.runExtractionForFeatureList(
+              (ModularFeatureList) features.stream().findFirst().get().getFeatureList(), regions,
+              Objects.requireNonNullElse(tfSuffix.getText(), "extracted"));
+        }));
 
-    finishedRegions.addListener((ListChangeListener<Path2D>) c -> {
-      c.next();
-      if (c.wasRemoved()) {
-        boolean disable = c.getList().isEmpty();
-        btnClearRegions.setDisable(disable);
-        btnExtractRegions.setDisable(disable);
-      }
-      if (c.wasAdded()) {
-        heatmap.getXYPlot()
-            .addAnnotation(new XYShapeAnnotation(c.getAddedSubList().get(0), roiStroke, roiPaint));
-        btnClearRegions.setDisable(false);
-        btnExtractRegions.setDisable(false);
-      }
-    });
+    selectionWrapper.getFinishedRegionListeners()
+        .addListener((ListChangeListener<RegionSelectionListener>) c -> {
+          c.next();
+          btnExtractRegions.setDisable(c.getList().isEmpty());
+        });
 
-    selectionControls.add(btnStartRegion, 0, 0);
-    selectionControls.add(btnFinishRegion, 1, 0);
-    selectionControls.add(btnCancelRegion, 2, 0);
-    selectionControls.add(btnClearRegions, 3, 0);
     selectionControls.add(btnExtractRegions, 4, 0);
     selectionControls.add(tfSuffix, 5, 0);
-    selectionControls.setHgap(5);
-    selectionControls.getStyleClass().add(".region-match-chart-bg");
-    selectionControls.setAlignment(Pos.TOP_CENTER);
-    setBottom(selectionControls);
   }
 
-  public void setFeatures(Collection<ModularFeature> features) {
+  public void setFeatures(Collection<ModularFeature> features, boolean useMobilograms) {
     assert Platform.isFxApplicationThread();
 
     if (!features.isEmpty()) {
@@ -248,7 +212,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
     content.getChildren().clear();
     ticChart.removeAllDatasets();
 
-    CalculateDatasetsTask calc = new CalculateDatasetsTask(features);
+    CalculateDatasetsTask calc = new CalculateDatasetsTask(features, useMobilograms);
     MZmineCore.getTaskController().addTask(calc);
     calc.addTaskStatusListener((task, newStatus, oldStatus) -> {
       if (newStatus == TaskStatus.FINISHED) {
@@ -312,6 +276,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
     heatmap.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue.getDataset() instanceof ColoredXYZDataset) {
         XYZValueProvider prov = ((ColoredXYZDataset) newValue.getDataset()).getXyzValueProvider();
+        // if mobilograms were shown
         if (prov instanceof SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider) {
           ModularFeature f = ((SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider) prov)
               .getSourceFeature();
@@ -323,6 +288,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
             ticChart.addDataset(new IonTimeSeriesToXYProvider(f));
           }
         }
+        // if the mz + mobility of a feature was used to generate the plot
         if (prov instanceof FeaturesToMobilityMzHeatmapProvider) {
           ModularFeature f = ((FeaturesToMobilityMzHeatmapProvider) prov).getSourceFeatures().get(
               newValue.getValueIndex());
@@ -356,4 +322,5 @@ public class IMSFeaturesVisualizer extends BorderPane {
     featureVisualisersMap.clear();
     ticChart.removeAllDatasets();
   }
+
 }

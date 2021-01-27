@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import javafx.scene.control.ButtonType;
 import org.jfree.chart.renderer.PaintScale;
 
 public class CalculateDatasetsTask extends AbstractTask {
@@ -32,14 +31,16 @@ public class CalculateDatasetsTask extends AbstractTask {
   private double progress;
   private double minZ = Double.MAX_VALUE;
   private double maxZ = Double.MIN_VALUE;
+  private final boolean useMobilograms;
   private PaintScaleColorStyle defaultPaintScaleColorStyle;
   private PaintScaleBoundStyle defaultPaintScaleBoundStyle;
   private PaintScale paintScale;
   private String description;
   private Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> datasetsRenderers;
 
-  public CalculateDatasetsTask(Collection<ModularFeature> features) {
+  public CalculateDatasetsTask(Collection<ModularFeature> features, boolean useMobilograms) {
     this.features = features;
+    this.useMobilograms = useMobilograms;
     description = "IMS Feature Visualizer: Waiting";
 
     defaultPaintScaleColorStyle = PaintScaleColorStyle.RAINBOW;
@@ -66,18 +67,6 @@ public class CalculateDatasetsTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     final Collection<FastColoredXYZDataset> datasets = new ArrayList<>();
-
-    boolean useMobilograms = true;
-    if (features.size() > 2000) {
-      ButtonType btnType = MZmineCore.getDesktop()
-          .displayConfirmation("You selected " + features.size()
-                  + " to visualize. This might take a long time or crash MZmine.\nWould you like to "
-                  + "visualize points instead of mobilograms for features?", ButtonType.YES,
-              ButtonType.NO);
-      if (btnType == ButtonType.YES) {
-        useMobilograms = false;
-      }
-    }
 
     if (useMobilograms) {
       for (ModularFeature feature : features) {

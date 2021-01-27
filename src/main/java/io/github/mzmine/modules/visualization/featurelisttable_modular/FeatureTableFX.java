@@ -63,6 +63,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
@@ -443,7 +444,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
   private void initHandleDoubleClicks() {
     this.setOnMouseClicked(e -> {
-      if (e.getClickCount() >= 2) {
+      if (e.getClickCount() >= 2 && e.getButton() == MouseButton.PRIMARY) {
         e.consume();
         logger.finest(() -> "Double click on " + e.getSource());
 

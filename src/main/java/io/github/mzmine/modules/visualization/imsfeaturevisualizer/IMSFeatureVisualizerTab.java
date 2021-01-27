@@ -28,10 +28,10 @@ import javax.annotation.Nonnull;
 
 public class IMSFeatureVisualizerTab extends MZmineTab {
 
-  public IMSFeatureVisualizerTab(Collection<ModularFeature> features) {
+  public IMSFeatureVisualizerTab(Collection<ModularFeature> features, boolean useMobilograms) {
     super("IMS feature visualizer", false, false);
     IMSFeaturesVisualizer visualizer = new IMSFeaturesVisualizer();
-    visualizer.setFeatures(features);
+    visualizer.setFeatures(features, useMobilograms);
     setContent(visualizer);
   }
 
