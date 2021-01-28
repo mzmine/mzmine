@@ -155,8 +155,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
       removeChartMouseListener(currentRegionListener);
       currentRegion = null;
     }
-    currentRegionListener = new RegionSelectionListener(isDrawingRegion::get,
-        this);
+    currentRegionListener = new RegionSelectionListener(this);
     currentRegionListener.buildingPathProperty().addListener(((observable, oldValue, newValue) -> {
       if (currentRegionAnnotation != null) {
         getXYPlot().removeAnnotation(currentRegionAnnotation, false);
