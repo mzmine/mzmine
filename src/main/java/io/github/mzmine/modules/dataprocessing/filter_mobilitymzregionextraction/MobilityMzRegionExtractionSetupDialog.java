@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
@@ -118,6 +119,7 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
         });
 
     fp.getChildren().add(comboBox);
+    fp.setAlignment(Pos.TOP_CENTER);
     previewWrapperPane.setBottom(fp);
   }
 

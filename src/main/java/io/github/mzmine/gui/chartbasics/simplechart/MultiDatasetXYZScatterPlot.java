@@ -465,6 +465,8 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     } else {
       chart.addSubtitle(legend);
     }
+    chart.fireChartChanged();
+    MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
   }
 
   public Canvas getLegendCanvas() {

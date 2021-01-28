@@ -436,6 +436,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
         chart.addSubtitle(legend);
       }
     }
+    MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
     chart.fireChartChanged();
   }
 
