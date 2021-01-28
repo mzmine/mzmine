@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.geom.Rectangle2D;
@@ -334,17 +335,17 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     PlotOrientation orientation = plot.getOrientation();
     if (orientation.equals(PlotOrientation.HORIZONTAL)) {
       block = new Rectangle2D.Double(Math.min(yy0, yy1), Math.min(xx0, xx1),
-          Math.max(Math.abs(yy1 - yy0), 1),
-          Math.max(Math.abs(xx0 - xx1), 1));
+          Math.abs(yy1 - yy0),
+          Math.abs(xx0 - xx1));
     } else {
       block = new Rectangle2D.Double(Math.min(xx0, xx1), Math.min(yy0, yy1),
-          Math.max(Math.abs(xx1 - xx0), 1),
-          Math.max(Math.abs(yy1 - yy0), 1));
+          Math.abs(xx1 - xx0),
+          Math.abs(yy1 - yy0));
     }
     g2.setPaint(p);
     g2.fill(block);
-//    g2.setStroke(new BasicStroke(1.0f));
-//    g2.draw(block);
+    g2.setStroke(new BasicStroke(1.0f));
+    g2.draw(block);
 
     if (isItemLabelVisible(series, item)) {
       drawItemLabel(g2, orientation, dataset, series, item, block.getCenterX(), block.getCenterY(),

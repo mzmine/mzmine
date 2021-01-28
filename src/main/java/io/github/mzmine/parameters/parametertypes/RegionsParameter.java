@@ -36,8 +36,8 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   public static final String PARAMETER_ELEMENT = "regions_parameter";
   public static final String PATH_ELEMENT = "path";
   public static final String POINT_ELEMENT = "point";
-  public static final String X_ATTR = "point";
-  public static final String Y_ATTR = "point";
+  public static final String X_ATTR = "x";
+  public static final String Y_ATTR = "y";
 
   private final String name;
   private final String description;
