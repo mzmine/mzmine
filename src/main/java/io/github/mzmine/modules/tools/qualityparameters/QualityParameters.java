@@ -52,7 +52,7 @@ public class QualityParameters {
       RawDataFile dataFile = peak.getRawDataFile();
       IonTimeSeries<? extends Scan> dps = peak.getFeatureData();
       if (height.getValue() == null || rt.getValue() == null || dataFile == null
-          || scanNumbers.isEmpty() || dps.getNumberOfValues() == 0) {
+          || scanNumbers.isEmpty() || dps.getNumberOfValues() < 3) {
         return;
       }
 
