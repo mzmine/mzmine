@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.util.DataPointUtils;
 import java.nio.DoubleBuffer;
@@ -57,9 +58,13 @@ public class CachedFrame implements Frame {
   public CachedFrame(SimpleFrame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
     originalFrame = frame;
 
+    double[] allmz = new double[frame.getNumberOfDataPoints()];
+    double[] allintensities = new double[frame.getNumberOfDataPoints()];
+    frame.getMzValues(allmz);
+    frame.getIntensityValues(allintensities);
+
     double[][] data = DataPointUtils
-        .getDatapointsAboveNoiseLevel(frame.getMzValues(), frame.getIntensityValues(),
-            frameNoiseLevel);
+        .getDatapointsAboveNoiseLevel(allmz, allintensities, frameNoiseLevel);
 
     mzs = data[0];
     intensities = data[1];
@@ -145,8 +150,8 @@ public class CachedFrame implements Frame {
   }
 
   @Override
-  public void addMobilityScan(MobilityScan originalMobilityScan) {
-    originalFrame.addMobilityScan(originalMobilityScan);
+  public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScan) {
+    throw new UnsupportedOperationException("Not supported by CachedFrame.");
   }
 
   @Override
@@ -169,6 +174,18 @@ public class CachedFrame implements Frame {
   @Nonnull
   @Override
   public DoubleBuffer getIntensityValues() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public double[] getMzValues(@Nonnull double[] dst) {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public double[] getIntensityValues(@Nonnull double[] dst) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }

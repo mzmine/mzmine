@@ -57,6 +57,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private Range<Double> mobilityRange;
 
   private DoubleBuffer mobilityBuffer;
+  private DoubleBuffer mobilityScanIntensityBuffer;
+  private DoubleBuffer mobilityScanMzBuffer;
 
   public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge, DataPoint dps[],
@@ -71,8 +73,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
     setDataPoints(dps);
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-//    this.numMobilitySpectra = numMobilitySpectra;
-//    this.mobilities = mobilities;
     this.precursorInfos = precursorInfos;
   }
 
@@ -106,13 +106,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilityType;
   }
 
-  /**
-   * @return Scan numbers of sub scans.
-   */
-//  @Override
-//  public Set<Integer> getMobilityScanNumbers() {
-//    return mobilities.keySet();
-//  }
   @Override
   @Nonnull
   public Range<Double> getMobilityRange() {
@@ -132,18 +125,71 @@ public class SimpleFrame extends SimpleScan implements Frame {
    * Not to be used during processing. Can only be called during raw data file reading before
    * finishWriting() was called.
    *
-   * @param originalMobilityScan The mobility scan to store.
+   * @param originalMobilityScans The mobility scans to store.
    */
   @Override
-  public void addMobilityScan(MobilityScan originalMobilityScan) {
+  public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans)
+      throws IllegalStateException {
+    if (mobilityScanIntensityBuffer != null || mobilityScanMzBuffer != null) {
+      throw new IllegalStateException("Mobility scans can only be set to a frame once.");
+    }
 
-//    if (mobilityRange == null) {
-//      mobilityRange = Range.singleton(originalMobilityScan.getMobility());
-//    } else if (!mobilityRange.contains(originalMobilityScan.getMobility())) {
-//      mobilityRange = mobilityRange.span(Range.singleton(originalMobilityScan.getMobility()));
-//    }
+    // determine offsets for each mobility scan
+    final int[] offsets = new int[originalMobilityScans.size()];
 
-    mobilitySubScans.add(originalMobilityScan);
+    offsets[0] = 0;
+    for (int i = 1; i < offsets.length; i++) {
+      offsets[i] = offsets[i - 1] + originalMobilityScans.get(i).getNumberOfDataPoints();
+    }
+
+    // now create a big array that contains all m/z and intensity values so we can store it in a single buffer
+    final int numDatapoints =
+        offsets[offsets.length - 1] + originalMobilityScans.get(offsets.length - 1)
+            .getNumberOfDataPoints();
+
+    // now store all the data in a single array
+    double[] data = new double[numDatapoints];
+    int dpCounter = 0;
+    for (int i = 0; i < originalMobilityScans.size(); i++) {
+      BuildingMobilityScan currentScan = originalMobilityScans.get(i);
+      double[] currentIntensities = currentScan.getIntensities();
+      for (int j = 0; j < currentIntensities.length; j++) {
+        data[dpCounter + j] = currentIntensities[j];
+      }
+      dpCounter += currentIntensities.length;
+    }
+
+    try {
+      mobilityScanIntensityBuffer = storage.storeData(data);
+    } catch (IOException e) {
+      e.printStackTrace();
+      mobilityScanIntensityBuffer = DoubleBuffer.wrap(data);
+      data = new double[numDatapoints]; // cannot reuse the same array then
+    }
+    // same for mzs
+    dpCounter = 0;
+    for (int i = 0; i < originalMobilityScans.size(); i++) {
+      BuildingMobilityScan currentScan = originalMobilityScans.get(i);
+      double[] currentMzs = currentScan.getMzs();
+      for (int j = 0; j < currentMzs.length; j++) {
+        data[dpCounter + j] = currentMzs[j];
+      }
+      dpCounter += currentMzs.length;
+    }
+
+    try {
+      mobilityScanMzBuffer = storage.storeData(data);
+    } catch (IOException e) {
+      e.printStackTrace();
+      mobilityScanMzBuffer = DoubleBuffer.wrap(data);
+    }
+
+    // now create the scans
+    for (int i = 0; i < originalMobilityScans.size(); i++) {
+      MobilityScan scan = originalMobilityScans.get(i);
+      mobilitySubScans.add(new SimpleMobilityScan(scan.getMobilityScamNumber(), this, offsets[i],
+          scan.getNumberOfDataPoints()));
+    }
   }
 
   /**
@@ -218,6 +264,16 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   public void setPrecursorInfos(@Nullable Set<ImsMsMsInfo> precursorInfos) {
     this.precursorInfos = precursorInfos;
+  }
+
+  public void getMobilityScanMzValues(SimpleMobilityScan scan, double[] dst) {
+    assert scan.getNumberOfDataPoints() <= dst.length;
+    mobilityScanMzBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
+  }
+
+  public void getMobilityScanIntensityValues(SimpleMobilityScan scan, double[] dst) {
+    assert scan.getNumberOfDataPoints() <= dst.length;
+    mobilityScanIntensityBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
   }
 
   /*

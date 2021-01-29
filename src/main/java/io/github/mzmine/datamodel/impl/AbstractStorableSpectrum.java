@@ -18,14 +18,14 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import com.google.common.base.Preconditions;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import com.google.common.base.Preconditions;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.util.MemoryMapStorage;
 
 /**
  * An implementation of MassSpectrum that stores the data points in a MemoryMapStorage.
@@ -37,7 +37,8 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
   private static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
 
   protected final MemoryMapStorage storage;
-  protected DoubleBuffer mzValues, intensityValues;
+  protected DoubleBuffer mzValues;
+  protected DoubleBuffer intensityValues;
 
   /**
    * Constructor for creating scan with given data
@@ -106,12 +107,29 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
   @Override
   public DoubleBuffer getIntensityValues() {
-    if (intensityValues == null)
+    if (intensityValues == null) {
       return EMPTY_BUFFER;
-    else
+    } else {
       return intensityValues;
+    }
   }
 
+  @Override
+  public double[] getMzValues(@Nonnull double[] dst) {
+    if (dst.length < getNumberOfDataPoints()) {
+      dst = new double[getNumberOfDataPoints()];
+    }
+    mzValues.get(0, dst);
+    return dst;
+  }
 
+  @Override
+  public double[] getIntensityValues(@Nonnull double[] dst) {
+    if (dst.length < getNumberOfDataPoints()) {
+      dst = new double[getNumberOfDataPoints()];
+    }
+    intensityValues.get(0, dst);
+    return dst;
+  }
 }
 

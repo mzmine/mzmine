@@ -18,11 +18,11 @@
 
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.Range;
 import java.nio.DoubleBuffer;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
 
 /**
  * This class represent one mass spectrum. Typically the implementation will store the m/z and
@@ -60,11 +60,14 @@ public interface MassSpectrum extends Iterable<DataPoint> {
 
   /**
    * @return The intensity values corresponding to the m/z values returned by getMzValues(). The
-   *         capacity of the returned buffer is equivalent to the number of data points in this
-   *         spectrum.
+   * capacity of the returned buffer is equivalent to the number of data points in this spectrum.
    */
   @Nonnull
   DoubleBuffer getIntensityValues();
+
+  double[] getMzValues(@Nonnull double[] dst);
+
+  double[] getIntensityValues(@Nonnull double[] dst);
 
   /**
    * A shortcut method for {@code getMzValues().get(index)}

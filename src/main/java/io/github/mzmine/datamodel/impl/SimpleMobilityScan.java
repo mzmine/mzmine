@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.datamodel.impl;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
@@ -25,16 +26,14 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
-import java.util.Arrays;
+import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -42,50 +41,116 @@ import javax.annotation.Nullable;
  * @author https://github.com/SteffenHeu
  * @see io.github.mzmine.datamodel.MobilityScan
  */
-public class SimpleMobilityScan extends AbstractStorableSpectrum implements MobilityScan {
+public class SimpleMobilityScan implements MobilityScan {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(SimpleMobilityScan.class.getName());
 
-  private final RawDataFile dataFile;
-  private final Frame frame;
-  private int mobilityScamNumber;
+  private final SimpleFrame frame;
   private final Set<MassList> massLists;
+  private final int storageOffset;
+  private final int numDataPoints;
+  private int mobilityScamNumber;
 
-  public SimpleMobilityScan(RawDataFile dataFile, int mobilityScamNumber, Frame frame,
+
+  /*public SimpleMobilityScan(RawDataFile dataFile, int mobilityScamNumber, Frame frame,
       DataPoint dataPoints[]) {
-    super(dataFile.getMemoryMapStorage());
-    this.dataFile = dataFile;
     this.frame = frame;
     this.massLists = new HashSet<>();
     this.mobilityScamNumber = mobilityScamNumber;
-    setDataPoints(dataPoints);
+  }*/
+
+  public SimpleMobilityScan(int mobilityScamNumber, SimpleFrame frame,
+      int storageOffset, int numDataPoints) {
+    this.frame = frame;
+    this.massLists = new HashSet<>();
+    this.mobilityScamNumber = mobilityScamNumber;
+    this.storageOffset = storageOffset;
+    this.numDataPoints = numDataPoints;
   }
 
-  public SimpleMobilityScan(RawDataFile dataFile, int mobilityScamNumber, Frame frame,
-      double mzValues[], double intensityValues[]) {
-    super(dataFile.getMemoryMapStorage());
-    this.dataFile = dataFile;
-    this.frame = frame;
-    this.massLists = new HashSet<>();
-    this.mobilityScamNumber = mobilityScamNumber;
-    try {
-      setDataPoints(mzValues, intensityValues);
-    } catch (IllegalArgumentException e) {
-      DataPoint[] dps = new DataPoint[mzValues.length];
-      for (int i = 0; i < mzValues.length; i++) {
-        dps[i] = new SimpleDataPoint(mzValues[i], intensityValues[i]);
-      }
-      DataPointSorter sorter = new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending);
-      Arrays.sort(dps, sorter);
-      double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
-      setDataPoints(data[0], data[1]);
-      logger.info("Sorted dps.");
-    }
+  @Override
+  public int getNumberOfDataPoints() {
+    return numDataPoints;
   }
 
   @Override
   public MassSpectrumType getSpectrumType() {
     return frame.getSpectrumType();
+  }
+
+  @Nonnull
+  @Override
+  public DoubleBuffer getMzValues() {
+    return null;
+  }
+
+  @Nonnull
+  @Override
+  public DoubleBuffer getIntensityValues() {
+    return null;
+  }
+
+  @Override
+  public double[] getMzValues(@Nonnull double[] dst) {
+    if (dst.length < getNumberOfDataPoints()) {
+      dst = new double[getNumberOfDataPoints()];
+    }
+    frame.getMobilityScanMzValues(this, dst);
+    return dst;
+  }
+
+  @Override
+  public double[] getIntensityValues(@Nonnull double[] dst) {
+    if (dst.length < getNumberOfDataPoints()) {
+      dst = new double[getNumberOfDataPoints()];
+    }
+    frame.getMobilityScanIntensityValues(this, dst);
+    return dst;
+  }
+
+  @Override
+  public double getMzValue(int index) {
+    return 0;
+  }
+
+  @Override
+  public double getIntensityValue(int index) {
+    return 0;
+  }
+
+  @Nullable
+  @Override
+  public Double getBasePeakMz() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public Double getBasePeakIntensity() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public Integer getBasePeakIndex() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public Range<Double> getDataPointMZRange() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public Double getTIC() {
+    return null;
+  }
+
+  @Override
+  public Stream<DataPoint> stream() {
+    return null;
   }
 
   @Override
@@ -157,7 +222,20 @@ public class SimpleMobilityScan extends AbstractStorableSpectrum implements Mobi
 
   @Override
   public RawDataFile getDataFile() {
-    return dataFile;
+    return frame.getDataFile();
   }
 
+  @Nonnull
+  @Override
+  public Iterator<DataPoint> iterator() {
+    return null;
+  }
+
+  /**
+   * @return Used to retrieve this scans storage offset when reading mz/intensity values. Not
+   * intended for public usage, therefore not declared in {@link MobilityScan}.
+   */
+  public int getStorageOffset() {
+    return storageOffset;
+  }
 }

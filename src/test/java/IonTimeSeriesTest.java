@@ -20,7 +20,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -30,9 +29,9 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -75,14 +74,16 @@ public class IonTimeSeriesTest {
         Range.closed(11d, 11d), MobilityType.TIMS, null);
     frame.setMobilities(new double[]{1d, 2d});
 
-    List<MobilityScan> mobilityScans = new ArrayList<>();
+    List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
     mobilityScans
-        .add(new SimpleMobilityScan(file, 0, frame, new double[]{1d, 1d}, new double[]{2d, 2d}));
+        .add(new BuildingMobilityScan(0, new double[]{1d, 1d}, new double[]{2d, 2d}));
     mobilityScans
-        .add(new SimpleMobilityScan(file, 1, frame, new double[]{2d, 2d}, new double[]{4d, 4d}));
+        .add(new BuildingMobilityScan(1, new double[]{2d, 2d}, new double[]{4d, 4d}));
+
+    frame.setMobilityScans(mobilityScans);
 
     SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(storage,
-        new double[]{1d, 2d}, new double[]{2d, 4d}, mobilityScans);
+        new double[]{1d, 2d}, new double[]{2d, 4d}, frame.getMobilityScans());
 
     return new SimpleIonMobilogramTimeSeries(storage, List.of(ionMobilitySeries));
   }

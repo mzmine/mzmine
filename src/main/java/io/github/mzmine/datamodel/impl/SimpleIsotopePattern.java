@@ -18,11 +18,6 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import java.nio.DoubleBuffer;
-import java.util.Iterator;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
@@ -30,6 +25,11 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.nio.DoubleBuffer;
+import java.util.Iterator;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Simple implementation of IsotopePattern interface
@@ -138,10 +138,35 @@ public class SimpleIsotopePattern implements IsotopePattern {
     return DoubleBuffer.wrap(intensityValues);
   }
 
+  @Override
+  public double[] getMzValues(@Nonnull double[] dst) {
+    if (dst.length < mzValues.length) {
+      return mzValues;
+    }
+
+    for (int i = 0; i < mzValues.length; i++) {
+      dst[i] = mzValues[i];
+    }
+    return dst;
+  }
+
+  @Override
+  public double[] getIntensityValues(@Nonnull double[] dst) {
+    if (dst.length < intensityValues.length) {
+      return intensityValues;
+    }
+
+    for (int i = 0; i < intensityValues.length; i++) {
+      dst[i] = intensityValues[i];
+    }
+    return dst;
+  }
+
 
   public String getIsotopeComposition(int num) {
-    if (isotopeCompostion != null && num < isotopeCompostion.length)
+    if (isotopeCompostion != null && num < isotopeCompostion.length) {
       return isotopeCompostion[num];
+    }
     return "";
   }
 

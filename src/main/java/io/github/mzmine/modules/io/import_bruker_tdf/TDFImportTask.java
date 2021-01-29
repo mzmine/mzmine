@@ -19,11 +19,11 @@
 package io.github.mzmine.modules.io.import_bruker_tdf;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.FramePrecursorTable;
@@ -163,14 +163,15 @@ public class TDFImportTask extends AbstractTask {
     loadedFrames = 0;
     // collect average spectra for each frame
     int frameId = frameTable.getFrameIdColumn().get(0).intValue();
-    Set<Frame> frames = new LinkedHashSet<>();
+    Set<SimpleFrame> frames = new LinkedHashSet<>();
     try {
       for (int scanNum = frameId; scanNum < frameTable.getNumberOfFrames(); scanNum++) {
         finishedPercentage = 0.1 * (loadedFrames) / numFrames;
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        Frame frame = TDFUtils.exctractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
-            metaDataTable, frameTable, framePrecursorTable);
+        SimpleFrame frame = TDFUtils
+            .exctractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
+                metaDataTable, frameTable, framePrecursorTable);
         newMZmineFile.addScan(frame);
         frames.add(frame);
         frameId++;
@@ -272,27 +273,26 @@ public class TDFImportTask extends AbstractTask {
   /**
    * Adds all scans from the pasef segment to a raw data file. Does not add the frame spectra!
    *
-   * @param handle handle of the tdfbin. {@link TDFUtils#openFile(File)}
-   *        {@link TDFUtils#openFile(File, long)}
+   * @param handle        handle of the tdfbin. {@link TDFUtils#openFile(File)} {@link
+   *                      TDFUtils#openFile(File, long)}
    * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
-   * @param frames the frames to load mobility spectra for
+   * @param frames        the frames to load mobility spectra for
    */
   private void appendScansFromTimsSegment(final long handle,
-      @Nonnull final TDFFrameTable tdfFrameTable, Set<Frame> frames) {
+      @Nonnull final TDFFrameTable tdfFrameTable, Set<SimpleFrame> frames) {
 
     loadedFrames = 0;
     final long numFrames = tdfFrameTable.getNumberOfFrames();
 
-    for (Frame frame : frames) {
+    for (SimpleFrame frame : frames) {
       setDescription("Loading mobility scans of " + rawDataFileName + ": Frame "
           + frame.getFrameId() + "/" + numFrames);
       finishedPercentage = 0.1 + (0.9 * ((double) loadedFrames / numFrames));
-      final Set<MobilityScan> spectra = TDFUtils.loadSpectraForTIMSFrame(newMZmineFile, handle,
-          frame.getFrameId(), frame, frameTable);
+      final List<BuildingMobilityScan> spectra = TDFUtils
+          .loadSpectraForTIMSFrame(newMZmineFile, handle,
+              frame.getFrameId(), frame, frameTable);
 
-      for (MobilityScan spectrum : spectra) {
-        frame.addMobilityScan(spectrum);
-      }
+      frame.setMobilityScans(spectra);
 
       if (isCanceled()) {
         return;
