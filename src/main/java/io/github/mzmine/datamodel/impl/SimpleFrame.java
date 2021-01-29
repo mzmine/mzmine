@@ -198,7 +198,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     for (int i = 0; i < originalMobilityScans.size(); i++) {
       MobilityScan scan = originalMobilityScans.get(i);
       mobilitySubScans.add(new SimpleMobilityScan(scan.getMobilityScamNumber(), this, offsets[i],
-          scan.getNumberOfDataPoints()));
+          scan.getNumberOfDataPoints(), scan.getBasePeakIndex()));
     }
   }
 
@@ -267,14 +267,24 @@ public class SimpleFrame extends SimpleScan implements Frame {
     this.precursorInfos = precursorInfos;
   }
 
-  public void getMobilityScanMzValues(SimpleMobilityScan scan, double[] dst) {
+  void getMobilityScanMzValues(SimpleMobilityScan scan, double[] dst) {
     assert scan.getNumberOfDataPoints() <= dst.length;
     mobilityScanMzBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
   }
 
-  public void getMobilityScanIntensityValues(SimpleMobilityScan scan, double[] dst) {
+  void getMobilityScanIntensityValues(SimpleMobilityScan scan, double[] dst) {
     assert scan.getNumberOfDataPoints() <= dst.length;
     mobilityScanIntensityBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
+  }
+
+  double getMobilityScanMzValue(SimpleMobilityScan scan, int index) {
+    assert index < scan.getNumberOfDataPoints();
+    return mobilityScanMzBuffer.get(scan.getStorageOffset() + index);
+  }
+
+  double getMobilityScanIntensityValue(SimpleMobilityScan scan, int index) {
+    assert index < scan.getNumberOfDataPoints();
+    return mobilityScanIntensityBuffer.get(scan.getStorageOffset() + index);
   }
 
   /*

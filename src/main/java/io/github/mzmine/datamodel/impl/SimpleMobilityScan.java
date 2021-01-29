@@ -18,10 +18,12 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
+import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
@@ -49,23 +51,17 @@ public class SimpleMobilityScan implements MobilityScan {
   private final Set<MassList> massLists;
   private final int storageOffset;
   private final int numDataPoints;
-  private int mobilityScamNumber;
-
-
-  /*public SimpleMobilityScan(RawDataFile dataFile, int mobilityScamNumber, Frame frame,
-      DataPoint dataPoints[]) {
-    this.frame = frame;
-    this.massLists = new HashSet<>();
-    this.mobilityScamNumber = mobilityScamNumber;
-  }*/
+  private final int mobilityScamNumber;
+  private final int basePeakIndex;
 
   public SimpleMobilityScan(int mobilityScamNumber, SimpleFrame frame,
-      int storageOffset, int numDataPoints) {
+      int storageOffset, int numDataPoints, int basePeakIndex) {
     this.frame = frame;
     this.massLists = new HashSet<>();
     this.mobilityScamNumber = mobilityScamNumber;
     this.storageOffset = storageOffset;
     this.numDataPoints = numDataPoints;
+    this.basePeakIndex = basePeakIndex;
   }
 
   @Override
@@ -110,36 +106,36 @@ public class SimpleMobilityScan implements MobilityScan {
 
   @Override
   public double getMzValue(int index) {
-    return 0;
+    return frame.getMobilityScanMzValue(this, index);
   }
 
   @Override
   public double getIntensityValue(int index) {
-    return 0;
+    return frame.getMobilityScanIntensityValue(this, index);
   }
 
   @Nullable
   @Override
   public Double getBasePeakMz() {
-    return null;
+    return getMzValue(basePeakIndex);
   }
 
   @Nullable
   @Override
   public Double getBasePeakIntensity() {
-    return null;
+    return getIntensityValue(basePeakIndex);
   }
 
   @Nullable
   @Override
   public Integer getBasePeakIndex() {
-    return null;
+    return basePeakIndex == -1 ? null : basePeakIndex;
   }
 
   @Nullable
   @Override
   public Range<Double> getDataPointMZRange() {
-    return null;
+    return Range.closed(getMzValue(0), getMzValue(getNumberOfDataPoints() - 1));
   }
 
   @Nullable
@@ -148,9 +144,10 @@ public class SimpleMobilityScan implements MobilityScan {
     return null;
   }
 
+  @Nonnull
   @Override
-  public Stream<DataPoint> stream() {
-    return null;
+  public RawDataFile getDataFile() {
+    return getFrame().getDataFile();
   }
 
   @Override
@@ -182,6 +179,14 @@ public class SimpleMobilityScan implements MobilityScan {
   @Override
   public ImsMsMsInfo getMsMsInfo() {
     return frame.getImsMsMsInfoForMobilityScan(mobilityScamNumber);
+  }
+
+  /**
+   * @return Used to retrieve this scans storage offset when reading mz/intensity values. Not
+   * intended for public usage, therefore not declared in {@link MobilityScan}.
+   */
+  int getStorageOffset() {
+    return storageOffset;
   }
 
   @Override
@@ -221,21 +226,50 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public RawDataFile getDataFile() {
-    return frame.getDataFile();
-  }
-
-  @Nonnull
-  @Override
   public Iterator<DataPoint> iterator() {
-    return null;
+    return new DataPointIterator(this);
   }
 
-  /**
-   * @return Used to retrieve this scans storage offset when reading mz/intensity values. Not
-   * intended for public usage, therefore not declared in {@link MobilityScan}.
-   */
-  public int getStorageOffset() {
-    return storageOffset;
+  @Override
+  public Stream<DataPoint> stream() {
+    return Streams.stream(this);
+  }
+
+  private class DataPointIterator implements Iterator<DataPoint>, DataPoint {
+
+    private final MassSpectrum spectrum;
+    // We start at -1 so the first call to next() moves us to index 0
+    private int cursor = -1;
+
+    DataPointIterator(MassSpectrum spectrum) {
+      this.spectrum = spectrum;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return (cursor + 1) < spectrum.getNumberOfDataPoints();
+    }
+
+    @Override
+    public DataPoint next() {
+      cursor++;
+      return this;
+    }
+
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public double getMZ() {
+      return spectrum.getMzValue(cursor);
+    }
+
+    @Override
+    public double getIntensity() {
+      return spectrum.getIntensityValue(cursor);
+    }
+
   }
 }

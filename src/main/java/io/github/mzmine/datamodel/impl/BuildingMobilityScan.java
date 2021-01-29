@@ -27,7 +27,12 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
 import java.nio.DoubleBuffer;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -45,11 +50,54 @@ public class BuildingMobilityScan implements MobilityScan {
   final int scanNumber;
   final double[] intensities;
   final double[] mzs;
+  int basePeakIndex;
 
   public BuildingMobilityScan(int scanNumber, double[] mzs, double[] intensities) {
     assert intensities.length == mzs.length;
 
     this.scanNumber = scanNumber;
+    boolean haveToSort = false;
+
+    // -1 is intended to be used in mobility scans. The SimpleMobilityScan will return null,
+    // it this value is -1
+    basePeakIndex = -1;
+    if (mzs.length > 1) {
+      basePeakIndex = 0;
+      for (int i = 1; i < mzs.length; i++) {
+        if (intensities[i] > intensities[basePeakIndex]) {
+          basePeakIndex = i;
+        }
+        if (mzs[i - 1] < mzs[i]) {
+          haveToSort = true;
+        }
+      }
+    } else if (mzs.length == 1) {
+      basePeakIndex = 1;
+    }
+
+    if (!haveToSort) {
+      this.intensities = intensities;
+      this.mzs = mzs;
+      return;
+    }
+
+    DataPoint[] dps = new DataPoint[mzs.length];
+    for (int i = 0; i < mzs.length; i++) {
+      dps[i] = new SimpleDataPoint(mzs[i], intensities[i]);
+    }
+    DataPointSorter sorter = new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending);
+    Arrays.sort(dps, sorter);
+    double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
+
+    mzs = data[0];
+    intensities = data[1];
+
+    basePeakIndex = 0;
+    for (int i = 1; i < mzs.length; i++) {
+      if (intensities[i] > intensities[basePeakIndex]) {
+        basePeakIndex = i;
+      }
+    }
     this.intensities = intensities;
     this.mzs = mzs;
   }
@@ -121,7 +169,7 @@ public class BuildingMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Integer getBasePeakIndex() {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
+    return basePeakIndex;
   }
 
   @Nullable
