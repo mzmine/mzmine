@@ -28,8 +28,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
@@ -47,7 +47,7 @@ public class SimpleMobilityScan implements MobilityScan {
   private static final Logger logger = Logger.getLogger(SimpleMobilityScan.class.getName());
 
   private final SimpleFrame frame;
-  private final Set<MassList> massLists;
+  private MassList[] massLists;
   private final int storageOffset;
   private final int numDataPoints;
   private final int mobilityScamNumber;
@@ -56,7 +56,7 @@ public class SimpleMobilityScan implements MobilityScan {
   public SimpleMobilityScan(int mobilityScamNumber, SimpleFrame frame,
       int storageOffset, int numDataPoints, int basePeakIndex) {
     this.frame = frame;
-    this.massLists = new HashSet<>();
+    this.massLists = null;
     this.mobilityScamNumber = mobilityScamNumber;
     this.storageOffset = storageOffset;
     this.numDataPoints = numDataPoints;
@@ -185,31 +185,45 @@ public class SimpleMobilityScan implements MobilityScan {
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
     // Remove all mass lists with same name, if there are any
-    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
-    for (MassList ml : currentMassLists) {
-      if (ml.getName().equals(massList.getName())) {
-        removeMassList(ml);
+    if (massLists == null || massLists.length == 0) {
+      massLists = new MassList[]{massList};
+      return;
+    }
+
+    for (int i = 0; i < massLists.length; i++) {
+      if (massLists[i].getName().equals(massList.getName())) {
+        massLists[i] = massList;
+        return;
       }
     }
 
     // Add the new mass list
-    massLists.add(massList);
+    MassList[] oldMassLists = massLists;
+    massLists = new MassList[oldMassLists.length + 1];
+
+    for (int i = 0; i < oldMassLists.length; i++) {
+      massLists[i] = oldMassLists[i];
+    }
+    massLists[oldMassLists.length] = massList;
   }
 
   @Override
   public synchronized void removeMassList(final @Nonnull MassList massList) {
     // Remove the mass list
-    massLists.remove(massList);
+    massLists = (MassList[]) Arrays.stream(massLists).filter(ml -> ml != massList).toArray();
   }
 
   @Override
   @Nonnull
   public Set<MassList> getMassLists() {
-    return Objects.requireNonNullElse(massLists, Collections.emptySet());
+    return Objects.requireNonNullElse(Set.of(massLists), Collections.emptySet());
   }
 
   @Override
   public MassList getMassList(@Nonnull String name) {
+    if (massLists == null) {
+      return null;
+    }
     for (MassList ml : massLists) {
       if (ml.getName().equals(name)) {
         return ml;
