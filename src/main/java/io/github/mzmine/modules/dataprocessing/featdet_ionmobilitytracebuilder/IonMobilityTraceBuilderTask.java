@@ -394,7 +394,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       frame = frameIterator.next();
       if (frame == frames.get(i)) {
         consecutive++;
-        if (consecutive > minDataPointsRt) {
+        if (consecutive >= minDataPointsRt) {
           found = true;
           break;
         }
