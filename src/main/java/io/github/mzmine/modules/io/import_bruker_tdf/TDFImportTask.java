@@ -71,6 +71,7 @@ public class TDFImportTask extends AbstractTask {
 
   private String description;
   private double finishedPercentage;
+  private double lastFinishedPercentage;
   private int loadedFrames;
 
   /**
@@ -103,13 +104,21 @@ public class TDFImportTask extends AbstractTask {
     return finishedPercentage;
   }
 
+  private void setFinishedPercentage(double percentage) {
+    if (percentage - lastFinishedPercentage > 0.1) {
+      logger.finest(() -> String.format("%s - %d", description, (int) (percentage * 100)) + "%");
+      lastFinishedPercentage = percentage;
+    }
+    finishedPercentage = percentage;
+  }
+
   @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
 
     File[] files;
-    if (fileNameToOpen.isDirectory()) {
+    if (fileNameToOpen.isDirectory() || fileNameToOpen.getAbsolutePath().endsWith(".d")) {
       files = getDataFilesFromDir(fileNameToOpen);
     } else {
       files = getDataFilesFromDir(fileNameToOpen.getParentFile());
@@ -154,7 +163,7 @@ public class TDFImportTask extends AbstractTask {
       return;
     }
 
-    int numFrames = frameTable.getNumberOfFrames();
+    int numFrames = frameTable.getFrameIdColumn().size();
 
     Date start = new Date();
 
@@ -162,11 +171,11 @@ public class TDFImportTask extends AbstractTask {
 
     loadedFrames = 0;
     // collect average spectra for each frame
-    int frameId = frameTable.getFrameIdColumn().get(0).intValue();
     Set<SimpleFrame> frames = new LinkedHashSet<>();
     try {
-      for (int scanNum = frameId; scanNum < frameTable.getNumberOfFrames(); scanNum++) {
-        finishedPercentage = 0.1 * (loadedFrames) / numFrames;
+      for (int i = 0; i < numFrames; i++) {
+        int frameId = frameTable.getFrameIdColumn().get(i).intValue();
+        setFinishedPercentage(0.1 * (loadedFrames) / numFrames);
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
         SimpleFrame frame = TDFUtils
@@ -174,7 +183,6 @@ public class TDFImportTask extends AbstractTask {
                 metaDataTable, frameTable, framePrecursorTable);
         newMZmineFile.addScan(frame);
         frames.add(frame);
-        frameId++;
         loadedFrames++;
         if (isCanceled()) {
           return;
@@ -194,7 +202,7 @@ public class TDFImportTask extends AbstractTask {
     TDFUtils.close(handle);
 
     setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
-    finishedPercentage = 1.0;
+    setFinishedPercentage(1.0);
     logger.info("Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans()
         + " scans and " + newMZmineFile.getNumberOfFrames() + " frames.");
     project.addFile(newMZmineFile);
@@ -282,12 +290,12 @@ public class TDFImportTask extends AbstractTask {
       @Nonnull final TDFFrameTable tdfFrameTable, Set<SimpleFrame> frames) {
 
     loadedFrames = 0;
-    final long numFrames = tdfFrameTable.getNumberOfFrames();
+    final long numFrames = tdfFrameTable.lastFrameId();
 
     for (SimpleFrame frame : frames) {
       setDescription("Loading mobility scans of " + rawDataFileName + ": Frame "
           + frame.getFrameId() + "/" + numFrames);
-      finishedPercentage = 0.1 + (0.9 * ((double) loadedFrames / numFrames));
+      setFinishedPercentage(0.1 + (0.9 * ((double) loadedFrames / numFrames)));
       final List<BuildingMobilityScan> spectra = TDFUtils
           .loadSpectraForTIMSFrame(newMZmineFile, handle,
               frame.getFrameId(), frame, frameTable);
@@ -307,11 +315,11 @@ public class TDFImportTask extends AbstractTask {
       @Nonnull final TDFFrameTable tdfFrameTable, @Nonnull final TDFMetaDataTable tdfMetaDataTable,
       @Nonnull final TDFMaldiFrameInfoTable tdfMaldiTable) {
 
-    final long numFrames = tdfFrameTable.getNumberOfFrames();
+    final long numFrames = tdfFrameTable.lastFrameId();
 
     for (long frameId = firstFrameId; frameId <= lastFrameId; frameId++) {
       setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
-      finishedPercentage = 0.9 * frameId / numFrames;
+      setFinishedPercentage(0.9 * frameId / numFrames);
       final List<Scan> scans = TDFUtils.loadScansForMaldiTimsFrame(handle, frameId, tdfFrameTable,
           tdfMetaDataTable, tdfMaldiTable);
 
@@ -329,11 +337,13 @@ public class TDFImportTask extends AbstractTask {
   private File[] getDataFilesFromDir(File dir) {
 
     if (!dir.exists() || !dir.isDirectory()) {
+      setStatus(TaskStatus.ERROR);
       throw new IllegalArgumentException("Invalid directory.");
     }
 
     if (!dir.getAbsolutePath().endsWith(".d")) {
-      throw new IllegalArgumentException("Invalid directory ending..");
+      setStatus(TaskStatus.ERROR);
+      throw new IllegalArgumentException("Invalid directory ending.");
     }
 
     File[] files = dir.listFiles(pathname -> {
@@ -365,7 +375,7 @@ public class TDFImportTask extends AbstractTask {
   }
 
   private void identifySegments(IMSRawDataFileImpl rawDataFile) {
-    rawDataFile.addSegment(Range.closed(1, frameTable.getNumberOfFrames()));
+    rawDataFile.addSegment(Range.closed(1, frameTable.lastFrameId()));
   }
 
   /*

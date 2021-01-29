@@ -46,7 +46,9 @@ public class BuildingMobilityScan implements MobilityScan {
   final double[] intensities;
   final double[] mzs;
 
-  public BuildingMobilityScan(int scanNumber, double[] intensities, double[] mzs) {
+  public BuildingMobilityScan(int scanNumber, double[] mzs, double[] intensities) {
+    assert intensities.length == mzs.length;
+
     this.scanNumber = scanNumber;
     this.intensities = intensities;
     this.mzs = mzs;

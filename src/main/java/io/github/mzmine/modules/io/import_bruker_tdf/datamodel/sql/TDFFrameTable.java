@@ -188,8 +188,8 @@ public class TDFFrameTable extends TDFDataTable<Long> {
     return getFrameIdColumn().get(0);
   }
 
-  public int getNumberOfFrames() {
-    return getColumn(FRAME_ID).size();
+  public int lastFrameId() {
+    return getFrameIdColumn().get((getFrameIdColumn().size() - 1)).intValue();
   }
 
   public TDFDataColumn<Long> getFrameIdColumn() {

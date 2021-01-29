@@ -122,14 +122,22 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   /**
+   * @return Collection of mobility sub scans sorted by increasing scan num.
+   */
+  @Nonnull
+  @Override
+  public List<MobilityScan> getMobilityScans() {
+    return ImmutableList.copyOf(mobilitySubScans);
+  }
+
+  /**
    * Not to be used during processing. Can only be called during raw data file reading before
    * finishWriting() was called.
    *
    * @param originalMobilityScans The mobility scans to store.
    */
   @Override
-  public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans)
-      throws IllegalStateException {
+  public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans) {
     if (mobilityScanIntensityBuffer != null || mobilityScanMzBuffer != null) {
       throw new IllegalStateException("Mobility scans can only be set to a frame once.");
     }
@@ -139,7 +147,9 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
     offsets[0] = 0;
     for (int i = 1; i < offsets.length; i++) {
-      offsets[i] = offsets[i - 1] + originalMobilityScans.get(i).getNumberOfDataPoints();
+      int oldOffset = offsets[i - 1];
+      int numPoints = originalMobilityScans.get(i - 1).getNumberOfDataPoints();
+      offsets[i] = oldOffset + numPoints;
     }
 
     // now create a big array that contains all m/z and intensity values so we can store it in a single buffer
@@ -154,9 +164,9 @@ public class SimpleFrame extends SimpleScan implements Frame {
       BuildingMobilityScan currentScan = originalMobilityScans.get(i);
       double[] currentIntensities = currentScan.getIntensities();
       for (int j = 0; j < currentIntensities.length; j++) {
-        data[dpCounter + j] = currentIntensities[j];
+        data[dpCounter] = currentIntensities[j];
+        dpCounter++;
       }
-      dpCounter += currentIntensities.length;
     }
 
     try {
@@ -172,9 +182,9 @@ public class SimpleFrame extends SimpleScan implements Frame {
       BuildingMobilityScan currentScan = originalMobilityScans.get(i);
       double[] currentMzs = currentScan.getMzs();
       for (int j = 0; j < currentMzs.length; j++) {
-        data[dpCounter + j] = currentMzs[j];
+        data[dpCounter] = currentMzs[j];
+        dpCounter++;
       }
-      dpCounter += currentMzs.length;
     }
 
     try {
@@ -190,15 +200,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
       mobilitySubScans.add(new SimpleMobilityScan(scan.getMobilityScamNumber(), this, offsets[i],
           scan.getNumberOfDataPoints()));
     }
-  }
-
-  /**
-   * @return Collection of mobility sub scans sorted by increasing scan num.
-   */
-  @Nonnull
-  @Override
-  public List<MobilityScan> getMobilityScans() {
-    return ImmutableList.copyOf(mobilitySubScans);
   }
 
   @Override

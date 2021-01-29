@@ -43,11 +43,11 @@ import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.JUnitException;
 
-public class IonTimeSeriesTest {
+class IonTimeSeriesTest {
 
   private static final Logger logger = Logger.getLogger(IonTimeSeriesTest.class.getName());
 
-  public IonTimeSeries<? extends Scan> makeSimpleTimeSeries() throws IOException {
+  public static IonTimeSeries<? extends Scan> makeSimpleTimeSeries() throws IOException {
 
     RawDataFile file = new RawDataFileImpl("test", Color.BLACK);
     List<Scan> scans = new ArrayList();
@@ -62,7 +62,7 @@ public class IonTimeSeriesTest {
     return series;
   }
 
-  public IonTimeSeries<Frame> makeIonMobilityTimeSeries() throws IOException {
+  public static IonTimeSeries<Frame> makeIonMobilityTimeSeries() throws IOException {
     RawDataFile file = new RawDataFileImpl("test", Color.BLACK);
 
     MemoryMapStorage storage = new MemoryMapStorage();
@@ -89,7 +89,7 @@ public class IonTimeSeriesTest {
   }
 
   @Test
-  public void testCasting() {
+  void testCasting() {
 
     try {
       IonTimeSeries<? extends Scan> scanSeries = makeSimpleTimeSeries();

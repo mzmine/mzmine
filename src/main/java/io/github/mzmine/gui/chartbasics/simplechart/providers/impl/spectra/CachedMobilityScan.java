@@ -51,8 +51,13 @@ public class CachedMobilityScan implements MobilityScan {
   public CachedMobilityScan(MobilityScan scan, double noiseLevel) {
     this.originalMobilityScan = scan;
 
+    double[] allmz = new double[scan.getNumberOfDataPoints()];
+    double[] allintensities = new double[scan.getNumberOfDataPoints()];
+    scan.getMzValues(allmz);
+    scan.getIntensityValues(allintensities);
+
     double[][] data = DataPointUtils
-        .getDatapointsAboveNoiseLevel(scan.getMzValues(), scan.getIntensityValues(), noiseLevel);
+        .getDatapointsAboveNoiseLevel(allmz, allintensities, noiseLevel);
 
     mzs = data[0];
     intensities = data[1];
