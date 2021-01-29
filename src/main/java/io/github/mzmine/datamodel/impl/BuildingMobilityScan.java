@@ -31,7 +31,6 @@ import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import java.nio.DoubleBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
@@ -48,8 +47,8 @@ import javax.annotation.Nullable;
 public class BuildingMobilityScan implements MobilityScan {
 
   final int scanNumber;
-  final double[] intensities;
-  final double[] mzs;
+  final double[] intensityValues;
+  final double[] mzValues;
   int basePeakIndex;
 
   public BuildingMobilityScan(int scanNumber, double[] mzs, double[] intensities) {
@@ -67,17 +66,17 @@ public class BuildingMobilityScan implements MobilityScan {
         if (intensities[i] > intensities[basePeakIndex]) {
           basePeakIndex = i;
         }
-        if (mzs[i - 1] < mzs[i]) {
+        if (mzs[i - 1] > mzs[i]) {
           haveToSort = true;
         }
       }
     } else if (mzs.length == 1) {
-      basePeakIndex = 1;
+      basePeakIndex = 0;
     }
 
     if (!haveToSort) {
-      this.intensities = intensities;
-      this.mzs = mzs;
+      this.intensityValues = intensities;
+      this.mzValues = mzs;
       return;
     }
 
@@ -98,37 +97,25 @@ public class BuildingMobilityScan implements MobilityScan {
         basePeakIndex = i;
       }
     }
-    this.intensities = intensities;
-    this.mzs = mzs;
+    this.intensityValues = intensities;
+    this.mzValues = mzs;
   }
 
-  public double[] getMzs() {
-    return mzs;
+  public double[] getMzValues() {
+    return mzValues;
   }
 
-  public double[] getIntensities() {
-    return intensities;
+  public double[] getIntensityValues() {
+    return intensityValues;
   }
 
   @Override
   public int getNumberOfDataPoints() {
-    return intensities.length;
+    return intensityValues.length;
   }
 
   @Override
   public MassSpectrumType getSpectrumType() {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
-  }
-
-  @Nonnull
-  @Override
-  public DoubleBuffer getMzValues() {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
-  }
-
-  @Nonnull
-  @Override
-  public DoubleBuffer getIntensityValues() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 

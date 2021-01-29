@@ -164,20 +164,6 @@ public class CachedFrame implements Frame {
     return originalFrame.getSpectrumType();
   }
 
-  @Nonnull
-  @Override
-  public DoubleBuffer getMzValues() {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
-  @Nonnull
-  @Override
-  public DoubleBuffer getIntensityValues() {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
   @Override
   public double[] getMzValues(@Nonnull double[] dst) {
     throw new UnsupportedOperationException(

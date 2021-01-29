@@ -97,16 +97,15 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     updateMzRangeAndTICValues();
   }
 
-  @Override
-  public DoubleBuffer getMzValues() {
-    if (mzValues == null)
+  DoubleBuffer getMzValues() {
+    if (mzValues == null) {
       return EMPTY_BUFFER;
-    else
+    } else {
       return mzValues;
+    }
   }
 
-  @Override
-  public DoubleBuffer getIntensityValues() {
+  DoubleBuffer getIntensityValues() {
     if (intensityValues == null) {
       return EMPTY_BUFFER;
     } else {

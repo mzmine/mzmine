@@ -28,7 +28,6 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -74,18 +73,6 @@ public class SimpleMobilityScan implements MobilityScan {
     return frame.getSpectrumType();
   }
 
-  @Nonnull
-  @Override
-  public DoubleBuffer getMzValues() {
-    return null;
-  }
-
-  @Nonnull
-  @Override
-  public DoubleBuffer getIntensityValues() {
-    return null;
-  }
-
   @Override
   public double[] getMzValues(@Nonnull double[] dst) {
     if (dst.length < getNumberOfDataPoints()) {
@@ -117,12 +104,18 @@ public class SimpleMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Double getBasePeakMz() {
+    if (basePeakIndex == -1) {
+      return null;
+    }
     return getMzValue(basePeakIndex);
   }
 
   @Nullable
   @Override
   public Double getBasePeakIntensity() {
+    if (basePeakIndex == -1) {
+      return null;
+    }
     return getIntensityValue(basePeakIndex);
   }
 

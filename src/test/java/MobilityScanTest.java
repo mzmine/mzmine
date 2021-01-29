@@ -109,8 +109,8 @@ public class MobilityScanTest {
 
     logger.info("Checking mopbility scan values.");
     for (int i = 0; i < scans.size(); i++) {
-      double[] originalMzs = scans.get(i).getMzs();
-      double[] originalIntensities = scans.get(i).getIntensities();
+      double[] originalMzs = scans.get(i).getMzValues();
+      double[] originalIntensities = scans.get(i).getIntensityValues();
 
       MobilityScan mobilityScan = frame.getMobilityScan(i);
       int numValues = mobilityScan.getNumberOfDataPoints();

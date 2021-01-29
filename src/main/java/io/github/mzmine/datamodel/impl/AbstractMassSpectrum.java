@@ -149,11 +149,16 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
   @Override
   @Nullable
   public Double getBasePeakIntensity() {
-    if (basePeakIndex == null)
+    if (basePeakIndex == null) {
       return null;
-    else
+    } else {
       return getIntensityValues().get(basePeakIndex);
+    }
   }
+
+  abstract DoubleBuffer getMzValues();
+
+  abstract DoubleBuffer getIntensityValues();
 
   @Override
   public Iterator<DataPoint> iterator() {

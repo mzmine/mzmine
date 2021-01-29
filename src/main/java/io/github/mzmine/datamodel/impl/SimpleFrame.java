@@ -162,7 +162,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     int dpCounter = 0;
     for (int i = 0; i < originalMobilityScans.size(); i++) {
       BuildingMobilityScan currentScan = originalMobilityScans.get(i);
-      double[] currentIntensities = currentScan.getIntensities();
+      double[] currentIntensities = currentScan.getIntensityValues();
       for (int j = 0; j < currentIntensities.length; j++) {
         data[dpCounter] = currentIntensities[j];
         dpCounter++;
@@ -180,7 +180,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     dpCounter = 0;
     for (int i = 0; i < originalMobilityScans.size(); i++) {
       BuildingMobilityScan currentScan = originalMobilityScans.get(i);
-      double[] currentMzs = currentScan.getMzs();
+      double[] currentMzs = currentScan.getMzValues();
       for (int j = 0; j < currentMzs.length; j++) {
         data[dpCounter] = currentMzs[j];
         dpCounter++;
