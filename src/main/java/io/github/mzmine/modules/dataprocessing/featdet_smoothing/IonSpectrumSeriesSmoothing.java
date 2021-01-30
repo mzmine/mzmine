@@ -21,22 +21,27 @@ package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
-import io.github.mzmine.datamodel.featuredata.MobilitySeries;
-import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters.MobilitySmoothingType;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
+@SuppressWarnings("unchecked")
 public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
+
+  private static Logger logger = Logger.getLogger(IonSpectrumSeriesSmoothing.class.getName());
 
   private final T origSeries;
   private final List<? extends MassSpectrum> allSpectra;
   private final MemoryMapStorage newStorage;
+  private final MobilitySmoothingType mobilitySmoothingType;
 
   /**
    * @param origSeries
@@ -47,10 +52,11 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
    *                   For ion mobility,
    */
   IonSpectrumSeriesSmoothing(T origSeries, MemoryMapStorage newStorage,
-      List<? extends MassSpectrum> allSpectra) {
+      List<? extends MassSpectrum> allSpectra, MobilitySmoothingType mobilitySmoothingType) {
     this.origSeries = origSeries;
     this.newStorage = newStorage;
     this.allSpectra = allSpectra;
+    this.mobilitySmoothingType = mobilitySmoothingType;
   }
 
   /**
@@ -71,56 +77,33 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
         List<? extends MassSpectrum> mobilityScans = mobilogram.getSpectrum(0).getFrame()
             .getMobilityScans();
         IonSpectrumSeriesSmoothing<SimpleIonMobilitySeries> smoothing = new IonSpectrumSeriesSmoothing<>(
-            mobilogram, newStorage, (List<MassSpectrum>) mobilityScans);
+            mobilogram, newStorage, (List<MassSpectrum>) mobilityScans, mobilitySmoothingType);
         smoothedMobilograms.add(smoothing.smooth(rtWeights, mobilityWeights));
       }
     }
 
     // this is the case if 0 was selected.
-    if (rtWeights.length == 1 && origSeries instanceof TimeSeries) {
+    /*if (rtWeights.length == 1 && origSeries instanceof TimeSeries) {
       return (T) origSeries.copy(newStorage);
-    } else if (mobilityWeights.length == 1 && origSeries instanceof MobilitySeries) {
+    } else
+    if (mobilityWeights.length == 1 && origSeries instanceof MobilitySeries) {
       return (T) origSeries.copy(newStorage);
-    }
+    }*/
 
     // use mobilityWeights for SimpleIonMobilitySeries
     final double[] weights =
         (origSeries instanceof SimpleIonMobilitySeries) ? mobilityWeights : rtWeights;
 
-//    int numScans = allSpectra.size();
-    List<? extends MassSpectrum> eligibleSpectra = findEligibleSpectra(allSpectra,
-        origSeries.getSpectra(), weights.length);
-    int numScans = eligibleSpectra.size();
+    // if mobility shouldn't be smoothed, just make a copy
+    /*if (weights.length == 1 && origSeries instanceof MobilitySeries
+        && mobilitySmoothingType != MobilitySmoothingType.INDIVIDUAL) {
+      return (T) origSeries.copy(newStorage);
+    } else {
+      // todo check if this is correct - if no rt smoothing is wanted, mobility shall be smoothed anyway.
 
-    final double[] origIntensities = new double[numScans];
-    for (int i = 0; i < numScans; i++) {
-      origIntensities[i] = origSeries.getIntensityForSpectrum(eligibleSpectra.get(i));
-    }
+    }*/
 
-    final double[] smoothed = SavitzkyGolayFilter.convolve(origIntensities, weights);
-
-    // add no new data points for scans, just use smoothed ones where we had dps in the first place
-    final double[] newIntensities = new double[origSeries.getNumberOfValues()];
-    int newIntensityIndex = 0;
-    List<MassSpectrum> origSpectra = origSeries.getSpectra();
-    for (int i = 0; i < numScans; i++) {
-      // check if we originally had a data point for that spectrum, otherwise continue.
-      int index = origSpectra.indexOf(eligibleSpectra.get(i));
-      if (index == -1) {
-        continue;
-      }
-      // smoothing might produce negative intensities
-      smoothed[i] = (smoothed[i] > 0) ? smoothed[i] : 0d;
-      // keep zeros we put on flanking data points during chromatogram building
-      newIntensities[newIntensityIndex] =
-          (Double.compare(origSeries.getIntensity(index), 0d) != 0) ? smoothed[i] : 0d;
-      newIntensityIndex++;
-      // once we found all values, we can stop
-      if (newIntensityIndex >= origSpectra.size()) {
-        break;
-      }
-    }
-
+    double[] newIntensities = smoothIntensities(origSeries, weights);
     double[] origMz = DataPointUtils.getDoubleBufferAsArray(origSeries.getMZValues());
     if (origSeries instanceof SimpleIonMobilitySeries) {
       return (T) new SimpleIonMobilitySeries(newStorage, origMz, newIntensities,
@@ -129,8 +112,10 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
       return (T) ((SimpleIonTimeSeries) origSeries)
           .copyAndReplace(newStorage, origMz, newIntensities);
     } else if (origSeries instanceof SimpleIonMobilogramTimeSeries) {
+      // todo recalc the summed series, if individual mobilograms were smoothed
       return (T) ((SimpleIonMobilogramTimeSeries) origSeries)
-          .copyAndReplace(newStorage, origMz, newIntensities, smoothedMobilograms);
+          .copyAndReplace(newStorage, origMz, newIntensities, smoothedMobilograms,
+              smoothSummedMobilogram(mobilityWeights));
     } else {
       throw new IllegalArgumentException(
           "Smoothing of " + origSeries.getClass().getName() + " is not yet supported.");
@@ -165,5 +150,88 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
     }
 
     return allSpectra.subList(firstSpectrumIndex, lastSpectrumIndex);
+  }
+
+  /**
+   * This method handles the case that mobility smoothing was either off, in which case the original
+   * intensities are used, or that mobility smoothing was set to smooth the summed series, in which
+   * case the smoothed intensities are calculated here.
+   *
+   * @param mobilityWeights
+   * @return
+   */
+  @Nullable
+  private double[] smoothSummedMobilogram(double[] mobilityWeights) {
+    if (mobilitySmoothingType == MobilitySmoothingType.INDIVIDUAL && mobilityWeights.length != 1) {
+      // individual series were smoothed, we need to recalculate.
+      return null;
+    }
+    double[] intensities = DataPointUtils.getDoubleBufferAsArray(
+        ((SimpleIonMobilogramTimeSeries) origSeries).getSummedMobilogram().getIntensityValues());
+    if (mobilityWeights.length == 1) {
+      // rt was smoothed, nothing to do here, return the original intensities.
+      return intensities;
+    }
+    double[] smoothedSummedMobilogram = SavitzkyGolayFilter.convolve(intensities, mobilityWeights);
+    if (mobilitySmoothingType == MobilitySmoothingType.SUMMED && mobilityWeights.length > 1) {
+      for (int i = 0; i < smoothedSummedMobilogram.length; i++) {
+        if (intensities[i] == 0 || smoothedSummedMobilogram[i] < 0) {
+          smoothedSummedMobilogram[i] = 0d;
+        }
+      }
+    } else {
+      logger.warning("Unexpected behaviour during smoothing, please contact the developers.");
+    }
+
+    return smoothedSummedMobilogram;
+  }
+
+
+  private double[] smoothIntensities(T origSeries, double[] weights) {
+
+    if (weights.length == 1) {
+      return DataPointUtils.getDoubleBufferAsArray(origSeries.getIntensityValues());
+    }
+
+    if (mobilitySmoothingType == MobilitySmoothingType.SUMMED
+        && origSeries instanceof SimpleIonMobilitySeries) {
+      return DataPointUtils.getDoubleBufferAsArray(origSeries.getIntensityValues());
+    }
+
+    final double[] newIntensities = new double[origSeries.getNumberOfValues()];
+    List<MassSpectrum> eligibleSpectra = findEligibleSpectra(allSpectra,
+        origSeries.getSpectra(), weights.length);
+
+    int numScans = eligibleSpectra.size();
+
+    // add no new data points for scans, just use smoothed ones where we had dps in the first place
+    final double[] origIntensities = new double[numScans];
+    for (int i = 0; i < numScans; i++) {
+      origIntensities[i] = origSeries.getIntensityForSpectrum(eligibleSpectra.get(i));
+    }
+
+    final double[] smoothed = SavitzkyGolayFilter.convolve(origIntensities, weights);
+
+    int newIntensityIndex = 0;
+    List<MassSpectrum> origSpectra = origSeries.getSpectra();
+    for (int i = 0; i < numScans; i++) {
+      // check if we originally had a data point for that spectrum, otherwise continue.
+      int index = origSpectra.indexOf(eligibleSpectra.get(i));
+      if (index == -1) {
+        continue;
+      }
+      // smoothing might produce negative intensities
+      smoothed[i] = (smoothed[i] > 0) ? smoothed[i] : 0d;
+      // keep zeros we put on flanking data points during chromatogram building
+      newIntensities[newIntensityIndex] =
+          (Double.compare(origSeries.getIntensity(index), 0d) != 0) ? smoothed[i] : 0d;
+      newIntensityIndex++;
+      // once we found all values, we can stop
+      if (newIntensityIndex >= origSpectra.size()) {
+        break;
+      }
+    }
+
+    return newIntensities;
   }
 }
