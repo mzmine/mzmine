@@ -166,6 +166,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
+  public NumberFormat getCCSFormat() {
+    return preferences.getParameter(MZminePreferences.ccsFormat).getValue();
+  }
+
+  @Override
   public NumberFormat getPPMFormat() {
     return preferences.getParameter(MZminePreferences.ppmFormat).getValue();
   }
