@@ -51,8 +51,8 @@ public class MzToChargeComponent extends BorderPane {
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-    lower = new TableColumn<>("Lower");
-    upper = new TableColumn<>("Upper");
+    lower = new TableColumn<>("Lower m/z");
+    upper = new TableColumn<>("Upper m/z");
     charge = new TableColumn<>("Charge");
     lower.setEditable(true);
     upper.setEditable(true);
