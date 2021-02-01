@@ -18,7 +18,6 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -34,22 +33,20 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
   private final List<MassSpectrum> sourceSpectra;
   private final MergingType mergingType;
   private final CenterFunction centerFunction;
-  private final Range<Double> isolationWindow;
   private final float collisionEnergy;
   private final double precursorMz;
   private final int msLevel;
 
   public SimpleMergedMsMsSpectrum(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues, double precursorMz, Range<Double> isolationWindow,
-      float collisionEnery, int msLevel, @Nonnull List<? extends MassSpectrum> sourceSpectra,
+      @Nonnull double[] intensityValues, double precursorMz,
+      float collisionEnergy, int msLevel, @Nonnull List<? extends MassSpectrum> sourceSpectra,
       @Nonnull MergingType mergingType, @Nonnull CenterFunction centerFunction) {
     super(storage, mzValues, intensityValues);
 
     this.sourceSpectra = (List<MassSpectrum>) sourceSpectra;
     this.mergingType = mergingType;
     this.centerFunction = centerFunction;
-    this.isolationWindow = isolationWindow;
-    this.collisionEnergy = collisionEnery;
+    this.collisionEnergy = collisionEnergy;
     this.precursorMz = precursorMz;
     this.msLevel = msLevel;
   }
@@ -75,12 +72,7 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
   }
 
   @Override
-  public Range<Double> getIsolationWindow() {
-    return isolationWindow;
-  }
-
-  @Override
-  public double getCollisionEnergy() {
+  public float getCollisionEnergy() {
     return collisionEnergy;
   }
 

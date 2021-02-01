@@ -200,7 +200,7 @@ public class SpectraMerging {
         mergingType, cf);
 
     return new SimpleMergedMsMsSpectrum(storage, merged[0],
-        merged[1], precursorMz, null, collisionEnergy, frame.getMSLevel(), mobilityScans,
+        merged[1], precursorMz, collisionEnergy, frame.getMSLevel(), mobilityScans,
         mergingType, cf);
   }
 

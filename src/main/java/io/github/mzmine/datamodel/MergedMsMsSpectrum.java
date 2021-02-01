@@ -18,15 +18,11 @@
 
 package io.github.mzmine.datamodel;
 
-import com.google.common.collect.Range;
-
 public interface MergedMsMsSpectrum extends MergedMassSpectrum {
 
   double getPrecursorMz();
 
-  Range<Double> getIsolationWindow();
-
-  double getCollisionEnergy();
+  float getCollisionEnergy();
 
   int getMsLevel();
 }
