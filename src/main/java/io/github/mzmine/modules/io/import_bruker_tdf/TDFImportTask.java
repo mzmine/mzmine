@@ -21,11 +21,14 @@ package io.github.mzmine.modules.io.import_bruker_tdf;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameTable;
@@ -44,6 +47,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -84,8 +88,8 @@ public class TDFImportTask extends AbstractTask {
   /**
    * @param project
    * @param file
-   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via
-   *        {@link MZmineCore#createNewIMSFile(String)}.
+   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via {@link
+   *                      MZmineCore#createNewIMSFile(String)}.
    */
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile) {
     this.fileNameToOpen = file;
@@ -183,6 +187,8 @@ public class TDFImportTask extends AbstractTask {
       e.printStackTrace();
     }
 
+    // now assign MS/MS infos
+
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
     // } else {
@@ -272,10 +278,10 @@ public class TDFImportTask extends AbstractTask {
   /**
    * Adds all scans from the pasef segment to a raw data file. Does not add the frame spectra!
    *
-   * @param handle handle of the tdfbin. {@link TDFUtils#openFile(File)}
-   *        {@link TDFUtils#openFile(File, long)}
+   * @param handle        handle of the tdfbin. {@link TDFUtils#openFile(File)} {@link
+   *                      TDFUtils#openFile(File, long)}
    * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
-   * @param frames the frames to load mobility spectra for
+   * @param frames        the frames to load mobility spectra for
    */
   private void appendScansFromTimsSegment(final long handle,
       @Nonnull final TDFFrameTable tdfFrameTable, Set<Frame> frames) {
@@ -361,11 +367,40 @@ public class TDFImportTask extends AbstractTask {
       return false;
     }).findAny().get();
 
-    return new File[] {tdf, tdf_bin};
+    return new File[]{tdf, tdf_bin};
   }
 
   private void identifySegments(IMSRawDataFileImpl rawDataFile) {
     rawDataFile.addSegment(Range.closed(1, frameTable.getNumberOfFrames()));
+  }
+
+  private void constructMsMsInfo(IMSRawDataFile file, FramePrecursorTable precursorTable) {
+    setDescription("Assigning MS/MS precursor info for " + rawDataFileName + ".");
+    Frame previousFrame = null;
+    for (Frame frame : file.getFrames()) {
+      if (frame.getMSLevel() == 1) {
+        continue;
+      }
+
+      Set<BuildingPASEFMsMsInfo> buildingInfo =
+          precursorTable.getMsMsInfoForFrame(frame.getFrameId());
+
+      for (BuildingPASEFMsMsInfo building : buildingInfo) {
+        int parentFrameNumber = building.getParentFrameNumber();
+
+        Optional<Frame> optionalFrame = (Optional<Frame>) file.getFrames().stream()
+            .filter(f -> f.getFrameId() == parentFrameNumber).findFirst();
+        Frame parentFrame = optionalFrame.orElseGet(() -> null);
+
+        ImsMsMsInfo info = new ImsMsMsInfoImpl(building.getLargestPeakMz(),
+            building.getSpectrumNumberRange(), building.getCollisionEnergy(),
+            building.getPrecursorCharge(), parentFrame, frame);
+
+        frame.getImsMsMsInfos().add(info);
+      }
+
+      previousFrame = frame;
+    }
   }
 
   /*

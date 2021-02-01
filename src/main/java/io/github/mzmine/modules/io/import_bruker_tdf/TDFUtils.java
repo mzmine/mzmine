@@ -368,7 +368,7 @@ public class TDFUtils {
     SimpleFrame frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
         0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-        MobilityType.TIMS, framePrecursorTable.getMsMsInfoForFrame(Math.toIntExact(frameId)));
+        MobilityType.TIMS, null);
 
     frame.setMobilities(mobilities);
 

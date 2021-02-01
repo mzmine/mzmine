@@ -18,13 +18,6 @@
 
 package io.github.mzmine.modules.io.import_mzml_msdk;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -40,6 +33,13 @@ import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
@@ -155,7 +155,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
           if (!buildingImsMsMsInfos.isEmpty()) {
             finishedImsMsMsInfos = new HashSet<>();
             for (BuildingImsMsMsInfo info : buildingImsMsMsInfos) {
-              finishedImsMsMsInfos.add(info.build());
+              finishedImsMsMsInfos.add(info.build(null, buildingFrame));
             }
             finishedFrame.setPrecursorInfos(finishedImsMsMsInfos);
           }

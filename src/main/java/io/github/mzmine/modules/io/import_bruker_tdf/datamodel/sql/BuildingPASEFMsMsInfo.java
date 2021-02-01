@@ -16,51 +16,29 @@
  *  USA
  */
 
-package io.github.mzmine.modules.io.import_mzml_msdk;
+package io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 
-public class BuildingImsMsMsInfo {
+public class BuildingPASEFMsMsInfo {
 
   private final double precursorMz;
+  private final Range<Integer> spectrumNumberRange;
   private final float collisionEnergy;
   private final int precursorCharge;
+  private final int parentFrameNumber;
   private final int fragmentFrameNumber;
-  private final int firstSpectrumNumber;
-  private int parentFrameNumber;
-  private int lastSpectrumNumber;
 
-  public BuildingImsMsMsInfo(final double precursorMz, final float collisionEnergy,
-      final int precursorCharge, final int fragmentFrameNumber, final int firstSpectrumNumber) {
+
+  public BuildingPASEFMsMsInfo(double precursorMz,
+      Range<Integer> spectrumNumberRange, float collisionEnergy, int precursorCharge,
+      int parentFrameNumber, int fragmentFrameNumber) {
     this.precursorMz = precursorMz;
+    this.spectrumNumberRange = spectrumNumberRange;
     this.collisionEnergy = collisionEnergy;
     this.precursorCharge = precursorCharge;
-    this.firstSpectrumNumber = firstSpectrumNumber;
+    this.parentFrameNumber = parentFrameNumber;
     this.fragmentFrameNumber = fragmentFrameNumber;
-    this.lastSpectrumNumber = firstSpectrumNumber;
-    parentFrameNumber = 0;
-  }
-
-  public double getPrecursorMz() {
-    return precursorMz;
-  }
-
-  public int getFragmentFrameNumber() {
-    return fragmentFrameNumber;
-  }
-
-  public int getFirstSpectrumNumber() {
-    return firstSpectrumNumber;
-  }
-
-  public int getLastSpectrumNumber() {
-    return lastSpectrumNumber;
-  }
-
-  public void setLastSpectrumNumber(int lastSpectrumNumber) {
-    this.lastSpectrumNumber = lastSpectrumNumber;
   }
 
   public double getLargestPeakMz() {
@@ -68,7 +46,7 @@ public class BuildingImsMsMsInfo {
   }
 
   public Range<Integer> getSpectrumNumberRange() {
-    throw new UnsupportedOperationException();
+    return spectrumNumberRange;
   }
 
   public float getCollisionEnergy() {
@@ -85,10 +63,5 @@ public class BuildingImsMsMsInfo {
 
   public int getFrameNumber() {
     return fragmentFrameNumber;
-  }
-
-  public ImsMsMsInfoImpl build(Frame parentFrame, Frame thisFragmentFrame) {
-    return new ImsMsMsInfoImpl(precursorMz, Range.closed(firstSpectrumNumber, lastSpectrumNumber),
-        collisionEnergy, precursorCharge, parentFrame, thisFragmentFrame);
   }
 }

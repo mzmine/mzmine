@@ -19,8 +19,8 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
-import java.util.Objects;
 
 /**
  * @see io.github.mzmine.datamodel.ImsMsMsInfo
@@ -33,13 +33,13 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
   private final Range<Integer> spectrumNumberRange;
   private final float collisionEnergy;
   private final int precursorCharge;
-  private final int parentFrameNumber;
-  private final int fragmentFrameNumber;
+  private final Frame parentFrameNumber;
+  private final Frame fragmentFrameNumber;
 
 
   public ImsMsMsInfoImpl(double precursorMz,
       Range<Integer> spectrumNumberRange, float collisionEnergy, int precursorCharge,
-      int parentFrameNumber, int fragmentFrameNumber) {
+      Frame parentFrameNumber, Frame fragmentFrameNumber) {
     this.precursorMz = precursorMz;
     this.spectrumNumberRange = spectrumNumberRange;
     this.collisionEnergy = collisionEnergy;
@@ -69,35 +69,13 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
   }
 
   @Override
-  public int getParentFrameNumber() {
+  public Frame getParentFrameNumber() {
     return parentFrameNumber;
   }
 
   @Override
-  public int getFrameNumber() {
+  public Frame getFrameNumber() {
     return fragmentFrameNumber;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof ImsMsMsInfoImpl)) {
-      return false;
-    }
-    ImsMsMsInfoImpl that = (ImsMsMsInfoImpl) o;
-    return Double.compare(that.precursorMz, precursorMz) == 0
-        && Float.compare(that.getCollisionEnergy(), getCollisionEnergy()) == 0
-        && getPrecursorCharge() == that.getPrecursorCharge() && getParentFrameNumber() == that
-        .getParentFrameNumber() && getSpectrumNumberRange().equals(that.getSpectrumNumberRange())
-        && getFrameNumber() == that.getFrameNumber();
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects
-        .hash(precursorMz, getSpectrumNumberRange(), getCollisionEnergy(), getPrecursorCharge(),
-            getParentFrameNumber(), getFrameNumber());
-  }
 }
