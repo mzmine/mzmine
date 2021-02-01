@@ -62,4 +62,5 @@ public interface ImsMsMsInfo {
    * @return The ms 2 frame number this belongs to.
    */
   Frame getFrameNumber();
+
 }

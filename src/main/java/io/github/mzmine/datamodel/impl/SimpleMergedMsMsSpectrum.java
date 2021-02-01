@@ -41,11 +41,11 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
 
   public SimpleMergedMsMsSpectrum(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, double precursorMz, Range<Double> isolationWindow,
-      float collisionEnery, int msLevel, @Nonnull List<MassSpectrum> sourceSpectra,
+      float collisionEnery, int msLevel, @Nonnull List<? extends MassSpectrum> sourceSpectra,
       @Nonnull MergingType mergingType, @Nonnull CenterFunction centerFunction) {
     super(storage, mzValues, intensityValues);
 
-    this.sourceSpectra = sourceSpectra;
+    this.sourceSpectra = (List<MassSpectrum>) sourceSpectra;
     this.mergingType = mergingType;
     this.centerFunction = centerFunction;
     this.isolationWindow = isolationWindow;

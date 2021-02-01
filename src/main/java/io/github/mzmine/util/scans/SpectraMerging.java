@@ -21,15 +21,21 @@ package io.github.mzmine.util.scans;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.maths.CenterFunction;
+import io.github.mzmine.util.maths.CenterMeasure;
+import io.github.mzmine.util.maths.Weighting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,10 +45,11 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class SpectraMerging {
 
-  private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Height,
+  private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Intensity,
       SortingDirection.Descending);
 
   /**
@@ -120,8 +127,9 @@ public class SpectraMerging {
       dplist.add(dp);
     }
 
-    double[] newIntensities = new double[dataPoints.size()];
-    double[] newMzs = new double[dataPoints.size()];
+    int numDps = dataPointRanges.asMapOfRanges().size();
+    double[] newIntensities = new double[numDps];
+    double[] newMzs = new double[numDps];
     int counter = 0;
 
     // now we got everything in place and have to calculate the new intensities and mzs
@@ -140,6 +148,7 @@ public class SpectraMerging {
 
       newMzs[counter] = newMz;
       newIntensities[counter] = newIntensity;
+      counter++;
     }
 
     double[][] data = new double[2][];
@@ -169,13 +178,30 @@ public class SpectraMerging {
     }
   }
 
-  public MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(ImsMsMsInfo info) {
+  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(ImsMsMsInfo info, double noiseLevel,
+      MZTolerance tolerance, MergingType mergingType, MemoryMapStorage storage) {
+
+    if(info == null) {
+      return null;
+    }
+
     Range<Integer> spectraNumbers = info.getSpectrumNumberRange();
-    int frameNumber = info.getFrameNumber();
+    Frame frame = info.getFrameNumber();
     float collisionEnergy = info.getCollisionEnergy();
     double precursorMz = info.getLargestPeakMz();
 
+    List<MobilityScan> mobilityScans = frame.getMobilityScans().stream()
+        .filter(ms -> spectraNumbers.contains(ms.getMobilityScamNumber())).collect(
+            Collectors.toList());
 
+    CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
+
+    double[][] merged = calculatedMergedMzsAndIntensities(mobilityScans, noiseLevel, tolerance,
+        mergingType, cf);
+
+    return new SimpleMergedMsMsSpectrum(storage, merged[0],
+        merged[1], precursorMz, null, collisionEnergy, frame.getMSLevel(), mobilityScans,
+        mergingType, cf);
   }
 
   public enum MergingType {

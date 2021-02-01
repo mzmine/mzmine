@@ -186,15 +186,15 @@ public class TDFImportTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
     }
-
-    // now assign MS/MS infos
-
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
     // } else {
     // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
     // metaDataTable, maldiFrameInfoTable);
     // }
+
+    // now assign MS/MS infos
+    constructMsMsInfo(newMZmineFile, framePrecursorTable);
 
     TDFUtils.close(handle);
 
@@ -376,7 +376,9 @@ public class TDFImportTask extends AbstractTask {
 
   private void constructMsMsInfo(IMSRawDataFile file, FramePrecursorTable precursorTable) {
     setDescription("Assigning MS/MS precursor info for " + rawDataFileName + ".");
-    Frame previousFrame = null;
+
+    Date start = new Date();
+    int constructed = 0;
     for (Frame frame : file.getFrames()) {
       if (frame.getMSLevel() == 1) {
         continue;
@@ -397,10 +399,14 @@ public class TDFImportTask extends AbstractTask {
             building.getPrecursorCharge(), parentFrame, frame);
 
         frame.getImsMsMsInfos().add(info);
+        constructed++;
       }
-
-      previousFrame = frame;
     }
+
+    Date end = new Date();
+    logger.info(
+        "Construced " + constructed + " ImsMsMsInfos for " + file.getFrames().size() + " in " + (
+            end.getTime() - start.getTime()) + " ms");
   }
 
   /*

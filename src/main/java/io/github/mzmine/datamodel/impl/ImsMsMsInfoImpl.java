@@ -78,4 +78,8 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
     return fragmentFrameNumber;
   }
 
+  @Override
+  public String toString() {
+    return "m/z " + precursorMz + " - Scans " + spectrumNumberRange.toString();
+  }
 }

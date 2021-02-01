@@ -58,6 +58,7 @@ public class ColoredXYBarRenderer extends XYBarRenderer {
     setShadowVisible(false);
     // Set the tooltip generator
     setBarPainter(new StandardXYBarPainter());
+    setDefaultItemLabelsVisible(true);
   }
 
   /**
