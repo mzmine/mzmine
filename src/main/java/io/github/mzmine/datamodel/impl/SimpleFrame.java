@@ -136,7 +136,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
    *
    * @param originalMobilityScans The mobility scans to store.
    */
-  @Override
   public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans) {
     if (mobilityScanIntensityBuffer != null || mobilityScanMzBuffer != null) {
       throw new IllegalStateException("Mobility scans can only be set to a frame once.");

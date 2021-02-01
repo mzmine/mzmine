@@ -28,7 +28,6 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.util.DataPointUtils;
 import java.nio.DoubleBuffer;
@@ -147,11 +146,6 @@ public class CachedFrame implements Frame {
   @Override
   public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     return originalFrame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
-  }
-
-  @Override
-  public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScan) {
-    throw new UnsupportedOperationException("Not supported by CachedFrame.");
   }
 
   @Override

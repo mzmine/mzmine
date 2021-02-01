@@ -18,7 +18,6 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Set;
@@ -109,8 +108,6 @@ public interface Frame extends Scan {
   default int getPrecursorCharge() {
     return 0;
   }
-
-  void setMobilityScans(List<BuildingMobilityScan> originalMobilityScan);
 
 
   // ImmutableList<Mobilogram> getMobilograms();
