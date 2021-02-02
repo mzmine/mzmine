@@ -40,7 +40,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MS
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerPane;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
@@ -277,8 +277,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS (still Swing)",
         () -> !selectedRows.isEmpty() && !selectedFeature.getAllMS2FragmentScans().isEmpty());
     showAllMSMSItem.setOnAction(e -> SwingUtilities.invokeLater(() -> {
-      MultiSpectraVisualizerWindow
-          multi = new MultiSpectraVisualizerWindow(selectedRows.get(0));
+      MultiSpectraVisualizerPane
+          multi = new MultiSpectraVisualizerPane(selectedRows.get(0));
       multi.setVisible(true);
     }));
 
