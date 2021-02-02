@@ -251,12 +251,11 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     // TODO this should display selected features instead of rows. MultiMSMSWindow does not support that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
-        () -> selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null
-            || (selectedRows.size() > 1 && selectedFeature != null));
+        () -> allRowsHaveFragmentScans(selectedRows) && selectedRows.size() > 1);
     showMSMSItem.setOnAction(e -> {
       if (selectedRows.size() > 1) {
         MultiMsMsTab multi = new MultiMsMsTab(selectedRows,
-            table.getFeatureList().getRawDataFiles(), selectedFeature.getRawDataFile());
+            table.getFeatureList().getRawDataFiles(), selectedRows.get(0).getRawDataFiles().get(0));
         MZmineCore.getDesktop().addTab(multi);
       } else {
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
@@ -273,7 +272,8 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     // TODO this is still a Swing window :(
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS (still Swing)",
-        () -> !selectedRows.isEmpty() && !selectedFeature.getAllMS2FragmentScans().isEmpty());
+        () -> !selectedRows.isEmpty() && selectedFeature != null && !selectedFeature
+            .getAllMS2FragmentScans().isEmpty());
     showAllMSMSItem.setOnAction(e -> SwingUtilities.invokeLater(() -> {
       MultiSpectraVisualizerWindow
           multi = new MultiSpectraVisualizerWindow(selectedRows.get(0));
@@ -331,6 +331,9 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private boolean allRowsHaveFragmentScans(Collection<ModularFeatureListRow> rows) {
+    if (rows.isEmpty()) {
+      return false;
+    }
     for (ModularFeatureListRow row : rows) {
       if (row.getBestFragmentation() == null) {
         return false;

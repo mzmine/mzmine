@@ -46,6 +46,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -146,6 +147,11 @@ public class MultiMSMSPane extends BorderPane {
 
     pnCharts = new GridPane();
     contentPane.setCenter(pnCharts);
+
+    var colCon = new ColumnConstraints();
+    colCon.setFillWidth(true);
+    colCon.setPercentWidth(100);
+    pnCharts.getColumnConstraints().add(colCon);
 //    pnCharts.setLayout(new GridLayout(0, 4));
 
     addMenu();
@@ -289,6 +295,7 @@ public class MultiMSMSPane extends BorderPane {
     oneAxisOnly.setOnAction(e -> setShowCrosshair(oneAxisOnly.isSelected()));
 
     settings.getItems().addAll(autoColumns, oneAxisOnly, toggleLegend, toggleTitle, toggleCrosshair);
+    setTop(menu);
   }
 
   public void setColumns(int col2) {
@@ -383,6 +390,7 @@ public class MultiMSMSPane extends BorderPane {
       if (best != null) {
         scan = best.getRepresentativeScan();
         EChartViewer cp = SpectrumChartFactory.createScanChartViewer(scan, showTitle, showLegend);
+        cp.setMinHeight(200);
         if (cp != null) {
           msone = new ChartViewWrapper(cp);
         }
@@ -391,6 +399,7 @@ public class MultiMSMSPane extends BorderPane {
       // pseudo MS1 from all rows and isotope pattern
       EChartViewer cp = PseudoSpectrum.createChartViewer(rows, raw, false, "pseudo");
       if (cp != null) {
+        cp.setMinHeight(200);
         cp.getChart().getLegend().setVisible(showLegend);
         cp.getChart().getTitle().setVisible(showTitle);
         msone = new ChartViewWrapper(cp);
@@ -406,7 +415,7 @@ public class MultiMSMSPane extends BorderPane {
     for (FeatureListRow row : rows) {
       EChartViewer c = MirrorChartFactory.createMSMSChartViewer(row, raw, showTitle, showLegend,
           alwaysShowBest, useBestForMissingRaw);
-
+      c.setMinHeight(150);
       if (c != null) {
         group.add(new ChartViewWrapper(c));
       }
@@ -434,7 +443,7 @@ public class MultiMSMSPane extends BorderPane {
         ValueAxis axis = cp.getChart().getXYPlot().getDomainAxis();
         axis.setVisible(!onlyShowOneAxis || i >= group.size() - realCol);
 
-        pnCharts.add(cp.getChartFX(), 0, i);
+        pnCharts.add(new BorderPane(cp.getChartFX()), 0, i);
         i++;
       }
     }
