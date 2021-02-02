@@ -21,11 +21,15 @@ package io.github.mzmine.util.scans;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
@@ -194,14 +198,29 @@ public class SpectraMerging {
         .filter(ms -> spectraNumbers.contains(ms.getMobilityScamNumber())).collect(
             Collectors.toList());
 
+    if(mobilityScans.isEmpty()) {
+      return null;
+    }
+
     CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
+
+    MassList ml = mobilityScans.get(0).getMassLists().stream().findFirst().get();
 
     double[][] merged = calculatedMergedMzsAndIntensities(mobilityScans, noiseLevel, tolerance,
         mergingType, cf);
 
-    return new SimpleMergedMsMsSpectrum(storage, merged[0],
+     MergedMsMsSpectrum mergedSpectrum = new SimpleMergedMsMsSpectrum(storage, merged[0],
         merged[1], precursorMz, collisionEnergy, frame.getMSLevel(), mobilityScans,
         mergingType, cf);
+
+     DataPoint[] dps = new DataPoint[merged[0].length];
+     for(int i = 0; i < merged[0].length; i++) {
+       dps[i] = new SimpleDataPoint(merged[0][i], merged[1][i]);
+     }
+
+    MassList newMl = new SimpleMassList(ml.getName(), mergedSpectrum, dps);
+    mergedSpectrum.addMassList(newMl);
+    return mergedSpectrum;
   }
 
   public enum MergingType {

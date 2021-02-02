@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
+import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,6 +49,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Filters out feature list rows.
@@ -134,6 +136,11 @@ public class GroupMS2Task extends AbstractTask {
    */
   public void processRow(FeatureListRow row) {
     for (Feature f : row.getFeatures()) {
+      if (f instanceof ModularFeature && ((ModularFeature) f).get(MobilityUnitType.class).getValue()
+          == io.github.mzmine.datamodel.MobilityType.TIMS) {
+        processTimsFeature((ModularFeature) f);
+        continue;
+      }
       RawDataFile raw = f.getRawDataFile();
       float frt = f.getRT();
       double fmz = f.getMZ();
@@ -187,7 +194,7 @@ public class GroupMS2Task extends AbstractTask {
               imsMsMsInfo.getSpectrumNumberRange().lowerEndpoint() - mobilityScannumberOffset);
           float upperMobility = (float) frame.getMobilityForMobilityScanNumber(
               imsMsMsInfo.getSpectrumNumberRange().upperEndpoint() - mobilityScannumberOffset);
-          if (mobilityRange.isConnected(Range.closed(lowerMobility, upperMobility))) {
+          if (Range.closed(lowerMobility, upperMobility).contains(mobility)) {
             eligibleMsMsInfos.add(imsMsMsInfo);
           }
         }
@@ -199,7 +206,7 @@ public class GroupMS2Task extends AbstractTask {
     }
     feature.set(ImsMsMsInfoType.class, eligibleMsMsInfos);
 
-    List<MergedMsMsSpectrum> msmsSpectra = new ArrayList<>();
+    ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();
     for (ImsMsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging
           .getMergedMsMsSpectrumForPASEF(info, 1E1, mzTol, MergingType.SUMMED,
@@ -209,6 +216,13 @@ public class GroupMS2Task extends AbstractTask {
       }
     }
 
-//    feature.setAllMS2FragmentScans();
+    if (!msmsSpectra.isEmpty()) {
+      feature.setAllMS2FragmentScans(
+          (ObservableList<Scan>) (ObservableList<? extends Scan>) msmsSpectra);
+      MergedMsMsSpectrum best = msmsSpectra.stream()
+          .max(Comparator.comparingDouble(MergedMsMsSpectrum::getTIC)).orElse(null);
+      feature.setFragmentScan(best);
+    }
+
   }
 }

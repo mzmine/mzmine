@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -104,6 +105,12 @@ public class ScanUtils {
 
     buf.append(" ");
     buf.append(scan.getPolarity().asSingleChar());
+
+    if(scan instanceof MergedMsMsSpectrum) {
+      buf.append(" merged");
+      buf.append(((MergedMsMsSpectrum) scan).getSourceSpectra().size());
+      buf.append(" spectra");
+    }
 
     /*
      * if ((scan.getScanDefinition() != null) && (scan.getScanDefinition().length() > 0)) {

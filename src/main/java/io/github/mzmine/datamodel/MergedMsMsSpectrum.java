@@ -18,11 +18,8 @@
 
 package io.github.mzmine.datamodel;
 
-public interface MergedMsMsSpectrum extends MergedMassSpectrum {
-
-  double getPrecursorMz();
+public interface MergedMsMsSpectrum extends MergedMassSpectrum, Scan {
 
   float getCollisionEnergy();
 
-  int getMsLevel();
 }
