@@ -28,6 +28,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+/**
+ * Allows selection of default charges for a given mz range in case no charge could be determined.
+ */
 public class MzToChargeParameter implements
     UserParameter<RangeMap<Double, Integer>, MzToChargeComponent> {
 

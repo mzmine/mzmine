@@ -23,6 +23,11 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
+/**
+ * Represents a mz range and a corresponding charge. Used in {@link MzToChargeParameter} in case a
+ * default charge shall be assumed for calculations. Used to represent these values in a java fx
+ * {@link javafx.scene.control.TableView}.
+ */
 public class MzRangeToCharge {
 
   private DoubleProperty lower;

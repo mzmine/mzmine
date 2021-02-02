@@ -28,7 +28,13 @@ import java.text.NumberFormat;
 import java.util.List;
 import javax.annotation.Nonnull;
 
+/**
+ * Type to store collision cross section values for features.
+ */
 public class CCSType extends FloatType {
+
+  private final String headerString = MZmineCore.getConfiguration().getUnitFormat()
+      .format("CCS", "A^2");
 
   public CCSType() {
     super(new DecimalFormat("0.0"));
@@ -37,7 +43,7 @@ public class CCSType extends FloatType {
   @Nonnull
   @Override
   public String getHeaderString() {
-    return MZmineCore.getConfiguration().getUnitFormat().format("CCS", "A^2");
+    return headerString;
   }
 
   @Override

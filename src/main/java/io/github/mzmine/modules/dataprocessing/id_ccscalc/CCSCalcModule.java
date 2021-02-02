@@ -28,6 +28,21 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Calculates feature specific collision cross section values based on ion mobility values and the
+ * charge of a feature. For calculation, a mobility value {@link io.github.mzmine.datamodel.features.types.numbers.MobilityType},
+ * the unit of that mobility value {@link io.github.mzmine.datamodel.MobilityType} and the charge
+ * {@link io.github.mzmine.datamodel.features.types.numbers.ChargeType} of an ion are necessary.
+ *
+ * @author https://github.com/SteffenHeu
+ * @see CCSCalcTask
+ * @see io.github.mzmine.datamodel.features.types.numbers.CCSType
+ * @see https://en.wikipedia.org/wiki/Cross_section_(physics)#Collision_among_gas_particles
+ * @see https://doi.org/10.1002/jssc.201700919
+ * @see https://arxiv.org/ftp/arxiv/papers/1709/1709.02953.pdf
+ * @see https://www.waters.com/webassets/cms/library/docs/720005374en.pdf or
+ * https://www.sciencedirect.com/science/article/abs/pii/S1367593117301229?via%3Dihub
+ */
 public class CCSCalcModule implements MZmineRunnableModule {
 
   public static final String NAME = "CCS calculation module";
