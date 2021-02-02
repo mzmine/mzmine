@@ -17,6 +17,12 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms;
 
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraItemLabelGenerator;
+import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
+import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -32,25 +38,40 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.RectangleInsets;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraItemLabelGenerator;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
-import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
-
 public class SpectrumChartFactory {
 
-  public static EChartPanel createScanChartPanel(Scan scan, boolean showTitle, boolean showLegend) {
+  /*public static EChartPanel createScanChartPanel(Scan scan, boolean showTitle, boolean showLegend) {
     if (scan == null)
       return null;
     PseudoSpectrumDataSet dataset = MirrorChartFactory.createMSMSDataSet(scan, "");
     JFreeChart chart =
         createChart(dataset, showTitle, showLegend, scan.getRetentionTime(), scan.getPrecursorMZ());
     return createChartPanel(chart);
+  }*/
+
+  public static EChartViewer createScanChartViewer(Scan scan, boolean showTitle, boolean showLegend) {
+    if (scan == null)
+      return null;
+    PseudoSpectrumDataSet dataset = MirrorChartFactory.createMSMSDataSet(scan, "");
+    JFreeChart chart =
+        createChart(dataset, showTitle, showLegend, scan.getRetentionTime(), scan.getPrecursorMZ());
+    return createChartViewer(chart);
   }
 
-  public static EChartPanel createChartPanel(JFreeChart chart) {
+  public static EChartViewer createChartViewer(JFreeChart chart) {
+    if (chart == null)
+      return null;
+    //
+    EChartViewer pn = new EChartViewer(chart);
+    XYItemRenderer renderer = chart.getXYPlot().getRenderer();
+    PseudoSpectraItemLabelGenerator labelGenerator = new PseudoSpectraItemLabelGenerator(pn);
+    renderer.setDefaultItemLabelsVisible(true);
+    renderer.setDefaultItemLabelPaint(Color.BLACK);
+    renderer.setSeriesItemLabelGenerator(0, labelGenerator);
+    return pn;
+  }
+
+  /*public static EChartPanel createChartPanel(JFreeChart chart) {
     if (chart == null)
       return null;
     //
@@ -61,7 +82,7 @@ public class SpectrumChartFactory {
     renderer.setDefaultItemLabelPaint(Color.BLACK);
     renderer.setSeriesItemLabelGenerator(0, labelGenerator);
     return pn;
-  }
+  }*/
 
   public static JFreeChart createChart(PseudoSpectrumDataSet dataset, boolean showTitle,
       boolean showLegend, double rt, double precursorMZ) {

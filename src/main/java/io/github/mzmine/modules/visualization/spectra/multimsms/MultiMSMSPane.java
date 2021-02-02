@@ -17,51 +17,47 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.util.MirrorChartFactory;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import java.awt.event.ItemListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.ValueAxis;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrum;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.ValueAxis;
 
 /**
  * Holds more charts for data reviewing
  *
  * @author Robin Schmid
- *
  */
-public class MultiMSMSWindow extends JFrame {
+public class MultiMSMSPane extends BorderPane {
 
   // annotations for MSMS
   private List<AbstractMSMSIdentity> msmsAnnotations;
@@ -76,8 +72,8 @@ public class MultiMSMSWindow extends JFrame {
   // MS 2
   private ChartGroup group;
   //
-  private JPanel contentPane;
-  private JPanel pnCharts;
+  private BorderPane contentPane;
+  private GridPane pnCharts;
   private int col = 4;
   private int realCol = col;
   private boolean autoCol = true;
@@ -89,12 +85,12 @@ public class MultiMSMSWindow extends JFrame {
   // click marker in all of the group
   private boolean showCrosshair = true;
 
-  private JLabel lbRawIndex;
-  private JPanel pnTopMenu;
-  private JLabel lbRawName;
-  private JButton nextRaw, prevRaw;
-  private JCheckBox cbBestRaw;
-  private JCheckBox cbUseBestForMissingRaw;
+  private Label lbRawIndex;
+  private Pane pnTopMenu;
+  private Label lbRawName;
+  private Button nextRaw, prevRaw;
+  private CheckBox cbBestRaw;
+  private CheckBox cbUseBestForMissingRaw;
 
   private FeatureListRow[] rows;
   private RawDataFile raw;
@@ -106,49 +102,51 @@ public class MultiMSMSWindow extends JFrame {
   /**
    * Create the frame.
    */
-  public MultiMSMSWindow() {
-    setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-    setBounds(100, 100, 853, 586);
-    contentPane = new JPanel();
-    contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-    contentPane.setLayout(new BorderLayout(0, 0));
-    setContentPane(contentPane);
+  public MultiMSMSPane() {
+//    setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+//    setBounds(100, 100, 853, 586);
+    contentPane = new BorderPane();
+    contentPane.setPadding(new Insets(5));
+//    contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+//    contentPane.setLayout(new BorderLayout(0, 0));
+//    setContentPane(contentPane);
+    setCenter(contentPane);
 
-    pnTopMenu = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-    contentPane.add(pnTopMenu, BorderLayout.NORTH);
+    pnTopMenu = new FlowPane();
+    contentPane.setTop(pnTopMenu);
 
-    prevRaw = new JButton("<");
-    pnTopMenu.add(prevRaw);
-    prevRaw.addActionListener(e -> {
+    prevRaw = new Button("<");
+    pnTopMenu.getChildren().add(prevRaw);
+    prevRaw.setOnAction(e -> {
       prevRaw();
     });
 
-    nextRaw = new JButton(">");
-    pnTopMenu.add(nextRaw);
-    nextRaw.addActionListener(e -> {
+    nextRaw = new Button(">");
+    pnTopMenu.getChildren().add(nextRaw);
+    nextRaw.setOnAction(e -> {
       nextRaw();
     });
 
-    lbRawIndex = new JLabel("");
-    pnTopMenu.add(lbRawIndex);
-    lbRawName = new JLabel("");
-    pnTopMenu.add(lbRawName);
+    lbRawIndex = new Label("");
+    pnTopMenu.getChildren().add(lbRawIndex);
+    lbRawName = new Label("");
+    pnTopMenu.getChildren().add(lbRawName);
 
-    cbBestRaw = new JCheckBox("use best for each");
-    pnTopMenu.add(cbBestRaw);
-    cbBestRaw.addItemListener(e -> {
-      setAlwaysShowBest(cbBestRaw.isSelected());
+    cbBestRaw = new CheckBox("use best for each");
+    pnTopMenu.getChildren().add(cbBestRaw);
+    cbBestRaw.selectedProperty().addListener((observable, oldValue, newValue) -> {
+      setAlwaysShowBest(newValue);
     });
 
-    cbUseBestForMissingRaw = new JCheckBox("use best missing raw");
-    pnTopMenu.add(cbUseBestForMissingRaw);
-    cbUseBestForMissingRaw.addItemListener(e -> {
-      setUseBestForMissing(cbUseBestForMissingRaw.isSelected());
+    cbUseBestForMissingRaw = new CheckBox("use best missing raw");
+    pnTopMenu.getChildren().add(cbUseBestForMissingRaw);
+    cbUseBestForMissingRaw.selectedProperty().addListener((observable, oldValue, newValue) -> {
+      setUseBestForMissing(newValue);
     });
 
-    pnCharts = new JPanel();
-    contentPane.add(pnCharts, BorderLayout.CENTER);
-    pnCharts.setLayout(new GridLayout(0, 4));
+    pnCharts = new GridPane();
+    contentPane.setCenter(pnCharts);
+//    pnCharts.setLayout(new GridLayout(0, 4));
 
     addMenu();
   }
@@ -164,8 +162,9 @@ public class MultiMSMSWindow extends JFrame {
   }
 
   private void nextRaw() {
-    if (allRaw == null)
+    if (allRaw == null) {
       return;
+    }
     while (rawIndex + 1 < allRaw.length) {
       rawIndex++;
       if (rawContainsFragmentation(allRaw[rawIndex])) {
@@ -176,8 +175,9 @@ public class MultiMSMSWindow extends JFrame {
   }
 
   private void prevRaw() {
-    if (allRaw == null)
+    if (allRaw == null) {
       return;
+    }
     if (rawIndex > 0) {
       rawIndex--;
       setRaw(allRaw[rawIndex]);
@@ -236,14 +236,14 @@ public class MultiMSMSWindow extends JFrame {
   }
 
   private void addMenu() {
-    JMenuBar menu = new JMenuBar();
-    JMenu settings = new JMenu("Settings");
-    menu.add(settings);
+    MenuBar menu = new MenuBar();
+    Menu settings = new Menu("Settings");
+    menu.getMenus().add(settings);
 
     // set columns
-    JMenuItem setCol = new JMenuItem("set columns");
-    menu.add(setCol);
-    setCol.addActionListener(e -> {
+    Menu setCol = new Menu("set columns");
+    menu.getMenus().add(setCol);
+    setCol.setOnAction(e -> {
       try {
         TextInputDialog inputDialog = new TextInputDialog(String.valueOf(col));
         inputDialog.setContentText("Columns");
@@ -259,26 +259,36 @@ public class MultiMSMSWindow extends JFrame {
     });
 
     // reset zoom
-    JMenuItem resetZoom = new JMenuItem("reset zoom");
-    menu.add(resetZoom);
-    resetZoom.addActionListener(e -> {
-      if (group != null)
+    Menu resetZoom = new Menu("reset zoom");
+    menu.getMenus().add(resetZoom);
+    resetZoom.setOnAction(e -> {
+      if (group != null) {
         group.resetZoom();
+      }
     });
 
     //
-    addCheckBox(settings, "auto columns", autoCol,
-        e -> setAutoColumns(((JCheckBoxMenuItem) e.getSource()).isSelected()));
-    addCheckBox(settings, "show one axis only", onlyShowOneAxis,
-        e -> setOnlyShowOneAxis(((JCheckBoxMenuItem) e.getSource()).isSelected()));
-    addCheckBox(settings, "show legend", showLegend,
-        e -> setShowLegend(((JCheckBoxMenuItem) e.getSource()).isSelected()));
-    addCheckBox(settings, "show title", showTitle,
-        e -> setShowTitle(((JCheckBoxMenuItem) e.getSource()).isSelected()));
-    addCheckBox(settings, "show crosshair", showCrosshair,
-        e -> setShowCrosshair(((JCheckBoxMenuItem) e.getSource()).isSelected()));;
+    CheckMenuItem autoColumns = new CheckMenuItem("auto columns");
+    autoColumns.setSelected(autoCol);
+    autoColumns.setOnAction(e -> setAutoColumns(autoColumns.isSelected()));
 
-    this.setJMenuBar(menu);
+    CheckMenuItem oneAxisOnly = new CheckMenuItem("show one axis only");
+    oneAxisOnly.setSelected(onlyShowOneAxis);
+    oneAxisOnly.setOnAction(e -> setOnlyShowOneAxis(oneAxisOnly.isSelected()));
+
+    CheckMenuItem toggleLegend = new CheckMenuItem("show legend");
+    toggleLegend.setSelected(showLegend);
+    toggleLegend.setOnAction(e -> setShowLegend(toggleLegend.isSelected()));
+
+    CheckMenuItem toggleTitle = new CheckMenuItem("show title");
+    toggleTitle.setSelected(showTitle);
+    toggleTitle.setOnAction(e -> setShowTitle(toggleTitle.isSelected()));
+
+    CheckMenuItem toggleCrosshair = new CheckMenuItem("show crosshair");
+    oneAxisOnly.setSelected(showCrosshair);
+    oneAxisOnly.setOnAction(e -> setShowCrosshair(oneAxisOnly.isSelected()));
+
+    settings.getItems().addAll(autoColumns, oneAxisOnly, toggleLegend, toggleTitle, toggleCrosshair);
   }
 
   public void setColumns(int col2) {
@@ -292,8 +302,9 @@ public class MultiMSMSWindow extends JFrame {
 
   public void setShowCrosshair(boolean showCrosshair) {
     this.showCrosshair = showCrosshair;
-    if (group != null)
+    if (group != null) {
       group.setShowCrosshair(showCrosshair, showCrosshair);
+    }
   }
 
   public void setShowLegend(boolean showLegend) {
@@ -316,13 +327,6 @@ public class MultiMSMSWindow extends JFrame {
     });
   }
 
-  private void addCheckBox(JMenu menu, String title, boolean state, ItemListener il) {
-    JCheckBoxMenuItem item = new JCheckBoxMenuItem(title);
-    item.setSelected(state);
-    item.addItemListener(il);
-    menu.add(item);
-  }
-
   /**
    * Sort rows
    *
@@ -331,7 +335,8 @@ public class MultiMSMSWindow extends JFrame {
    * @param sorting
    * @param direction
    */
-  public void setData(FeatureListRow[] rows, RawDataFile[] allRaw, RawDataFile raw, boolean createMS1,
+  public void setData(FeatureListRow[] rows, RawDataFile[] allRaw, RawDataFile raw,
+      boolean createMS1,
       SortingProperty sorting, SortingDirection direction) {
     Arrays.sort(rows, new FeatureListRowSorter(sorting, direction));
     setData(rows, allRaw, raw, createMS1);
@@ -377,13 +382,14 @@ public class MultiMSMSWindow extends JFrame {
       }
       if (best != null) {
         scan = best.getRepresentativeScan();
-        EChartPanel cp = SpectrumChartFactory.createScanChartPanel(scan, showTitle, showLegend);
-        if (cp != null)
+        EChartViewer cp = SpectrumChartFactory.createScanChartViewer(scan, showTitle, showLegend);
+        if (cp != null) {
           msone = new ChartViewWrapper(cp);
+        }
       }
     } else {
       // pseudo MS1 from all rows and isotope pattern
-      EChartPanel cp = PseudoSpectrum.createChartPanel(rows, raw, false, "pseudo");
+      EChartViewer cp = PseudoSpectrum.createChartViewer(rows, raw, false, "pseudo");
       if (cp != null) {
         cp.getChart().getLegend().setVisible(showLegend);
         cp.getChart().getTitle().setVisible(showTitle);
@@ -391,13 +397,14 @@ public class MultiMSMSWindow extends JFrame {
       }
     }
 
-    if (msone != null)
+    if (msone != null) {
       group.add(msone);
+    }
 
     // COMMON
     // MS2 of all rows
     for (FeatureListRow row : rows) {
-      EChartPanel c = MirrorChartFactory.createMSMSChartPanel(row, raw, showTitle, showLegend,
+      EChartViewer c = MirrorChartFactory.createMSMSChartViewer(row, raw, showTitle, showLegend,
           alwaysShowBest, useBestForMissingRaw);
 
       if (c != null) {
@@ -409,17 +416,17 @@ public class MultiMSMSWindow extends JFrame {
   }
 
   /**
-   *
    * @param group
    */
   public void renewCharts(ChartGroup group) {
-    pnCharts.removeAll();
+    pnCharts.getChildren().clear();
     if (group != null && group.size() > 0) {
-      realCol = autoCol ? (int) Math.floor(Math.sqrt(group.size())) - 1 : col;
-      if (realCol < 1)
+      /*realCol = autoCol ? (int) Math.floor(Math.sqrt(group.size())) - 1 : col;
+      if (realCol < 1) {
         realCol = 1;
+      }
       GridLayout layout = new GridLayout(0, realCol);
-      pnCharts.setLayout(layout);
+      pnCharts.setLayout(layout);*/
       // add to layout
       int i = 0;
       for (ChartViewWrapper cp : group.getList()) {
@@ -427,42 +434,48 @@ public class MultiMSMSWindow extends JFrame {
         ValueAxis axis = cp.getChart().getXYPlot().getDomainAxis();
         axis.setVisible(!onlyShowOneAxis || i >= group.size() - realCol);
 
-        pnCharts.add(cp.getChartSwing());
+        pnCharts.add(cp.getChartFX(), 0, i);
         i++;
       }
     }
-    pnCharts.revalidate();
-    pnCharts.repaint();
+//    pnCharts.revalidate();
+//    pnCharts.repaint();
   }
 
   // ANNOTATIONS
   public void addMSMSAnnotation(AbstractMSMSIdentity ann) {
-    if (msmsAnnotations == null)
+    if (msmsAnnotations == null) {
       msmsAnnotations = new ArrayList<>();
+    }
     msmsAnnotations.add(ann);
 
     // extract mz tolerance
-    if (mzTolerance == null || exchangeTolerance)
+    if (mzTolerance == null || exchangeTolerance) {
       setMzTolerance(ann.getMzTolerance());
+    }
 
     // add to charts
     addAnnotationToCharts(ann);
   }
 
   public void addMSMSAnnotations(List<? extends AbstractMSMSIdentity> ann) {
-    if (ann == null)
+    if (ann == null) {
       return;
+    }
     // extract mz tolerance
-    if (mzTolerance == null || exchangeTolerance)
-      for (AbstractMSMSIdentity a : ann)
+    if (mzTolerance == null || exchangeTolerance) {
+      for (AbstractMSMSIdentity a : ann) {
         if (a.getMzTolerance() != null) {
           setMzTolerance(a.getMzTolerance());
           break;
         }
+      }
+    }
 
     // add all
-    for (AbstractMSMSIdentity a : ann)
+    for (AbstractMSMSIdentity a : ann) {
       addMSMSAnnotation(a);
+    }
   }
 
   /**
@@ -471,8 +484,9 @@ public class MultiMSMSWindow extends JFrame {
    * @param mzTolerance
    */
   public void setMzTolerance(MZTolerance mzTolerance) {
-    if (mzTolerance == null && this.mzTolerance == null)
+    if (mzTolerance == null && this.mzTolerance == null) {
       return;
+    }
 
     boolean changed =
         mzTolerance != this.mzTolerance || (this.mzTolerance == null && mzTolerance != null)
@@ -480,18 +494,21 @@ public class MultiMSMSWindow extends JFrame {
     this.mzTolerance = mzTolerance;
     exchangeTolerance = false;
 
-    if (changed)
+    if (changed) {
       addAllAnnotationsToCharts();
+    }
   }
 
   private void addAllAnnotationsToCharts() {
-    if (msmsAnnotations == null)
+    if (msmsAnnotations == null) {
       return;
+    }
 
     removeAllAnnotationsFromCharts();
 
-    for (AbstractMSMSIdentity a : msmsAnnotations)
+    for (AbstractMSMSIdentity a : msmsAnnotations) {
       addAnnotationToCharts(a);
+    }
   }
 
   private void removeAllAnnotationsFromCharts() {
@@ -501,11 +518,12 @@ public class MultiMSMSWindow extends JFrame {
   }
 
   private void addAnnotationToCharts(AbstractMSMSIdentity ann) {
-    if (mzTolerance != null)
+    if (mzTolerance != null) {
       forAllCharts(c -> {
         PseudoSpectrumDataSet data = (PseudoSpectrumDataSet) c.getXYPlot().getDataset(0);
         data.addIdentity(mzTolerance, ann);
       });
+    }
   }
 
   public MZTolerance getMzTolerance() {
@@ -518,8 +536,9 @@ public class MultiMSMSWindow extends JFrame {
    * @param op
    */
   public void forAllCharts(Consumer<JFreeChart> op) {
-    if (group != null)
+    if (group != null) {
       group.forAllCharts(op);
+    }
   }
 
   /**
@@ -528,11 +547,13 @@ public class MultiMSMSWindow extends JFrame {
    * @param op
    */
   public void forAllMSMSCharts(Consumer<JFreeChart> op) {
-    if (group == null || group.getList() == null)
+    if (group == null || group.getList() == null) {
       return;
+    }
 
     int start = msone == null ? 0 : 1;
-    for (int i = start; i < group.getList().size(); i++)
+    for (int i = start; i < group.getList().size(); i++) {
       op.accept(group.getList().get(i).getChart());
+    }
   }
 }

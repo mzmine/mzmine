@@ -39,7 +39,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.export.Is
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
-import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
+import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
@@ -255,11 +255,9 @@ public class FeatureTableContextMenu extends ContextMenu {
             || (selectedRows.size() > 1 && selectedFeature != null));
     showMSMSItem.setOnAction(e -> {
       if (selectedRows.size() > 1) {
-        MultiMSMSWindow multi = new MultiMSMSWindow();
-        multi.setData(selectedRows.toArray(new ModularFeatureListRow[0]),
-            table.getFeatureList().getRawDataFiles().toArray(new RawDataFile[0]),
-            selectedFeature.getRawDataFile(), true, SortingProperty.MZ, SortingDirection.Ascending);
-        multi.setVisible(true);
+        MultiMsMsTab multi = new MultiMsMsTab(selectedRows,
+            table.getFeatureList().getRawDataFiles(), selectedFeature.getRawDataFile());
+        MZmineCore.getDesktop().addTab(multi);
       } else {
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
       }

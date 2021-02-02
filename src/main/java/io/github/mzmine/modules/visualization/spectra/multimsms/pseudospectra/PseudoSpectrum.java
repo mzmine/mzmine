@@ -17,6 +17,14 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
@@ -28,14 +36,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYSeries;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.scans.ScanUtils;
 
 public class PseudoSpectrum {
 
@@ -70,14 +70,14 @@ public class PseudoSpectrum {
     return series;
   }
 
-  public static EChartPanel createChartPanel(FeatureListRow[] group, RawDataFile raw, boolean sum,
+  public static EChartViewer createChartViewer(FeatureListRow[] group, RawDataFile raw, boolean sum,
       String title) {
     PseudoSpectrumDataSet data = createDataSet(group, raw, sum);
     if (data == null)
       return null;
     JFreeChart chart = createChart(data, raw, sum, title);
     if (chart != null) {
-      EChartPanel pn = new EChartPanel(chart);
+      EChartViewer pn = new EChartViewer(chart);
       XYItemRenderer renderer = chart.getXYPlot().getRenderer();
       PseudoSpectraItemLabelGenerator labelGenerator = new PseudoSpectraItemLabelGenerator(pn);
       renderer.setDefaultItemLabelsVisible(true);

@@ -17,12 +17,11 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 
+import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
-import org.jfree.chart.ChartPanel;
+import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
-
-import io.github.mzmine.main.MZmineCore;
 
 /**
  * Label generator for spectra visualizer. Only used to generate labels for the raw data
@@ -35,11 +34,11 @@ public class PseudoSpectraItemLabelGenerator implements XYItemLabelGenerator {
    */
   public static final int POINTS_RESERVE_X = 100;
 
-  private ChartPanel plot;
+  private ChartViewer plot;
 
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  public PseudoSpectraItemLabelGenerator(ChartPanel plot) {
+  public PseudoSpectraItemLabelGenerator(ChartViewer plot) {
     this.plot = plot;
   }
 
