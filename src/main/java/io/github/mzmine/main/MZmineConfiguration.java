@@ -68,6 +68,8 @@ public interface MZmineConfiguration {
 
   public NumberFormat getMobilityFormat();
 
+  public NumberFormat getCCSFormat();
+
   public NumberFormat getIntensityFormat();
 
   public NumberFormat getPPMFormat();

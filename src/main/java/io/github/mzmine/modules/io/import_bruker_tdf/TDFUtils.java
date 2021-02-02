@@ -481,6 +481,16 @@ public class TDFUtils {
     return array;
   }
 
+  public static Double calculateCCS(double ook0, int charge, double mz) {
+    if (tdfLib == null) {
+      boolean loaded = TDFUtils.loadLibrary();
+      if (!loaded) {
+        return null;
+      }
+    }
+    return tdfLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
+  }
+
   // ---------------------------------------------------------------------------------------------
   // SQL-RELATED FUNCTIONS
   // -----------------------------------------------------------------------------------------------
