@@ -44,6 +44,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import org.jfree.chart.plot.ValueMarker;
@@ -82,6 +83,9 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     setMinSize(800, 600);
 
     pnGrid = new GridPane();
+    var colCon = new ColumnConstraints();
+    colCon.setFillWidth(true);
+    pnGrid.getColumnConstraints().add(colCon);
     // any number of rows
 //    pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
 //    pnGrid.setAutoscrolls(true);
@@ -180,7 +184,9 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     ObservableList<Scan> numbers = peak.getAllMS2FragmentScans();
     int i = 0;
     for (Scan scan : numbers) {
-      pnGrid.add(addSpectra(scan), 0, i++);
+      BorderPane pn = addSpectra(scan);
+      pn.minWidthProperty().bind(widthProperty().subtract(30));
+      pnGrid.add(pn, 0, i++);
     }
 
     int n = indexOfRaw(raw);
