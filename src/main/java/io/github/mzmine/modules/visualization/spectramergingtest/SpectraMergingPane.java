@@ -97,6 +97,10 @@ public class SpectraMergingPane extends ParameterSetupDialogWithPreview {
     MZTolerance mzTolerance = parameterSet.getParameter(SpectraMergingTestParameters.mzTolerance)
         .getValue();
 
+    if(mergingType == null || mzTolerance == null) {
+      return;
+    }
+
     MergedMsMsSpectrum merged = SpectraMerging
         .getMergedMsMsSpectrumForPASEF(msMsInfoComboBox.getValue(), noiseLevel, mzTolerance,
             mergingType, storage);

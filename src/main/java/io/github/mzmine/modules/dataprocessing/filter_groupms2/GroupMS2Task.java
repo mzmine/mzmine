@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -169,16 +168,13 @@ public class GroupMS2Task extends AbstractTask {
     float frt = feature.getRT();
     double fmz = feature.getMZ();
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
-
-    Range<Float> mobilityRange = feature.get(MobilityRangeType.class).getValue();
     Float mobility = feature.get(MobilityType.class).getValue();
 
-    List<? extends Scan> scans = (List<? extends Scan>) ScanUtils
-        .streamScans(feature.getRawDataFile(), 2)
-        .filter(scan -> filterScan(scan, frt, fmz, rtRange)).collect(
-            Collectors.toList());
+    List<? extends Scan> scans = feature.getRawDataFile().getScans().stream()
+        .filter(scan -> rtTol.checkWithinTolerance(frt, scan.getRetentionTime())
+            && scan.getMSLevel() == 2).collect(Collectors.toList());
 
-    if (scans.isEmpty() && !(scans.get(0) instanceof Frame)) {
+    if (scans.isEmpty() || !(scans.get(0) instanceof Frame)) {
       return;
     }
 
@@ -190,11 +186,11 @@ public class GroupMS2Task extends AbstractTask {
 
           // todo: maybe revisit this for a more sophisticated range check
           int mobilityScannumberOffset = frame.getMobilityScan(0).getMobilityScamNumber();
-          float lowerMobility = (float) frame.getMobilityForMobilityScanNumber(
+          float mobility1 = (float) frame.getMobilityForMobilityScanNumber(
               imsMsMsInfo.getSpectrumNumberRange().lowerEndpoint() - mobilityScannumberOffset);
-          float upperMobility = (float) frame.getMobilityForMobilityScanNumber(
+          float mobility2 = (float) frame.getMobilityForMobilityScanNumber(
               imsMsMsInfo.getSpectrumNumberRange().upperEndpoint() - mobilityScannumberOffset);
-          if (Range.closed(lowerMobility, upperMobility).contains(mobility)) {
+          if (Range.singleton(mobility1).span(Range.singleton(mobility2)).contains(mobility)) {
             eligibleMsMsInfos.add(imsMsMsInfo);
           }
         }

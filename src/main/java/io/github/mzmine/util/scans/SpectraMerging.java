@@ -47,6 +47,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -182,10 +184,11 @@ public class SpectraMerging {
     }
   }
 
-  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(ImsMsMsInfo info, double noiseLevel,
+  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(ImsMsMsInfo info,
+      double noiseLevel,
       MZTolerance tolerance, MergingType mergingType, MemoryMapStorage storage) {
 
-    if(info == null) {
+    if (info == null) {
       return null;
     }
 
@@ -198,25 +201,32 @@ public class SpectraMerging {
         .filter(ms -> spectraNumbers.contains(ms.getMobilityScamNumber())).collect(
             Collectors.toList());
 
-    if(mobilityScans.isEmpty()) {
+    if (mobilityScans.isEmpty()) {
       return null;
     }
 
     CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
 
-    MassList ml = mobilityScans.get(0).getMassLists().stream().findFirst().get();
+    Optional<Set<MassList>> firstSet = mobilityScans.stream().map(MobilityScan::getMassLists)
+        .filter(set -> set.size() > 0).findFirst();
+
+    if(firstSet.isEmpty()) {
+      return null;
+    }
+
+    MassList ml = firstSet.get().stream().findFirst().get();
 
     double[][] merged = calculatedMergedMzsAndIntensities(mobilityScans, noiseLevel, tolerance,
         mergingType, cf);
 
-     MergedMsMsSpectrum mergedSpectrum = new SimpleMergedMsMsSpectrum(storage, merged[0],
+    MergedMsMsSpectrum mergedSpectrum = new SimpleMergedMsMsSpectrum(storage, merged[0],
         merged[1], precursorMz, collisionEnergy, frame.getMSLevel(), mobilityScans,
         mergingType, cf);
 
-     DataPoint[] dps = new DataPoint[merged[0].length];
-     for(int i = 0; i < merged[0].length; i++) {
-       dps[i] = new SimpleDataPoint(merged[0][i], merged[1][i]);
-     }
+    DataPoint[] dps = new DataPoint[merged[0].length];
+    for (int i = 0; i < merged[0].length; i++) {
+      dps[i] = new SimpleDataPoint(merged[0][i], merged[1][i]);
+    }
 
     MassList newMl = new SimpleMassList(ml.getName(), mergedSpectrum, dps);
     mergedSpectrum.addMassList(newMl);

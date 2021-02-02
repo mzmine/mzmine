@@ -92,7 +92,7 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
           logger.warning("Merging spectra with different raw data files");
         }
       } else if(spectrum instanceof MobilityScan) {
-        if(file != ((Scan) spectrum).getDataFile()) {
+        if(file != ((MobilityScan) spectrum).getDataFile()) {
           logger.warning("Merging spectra with different raw data files");
         }
       }
