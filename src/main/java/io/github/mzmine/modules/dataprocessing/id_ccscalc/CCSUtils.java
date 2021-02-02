@@ -20,12 +20,15 @@ package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.io.import_bruker_tdf.TDFUtils;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 /**
  * @see CCSCalcModule
  */
 public class CCSUtils {
+
+  private static final Logger logger = Logger.getLogger(CCSUtils.class.getName());
 
   /**
    * @return
@@ -34,10 +37,10 @@ public class CCSUtils {
       @Nonnull MobilityType mobilityType, int charge) {
     return switch (mobilityType) {
       case TIMS -> calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
-      case DRIFT_TUBE -> null;
-      case TRAVELING_WAVE -> null;
-      case FAIMS -> null;
-      default -> null;
+      case DRIFT_TUBE -> logUnsupportedMobilityUnit();
+      case TRAVELING_WAVE -> logUnsupportedMobilityUnit();
+      case FAIMS -> logUnsupportedMobilityUnit();
+      default -> logUnsupportedMobilityUnit();
     };
   }
 
@@ -52,5 +55,10 @@ public class CCSUtils {
    */
   public static Float calcCCSFromTimsMobility(double mobility, int charge, double mz) {
     return TDFUtils.calculateCCS(mobility, charge, mz).floatValue();
+  }
+
+  public static Float logUnsupportedMobilityUnit() {
+    logger.fine("Unsupported mobility unit");
+    return null;
   }
 }
