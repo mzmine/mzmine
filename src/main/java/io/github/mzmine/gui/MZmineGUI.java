@@ -20,11 +20,8 @@ package io.github.mzmine.gui;
 
 
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
-
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,14 +29,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.FutureTask;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
-import javafx.stage.Window;
 import javax.annotation.Nonnull;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
@@ -48,18 +44,21 @@ import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
-import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -67,7 +66,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -76,6 +74,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /**
  * MZmine JavaFX Application class
@@ -282,13 +281,15 @@ public class MZmineGUI extends Application implements Desktop {
   @Nonnull
   public static List<FeatureList> getSelectedFeatureLists() {
 
-    final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
+    final GroupableListView<FeatureList> featureListView =
+        mainWindowController.getFeatureListsList();
     return ImmutableList.copyOf(featureListView.getSelectedValues());
 
   }
 
   @Nonnull
-  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(Class<ModuleType> moduleClass) {
+  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
+      Class<ModuleType> moduleClass) {
 
     final ParameterSet moduleParameters =
         MZmineCore.getConfiguration().getModuleParameters(moduleClass);
@@ -340,29 +341,34 @@ public class MZmineGUI extends Application implements Desktop {
       for (File selectedFile : dragboard.getFiles()) {
 
         final String extension = FilenameUtils.getExtension(selectedFile.getName());
-        String[] rawDataFile = {"cdf", "nc", "mzData", "mzML", "mzXML", "raw"};
+        String[] rawDataFile =
+            {"cdf", "netcdf", "nc", "mzData", "mzML", "imzML", "mzXML", "raw", "tdf"};
         final Boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
         final Boolean isMZmineProject = extension.equals("mzmine");
 
         Class<? extends MZmineRunnableModule> moduleJavaClass = null;
         if (isMZmineProject) {
           moduleJavaClass = ProjectLoadModule.class;
-        } else if (isRawDataFile) {
-          moduleJavaClass = RawDataImportModule.class;
-        }
-
-        if (moduleJavaClass != null) {
           ParameterSet moduleParameters =
               MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
-          if (isMZmineProject) {
-            moduleParameters.getParameter(projectFile).setValue(selectedFile);
-          } else if (isRawDataFile) {
-            File fileArray[] = {selectedFile};
-            moduleParameters.getParameter(fileNames).setValue(fileArray);
-          }
+          moduleParameters.getParameter(projectFile).setValue(selectedFile);
           ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
           MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+        } else if (isRawDataFile) {
+          // import files
+          List<Task> underlyingTasks = new ArrayList<>();
+          try {
+            RawDataFileUtils.createRawDataImportTasks(
+                MZmineCore.getProjectManager().getCurrentProject(), underlyingTasks, selectedFile);
+            if (underlyingTasks.size() > 0) {
+              MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+
         }
+
       }
     }
     event.setDropCompleted(hasFileDropped);

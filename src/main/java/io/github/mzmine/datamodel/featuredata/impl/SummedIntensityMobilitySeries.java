@@ -110,6 +110,37 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     intensityValues = tempIntensities;
   }
 
+  /**
+   * Package private use intended. Can be created by a {@link SimpleIonMobilogramTimeSeries} after
+   * smoothing.
+   *
+   * @param storage
+   * @param mobilities
+   * @param intensities
+   * @param mz
+   */
+  SummedIntensityMobilitySeries(MemoryMapStorage storage, double[] mobilities,
+      double[] intensities, double mz) {
+    this.mz = mz;
+    DoubleBuffer tempMobility;
+    DoubleBuffer tempIntensities;
+    if (storage != null) {
+      try {
+        tempMobility = storage.storeData(mobilities);
+        tempIntensities = storage.storeData(intensities);
+      } catch (IOException e) {
+        tempMobility = DoubleBuffer.wrap(mobilities);
+        tempIntensities = DoubleBuffer.wrap(intensities);
+        e.printStackTrace();
+      }
+    } else {
+      tempMobility = DoubleBuffer.wrap(mobilities);
+      tempIntensities = DoubleBuffer.wrap(intensities);
+    }
+    this.mobilityValues = tempMobility;
+    this.intensityValues = tempIntensities;
+  }
+
   public int getNumberOfDataPoints() {
     return getMobilityValues().capacity();
   }

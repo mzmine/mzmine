@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -73,7 +73,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     mobilityRange = Range.singleton(0.d);
 //    this.numMobilitySpectra = numMobilitySpectra;
 //    this.mobilities = mobilities;
-    this.precursorInfos = precursorInfos;
+    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>());
   }
 
   public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
@@ -89,7 +89,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     setDataPoints(mzValues, intensityValues);
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-    this.precursorInfos = precursorInfos;
+    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>());
   }
 
   /**
@@ -178,7 +178,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Nonnull
   @Override
   public Set<ImsMsMsInfo> getImsMsMsInfos() {
-    return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
+    return precursorInfos;
   }
 
   @Nullable

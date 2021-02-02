@@ -76,15 +76,33 @@
 
   <!-- RAW DATA METHODS -->
   <Menu text="Raw data methods">
-    <MenuItem text="Raw data import" onAction="#runModule"
-      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule">
-      <accelerator>
-        <KeyCodeCombination alt="UP" code="I"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-      </accelerator>
-    </MenuItem>
-    <MenuItem text="Raw data import (folder)" onAction="#runModule"
-      userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule"/>
+    <Menu text="Raw data import" >
+        <accelerator>
+          <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+        </accelerator>
+        
+      <SeparatorMenuItem/>
+        
+      <MenuItem text="mzML" onAction="#runModule" userData="io.github.mzmine.modules.io.import_mzml_msdk.MSDKmzMLImportModule" />
+      <MenuItem text="mzML via jmzml" onAction="#runModule" userData="io.github.mzmine.modules.io.import_mzml_jmzml.MzMLImportModule" />
+      <MenuItem text="imzML" onAction="#runModule" userData="io.github.mzmine.modules.io.import_imzml.ImzMLImportModule" />   
+      <MenuItem text="netCDF" onAction="#runModule" userData="io.github.mzmine.modules.io.import_netcdf.NetCDFImportModule" />
+      <MenuItem text="mzXML" onAction="#runModule" userData="io.github.mzmine.modules.io.import_mzxml.MzXMLImportModule" />
+      <MenuItem text="mzData" onAction="#runModule" userData="io.github.mzmine.modules.io.import_mzdata.MzDataImportModule" />
+  
+      <SeparatorMenuItem/>
+      
+      <MenuItem text="Thermo RAW" onAction="#runModule" userData="io.github.mzmine.modules.io.import_thermo_raw.ThermoRawImportModule" />
+      <MenuItem text="Waters RAW" onAction="#runModule" userData="io.github.mzmine.modules.io.import_waters_raw.WatersRawImportModule" />
+      <MenuItem text="Bruker TDF" onAction="#runModule" userData="io.github.mzmine.modules.io.import_bruker_tdf.TDFImportModule" />
+
+      <SeparatorMenuItem/>
+
+      <MenuItem text="ZIP / gzip" onAction="#runModule" userData="io.github.mzmine.modules.io.import_zip.ZipImportModule" />
+      <MenuItem text="ICP-MS CVS" onAction="#runModule" userData="io.github.mzmine.modules.io.import_icpms_csv.IcpMsCVSImportModule" />
+      
+    </Menu>
+
 
     <Menu text="Raw data export">
       <MenuItem text="mzML"
@@ -295,6 +313,9 @@
     </Menu>
 
     <Menu text="Identification">
+      <MenuItem onAction="#runModule"
+        text="Calculate CCS values"
+        userData="io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule"/>
       <Menu text="Search precursor mass">
         <MenuItem text="Local compound database (CSV) search"
           onAction="#runModule"
@@ -396,7 +417,8 @@
       userData="io.github.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule"/>
     <MenuItem text="Raw data overview" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
-
+    <MenuItem text="Spectra merging" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.spectramergingtest.SpectraMergingTestModule"/>
 
     <SeparatorMenuItem/>
     <MenuItem text="Scatter plot" onAction="#runModule"

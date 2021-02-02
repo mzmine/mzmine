@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import java.util.List;
-import io.github.mzmine.modules.io.rawdataimport.fileformats.imzmlimport.ImagingParameters;
+import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
 
 
 /**

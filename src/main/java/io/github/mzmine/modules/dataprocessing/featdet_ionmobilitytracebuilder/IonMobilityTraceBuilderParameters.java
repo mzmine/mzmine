@@ -18,15 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
-import io.github.mzmine.parameters.parametertypes.PaintScaleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -50,35 +45,20 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
       false);
 
   public static final IntegerParameter minDataPointsRt = new IntegerParameter(
-      "Minimum retention time data points",
-      "Minimum number of time resolved data points in an ion mobility trace. In other words, chromatographic peak width in number of data points",
+      "Minimum consecutive retention time data points",
+      "Minimum number of consecutive time resolved data points in an ion mobility trace."
+          + " In other words, chromatographic peak width in number of data points",
       7);
 
   public static final IntegerParameter minTotalSignals =
       new IntegerParameter("Minimum total Signals",
           "Minimum number of signals (data points) in an ion mobility trace", 200);
 
-  public static final PaintScaleParameter paintScale =
-      new PaintScaleParameter("Color scale", "Select paint scale",
-          new PaintScale[] {
-              new PaintScale(PaintScaleColorStyle.RAINBOW, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.GRREN_RED, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.RED, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.GREEN, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.CYAN, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0)),
-              new PaintScale(PaintScaleColorStyle.YELLOW, PaintScaleBoundStyle.NONE,
-                  Range.closed(0.0, 100.0))});
-
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "ionmobilitytrace");
 
   public IonMobilityTraceBuilderParameters() {
-    super(new Parameter[] {rawDataFiles, massList, scanSelection, mzTolerance, minDataPointsRt,
-        minTotalSignals, paintScale, suffix});
+    super(new Parameter[]{rawDataFiles, massList, scanSelection, mzTolerance, minDataPointsRt,
+        minTotalSignals, suffix});
   }
 }

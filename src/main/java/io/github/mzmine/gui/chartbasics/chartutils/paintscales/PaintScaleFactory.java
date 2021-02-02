@@ -17,7 +17,12 @@
  */
 package io.github.mzmine.gui.chartbasics.chartutils.paintscales;
 
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -37,6 +42,7 @@ public class PaintScaleFactory {
       paintScale.add(value, color);
       value = value + delta;
     }
+
     return paintScale;
   }
 
@@ -282,4 +288,70 @@ public class PaintScaleFactory {
     }
   }
 
+
+  // ---------------------------------
+  public PaintScale createColorsForCustomPaintScaleFX(PaintScale paintScale,
+      PaintScaleTransform transform, Collection<javafx.scene.paint.Color> colors) {
+    List<Color> awtColors = new ArrayList<>();
+    for (javafx.scene.paint.Color clr : colors) {
+      awtColors.add(FxColorUtil.fxColorToAWT(clr));
+    }
+    return createColorsForCustomPaintScale(paintScale, transform, awtColors);
+  }
+
+  public PaintScale createColorsForCustomPaintScale(PaintScale paintScale,
+      PaintScaleTransform transform, Collection<Color> colors) {
+    Color[] gradient = calculateColorsForCustomPaintScale(colors, 1024);
+
+    final double transformedLower = transform.transform(paintScale.getLowerBound());
+    final double transformedUpper = transform.transform(paintScale.getUpperBound());
+    final double transformedDelta = (transformedUpper - transformedLower) / (gradient.length - 1);
+
+    double transformedValue = transformedLower;
+    for (int i = 0; i < gradient.length; i++) {
+      transformedValue = transformedLower + transformedDelta * i;
+      paintScale.add(transform.revertTransform(transformedValue), gradient[i]);
+    }
+    return paintScale;
+  }
+
+  public Color[] calculateColorsForCustomPaintScale(Collection<Color> colors, int totalColors) {
+    int stepsPerColor = totalColors / (colors.size() - 1);
+
+    Color[] gradient = new Color[totalColors];
+    int colorNum = 0;
+
+    Iterator<Color> color = colors.iterator();
+    Color currentStartColor = color.next();
+    for (int step = 1; step < colors.size(); step++) {
+      final int startR = currentStartColor.getRed();
+      final int startG = currentStartColor.getGreen();
+      final int startB = currentStartColor.getBlue();
+      final int startA = currentStartColor.getAlpha();
+      final Color endColor = color.next();
+
+      final int deltaR = endColor.getRed() - currentStartColor.getRed();
+      final int deltaG = endColor.getGreen() - currentStartColor.getGreen();
+      final int deltaB = endColor.getBlue() - currentStartColor.getBlue();
+      final int deltaA = endColor.getAlpha() - currentStartColor.getAlpha();
+
+      for (int i = 0; i < stepsPerColor; i++) {
+        float r = (startR + (i / (float) stepsPerColor) * deltaR) / 255;
+        float g = (startG + (i / (float) stepsPerColor) * deltaG) / 255;
+        float b = (startB + (i / (float) stepsPerColor) * deltaB) / 255;
+        float a = (startA + (i / (float) stepsPerColor) * deltaA) / 255;
+
+        gradient[colorNum] = new Color(r, g, b, a);
+        colorNum++;
+      }
+      currentStartColor = endColor;
+    }
+
+    while (colorNum < totalColors) {
+      gradient[colorNum] = currentStartColor;
+      colorNum++;
+    }
+
+    return gradient;
+  }
 }

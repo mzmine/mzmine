@@ -37,11 +37,14 @@ import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.ValueAxisPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.Range;
 
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import org.jfree.data.RangeType;
 
 /**
  * Collection of methods for JFreeCharts <br>
@@ -220,8 +223,8 @@ public class ChartLogics {
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
    * 
-   * @param chart
-   * @param width
+   * @param myChart
+   * @param plotWidth
    * @return
    */
   public static Dimension calcSizeForPlotWidth(ChartPanel myChart, double plotWidth) {
@@ -232,7 +235,7 @@ public class ChartLogics {
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
    * 
-   * @param chart
+   * @param myChart
    * @param plotWidth
    * @return
    */
@@ -253,7 +256,7 @@ public class ChartLogics {
   /**
    * Calculates the size of a chart for a given fixed plot width and height
    * 
-   * @param chart
+   * @param myChart
    * @param plotWidth
    * @return
    */
@@ -265,7 +268,7 @@ public class ChartLogics {
   /**
    * Calculates the size of a chart for a given fixed plot width and height
    * 
-   * @param chart
+   * @param myChart
    * @param plotWidth
    * @return
    */
@@ -323,8 +326,7 @@ public class ChartLogics {
    * 
    * @param myChart
    * @param copyToNewPanel
-   * @param dataWidth width of data
-   * @param axis for width calculation
+   * @param chartWidth width of data
    * @return
    */
   public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
@@ -338,8 +340,7 @@ public class ChartLogics {
    * 
    * @param myChart
    * @param copyToNewPanel
-   * @param dataWidth width of data
-   * @param axis for width calculation
+   * @param chartWidth width of data
    * @return
    */
   public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
@@ -562,9 +563,6 @@ public class ChartLogics {
   /**
    * Zoom into a chart panel
    * 
-   * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void setZoomAxis(ValueAxis axis, Range zoom) {
     axis.setRange(zoom);
@@ -574,8 +572,6 @@ public class ChartLogics {
    * Auto range the range axis
    * 
    * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void autoRangeAxis(ChartPanel myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
@@ -590,8 +586,6 @@ public class ChartLogics {
    * Auto range the range axis
    * 
    * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void autoDomainAxis(ChartPanel myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
@@ -656,7 +650,6 @@ public class ChartLogics {
   /**
    * Apply an absolute offset to an axis and move it
    * 
-   * @param myChart
    * @param offset
    */
   public static void offsetAxisAbsolute(ValueAxis axis, double offset) {
@@ -668,29 +661,114 @@ public class ChartLogics {
    * Apply an relative offset to an axis and move it. LowerBound and UpperBound are defined by
    * {@link ValueAxis#getDefaultAutoRange()}
    * 
-   * @param myChart
+   * @param axis
    * @param offset percentage
    */
   public static void offsetAxis(ValueAxis axis, double offset) {
-    double distance = (axis.getUpperBound() - axis.getLowerBound()) * offset;
+    double distance = (axis.getRange().getLength()) * offset;
     Range range = new Range(axis.getLowerBound() + distance, axis.getUpperBound() + distance);
     setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
   }
 
   public static Range keepRangeWithinAutoBounds(ValueAxis axis, Range range) {
     // keep within auto range bounds
-    // Range auto = axis.getDefaultAutoRange();
-    // if(range.getLowerBound()<auto.getLowerBound()){
-    // double negative = range.getLowerBound()-auto.getLowerBound();
-    // range = new Range(auto.getLowerBound(),
-    // range.getUpperBound()-negative);
-    // }
-    // if(range.getUpperBound()>auto.getUpperBound()) {
-    // double positive = range.getUpperBound()-auto.getUpperBound();
-    // range = new Range(range.getLowerBound()-positive,
-    // auto.getUpperBound());
-    // }
-    return range;
+     Range auto = getAutoRange(axis);
+     if(auto==null)
+       return range;
+    return new Range(Math.max(auto.getLowerBound(), range.getLowerBound()), Math.min(auto.getUpperBound(), range.getUpperBound()));
+  }
+
+  /**
+   * The auto range - copied from {@link NumberAxis} autoAdjustRange
+   * @param axis
+   * @return
+   */
+  public static Range getAutoRange(ValueAxis axis) {
+
+    Plot plot = axis.getPlot();
+    if (plot == null) {
+      return null;  // no plot, no data
+    }
+
+    if (plot instanceof ValueAxisPlot) {
+      ValueAxisPlot vap = (ValueAxisPlot) plot;
+
+      Range r = vap.getDataRange(axis);
+      if (r == null) {
+        r = axis.getDefaultAutoRange();
+      }
+
+      double upper = r.getUpperBound();
+      double lower = r.getLowerBound();
+
+      if (axis instanceof NumberAxis) {
+        NumberAxis numberAxis = (NumberAxis) axis;
+        if (numberAxis.getRangeType() == RangeType.POSITIVE) {
+          lower = Math.max(0.0, lower);
+          upper = Math.max(0.0, upper);
+        } else if (numberAxis.getRangeType() == RangeType.NEGATIVE) {
+          lower = Math.min(0.0, lower);
+          upper = Math.min(0.0, upper);
+        }
+
+        if (numberAxis.getAutoRangeIncludesZero()) {
+          lower = Math.min(lower, 0.0);
+          upper = Math.max(upper, 0.0);
+        }
+      }
+      double range = upper - lower;
+
+      // if fixed auto range, then derive lower bound...
+      double fixedAutoRange = axis.getFixedAutoRange();
+      if (fixedAutoRange > 0.0) {
+        lower = upper - fixedAutoRange;
+      } else {
+        // ensure the autorange is at least <minRange> in size...
+        double minRange = axis.getAutoRangeMinimumSize();
+        if (range < minRange) {
+          double expand = (minRange - range) / 2;
+          upper = upper + expand;
+          lower = lower - expand;
+          if (lower == upper) { // see bug report 1549218
+            double adjust = Math.abs(lower) / 10.0;
+            lower = lower - adjust;
+            upper = upper + adjust;
+          }
+          if (axis instanceof NumberAxis) {
+            NumberAxis numberAxis = (NumberAxis) axis;
+            if (numberAxis.getRangeType() == RangeType.POSITIVE) {
+              if (lower < 0.0) {
+                upper = upper - lower;
+                lower = 0.0;
+              }
+            } else if (numberAxis.getRangeType() == RangeType.NEGATIVE) {
+              if (upper > 0.0) {
+                lower = lower - upper;
+                upper = 0.0;
+              }
+            }
+
+            if (numberAxis.getAutoRangeStickyZero()) {
+              if (upper <= 0.0) {
+                upper = Math.min(0.0, upper + axis.getUpperMargin() * range);
+              } else {
+                upper = upper + axis.getUpperMargin() * range;
+              }
+              if (lower >= 0.0) {
+                lower = Math.max(0.0, lower - axis.getLowerMargin() * range);
+              } else {
+                lower = lower - axis.getLowerMargin() * range;
+              }
+            }
+          }
+        } else {
+          upper = upper + axis.getUpperMargin() * range;
+          lower = lower - axis.getLowerMargin() * range;
+        }
+      }
+      return new Range(lower, upper);
+    }
+    else return null;
   }
 
   /**
@@ -707,7 +785,7 @@ public class ChartLogics {
   /**
    * Zoom in (negative zoom) or zoom out of axis.
    * 
-   * @param myChart
+   * @param axis
    * @param zoom percentage zoom factor
    * @param holdLowerBound if true only the upper bound will be zoomed
    */
@@ -735,7 +813,7 @@ public class ChartLogics {
   /**
    * Zoom in (negative zoom) or zoom out of axis.
    * 
-   * @param myChart
+   * @param axis
    * @param zoom percentage zoom factor
    * @param start point on this range (first click/pressed event), used as center
    */

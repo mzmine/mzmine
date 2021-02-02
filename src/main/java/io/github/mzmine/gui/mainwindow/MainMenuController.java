@@ -138,6 +138,7 @@ public class MainMenuController {
     try {
       moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class.forName(moduleClass);
     } catch (Throwable e) {
+      e.printStackTrace();
       MZmineCore.getDesktop().displayMessage("Cannot load module class " + moduleClass);
       return;
     }

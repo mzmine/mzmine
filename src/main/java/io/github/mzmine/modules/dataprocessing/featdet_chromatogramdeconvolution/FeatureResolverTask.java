@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
@@ -368,6 +369,9 @@ public class FeatureResolverTask extends AbstractTask {
         f.set(RawFileType.class, originalFeature.getRawDataFile());
         f.set(FeatureDataType.class, resolved);
         f.set(DetectionType.class, originalFeature.get(DetectionType.class));
+        if (originalFeature.get(MobilityUnitType.class).getValue() != null) {
+          f.set(MobilityUnitType.class, originalFeature.get(MobilityUnitType.class).getValue());
+        }
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
@@ -421,6 +425,10 @@ public class FeatureResolverTask extends AbstractTask {
         final ModularFeature newFeature = FeatureConvertors
             .ResolvedPeakToMoularFeature(resolvedFeatureList, peak,
                 originalFeature.getFeatureData());
+        if (originalFeature.get(MobilityUnitType.class).getValue() != null) {
+          newFeature
+              .set(MobilityUnitType.class, originalFeature.get(MobilityUnitType.class).getValue());
+        }
 
         newRow.addFeature(dataFile, newFeature);
         newRow.setFeatureInformation(peak.getPeakInformation());
