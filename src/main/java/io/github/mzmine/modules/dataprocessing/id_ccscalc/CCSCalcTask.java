@@ -33,6 +33,10 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 
+/**
+ * @author https://github.com/SteffenHeu
+ * @see CCSCalcModule
+ */
 public class CCSCalcTask extends AbstractTask {
 
   private static Logger logger = Logger.getLogger(CCSCalcTask.class.getName());
