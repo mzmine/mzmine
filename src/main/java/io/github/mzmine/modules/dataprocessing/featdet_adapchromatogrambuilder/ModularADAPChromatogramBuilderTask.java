@@ -403,6 +403,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     newFeatureList.setSelectedScans(dataFile, Arrays.asList(scans));
 
+    dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
     // Add new feature list to the project
     newFeatureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(ModularADAPChromatogramBuilderModule.class, parameters));
     project.addFeatureList(newFeatureList);

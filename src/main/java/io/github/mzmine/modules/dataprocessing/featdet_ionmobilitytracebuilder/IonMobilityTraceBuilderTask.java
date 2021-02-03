@@ -583,6 +583,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       featureId++;
     }
 
+    rawDataFile.getAppliedMethods().forEach(m -> featureList.getAppliedMethods().add(m));
     featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
         IonMobilityTraceBuilderModule.class, parameters));
 
