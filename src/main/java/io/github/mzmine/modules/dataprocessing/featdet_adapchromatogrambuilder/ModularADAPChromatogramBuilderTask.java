@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -82,6 +83,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private double minIntensityForStartChrom;
 
   private ModularFeatureList newFeatureList;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -112,6 +114,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         parameters.getParameter(ADAPChromatogramBuilderParameters.IntensityThresh2).getValue();
     this.minIntensityForStartChrom =
         parameters.getParameter(ADAPChromatogramBuilderParameters.startIntensity).getValue();
+    this.parameters = parameters;
   }
 
   /**
@@ -401,6 +404,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     newFeatureList.setSelectedScans(dataFile, Arrays.asList(scans));
 
     // Add new feature list to the project
+    newFeatureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(ModularADAPChromatogramBuilderModule.class, parameters));
     project.addFeatureList(newFeatureList);
 
     progress = 1.0;

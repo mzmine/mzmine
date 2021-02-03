@@ -172,7 +172,8 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Targeted feature detection ", parameters));
+        new SimpleFeatureListAppliedMethod("Targeted feature detection ",
+            TargetedFeatureDetectionModule.class, parameters));
 
     logger.log(Level.INFO, "Finished targeted feature detection on {0}", this.dataFile);
     setStatus(TaskStatus.FINISHED);

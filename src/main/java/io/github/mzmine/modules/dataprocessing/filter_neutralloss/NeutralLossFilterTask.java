@@ -18,16 +18,26 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_neutralloss;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.Candidate;
+import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.Candidates;
+import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.PeakListHandler;
+import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.ResultBuffer;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -38,19 +48,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.Candidate;
-import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.Candidates;
-import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.PeakListHandler;
-import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.ResultBuffer;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 
 /**
  * This module will scan for neutral losses in a very similar way to IsotopePeakScanner.
@@ -431,7 +428,8 @@ public class NeutralLossFilterTask extends AbstractTask {
 
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("NeutralLossFilter", parameters));
+        new SimpleFeatureListAppliedMethod("NeutralLossFilter",
+            NeutralLossFilterModule.class, parameters));
   }
 
   /**

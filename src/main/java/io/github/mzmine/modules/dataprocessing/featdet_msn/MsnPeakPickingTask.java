@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_msn;
 
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.collect.Range;
@@ -47,6 +48,7 @@ public class MsnPeakPickingTask extends AbstractTask {
   private final int msLevel;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
+  private final ParameterSet parameterSet;
   private final Scan[] scans;
 
   private final ModularFeatureList newFeatureList;
@@ -62,6 +64,7 @@ public class MsnPeakPickingTask extends AbstractTask {
     rtTolerance = parameters.getParameter(MsnPeakPickerParameters.rtTolerance).getValue();
     scans = scanSelection.getMatchingScans(dataFile);
     newFeatureList = new ModularFeatureList(dataFile.getName() + " MSn features", dataFile);
+    this.parameterSet = parameters;
   }
 
   public RawDataFile getDataFile() {
@@ -175,6 +178,9 @@ public class MsnPeakPickingTask extends AbstractTask {
       setErrorMessage(msg);
       return;
     }
+
+    newFeatureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        MsnFeatureDetectionModule.class, parameterSet));
 
     // Add new feature list to the project
     project.addFeatureList(newFeatureList);

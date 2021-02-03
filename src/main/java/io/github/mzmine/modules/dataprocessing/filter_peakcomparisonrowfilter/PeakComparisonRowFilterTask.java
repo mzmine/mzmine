@@ -18,23 +18,20 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Filters out feature list rows.
@@ -141,7 +138,8 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
     // Add task description to peakList.
     newPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(), parameters));
+        new SimpleFeatureListAppliedMethod(getTaskDescription(),
+            PeakComparisonRowFilterModule.class, parameters));
 
     // Get parameters.
     final boolean evalutateFoldChange =

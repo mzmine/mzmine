@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -64,7 +65,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   private int charge;
   private FeatureList featureList;
   private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
-  private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters;
+  private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters, parameters;
   private MZTolerance mzTolerance;
   private String message;
   private int totalRows, finishedRows;
@@ -144,6 +145,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
           sortParam.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue();
     }
     message = "Formula Prediction";
+    this.parameters = parameters;
   }
 
   /**
@@ -240,6 +242,9 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
 
     if (isCanceled())
       return;
+
+    featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        FormulaPredictionFeatureListModule.class, parameters));
 
     logger.finest("Finished formula search for all the features");
 

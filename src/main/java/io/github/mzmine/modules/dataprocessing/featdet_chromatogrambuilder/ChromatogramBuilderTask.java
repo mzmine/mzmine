@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -58,6 +59,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
   private double minimumTimeSpan, minimumHeight;
 
   private ModularFeatureList newPeakList;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -80,7 +82,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         parameters.getParameter(ChromatogramBuilderParameters.minimumHeight).getValue();
 
     this.suffix = parameters.getParameter(ChromatogramBuilderParameters.suffix).getValue();
-
+    this.parameters = parameters;
   }
 
   /**
@@ -183,6 +185,8 @@ public class ChromatogramBuilderTask extends AbstractTask {
     }
 
     // Add new peaklist to the project
+    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        ChromatogramBuilderModule.class, parameters));
     project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks

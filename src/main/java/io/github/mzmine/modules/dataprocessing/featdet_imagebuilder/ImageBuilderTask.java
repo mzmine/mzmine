@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
@@ -73,6 +74,7 @@ public class ImageBuilderTask extends AbstractTask {
   private double pixelHeight;
   private double progress = 0.0;
   private String taskDescription = "";
+  private final ParameterSet parameterSet;
 
   public ImageBuilderTask(MZmineProject project, RawDataFile rawDataFile, ParameterSet parameters) {
     this.project = project;
@@ -87,6 +89,7 @@ public class ImageBuilderTask extends AbstractTask {
         parameters.getParameter(ImageBuilderParameters.paintScale).getValue();
     this.suffix = parameters.getParameter(ImageBuilderParameters.suffix).getValue();
     setStatus(TaskStatus.WAITING);
+    this.parameterSet = parameters;
   }
 
   @Override
@@ -367,6 +370,8 @@ public class ImageBuilderTask extends AbstractTask {
       featureList.addRow(newRow);
       featureId++;
     }
+    featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        ImageBuilderModule.class, parameterSet));
     project.addFeatureList(featureList);
   }
 

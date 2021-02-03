@@ -201,7 +201,8 @@ class RansacAlignerTask extends AbstractTask {
 
     // Add task description to peakList
     alignedFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Ransac aligner", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Ransac aligner",
+            RansacAlignerModule.class, parameters));
 
     logger.info("Finished RANSAC aligner");
     setStatus(TaskStatus.FINISHED);

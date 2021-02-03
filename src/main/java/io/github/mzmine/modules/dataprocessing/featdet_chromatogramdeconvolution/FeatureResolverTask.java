@@ -446,8 +446,10 @@ public class FeatureResolverTask extends AbstractTask {
 //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
+    originalFeatureList.getAppliedMethods().forEach(m -> resolvedFeatureList.getAppliedMethods().add(m));
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Feature resolving", parameters));
+        new SimpleFeatureListAppliedMethod("Feature resolving",
+            FeatureResolverModule.class, parameters));
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
     if (originalFeatureList.getFeature(0, originalFeatureList.getRawDataFile(0))

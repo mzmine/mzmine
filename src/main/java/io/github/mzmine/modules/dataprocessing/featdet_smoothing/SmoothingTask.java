@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -171,15 +170,14 @@ public class SmoothingTask extends AbstractTask {
         }
 
         // Copy previously applied methods
-        for (final FeatureListAppliedMethod method : origPeakList.getAppliedMethods()) {
-
+       /* for (final FeatureListAppliedMethod method : origPeakList.getAppliedMethods()) {
           newFeatureList.addDescriptionOfAppliedTask(method);
-        }
+        }*/
 
         // Add task description to peak-list.
         newFeatureList.addDescriptionOfAppliedTask(
             new SimpleFeatureListAppliedMethod("Peaks smoothed by Savitzky-Golay filter",
-                parameters));
+                SmoothingModule.class, parameters));
 
         logger.finest("Finished peak smoothing: " + progress + " rows processed");
 

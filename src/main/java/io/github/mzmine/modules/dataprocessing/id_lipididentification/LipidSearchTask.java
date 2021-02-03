@@ -180,7 +180,8 @@ public class LipidSearchTask extends AbstractTask {
     }
     // Add task description to peakList
     featureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Lipid search", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Lipid search",
+            LipidSearchModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -190,8 +191,6 @@ public class LipidSearchTask extends AbstractTask {
   /**
    * Check if candidate peak may be a possible adduct of a given main peak
    *
-   * @param mainPeak
-   * @param possibleFragment
    */
   private void findPossibleLipid(LipidIdentity lipid, FeatureListRow rows[]) {
     double lipidIonMass = 0.0;

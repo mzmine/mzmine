@@ -61,7 +61,8 @@ public class SubTaskFinishListener implements Consumer<FeatureList> {
 
       // Add task description to peakList
       processedPeakList
-          .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ", parameters));
+          .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
+              MultiThreadPeakFinderModule.class, parameters));
 
       // Remove the original peaklist if requested
       if (removeOriginal)
