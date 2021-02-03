@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.modules.MZmineModule;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,7 +33,7 @@ import java.util.List;
  * @param <X>  X-value type
  * @param <Y>  Y-value type
  */
-public interface XYResolver<Rx, Ry, X, Y> {
+public interface XYResolver<Rx, Ry, X, Y> extends MZmineModule {
 
   /**
    * See implementing classes for more detailed information on possible restrictions on x and y data
