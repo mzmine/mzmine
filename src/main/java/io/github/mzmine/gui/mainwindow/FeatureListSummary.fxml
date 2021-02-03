@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  ~ Copyright 2006-2020 The MZmine Development Team
+  ~
+  ~ This file is part of MZmine.
+  ~
+  ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+  ~ General Public License as published by the Free Software Foundation; either version 2 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+  ~ Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+  ~ USA
+  ~
+  -->
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" stylesheets="@MZmine.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.gui.mainwindow.FeatureListSummaryController">
+   <children>
+      <GridPane hgap="5.0" prefHeight="400.0" prefWidth="600.0" styleClass="region" vgap="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+          <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+          <RowConstraints minHeight="10.0" vgrow="NEVER" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <Label fx:id="lbFeatureListName" alignment="TOP_CENTER" styleClass="bold-title-label" text="Label" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="TOP" />
+            <Label fx:id="lbNumRows" styleClass="title-label" text="Number of Rows" GridPane.rowIndex="2" />
+            <Label fx:id="lbAppliedMethods" styleClass="title-label" text="Applied methods log:" GridPane.rowIndex="3" />
+            <ListView fx:id="lvAppliedMethods" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="4" />
+            <TextArea fx:id="tvParameterValues" editable="false" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <TextField fx:id="tfNumRows" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label styleClass="title-label" text="Date created" GridPane.rowIndex="1" />
+            <TextField fx:id="tfCreated" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </GridPane>
+   </children>
+</AnchorPane>
