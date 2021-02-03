@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
+import io.github.mzmine.project.impl.SimpleRawDataFileAppliedMethod;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,7 @@ public class MassDetectionTask extends AbstractTask {
   // for outputting file
   private File outFilename;
   private boolean saveToCDF;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -79,6 +81,7 @@ public class MassDetectionTask extends AbstractTask {
 
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
+    this.parameters = parameters;
   }
 
   /**
@@ -281,7 +284,7 @@ public class MassDetectionTask extends AbstractTask {
         writer.write(var_pointsInScans, arr_pointsInScans);
         writer.close();
       }
-
+      dataFile.getAppliedMethods().add(new SimpleRawDataFileAppliedMethod(MassDetectionModule.class, parameters));
     } catch (Exception e) {
       e.printStackTrace();
       setErrorMessage(e.getMessage());

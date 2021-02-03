@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_alignscans;
 
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.project.impl.SimpleRawDataFileAppliedMethod;
 import java.io.IOException;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
@@ -49,6 +51,7 @@ public class AlignScansTask extends AbstractTask {
   private int scanSpan, mzSpan;
   private boolean logScale = false;
   private boolean removeOriginal;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -65,7 +68,7 @@ public class AlignScansTask extends AbstractTask {
     this.suffix = parameters.getParameter(AlignScansParameters.suffix).getValue();
     this.removeOriginal = parameters.getParameter(AlignScansParameters.removeOld).getValue();
     this.logScale = parameters.getParameter(AlignScansParameters.logTransform).getValue();
-
+    this.parameters = parameters;
   }
 
   /**
@@ -204,6 +207,11 @@ public class AlignScansTask extends AbstractTask {
       if (!isCanceled()) {
 
         // Add the newly created file to the project
+        for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
+          newRDFW.getAppliedMethods().add(appliedMethod);
+        }
+
+        newRDFW.getAppliedMethods().add(new SimpleRawDataFileAppliedMethod(AlignScansModule.class, parameters));
         project.addFile(newRDFW);
 
         // Remove the original data file if requested

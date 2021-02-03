@@ -18,20 +18,23 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_merge;
 
+import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.SimpleRawDataFileAppliedMethod;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-import io.github.msdk.MSDKRuntimeException;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.collections.ObservableList;
 
 /**
@@ -46,6 +49,7 @@ class RawFileMergeTask extends AbstractTask {
   private Logger logger = Logger.getLogger(getClass().getName());
 
   private double perc = 0;
+  private ParameterSet parameters;
   private RawDataFile[] raw;
   private String suffix;
   private boolean useMS2Marker;
@@ -54,6 +58,7 @@ class RawFileMergeTask extends AbstractTask {
 
   RawFileMergeTask(MZmineProject project, ParameterSet parameters, RawDataFile[] raw) {
     this.project = project;
+    this.parameters = parameters;
     this.raw = raw;
     suffix = parameters.getParameter(RawFileMergeParameters.suffix).getValue();
     useMS2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getValue();
@@ -120,6 +125,13 @@ class RawFileMergeTask extends AbstractTask {
         newFile.addScan(scanCopy);
         i++;
       }
+
+      // TODO is this correct?
+      for (FeatureListAppliedMethod appliedMethod : raw[0].getAppliedMethods()) {
+        newFile.getAppliedMethods().add(appliedMethod);
+      }
+      newFile.getAppliedMethods().add(new SimpleRawDataFileAppliedMethod(
+          RawFileMergeModule.class, parameters));
 
       project.addFile(newFile);
 

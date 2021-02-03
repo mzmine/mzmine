@@ -18,17 +18,20 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 
-import java.io.IOException;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.impl.SimpleRawDataFileAppliedMethod;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.IOException;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 
 class ScanFilteringTask extends AbstractTask {
@@ -50,6 +53,7 @@ class ScanFilteringTask extends AbstractTask {
   private MZmineProcessingStep<ScanFilter> rawDataFilter;
 
   private ScanSelection select;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -65,6 +69,7 @@ class ScanFilteringTask extends AbstractTask {
     suffix = parameters.getParameter(ScanFiltersParameters.suffix).getValue();
     select = parameters.getParameter(ScanFiltersParameters.scanSelect).getValue();
 
+    this.parameters = parameters;
   }
 
   /**
@@ -134,6 +139,12 @@ class ScanFilteringTask extends AbstractTask {
 
       // Finalize writing
       try {
+        for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
+          newFile.getAppliedMethods().add(appliedMethod);
+        }
+        newFile.getAppliedMethods().add(new SimpleRawDataFileAppliedMethod(
+            BaselineCorrectionModule.class, parameters));
+
         project.addFile(newFile);
 
         // Remove the original file if requested
