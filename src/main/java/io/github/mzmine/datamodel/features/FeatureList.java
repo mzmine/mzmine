@@ -30,6 +30,9 @@ import io.github.mzmine.datamodel.RawDataFile;
  */
 public interface FeatureList {
 
+  /**
+   * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge conflicts.
+   */
   public interface FeatureListAppliedMethod {
 
     @Nonnull
