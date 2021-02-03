@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import java.util.Collection;
 import java.util.List;
 
@@ -44,4 +45,6 @@ public interface XYResolver<Rx, Ry, X, Y> extends MZmineModule {
    * @return Collection of a Set of indices for each resolved peak.
    */
   public Collection<List<ResolvedValue<Rx, Ry>>> resolve(X x, Y y);
+
+  public Class<? extends MZmineProcessingModule> getModuleClass();
 }

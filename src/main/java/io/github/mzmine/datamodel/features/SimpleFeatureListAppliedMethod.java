@@ -67,4 +67,9 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     return parameters.cloneParameterSet();
   }
 
+  @Override
+  public MZmineModule getModule() {
+    return module;
+  }
+
 }

@@ -377,7 +377,7 @@ public class FeatureResolverTask extends AbstractTask {
     QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver, parameters));
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters));
 
     newPeakList = resolvedFeatureList;
   }
@@ -434,7 +434,7 @@ public class FeatureResolverTask extends AbstractTask {
     }
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver, parameters));
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters));
 
     return resolvedFeatureList;
   }

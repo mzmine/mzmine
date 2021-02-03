@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
@@ -47,6 +48,7 @@ public interface FeatureList {
     @Nonnull
     public ParameterSet getParameters();
 
+    public MZmineModule getModule();
   }
 
   /**
