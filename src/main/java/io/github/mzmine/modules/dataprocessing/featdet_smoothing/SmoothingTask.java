@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters.MobilitySmoothingType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -63,6 +64,7 @@ public class SmoothingTask extends AbstractTask {
   private final int rtFilterWidth;
   private final int mobilityFilterWitdth;
   private final int progressMax;
+  private final MobilitySmoothingType mobilitySmoothingType;
   private ModularFeatureList newFeatureList;
   private int progress;
 
@@ -87,6 +89,8 @@ public class SmoothingTask extends AbstractTask {
     removeOriginal = parameters.getParameter(SmoothingParameters.REMOVE_ORIGINAL).getValue();
     rtFilterWidth = parameters.getParameter(SmoothingParameters.FILTER_WIDTH).getValue();
     mobilityFilterWitdth = parameters.getParameter(SmoothingParameters.MOBILITY_FILTER_WIDTH)
+        .getValue();
+    mobilitySmoothingType = parameters.getParameter(SmoothingParameters.MOBILITY_SMOOTHING_TYPE)
         .getValue();
   }
 
@@ -133,14 +137,14 @@ public class SmoothingTask extends AbstractTask {
               IonSpectrumSeriesSmoothing<SimpleIonTimeSeries> smoother = new IonSpectrumSeriesSmoothing<>(
                   ((SimpleIonTimeSeries) featureData), newFeatureList.getMemoryMapStorage(),
                   (List<? extends MassSpectrum>) origPeakList
-                      .getSeletedScans(feature.getRawDataFile()));
+                      .getSeletedScans(feature.getRawDataFile()), mobilitySmoothingType);
               smoothedSeries = smoother.smooth(rtFilterWeights);
 
             } else if (featureData instanceof IonMobilogramTimeSeries) {
               IonSpectrumSeriesSmoothing<IonMobilogramTimeSeries> smoother = new IonSpectrumSeriesSmoothing<>(
                   ((IonMobilogramTimeSeries) featureData), newFeatureList.getMemoryMapStorage(),
                   (List<? extends MassSpectrum>) origPeakList
-                      .getSeletedScans(feature.getRawDataFile()));
+                      .getSeletedScans(feature.getRawDataFile()), mobilitySmoothingType);
               smoothedSeries = smoother.smooth(rtFilterWeights, mobilityFilterWeights);
             } else {
               throw new IllegalArgumentException(
