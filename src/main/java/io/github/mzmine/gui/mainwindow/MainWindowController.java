@@ -705,6 +705,7 @@ public class MainWindowController {
       AnchorPane pane = loader.load();
       Stage stage = new Stage();
       stage.setTitle("Feature list summary - " + selectedFeatureList.getName());
+      stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
       stage.setScene(new Scene(pane));
       FeatureListSummaryController controller = loader.getController();
       controller.setFeatureList(selectedFeatureList);
