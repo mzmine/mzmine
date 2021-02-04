@@ -26,13 +26,13 @@ import javax.annotation.Nonnull;
 
 public class SimpleRawDataFileAppliedMethod implements FeatureListAppliedMethod {
 
-  private String description;
-  private ParameterSet parameters;
-  private MZmineModule module;
+  private final String description;
+  private final ParameterSet parameters;
+  private final MZmineModule module;
 
   /**
-   * @param parameters  The parameter set used to create this feature list. A clone of the parameter
-   *                    set is created in the constructor and saved in this class.
+   * @param parameters The parameter set used to create this feature list. A clone of the parameter
+   *                   set is created in the constructor and saved in this class.
    */
   public SimpleRawDataFileAppliedMethod(MZmineModule module, ParameterSet parameters) {
     this.parameters = parameters.cloneParameterSet();
