@@ -25,8 +25,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.types.MobilityUnitType;
-import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -102,9 +100,8 @@ public class CCSCalcTask extends AbstractTask {
             continue;
           }
 
-          Float mobility = feature.get(
-              io.github.mzmine.datamodel.features.types.numbers.MobilityType.class).getValue();
-          MobilityType mobilityType = feature.get(MobilityUnitType.class).getValue();
+          Float mobility = feature.getMobility();
+          MobilityType mobilityType = feature.getMobilityUnit();
           double mz = feature.getMZ();
           if (mobility == null || mobilityType == null) {
             continue;
@@ -123,7 +120,7 @@ public class CCSCalcTask extends AbstractTask {
 
           Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, charge);
           if (ccs != null) {
-            feature.set(CCSType.class, ccs);
+            feature.setCCS(ccs);
             annotatedFeatures++;
           }
         }
