@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import javafx.application.Platform;
 import javax.annotation.Nonnull;
 
 /**
@@ -103,6 +104,8 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
       IsotopePattern spectrum, String massList) {
+
+    assert Platform.isFxApplicationThread();
 
     if (scan == null) {
       MZmineCore.getDesktop().displayErrorMessage(

@@ -18,19 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import java.awt.Color;
-import java.io.File;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -63,7 +50,15 @@ import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
-import javafx.application.Platform;
+import java.awt.Color;
+import java.io.File;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -73,6 +68,10 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javax.annotation.Nonnull;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * Spectrum visualizer using JFreeChart library
@@ -377,8 +376,8 @@ public class SpectraVisualizerTab extends MZmineTab {
     final String finalSpectrumTitle = spectrumTitle;
     final String finalSpectrumSubtitle = spectrumSubtitle;
 
-    Platform.runLater(() -> {
-      // setTitle(windowTitle);
+//    Platform.runLater(() -> { // this should be the fx thread, otherwise loading isotopes will fail
+    // setTitle(windowTitle);
       spectrumPlot.setTitle(finalSpectrumTitle, finalSpectrumSubtitle);
 
       // Set plot data set
@@ -386,7 +385,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
       spectrumPlot.addDataSet(massListDataSet, massListColor, false);
       spectrumPlot.getXYPlot().getRenderer().setDefaultPaint(dataFileColor);
-    });
+//    });
 
   }
 

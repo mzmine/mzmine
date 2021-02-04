@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
@@ -271,11 +270,11 @@ class IsotopeGrouperTask extends AbstractTask {
 
     // Search for peaks before the start peak
     if (!monotonicShape) {
-      fitHalfPattern(p, charge, -1, fittedPeaks, sortedPeaks);
+      fitHalfPattern((ModularFeature) p, charge, -1, fittedPeaks, sortedPeaks);
     }
 
     // Search for peaks after the start peak
-    fitHalfPattern(p, charge, 1, fittedPeaks, sortedPeaks);
+    fitHalfPattern((ModularFeature) p, charge, 1, fittedPeaks, sortedPeaks);
 
   }
 
@@ -289,13 +288,13 @@ class IsotopeGrouperTask extends AbstractTask {
    * @param fittedPeaks All matching peaks will be added to this set
    */
   private void fitHalfPattern(ModularFeature p, int charge, int direction,
-      Vector<ModularFeature> fittedPeaks,
-      ModularFeature[] sortedPeaks) {
+      Vector<Feature> fittedPeaks,
+      Feature[] sortedPeaks) {
 
     // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
     double mainMZ = p.getMZ();
     float mainRT = p.getRT();
-    Float mainMobility =
+    Float mainMobility = p.getMobility();
 
     // Variable n is the number of peak we are currently searching. 1=first
     // peak before/after start peak, 2=peak before/after previous, 3=...
@@ -312,7 +311,7 @@ class IsotopeGrouperTask extends AbstractTask {
       Vector<ModularFeature> goodCandidates = new Vector<>();
       for (int ind = 0; ind < sortedPeaks.length; ind++) {
 
-        ModularFeature candidatePeak = sortedPeaks[ind];
+        ModularFeature candidatePeak = (ModularFeature) sortedPeaks[ind];
 
         if (candidatePeak == null)
           continue;
@@ -320,6 +319,7 @@ class IsotopeGrouperTask extends AbstractTask {
         // Get properties of the candidate peak
         double candidatePeakMZ = candidatePeak.getMZ();
         float candidatePeakRT = candidatePeak.getRT();
+        Float candidateMobility = candidatePeak.getMobility();
 
         // Does this peak fill all requirements of a candidate?
         // - within tolerances from the expected location (M/Z and RT)
@@ -330,8 +330,14 @@ class IsotopeGrouperTask extends AbstractTask {
         if (mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ)
             && rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)
             && (!fittedPeaks.contains(candidatePeak))) {
-          if (useMobilityTolerance && .get(MobilityType.class) != null)
-          goodCandidates.add(candidatePeak);
+
+          if (useMobilityTolerance && mainMobility != null && candidateMobility != null) {
+            if (mobilityTolerance.checkWithinTolerance(mainMobility, candidateMobility)) {
+              goodCandidates.add(candidatePeak);
+            }
+          } else {
+            goodCandidates.add(candidatePeak);
+          }
 
         }
 
