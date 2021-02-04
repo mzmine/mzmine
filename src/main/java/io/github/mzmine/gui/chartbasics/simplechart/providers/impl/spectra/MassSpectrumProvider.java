@@ -1,11 +1,17 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
+import java.nio.DoubleBuffer;
 import java.text.NumberFormat;
+import java.util.Iterator;
+import java.util.stream.Stream;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,6 +24,86 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
 
   public MassSpectrumProvider(MassSpectrum spectrum, String seriesKey) {
     this.spectrum = spectrum;
+    mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    this.seriesKey = seriesKey;
+  }
+
+  public MassSpectrumProvider(double[] mzs, double[] intensities, String seriesKey) {
+    this.spectrum = new MassSpectrum() {
+      @Override
+      public int getNumberOfDataPoints() {
+        return mzs.length;
+      }
+
+      @Override
+      public MassSpectrumType getSpectrumType() {
+        return null;
+      }
+
+      @Nonnull
+      @Override
+      public DoubleBuffer getMzValues() {
+        return null;
+      }
+
+      @Nonnull
+      @Override
+      public DoubleBuffer getIntensityValues() {
+        return null;
+      }
+
+      @Override
+      public double getMzValue(int index) {
+        return mzs[index];
+      }
+
+      @Override
+      public double getIntensityValue(int index) {
+        return intensities[index];
+      }
+
+      @Nullable
+      @Override
+      public Double getBasePeakMz() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public Double getBasePeakIntensity() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public Integer getBasePeakIndex() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public Range<Double> getDataPointMZRange() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public Double getTIC() {
+        return null;
+      }
+
+      @Override
+      public Stream<DataPoint> stream() {
+        return null;
+      }
+
+      @Nonnull
+      @Override
+      public Iterator<DataPoint> iterator() {
+        return null;
+      }
+    };
+
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     this.seriesKey = seriesKey;
   }
