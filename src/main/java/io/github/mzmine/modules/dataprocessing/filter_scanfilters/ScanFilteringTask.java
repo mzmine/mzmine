@@ -22,12 +22,12 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.project.impl.SimpleRawDataFileAppliedMethod;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.IOException;
@@ -142,7 +142,7 @@ class ScanFilteringTask extends AbstractTask {
         for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
           newFile.getAppliedMethods().add(appliedMethod);
         }
-        newFile.getAppliedMethods().add(new SimpleRawDataFileAppliedMethod(
+        newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
             BaselineCorrectionModule.class, parameters));
 
         project.addFile(newFile);

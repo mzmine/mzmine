@@ -24,13 +24,10 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.project.impl.SimpleRawDataFileAppliedMethod;
-import java.io.IOException;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -38,6 +35,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Task that performs baseline correction.
@@ -137,7 +136,7 @@ public class BaselineCorrectionTask extends AbstractTask {
         for (FeatureListAppliedMethod appliedMethod : origDataFile.getAppliedMethods()) {
           this.correctedDataFile.getAppliedMethods().add(appliedMethod);
         }
-        this.correctedDataFile.getAppliedMethods().add(new SimpleRawDataFileAppliedMethod(
+        this.correctedDataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
             BaselineCorrectionModule.class, commonParameters));
         // Add the newly created file to the project
         this.project.addFile(this.correctedDataFile);

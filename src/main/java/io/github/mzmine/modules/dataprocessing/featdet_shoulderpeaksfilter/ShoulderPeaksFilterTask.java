@@ -22,9 +22,9 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.impl.SimpleRawDataFileAppliedMethod;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.logging.Logger;
@@ -144,7 +144,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
       processedScans++;
     }
 
-    dataFile.getAppliedMethods().add(new SimpleRawDataFileAppliedMethod(
+    dataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
         ShoulderPeaksFilterModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);

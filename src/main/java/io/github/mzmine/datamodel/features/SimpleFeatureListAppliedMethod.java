@@ -6,6 +6,9 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import javax.annotation.Nonnull;
 
+/**
+ * TODO: Move to io.github.mzmine.datamodel and rename to SimpleAppliedMethod
+ */
 public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod {
 
   private final String description;

@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationParameters.BiasEstimationChoice;
@@ -40,20 +41,18 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combonested.NestedCombo;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.project.impl.SimpleRawDataFileAppliedMethod;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import javafx.collections.ObservableList;
-import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.jfree.data.xy.XYSeries;
-
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.jfree.data.xy.XYSeries;
 
 /**
  * Mass calibration task with preview run flag
@@ -166,7 +165,7 @@ public class MassCalibrationTask extends AbstractTask {
     if (afterHook != null && isCanceled() == false) {
       afterHook.run();
     }
-    dataFile.getAppliedMethods().add(new SimpleRawDataFileAppliedMethod(MassCalibrationModule.class,
+    dataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(MassCalibrationModule.class,
         parameters));
   }
 

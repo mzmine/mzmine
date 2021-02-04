@@ -18,22 +18,22 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.project.impl.SimpleRawDataFileAppliedMethod;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
@@ -284,7 +284,8 @@ public class MassDetectionTask extends AbstractTask {
         writer.write(var_pointsInScans, arr_pointsInScans);
         writer.close();
       }
-      dataFile.getAppliedMethods().add(new SimpleRawDataFileAppliedMethod(MassDetectionModule.class, parameters));
+      dataFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(MassDetectionModule.class, parameters));
     } catch (Exception e) {
       e.printStackTrace();
       setErrorMessage(e.getMessage());
