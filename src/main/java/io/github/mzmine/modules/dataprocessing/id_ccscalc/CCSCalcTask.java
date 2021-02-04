@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -44,6 +45,7 @@ public class CCSCalcTask extends AbstractTask {
   private final ModularFeatureList[] featureLists;
   private final boolean createNewFeatureList;
   private final MZmineProject project;
+  private ParameterSet parameters;
   private String description;
   private double percentage;
   private int totalRows;
@@ -61,6 +63,7 @@ public class CCSCalcTask extends AbstractTask {
     this.createNewFeatureList = parameters.getParameter(CCSCalcParameters.createNewFeatureList)
         .getValue();
     this.project = project;
+    this.parameters = parameters;
 
     for (ModularFeatureList featureList : featureLists) {
       totalRows += featureList.getNumberOfRows();
@@ -125,10 +128,15 @@ public class CCSCalcTask extends AbstractTask {
           }
         }
 
+        if (isCanceled()) {
+          return;
+        }
         processedRows++;
         percentage = totalRows / (double) processedRows;
       }
 
+      workingFeatureList.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod("CSS calculation", parameters));
       if (workingFeatureList != featureList) {
         project.addFeatureList(workingFeatureList);
       }
