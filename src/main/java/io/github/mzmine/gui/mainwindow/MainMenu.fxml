@@ -313,6 +313,9 @@
     </Menu>
 
     <Menu text="Identification">
+      <MenuItem onAction="#runModule"
+        text="Calculate CCS values"
+        userData="io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule"/>
       <Menu text="Search precursor mass">
         <MenuItem text="Local compound database (CSV) search"
           onAction="#runModule"

@@ -23,16 +23,18 @@ import io.github.mzmine.main.MZmineCore;
 
 /**
  * Stores information on mobility type, axis labels and units.
+ * <p>
+ * For an overview of these ion mobility types see https://doi.org/10.1002/jssc.201700919
  *
  * @author https://github.com/SteffenHeu
  */
 public enum MobilityType {
 
   NONE("none", "none"), //
-  TIMS("1/k0", "Vs/cm^2"), //
-  DRIFT_TUBE("Drift time", "ms"), //
-  TRAVELING_WAVE("TODO", "TODO"), //
-  FAIMS("TODO", "TODO");
+  TIMS("1/k0", "Vs/cm^2"), // trapped ion mobility spectrometry
+  DRIFT_TUBE("Drift time", "ms"), // drift tube
+  TRAVELING_WAVE("TODO", "TODO"), // traveling wave ion mobility spectrometry
+  FAIMS("TODO", "TODO"); // field asymmetric waveform ion mobility spectrometry
 
   private final String axisLabel;
   private final String unit;
