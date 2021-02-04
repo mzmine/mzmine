@@ -19,6 +19,7 @@
 package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -95,11 +96,14 @@ public class MZminePreferences extends SimpleParameterSet {
       new ParameterSetParameter("Chart parameters",
           "The default chart parameters to be used trhoughout MZmine", new ChartThemeParameters());
 
+  public static final BooleanParameter darkMode = new BooleanParameter("Dark mode",
+      "Enables dark mode");
+
   public MZminePreferences() {
     super(
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, intensityFormat, ppmFormat, unitFormat,
             numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
-            defaultColorPalette, defaultPaintScale, chartParam});
+            defaultColorPalette, defaultPaintScale, chartParam, darkMode});
   }
 
   @Override
@@ -114,6 +118,22 @@ public class MZminePreferences extends SimpleParameterSet {
 
       // Repaint windows to update number formats
       // MZmineCore.getDesktop().getMainWindow().repaint();
+
+      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+          .removeIf(e -> e.contains("MZmine_dark.css"));
+      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+          .removeIf(e -> e.contains("MZmine_light.css"));
+      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
+          .getParameter(MZminePreferences.darkMode).getValue();
+      if (darkMode) {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .add(getClass().getResource(
+                "/themes/MZmine_dark.css").toExternalForm());
+      } else {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .add(getClass().getResource(
+                "/themes/MZmine_light.css").toExternalForm());
+      }
     }
 
     return retVal;
