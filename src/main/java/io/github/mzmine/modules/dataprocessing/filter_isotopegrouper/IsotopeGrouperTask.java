@@ -18,6 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -26,26 +30,21 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureSorter;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.Arrays;
-import java.util.Vector;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.MZmineProject;
-//import io.github.mzmine.datamodel.PeakList;
-//import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.Arrays;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 /**
  *
@@ -73,6 +72,8 @@ class IsotopeGrouperTask extends AbstractTask {
   private String suffix;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
+  private boolean useMobilityTolerance;
+  private MobilityTolerance mobilityTolerance;
   private boolean monotonicShape, removeOriginal, chooseMostIntense;
   private int maximumCharge;
   private ParameterSet parameters;
@@ -97,7 +98,11 @@ class IsotopeGrouperTask extends AbstractTask {
     chooseMostIntense = (parameters.getParameter(IsotopeGrouperParameters.representativeIsotope)
         .getValue() == IsotopeGrouperParameters.ChooseTopIntensity);
     removeOriginal = parameters.getParameter(IsotopeGrouperParameters.autoRemove).getValue();
-
+    useMobilityTolerance = parameters.getParameter(IsotopeGrouperParameters.mobilityTolerace)
+        .getValue();
+    mobilityTolerance = parameters.getParameter(IsotopeGrouperParameters.mobilityTolerace)
+        .getEmbeddedParameter()
+        .getValue();
   }
 
   /**
@@ -277,18 +282,20 @@ class IsotopeGrouperTask extends AbstractTask {
   /**
    * Helper method for fitPattern. Fits only one half of the pattern.
    *
-   * @param p Pattern is fitted around this peak
-   * @param charge Charge state of the fitted pattern
-   * @param direction Defines which half to fit: -1=fit to peaks before start M/Z, +1=fit to peaks
-   *        after start M/Z
+   * @param p           Pattern is fitted around this peak
+   * @param charge      Charge state of the fitted pattern
+   * @param direction   Defines which half to fit: -1=fit to peaks before start M/Z, +1=fit to peaks
+   *                    after start M/Z
    * @param fittedPeaks All matching peaks will be added to this set
    */
-  private void fitHalfPattern(Feature p, int charge, int direction, Vector<Feature> fittedPeaks,
-      Feature[] sortedPeaks) {
+  private void fitHalfPattern(ModularFeature p, int charge, int direction,
+      Vector<ModularFeature> fittedPeaks,
+      ModularFeature[] sortedPeaks) {
 
     // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
     double mainMZ = p.getMZ();
     float mainRT = p.getRT();
+    Float mainMobility =
 
     // Variable n is the number of peak we are currently searching. 1=first
     // peak before/after start peak, 2=peak before/after previous, 3=...
@@ -302,10 +309,10 @@ class IsotopeGrouperTask extends AbstractTask {
 
       // Loop through all peaks, and collect candidates for the n:th peak
       // in the pattern
-      Vector<Feature> goodCandidates = new Vector<Feature>();
+      Vector<ModularFeature> goodCandidates = new Vector<>();
       for (int ind = 0; ind < sortedPeaks.length; ind++) {
 
-        Feature candidatePeak = sortedPeaks[ind];
+        ModularFeature candidatePeak = sortedPeaks[ind];
 
         if (candidatePeak == null)
           continue;
@@ -323,6 +330,7 @@ class IsotopeGrouperTask extends AbstractTask {
         if (mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ)
             && rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)
             && (!fittedPeaks.contains(candidatePeak))) {
+          if (useMobilityTolerance && .get(MobilityType.class) != null)
           goodCandidates.add(candidatePeak);
 
         }
