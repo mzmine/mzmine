@@ -98,4 +98,5 @@ public interface MZmineConfiguration {
 
   public StringCrypter getEncrypter();
 
+  public boolean isDarkMode();
 }

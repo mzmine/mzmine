@@ -434,7 +434,9 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void setStatusBarText(String message) {
-    setStatusBarText(message, Color.BLACK);
+    Color messageColor = MZmineCore.getConfiguration().isDarkMode() ? Color.LIGHTGRAY
+        : Color.BLACK;
+    setStatusBarText(message, messageColor);
   }
 
   @Override

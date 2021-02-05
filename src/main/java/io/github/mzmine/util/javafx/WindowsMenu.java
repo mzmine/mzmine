@@ -18,9 +18,9 @@
 
 package io.github.mzmine.util.javafx;
 
-import java.util.logging.Logger;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.main.MZmineCore;
+import java.util.logging.Logger;
 import javafx.beans.property.SimpleListProperty;
 import javafx.scene.Parent;
 import javafx.scene.Scene;

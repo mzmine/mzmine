@@ -1,72 +1,190 @@
+
+/* dark mode stuff */
+
 .root {
-    -fx-accent: #4c5257;
+    -fx-base: #151515;
+
+    -fx-accent: #404040;
     -fx-focus-color: -fx-accent;
-    -fx-base: #111111;
-    -fx-control-inner-background: derive(-fx-base, 35%);
-    -fx-control-inner-background-alt: -fx-control-inner-background ;
+
+    -fx-control-inner-background: -fx-base;
+    /*-fx-control-inner-background-alt: -fx-control-inner-background ;*/
+}
+
+/** declare colors here **/
+{
+  -pane-bg-match: derive(-fx-base, 10%);
+  -control-bg: derive(-fx-base, 20%);
+  -control-bg-hovered: derive(-control-bg, 25%);
+
+  -column-header-bg: derive(-fx-base, 15%);
+
+  -scroll-bar-bg: derive(-fx-base,10%);
+
+  -highlight: #56b4e9;
+  -selection-highlight-outline: #78AAFF;
+
+  -table-selection-unfocused: derive(-fx-base, 10%);
+
+  -cell-even-bg: derive(-control-bg, 5%);
+  -cell-odd-bg: derive(-control-bg, 10%);
+  -cell-selected-bg: -derive(-control-bg, 20%);
+
+  -text-color: lightgray;
+}
+/** All panes **/
+/*.grid-pane, .anchor-pane, .border-pane, .split-pane, .tab-pane,  .region-match-chart-bg  {
+  -fx-background-color: -pane-bg-match;
+}*/
+
+.region-match-chart-bg, .tool-bar, .status-bar {
+  -fx-background-color: -pane-bg-match;
 }
 
 .label{
-    -fx-text-fill: lightgray;
+  -fx-text-fill: -text-color;
 }
 
 .text-field {
-    -fx-prompt-text-fill: gray;
+  -fx-prompt-text-fill: gray;
 }
 
-.titulo{
-    -fx-font-weight: bold;
-    -fx-font-size: 18px;
+.button, .combo-box, .choice-box {
+  -fx-background-color: -control-bg;
 }
 
-.button{
-    -fx-focus-traversable: false;
-}
-
-.button:hover{
-    -fx-text-fill: white;
+.button:hover, .choice-box:hover, .combo-box:hover {
+  -fx-background-color: -control-bg-hovered;
+  -fx-border-control: -selection-highlight-outline;
+  -fx-text-fill: white;
 }
 
 .separator *.line {
-    -fx-background-color: #3C3C3C;
-    -fx-border-style: solid;
-    -fx-border-width: 1px;
+  -fx-background-color: #3C3C3C;
+  -fx-border-style: solid;
+  -fx-border-width: 1px;
 }
 
-.scroll-bar{
-    -fx-background-color: derive(-fx-base,45%)
-}
+/** Cells **/
 
-.button:default {
-    -fx-base: -fx-accent ;
-}
-
-.table-view{
-    /*-fx-background-color: derive(-fx-base, 10%);*/
-    -fx-selection-bar-non-focused: derive(-fx-base, 50%);
-}
-
-.table-view .column-header .label{
-    -fx-alignment: CENTER_LEFT;
-    -fx-font-weight: none;
-}
-
-.list-cell:even,
-.list-cell:odd,
 .table-row-cell:even,
-.table-row-cell:odd{
-    -fx-control-inner-background: derive(-fx-base, 15%);
+.list-cell:even,
+.tree-table-row-cell:even{
+  -fx-control-inner-background: -cell-even-bg;
+  -fx-text-fill: -text-color;
 }
 
-.list-cell:empty,
-.table-row-cell:empty {
-    -fx-background-color: transparent;
+.table-row-cell:odd,
+.list-cell:odd,
+.tree-table-row-cell:odd{
+  -fx-control-inner-background: -cell-odd-bg;
+  -fx-text-fill: -text-color;
 }
 
-.list-cell,
-.table-row-cell{
-    -fx-border-color: transparent;
-    -fx-table-cell-border-color:transparent;
+.table-row-cell:selected:focused:unfocused,
+.list-cell:selected:focused:unfocused,
+.tree-table-row-cell:selected:focused:unfocused {
+  -fx-control-inner-background: -cell-selected-bg;
+  -fx-text-fill: -text-color;
 }
 
-/* dark mode stuff */
+/** TreeTableView **/
+
+.tree-table-view {
+  -fx-background-color: -control-bg;
+  -fx-selection-bar-non-focused: -table-selection-unfocused;
+}
+
+.tree-table-view .column-header .label {
+  -fx-alignment: CENTER;
+  -fx-outline-color: black;
+}
+
+/** TableView **/
+
+.table-view {
+  -fx-background-color: -control-bg;
+  -fx-selection-bar-non-focused: -table-selection-unfocused;
+}
+
+.table-view .column-header {
+  -fx-alignment: CENTER_LEFT;
+  -fx-outline-color: black;
+}
+
+.column-header {
+  -fx-border-color: black;
+  -fx-background-color: -column-header-bg;
+}
+
+/** List view **/
+
+.list-view {
+  -fx-background-color: -control-bg;
+  -fx-selection-outline-color: -selection-highlight-outline;
+  -fx-selection-bar: -highlight;
+}
+
+/** Menu Bar **/
+.menu-bar {
+  -fx-background-color: -control-bg;
+  -fx-control-inner-background: -control-bg;
+}
+
+
+/** Split pane **/
+.split-pane:horizontal > .split-pane-divider {
+  -fx-background-color: -control-bg;
+  -fx-border-color: black;
+  -fx-border-insets: 0;
+}
+
+.split-pane:vertical > .split-pane-divider {
+  -fx-background-color: -control-bg;
+  -fx-border-color: black;
+  -fx-border-insets: 0;
+}
+
+/** TabPane **/
+.tab {
+  -fx-background-color: derive(-control-bg, 20%);
+  -fx-border-radius: 2, 2;
+  -fx-border-insets: 0;
+  -fx-border-color: -control-bg;
+  -fx-border-style: solid solid hidden solid;
+  -fx-background-radius: 2, 2;
+}
+
+.tab:selected { /** constantly show an outline when the tab is selected, but no focus outline **/
+  -fx-background-color: -control-bg;
+  -fx-focus-color: -selection-highlight-outline;
+
+  -fx-border-radius: 2, 2;
+  -fx-border-insets: 0;
+  -fx-border-color: -selection-highlight-outline;
+  -fx-border-style: solid solid hidden solid;
+
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
+}
+
+/** ScrollPane **/
+.scroll-pane > .corner {
+  -fx-background-color: -scroll-bar-bg;
+}
+
+.scroll-bar {
+  -fx-background-color: -scroll-bar-bg;
+}
+
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+  -fx-background-color: -highlight;
+  -fx-background-radius: 5em;
+}
+
+/** ProgressBar **/
+.progress-bar > .bar {
+  -fx-background-color: -highlight;
+  -fx-box-border: -highlight;
+}

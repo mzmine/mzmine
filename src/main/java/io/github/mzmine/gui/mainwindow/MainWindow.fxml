@@ -20,8 +20,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.Scene?>
 <?import org.controlsfx.control.StatusBar?>
-<Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/10.0.2-internal"
-  xmlns:fx="http://javafx.com/fxml/1"
+<Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
+  fx:id="mainScene"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
   <stylesheets>
     <URL value="@../../../../../../resources/themes/MZmine_default.css"/>
