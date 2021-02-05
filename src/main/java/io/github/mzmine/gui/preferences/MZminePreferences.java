@@ -120,9 +120,9 @@ public class MZminePreferences extends SimpleParameterSet {
       // MZmineCore.getDesktop().getMainWindow().repaint();
 
       MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("MZmine_dark.css"));
+          .removeIf(e -> e.contains("_dark.css"));
       MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("MZmine_light.css"));
+          .removeIf(e -> e.contains("_light.css"));
       Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
           .getParameter(MZminePreferences.darkMode).getValue();
       if (darkMode) {

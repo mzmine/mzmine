@@ -4,16 +4,17 @@
 .root {
     -fx-base: #151515;
 
-    -fx-accent: #404040;
+    -fx-accent: derive(-fx-base, 40%);
     -fx-focus-color: -fx-accent;
 
-    -fx-control-inner-background: -fx-base;
+    /*-fx-control-inner-background: -fx-base;*/
     /*-fx-control-inner-background-alt: -fx-control-inner-background ;*/
 }
 
-/** declare colors here **/
+/** declare colors here
+ deriving most of the colors off the default one makes it easy to get uniform looking themes **/
 {
-  -pane-bg-match: derive(-fx-base, 10%);
+  -pane-bg-match: derive(-fx-base, 30%);
   -control-bg: derive(-fx-base, 20%);
   -control-bg-hovered: derive(-control-bg, 25%);
 
@@ -22,13 +23,13 @@
   -scroll-bar-bg: derive(-fx-base,10%);
 
   -highlight: #56b4e9;
-  -selection-highlight-outline: #78AAFF;
+  -selection-highlight-outline: -highlight;
 
   -table-selection-unfocused: derive(-fx-base, 10%);
 
   -cell-even-bg: derive(-control-bg, 5%);
   -cell-odd-bg: derive(-control-bg, 10%);
-  -cell-selected-bg: -derive(-control-bg, 20%);
+  -cell-selected-bg: derive(-control-bg, 20%);
 
   -text-color: lightgray;
 }
@@ -51,11 +52,16 @@
 
 .button, .combo-box, .choice-box {
   -fx-background-color: -control-bg;
+  /*-fx-background-color: -control-bg, -control-bg, linear-gradient(from 0% 50% to 0% 100%, -control-bg 0%, -highlight 100%), -control-bg; *//*fancy button*/
+  -fx-background-radius: 2, 2;
+  -fx-effect: dropshadow(gaussian , rgba(0,0,0,0.25) , 4,0,0,1 );
+  -fx-border-color: -control-bg;
+  -fx-border-radius: 2, 2;
 }
 
 .button:hover, .choice-box:hover, .combo-box:hover {
   -fx-background-color: -control-bg-hovered;
-  -fx-border-control: -selection-highlight-outline;
+  -fx-border-color: -selection-highlight-outline;
   -fx-text-fill: white;
 }
 
