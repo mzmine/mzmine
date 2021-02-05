@@ -18,14 +18,15 @@
   -control-bg: derive(-fx-base, 20%);
   -control-bg-hovered: derive(-control-bg, 25%);
 
-  -column-header-bg: derive(-fx-base, 15%);
+  -default-border-color: -fx-base;
 
-  -scroll-bar-bg: derive(-fx-base,10%);
+  -column-header-bg: derive(-fx-base, 15%);
+  -scroll-bar-bg: derive(-fx-base, 15%);
 
   -highlight: #56b4e9;
   -selection-highlight-outline: -highlight;
 
-  -table-selection-unfocused: derive(-fx-base, 10%);
+  -selection-unfocused: derive(-fx-base, 10%);
 
   -cell-even-bg: derive(-control-bg, 5%);
   -cell-odd-bg: derive(-control-bg, 10%);
@@ -50,7 +51,7 @@
   -fx-prompt-text-fill: gray;
 }
 
-.button, .combo-box, .choice-box {
+.button, .combo-box, .choice-box, .check-box > .box  {
   -fx-background-color: -control-bg;
   /*-fx-background-color: -control-bg, -control-bg, linear-gradient(from 0% 50% to 0% 100%, -control-bg 0%, -highlight 100%), -control-bg; *//*fancy button*/
   -fx-background-radius: 2, 2;
@@ -59,7 +60,7 @@
   -fx-border-radius: 2, 2;
 }
 
-.button:hover, .choice-box:hover, .combo-box:hover {
+.button:hover, .choice-box:hover, .combo-box:hover, .check-box > .box:hover {
   -fx-background-color: -control-bg-hovered;
   -fx-border-color: -selection-highlight-outline;
   -fx-text-fill: white;
@@ -87,39 +88,27 @@
   -fx-text-fill: -text-color;
 }
 
-.table-row-cell:selected:focused:unfocused,
-.list-cell:selected:focused:unfocused,
-.tree-table-row-cell:selected:focused:unfocused {
-  -fx-control-inner-background: -cell-selected-bg;
-  -fx-text-fill: -text-color;
-}
-
 /** TreeTableView **/
 
 .tree-table-view {
   -fx-background-color: -control-bg;
-  -fx-selection-bar-non-focused: -table-selection-unfocused;
-}
-
-.tree-table-view .column-header .label {
-  -fx-alignment: CENTER;
-  -fx-outline-color: black;
+  -fx-selection-bar-non-focused: -selection-unfocused;
+  -fx-selection-bar-focused: -highlight;
+  -fx-selection-outline-color: -selection-highlight-outline;
 }
 
 /** TableView **/
 
 .table-view {
   -fx-background-color: -control-bg;
-  -fx-selection-bar-non-focused: -table-selection-unfocused;
+  -fx-selection-bar-non-focused: -selection-unfocused;
+  -fx-selection-bar-focused: -highlight;
+  -fx-selection-outline-color: -selection-highlight-outline;
 }
-
-.table-view .column-header {
-  -fx-alignment: CENTER_LEFT;
-  -fx-outline-color: black;
-}
-
+  /** also counts for TreeTableView **/
 .column-header {
-  -fx-border-color: black;
+  -fx-alignment: CENTER;
+  -fx-border-color: -default-border-color;
   -fx-background-color: -column-header-bg;
 }
 
@@ -129,6 +118,7 @@
   -fx-background-color: -control-bg;
   -fx-selection-outline-color: -selection-highlight-outline;
   -fx-selection-bar: -highlight;
+  -fx-selection-bar-non-focused: -selection-unfocused;
 }
 
 /** Menu Bar **/
@@ -141,13 +131,13 @@
 /** Split pane **/
 .split-pane:horizontal > .split-pane-divider {
   -fx-background-color: -control-bg;
-  -fx-border-color: black;
+  -fx-border-color: -default-border-color;
   -fx-border-insets: 0;
 }
 
 .split-pane:vertical > .split-pane-divider {
   -fx-background-color: -control-bg;
-  -fx-border-color: black;
+  -fx-border-color: -default-border-color;
   -fx-border-insets: 0;
 }
 
@@ -156,7 +146,7 @@
   -fx-background-color: derive(-control-bg, 20%);
   -fx-border-radius: 2, 2;
   -fx-border-insets: 0;
-  -fx-border-color: -control-bg;
+  -fx-border-color: -default-border-color;
   -fx-border-style: solid solid hidden solid;
   -fx-background-radius: 2, 2;
 }
