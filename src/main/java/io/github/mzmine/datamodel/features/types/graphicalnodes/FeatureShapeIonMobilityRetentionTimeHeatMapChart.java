@@ -61,6 +61,9 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
+
+    chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
+
     chart.addDatasetsChangedListener(
         (e) -> Platform.runLater(() -> chart.getXYPlot().getRangeAxis().setAutoRange(true)));
     getChildren().add(chart);

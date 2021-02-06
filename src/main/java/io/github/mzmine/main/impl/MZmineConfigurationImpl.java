@@ -401,4 +401,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     return standardChartTheme;
   }
 
+  @Override
+  public boolean isDarkMode() {
+    return preferences.getParameter(MZminePreferences.darkMode).getValue();
+  }
 }

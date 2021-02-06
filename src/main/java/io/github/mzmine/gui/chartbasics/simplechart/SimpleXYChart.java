@@ -164,6 +164,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     defaultRenderer.set(defaultLineRenderer);
     plot.setRenderer(defaultRenderer.get());
 
+    defaultLineRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
+    defaultShapeRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
+
     datasetListeners = new ArrayList<>();
   }
 

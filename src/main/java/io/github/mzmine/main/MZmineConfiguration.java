@@ -104,4 +104,6 @@ public interface MZmineConfiguration {
   public EStandardChartTheme getDefaultChartTheme();
 
   public StringCrypter getEncrypter();
+
+  public boolean isDarkMode();
 }

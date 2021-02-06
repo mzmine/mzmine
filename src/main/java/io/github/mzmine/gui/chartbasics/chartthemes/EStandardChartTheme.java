@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -40,7 +41,6 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 /*
 import io.github.mzmine.util.MirrorChartFactory;
 */
@@ -348,6 +348,7 @@ public class EStandardChartTheme extends StandardChartTheme {
 
     newLegend.setPosition(pos);
     newLegend.setItemFont(oldLegend.getItemFont());
+    newLegend.setItemPaint(oldLegend.getItemPaint());
     chart.addLegend(newLegend);
     newLegend.setVisible(oldLegend.isVisible());
     newLegend.setFrame(BlockBorder.NONE);
