@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -74,6 +75,18 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     mobilityRange = null;
     mobilityType = MobilityType.NONE;
 
+  }
+
+  public IMSRawDataFileImpl(String dataFileName, Color color) throws IOException {
+    super(dataFileName, color);
+
+    frameNumbersCache = new Hashtable<>();
+    dataMobilityRangeCache = new Hashtable<>();
+    frameMsLevelCache = new Hashtable<>();
+    segmentMobilityRange = new HashMap<>();
+
+    mobilityRange = null;
+    mobilityType = MobilityType.NONE;
   }
 
   @Override

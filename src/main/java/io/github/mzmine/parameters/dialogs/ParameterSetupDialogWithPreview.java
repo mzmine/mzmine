@@ -48,7 +48,7 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
 
   public ParameterSetupDialogWithPreview(boolean valueCheckRequired,
       ParameterSet parameters) {
-    this(valueCheckRequired, parameters, null);
+    this(valueCheckRequired, parameters, "");
   }
 
   public ParameterSetupDialogWithPreview(boolean valueCheckRequired,

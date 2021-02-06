@@ -141,7 +141,8 @@ class SameRangeTask extends AbstractTask {
 
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Gap filling using RT and m/z range", parameters));
+        new SimpleFeatureListAppliedMethod("Gap filling using RT and m/z range",
+            SameRangeGapFillerModule.class, parameters));
 
     // Remove the original peaklist if requested
     if (removeOriginal)

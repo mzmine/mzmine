@@ -84,7 +84,8 @@ class PathAlignerTask extends AbstractTask {
 
     // Add task description to peakList
     alignedPeakList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Path aligner", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Path aligner",
+            PathAlignerModule.class, parameters));
 
     logger.info("Finished Path aligner");
     setStatus(TaskStatus.FINISHED);

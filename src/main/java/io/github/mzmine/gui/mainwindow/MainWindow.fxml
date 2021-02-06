@@ -103,7 +103,7 @@
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <contextMenu>
-                              <ContextMenu>
+                              <ContextMenu fx:id="featureListContextMenu">
                                 <items>
                                   <MenuItem fx:id="openFeatureListMenuItem"
                                     text="Open feature list" onAction="#handleOpenFeatureList"/>

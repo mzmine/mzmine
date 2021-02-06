@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.features.FeatureList;
 
 /**
  *

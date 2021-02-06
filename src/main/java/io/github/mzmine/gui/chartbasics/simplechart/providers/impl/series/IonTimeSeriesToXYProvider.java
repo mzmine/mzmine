@@ -117,4 +117,12 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   public ObjectProperty<javafx.scene.paint.Color> fxColorProperty() {
     return color;
   }
+
+  @Nullable
+  public Scan getScan(int index) {
+    if (index >= series.getNumberOfValues()) {
+      return null;
+    }
+    return series.getSpectra().get(index);
+  }
 }

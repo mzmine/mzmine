@@ -55,6 +55,10 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final NumberFormatParameter mobilityFormat = new NumberFormatParameter(
       "Mobility value format", "Format of mobility values", false, new DecimalFormat("0.000"));
 
+  public static final NumberFormatParameter ccsFormat = new NumberFormatParameter(
+      "CCS value format", "Format for colission cross section (CCS) values.", false,
+      new DecimalFormat("0.0"));
+
   public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
       "Intensity format", "Format of intensity values", true, new DecimalFormat("0.0E0"));
 
@@ -101,7 +105,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(
-        new Parameter[]{mzFormat, rtFormat, mobilityFormat, intensityFormat, ppmFormat, unitFormat,
+        new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
+            unitFormat,
             numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
             defaultColorPalette, defaultPaintScale, chartParam, darkMode});
   }

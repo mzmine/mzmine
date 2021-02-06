@@ -22,13 +22,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYZValueProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -227,16 +226,19 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   }
 
   private PaintScale createDefaultPaintScale(double min, double max) {
-    if(min >= max) {
+    if (min >= max) {
       min = 0;
       max = 1;
     }
     Range<Double> zValueRange = Range.closed(min, max);
-    var paintScale =
+    /*var paintScale =
         new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
             defaultPaintScaleColorStyle, defaultPaintScaleBoundStyle, zValueRange, Color.WHITE);
     PaintScaleFactory psf = new PaintScaleFactory();
-    paintScale = psf.createColorsForPaintScale(paintScale, true);
+    paintScale = psf.createColorsForPaintScale(paintScale, true);*/
+
+    paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette().toPaintScale(
+        PaintScaleTransform.LINEAR, zValueRange);
     return paintScale;
   }
 

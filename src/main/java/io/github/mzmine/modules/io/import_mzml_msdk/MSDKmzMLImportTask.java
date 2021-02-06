@@ -18,21 +18,14 @@
 
 package io.github.mzmine.modules.io.import_mzml_msdk;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLMsScan;
@@ -40,6 +33,13 @@ import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
@@ -132,7 +132,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     int frameNumber = 1;
     SimpleFrame buildingFrame = null;
 
-    final List<MobilityScan> mobilityScans = new ArrayList<>();
+    final List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
     final List<Double> mobilities = new ArrayList<>();
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
     Set<ImsMsMsInfo> finishedImsMsMsInfos = null;
@@ -146,7 +146,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
         if (buildingFrame != null) { // finish the frame
           final SimpleFrame finishedFrame = buildingFrame;
-          mobilityScans.forEach(s -> finishedFrame.addMobilityScan(s));
+          finishedFrame.setMobilityScans(mobilityScans);
           finishedFrame
               .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
           newImsFile.addScan(buildingFrame);
@@ -173,8 +173,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
             "Importing " + file.getName() + ", parsed " + parsedScans + "/" + totalScans + " scans";
       }
 
-      mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(newImsFile,
-          mobilityScanNumberCounter, scan, buildingFrame));
+      mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, scan));
       mobilities.add(mzMLScan.getMobility().mobility());
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);

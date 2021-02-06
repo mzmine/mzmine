@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -224,6 +225,8 @@ public class ADAP3AlignerTask extends AbstractTask {
       alignedPeakList.addRow(newRow);
     }
 
+    alignedPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        ADAP3AlignerModule.class, parameters));
     return alignedPeakList;
   }
 

@@ -53,7 +53,6 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 /**
- *
  * @author aleksandrsmirnov
  */
 public class ADAP3DecompositionV1_5Task extends AbstractTask {
@@ -167,7 +166,8 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
     // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3", parameters));
+        new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3",
+            ADAPHierarchicalClusteringModule.class, parameters));
 
     // Collect peak information
     List<Peak> peaks = getPeaks(peakList,
@@ -185,8 +185,9 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     int rowID = 0;
 
     for (final Component component : components) {
-      if (component.getSpectrum().isEmpty())
+      if (component.getSpectrum().isEmpty()) {
         continue;
+      }
 
       ModularFeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
 
@@ -238,17 +239,18 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       }
     });
 
-    for (FeatureListRow row : newPeakListRows)
+    for (FeatureListRow row : newPeakListRows) {
       resolvedPeakList.addRow(row);
+    }
 
     return resolvedPeakList;
   }
 
   /**
    * Convert MZmine PeakList to a list of ADAP Peaks
-   * 
-   * @param peakList MZmine PeakList object
-   * @param edgeToHeightThreshold edge-to-height threshold to determine peaks that can be merged
+   *
+   * @param peakList               MZmine PeakList object
+   * @param edgeToHeightThreshold  edge-to-height threshold to determine peaks that can be merged
    * @param deltaToHeightThreshold delta-to-height threshold to determine peaks that can be merged
    * @return list of ADAP Peaks
    */
@@ -266,15 +268,17 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
       // Build chromatogram
       NavigableMap<Double, Double> chromatogram = new TreeMap<>();
-      for (int i=0; i< scanNumbers.size(); i++) {
+      for (int i = 0; i < scanNumbers.size(); i++) {
         DataPoint dataPoint = peak.getDataPointAtIndex(i);
-        if (dataPoint != null)
+        if (dataPoint != null) {
           chromatogram.put(Double.valueOf(String.valueOf(peak.getRetentionTimeAtIndex(i))),
               dataPoint.getIntensity());
+        }
       }
 
-      if (chromatogram.size() <= 1)
+      if (chromatogram.size() <= 1) {
         continue;
+      }
 
       // Fill out PeakInfo
       PeakInfo info = new PeakInfo();
@@ -286,7 +290,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
         info.peakID = row.getID() - 1;
 
         double height = -Double.MIN_VALUE;
-        for (int i=0; i<scanNumbers.size(); i++) {
+        for (int i = 0; i < scanNumbers.size(); i++) {
           double intensity = peak.getDataPointAtIndex(i).getIntensity();
 
           if (intensity > height) {
@@ -318,7 +322,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
   /**
    * Performs ADAP Peak Decomposition
-   * 
+   *
    * @param peaks list of Peaks
    * @return Collection of dulab.adap.Component objects
    */

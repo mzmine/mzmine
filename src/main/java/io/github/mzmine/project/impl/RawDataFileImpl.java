@@ -18,6 +18,7 @@
 
 package io.github.mzmine.project.impl;
 
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
@@ -74,6 +75,9 @@ public class RawDataFileImpl implements RawDataFile {
   // private final List<MassList> newMassLists = new ArrayList<>();
 
   protected final ObservableList<Scan> scans;
+
+  protected final ObservableList<FeatureListAppliedMethod> appliedMethods
+      = FXCollections.observableArrayList();
 
   public RawDataFileImpl(String dataFileName) throws IOException {
     this(dataFileName, MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
@@ -459,5 +463,9 @@ public class RawDataFileImpl implements RawDataFile {
     return scans;
   }
 
-
+  @Nonnull
+  @Override
+  public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
+    return appliedMethods;
+  }
 }

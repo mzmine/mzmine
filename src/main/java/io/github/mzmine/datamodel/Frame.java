@@ -34,7 +34,6 @@ public interface Frame extends Scan {
    *
    * @return the scan number
    */
-  @Deprecated
   default int getFrameId() {
     return getScanNumber();
   }
@@ -109,8 +108,6 @@ public interface Frame extends Scan {
   default int getPrecursorCharge() {
     return 0;
   }
-
-  void addMobilityScan(MobilityScan originalMobilityScan);
 
 
   // ImmutableList<Mobilogram> getMobilograms();
