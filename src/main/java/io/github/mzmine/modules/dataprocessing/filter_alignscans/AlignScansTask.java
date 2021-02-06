@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_alignscans;
 
-import java.io.IOException;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
@@ -31,6 +31,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.IOException;
+import java.util.logging.Logger;
 
 public class AlignScansTask extends AbstractTask {
 
@@ -49,6 +51,7 @@ public class AlignScansTask extends AbstractTask {
   private int scanSpan, mzSpan;
   private boolean logScale = false;
   private boolean removeOriginal;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -65,7 +68,7 @@ public class AlignScansTask extends AbstractTask {
     this.suffix = parameters.getParameter(AlignScansParameters.suffix).getValue();
     this.removeOriginal = parameters.getParameter(AlignScansParameters.removeOld).getValue();
     this.logScale = parameters.getParameter(AlignScansParameters.logTransform).getValue();
-
+    this.parameters = parameters;
   }
 
   /**
@@ -204,6 +207,12 @@ public class AlignScansTask extends AbstractTask {
       if (!isCanceled()) {
 
         // Add the newly created file to the project
+        for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
+          newRDFW.getAppliedMethods().add(appliedMethod);
+        }
+
+        newRDFW.getAppliedMethods()
+            .add(new SimpleFeatureListAppliedMethod(AlignScansModule.class, parameters));
         project.addFile(newRDFW);
 
         // Remove the original data file if requested

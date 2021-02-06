@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -62,6 +63,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
@@ -442,7 +444,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
   private void initHandleDoubleClicks() {
     this.setOnMouseClicked(e -> {
-      if (e.getClickCount() >= 2) {
+      if (e.getClickCount() >= 2 && e.getButton() == MouseButton.PRIMARY) {
         e.consume();
         logger.finest(() -> "Double click on " + e.getSource());
 
@@ -526,7 +528,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
         .getSelectedCells();
 
-    List<ModularFeature> features = new ArrayList<>();
+    Set<ModularFeature> features = new LinkedHashSet<>();
     selectedCells.forEach(cell -> {
       // get file of the selected column
       ColumnID id = newColumnMap.get(cell.getTableColumn());
@@ -538,7 +540,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
         }
       }
     });
-    return Collections.unmodifiableList(features);
+    return Collections.unmodifiableList(new ArrayList<>(features));
   }
 
   @Nullable

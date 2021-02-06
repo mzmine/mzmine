@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -116,6 +118,9 @@ public class ParameterSetupDialog extends Stage {
    */
   @SuppressWarnings({"rawtypes", "unchecked"})
   public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters, String message) {
+
+    Image mzmineIcon = FxIconUtil.loadImageFromResources("MzmineIcon.png");
+    this.getIcons().add(mzmineIcon);
 
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;

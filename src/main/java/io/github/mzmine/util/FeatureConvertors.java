@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
-import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
@@ -51,7 +50,6 @@ import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
@@ -190,14 +188,14 @@ public class FeatureConvertors {
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.set(MZType.class, ionTrace.getMz());
     modularFeature.set(RTType.class, (float) ionTrace.getRetentionTime());
-    modularFeature.set(MobilityType.class, (float) ionTrace.getMobility());
-    modularFeature.set(MobilityUnitType.class, ((IMSRawDataFile) rawDataFile).getMobilityType());
+    modularFeature.setMobility((float) ionTrace.getMobility());
+    modularFeature.setMobilityUnit(((IMSRawDataFile) rawDataFile).getMobilityType());
 
     modularFeature.set(HeightType.class, (float) ionTrace.getMaximumIntensity());
     // TODO
     modularFeature.set(AreaType.class, (float) 0);
     // TODO
-    modularFeature.set(BestScanNumberType.class, -1);
+    modularFeature.set(BestScanNumberType.class, null);
 
     // Data points of feature
 //    List<DataPoint> dps = new ArrayList<>(ionTrace.getDataPoints());

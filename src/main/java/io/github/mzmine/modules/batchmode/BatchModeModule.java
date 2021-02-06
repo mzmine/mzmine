@@ -99,7 +99,6 @@ public class BatchModeModule implements MZmineProcessingModule {
       e.printStackTrace();
       return ExitCode.ERROR;
     }
-
   }
 
   @Override

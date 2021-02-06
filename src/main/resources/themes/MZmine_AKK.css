@@ -1,0 +1,198 @@
+
+/* dark mode stuff */
+
+.root {
+    -fx-base: #151515;
+
+    -fx-accent: derive(-fx-base, 40%);
+    -fx-focus-color: -fx-accent;
+
+    /*-fx-control-inner-background: -fx-base;*/
+    /*-fx-control-inner-background-alt: -fx-control-inner-background ;*/
+}
+
+/** declare colors here
+ deriving most of the colors off the default one makes it easy to get uniform looking themes **/
+{
+  -akk-gradient: linear-gradient(from 0% 50% to 0% 100%, blue 0%, black 100%);
+
+  -pane-bg-match: -akk-gradient;/*derive(-fx-base, 30%);*/
+  -control-bg: -akk-gradient;
+  -control-bg-hovered: -control-bg;
+
+  -column-header-bg: -akk-gradient;
+
+  -scroll-bar-bg: -akk-gradient;
+
+  -highlight: yellow;
+  -selection-highlight-outline: -yellow;
+
+  -table-selection-unfocused: dark-yellow;
+
+  -cell-even-bg: derive(blue, 5%);
+  -cell-odd-bg: derive(blue, 10%);
+  -cell-selected-bg: derive(blue, 20%);
+
+  -text-color: yellow;
+}
+/** All panes **/
+.grid-pane, .anchor-pane, .border-pane, .split-pane, .tab-pane,  .region-match-chart-bg  {
+  -fx-background-color: -pane-bg-match;
+}
+
+.region-match-chart-bg, .tool-bar, .status-bar {
+  -fx-background-color: -pane-bg-match;
+}
+
+.label{
+  -fx-text-fill: -text-color;
+}
+
+.text-field {
+  -fx-prompt-text-fill: gray;
+}
+
+.button, .combo-box, .choice-box {
+  -fx-background-color: -control-bg;
+  /*-fx-background-color: -control-bg, -control-bg, linear-gradient(from 0% 50% to 0% 100%, -control-bg 0%, -highlight 100%), -control-bg; *//*fancy button*/
+  -fx-background-radius: 2, 2;
+  -fx-effect: dropshadow(gaussian , rgba(0,0,0,0.25) , 4,0,0,1 );
+  -fx-border-color: -control-bg;
+  -fx-border-radius: 2, 2;
+}
+
+.button:hover, .choice-box:hover, .combo-box:hover {
+  -fx-background-color: -control-bg-hovered;
+  -fx-border-color: -selection-highlight-outline;
+  -fx-text-fill: white;
+}
+
+.separator *.line {
+  -fx-background-color: #3C3C3C;
+  -fx-border-style: solid;
+  -fx-border-width: 1px;
+}
+
+/** Cells **/
+
+.table-row-cell:even,
+.list-cell:even,
+.tree-table-row-cell:even{
+  -fx-control-inner-background: -cell-even-bg;
+  -fx-text-fill: -text-color;
+}
+
+.table-row-cell:odd,
+.list-cell:odd,
+.tree-table-row-cell:odd{
+  -fx-control-inner-background: -cell-odd-bg;
+  -fx-text-fill: -text-color;
+}
+
+.table-row-cell:selected:focused:unfocused,
+.list-cell:selected:focused:unfocused,
+.tree-table-row-cell:selected:focused:unfocused {
+  -fx-control-inner-background: -cell-selected-bg;
+  -fx-text-fill: -text-color;
+}
+
+/** TreeTableView **/
+
+.tree-table-view {
+  -fx-background-color: -control-bg;
+  -fx-selection-bar-non-focused: -table-selection-unfocused;
+}
+
+.tree-table-view .column-header .label {
+  -fx-alignment: CENTER;
+  -fx-outline-color: black;
+}
+
+/** TableView **/
+
+.table-view {
+  -fx-background-color: -control-bg;
+  -fx-selection-bar-non-focused: -table-selection-unfocused;
+}
+
+.table-view .column-header {
+  -fx-alignment: CENTER_LEFT;
+  -fx-outline-color: black;
+}
+
+.column-header {
+  -fx-border-color: black;
+  -fx-background-color: -column-header-bg;
+}
+
+/** List view **/
+
+.list-view {
+  -fx-background-color: -control-bg;
+  -fx-selection-outline-color: -selection-highlight-outline;
+  -fx-selection-bar: -highlight;
+}
+
+/** Menu Bar **/
+.menu-bar {
+  -fx-background-color: -control-bg;
+  -fx-control-inner-background: -control-bg;
+}
+
+
+/** Split pane **/
+.split-pane:horizontal > .split-pane-divider {
+  -fx-background-color: -control-bg;
+  -fx-border-color: black;
+  -fx-border-insets: 0;
+}
+
+.split-pane:vertical > .split-pane-divider {
+  -fx-background-color: -control-bg;
+  -fx-border-color: black;
+  -fx-border-insets: 0;
+}
+
+/** TabPane **/
+.tab {
+  -fx-background-color: derive(-control-bg, 20%);
+  -fx-border-radius: 2, 2;
+  -fx-border-insets: 0;
+  -fx-border-color: -control-bg;
+  -fx-border-style: solid solid hidden solid;
+  -fx-background-radius: 2, 2;
+}
+
+.tab:selected { /** constantly show an outline when the tab is selected, but no focus outline **/
+  -fx-background-color: -control-bg;
+  -fx-focus-color: -selection-highlight-outline;
+
+  -fx-border-radius: 2, 2;
+  -fx-border-insets: 0;
+  -fx-border-color: -selection-highlight-outline;
+  -fx-border-style: solid solid hidden solid;
+
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
+}
+
+/** ScrollPane **/
+.scroll-pane > .corner {
+  -fx-background-color: -scroll-bar-bg;
+}
+
+.scroll-bar {
+  -fx-background-color: -scroll-bar-bg;
+}
+
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+  -fx-background-color: -highlight;
+  -fx-background-radius: 5em;
+}
+
+/** ProgressBar **/
+.progress-bar > .bar {
+  -fx-background-color: -highlight;
+  -fx-box-border: -highlight;
+}

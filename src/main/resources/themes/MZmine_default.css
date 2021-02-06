@@ -1,0 +1,47 @@
+.table-column {
+    -fx-alignment: CENTER-LEFT;
+}
+
+.tooltip {
+    -fx-font-size: 10.0pt;
+    -fx-show-delay: 10ms;
+}
+
+.splashText {
+	-fx-font-size: 8.0pt;
+}
+
+#memoryBarLabel {
+	-fx-font-size: 9.0pt;
+	-fx-label-padding: 0.0 20.0 0.0 20.0;
+}
+
+.title-label {
+  -fx-font-size: 16.0pt;
+}
+
+.bold-title-label {
+  -fx-font-size: 16.0pt;
+  -fx-font-weight: bold;
+}
+
+.text-label {
+  -fx-wrap-text: true;
+}
+
+.number-column {
+  -fx-alignment: CENTER-RIGHT;
+}
+
+.white-larger-label {
+  -fx-font-size: 14.0pt;
+  -fx-text-fill: white;
+  -fx-wrap-text: true;
+  -fx-font-weight: bold;
+}
+
+.white-score-label {
+  -fx-font-size: 20.0pt;
+  -fx-font-weight: bold;
+  -fx-text-fill: white;
+}

@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.RangeUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -270,6 +271,8 @@ public class FeatureFilterTask extends AbstractTask {
 
     }
 
+    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        FeatureFilterModule.class, parameters));
     return newPeakList;
   }
 

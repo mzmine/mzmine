@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -44,7 +45,8 @@ import org.jfree.chart.renderer.PaintScale;
  *
  * @author https://github.com/SteffenHeu
  */
-public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider {
+public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider,
+    MassSpectrumProvider<MobilityScan> {
 
   private final List<Double> rtValues;
   private final List<Double> mobilityValues;
@@ -62,7 +64,7 @@ public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider {
    * Constructs an ion trace with a given mz and rt range from a raw data file. This trace is
    * freshly calculated from the raw data. If a dataset has already been calculated in a {@link
    * io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries}, use the {@link
-   * IonMobilogramTimeSeriesHeatmapProvider} instead.
+   * IonMobilogramTimeSeriesToRtMobilityHeatmapProvider} instead.
    *
    * @author https://github.com/SteffenHeu
    */
@@ -120,7 +122,7 @@ public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider {
     return mobilityValues.get(index);
   }
 
-  public MobilityScan getMobilityScanAtIndex(int index) {
+  public MobilityScan getSpectrum(int index) {
     return mobilityScansAtIndex.get(index);
   }
 

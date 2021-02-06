@@ -18,11 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.Arrays;
-import java.util.Collection;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -31,6 +28,9 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
+import java.util.Arrays;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 public abstract class FeatureResolverModule implements MZmineProcessingModule {
 

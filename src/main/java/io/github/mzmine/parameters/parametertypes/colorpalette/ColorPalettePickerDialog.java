@@ -18,29 +18,24 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
-import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-
 import io.github.mzmine.main.MZmineCore;
-import java.util.logging.Logger;
-import javafx.geometry.HPos;
-import javafx.geometry.Insets;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.util.logging.Logger;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Dialog to pick colors for a color palette.
@@ -217,7 +212,7 @@ public class ColorPalettePickerDialog extends Stage {
 
     if (!palette.isValid()) {
       MZmineCore.getDesktop().displayErrorMessage("Current color palette is not valid.\n"
-          + "Does it contain enough colors? The minimum amount of colors is 3.");
+          + "Does it contain enough colors? The minimum amount of colors is 1.");
       return;
     }
 

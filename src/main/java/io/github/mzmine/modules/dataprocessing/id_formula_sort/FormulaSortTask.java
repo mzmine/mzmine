@@ -19,6 +19,7 @@ package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -38,19 +39,18 @@ public class FormulaSortTask extends AbstractTask {
   private Double weightIsotopeScore;
   private Double ppmMaxWeight;
   private Double weightMSMSscore;
+  private final ParameterSet parameterSet;
 
   /**
    *
    * @param parameters
-   * @param peakList
-   * @param peakListRow
-   * @param peak
    */
   public FormulaSortTask(ParameterSet parameters) {
     weightIsotopeScore =
         parameters.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue();
     ppmMaxWeight = parameters.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue();
     weightMSMSscore = parameters.getParameter(FormulaSortParameters.MSMS_SCORE_WEIGHT).getValue();
+    parameterSet = parameters;
   }
 
   public FormulaSortTask(FeatureList featureList, ParameterSet parameters) {
@@ -60,7 +60,6 @@ public class FormulaSortTask extends AbstractTask {
   }
 
   /**
-   * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   @Override
   public double getFinishedPercentage() {
@@ -70,7 +69,6 @@ public class FormulaSortTask extends AbstractTask {
   }
 
   /**
-   * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
   @Override
   public String getTaskDescription() {
@@ -106,6 +104,8 @@ public class FormulaSortTask extends AbstractTask {
     }
 
     logger.finest("Finished formula search for all networks");
+    featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        FormulaSortModule.class, parameterSet));
     setStatus(TaskStatus.FINISHED);
   }
 

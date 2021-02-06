@@ -17,15 +17,6 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-import org.openscience.cdk.formula.MolecularFormulaGenerator;
-import org.openscience.cdk.formula.MolecularFormulaRange;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IonizationType;
@@ -36,6 +27,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
@@ -52,6 +44,15 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+import org.openscience.cdk.formula.MolecularFormulaGenerator;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaPredictionFeatureListTask extends AbstractTask {
 
@@ -64,7 +65,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   private int charge;
   private FeatureList featureList;
   private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
-  private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters;
+  private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters, parameters;
   private MZTolerance mzTolerance;
   private String message;
   private int totalRows, finishedRows;
@@ -144,6 +145,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
           sortParam.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue();
     }
     message = "Formula Prediction";
+    this.parameters = parameters;
   }
 
   /**
@@ -241,6 +243,9 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     if (isCanceled())
       return;
 
+    featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        FormulaPredictionFeatureListModule.class, parameters));
+
     logger.finest("Finished formula search for all the features");
 
     setStatus(TaskStatus.FINISHED);
@@ -325,7 +330,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       if (isotopeBasePeak < 0)
         return 0.0;
       final double detectedPatternHeight =
-          detectedPattern.getIntensityValues().get(isotopeBasePeak);
+          detectedPattern.getIntensityValue(isotopeBasePeak);
 
       final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
