@@ -18,22 +18,6 @@
 
 package io.github.mzmine.main.impl;
 
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
-import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.UnitFormat;
-import io.github.mzmine.main.MZmineConfiguration;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
-import io.github.mzmine.util.StringCrypter;
-import io.github.mzmine.util.color.ColorsFX;
-import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.color.Vision;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -60,6 +44,22 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.main.MZmineConfiguration;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
+import io.github.mzmine.util.StringCrypter;
+import io.github.mzmine.util.color.ColorsFX;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.color.Vision;
 
 /**
  * MZmine configuration class
@@ -360,8 +360,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   @Override
   public SimpleColorPalette getDefaultColorPalette() {
-    SimpleColorPalette p = preferences.getParameter(MZminePreferences.defaultColorPalette)
-        .getValue();
+    SimpleColorPalette p =
+        preferences.getParameter(MZminePreferences.defaultColorPalette).getValue();
     if (!p.isValid()) {
       logger.warning(
           "Current default color palette set in preferences is invalid. Returning standard "
@@ -376,8 +376,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   public SimpleColorPalette getDefaultPaintScalePalette() {
     SimpleColorPalette p = preferences.getParameter(MZminePreferences.defaultPaintScale).getValue();
     if (!p.isValid()) {
-      logger.warning(
-          "Current default paint scale set in preferences is invalid. Returning standard "
+      logger
+          .warning("Current default paint scale set in preferences is invalid. Returning standard "
               + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
@@ -403,6 +403,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   @Override
   public boolean isDarkMode() {
-    return preferences.getParameter(MZminePreferences.darkMode).getValue();
+    Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
+    return darkMode == null ? false : darkMode;
   }
 }
