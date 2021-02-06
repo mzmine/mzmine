@@ -83,9 +83,10 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     SimpleChart<T> {
 
   protected static final Logger logger = Logger.getLogger(SimpleXYZScatterPlot.class.getName());
-
   protected static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   protected final JFreeChart chart;
+
+  protected final Color legendBg = new Color(0, 0, 0, 0); // bg is transparent
 
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
   protected final List<DatasetsChangedListener> datasetListeners;
@@ -98,6 +99,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
   private Canvas legendCanvas;
+  private String legendLabel = null;
 
   public SimpleXYZScatterPlot() {
     this("");
@@ -435,6 +437,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
         chart.addSubtitle(legend);
       }
     }
+    MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
     chart.fireChartChanged();
   }
 
@@ -452,8 +455,13 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     this.legendCanvas = canvas;
   }
 
+  public void setLegendAxisLabel(@Nullable String label) {
+    legendLabel = label;
+  }
+
   private void drawLegendToSeparateCanvas(PaintScaleLegend legend) {
     GraphicsContext gc = legendCanvas.getGraphicsContext2D();
+    gc.clearRect(0, 0, legendCanvas.getWidth(), legendCanvas.getHeight()); // clear canvas
     FXGraphics2D g2 = new FXGraphics2D(gc);
     g2.setRenderingHint(FXHints.KEY_USE_FX_FONT_METRICS, true);
     g2.setZeroStrokeWidth(0.1);
@@ -486,11 +494,22 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @return Legend based on the {@link LookupPaintScale}.
    */
   private PaintScaleLegend generateLegend(double min, double max, @Nonnull PaintScale scale) {
+    Paint axisPaint = getXYPlot().getDomainAxis().getAxisLinePaint();
+    Font axisLabelFont = getXYPlot().getDomainAxis().getLabelFont();
+    Font axisTickLabelFont = getXYPlot().getDomainAxis().getTickLabelFont();
+
     NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setRange(min, max);
-    scaleAxis.setAxisLinePaint(Color.white);
-    scaleAxis.setTickMarkPaint(Color.white);
+    scaleAxis.setAxisLinePaint(axisPaint);
+    scaleAxis.setTickMarkPaint(axisPaint);
     scaleAxis.setNumberFormatOverride(legendAxisFormat);
+    scaleAxis.setLabelFont(axisLabelFont);
+    scaleAxis.setLabelPaint(axisPaint);
+    scaleAxis.setTickLabelFont(axisTickLabelFont);
+    scaleAxis.setTickLabelPaint(axisPaint);
+    if (legendLabel != null) {
+      scaleAxis.setLabel(legendLabel);
+    }
     PaintScaleLegend newLegend = new PaintScaleLegend(scale, scaleAxis);
     newLegend.setPadding(5, 0, 5, 0);
     newLegend.setStripOutlineVisible(false);
@@ -498,10 +517,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     newLegend.setAxisOffset(5.0);
     newLegend.setSubdivisionCount(500);
     newLegend.setPosition(defaultPaintscaleLocation);
-    newLegend.getAxis().setLabelFont(legendFont);
-    newLegend.getAxis().setTickLabelFont(legendFont);
 //    double h =
 //        newLegend.getHeight() + newLegend.getStripWidth() + newLegend.getAxisOffset() ;
+    newLegend.setBackgroundPaint(legendBg);
     return newLegend;
   }
 

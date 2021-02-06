@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -66,7 +67,6 @@ import javafx.scene.shape.Rectangle;
 import javax.annotation.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.Layer;
 import org.jfree.chart.ui.RectangleEdge;
 
@@ -242,7 +242,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void initCharts() {
+    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     final ColoredXYBarRenderer summedSpectrumRenderer = new ColoredXYBarRenderer(false);
+    summedSpectrumRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
+
     summedSpectrumRenderer.setDefaultItemLabelGenerator(
         summedSpectrumChart.getXYPlot().getRenderer().getDefaultItemLabelGenerator());
     summedSpectrumRenderer.setDefaultToolTipGenerator(
@@ -260,6 +263,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     axis.setAutoRangeStickyZero(false);
 
     final ColoredXYBarRenderer singleSpectrumRenderer = new ColoredXYBarRenderer(false);
+    singleSpectrumRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
     singleSpectrumRenderer.setDefaultItemLabelGenerator(
         singleSpectrumChart.getXYPlot().getRenderer().getDefaultItemLabelGenerator());
     singleSpectrumRenderer.setDefaultToolTipGenerator(
@@ -326,9 +330,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
         ((observable, oldValue, newValue) -> selectedMz.set(newValue.getDomainValue())));
     heatmapChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       selectedMz.set(newValue.getDomainValue());
-      selectedMobilityScan.set(
-          ((FrameHeatmapProvider) ((ColoredXYZDataset) newValue.getDataset()).getXyzValueProvider())
-              .getMobilityScanAtValueIndex(newValue.getValueIndex()));
+      if (newValue.getDataset() != null) {
+        selectedMobilityScan.set(((FrameHeatmapProvider) ((ColoredXYZDataset) newValue.getDataset())
+            .getXyzValueProvider()).getMobilityScanAtValueIndex(newValue.getValueIndex()));
+      }
     }));
     ticChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
@@ -336,7 +341,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
       MobilityScan selectedScan =
           ((IMSIonTraceHeatmapProvider) ((ColoredXYZDataset) newValue.getDataset())
               .getXyzValueProvider())
-              .getMobilityScanAtIndex(newValue.getValueIndex());
+              .getSpectrum(newValue.getValueIndex());
       if (selectedScan != null) {
         setSelectedFrame(selectedScan.getFrame());
         selectedMobilityScan.set(selectedScan);
@@ -443,7 +448,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     TICDataSet dataSet = new TICDataSet(rawDataFile, scanSelection.getMatchingScans(rawDataFile),
         rawDataFile.getDataMZRange(), null);
     ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
-    ticChart.getChart().setTitle(new TextTitle("BPC - " + rawDataFile.getName()));
+    ticChart.setTitle("BPC - " + rawDataFile.getName(), "");
     if (!RangeUtils.isJFreeRangeConnectedToGoogleRange(
         ticChart.getXYPlot().getDomainAxis().getRange(), rawDataFile.getDataRTRange(1))) {
       ticChart.getXYPlot().getDomainAxis().setRange(rawDataFile.getDataRTRange().lowerEndpoint(),

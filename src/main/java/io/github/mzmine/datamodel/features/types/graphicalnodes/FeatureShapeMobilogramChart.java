@@ -34,6 +34,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDatase
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import java.awt.Color;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javafx.application.Platform;
@@ -65,6 +66,9 @@ public class FeatureShapeMobilogramChart extends StackPane {
         progress.addAndGet(1.0 / size);
       }
     }
+
+    chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
+    chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     getChildren().add(chart);

@@ -279,6 +279,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.FeatureListClearAnnotationsModule"/>
       <MenuItem text="Neutral loss filter" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule"/>
+      <MenuItem onAction="#runModule" text="mobility-m/z region filter"
+        userData="io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule"/>
     </Menu>
 
     <Menu text="Alignment">
@@ -417,8 +419,6 @@
       userData="io.github.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule"/>
     <MenuItem text="Raw data overview" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
-    <MenuItem text="Spectra merging" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.spectramergingtest.SpectraMergingTestModule"/>
 
     <SeparatorMenuItem/>
     <MenuItem text="Scatter plot" onAction="#runModule"

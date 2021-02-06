@@ -38,9 +38,10 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.imsfeaturevisualizer.IMSFeatureVisualizerModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
@@ -55,6 +56,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -244,6 +246,20 @@ public class FeatureTableContextMenu extends ContextMenu {
         IntensityPlotModule.showIntensityPlot(MZmineCore.getProjectManager().getCurrentProject(),
             selectedFeature.getFeatureList(), selectedRows.toArray(new ModularFeatureListRow[0])));
 
+    final MenuItem showInIMSFeatureVisualizerItem = new ConditionalMenuItem(
+        "Visualize ion mobility features", () -> !selectedFeatures.isEmpty());
+    showInIMSFeatureVisualizerItem.setOnAction(e -> {
+      boolean useMobilograms = true;
+      if (selectedFeatures.size() > 1000) {
+        useMobilograms = MZmineCore.getDesktop()
+            .displayConfirmation("You selected " + selectedFeatures.size()
+                    + " to visualize. This might take a long time or crash MZmine.\nWould you like to "
+                    + "visualize points instead of mobilograms for features?", ButtonType.YES,
+                ButtonType.NO) == ButtonType.NO;
+      }
+      IMSFeatureVisualizerModule.visualizeFeaturesInNewTab(selectedFeatures, useMobilograms);
+    });
+
     final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
         () -> selectedFeature != null && selectedFeature.getRepresentativeScan() != null);
     showSpectrumItem.setOnAction(
@@ -272,13 +288,9 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     // TODO this is still a Swing window :(
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS (still Swing)",
-        () -> !selectedRows.isEmpty() && selectedFeature != null && !selectedFeature
-            .getAllMS2FragmentScans().isEmpty());
-    showAllMSMSItem.setOnAction(e -> SwingUtilities.invokeLater(() -> {
-      MultiSpectraVisualizerWindow
-          multi = new MultiSpectraVisualizerWindow(selectedRows.get(0));
-      multi.setVisible(true);
-    }));
+        () -> !selectedRows.isEmpty() && !selectedRows.get(0).getAllMS2Fragmentations().isEmpty());
+    showAllMSMSItem.setOnAction(
+        e -> MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRows.get(0)));
 
     final MenuItem showIsotopePatternItem = new ConditionalMenuItem("Isotope pattern",
         () -> selectedFeature != null && selectedFeature.getIsotopePattern() != null);
@@ -296,9 +308,10 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, new SeparatorMenuItem(), show2DItem, show3DItem,
-            showIntensityPlotItem, new SeparatorMenuItem(), showSpectrumItem, showMSMSItem,
-            showMSMSMirrorItem, showAllMSMSItem, new SeparatorMenuItem(), showIsotopePatternItem,
-            showSpectralDBResults, new SeparatorMenuItem(), showPeakRowSummaryItem);
+            showIntensityPlotItem, showInIMSFeatureVisualizerItem, new SeparatorMenuItem(),
+            showSpectrumItem, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
+            new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
+            new SeparatorMenuItem(), showPeakRowSummaryItem);
   }
 
   private void onShown() {
@@ -322,10 +335,12 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void updateItem(MenuItem item) {
-    if (item instanceof ConditionalMenuItem conditionalMenuItem) {
+    if (item instanceof ConditionalMenuItem) {
+      ConditionalMenuItem conditionalMenuItem = (ConditionalMenuItem) item;
       conditionalMenuItem.updateVisibility();
     }
-    if (item instanceof Menu menu) {
+    if (item instanceof Menu) {
+      Menu menu = (Menu) item;
       menu.getItems().forEach(this::updateItem);
     }
   }

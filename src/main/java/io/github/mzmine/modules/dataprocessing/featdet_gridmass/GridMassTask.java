@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,6 +78,7 @@ public class GridMassTask extends AbstractTask {
   private ModularFeatureList newPeakList;
 
   private String ignoreTimes = "";
+  private final ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -102,7 +104,7 @@ public class GridMassTask extends AbstractTask {
         ArrayUtils.indexOf(parameters.getParameter(GridMassParameters.showDebug).getValue(),
             GridMassParameters.debugLevels);
     this.ignoreTimes = parameters.getParameter(GridMassParameters.ignoreTimes).getValue();
-
+    this.parameters = parameters;
   }
 
   /**
@@ -565,6 +567,8 @@ public class GridMassTask extends AbstractTask {
     }
     logger.info("Peaks on " + dataFile + " = " + newPeakList.getNumberOfRows());
 
+    dataFile.getAppliedMethods().forEach(method -> newPeakList.getAppliedMethods().add(method));
+    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(GridMassModule.class, parameters));
     // Add new peaklist to the project
     project.addFeatureList(newPeakList);
 

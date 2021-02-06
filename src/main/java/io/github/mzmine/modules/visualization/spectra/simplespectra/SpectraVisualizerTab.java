@@ -18,19 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import java.awt.Color;
-import java.io.File;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -63,6 +50,15 @@ import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.io.File;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
@@ -73,6 +69,10 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javax.annotation.Nonnull;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * Spectrum visualizer using JFreeChart library
@@ -363,11 +363,11 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     String spectrumTitle = ScanUtils.scanToString(currentScan, true);
 
-    int basePeak = scan.getBasePeakIndex();
+    Integer basePeak = scan.getBasePeakIndex();
 
-    if (basePeak >= 0) {
-      spectrumTitle += ", base peak: " + mzFormat.format(scan.getMzValues().get(basePeak))
-          + " m/z (" + intensityFormat.format(scan.getIntensityValues().get(basePeak)) + ")";
+    if (basePeak != 0) {
+      spectrumTitle += ", base peak: " + mzFormat.format(scan.getBasePeakMz())
+          + " m/z (" + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
     }
     String spectrumSubtitle = null;
     if (!Strings.isNullOrEmpty(currentScan.getScanDefinition())) {
@@ -420,10 +420,11 @@ public class SpectraVisualizerTab extends MZmineTab {
   public void loadIsotopes(IsotopePattern newPattern) {
     // We need to find a normalization factor for the new isotope
     // pattern, to show meaningful intensity range
-    int basePeak = newPattern.getBasePeakIndex();
-    if (basePeak < 0)
+    Integer basePeak = newPattern.getBasePeakIndex();
+    if (basePeak == null) {
       return;
-    double mz = newPattern.getMzValues().get(basePeak);
+    }
+    double mz = newPattern.getBasePeakMz();
 
     Range<Double> searchMZRange = Range.closed(mz - 0.5, mz + 0.5);
     ScanDataSet scanDataSet = spectrumPlot.getMainScanDataSet();

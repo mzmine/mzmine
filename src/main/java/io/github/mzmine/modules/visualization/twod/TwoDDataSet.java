@@ -18,9 +18,6 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import org.jfree.data.xy.AbstractXYDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -28,7 +25,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.ArrayList;
+import java.util.Arrays;
 import javafx.application.Platform;
+import org.jfree.data.xy.AbstractXYDataset;
 
 class TwoDDataSet extends AbstractXYDataset implements Task {
 
@@ -86,9 +86,9 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
       retentionTimes[index] = scan.getRetentionTime();
       basePeaks[index] = (scanBasePeakInt == null ? 0 : scanBasePeakInt);
       mzValues[index] = new double[scan.getNumberOfDataPoints()];
-      scan.getMzValues().get(0, mzValues[index]);
+      scan.getMzValues(mzValues[index]);
       intensityValues[index] = new double[scan.getNumberOfDataPoints()];
-      scan.getIntensityValues().get(0, intensityValues[index]);
+      scan.getIntensityValues(intensityValues[index]);
       processedScans++;
     }
 

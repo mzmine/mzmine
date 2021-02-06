@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureConvertors;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +53,7 @@ public class ADAP3DTask extends AbstractTask {
   private final ScanSelection scanSelection;
   private final String suffix;
   private ADAP3DFeatureDetectionMethod msdkADAP3DMethod;
+  private final ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -63,7 +65,7 @@ public class ADAP3DTask extends AbstractTask {
     this.dataFile = dataFile;
     this.scanSelection = parameters.getParameter(ADAP3DParameters.scanSelection).getValue();
     this.suffix = parameters.getParameter(ADAP3DParameters.suffix).getValue();
-
+    this.parameters = parameters;
   }
 
   /**
@@ -165,6 +167,8 @@ public class ADAP3DTask extends AbstractTask {
       rowId++;
     }
 
+    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        ADAP3DModule.class, parameters));
     // Add new peaklist to the project
     project.addFeatureList(newPeakList);
 

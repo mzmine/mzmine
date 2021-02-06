@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.tools.isotopepatternscore;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -31,6 +29,8 @@ import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class IsotopePatternScoreCalculator {
 
@@ -61,10 +61,12 @@ public class IsotopePatternScoreCalculator {
     assert mzTolerance != null;
 
     double pattern1Intensity = 0.0, pattern2Intensity = 0.0;
-    if (ip1.getBasePeakIndex() >= 0)
-      pattern1Intensity = ip1.getIntensityValues().get(ip1.getBasePeakIndex());
-    if (ip2.getBasePeakIndex() >= 0)
-      pattern1Intensity = ip2.getIntensityValues().get(ip2.getBasePeakIndex());
+    if (ip1.getBasePeakIndex() >= 0) {
+      pattern1Intensity = ip1.getIntensityValue(ip1.getBasePeakIndex());
+    }
+    if (ip2.getBasePeakIndex() >= 0) {
+      pattern1Intensity = ip2.getIntensityValue(ip2.getBasePeakIndex());
+    }
     final double patternIntensity = Math.max(pattern1Intensity, pattern2Intensity);
 
     final double noiseIntensity =

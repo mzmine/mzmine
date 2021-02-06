@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -75,6 +76,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private HashMap<Range<Double>, IIonMobilityTrace> rangeToIonTraceMap = new HashMap<>();
   private double progress = 0.0;
   private String taskDescription = "";
+  private final ParameterSet parameters;
 
   @SuppressWarnings("unchecked")
   public IonMobilityTraceBuilderTask(MZmineProject project, RawDataFile rawDataFile,
@@ -92,6 +94,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         parameters.getParameter(IonMobilityTraceBuilderParameters.scanSelection).getValue();
     this.frames = (List<Frame>) scanSelection.getMachtingScans((frames));
     this.suffix = parameters.getParameter(IonMobilityTraceBuilderParameters.suffix).getValue();
+    this.parameters = parameters;
     setStatus(TaskStatus.WAITING);
   }
 
@@ -579,6 +582,11 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       featureList.addRow(newRow);
       featureId++;
     }
+
+    rawDataFile.getAppliedMethods().forEach(m -> featureList.getAppliedMethods().add(m));
+    featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        IonMobilityTraceBuilderModule.class, parameters));
+
     project.addFeatureList(featureList);
   }
 }

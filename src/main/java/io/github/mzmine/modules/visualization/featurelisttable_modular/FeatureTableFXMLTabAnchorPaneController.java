@@ -35,13 +35,13 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
 
 public class FeatureTableFXMLTabAnchorPaneController {
 
@@ -81,9 +81,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
     // Add filter text fields listeners to filter on air
     mzSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     rtSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
-    HBox mzFilter = new HBox(new Text("m/z: "), mzSearchField);
+    HBox mzFilter = new HBox(new Label("m/z: "), mzSearchField);
     mzFilter.setAlignment(filtersRow.getAlignment());
-    HBox rtFilter = new HBox(new Text("RT: "), rtSearchField);
+    HBox rtFilter = new HBox(new Label("RT: "), rtSearchField);
     rtFilter.setAlignment(filtersRow.getAlignment());
 
     filtersRow.getChildren().addAll(filterIcon, mzFilter, separator, rtFilter);

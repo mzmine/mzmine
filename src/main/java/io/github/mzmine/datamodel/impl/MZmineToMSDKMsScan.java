@@ -18,8 +18,6 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import java.util.ArrayList;
-import java.util.List;
 import com.google.common.collect.Range;
 import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
@@ -30,6 +28,8 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.Scan;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Simple implementation of the Scan interface.
@@ -68,7 +68,7 @@ public class MZmineToMSDKMsScan implements MsScan {
   public double[] getMzValues(double[] array) {
     if (array == null || array.length < mzmineScan.getNumberOfDataPoints())
       array = new double[mzmineScan.getNumberOfDataPoints()];
-    mzmineScan.getMzValues().get(array);
+    mzmineScan.getMzValues(array);
     return array;
   }
 
@@ -77,7 +77,7 @@ public class MZmineToMSDKMsScan implements MsScan {
     if (array == null || array.length < mzmineScan.getNumberOfDataPoints())
       array = new float[mzmineScan.getNumberOfDataPoints()];
     for (int i = 0; i < mzmineScan.getNumberOfDataPoints(); i++) {
-      array[i] = (float) mzmineScan.getIntensityValues().get(i);
+      array[i] = (float) mzmineScan.getIntensityValue(i);
     }
     return array;
   }
