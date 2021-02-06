@@ -98,6 +98,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
   private Canvas legendCanvas;
+  private String legendLabel = null;
 
   public SimpleXYZScatterPlot() {
     this("");
@@ -435,6 +436,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
         chart.addSubtitle(legend);
       }
     }
+    MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
     chart.fireChartChanged();
   }
 
@@ -450,6 +452,10 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   public void setLegendCanvas(@Nullable Canvas canvas) {
     this.legendCanvas = canvas;
+  }
+
+  public void setLegendAxisLabel(@Nullable String label) {
+    legendLabel = label;
   }
 
   private void drawLegendToSeparateCanvas(PaintScaleLegend legend) {
@@ -491,6 +497,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
     scaleAxis.setNumberFormatOverride(legendAxisFormat);
+    if (legendLabel != null) {
+      scaleAxis.setLabel(legendLabel);
+    }
     PaintScaleLegend newLegend = new PaintScaleLegend(scale, scaleAxis);
     newLegend.setPadding(5, 0, 5, 0);
     newLegend.setStripOutlineVisible(false);

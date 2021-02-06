@@ -234,11 +234,10 @@ public interface TDFLibrary extends Library {
    *
    * @param handle     see {@link TDFLibrary#tims_open(String, long)}.
    * @param frame_id   Bruker: "list of PASEF precursor IDs; the returned spectra may be in
-   *                   different order" - I doubt that ~SteffenHeu
+   *                   different order"
    * @param scan_begin first scan number to read (inclusive)
    * @param scan_end   last scan number (exclusive)
    * @param callback   Bruker: "callback accepting the MS/MS spectra" - sounds more like MS1 to me?
-   *                   ~SteffenHeu
    * @param user_data  ?????
    * @return 0 on error
    */

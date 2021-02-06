@@ -18,15 +18,17 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.awt.BasicStroke;
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -34,28 +36,27 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.SplitPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 /**
  * Window to show all MS/MS scans of a feature list row
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class MultiSpectraVisualizerWindow extends JFrame {
+public class MultiSpectraVisualizerPane extends BorderPane {
+
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private List<RawDataFile> rawFiles;
@@ -63,69 +64,68 @@ public class MultiSpectraVisualizerWindow extends JFrame {
   private RawDataFile activeRaw;
 
   private static final long serialVersionUID = 1L;
-  private JPanel pnGrid;
-  private JLabel lbRaw;
+  private GridPane pnGrid;
+  private Label lbRaw;
 
   /**
    * Shows best fragmentation scan raw data file first
    *
    * @param row
    */
-  public MultiSpectraVisualizerWindow(FeatureListRow row) {
+  public MultiSpectraVisualizerPane(FeatureListRow row) {
     this(row, row.getBestFragmentation().getDataFile());
   }
 
-  public MultiSpectraVisualizerWindow(FeatureListRow row, RawDataFile raw) {
-    setBackground(Color.WHITE);
-    setExtendedState(JFrame.MAXIMIZED_BOTH);
-    setMinimumSize(new Dimension(800, 600));
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    getContentPane().setLayout(new BorderLayout());
+  public MultiSpectraVisualizerPane(FeatureListRow row, RawDataFile raw) {
+    getStyleClass().add("region-match-chart-bg");
 
-    pnGrid = new JPanel();
+//    setExtendedState(JFrame.MAXIMIZED_BOTH);
+    setMinSize(800, 600);
+
+    pnGrid = new GridPane();
+    var colCon = new ColumnConstraints();
+    colCon.setFillWidth(true);
+    pnGrid.getColumnConstraints().add(colCon);
     // any number of rows
-    pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
-    pnGrid.setAutoscrolls(true);
+//    pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
+//    pnGrid.setAutoscrolls(true);
+    pnGrid.setVgap(25);
 
-    JScrollPane scrollPane = new JScrollPane(pnGrid);
-    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-    getContentPane().add(scrollPane, BorderLayout.CENTER);
+    ScrollPane scrollPane = new ScrollPane(pnGrid);
+    scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    setCenter(scrollPane);
 
-    JPanel pnMenu = new JPanel();
-    FlowLayout fl_pnMenu = (FlowLayout) pnMenu.getLayout();
-    fl_pnMenu.setVgap(0);
-    fl_pnMenu.setAlignment(FlowLayout.LEFT);
-    getContentPane().add(pnMenu, BorderLayout.NORTH);
+    FlowPane pnMenu = new FlowPane();
+    pnMenu.setAlignment(Pos.TOP_LEFT);
+    pnMenu.setVgap(0);
+    setTop(pnMenu);
 
-    JButton nextRaw = new JButton("next");
-    nextRaw.addActionListener(e -> nextRaw());
-    JButton prevRaw = new JButton("prev");
-    prevRaw.addActionListener(e -> prevRaw());
-    pnMenu.add(prevRaw);
-    pnMenu.add(nextRaw);
+    Button nextRaw = new Button("next");
+    nextRaw.setOnAction(e -> nextRaw());
+    Button prevRaw = new Button("prev");
+    prevRaw.setOnAction(e -> prevRaw());
+    pnMenu.getChildren().addAll(prevRaw, nextRaw);
 
-    lbRaw = new JLabel();
-    pnMenu.add(lbRaw);
+    lbRaw = new Label();
+    pnMenu.getChildren().add(lbRaw);
 
-    JLabel lbRawTotalWithFragmentation = new JLabel();
-    pnMenu.add(lbRaw);
+    Label lbRawTotalWithFragmentation = new Label();
+    pnMenu.getChildren().add(lbRawTotalWithFragmentation);
 
     int n = 0;
     for (Feature f : row.getFeatures()) {
-      if (f.getMostIntenseFragmentScan() != null)
+      if (f.getMostIntenseFragmentScan() != null) {
         n++;
+      }
     }
     lbRawTotalWithFragmentation.setText("(total raw:" + n + ")");
 
     // add charts
     setData(row, raw);
 
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setVisible(true);
-    validate();
-    repaint();
-    pack();
   }
 
   /**
@@ -179,20 +179,23 @@ public class MultiSpectraVisualizerWindow extends JFrame {
 
     this.activeRaw = raw;
     // clear
-    pnGrid.removeAll();
+    pnGrid.getChildren().clear();
 
     ObservableList<Scan> numbers = peak.getAllMS2FragmentScans();
+    int i = 0;
     for (Scan scan : numbers) {
-      pnGrid.add(addSpectra(scan));
+      BorderPane pn = addSpectra(scan);
+      pn.minWidthProperty().bind(widthProperty().subtract(30));
+      pnGrid.add(pn, 0, i++);
     }
 
     int n = indexOfRaw(raw);
     lbRaw.setText(n + ": " + raw.getName());
-    logger.log(Level.INFO, "All MS/MS scans window: Added " + numbers.size()
+    logger.finest("All MS/MS scans window: Added " + numbers.size()
         + " spectra of raw file " + n + ": " + raw.getName());
     // show
-    pnGrid.revalidate();
-    pnGrid.repaint();
+//    pnGrid.revalidate();
+//    pnGrid.repaint();
     return true;
   }
 
@@ -200,10 +203,11 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     return Arrays.asList(rawFiles).indexOf(raw);
   }
 
-  private JPanel addSpectra(Scan scan) {
-    JPanel panel = new JPanel(new BorderLayout());
+  private BorderPane addSpectra(Scan scan) {
+    BorderPane panel = new BorderPane();
     // Split pane for eic plot (top) and spectrum (bottom)
-    JSplitPane bottomPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+    SplitPane bottomPane = new SplitPane();
+    bottomPane.setOrientation(Orientation.VERTICAL);
 
     // Create EIC plot
     // labels for TIC visualizer
@@ -247,13 +251,14 @@ public class MultiSpectraVisualizerWindow extends JFrame {
 
     XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
     plot.addDomainMarker(marker);
-    // bottomPane.add(ticPlot);
-    bottomPane.setResizeWeight(0.5);
-    bottomPane.setEnabled(true);
-    bottomPane.setDividerSize(5);
-    bottomPane.setDividerLocation(200);
+    bottomPane.getItems().add(ticPlot);
+//    bottomPane.setResizeWeight(0.5);
+//    bottomPane.setEnabled(true);
+//    bottomPane.setDividerSize(5);
+//    bottomPane.setDividerLocation(200);
 
-    JSplitPane spectrumPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+    SplitPane spectrumPane = new SplitPane();
+    spectrumPane.setOrientation(Orientation.HORIZONTAL);
 
     // get MS/MS spectra window
     SpectraVisualizerTab spectraTab = new SpectraVisualizerTab(activeRaw);
@@ -263,14 +268,14 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     SpectraPlot spectrumPlot = spectraTab.getSpectrumPlot();
     spectrumPlot.getChart().getLegend().setVisible(false);
     // spectrumPlot.setPreferredSize(new Dimension(600, 400));
-    // spectrumPane.add(spectrumPlot);
-    // spectrumPane.add(spectraWindow.getToolBar());
-    spectrumPane.setResizeWeight(1);
-    spectrumPane.setEnabled(false);
-    spectrumPane.setDividerSize(0);
-    bottomPane.add(spectrumPane);
-    panel.add(bottomPane);
-    panel.setBorder(BorderFactory.createLineBorder(Color.black));
+    spectrumPane.getItems().add(spectrumPlot);
+    spectrumPane.getItems().add(spectraTab.getToolBar());
+//    spectrumPane.setResizeWeight(1);
+//    spectrumPane.setEnabled(false);
+//    spectrumPane.setDividerSize(0);
+    bottomPane.getItems().add(spectrumPane);
+    panel.setCenter(bottomPane);
+//    panel.setBorder(BorderFactory.createLineBorder(Color.black));
     return panel;
   }
 }

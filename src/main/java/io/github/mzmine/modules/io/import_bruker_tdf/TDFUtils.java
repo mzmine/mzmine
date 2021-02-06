@@ -24,13 +24,12 @@ import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.TDFLibrary;
@@ -49,9 +48,7 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -170,7 +167,7 @@ public class TDFUtils {
    * @param frameId   The id of the frame. See {@link TDFFrameTable}
    * @param scanBegin The first scan number
    * @param scanEnd   The last scan number
-   * @return List of DataPoint[]. Each array represents the data points of one scan
+   * @return List of double[][]. Each array represents the data points of one scan
    */
   public static List<double[][]> loadDataPointsForFrame(final long handle, final long frameId,
       final long scanBegin, final long scanEnd) {
@@ -242,12 +239,13 @@ public class TDFUtils {
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
-  public static Set<MobilityScan> loadSpectraForTIMSFrame(RawDataFile newFile, final long handle,
+  public static List<BuildingMobilityScan> loadSpectraForTIMSFrame(RawDataFile newFile,
+      final long handle,
       final long frameId, final Frame frame, @Nonnull final TDFFrameTable frameTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
-    final LinkedHashSet<MobilityScan> spectra = new LinkedHashSet<>(numScans);
+    final List<BuildingMobilityScan> spectra = new ArrayList<>(numScans);
     final List<double[][]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
@@ -262,7 +260,7 @@ public class TDFUtils {
        */
 
       spectra.add(
-          new SimpleMobilityScan(newFile, i, frame, dataPoints.get(i)[0], dataPoints.get(i)[1]));
+          new BuildingMobilityScan(i, dataPoints.get(i)[0], dataPoints.get(i)[1]));
     }
 
     return spectra;
@@ -479,6 +477,16 @@ public class TDFUtils {
       array[i] = i;
     }
     return array;
+  }
+
+  public static Double calculateCCS(double ook0, int charge, double mz) {
+    if (tdfLib == null) {
+      boolean loaded = TDFUtils.loadLibrary();
+      if (!loaded) {
+        return null;
+      }
+    }
+    return tdfLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
   }
 
   // ---------------------------------------------------------------------------------------------
