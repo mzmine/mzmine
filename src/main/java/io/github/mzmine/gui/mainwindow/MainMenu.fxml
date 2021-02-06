@@ -107,16 +107,16 @@
     <Menu text="Raw data export">
       <MenuItem text="mzML"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule"/>
+        userData="io.github.mzmine.modules.io.export_mzml.MzMLExportModule"/>
       <MenuItem text="netCDF"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.netcdfexport.NetCDFExportModule"/>
+        userData="io.github.mzmine.modules.io.export_netcdf.NetCDFExportModule"/>
       <MenuItem text="Export scans mgf, txt, msp and mzML"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.exportscans.ExportScansFromRawFilesModule"/>
+        userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
       <MenuItem text="Extract scans to CSV file"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.exportscans.ExportScansModule"/>
+        userData="io.github.mzmine.modules.io.export_scans.ExportScansModule"/>
     </Menu>
     <MenuItem text="Merge raw data files" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule"/>

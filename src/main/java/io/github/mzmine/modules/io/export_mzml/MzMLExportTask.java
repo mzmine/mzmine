@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.export_netcdf;
+package io.github.mzmine.modules.io.export_mzml;
 
 import java.io.File;
 import java.util.logging.Logger;
@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
-public class RawDataExportTask extends AbstractTask {
+public class MzMLExportTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
@@ -44,7 +44,7 @@ public class RawDataExportTask extends AbstractTask {
    * @param dataFile
    * @param parameters
    */
-  public RawDataExportTask(RawDataFile dataFile, File outFilename) {
+  public MzMLExportTask(RawDataFile dataFile, File outFilename) {
     this.dataFile = dataFile;
     this.outFilename = outFilename;
   }
