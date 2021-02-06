@@ -19,13 +19,14 @@
 package io.github.mzmine.modules.io.import_bruker_tdf;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
