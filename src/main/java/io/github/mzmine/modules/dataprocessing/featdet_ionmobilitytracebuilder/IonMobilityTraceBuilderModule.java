@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -57,7 +56,7 @@ public class IonMobilityTraceBuilderModule implements MZmineProcessingModule {
       List<Frame> frames = (List<Frame>) ((IMSRawDataFile) file).getFrames();
       IonMobilityTraceBuilderTask task =
           new IonMobilityTraceBuilderTask(project, file, frames, parameters);
-      MZmineCore.getTaskController().addTask(task);
+      tasks.add(task);
     }
 
     return ExitCode.OK;
