@@ -19,13 +19,17 @@
 package io.github.mzmine.modules.io.import_bruker_tdf;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameTable;
@@ -44,6 +48,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -85,8 +90,8 @@ public class TDFImportTask extends AbstractTask {
   /**
    * @param project
    * @param file
-   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via
-   *        {@link MZmineCore#createNewIMSFile(String)}.
+   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via {@link
+   *                      MZmineCore#createNewIMSFile(String)}.
    */
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile) {
     this.fileNameToOpen = file;
@@ -192,7 +197,6 @@ public class TDFImportTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
     }
-
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
 
@@ -200,6 +204,9 @@ public class TDFImportTask extends AbstractTask {
     // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
     // metaDataTable, maldiFrameInfoTable);
     // }
+
+    // now assign MS/MS infos
+    constructMsMsInfo(newMZmineFile, framePrecursorTable);
 
     TDFUtils.close(handle);
 
@@ -384,7 +391,42 @@ public class TDFImportTask extends AbstractTask {
     rawDataFile.addSegment(Range.closed(1, frameTable.lastFrameId()));
   }
 
-  /*private void compareMobilities(IMSRawDataFile rawDataFile) {
+  private void constructMsMsInfo(IMSRawDataFile file, FramePrecursorTable precursorTable) {
+    setDescription("Assigning MS/MS precursor info for " + rawDataFileName + ".");
+
+    Date start = new Date();
+    int constructed = 0;
+    for (Frame frame : file.getFrames()) {
+      if (frame.getMSLevel() == 1) {
+        continue;
+      }
+
+      Set<BuildingPASEFMsMsInfo> buildingInfo =
+          precursorTable.getMsMsInfoForFrame(frame.getFrameId());
+
+      for (BuildingPASEFMsMsInfo building : buildingInfo) {
+        int parentFrameNumber = building.getParentFrameNumber();
+
+        Optional<Frame> optionalFrame = (Optional<Frame>) file.getFrames().stream()
+            .filter(f -> f.getFrameId() == parentFrameNumber).findFirst();
+        Frame parentFrame = optionalFrame.orElseGet(() -> null);
+
+        ImsMsMsInfo info = new ImsMsMsInfoImpl(building.getLargestPeakMz(),
+            building.getSpectrumNumberRange(), building.getCollisionEnergy(),
+            building.getPrecursorCharge(), parentFrame, frame);
+
+        frame.getImsMsMsInfos().add(info);
+        constructed++;
+      }
+    }
+
+    Date end = new Date();
+    logger.info(
+        "Construced " + constructed + " ImsMsMsInfos for " + file.getFrames().size() + " in " + (
+            end.getTime() - start.getTime()) + " ms");
+  }
+
+ /*private void compareMobilities(IMSRawDataFile rawDataFile) {
     for (int i = 1; i < rawDataFile.getNumberOfFrames() - 1; i++) {
       Frame thisFrame = rawDataFile.getFrame(i);
       Frame nextFrame = rawDataFile.getFrame(i + 1);

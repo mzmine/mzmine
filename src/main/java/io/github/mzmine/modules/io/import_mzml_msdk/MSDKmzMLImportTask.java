@@ -155,7 +155,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
           if (!buildingImsMsMsInfos.isEmpty()) {
             finishedImsMsMsInfos = new HashSet<>();
             for (BuildingImsMsMsInfo info : buildingImsMsMsInfos) {
-              finishedImsMsMsInfos.add(info.build());
+              finishedImsMsMsInfos.add(info.build(null, buildingFrame));
             }
             finishedFrame.setPrecursorInfos(finishedImsMsMsInfos);
           }

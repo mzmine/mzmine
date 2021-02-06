@@ -136,7 +136,7 @@ public class CCSCalcTask extends AbstractTask {
       }
 
       workingFeatureList.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod("CSS calculation", parameters));
+          .add(new SimpleFeatureListAppliedMethod(CCSCalcModule.class, parameters));
       if (workingFeatureList != featureList) {
         project.addFeatureList(workingFeatureList);
       }

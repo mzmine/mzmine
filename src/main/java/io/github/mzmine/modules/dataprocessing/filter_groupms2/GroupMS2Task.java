@@ -19,25 +19,37 @@
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
+import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Filters out feature list rows.
@@ -48,10 +60,10 @@ public class GroupMS2Task extends AbstractTask {
   private static final Logger logger = Logger.getLogger(GroupMS2Task.class.getName());
   // Feature lists.
   private final MZmineProject project;
-  // Processed rows counter
-  private int processedRows, totalRows;
   // Parameters.
   private final ParameterSet parameters;
+  // Processed rows counter
+  private int processedRows, totalRows;
   private FeatureList list;
   private RTTolerance rtTol;
   private MZTolerance mzTol;
@@ -98,8 +110,9 @@ public class GroupMS2Task extends AbstractTask {
       totalRows = list.getNumberOfRows();
       // for all features
       for (FeatureListRow row : list.getRows()) {
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         processRow(row);
         processedRows++;
@@ -120,10 +133,16 @@ public class GroupMS2Task extends AbstractTask {
 
   /**
    * Group all MS2 scans with the corresponding features (per raw data file)
+   *
    * @param row
    */
   public void processRow(FeatureListRow row) {
     for (Feature f : row.getFeatures()) {
+      if (f instanceof ModularFeature && ((ModularFeature) f).get(MobilityUnitType.class).getValue()
+          == io.github.mzmine.datamodel.MobilityType.TIMS) {
+        processTimsFeature((ModularFeature) f);
+        continue;
+      }
       RawDataFile raw = f.getRawDataFile();
       float frt = f.getRT();
       double fmz = f.getMZ();
@@ -144,6 +163,65 @@ public class GroupMS2Task extends AbstractTask {
     return (!limitRTByFeature || rtRange.contains(scan.getRetentionTime()))
         && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())
         && scan.getPrecursorMZ() != 0
-          && mzTol.checkWithinTolerance(fmz, scan.getPrecursorMZ());
+        && mzTol.checkWithinTolerance(fmz, scan.getPrecursorMZ());
+  }
+
+  private void processTimsFeature(ModularFeature feature) {
+
+    float frt = feature.getRT();
+    double fmz = feature.getMZ();
+    Range<Float> rtRange = feature.getRawDataPointsRTRange();
+    Float mobility = feature.get(MobilityType.class).getValue();
+
+    List<? extends Scan> scans = feature.getRawDataFile().getScans().stream()
+        .filter(scan -> rtTol.checkWithinTolerance(frt, scan.getRetentionTime())
+            && scan.getMSLevel() == 2).collect(Collectors.toList());
+
+    if (scans.isEmpty() || !(scans.get(0) instanceof Frame)) {
+      return;
+    }
+
+    List<Frame> frames = (List<Frame>) scans;
+    List<ImsMsMsInfo> eligibleMsMsInfos = new ArrayList<>();
+    for (Frame frame : frames) {
+      frame.getImsMsMsInfos().forEach(imsMsMsInfo -> {
+        if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getLargestPeakMz())) {
+
+          // todo: maybe revisit this for a more sophisticated range check
+          int mobilityScannumberOffset = frame.getMobilityScan(0).getMobilityScamNumber();
+          float mobility1 = (float) frame.getMobilityForMobilityScanNumber(
+              imsMsMsInfo.getSpectrumNumberRange().lowerEndpoint() - mobilityScannumberOffset);
+          float mobility2 = (float) frame.getMobilityForMobilityScanNumber(
+              imsMsMsInfo.getSpectrumNumberRange().upperEndpoint() - mobilityScannumberOffset);
+          if (Range.singleton(mobility1).span(Range.singleton(mobility2)).contains(mobility)) {
+            eligibleMsMsInfos.add(imsMsMsInfo);
+          }
+        }
+      });
+    }
+
+    if (eligibleMsMsInfos.isEmpty()) {
+      return;
+    }
+    feature.set(ImsMsMsInfoType.class, eligibleMsMsInfos);
+
+    ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();
+    for (ImsMsMsInfo info : eligibleMsMsInfos) {
+      MergedMsMsSpectrum spectrum = SpectraMerging
+          .getMergedMsMsSpectrumForPASEF(info, 1E1, mzTol, MergingType.SUMMED,
+              ((ModularFeatureList) list).getMemoryMapStorage());
+      if (spectrum != null) {
+        msmsSpectra.add(spectrum);
+      }
+    }
+
+    if (!msmsSpectra.isEmpty()) {
+      feature.setAllMS2FragmentScans(
+          (ObservableList<Scan>) (ObservableList<? extends Scan>) msmsSpectra);
+      MergedMsMsSpectrum best = msmsSpectra.stream()
+          .max(Comparator.comparingDouble(MergedMsMsSpectrum::getTIC)).orElse(null);
+      feature.setFragmentScan(best);
+    }
+
   }
 }
