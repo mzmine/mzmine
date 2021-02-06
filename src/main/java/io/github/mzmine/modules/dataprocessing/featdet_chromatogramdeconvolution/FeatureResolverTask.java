@@ -385,6 +385,10 @@ public class FeatureResolverTask extends AbstractTask {
     }
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows() + " have less than 4 frames");
     QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
+
+    resolvedFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters));
+
     newPeakList = resolvedFeatureList;
   }
 
@@ -442,6 +446,10 @@ public class FeatureResolverTask extends AbstractTask {
       }
       processedRows++;
     }
+
+    resolvedFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters));
+
     return resolvedFeatureList;
   }
 
@@ -460,8 +468,9 @@ public class FeatureResolverTask extends AbstractTask {
 //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
-    resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Feature resolving", parameters));
+    // since we dont create a copy, we have to copy manually
+    originalFeatureList.getAppliedMethods().forEach(m -> resolvedFeatureList.getAppliedMethods().add(m));
+    // the new method is added later, since we don't know here which resolver module is used.
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
     if (originalFeatureList.getFeature(0, originalFeatureList.getRawDataFile(0))

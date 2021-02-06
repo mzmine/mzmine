@@ -808,7 +808,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("IsotopePeakScanner", parameters));
+        new SimpleFeatureListAppliedMethod("IsotopePeakScanner",
+            IsotopePeakScannerModule.class, parameters));
   }
 
   private PolarityType getPeakListPolarity(FeatureList peakList) {

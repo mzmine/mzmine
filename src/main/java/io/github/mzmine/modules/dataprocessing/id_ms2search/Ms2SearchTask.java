@@ -181,7 +181,8 @@ class Ms2SearchTask extends AbstractTask {
 
     // Add task description to peakList
     ((ModularFeatureList) peakList1).addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Identification of similar MS2s", parameters));
+        new SimpleFeatureListAppliedMethod("Identification of similar MS2s",
+            Ms2SearchModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -280,9 +281,6 @@ class Ms2SearchTask extends AbstractTask {
 
   /**
    * Add new identity based on fragmentation similarity to the row
-   *
-   * @param mainRow
-   * @param fragmentRow
    */
   private void addMS2Identity(FeatureListRow row1, Feature featureA, Feature featureB,
       Ms2SearchResult searchResult) {

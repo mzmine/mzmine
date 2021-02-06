@@ -18,6 +18,24 @@
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
+import com.Ostermiller.util.Base64;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.modules.io.projectload.PeakListOpenHandler;
+import io.github.mzmine.util.DataTypeUtils;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -34,25 +52,6 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import com.Ostermiller.util.Base64;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureInformation;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.modules.io.projectload.PeakListOpenHandler;
-import io.github.mzmine.util.DataTypeUtils;
 
 public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListOpenHandler {
 
@@ -519,9 +518,9 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
     for (int i = 0; i < appliedMethods.size(); i++) {
       String methodName = appliedMethods.elementAt(i);
       String methodParams = appliedMethodParameters.elementAt(i);
-      SimpleFeatureListAppliedMethod pam =
+      /*SimpleFeatureListAppliedMethod pam =
           new SimpleFeatureListAppliedMethod(methodName, methodParams);
-      buildingPeakList.addDescriptionOfAppliedTask(pam);
+      buildingPeakList.addDescriptionOfAppliedTask(pam);*/
     }
     buildingPeakList.setDateCreated(dateCreated);
   }

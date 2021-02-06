@@ -22,7 +22,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -173,7 +172,8 @@ class PeakFinderTask extends AbstractTask {
 
     // Add task description to peakList
     processedPeakList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
+            PeakFinderModule.class, parameters));
 
     // Remove the original peaklist if requested
     if (removeOriginal)

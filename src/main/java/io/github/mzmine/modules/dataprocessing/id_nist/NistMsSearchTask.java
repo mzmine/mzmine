@@ -25,6 +25,8 @@ import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParame
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MS_LEVEL;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
+
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -132,6 +134,8 @@ public class NistMsSearchTask extends AbstractTask {
   private final File nistMsSearchDir;
   private final File nistMsSearchExe;
 
+  private final ParameterSet parameterSet;
+
   /**
    * Create the task.
    *
@@ -178,6 +182,8 @@ public class NistMsSearchTask extends AbstractTask {
     } else {
       integerMZ = null;
     }
+
+    this.parameterSet = params;
   }
 
   @Override
@@ -203,6 +209,8 @@ public class NistMsSearchTask extends AbstractTask {
       if (!isCanceled()) {
 
         // Finished.
+        peakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+            NistMsSearchModule.class, parameterSet));
         setStatus(TaskStatus.FINISHED);
         logger.info("NIST MS Search completed");
       }
@@ -213,6 +221,8 @@ public class NistMsSearchTask extends AbstractTask {
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
     }
+
+
   }
 
   /**

@@ -181,7 +181,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
     FeatureListUtils.copyPeakListAppliedMethods(alignedFeatureList, result);
     result.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(PeakListBlankSubtractionModule.MODULE_NAME, parameters));
+        new SimpleFeatureListAppliedMethod(PeakListBlankSubtractionModule.class, parameters));
 
     project.addFeatureList(result);
 

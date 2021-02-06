@@ -338,7 +338,8 @@ public class JoinAlignerTask extends AbstractTask {
     // Add task description to peakList
     alignedFeatureList
         .addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod("Join aligner", parameters));
+            new SimpleFeatureListAppliedMethod("Join aligner", JoinAlignerModule.class,
+                parameters));
 
     logger.info("Finished join aligner");
 

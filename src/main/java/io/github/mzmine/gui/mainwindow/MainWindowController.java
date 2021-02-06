@@ -18,23 +18,14 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import io.github.mzmine.util.javafx.groupablelistview.GroupEntity;
-import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.logging.Logger;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.controlsfx.control.StatusBar;
+import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import com.google.common.collect.ImmutableList;
-import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
-import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -47,23 +38,30 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.util.FeatureTableFXUtil;
-import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
-import javafx.application.Platform;
-import javafx.scene.control.ContextMenu;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.groupablelistview.GroupEntity;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
+import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -73,6 +71,7 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -84,6 +83,7 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -105,6 +105,9 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.controlsfx.control.StatusBar;
 
 public class MainWindowController {
 
@@ -129,6 +132,8 @@ public class MainWindowController {
 
   @FXML
   public ContextMenu rawDataContextMenu;
+  @FXML
+  public ContextMenu featureListContextMenu;
 
   @FXML
   public MenuItem rawDataGroupMenuItem;
@@ -687,7 +692,27 @@ public class MainWindowController {
   }
 
   public void handleShowFeatureListSummary(Event event) {
-    // TODO
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("FeatureListSummary.fxml"));
+
+    ObservableList<FeatureList> selectedValues = featureListsList.getSelectedValues();
+    if(selectedValues.isEmpty()) {
+      return;
+    }
+
+    ModularFeatureList selectedFeatureList = (ModularFeatureList) selectedValues.get(0);
+
+    try {
+      AnchorPane pane = loader.load();
+      Stage stage = new Stage();
+      stage.setTitle("Feature list summary - " + selectedFeatureList.getName());
+      stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+      stage.setScene(new Scene(pane));
+      FeatureListSummaryController controller = loader.getController();
+      controller.setFeatureList(selectedFeatureList);
+      stage.show();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public void handleShowScatterPlot(Event event) {

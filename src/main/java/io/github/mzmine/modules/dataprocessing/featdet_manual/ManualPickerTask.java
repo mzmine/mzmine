@@ -26,9 +26,11 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
@@ -52,6 +54,7 @@ class ManualPickerTask extends AbstractTask {
   private RawDataFile dataFiles[];
   private Range<Double> mzRange;
   private Range<Float> rtRange;
+  private final ParameterSet parameterSet;
 
   ManualPickerTask(MZmineProject project, FeatureListRow featureListRow, RawDataFile dataFiles[],
       ManualPickerParameters parameters, FeatureList featureList, FeatureTableFX table) {
@@ -65,7 +68,7 @@ class ManualPickerTask extends AbstractTask {
     // TODO: FloatRangeParameter
     rtRange = RangeUtils.toFloatRange(parameters.getParameter(ManualPickerParameters.retentionTimeRange).getValue());
     mzRange = parameters.getParameter(ManualPickerParameters.mzRange).getValue();
-
+    this.parameterSet = parameters;
   }
 
   @Override
@@ -153,6 +156,9 @@ class ManualPickerTask extends AbstractTask {
       // TODO:
       //((AbstractTableModel) table.getModel()).fireTableDataChanged();
     }
+
+    featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        ManualFeaturePickerModule.class, parameterSet));
 
     logger.finest("Finished manual feature picker, " + processedScans + " scans processed");
 

@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
@@ -57,6 +58,11 @@ import javax.annotation.Nonnull;
  * Use XCMS findPeaks.centWave to identify peaks.
  */
 public class ADAPResolver implements FeatureResolver {
+
+  @Override
+  public Class<? extends MZmineProcessingModule> getModuleClass() {
+    return AdapResolverModule.class;
+  }
 
   // Logger.
   private static final Logger logger = Logger.getLogger(ADAPResolver.class.getName());
