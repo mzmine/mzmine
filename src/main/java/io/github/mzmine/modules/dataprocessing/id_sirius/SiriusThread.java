@@ -18,9 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
+import static io.github.mzmine.modules.dataprocessing.id_sirius.PeakListIdentificationTask.addSiriusCompounds;
+import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MASS_LIST;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
+import org.openscience.cdk.formula.MolecularFormulaRange;
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
-
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.datamodel.IonType;
 import io.github.msdk.datamodel.MsSpectrum;
@@ -39,31 +54,11 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 
-import static io.github.mzmine.modules.dataprocessing.id_sirius.PeakListIdentificationTask.addSiriusCompounds;
-import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MASS_LIST;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import org.openscience.cdk.formula.MolecularFormulaRange;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * SiriusThread class Allows to process PeakListIdentificationTask faster by subthreading it.
  */
 public class SiriusThread implements Runnable {
-  private static final Logger logger = LoggerFactory.getLogger(SiriusThread.class);
+  private static final Logger logger = Logger.getLogger(SiriusThread.class.getName());
 
   // Use executor to run Sirius Identification Method as an Interruptable
   // thread.
@@ -91,7 +86,7 @@ public class SiriusThread implements Runnable {
 
   /**
    * Constructor for SiriusThread - initializes params
-   * 
+   *
    * @param row
    * @param semaphore
    * @param parameters
@@ -179,7 +174,7 @@ public class SiriusThread implements Runnable {
             MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
             Thread.sleep(1000);
           } catch (InterruptedException interrupt) {
-            logger.error("Processing of FingerWebMethods were interrupted");
+            logger.severe("Processing of FingerWebMethods were interrupted");
 
             /* If interrupted, store last item */
             List<IonAnnotation> lastItem = new LinkedList<>();
@@ -189,9 +184,9 @@ public class SiriusThread implements Runnable {
         }
       }
     } catch (InterruptedException | TimeoutException ie) {
-      logger.error("Timeout on Sirius method expired, abort. Row id = {}", peakListRow.getID());
+      logger.severe("Timeout on Sirius method expired, abort. Row id = " + peakListRow.getID());
     } catch (ExecutionException ce) {
-      logger.error("Concurrency error during Sirius method.  Row id = {}", peakListRow.getID());
+      logger.severe("Concurrency error during Sirius method.  Row id = " + peakListRow.getID());
     } finally {
       // Do not forget to release resources!
       releaseResources();
@@ -204,6 +199,5 @@ public class SiriusThread implements Runnable {
   private void releaseResources() {
     latch.countDown();
     semaphore.release();
-    logger.debug("Semaphore RELEASED");
   }
 }

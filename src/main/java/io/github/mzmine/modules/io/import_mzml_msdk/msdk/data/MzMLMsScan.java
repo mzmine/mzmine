@@ -13,6 +13,16 @@
 
 package io.github.mzmine.modules.io.import_mzml_msdk.msdk.data;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.ActivationInfo;
@@ -27,18 +37,7 @@ import io.github.msdk.spectra.centroidprofiledetection.SpectrumTypeDetectionAlgo
 import io.github.msdk.util.MsSpectrumUtil;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.modules.io.import_mzml_msdk.msdk.MzMLFileImportMethod;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 /**
  * <p>
@@ -47,20 +46,16 @@ import org.slf4j.LoggerFactory;
  */
 public class MzMLMsScan implements MsScan {
 
-  private final @Nonnull
-  MzMLRawDataFile dataFile;
+  private final @Nonnull MzMLRawDataFile dataFile;
   private final MzMLCVGroup cvParams;
   private final MzMLPrecursorList precursorList;
   private final MzMLProductList productList;
   private final MzMLScanList scanList;
   private MzMLBinaryDataInfo mzBinaryDataInfo;
   private MzMLBinaryDataInfo intensityBinaryDataInfo;
-  private @Nonnull
-  InputStream inputStream;
-  private final @Nonnull
-  String id;
-  private final @Nonnull
-  Integer scanNumber;
+  private @Nonnull InputStream inputStream;
+  private final @Nonnull String id;
+  private final @Nonnull Integer scanNumber;
   private final int numOfDataPoints;
 
   private MsSpectrumType spectrumType;
@@ -71,18 +66,17 @@ public class MzMLMsScan implements MsScan {
   private double[] mzValues;
   private float[] intensityValues;
 
-  private Logger logger = LoggerFactory.getLogger(MzMLFileImportMethod.class);
+  private Logger logger = Logger.getLogger(getClass().getName());
 
   /**
    * <p>
    * Constructor for {@link MzMLMsScan MzMLMsScan}
    * </p>
    *
-   * @param dataFile        a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the
-   *                        data in
-   * @param is              an {@link InputStream InputStream} of the MzML format data
-   * @param id              the Scan ID
-   * @param scanNumber      the Scan Number
+   * @param dataFile a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the data in
+   * @param is an {@link InputStream InputStream} of the MzML format data
+   * @param id the Scan ID
+   * @param scanNumber the Scan Number
    * @param numOfDataPoints the number of data points in the m/z and intensity arrays
    */
   public MzMLMsScan(MzMLRawDataFile dataFile, InputStream is, String id, Integer scanNumber,
@@ -244,14 +238,13 @@ public class MzMLMsScan implements MsScan {
   public double[] getMzValues(double array[]) {
     if (mzValues == null) {
       if (getMzBinaryDataInfo().getArrayLength() != numOfDataPoints) {
-        logger.warn(
+        logger.warning(
             "m/z binary data array contains a different array length from the default array length of the scan (#"
                 + getScanNumber() + ")");
       }
 
       try {
-        mzValues = MzMLPeaksDecoder
-            .decodeToDouble(inputStream, getMzBinaryDataInfo(), array);
+        mzValues = MzMLPeaksDecoder.decodeToDouble(inputStream, getMzBinaryDataInfo(), array);
       } catch (Exception e) {
         throw (new MSDKRuntimeException(e));
       }
@@ -273,7 +266,7 @@ public class MzMLMsScan implements MsScan {
   public float[] getIntensityValues(float array[]) {
     if (intensityValues == null) {
       if (getIntensityBinaryDataInfo().getArrayLength() != numOfDataPoints) {
-        logger.warn(
+        logger.warning(
             "Intensity binary data array contains a different array length from the default array length of the scan (#"
                 + getScanNumber() + ")");
       }
@@ -554,7 +547,7 @@ public class MzMLMsScan implements MsScan {
     if (!getScanList().getScans().isEmpty()) {
       for (MzMLCVParam param : getScanList().getScans().get(0).getCVParamsList()) {
         String accession = param.getAccession();
-        if(param.getValue().isEmpty()) {
+        if (param.getValue().isEmpty()) {
           continue;
         }
         switch (accession) {
@@ -647,7 +640,8 @@ public class MzMLMsScan implements MsScan {
    *
    * @param accession the CV Parameter accession as {@link String String}
    * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
-   * accession, if present <br> An empty {@link Optional Optional<String>} otherwise
+   *         accession, if present <br>
+   *         An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(String accession) {
     return getCVValue(cvParams, accession);
@@ -659,10 +653,11 @@ public class MzMLMsScan implements MsScan {
    * MzMLCVGroup}
    * </p>
    *
-   * @param group     the {@link MzMLCVGroup MzMLCVGroup} to search through
+   * @param group the {@link MzMLCVGroup MzMLCVGroup} to search through
    * @param accession the CV Parameter accession as {@link String String}
    * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
-   * accession, if present <br> An empty {@link Optional Optional<String>} otherwise
+   *         accession, if present <br>
+   *         An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(MzMLCVGroup group, String accession) {
     Optional<String> value;
