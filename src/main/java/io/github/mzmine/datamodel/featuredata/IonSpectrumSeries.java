@@ -59,6 +59,7 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
 
   /**
    * Creates a sub series of this series with the data corresponding to the given list of spectra.
+   * Used during deconvolution, when a feature is cut into several individual features.
    *
    * @param storage The new storage, may be null if data shall be stored in ram.
    * @param subset  The subset of spectra.

@@ -75,7 +75,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private HashMap<Range<Double>, IIonMobilityTrace> rangeToIonTraceMap = new HashMap<>();
   private double progress = 0.0;
   private String taskDescription = "";
-  private List<Frame> sortedFrames;
 
   @SuppressWarnings("unchecked")
   public IonMobilityTraceBuilderTask(MZmineProject project, RawDataFile rawDataFile,
@@ -92,9 +91,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     this.scanSelection =
         parameters.getParameter(IonMobilityTraceBuilderParameters.scanSelection).getValue();
     this.frames = (List<Frame>) scanSelection.getMachtingScans((frames));
-    this.sortedFrames = this.frames.stream().sorted(Comparator.comparingInt(Frame::getFrameId))
-        .collect(
-            Collectors.toList());
     this.suffix = parameters.getParameter(IonMobilityTraceBuilderParameters.suffix).getValue();
     setStatus(TaskStatus.WAITING);
   }
@@ -261,11 +257,11 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       progress += progressStep;
       Range<Double> currentRangeKey = rangeIterator.next();
       IIonMobilityTrace ionTrace = rangeToIonTraceMap.get(currentRangeKey);
-      if (ionTrace.getDataPoints().size() >= minTotalSignals
-          && checkNumberOfRetentionTimeDataPoints(ionTrace.getDataPoints())) {
-//        logger.info("Build ion trace for m/z range " + ionTrace.getMzRange());
-        finishIonTrace(ionTrace);
-        ionMobilityTraces.add(ionTrace);
+      if (ionTrace.getDataPoints().size() >= minTotalSignals) {
+        ionTrace = finishIonTrace(ionTrace);
+        if (ionTrace != null) {
+          ionMobilityTraces.add(ionTrace);
+        }
       }
     }
     return ionMobilityTraces;
@@ -277,17 +273,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     Range<Double> rawDataPointsMobilityRange = null;
     Range<Float> rawDataPointsRtRange = null;
     LinkedHashSet<MobilityScan> scanNumbers = new LinkedHashSet<>();
-    /*SortedSet<RetentionTimeMobilityDataPoint> sortedRetentionTimeMobilityDataPoints =
-        new TreeSet<>((o1, o2) -> {
-          int frameComp = Integer
-              .compare(o1.getFrame().getScanNumber(), o2.getFrame().getScanNumber());
-          if (frameComp != 0) {
-            return frameComp;
-          } else {
-            return Integer.compare(o1.getMobilityScan().getMobilityScamNumber(),
-                o2.getMobilityScan().getMobilityScamNumber());
-          }
-        });*/
 
     Float rt = 0.0f;
     double mobility = 0.0f;
@@ -297,8 +282,12 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         .groupDataPointsByFrameId(ionTrace.getDataPoints());
     double maximumIntensity = Double.MIN_VALUE;
 
+    if (!checkConsecutiveFrames(groupedDps, frames)) {
+      return null;
+    }
+
     // fill borders of peaks with 0s
-    Set<RetentionTimeMobilityDataPoint> frameFillers = addZerosForFrames(sortedFrames,
+    Set<RetentionTimeMobilityDataPoint> frameFillers = addZerosForFrames(frames,
         (SortedSet<Frame>) groupedDps.keySet(), ionTrace.getMz(),
         ionTrace.getDataPoints(), 0, null, 4, 1);
     Set<RetentionTimeMobilityDataPoint> mobilityScanFillers = new HashSet<>();
@@ -390,6 +379,31 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     // }
 
     return ionTrace;
+  }
+
+  private boolean checkConsecutiveFrames(SortedMap<Frame, ?> groupedDps, List<Frame> frames) {
+    // check for consecutive frames
+    int consecutive = 0;
+
+    Iterator<Frame> frameIterator = groupedDps.keySet().iterator();
+    Frame frame = frameIterator.next();
+    int index = frames.indexOf(frame);
+    boolean found = false;
+    for (int i = index + 1; i < frames.size() && frameIterator.hasNext(); i++) {
+      // now go forward
+      frame = frameIterator.next();
+      if (frame == frames.get(i)) {
+        consecutive++;
+        if (consecutive >= minDataPointsRt) {
+          found = true;
+          break;
+        }
+      } else {
+        i = frames.indexOf(frame);
+        consecutive = 0;
+      }
+    }
+    return found;
   }
 
   private Set<RetentionTimeMobilityDataPoint> addZerosForMobilityScans(Frame frame,
@@ -543,15 +557,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       }
     }
     return mobilityScans.get(mobilityScans.size() - 1);
-  }
-
-  private boolean checkNumberOfRetentionTimeDataPoints(
-      Set<RetentionTimeMobilityDataPoint> dataPoints) {
-    Set<Float> retentionTimes = new HashSet<>();
-    for (RetentionTimeMobilityDataPoint dataPoint : dataPoints) {
-      retentionTimes.add(dataPoint.getRetentionTime());
-    }
-    return (retentionTimes.size() >= minDataPointsRt);
   }
 
   private void buildModularFeatureList(SortedSet<IIonMobilityTrace> ionMobilityTraces) {

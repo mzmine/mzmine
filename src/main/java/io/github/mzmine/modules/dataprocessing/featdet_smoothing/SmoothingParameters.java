@@ -30,35 +30,37 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import javafx.collections.FXCollections;
 
 /**
  * Defines smoothing task parameters.
- * 
+ *
  * @author $Author$
  * @version $Revision$
  */
 public class SmoothingParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
-
   /**
    * Raw data file suffix.
    */
   public static final StringParameter SUFFIX = new StringParameter("Filename suffix",
       "Suffix to be appended to peak-list file name", "smoothed");
-
   /**
    * Filter width.
    */
   public static final ComboParameter<Integer> FILTER_WIDTH = new ComboParameter<Integer>(
       "Filter width (retention time)", "Number of data point covered by the smoothing filter",
       new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5);
-
   public static final ComboParameter<Integer> MOBILITY_FILTER_WIDTH = new ComboParameter<Integer>(
       "Filter width (mobility)",
       "Number of data point covered by the smoothing filter. Will not affect smoothing if there is no mobility dimension.",
       new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5);
 
+  public static final ComboParameter<MobilitySmoothingType> MOBILITY_SMOOTHING_TYPE =
+      new ComboParameter<>("Smooth individual/summed mobilograms",
+          "Determines if summed or single mobilograms shall be smoothed.", FXCollections
+          .observableArrayList(MobilitySmoothingType.values()), MobilitySmoothingType.SUMMED);
   /**
    * Remove original data file.
    */
@@ -70,6 +72,22 @@ public class SmoothingParameters extends SimpleParameterSet {
    * Create the parameter set.
    */
   public SmoothingParameters() {
-    super(new Parameter[]{peakLists, SUFFIX, FILTER_WIDTH, MOBILITY_FILTER_WIDTH, REMOVE_ORIGINAL});
+    super(new Parameter[]{peakLists, SUFFIX, FILTER_WIDTH, MOBILITY_FILTER_WIDTH,
+        MOBILITY_SMOOTHING_TYPE, REMOVE_ORIGINAL});
+  }
+
+  enum MobilitySmoothingType {
+    SUMMED("Summed"), INDIVIDUAL("Individual");
+
+    private final String str;
+
+    MobilitySmoothingType(String str) {
+      this.str = str;
+    }
+
+    @Override
+    public String toString() {
+      return str;
+    }
   }
 }

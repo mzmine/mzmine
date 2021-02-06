@@ -44,8 +44,13 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   private final SummedIntensityMobilitySeries data;
   private final String seriesKey;
   private final SimpleObjectProperty<Color> color;
+  private final boolean swapAxes;
 
   public SummedMobilogramXYProvider(final ModularFeature f) {
+    this(f, false);
+  }
+
+  public SummedMobilogramXYProvider(final ModularFeature f, boolean swapAxes) {
     IonTimeSeries<? extends Scan> series = f.getFeatureData();
     if (!(series instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException(
@@ -54,13 +59,20 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     data = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
     color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
     seriesKey = "m/z " + mzFormat.format(f.getMZ());
+    this.swapAxes = swapAxes;
   }
 
   public SummedMobilogramXYProvider(SummedIntensityMobilitySeries summedMobilogram,
       SimpleObjectProperty<Color> color, String seriesKey) {
+    this(summedMobilogram, color, seriesKey, false);
+  }
+
+  public SummedMobilogramXYProvider(SummedIntensityMobilitySeries summedMobilogram,
+      SimpleObjectProperty<Color> color, String seriesKey, boolean swapAxes) {
     this.seriesKey = seriesKey;
     this.color = color;
     this.data = summedMobilogram;
+    this.swapAxes = swapAxes;
   }
 
   @Nonnull
@@ -100,11 +112,17 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
 
   @Override
   public double getDomainValue(int index) {
+    if (swapAxes) {
+      return data.getIntensity(index);
+    }
     return data.getMobility(index);
   }
 
   @Override
   public double getRangeValue(int index) {
+    if (swapAxes) {
+      return data.getMobility(index);
+    }
     return data.getIntensity(index);
   }
 

@@ -16,64 +16,56 @@
  *  USA
  */
 
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
-package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
-
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
-import java.awt.Color;
-import javafx.beans.property.ObjectProperty;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/**
- * Can be used to plot {@link IonTimeSeries<Scan>} and extending classes as a chromatogram.
- *
- * @author https://github.com/SteffenHeu
- */
-public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPropertyProvider {
+public class SingleSpectrumProvider implements PlotXYDataProvider {
 
-  private final IonTimeSeries<? extends Scan> series;
+  private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+
+  private final MassSpectrum spectrum;
   private final String seriesKey;
-  private final SimpleObjectProperty<javafx.scene.paint.Color> color;
+  private final Color color;
 
-  public IonTimeSeriesToXYProvider(@Nonnull IonTimeSeries<? extends Scan> series,
-      @Nonnull String seriesKey,
-      @Nonnull SimpleObjectProperty<javafx.scene.paint.Color> color) {
-    this.series = series;
+  public SingleSpectrumProvider(MassSpectrum spectrum, String seriesKey, Color color) {
+    this.spectrum = spectrum;
     this.seriesKey = seriesKey;
     this.color = color;
   }
 
-  public IonTimeSeriesToXYProvider(ModularFeature f) {
-    series = f.getFeatureData();
-    seriesKey = FeatureUtils.featureToString(f);
-    color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
+  public SingleSpectrumProvider(Scan scan) {
+    this(scan, ScanUtils.scanToString(scan, false), scan.getDataFile().getColor());
   }
 
   @Nonnull
   @Override
-  public Color getAWTColor() {
-    return FxColorUtil.fxColorToAWT(color.get());
+  public java.awt.Color getAWTColor() {
+    return FxColorUtil.fxColorToAWT(color);
   }
 
   @Nonnull
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return color.get();
+    return color;
   }
 
   @Nullable
   @Override
   public String getLabel(int index) {
-    return null;
+    return mzFormat.format(spectrum.getMzValue(index));
   }
 
   @Nonnull
@@ -85,44 +77,33 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   @Nullable
   @Override
   public String getToolTipText(int itemIndex) {
-    return null;
+    return "m/z: " + mzFormat
+        .format(spectrum.getMzValue(itemIndex) + "\nIntensity: " + intensityFormat
+            .format(spectrum.getIntensityValue(itemIndex)));
   }
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    // no computation needed, all data is taken from the double buffers in the feature data.
+
   }
 
   @Override
   public double getDomainValue(int index) {
-    return series.getRetentionTime(index);
+    return spectrum.getMzValue(index);
   }
 
   @Override
   public double getRangeValue(int index) {
-    return series.getIntensity(index);
+    return spectrum.getIntensityValue(index);
   }
 
   @Override
   public int getValueCount() {
-    return series.getNumberOfValues();
+    return spectrum.getNumberOfDataPoints();
   }
 
   @Override
   public double getComputationFinishedPercentage() {
     return 1d;
-  }
-
-  @Override
-  public ObjectProperty<javafx.scene.paint.Color> fxColorProperty() {
-    return color;
-  }
-
-  @Nullable
-  public Scan getScan(int index) {
-    if (index >= series.getNumberOfValues()) {
-      return null;
-    }
-    return series.getSpectra().get(index);
   }
 }

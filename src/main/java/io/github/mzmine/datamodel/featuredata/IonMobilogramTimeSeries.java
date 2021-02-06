@@ -51,15 +51,19 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame> {
    * Creates a copy of this series using the same frame list, but with new mz/intensities and new
    * mobilograms, e.g. after smoothing.
    *
-   * @param storage            May be null if data shall be stored in ram
+   * @param storage                             May be null if data shall be stored in ram
    * @param newMzValues
    * @param newIntensityValues
    * @param newMobilograms
+   * @param smoothedSummedMobilogramIntensities If the summed mobilogram has been smoothed, the
+   *                                            smoothed intensities can be passed here. If null,
+   *                                            the previous intensities will be used.
    * @return
    */
   IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues,
-      @Nonnull List<SimpleIonMobilitySeries> newMobilograms);
+      @Nonnull List<SimpleIonMobilitySeries> newMobilograms,
+      @Nullable double[] smoothedSummedMobilogramIntensities);
 
   /**
    * @param scan

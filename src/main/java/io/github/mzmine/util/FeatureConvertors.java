@@ -194,7 +194,7 @@ public class FeatureConvertors {
     // TODO
     modularFeature.set(AreaType.class, (float) 0);
     // TODO
-    modularFeature.set(BestScanNumberType.class, -1);
+    modularFeature.set(BestScanNumberType.class, null);
 
     // Data points of feature
 //    List<DataPoint> dps = new ArrayList<>(ionTrace.getDataPoints());

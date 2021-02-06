@@ -52,8 +52,6 @@ public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> 
    * @param mzValues
    * @param intensityValues
    * @param scans
-   * @param forceStoreInRam Forces storage of mz and intensity values in ram. Note that all series
-   *                        created as subset or copy from this series will also be stored in ram.
    */
   public SimpleIonMobilitySeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, @Nonnull List<MobilityScan> scans) {

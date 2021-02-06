@@ -337,7 +337,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
       MobilityScan selectedScan =
           ((IMSIonTraceHeatmapProvider) ((ColoredXYZDataset) newValue.getDataset())
               .getXyzValueProvider())
-              .getMobilityScanAtIndex(newValue.getValueIndex());
+              .getSpectrum(newValue.getValueIndex());
       if (selectedScan != null) {
         setSelectedFrame(selectedScan.getFrame());
         selectedMobilityScan.set(selectedScan);
