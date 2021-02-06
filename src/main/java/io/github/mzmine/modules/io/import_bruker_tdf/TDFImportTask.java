@@ -120,8 +120,8 @@ public class TDFImportTask extends AbstractTask {
 
     if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead() || !tdfBin.exists()
         || !tdfBin.canRead()) {
-      setStatus(TaskStatus.ERROR);
       setErrorMessage("Cannot open sql or bin files: " + tdf.getName() + "; " + tdfBin.getName());
+      setStatus(TaskStatus.ERROR);
     }
 
     metaDataTable = new TDFMetaDataTable();
@@ -176,6 +176,7 @@ public class TDFImportTask extends AbstractTask {
         frameId++;
         loadedFrames++;
         if (isCanceled()) {
+          TDFUtils.close(handle);
           return;
         }
       }
@@ -185,12 +186,17 @@ public class TDFImportTask extends AbstractTask {
 
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
+
     // } else {
     // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
     // metaDataTable, maldiFrameInfoTable);
     // }
 
     TDFUtils.close(handle);
+
+    if (isCanceled()) {
+      return;
+    }
 
     setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
     finishedPercentage = 1.0;
@@ -329,11 +335,13 @@ public class TDFImportTask extends AbstractTask {
   private File[] getDataFilesFromDir(File dir) {
 
     if (!dir.exists() || !dir.isDirectory()) {
+      setStatus(TaskStatus.CANCELED);
       throw new IllegalArgumentException("Invalid directory.");
     }
 
     if (!dir.getAbsolutePath().endsWith(".d")) {
-      throw new IllegalArgumentException("Invalid directory ending..");
+      setStatus(TaskStatus.CANCELED);
+      throw new IllegalArgumentException("Invalid directory ending.");
     }
 
     File[] files = dir.listFiles(pathname -> {
@@ -368,17 +376,24 @@ public class TDFImportTask extends AbstractTask {
     rawDataFile.addSegment(Range.closed(1, frameTable.getNumberOfFrames()));
   }
 
-  /*
-   * private void compareMobilities(IMSRawDataFile rawDataFile) { for (int i = 1; i <
-   * rawDataFile.getNumberOfFrames() - 1; i++) { Frame thisFrame = rawDataFile.getFrame(i); Frame
-   * nextFrame = rawDataFile.getFrame(i + 1);
-   *
-   * if (nextFrame == null) { break; }
-   *
-   * Set<Integer> nums = thisFrame.getMobilityScanNumbers(); for (Integer num : nums) { if
-   * (Double.compare(thisFrame.getMobilityForMobilityScanNumber(num),
-   * nextFrame.getMobilityForMobilityScanNumber(num)) != 0) { logger.info("Mobilities for num " +
-   * num + " dont match 1: " + thisFrame.getMobilityForMobilityScanNumber(num) + " 2: " +
-   * nextFrame.getMobilityForMobilityScanNumber(num)); } } } }
-   */
+  /*private void compareMobilities(IMSRawDataFile rawDataFile) {
+    for (int i = 1; i < rawDataFile.getNumberOfFrames() - 1; i++) {
+      Frame thisFrame = rawDataFile.getFrame(i);
+      Frame nextFrame = rawDataFile.getFrame(i + 1);
+
+      if (nextFrame == null) {
+        break;
+      }
+
+      Set<Integer> nums = thisFrame.getMobilityScanNumbers();
+      for (Integer num : nums) {
+        if (Double.compare(thisFrame.getMobilityForMobilityScanNumber(num),
+            nextFrame.getMobilityForMobilityScanNumber(num)) != 0) {
+          logger.info("Mobilities for num " + num + " dont match 1: "
+              + thisFrame.getMobilityForMobilityScanNumber(num) + " 2: "
+              + nextFrame.getMobilityForMobilityScanNumber(num));
+        }
+      }
+    }
+  }*/
 }

@@ -66,12 +66,13 @@ public class FeatureDataUtils {
     double max = Double.MIN_VALUE;
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
-      final double mz = series.getIntensity(i);
-      if (mz < min) {
-        min = mz;
+      final double intensity = series.getIntensity(i);
+      // we add flanking 0s during building, don't count those
+      if (intensity < min && intensity > 0d) {
+        min = intensity;
       }
-      if (mz > max) {
-        max = mz;
+      if (intensity > max) {
+        max = intensity;
       }
     }
     return Range.closed((float) min, (float) max);
