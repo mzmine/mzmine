@@ -25,6 +25,10 @@ import javafx.application.Platform;
 
 public class FxThreadUtil {
 
+  /**
+   * Simulates Swing's invokeAndWait(). Based on
+   * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
+   */
   public static void runOnFxThreadAndWait(@Nonnull Runnable action) {
 
     Preconditions.checkNotNull(action);
