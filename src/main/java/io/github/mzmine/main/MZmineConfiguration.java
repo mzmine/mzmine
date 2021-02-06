@@ -68,6 +68,13 @@ public interface MZmineConfiguration {
 
   public NumberFormat getMobilityFormat();
 
+  /**
+   *
+   * @return The default collision cross section format
+   * @see io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule
+   */
+  public NumberFormat getCCSFormat();
+
   public NumberFormat getIntensityFormat();
 
   public NumberFormat getPPMFormat();

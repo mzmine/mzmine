@@ -23,6 +23,7 @@ import io.github.msdk.datamodel.Feature;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -49,7 +50,6 @@ import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
@@ -188,7 +188,8 @@ public class FeatureConvertors {
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.set(MZType.class, ionTrace.getMz());
     modularFeature.set(RTType.class, (float) ionTrace.getRetentionTime());
-    modularFeature.set(MobilityType.class, (float) ionTrace.getMobility());
+    modularFeature.setMobility((float) ionTrace.getMobility());
+    modularFeature.setMobilityUnit(((IMSRawDataFile) rawDataFile).getMobilityType());
 
     modularFeature.set(HeightType.class, (float) ionTrace.getMaximumIntensity());
     // TODO
