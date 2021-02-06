@@ -111,30 +111,16 @@ import org.controlsfx.control.StatusBar;
 
 public class MainWindowController {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
   private static final Image featureListSingleIcon =
       FxIconUtil.loadImageFromResources("icons/peaklisticon_single.png");
-
   private static final Image featureListAlignedIcon =
       FxIconUtil.loadImageFromResources("icons/peaklisticon_aligned.png");
-
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-
-  @FXML
-  private Scene mainScene;
-
-  @FXML
-  private GroupableListView<RawDataFile> rawDataList;
-
-  @FXML
-  private GroupableListView<FeatureList> featureListsList;
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   @FXML
   public ContextMenu rawDataContextMenu;
   @FXML
   public ContextMenu featureListContextMenu;
-
   @FXML
   public MenuItem rawDataGroupMenuItem;
   @FXML
@@ -145,7 +131,6 @@ public class MainWindowController {
   public MenuItem rawDataRemoveExtensionMenuItem;
   @FXML
   public MenuItem rawDataSetColorMenuItem;
-
   @FXML
   public MenuItem openFeatureListMenuItem;
   @FXML
@@ -154,7 +139,12 @@ public class MainWindowController {
   public MenuItem featureListsRenameMenuItem;
   @FXML
   public MenuItem featureListsRemoveMenuItem;
-
+  @FXML
+  private Scene mainScene;
+  @FXML
+  private GroupableListView<RawDataFile> rawDataList;
+  @FXML
+  private GroupableListView<FeatureList> featureListsList;
   @FXML
   private AnchorPane tbRawData;
 
@@ -210,44 +200,45 @@ public class MainWindowController {
         ? "Aligned feature lists"
         : featureList.getRawDataFile(0).getName());
 
-    rawDataList.setCellFactory(rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
+    rawDataList
+        .setCellFactory(rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
-      @Override
-      protected void updateItem(GroupableListViewEntity item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || (item == null)) {
-          setText("");
-          setGraphic(null);
-          return;
-        }
-        if (item instanceof GroupEntity) {
-          return;
-        }
+          @Override
+          protected void updateItem(GroupableListViewEntity item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || (item == null)) {
+              setText("");
+              setGraphic(null);
+              return;
+            }
+            if (item instanceof GroupEntity) {
+              return;
+            }
 
-        RawDataFile rawDataFile = ((ValueEntity<RawDataFile>) item).getValue();
+            RawDataFile rawDataFile = ((ValueEntity<RawDataFile>) item).getValue();
 
-        setText(rawDataFile.getName());
-        setGraphic(new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor())));
+            setText(rawDataFile.getName());
+            setGraphic(new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor())));
 
-        rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
-          // Check raw data file name to avoid 'setGraphic' invocation for other items from
-          // different thread, where 'updateItem' is called. Can it be done better?!
-          if (rawDataFile.getName().equals(getText())) {
-            setGraphic(new ImageView(FxIconUtil.getFileIcon(newColor)));
+            rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
+              // Check raw data file name to avoid 'setGraphic' invocation for other items from
+              // different thread, where 'updateItem' is called. Can it be done better?!
+              if (rawDataFile.getName().equals(getText())) {
+                setGraphic(new ImageView(FxIconUtil.getFileIcon(newColor)));
+              }
+            });
+          }
+
+          @Override
+          public void commitEdit(GroupableListViewEntity item) {
+            super.commitEdit(item);
+            if (item instanceof GroupEntity) {
+              return;
+            }
+
+            ((ValueEntity<RawDataFile>) item).getValue().setName(getText());
           }
         });
-      }
-
-      @Override
-      public void commitEdit(GroupableListViewEntity item) {
-        super.commitEdit(item);
-        if (item instanceof GroupEntity) {
-          return;
-        }
-
-        ((ValueEntity<RawDataFile>) item).getValue().setName(getText());
-      }
-    });
 
     // Add mouse clicked event handler
     rawDataList.setOnMouseClicked(event -> {
@@ -281,7 +272,7 @@ public class MainWindowController {
       }
     });
 
-    featureListsList.setCellFactory(featureListView ->  new GroupableListViewCell<FeatureList>() {
+    featureListsList.setCellFactory(featureListView -> new GroupableListViewCell<FeatureList>() {
       @Override
       protected void updateItem(GroupableListViewEntity item, boolean empty) {
         super.updateItem(item, empty);
@@ -325,7 +316,7 @@ public class MainWindowController {
           if (tab instanceof MZmineTab && tab.isSelected()
               && ((MZmineTab) tab).isUpdateOnSelection()
               && !(CollectionUtils.isEqualCollection(
-                  ((MZmineTab) tab).getRawDataFiles(), change.getList()))) {
+              ((MZmineTab) tab).getRawDataFiles(), change.getList()))) {
             ((MZmineTab) tab).onRawDataFileSelectionChanged(change.getList());
           }
         }
@@ -334,7 +325,7 @@ public class MainWindowController {
 
     featureListsList.getSelectedValues().addListener((ListChangeListener<FeatureList>) change -> {
       Platform.runLater(() -> {
-          change.next();
+        change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
           if (tab instanceof MZmineTab && tab.isSelected()
               && ((MZmineTab) tab).isUpdateOnSelection()
@@ -379,21 +370,21 @@ public class MainWindowController {
 
       @Override
       public void updateItem(Double value, boolean empty) {
-      super.updateItem(value, empty);
-      if (empty) {
-        return;
-      }
-      ProgressBar progressBar = new ProgressBar(value);
-      progressBar.setOpacity(0.3);
-      progressBar.prefWidthProperty().bind(taskProgressColumn.widthProperty().subtract(20));
-      String labelText = percentFormat.format(value);
-      Label percentLabel = new Label(labelText);
-      percentLabel.setTextFill(Color.BLACK);
-      StackPane stack = new StackPane();
-      stack.setManaged(true);
-      stack.getChildren().addAll(progressBar, percentLabel);
-      setGraphic(stack);
-      setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        super.updateItem(value, empty);
+        if (empty) {
+          return;
+        }
+        ProgressBar progressBar = new ProgressBar(value);
+        progressBar.setOpacity(0.3);
+        progressBar.prefWidthProperty().bind(taskProgressColumn.widthProperty().subtract(20));
+        String labelText = percentFormat.format(value);
+        Label percentLabel = new Label(labelText);
+        percentLabel.setTextFill(Color.BLACK);
+        StackPane stack = new StackPane();
+        stack.setManaged(true);
+        stack.getChildren().addAll(progressBar, percentLabel);
+        setGraphic(stack);
+        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
       }
     });
 
@@ -451,7 +442,8 @@ public class MainWindowController {
 
             if (rawDataList.getSelectionModel().getSelectedItems().size() == 1) {
               rawDataRenameMenuItem.setDisable(false);
-              if (rawDataList.getSelectionModel().getSelectedItems().get(0) instanceof GroupEntity) {
+              if (rawDataList.getSelectionModel().getSelectedItems()
+                  .get(0) instanceof GroupEntity) {
                 rawDataRenameMenuItem.setText("Rename group");
               } else {
                 rawDataRenameMenuItem.setText("Rename file");
@@ -481,7 +473,8 @@ public class MainWindowController {
 
             if (featureListsList.getSelectionModel().getSelectedItems().size() == 1) {
               featureListsRenameMenuItem.setDisable(false);
-              if (featureListsList.getSelectionModel().getSelectedItems().get(0) instanceof GroupEntity) {
+              if (featureListsList.getSelectionModel().getSelectedItems()
+                  .get(0) instanceof GroupEntity) {
                 featureListsRenameMenuItem.setText("Rename group");
               } else {
                 featureListsRenameMenuItem.setText("Rename file");
@@ -583,7 +576,8 @@ public class MainWindowController {
   }
 
 
-  public void handleShowMsMsPlot(Event event) {}
+  public void handleShowMsMsPlot(Event event) {
+  }
 
   public void handleRawDataSort(Event event) {
     rawDataList.sortSelectedItems();
@@ -600,7 +594,8 @@ public class MainWindowController {
     rawDataList.refresh();
   }
 
-  public void handleExportFile(Event event) {}
+  public void handleExportFile(Event event) {
+  }
 
   public void handleRenameRawData(Event event) {
     if (rawDataList.getSelectionModel() == null) {
@@ -646,8 +641,9 @@ public class MainWindowController {
     logger.info("Setting parameters for module " + module.getName());
 
     ExitCode exitCode = moduleParameters.showSetupDialog(true);
-    if (exitCode != ExitCode.OK)
+    if (exitCode != ExitCode.OK) {
       return;
+    }
 
     ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
     logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
@@ -695,7 +691,7 @@ public class MainWindowController {
     FXMLLoader loader = new FXMLLoader(getClass().getResource("FeatureListSummary.fxml"));
 
     ObservableList<FeatureList> selectedValues = featureListsList.getSelectedValues();
-    if(selectedValues.isEmpty()) {
+    if (selectedValues.isEmpty()) {
       return;
     }
 
@@ -707,6 +703,8 @@ public class MainWindowController {
       stage.setTitle("Feature list summary - " + selectedFeatureList.getName());
       stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
       stage.setScene(new Scene(pane));
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       FeatureListSummaryController controller = loader.getController();
       controller.setFeatureList(selectedFeatureList);
       stage.show();
@@ -804,7 +802,7 @@ public class MainWindowController {
                 .onRawDataFileSelectionChanged(rawDataList.getSelectedValues());
           }
 
-          if(((MZmineTab) tab).getFeatureLists() != null && !((MZmineTab) tab).getFeatureLists()
+          if (((MZmineTab) tab).getFeatureLists() != null && !((MZmineTab) tab).getFeatureLists()
               .equals(featureListsList.getSelectionModel().getSelectedItems())) {
             ((MZmineTab) tab)
                 .onFeatureListSelectionChanged(featureListsList.getSelectedValues());

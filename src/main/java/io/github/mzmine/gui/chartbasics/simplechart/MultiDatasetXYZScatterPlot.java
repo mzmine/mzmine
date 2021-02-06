@@ -87,6 +87,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   protected static final Logger logger = Logger.getLogger(SimpleXYZScatterPlot.class.getName());
 
   protected static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
+  protected final Color legendBg = new Color(0, 0, 0, 0); // bg is transparent
   protected final JFreeChart chart;
 
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
@@ -488,6 +489,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
 
   private void drawLegendToSeparateCanvas(PaintScaleLegend legend) {
     GraphicsContext gc = legendCanvas.getGraphicsContext2D();
+    gc.clearRect(0, 0, legendCanvas.getWidth(), legendCanvas.getHeight()); // clear canvas
     FXGraphics2D g2 = new FXGraphics2D(gc);
     g2.setRenderingHint(FXHints.KEY_USE_FX_FONT_METRICS, true);
     g2.setZeroStrokeWidth(0.1);
@@ -518,27 +520,32 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
    * @return Legend based on the {@link LookupPaintScale}.
    */
   private PaintScaleLegend generateLegend(@Nonnull PaintScale scale) {
+    Paint axisPaint = getXYPlot().getDomainAxis().getAxisLinePaint();
+    Font axisLabelFont = getXYPlot().getDomainAxis().getLabelFont();
+    Font axisTickLabelFont = getXYPlot().getDomainAxis().getTickLabelFont();
+
     NumberAxis scaleAxis = new NumberAxis(null);
-    double min = scale.getLowerBound();
-    double max = scale.getUpperBound();
-    scaleAxis.setRange(min, max);
-    scaleAxis.setAxisLinePaint(Color.white);
-    scaleAxis.setTickMarkPaint(Color.white);
+    scaleAxis.setRange(scale.getLowerBound(), scale.getUpperBound());
+    scaleAxis.setAxisLinePaint(axisPaint);
+    scaleAxis.setTickMarkPaint(axisPaint);
     scaleAxis.setNumberFormatOverride(legendAxisFormat);
+    scaleAxis.setLabelFont(axisLabelFont);
+    scaleAxis.setLabelPaint(axisPaint);
+    scaleAxis.setTickLabelFont(axisTickLabelFont);
+    scaleAxis.setTickLabelPaint(axisPaint);
     if (legendLabel != null) {
       scaleAxis.setLabel(legendLabel);
     }
     PaintScaleLegend newLegend = new PaintScaleLegend(scale, scaleAxis);
-    newLegend.setPadding(5, 5, 5, 5);
+    newLegend.setPadding(5, 0, 5, 0);
     newLegend.setStripOutlineVisible(false);
     newLegend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     newLegend.setAxisOffset(5.0);
     newLegend.setSubdivisionCount(500);
     newLegend.setPosition(defaultPaintscaleLocation);
-    newLegend.getAxis().setLabelFont(legendFont);
-    newLegend.getAxis().setTickLabelFont(legendFont);
 //    double h =
 //        newLegend.getHeight() + newLegend.getStripWidth() + newLegend.getAxisOffset() ;
+    newLegend.setBackgroundPaint(legendBg);
     return newLegend;
   }
 
