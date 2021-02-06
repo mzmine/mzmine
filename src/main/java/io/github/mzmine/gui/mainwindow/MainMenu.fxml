@@ -419,8 +419,6 @@
       userData="io.github.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule"/>
     <MenuItem text="Raw data overview" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
-    <MenuItem text="Spectra merging" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.spectramergingtest.SpectraMergingTestModule"/>
 
     <SeparatorMenuItem/>
     <MenuItem text="Scatter plot" onAction="#runModule"
