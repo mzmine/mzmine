@@ -341,10 +341,12 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void updateItem(MenuItem item) {
-    if (item instanceof ConditionalMenuItem conditionalMenuItem) {
+    if (item instanceof ConditionalMenuItem) {
+      ConditionalMenuItem conditionalMenuItem = (ConditionalMenuItem) item;
       conditionalMenuItem.updateVisibility();
     }
-    if (item instanceof Menu menu) {
+    if (item instanceof Menu) {
+      Menu menu = (Menu) item;
       menu.getItems().forEach(this::updateItem);
     }
   }

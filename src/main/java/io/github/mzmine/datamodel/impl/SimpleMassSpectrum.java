@@ -35,16 +35,44 @@ public class SimpleMassSpectrum extends AbstractMassSpectrum {
   public DoubleBuffer getMzValues() {
     if (mzValues == null)
       return EMPTY_BUFFER;
-    else
+    else {
       return mzValues;
+    }
   }
 
   @Override
   public DoubleBuffer getIntensityValues() {
-    if (intensityValues == null)
+    if (intensityValues == null) {
       return EMPTY_BUFFER;
-    else
+    } else {
       return intensityValues;
+    }
+  }
+
+  @Override
+  public double[] getMzValues(@Nonnull double[] dst) {
+    double[] array = mzValues.array();
+    if (dst.length < array.length) {
+      return array;
+    }
+
+    for (int i = 0; i < mzValues.array().length; i++) {
+      dst[i] = array[i];
+    }
+    return dst;
+  }
+
+  @Override
+  public double[] getIntensityValues(@Nonnull double[] dst) {
+    double[] array = intensityValues.array();
+    if (dst.length < array.length) {
+      return array;
+    }
+
+    for (int i = 0; i < intensityValues.array().length; i++) {
+      dst[i] = array[i];
+    }
+    return dst;
   }
 
   public synchronized void setDataPoints(@Nonnull double mzValues[],

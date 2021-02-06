@@ -18,18 +18,18 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import java.nio.DoubleBuffer;
-import java.util.Iterator;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
+import java.nio.DoubleBuffer;
+import java.util.Iterator;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * A basic implementation of the MassSpectrum interface.
@@ -149,11 +149,16 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
   @Override
   @Nullable
   public Double getBasePeakIntensity() {
-    if (basePeakIndex == null)
+    if (basePeakIndex == null) {
       return null;
-    else
+    } else {
       return getIntensityValues().get(basePeakIndex);
+    }
   }
+
+  abstract DoubleBuffer getMzValues();
+
+  abstract DoubleBuffer getIntensityValues();
 
   @Override
   public Iterator<DataPoint> iterator() {
