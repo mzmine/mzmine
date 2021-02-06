@@ -197,7 +197,7 @@ public class SpectraMerging {
     double precursorMz = info.getLargestPeakMz();
 
     List<MobilityScan> mobilityScans = frame.getMobilityScans().stream()
-        .filter(ms -> spectraNumbers.contains(ms.getMobilityScamNumber())).collect(
+        .filter(ms -> spectraNumbers.contains(ms.getMobilityScanNumber())).collect(
             Collectors.toList());
 
     if (mobilityScans.isEmpty()) {

@@ -191,7 +191,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
     if (selectedMobilityScan.get() != null) {
       singleSpectrumChart.addDataset(new SingleMobilityScanProvider(
-          cachedFrame.getMobilityScan(selectedMobilityScan.get().getMobilityScamNumber())));
+          cachedFrame.getMobilityScan(selectedMobilityScan.get().getMobilityScanNumber())));
     }
     MZmineCore.getTaskController().addTask(new BuildMultipleMobilogramRanges(
         controlsPanel.getMobilogramRangesList(), Set.of(cachedFrame), rawDataFile, this));

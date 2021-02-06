@@ -198,7 +198,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     // now create the scans
     for (int i = 0; i < originalMobilityScans.size(); i++) {
       MobilityScan scan = originalMobilityScans.get(i);
-      mobilitySubScans.add(new SimpleMobilityScan(scan.getMobilityScamNumber(), this, offsets[i],
+      mobilitySubScans.add(new SimpleMobilityScan(scan.getMobilityScanNumber(), this, offsets[i],
           scan.getNumberOfDataPoints(), scan.getBasePeakIndex()));
     }
   }
@@ -211,7 +211,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Override
   public double getMobilityForMobilityScan(MobilityScan scan) {
     // correct the index with an offset in case there is one.
-    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScamNumber();
+    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScanNumber();
     if (index >= 0) {
       return mobilityBuffer.get(index);
     }

@@ -203,7 +203,7 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   @Override
-  public int getMobilityScamNumber() {
+  public int getMobilityScanNumber() {
     return scanNumber;
   }
 

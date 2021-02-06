@@ -17,6 +17,15 @@
  */
 package io.github.mzmine.datamodel.impl;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
@@ -28,15 +37,6 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -50,14 +50,14 @@ public class SimpleMobilityScan implements MobilityScan {
   private MassList[] massLists;
   private final int storageOffset;
   private final int numDataPoints;
-  private final int mobilityScamNumber;
+  private final int mobilityScanNumber;
   private final int basePeakIndex;
 
-  public SimpleMobilityScan(int mobilityScamNumber, SimpleFrame frame,
-      int storageOffset, int numDataPoints, int basePeakIndex) {
+  public SimpleMobilityScan(int mobilityScanNumber, SimpleFrame frame, int storageOffset,
+      int numDataPoints, int basePeakIndex) {
     this.frame = frame;
     this.massLists = null;
-    this.mobilityScamNumber = mobilityScamNumber;
+    this.mobilityScanNumber = mobilityScanNumber;
     this.storageOffset = storageOffset;
     this.numDataPoints = numDataPoints;
     this.basePeakIndex = basePeakIndex;
@@ -145,7 +145,7 @@ public class SimpleMobilityScan implements MobilityScan {
 
   @Override
   public double getMobility() {
-    return frame.getMobilityForMobilityScanNumber(mobilityScamNumber);
+    return frame.getMobilityForMobilityScanNumber(mobilityScanNumber);
   }
 
   @Override
@@ -164,19 +164,19 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public int getMobilityScamNumber() {
-    return mobilityScamNumber;
+  public int getMobilityScanNumber() {
+    return mobilityScanNumber;
   }
 
   @Nullable
   @Override
   public ImsMsMsInfo getMsMsInfo() {
-    return frame.getImsMsMsInfoForMobilityScan(mobilityScamNumber);
+    return frame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
   }
 
   /**
    * @return Used to retrieve this scans storage offset when reading mz/intensity values. Not
-   * intended for public usage, therefore not declared in {@link MobilityScan}.
+   *         intended for public usage, therefore not declared in {@link MobilityScan}.
    */
   int getStorageOffset() {
     return storageOffset;
@@ -186,7 +186,7 @@ public class SimpleMobilityScan implements MobilityScan {
   public synchronized void addMassList(final @Nonnull MassList massList) {
     // Remove all mass lists with same name, if there are any
     if (massLists == null || massLists.length == 0) {
-      massLists = new MassList[]{massList};
+      massLists = new MassList[] {massList};
       return;
     }
 

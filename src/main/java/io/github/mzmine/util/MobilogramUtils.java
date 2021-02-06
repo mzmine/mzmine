@@ -194,7 +194,7 @@ public class MobilogramUtils {
     Map<Integer, Set<DataPoint>> eligibleDataPoints = new HashMap<>(); // k = subscan number
     for (Frame frame : frames) {
       for (MobilityScan scan : frame.getMobilityScans()) {
-        Set<DataPoint> dpSet = eligibleDataPoints.computeIfAbsent(scan.getMobilityScamNumber(),
+        Set<DataPoint> dpSet = eligibleDataPoints.computeIfAbsent(scan.getMobilityScanNumber(),
             key -> new HashSet<>());
         // DataPoint[] dps = scan.getDataPoints();
         // Arrays.sort(dps, Comparator.comparingDouble(DataPoint::getMZ));

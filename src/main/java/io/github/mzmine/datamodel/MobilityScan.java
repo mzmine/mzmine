@@ -61,7 +61,7 @@ public interface MobilityScan extends MassSpectrum, Comparable<MobilityScan> {
   /**
    * @return The index of this mobility subscan.
    */
-  int getMobilityScamNumber();
+  int getMobilityScanNumber();
 
   @Nullable
   ImsMsMsInfo getMsMsInfo();
@@ -77,6 +77,6 @@ public interface MobilityScan extends MassSpectrum, Comparable<MobilityScan> {
 
   @Override
   default int compareTo(@Nonnull MobilityScan o) {
-    return Integer.compare(this.getMobilityScamNumber(), o.getMobilityScamNumber());
+    return Integer.compare(this.getMobilityScanNumber(), o.getMobilityScanNumber());
   }
 }

@@ -188,7 +188,7 @@ public class GroupMS2Task extends AbstractTask {
         if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getLargestPeakMz())) {
 
           // todo: maybe revisit this for a more sophisticated range check
-          int mobilityScannumberOffset = frame.getMobilityScan(0).getMobilityScamNumber();
+          int mobilityScannumberOffset = frame.getMobilityScan(0).getMobilityScanNumber();
           float mobility1 = (float) frame.getMobilityForMobilityScanNumber(
               imsMsMsInfo.getSpectrumNumberRange().lowerEndpoint() - mobilityScannumberOffset);
           float mobility2 = (float) frame.getMobilityForMobilityScanNumber(

@@ -177,8 +177,8 @@ public class CachedMobilityScan implements MobilityScan {
   }
 
   @Override
-  public int getMobilityScamNumber() {
-    return originalMobilityScan.getMobilityScamNumber();
+  public int getMobilityScanNumber() {
+    return originalMobilityScan.getMobilityScanNumber();
   }
 
   @Nullable
