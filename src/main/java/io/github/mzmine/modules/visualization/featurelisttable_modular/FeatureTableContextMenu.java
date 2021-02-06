@@ -40,7 +40,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MS
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.imsfeaturevisualizer.IMSFeatureVisualizerModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
-import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
+import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
@@ -267,15 +267,12 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     // TODO this should display selected features instead of rows. MultiMSMSWindow does not support that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
-        () -> selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null
-            || (selectedRows.size() > 1 && selectedFeature != null));
+        () -> allRowsHaveFragmentScans(selectedRows) && selectedRows.size() > 1);
     showMSMSItem.setOnAction(e -> {
       if (selectedRows.size() > 1) {
-        MultiMSMSWindow multi = new MultiMSMSWindow();
-        multi.setData(selectedRows.toArray(new ModularFeatureListRow[0]),
-            table.getFeatureList().getRawDataFiles().toArray(new RawDataFile[0]),
-            selectedFeature.getRawDataFile(), true, SortingProperty.MZ, SortingDirection.Ascending);
-        multi.setVisible(true);
+        MultiMsMsTab multi = new MultiMsMsTab(selectedRows,
+            table.getFeatureList().getRawDataFiles(), selectedRows.get(0).getRawDataFiles().get(0));
+        MZmineCore.getDesktop().addTab(multi);
       } else {
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
       }
@@ -349,6 +346,9 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private boolean allRowsHaveFragmentScans(Collection<ModularFeatureListRow> rows) {
+    if (rows.isEmpty()) {
+      return false;
+    }
     for (ModularFeatureListRow row : rows) {
       if (row.getBestFragmentation() == null) {
         return false;
