@@ -20,7 +20,18 @@ package io.github.mzmine.gui;
 
 
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.FutureTask;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import org.apache.commons.io.FilenameUtils;
+import org.controlsfx.control.StatusBar;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -45,15 +56,6 @@ import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.FutureTask;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -74,9 +76,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javax.annotation.Nonnull;
-import org.apache.commons.io.FilenameUtils;
-import org.controlsfx.control.StatusBar;
 
 /**
  * MZmine JavaFX Application class
@@ -111,17 +110,17 @@ public class MZmineGUI extends Application implements Desktop {
       rootScene = loader.load();
       mainWindowController = loader.getController();
       stage.setScene(rootScene);
-      rootScene.getStylesheets().add(getClass().getResource(
-          "/themes/MZmine_light.css").toExternalForm());
+      rootScene.getStylesheets()
+          .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
 
-      Boolean darkMode = MZmineCore.getConfiguration().getPreferences().getParameter(
-          MZminePreferences.darkMode).getValue();
-      if (darkMode) {
-        rootScene.getStylesheets().add(getClass().getResource(
-            "/themes/MZmine_dark.css").toExternalForm());
+      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
+          .getParameter(MZminePreferences.darkMode).getValue();
+      if (darkMode != null && darkMode == true) {
+        rootScene.getStylesheets()
+            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
       } else {
-        rootScene.getStylesheets().add(getClass().getResource(
-            "/themes/MZmine_light.css").toExternalForm());
+        rootScene.getStylesheets()
+            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
       }
 
     } catch (Exception e) {
@@ -434,8 +433,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void setStatusBarText(String message) {
-    Color messageColor = MZmineCore.getConfiguration().isDarkMode() ? Color.LIGHTGRAY
-        : Color.BLACK;
+    Color messageColor = MZmineCore.getConfiguration().isDarkMode() ? Color.LIGHTGRAY : Color.BLACK;
     setStatusBarText(message, messageColor);
   }
 
