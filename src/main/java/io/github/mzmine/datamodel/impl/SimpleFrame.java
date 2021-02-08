@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,6 +57,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private Range<Double> mobilityRange;
 
   private DoubleBuffer mobilityBuffer;
+  private DoubleBuffer mobilityScanIntensityBuffer;
+  private DoubleBuffer mobilityScanMzBuffer;
 
   public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge, DataPoint dps[],
@@ -73,7 +75,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     mobilityRange = Range.singleton(0.d);
 //    this.numMobilitySpectra = numMobilitySpectra;
 //    this.mobilities = mobilities;
-    this.precursorInfos = precursorInfos;
+    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>());
   }
 
   public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
@@ -89,7 +91,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     setDataPoints(mzValues, intensityValues);
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-    this.precursorInfos = precursorInfos;
+    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>());
   }
 
   /**
@@ -106,13 +108,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilityType;
   }
 
-  /**
-   * @return Scan numbers of sub scans.
-   */
-//  @Override
-//  public Set<Integer> getMobilityScanNumbers() {
-//    return mobilities.keySet();
-//  }
   @Override
   @Nonnull
   public Range<Double> getMobilityRange() {
@@ -129,30 +124,83 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   /**
-   * Not to be used during processing. Can only be called during raw data file reading before
-   * finishWriting() was called.
-   *
-   * @param originalMobilityScan The mobility scan to store.
-   */
-  @Override
-  public void addMobilityScan(MobilityScan originalMobilityScan) {
-
-//    if (mobilityRange == null) {
-//      mobilityRange = Range.singleton(originalMobilityScan.getMobility());
-//    } else if (!mobilityRange.contains(originalMobilityScan.getMobility())) {
-//      mobilityRange = mobilityRange.span(Range.singleton(originalMobilityScan.getMobility()));
-//    }
-
-    mobilitySubScans.add(originalMobilityScan);
-  }
-
-  /**
    * @return Collection of mobility sub scans sorted by increasing scan num.
    */
   @Nonnull
   @Override
   public List<MobilityScan> getMobilityScans() {
     return ImmutableList.copyOf(mobilitySubScans);
+  }
+
+  /**
+   * Not to be used during processing. Can only be called during raw data file reading before
+   * finishWriting() was called.
+   *
+   * @param originalMobilityScans The mobility scans to store.
+   */
+  public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans) {
+    if (mobilityScanIntensityBuffer != null || mobilityScanMzBuffer != null) {
+      throw new IllegalStateException("Mobility scans can only be set to a frame once.");
+    }
+
+    // determine offsets for each mobility scan
+    final int[] offsets = new int[originalMobilityScans.size()];
+
+    offsets[0] = 0;
+    for (int i = 1; i < offsets.length; i++) {
+      int oldOffset = offsets[i - 1];
+      int numPoints = originalMobilityScans.get(i - 1).getNumberOfDataPoints();
+      offsets[i] = oldOffset + numPoints;
+    }
+
+    // now create a big array that contains all m/z and intensity values so we can store it in a single buffer
+    final int numDatapoints =
+        offsets[offsets.length - 1] + originalMobilityScans.get(offsets.length - 1)
+            .getNumberOfDataPoints();
+
+    // now store all the data in a single array
+    double[] data = new double[numDatapoints];
+    int dpCounter = 0;
+    for (int i = 0; i < originalMobilityScans.size(); i++) {
+      BuildingMobilityScan currentScan = originalMobilityScans.get(i);
+      double[] currentIntensities = currentScan.getIntensityValues();
+      for (int j = 0; j < currentIntensities.length; j++) {
+        data[dpCounter] = currentIntensities[j];
+        dpCounter++;
+      }
+    }
+
+    try {
+      mobilityScanIntensityBuffer = storage.storeData(data);
+    } catch (IOException e) {
+      e.printStackTrace();
+      mobilityScanIntensityBuffer = DoubleBuffer.wrap(data);
+      data = new double[numDatapoints]; // cannot reuse the same array then
+    }
+    // same for mzs
+    dpCounter = 0;
+    for (int i = 0; i < originalMobilityScans.size(); i++) {
+      BuildingMobilityScan currentScan = originalMobilityScans.get(i);
+      double[] currentMzs = currentScan.getMzValues();
+      for (int j = 0; j < currentMzs.length; j++) {
+        data[dpCounter] = currentMzs[j];
+        dpCounter++;
+      }
+    }
+
+    try {
+      mobilityScanMzBuffer = storage.storeData(data);
+    } catch (IOException e) {
+      e.printStackTrace();
+      mobilityScanMzBuffer = DoubleBuffer.wrap(data);
+    }
+
+    // now create the scans
+    for (int i = 0; i < originalMobilityScans.size(); i++) {
+      MobilityScan scan = originalMobilityScans.get(i);
+      mobilitySubScans.add(new SimpleMobilityScan(scan.getMobilityScanNumber(), this, offsets[i],
+          scan.getNumberOfDataPoints(), scan.getBasePeakIndex()));
+    }
   }
 
   @Override
@@ -163,7 +211,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Override
   public double getMobilityForMobilityScan(MobilityScan scan) {
     // correct the index with an offset in case there is one.
-    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScamNumber();
+    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScanNumber();
     if (index >= 0) {
       return mobilityBuffer.get(index);
     }
@@ -178,7 +226,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Nonnull
   @Override
   public Set<ImsMsMsInfo> getImsMsMsInfos() {
-    return Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
+    return precursorInfos;
   }
 
   @Nullable
@@ -218,6 +266,26 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   public void setPrecursorInfos(@Nullable Set<ImsMsMsInfo> precursorInfos) {
     this.precursorInfos = precursorInfos;
+  }
+
+  void getMobilityScanMzValues(SimpleMobilityScan scan, double[] dst) {
+    assert scan.getNumberOfDataPoints() <= dst.length;
+    mobilityScanMzBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
+  }
+
+  void getMobilityScanIntensityValues(SimpleMobilityScan scan, double[] dst) {
+    assert scan.getNumberOfDataPoints() <= dst.length;
+    mobilityScanIntensityBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
+  }
+
+  double getMobilityScanMzValue(SimpleMobilityScan scan, int index) {
+    assert index < scan.getNumberOfDataPoints();
+    return mobilityScanMzBuffer.get(scan.getStorageOffset() + index);
+  }
+
+  double getMobilityScanIntensityValue(SimpleMobilityScan scan, int index) {
+    assert index < scan.getNumberOfDataPoints();
+    return mobilityScanIntensityBuffer.get(scan.getStorageOffset() + index);
   }
 
   /*

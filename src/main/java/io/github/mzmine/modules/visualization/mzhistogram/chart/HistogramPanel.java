@@ -18,13 +18,19 @@
 
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
-import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.util.maths.Precision;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.DoubleFunction;
+import java.util.logging.Logger;
 import java.util.stream.DoubleStream;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.data.Range;
+import org.jfree.data.xy.XYDataset;
+import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.util.maths.Precision;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -40,18 +46,11 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.data.Range;
-import org.jfree.data.xy.XYDataset;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class HistogramPanel extends BorderPane {
 
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   private final BorderPane contentPanel;
   private BorderPane southwest;
@@ -134,14 +133,13 @@ public class HistogramPanel extends BorderPane {
       Label lblSignificantFigures = new Label("significant figures");
 
       txtPrecision = new TextField();
-      txtPrecision
-          .setTooltip(new Tooltip("Change number of significant figures and press update"));
+      txtPrecision.setTooltip(new Tooltip("Change number of significant figures and press update"));
       txtPrecision.setText("6");
 
       secondGaussian = new HBox(10);
-      secondGaussian.getChildren()
-          .addAll(btnToggleLegend, btnUpdateGaussian, lblFrom, cbGaussianFit,
-              txtGaussianLower, label, txtGaussianUpper, lblSignificantFigures, txtPrecision);
+      secondGaussian.getChildren().addAll(btnToggleLegend, btnUpdateGaussian, lblFrom,
+          cbGaussianFit, txtGaussianLower, label, txtGaussianUpper, lblSignificantFigures,
+          txtPrecision);
       secondGaussian.setAlignment(Pos.CENTER);
     }
     {
@@ -234,7 +232,7 @@ public class HistogramPanel extends BorderPane {
         // set bin width
         int bin = (int) Math.sqrt(data.size());
         double l = data.getRange().getLength();
-        double bw = l / (double) bin;
+        double bw = l / bin;
         String bws = String.valueOf(bw);
         // round
         try {
@@ -287,7 +285,7 @@ public class HistogramPanel extends BorderPane {
           }
         }
       } catch (Exception e2) {
-        logger.error("", e2);
+        logger.severe(e2.toString());
       }
     }
   }
@@ -303,7 +301,7 @@ public class HistogramPanel extends BorderPane {
           }
         }
       } catch (Exception e2) {
-        logger.error("", e2);
+        logger.severe(e2.toString());
       }
     }
   }
@@ -319,7 +317,7 @@ public class HistogramPanel extends BorderPane {
         binwidth2 = Double.parseDouble(txtBinWidth.getText());
         binShift2 = Double.parseDouble(txtBinShift.getText());
       } catch (Exception e) {
-        logger.error("", e);
+        logger.severe(e.toString());
       }
       if (!Double.isNaN(binShift2)) {
         try {
@@ -339,10 +337,10 @@ public class HistogramPanel extends BorderPane {
             });
 
           } catch (Exception e) {
-            logger.error("", e);
+            logger.severe(e.toString());
           }
         } catch (Exception e1) {
-          logger.error("", e1);
+          logger.severe(e1.toString());
         }
       }
     }
@@ -359,8 +357,7 @@ public class HistogramPanel extends BorderPane {
 
     Range r = HistogramChartFactory.getBounds(dat);
 
-    DoubleFunction<Double> f =
-        cbThirdSQRT.isSelected() ? val -> Math.cbrt(val) : val -> val;
+    DoubleFunction<Double> f = cbThirdSQRT.isSelected() ? val -> Math.cbrt(val) : val -> val;
 
     JFreeChart chart = HistogramChartFactory.createHistogram(dat, xLabel, binwidth,
         r.getLowerBound() - binShift, r.getUpperBound(), f);
@@ -400,7 +397,7 @@ public class HistogramPanel extends BorderPane {
         lbStats.setText("ERROR");
       }
     } catch (Exception e) {
-      logger.error("", e);
+      logger.severe(e.toString());
       lbStats.setText("ERROR");
     }
   }
@@ -435,7 +432,7 @@ public class HistogramPanel extends BorderPane {
 
       HistogramChartFactory.addGaussianFit(p, data, 0, gMin, gMax, sigDigits, true);
     } catch (Exception ex) {
-      logger.error("", ex);
+      logger.severe(ex.toString());
     }
   }
 

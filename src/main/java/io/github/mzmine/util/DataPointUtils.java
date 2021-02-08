@@ -149,4 +149,23 @@ public class DataPointUtils {
     data[1] = Doubles.toArray(intensities);
     return data;
   }
+
+  public static double[][] getDatapointsAboveNoiseLevel(double[] rawMzs, double[] rawIntensities,
+      double noiseLevel) {
+    assert rawMzs.length == rawIntensities.length;
+
+    List<Double> mzs = new ArrayList<>();
+    List<Double> intensities = new ArrayList<>();
+
+    for (int i = 0; i < rawMzs.length; i++) {
+      if (rawIntensities[i] > noiseLevel) {
+        mzs.add(rawMzs[i]);
+        intensities.add(rawIntensities[i]);
+      }
+    }
+    double[][] data = new double[2][];
+    data[0] = Doubles.toArray(mzs);
+    data[1] = Doubles.toArray(intensities);
+    return data;
+  }
 }

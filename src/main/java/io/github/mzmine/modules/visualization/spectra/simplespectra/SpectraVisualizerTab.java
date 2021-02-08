@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -362,11 +363,11 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     String spectrumTitle = ScanUtils.scanToString(currentScan, true);
 
-    int basePeak = scan.getBasePeakIndex();
+    Integer basePeak = scan.getBasePeakIndex();
 
-    if (basePeak >= 0) {
-      spectrumTitle += ", base peak: " + mzFormat.format(scan.getMzValues().get(basePeak))
-          + " m/z (" + intensityFormat.format(scan.getIntensityValues().get(basePeak)) + ")";
+    if (basePeak != 0) {
+      spectrumTitle += ", base peak: " + mzFormat.format(scan.getBasePeakMz())
+          + " m/z (" + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
     }
     String spectrumSubtitle = null;
     if (!Strings.isNullOrEmpty(currentScan.getScanDefinition())) {
@@ -419,10 +420,11 @@ public class SpectraVisualizerTab extends MZmineTab {
   public void loadIsotopes(IsotopePattern newPattern) {
     // We need to find a normalization factor for the new isotope
     // pattern, to show meaningful intensity range
-    int basePeak = newPattern.getBasePeakIndex();
-    if (basePeak < 0)
+    Integer basePeak = newPattern.getBasePeakIndex();
+    if (basePeak == null) {
       return;
-    double mz = newPattern.getMzValues().get(basePeak);
+    }
+    double mz = newPattern.getBasePeakMz();
 
     Range<Double> searchMZRange = Range.closed(mz - 0.5, mz + 0.5);
     ScanDataSet scanDataSet = spectrumPlot.getMainScanDataSet();

@@ -18,19 +18,16 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -41,6 +38,8 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
@@ -93,8 +92,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * @param rangeMZ range of m/z to plot.
    * @param window visualizer window.
    */
-  public TICDataSet(final RawDataFile file, final ObservableList<Scan> scans, final Range<Double> rangeMZ,
-      final TICVisualizerTab window) {
+  public TICDataSet(final RawDataFile file, final ObservableList<Scan> scans,
+      final Range<Double> rangeMZ, final TICVisualizerTab window) {
     this(file, scans, rangeMZ, window,
         ((window != null) ? window.getPlotType() : TICPlotType.BASEPEAK));
   }
@@ -161,8 +160,9 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
   }
 
-  public TICDataSet(RawDataFile newFile, Scan[] scans, Range<Double> mzRange, TICVisualizerTab window) {
-    this(newFile, FXCollections.observableArrayList(scans),mzRange, window);
+  public TICDataSet(RawDataFile newFile, Scan[] scans, Range<Double> mzRange,
+      TICVisualizerTab window) {
+    this(newFile, FXCollections.observableArrayList(scans), mzRange, window);
   }
 
   @Override
@@ -202,7 +202,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
         status = TaskStatus.FINISHED;
       }
     } catch (Throwable t) {
-
+      t.printStackTrace();
       logger.log(Level.SEVERE, "Problem calculating data set values for " + dataFile, t);
       status = TaskStatus.ERROR;
       errorMessage = t.getMessage();
@@ -366,15 +366,12 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
       final Scan scan = scans.get(index);
 
       // Determine base peak value.
-      final Double basePeakMZ = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getBasePeakMz()
-          : ScanUtils.findBasePeak(scan, mzRange).getMZ();
-      final Double basePeakIntensity =
-          mzRange.encloses(scan.getDataPointMZRange()) ? scan.getBasePeakIntensity()
-              : ScanUtils.findBasePeak(scan, mzRange).getIntensity();
+      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+      Double basePeakIntensity = null;
 
-      if (basePeakMZ != null) {
-
-        basePeakMZValues[index] = basePeakMZ;
+      if (basePeak != null) {
+        basePeakMZValues[index] = basePeak.getMZ();
+        basePeakIntensity = basePeak.getIntensity();
       }
 
       // Determine peak intensity.

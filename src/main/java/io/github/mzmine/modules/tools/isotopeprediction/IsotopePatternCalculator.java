@@ -18,15 +18,6 @@
 
 package io.github.mzmine.modules.tools.isotopeprediction;
 
-import java.awt.Window;
-import java.util.ArrayList;
-import javax.annotation.Nonnull;
-import org.openscience.cdk.formula.IsotopeContainer;
-import org.openscience.cdk.formula.IsotopePatternGenerator;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -38,6 +29,15 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Window;
+import java.util.ArrayList;
+import javax.annotation.Nonnull;
+import org.openscience.cdk.formula.IsotopeContainer;
+import org.openscience.cdk.formula.IsotopePatternGenerator;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * The reason why we introduce this as a module, rather than simple utility class, is to remember
@@ -184,7 +184,7 @@ public class IsotopePatternCalculator implements MZmineModule {
     int isotopeBasePeak = pattern.getBasePeakIndex();
     if (isotopeBasePeak < 0)
       return pattern;
-    final double maxIntensity = pattern.getIntensityValues().get(isotopeBasePeak);
+    final double maxIntensity = pattern.getBasePeakIntensity();
 
 
     DataPoint dataPoints[] = ScanUtils.extractDataPoints(pattern);

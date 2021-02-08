@@ -165,7 +165,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
 
     // Add task description to feature list
     resultFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Learner task", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters));
 
     // Remove the original feature list if requested
     if (removeOriginal)

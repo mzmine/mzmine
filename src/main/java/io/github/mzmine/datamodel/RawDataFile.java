@@ -17,6 +17,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import java.io.IOException;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -153,4 +154,7 @@ public interface RawDataFile {
   default Scan getScan(int i) {
     return getScans().get(i);
   }
+
+  @Nonnull
+  ObservableList<FeatureListAppliedMethod> getAppliedMethods();
 }

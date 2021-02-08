@@ -23,8 +23,6 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,20 +30,18 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import org.apache.commons.math3.special.Erf;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -86,7 +82,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
    * method returns a list of merged spectra. If MERGE_MODE is set to 'across samples', this list
    * contains only one merged spectrum. Otherwise it will contain one spectrum per sample or even
    * multiple spectra per sample.
-   * 
+   *
    * @param row the feature which MS/MS should be merged
    * @param massList name of the mass list to use when extracting peaks
    * @return list of merged MS/MS spectra belonging to this feature
@@ -137,7 +133,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
    * Merge MS/MS spectra belonging to the given feature row according to the parameter setting. The
    * method returns either the completely merged spectrum if MERGE_MODE is set to 'across samples'.
    * Otherwise, it will return the best merged spectrum across all merged spectra..
-   * 
+   *
    * @param row the feature which MS/MS should be merged
    * @param massList name of the mass list to use when extracting peaks
    * @return merged spectrum or null, if none exist
@@ -151,7 +147,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
   /**
    * Merge across samples. It is recommended to use #merge(PeakListRow,String) instead. Note, that
    * this method will not remove noise peaks from the merged spectra.
-   * 
+   *
    * @param row the feature which MS/MS should be merged
    * @param massList name of the mass list to use when extracting peaks
    * @return the merged MS/MS of all fragment spectra belonging to the feature row
@@ -167,7 +163,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
    * Merge all MS/MS belonging to the same sample. It is recommended to use
    * #merge(PeakListRow,String) instead. Note, that this method will not remove noise peaks from the
    * merged spectra.
-   * 
+   *
    * @param feature the feature which MS/MS should be merged
    * @param massList name of the mass list to use when extracting peaks
    * @return the merged MS/MS of all fragment spectra belonging to the feature
@@ -185,7 +181,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
    * consecutive, if there is no other MS/MS or MS in between. It is recommended to use
    * #merge(PeakListRow,String) instead. Note, that this method will not remove noise peaks from the
    * merged spectra.
-   * 
+   *
    * @param feature the feature which MS/MS should be merged
    * @param massList name of the mass list to use when extracting peaks
    * @return all merged spectra of consecutive MS/MS scans of the given feature
@@ -213,7 +209,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
 
   /**
    * Internal method that merges a list of spectra into one.
-   * 
+   *
    * @param fragmentMergedSpectra list of spectra with meta information
    * @return merged spectrum
    */
@@ -303,8 +299,8 @@ public class MsMsSpectraMergeModule implements MZmineModule {
     for (int k = 1; k < toMerge.size(); ++k) {
       MergedSpectrum scan = toMerge.get(k);
       DataPoint[] dataPoints = scan.data;
-      final DataPoint[] mostIntense =
-          ScanUtils.extractMostIntenseFeaturesAcrossMassRange(dataPoints, Range.closed(50d, 150d), 6);
+      final DataPoint[] mostIntense = ScanUtils
+          .extractMostIntenseFeaturesAcrossMassRange(dataPoints, Range.closed(50d, 150d), 6);
       final double norm = ScanUtils.probabilityProductUnnormalized(mostIntense, mostIntense,
           massTolerance, lowestIntensityToConsider, cosineRange);
       final double cosine =
@@ -322,7 +318,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
 
   /**
    * Internal method for merging a list of consecutive MS/MS scans.
-   * 
+   *
    * @param scans MS/MS scans with their precursor information
    * @param massList name of the mass list to use when extracting peaks
    * @param scoreModel scoring model to use when removing low quality MS/MS and selecting the best
@@ -408,8 +404,9 @@ public class MsMsSpectraMergeModule implements MZmineModule {
       if (!(scan.getPolarity().equals(initial.polarity)
           && scan.getPrecursorCharge() == initial.precursorCharge
           && mzTolerance.checkWithinTolerance(scan.getPrecursorMZ(), initial.precursorMz))) {
-        LoggerFactory.getLogger(MsMsSpectraMergeModule.class).warn("Scan " + scan.getScanNumber()
-            + " cannot be merged: it seems to belong to a different feature.");
+        Logger.getLogger(MsMsSpectraMergeModule.class.getName())
+            .warning("Scan " + scan.getScanNumber()
+                + " cannot be merged: it seems to belong to a different feature.");
         continue;
       }
       DataPoint[] dataPoints = scan.getMassList(massList).getDataPoints();
@@ -461,7 +458,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
 
   /**
    * Merge a scan into a merged spectrum.
-   * 
+   *
    * @param orderedByMz peaks from merged spectrum, sorted by ascending m/z
    * @param orderedByInt peaks from scan, sorted by descending intensity
    * @return a merged spectrum. Might be the original one if no new peaks were added.

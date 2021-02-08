@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
@@ -64,7 +65,7 @@ public class SingleRowPredictionTask extends AbstractTask {
   private int charge;
   private FeatureListRow peakListRow;
   private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
-  private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters;
+  private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters, parameters;
   ResultWindowFX resultWindowFX;
 
 
@@ -102,7 +103,7 @@ public class SingleRowPredictionTask extends AbstractTask {
     elementCounts = parameters.getParameter(FormulaPredictionParameters.elements).getValue();
 
     this.peakListRow = peakListRow;
-
+    this.parameters = parameters;
   }
 
   /**
@@ -184,6 +185,9 @@ public class SingleRowPredictionTask extends AbstractTask {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
     }
+
+    peakListRow.getFeatureList().getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        FormulaPredictionModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 

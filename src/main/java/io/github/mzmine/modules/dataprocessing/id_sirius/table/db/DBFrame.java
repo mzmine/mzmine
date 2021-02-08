@@ -20,8 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_sirius.table.db;
 
 import java.io.IOException;
 import java.net.URL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.main.MZmineCore;
@@ -48,7 +47,7 @@ import javafx.stage.Stage;
  */
 public class DBFrame extends Stage {
 
-  private static final Logger logger = LoggerFactory.getLogger(DBFrame.class);
+  private static final Logger logger = Logger.getLogger(DBFrame.class.getName());
   private final TableView<SiriusDBCompound> dbTable = new TableView<>();
   private final ObservableList<SiriusDBCompound> compounds = FXCollections.observableArrayList();
   final VBox vBox = new VBox();
@@ -109,8 +108,8 @@ public class DBFrame extends Stage {
         MZmineCore.getDesktop().displayMessage(null, "Not supported Database");
       } catch (IOException d) {
         d.printStackTrace();
-        logger.error("Error happened on opening db link for {} : {}", selectedCompound.getDB(),
-            selectedCompound.getID());
+        logger.severe("Error happened on opening db link for " + selectedCompound.getDB() + " : "
+            + selectedCompound.getID());
 
       }
 

@@ -217,7 +217,8 @@ public class DuplicateFilterTask extends AbstractTask {
 
       // Add task description to peakList
       newPeakList.addDescriptionOfAppliedTask(
-          new SimpleFeatureListAppliedMethod("Duplicate feature list rows filter", parameters));
+          new SimpleFeatureListAppliedMethod("Duplicate feature list rows filter",
+              DuplicateFilterModule.class, parameters));
       logger.info("Removed " + n + " duplicate rows");
     }
 

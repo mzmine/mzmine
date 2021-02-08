@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.UserParameter;
-import javafx.application.Platform;
+import io.github.mzmine.util.javafx.FxThreadUtil;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -147,7 +147,7 @@ public class MZmineProjectImpl implements MZmineProject {
     assert newFile != null;
     logger.finest("Adding a new file to the project: " + newFile.getName());
 
-    Platform.runLater(() -> {
+    FxThreadUtil.runOnFxThreadAndWait(() -> {
       rawDataFilesProperty.get().add(newFile);
     });
 
@@ -158,7 +158,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
     assert file != null;
 
-    Platform.runLater(() -> {
+    FxThreadUtil.runOnFxThreadAndWait(() -> {
       rawDataFilesProperty.get().remove(file);
     });
 
@@ -176,7 +176,7 @@ public class MZmineProjectImpl implements MZmineProject {
   public void addFeatureList(final FeatureList featureList) {
 
     assert featureList != null;
-    Platform.runLater(() -> {
+    FxThreadUtil.runOnFxThreadAndWait(() -> {
       featureListsProperty.get().add(featureList);
     });
 
@@ -187,7 +187,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
     assert featureList != null;
 
-    Platform.runLater(() -> {
+    FxThreadUtil.runOnFxThreadAndWait(() -> {
       featureListsProperty.get().remove(featureList);
     });
   }

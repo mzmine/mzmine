@@ -71,13 +71,13 @@ public class SingleMobilityScanProvider implements PlotXYDataProvider {
   @Override
   public Comparable<?> getSeriesKey() {
     return "Frame #" + scan.getFrame().getFrameId() + " Mobility scan #"
-        + scan.getMobilityScamNumber();
+        + scan.getMobilityScanNumber();
   }
 
   @Override
   public String getToolTipText(int itemIndex) {
     return "Frame #" + scan.getFrame().getFrameId() + "\nMobility scan #"
-        + scan.getMobilityScamNumber() + "\nMobility: " + mobilityFormat.format(scan.getMobility())
+        + scan.getMobilityScanNumber() + "\nMobility: " + mobilityFormat.format(scan.getMobility())
         + " " + scan.getMobilityType().getUnit() + "\nm/z: "
         + mzFormat.format(scan.getMzValue(itemIndex)) + "\nIntensity: "
         + intensityFormat.format(scan.getIntensityValue(itemIndex));

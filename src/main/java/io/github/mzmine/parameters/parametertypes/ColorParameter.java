@@ -18,11 +18,11 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
+import org.w3c.dom.Element;
 
 public class ColorParameter implements UserParameter<Color, ColorPicker> {
 
@@ -100,10 +100,10 @@ public class ColorParameter implements UserParameter<Color, ColorPicker> {
     if (t != null) {
       try {
         String[] s = t.split(",");
-        int r = Integer.valueOf(s[0]);
-        int g = Integer.valueOf(s[1]);
-        int b = Integer.valueOf(s[2]);
-        int a = Integer.valueOf(s[3]);
+        double r = Double.valueOf(s[0]);
+        double g = Double.valueOf(s[1]);
+        double b = Double.valueOf(s[2]);
+        double a = Double.valueOf(s[3]);
         value = new Color(r, g, b, a);
       } catch (Exception e) {
       }

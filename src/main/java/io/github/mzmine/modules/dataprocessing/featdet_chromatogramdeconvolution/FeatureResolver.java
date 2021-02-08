@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
@@ -69,4 +70,5 @@ public interface FeatureResolver extends MZmineModule {
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) throws RSessionWrapperException;
 
+  public Class<? extends MZmineProcessingModule> getModuleClass();
 }

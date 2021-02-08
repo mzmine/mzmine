@@ -26,6 +26,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.parameters.ParameterSet;
@@ -49,6 +50,11 @@ public class NoiseAmplitudeFeatureResolver implements FeatureResolver {
   @Override
   public @Nonnull String getName() {
     return "Noise amplitude";
+  }
+
+  @Override
+  public Class<? extends MZmineProcessingModule> getModuleClass() {
+    return NoiseAmplitudeResolverModule.class;
   }
 
   @Override

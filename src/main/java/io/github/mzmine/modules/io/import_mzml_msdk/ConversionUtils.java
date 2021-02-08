@@ -1,21 +1,13 @@
 package io.github.mzmine.modules.io.import_mzml_msdk;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.MsSpectrumType;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleMobilityScan;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLCVParam;
@@ -24,6 +16,11 @@ import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLMsScan;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLPrecursorSelectedIonList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 public class ConversionUtils {
 
@@ -111,13 +108,12 @@ public class ConversionUtils {
         ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
         scan.getScanningRange());
 
-
     return newScan;
   }
 
-  public static MobilityScan msdkScanToMobilityScan(IMSRawDataFile rawDataFile, int scannum,
-      MsScan scan, Frame frame) {
-    return new SimpleMobilityScan(rawDataFile, scannum, frame, scan.getMzValues(),
+  public static BuildingMobilityScan msdkScanToMobilityScan(int scannum,
+      MsScan scan) {
+    return new BuildingMobilityScan(scannum, scan.getMzValues(),
         convertFloatsToDoubles(scan.getIntensityValues()));
   }
 

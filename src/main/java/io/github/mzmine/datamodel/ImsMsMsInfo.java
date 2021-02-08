@@ -56,10 +56,11 @@ public interface ImsMsMsInfo {
   /**
    * @return The ms 1 frame this precursor was initially detected in.
    */
-  int getParentFrameNumber();
+  Frame getParentFrameNumber();
 
   /**
    * @return The ms 2 frame number this belongs to.
    */
-  int getFrameNumber();
+  Frame getFrameNumber();
+
 }

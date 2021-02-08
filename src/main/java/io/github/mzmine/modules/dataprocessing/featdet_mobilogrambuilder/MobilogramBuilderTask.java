@@ -132,7 +132,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     for (MobilityScan scan : scans) {
       Arrays.stream(scan.getMassList(massList).getDataPoints())
           .forEach(dp -> allDps.add(new MobilityDataPoint(dp.getMZ(), dp.getIntensity(),
-              scan.getMobility(), scan.getMobilityScamNumber())));
+              scan.getMobility(), scan.getMobilityScanNumber())));
     }
 
     // sort by highest dp, we assume that that measurement was the most accurate
@@ -187,7 +187,7 @@ public class MobilogramBuilderTask extends AbstractTask {
     final List<MobilityDataPoint> allDps = new ArrayList<>(numDp);
     for (MobilityScan scan : rawScans) {
       scan.stream().forEach(dp -> allDps.add(new MobilityDataPoint(dp.getMZ(), dp.getIntensity(),
-          scan.getMobility(), scan.getMobilityScamNumber())));
+          scan.getMobility(), scan.getMobilityScanNumber())));
     }
     // if we sort here, we can use break conditions later
     allDps.sort(Comparator.comparingDouble(MobilityDataPoint::getMZ));

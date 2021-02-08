@@ -20,7 +20,6 @@ package io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
-import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,7 +57,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
    * <p></p>
    * Value = Collection of ImsMsMsInfo on all precursors in the frame.
    */
-  private final Map<Integer, Set<ImsMsMsInfo>> info;
+  private final Map<Integer, Set<BuildingPASEFMsMsInfo>> info;
 
   private final TDFFrameTable frameTable;
 
@@ -137,8 +136,8 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
     for (int i = 0; i < frameIdColumn.size(); i++) {
       final int frameId = frameIdColumn.get(i).intValue();
 
-      Set<ImsMsMsInfo> entry = info.computeIfAbsent(frameId, k -> new HashSet<>());
-      entry.add(new ImsMsMsInfoImpl(largestPeakMzColumn.get(i),
+      Set<BuildingPASEFMsMsInfo> entry = info.computeIfAbsent(frameId, k -> new HashSet<>());
+      entry.add(new BuildingPASEFMsMsInfo(largestPeakMzColumn.get(i),
           Range.closedOpen(scanNumBeginColumn.get(i).intValue(),
               scanNumEndColumn.get(i).intValue()), collisionEnergyColumn.get(i).floatValue(),
           chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue(), frameId));
@@ -146,7 +145,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
   }
 
   @Nullable
-  public Set<ImsMsMsInfo> getMsMsInfoForFrame(int frameNum) {
+  public Set<BuildingPASEFMsMsInfo> getMsMsInfoForFrame(int frameNum) {
     return info.get(frameNum);
   }
 

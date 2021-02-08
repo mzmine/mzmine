@@ -19,10 +19,10 @@
 package io.github.mzmine.modules.io.import_mzml_msdk;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 
-public class BuildingImsMsMsInfo implements ImsMsMsInfo {
+public class BuildingImsMsMsInfo {
 
   private final double precursorMz;
   private final float collisionEnergy;
@@ -63,38 +63,32 @@ public class BuildingImsMsMsInfo implements ImsMsMsInfo {
     this.lastSpectrumNumber = lastSpectrumNumber;
   }
 
-  @Override
   public double getLargestPeakMz() {
     return precursorMz;
   }
 
-  @Override
   public Range<Integer> getSpectrumNumberRange() {
     throw new UnsupportedOperationException();
   }
 
-  @Override
   public float getCollisionEnergy() {
     return collisionEnergy;
   }
 
-  @Override
   public int getPrecursorCharge() {
     return precursorCharge;
   }
 
-  @Override
   public int getParentFrameNumber() {
     return parentFrameNumber;
   }
 
-  @Override
   public int getFrameNumber() {
     return fragmentFrameNumber;
   }
 
-  public ImsMsMsInfoImpl build() {
+  public ImsMsMsInfoImpl build(Frame parentFrame, Frame thisFragmentFrame) {
     return new ImsMsMsInfoImpl(precursorMz, Range.closed(firstSpectrumNumber, lastSpectrumNumber),
-        collisionEnergy, precursorCharge, parentFrameNumber, fragmentFrameNumber);
+        collisionEnergy, precursorCharge, parentFrame, thisFragmentFrame);
   }
 }

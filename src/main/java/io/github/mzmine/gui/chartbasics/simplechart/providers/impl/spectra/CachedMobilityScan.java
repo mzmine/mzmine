@@ -28,8 +28,6 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.util.DataPointUtils;
-import java.nio.DoubleBuffer;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -47,16 +45,35 @@ public class CachedMobilityScan implements MobilityScan {
   private final double[] mzs;
   private final double[] intensities;
   private final double tic;
+  private int basePeakIndex;
 
   public CachedMobilityScan(MobilityScan scan, double noiseLevel) {
     this.originalMobilityScan = scan;
 
+    double[] allmz = new double[scan.getNumberOfDataPoints()];
+    double[] allintensities = new double[scan.getNumberOfDataPoints()];
+    scan.getMzValues(allmz);
+    scan.getIntensityValues(allintensities);
+
     double[][] data = DataPointUtils
-        .getDatapointsAboveNoiseLevel(scan.getMzValues(), scan.getIntensityValues(), noiseLevel);
+        .getDatapointsAboveNoiseLevel(allmz, allintensities, noiseLevel);
 
     mzs = data[0];
     intensities = data[1];
-    tic = Arrays.stream(intensities).sum();
+
+    basePeakIndex = -1;
+    double tempTic = 0;
+    double max = 0;
+    for (int i = 0; i < intensities.length; i++) {
+      double intensity = intensities[i];
+      tempTic += intensity;
+      if (intensity > max) {
+        basePeakIndex = i;
+        max = intensity;
+      }
+    }
+
+    tic = tempTic;
   }
 
   @Override
@@ -69,16 +86,14 @@ public class CachedMobilityScan implements MobilityScan {
     return originalMobilityScan.getSpectrumType();
   }
 
-  @Nonnull
   @Override
-  public DoubleBuffer getMzValues() {
+  public double[] getMzValues(@Nonnull double[] dst) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
 
-  @Nonnull
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public double[] getIntensityValues(@Nonnull double[] dst) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
@@ -96,20 +111,25 @@ public class CachedMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Double getBasePeakMz() {
-    return originalMobilityScan.getBasePeakMz();
+    if (basePeakIndex == -1) {
+      return 0d;
+    }
+    return getMzValue(basePeakIndex);
   }
 
   @Nullable
   @Override
   public Double getBasePeakIntensity() {
-    return originalMobilityScan.getBasePeakIntensity();
+    if (basePeakIndex == -1) {
+      return 0d;
+    }
+    return getIntensityValue(basePeakIndex);
   }
 
   @Nullable
   @Override
   public Integer getBasePeakIndex() {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
+    return basePeakIndex != -1 ? basePeakIndex : null;
   }
 
   @Nullable
@@ -157,8 +177,8 @@ public class CachedMobilityScan implements MobilityScan {
   }
 
   @Override
-  public int getMobilityScamNumber() {
-    return originalMobilityScan.getMobilityScamNumber();
+  public int getMobilityScanNumber() {
+    return originalMobilityScan.getMobilityScanNumber();
   }
 
   @Nullable

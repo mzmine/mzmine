@@ -13,6 +13,16 @@
 
 package io.github.mzmine.modules.io.import_mzml_msdk.msdk.data;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.ActivationInfo;
@@ -25,23 +35,11 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SeparationType;
 import io.github.msdk.datamodel.SimpleActivationInfo;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
-import io.github.mzmine.modules.io.import_mzml_msdk.msdk.MzMLFileImportMethod;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 class MzMLChromatogram implements Chromatogram {
 
-  private final @Nonnull
-  MzMLRawDataFile dataFile;
+  private final @Nonnull MzMLRawDataFile dataFile;
   private @Nonnull InputStream inputStream;
   private final @Nonnull String chromatogramId;
   private final @Nonnull Integer chromatogramNumber;
@@ -59,15 +57,14 @@ class MzMLChromatogram implements Chromatogram {
   private float[] rtValues;
   private float[] intensityValues;
 
-  private Logger logger = LoggerFactory.getLogger(MzMLFileImportMethod.class);
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   /**
    * <p>
    * Constructor for {@link MzMLChromatogram MzMLChromatogram}
    * </p>
-   * 
-   * @param dataFile a {@link MzMLRawDataFile MzMLRawDataFile} object
-   *        the parser stores the data in
+   *
+   * @param dataFile a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the data in
    * @param is an {@link InputStream InputStream} of the MzML format data
    * @param chromatogramId the Chromatogram ID
    * @param chromatogramNumber the Chromatogram number
@@ -265,7 +262,7 @@ class MzMLChromatogram implements Chromatogram {
     }
 
     if (count > 1) {
-      logger.error("More than one chromatogram type defined by CV terms not allowed");
+      logger.severe("More than one chromatogram type defined by CV terms not allowed");
       chromatogramType = ChromatogramType.UNKNOWN;
     }
 
@@ -302,13 +299,13 @@ class MzMLChromatogram implements Chromatogram {
       Optional<MzMLIsolationWindow> productIsolationWindow = getProduct().getIsolationWindow();
 
       if (!precursorIsolationWindow.isPresent()) {
-        logger.error("Couldn't find precursor isolation window for chromotgram (#"
+        logger.severe("Couldn't find precursor isolation window for chromotgram (#"
             + getChromatogramNumber() + ")");
         return Collections.emptyList();
       }
 
       if (!productIsolationWindow.isPresent()) {
-        logger.error("Couldn't find product isolation window for chromotgram (#"
+        logger.severe("Couldn't find product isolation window for chromotgram (#"
             + getChromatogramNumber() + ")");
         return Collections.emptyList();
       }
@@ -384,7 +381,7 @@ class MzMLChromatogram implements Chromatogram {
   public float[] getRetentionTimes(@Nullable float array[]) {
     if (rtValues == null) {
       if (getRtBinaryDataInfo().getArrayLength() != numOfDataPoints) {
-        logger.warn(
+        logger.warning(
             "Retention time binary data array contains a different array length from the default array length of the scan (#"
                 + getChromatogramNumber() + ")");
       }
@@ -411,7 +408,7 @@ class MzMLChromatogram implements Chromatogram {
   public float[] getIntensityValues(@Nullable float[] array) {
     if (intensityValues == null) {
       if (getIntensityBinaryDataInfo().getArrayLength() != numOfDataPoints) {
-        logger.warn(
+        logger.warning(
             "Intensity binary data array contains a different array length from the default array length of the chromatogram (#"
                 + getChromatogramNumber() + ")");
       }
@@ -453,13 +450,13 @@ class MzMLChromatogram implements Chromatogram {
 
   /**
    * <p>
-   * Search for the CV Parameter value for the given accession in the
-   * {@link Chromatogram Chromatogram}'s CV Parameters
+   * Search for the CV Parameter value for the given accession in the {@link Chromatogram
+   * Chromatogram}'s CV Parameters
    * </p>
    *
    * @param accession the CV Parameter accession as {@link String String}
-   * @return an {@link Optional Optional<String>} containing the CV Parameter value for
-   *         the given accession, if present <br>
+   * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
+   *         accession, if present <br>
    *         An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(String accession) {
@@ -468,14 +465,14 @@ class MzMLChromatogram implements Chromatogram {
 
   /**
    * <p>
-   * Search for the CV Parameter value for the given accession in the given
-   * {@link MzMLCVGroup MzMLCVGroup}
+   * Search for the CV Parameter value for the given accession in the given {@link MzMLCVGroup
+   * MzMLCVGroup}
    * </p>
    *
    * @param group the {@link MzMLCVGroup MzMLCVGroup} to search through
    * @param accession the CV Parameter accession as {@link String String}
-   * @return an {@link Optional Optional<String>} containing the CV Parameter value for
-   *         the given accession, if present <br>
+   * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
+   *         accession, if present <br>
    *         An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(MzMLCVGroup group, String accession) {

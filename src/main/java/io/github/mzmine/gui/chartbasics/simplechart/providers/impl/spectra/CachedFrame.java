@@ -57,9 +57,13 @@ public class CachedFrame implements Frame {
   public CachedFrame(SimpleFrame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
     originalFrame = frame;
 
+    double[] allmz = new double[frame.getNumberOfDataPoints()];
+    double[] allintensities = new double[frame.getNumberOfDataPoints()];
+    frame.getMzValues(allmz);
+    frame.getIntensityValues(allintensities);
+
     double[][] data = DataPointUtils
-        .getDatapointsAboveNoiseLevel(frame.getMzValues(), frame.getIntensityValues(),
-            frameNoiseLevel);
+        .getDatapointsAboveNoiseLevel(allmz, allintensities, frameNoiseLevel);
 
     mzs = data[0];
     intensities = data[1];
@@ -145,11 +149,6 @@ public class CachedFrame implements Frame {
   }
 
   @Override
-  public void addMobilityScan(MobilityScan originalMobilityScan) {
-    originalFrame.addMobilityScan(originalMobilityScan);
-  }
-
-  @Override
   public int getNumberOfDataPoints() {
     return mzs.length;
   }
@@ -159,16 +158,14 @@ public class CachedFrame implements Frame {
     return originalFrame.getSpectrumType();
   }
 
-  @Nonnull
   @Override
-  public DoubleBuffer getMzValues() {
+  public double[] getMzValues(@Nonnull double[] dst) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
 
-  @Nonnull
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public double[] getIntensityValues(@Nonnull double[] dst) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
