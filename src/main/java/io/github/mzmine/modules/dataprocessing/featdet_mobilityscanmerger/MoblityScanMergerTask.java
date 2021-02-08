@@ -54,7 +54,7 @@ public class MoblityScanMergerTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return null;
+    return "Merging mobility scans for frame " + processedFrames + "/" + totalFrames;
   }
 
   @Override

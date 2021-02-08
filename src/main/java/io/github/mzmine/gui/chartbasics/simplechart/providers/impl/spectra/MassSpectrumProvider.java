@@ -8,7 +8,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
-import java.nio.DoubleBuffer;
 import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.stream.Stream;
@@ -40,16 +39,14 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
         return null;
       }
 
-      @Nonnull
       @Override
-      public DoubleBuffer getMzValues() {
-        return null;
+      public double[] getMzValues(@Nonnull double[] dst) {
+        return new double[0]; // Local implementation only so this does not matter
       }
 
-      @Nonnull
       @Override
-      public DoubleBuffer getIntensityValues() {
-        return null;
+      public double[] getIntensityValues(@Nonnull double[] dst) {
+        return new double[0]; // Local implementation only so this does not matter
       }
 
       @Override
