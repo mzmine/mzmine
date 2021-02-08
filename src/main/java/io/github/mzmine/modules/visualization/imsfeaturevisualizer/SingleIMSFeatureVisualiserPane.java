@@ -33,9 +33,11 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvid
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMobilogramTimeSeriesToRtMobilityHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleSpectrumProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import javafx.application.Platform;
@@ -48,7 +50,9 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
+import javafx.util.StringConverter;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.RectangleEdge;
 
 public class SingleIMSFeatureVisualiserPane extends GridPane {
@@ -98,11 +102,9 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     ColumnConstraints col1 = new ColumnConstraints(340);
 
     RowConstraints row0 = new RowConstraints(250);
-    RowConstraints row1 = new RowConstraints(60);
-    RowConstraints row2 = new RowConstraints();
-    RowConstraints row3 = new RowConstraints(150);
+    RowConstraints row3 = new RowConstraints(250);
 
-    getRowConstraints().addAll(row0, row1, row2, row3);
+    getRowConstraints().addAll(row0, row3);
     getColumnConstraints().addAll(col0, col1);
   }
 
@@ -143,6 +145,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     msmsSpectrumChart.setRangeAxisLabel(unitFormat.format("Intensity", "counts"));
     msmsSpectrumChart.setRangeAxisNumberFormatOverride(intensityFormat);
     msmsSpectrumChart.setShowCrosshair(false);
+    msmsSpectrumChart.setDefaultRenderer(new ColoredXYBarRenderer(false));
 
     mobilogramChart.setDomainAxisNumberFormatOverride(intensityFormat);
     mobilogramChart.setDomainAxisLabel(unitFormat.format("Intensity", "counts"));
@@ -156,9 +159,12 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
         NumberAxis a = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
         a.setAutoRangeIncludesZero(false);
         a.setAutoRangeStickyZero(false);
-        a.setAutoRangeMinimumSize(0.005);
+        a.setAutoRangeMinimumSize(0.0001);
         a.setAutoRange(true);
-        mobilogramChart.switchLegendVisible();
+        XYItemRenderer renderer = mobilogramChart.getXYPlot().getRenderer(0);
+        if (renderer != null) {
+          renderer.setDefaultSeriesVisibleInLegend(false);
+        }
       });
 
     });
@@ -180,9 +186,26 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 
     ComboBox<Scan> fragmentScanSelection = new ComboBox<>();
     fragmentScanSelection.setItems(feature.getAllMS2FragmentScans());
+    if (feature.getAllMS2FragmentScans() != null && feature.getMostIntenseFragmentScan() != null) {
+      fragmentScanSelection.setValue(feature.getMostIntenseFragmentScan());
+    }
     fragmentScanSelection.valueProperty().addListener((observable, oldValue, newValue) -> {
       msmsSpectrumChart.removeAllDatasets();
       msmsSpectrumChart.addDataset(new SingleSpectrumProvider(newValue));
+    });
+    fragmentScanSelection.setConverter(new StringConverter<Scan>() {
+      @Override
+      public String toString(Scan object) {
+        if (object != null) {
+          return ScanUtils.scanToString(object, true);
+        }
+        return null;
+      }
+
+      @Override
+      public Scan fromString(String string) {
+        return null;
+      }
     });
 
     FlowPane controls = new FlowPane(new Label("Fragment spectrum: "));
@@ -191,7 +214,9 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     controls.setAlignment(Pos.TOP_CENTER);
 
     BorderPane spectrumPane = new BorderPane(msmsSpectrumChart);
-    add(spectrumPane, 0, 2, 2, 1);
+    spectrumPane.setMinHeight(250);
+    spectrumPane.setBottom(controls);
+    add(spectrumPane, 0, 1, 2, 1);
   }
 
   public SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> getHeatmapChart() {

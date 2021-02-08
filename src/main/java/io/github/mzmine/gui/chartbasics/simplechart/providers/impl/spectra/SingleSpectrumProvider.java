@@ -78,8 +78,8 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
   @Override
   public String getToolTipText(int itemIndex) {
     return "m/z: " + mzFormat
-        .format(spectrum.getMzValue(itemIndex) + "\nIntensity: " + intensityFormat
-            .format(spectrum.getIntensityValue(itemIndex)));
+        .format(spectrum.getMzValue(itemIndex)) + "\nIntensity: " + intensityFormat
+        .format(spectrum.getIntensityValue(itemIndex));
   }
 
   @Override
