@@ -212,21 +212,30 @@ class IsotopeGrouperTask extends AbstractTask {
         Arrays.sort(originalPeaks,
             new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
       } else {
-        Arrays.sort(originalPeaks, new FeatureSorter(SortingProperty.MZ, SortingDirection.Ascending));
+        Arrays
+            .sort(originalPeaks, new FeatureSorter(SortingProperty.MZ, SortingDirection.Ascending));
       }
 
-      Feature newPeak = new ModularFeature((ModularFeatureList) deisotopedFeatureList, originalPeaks[0]);
+      Feature newPeak = new ModularFeature((ModularFeatureList) deisotopedFeatureList,
+          originalPeaks[0]);
       newPeak.setIsotopePattern(newPattern);
       newPeak.setCharge(bestFitCharge);
 
-      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) deisotopedFeatureList, oldRow.getID(), newPeak);
+      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) deisotopedFeatureList,
+          oldRow.getID(), newPeak);
       newRow.addFeature(dataFile, newPeak);
+      ((ModularFeatureListRow) oldRow).getMap().forEach((k, v) -> {
+        if (((ModularFeatureListRow) newRow).get(k) == null) {
+          ((ModularFeatureListRow) newRow).set(k, v);
+        }
+      });
       deisotopedFeatureList.addRow(newRow);
 
       // Remove all peaks already assigned to isotope pattern
       for (int i = 0; i < sortedPeaks.length; i++) {
-        if (bestFitPeaks.contains(sortedPeaks[i]))
+        if (bestFitPeaks.contains(sortedPeaks[i])) {
           sortedPeaks[i] = null;
+        }
       }
 
       // Update completion rate
