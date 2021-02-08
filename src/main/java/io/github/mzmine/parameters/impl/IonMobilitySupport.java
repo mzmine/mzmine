@@ -30,12 +30,19 @@ public enum IonMobilitySupport {
   SUPPORTED,
 
   /**
+   * Module has not been tested with ion mobility data, but should work.
+   */
+  UNTESTED,
+
+  /**
+   * Module has been tested with ion mobility data and shows certain restrictions when processing
+   * that data. A specific warning message should be displayed by overriding {@link
+   * SimpleParameterSet#getRestrictedIonMobilitySupportMessage()}.
+   */
+  RESTRICTED,
+
+  /**
    * Module does not support ion mobility data and will produce wrong results.
    */
   UNSUPPORTED,
-
-  /**
-   * Module has not been tested with ion mobility data, but should work.
-   */
-  UNTESTED
 }

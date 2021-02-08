@@ -244,10 +244,21 @@ public class SimpleParameterSet implements ParameterSet {
       if (showMsg) {
         return MZmineCore.getDesktop()
             .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
-                getUntestedIonMobilityCompatibilityMessage(), "Do not show again",
+                "This module has not been tested with ion mobility data files. This could lead "
+                    + "to unexpected results. Do you want to continue anyway?", "Do not show again",
                 optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
       }
       return true;
+    } else if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.RESTRICTED) {
+      logger.warning(
+          "This module has certain restrictions when processing ion mobility data files. This"
+              + " could lead to unexpected results");
+      if (showMsg) {
+        return MZmineCore.getDesktop()
+            .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
+                getRestrictedIonMobilitySupportMessage(), "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
+      }
     } else if (!onlyImsFiles && getIonMobilitySupport() == IonMobilitySupport.ONLY) {
       logger.warning(
           "This module is designed for ion mobility data only. Cannot process non-ion mobility files.");
@@ -274,9 +285,8 @@ public class SimpleParameterSet implements ParameterSet {
    *
    * @return The message.
    */
-  public String getUntestedIonMobilityCompatibilityMessage() {
-    return "This module has not been tested with ion mobility data files. This could lead "
-        + "to unexpected results. Do you want to continue anyway?";
+  public String getRestrictedIonMobilitySupportMessage() {
+    return "This module has certain restrictions when processing ion mobility data files. This "
+        + "could lead to unexpected results. Do you want to continue anyway?";
   }
-
 }
