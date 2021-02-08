@@ -7,6 +7,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.Iterator;
@@ -20,14 +21,22 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
   private final NumberFormat mzFormat;
   private final String seriesKey;
   private final MassSpectrum spectrum;
+  private final Color color;
 
-  public MassSpectrumProvider(MassSpectrum spectrum, String seriesKey) {
+  public MassSpectrumProvider(MassSpectrum spectrum, String seriesKey, Color color) {
     this.spectrum = spectrum;
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     this.seriesKey = seriesKey;
+    this.color = color;
   }
 
   public MassSpectrumProvider(double[] mzs, double[] intensities, String seriesKey) {
+    this(mzs, intensities, seriesKey,
+        MZmineCore.getConfiguration().isDarkMode() ? Color.lightGray : Color.black);
+  }
+
+  public MassSpectrumProvider(double[] mzs, double[] intensities, String seriesKey, Color color) {
+    this.color = color;
     this.spectrum = new MassSpectrum() {
       @Override
       public int getNumberOfDataPoints() {
@@ -108,13 +117,13 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
   @Nonnull
   @Override
   public Color getAWTColor() {
-    return Color.BLACK;
+    return color;
   }
 
   @Nonnull
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return javafx.scene.paint.Color.BLACK;
+    return FxColorUtil.awtColorToFX(color);
   }
 
   @Nullable

@@ -39,6 +39,7 @@ import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.text.NumberFormat;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -68,6 +69,9 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
 
     final GridPane controlPane = new GridPane();
     previewWrapperPane.setBottom(controlPane);
+    controlPane.setPadding(new Insets(5));
+    controlPane.setHgap(5);
+    controlPane.setVgap(5);
 
     RawDataFile[] files = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
