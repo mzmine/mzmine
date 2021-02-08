@@ -464,6 +464,8 @@ public class MZmineGUI extends Application implements Desktop {
     Platform.runLater(() -> {
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
       dialog.setContentText(msg);
@@ -487,6 +489,8 @@ public class MZmineGUI extends Application implements Desktop {
 
     FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION, msg, buttonTypes);
+      alert.getDialogPane().getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       alert.showAndWait();
       return alert.getResult();
     });
@@ -572,6 +576,8 @@ public class MZmineGUI extends Application implements Desktop {
     // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
     FutureTask<ButtonType> task = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.WARNING);
+      alert.getDialogPane().getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       // Need to force the alert to layout in order to grab the graphic,
       // as we are replacing the dialog pane with a custom pane
       alert.getDialogPane().applyCss();
