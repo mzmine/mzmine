@@ -24,6 +24,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.maths.Weighting;
@@ -44,11 +45,14 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
       "m/z weighting", "Weights m/z values by their intensities with the given function.",
       Weighting.values(), Weighting.LINEAR);
 
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
+
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
       "", 0.0001, 2, false);
 
   public MobilityScanMergerParameters() {
-    super(new Parameter[]{rawDataFiles, noiseLevel, mergingType, weightingType, mzTolerance});
+    super(new Parameter[]{rawDataFiles, noiseLevel, mergingType, weightingType, scanSelection,
+        mzTolerance});
   }
 
   @Override
