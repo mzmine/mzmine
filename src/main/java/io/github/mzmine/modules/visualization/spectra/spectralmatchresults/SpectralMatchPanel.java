@@ -18,26 +18,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
-import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
-import io.github.mzmine.gui.framework.CustomTextPane;
-import io.github.mzmine.gui.framework.ScrollablePanel;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.util.color.ColorScaleUtil;
-import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.components.MultiLineLabel;
-import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-//import io.github.mzmine.util.swing.IconUtil;
-//import io.github.mzmine.util.swing.SwingExportUtil;
+// import io.github.mzmine.util.swing.IconUtil;
+// import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -48,7 +30,6 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.image.Image;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -61,7 +42,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
-import net.miginfocom.swing.MigLayout;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -74,6 +54,25 @@ import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
+import io.github.mzmine.gui.framework.CustomTextPane;
+import io.github.mzmine.gui.framework.ScrollablePanel;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.util.color.ColorScaleUtil;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import javafx.scene.image.Image;
+import net.miginfocom.swing.MigLayout;
 
 public class SpectralMatchPanel extends JPanel {
 
@@ -186,9 +185,9 @@ public class SpectralMatchPanel extends JPanel {
     preview2DPanel.add(pn, BorderLayout.EAST);
     pn.add(pnExport, BorderLayout.CENTER);
 
-//    This class is just used for export fuctionality, so we do not need this buttons
-//    addExportButtons(MZmineCore.getConfiguration()
-//        .getModuleParameters(SpectraIdentificationResultsModule.class));
+    // This class is just used for export fuctionality, so we do not need this buttons
+    // addExportButtons(MZmineCore.getConfiguration()
+    // .getModuleParameters(SpectraIdentificationResultsModule.class));
 
     JComponent newComponent = null;
 
@@ -213,7 +212,7 @@ public class SpectralMatchPanel extends JPanel {
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
-        newComponent = new MultiLineLabel(errorMessage);
+        newComponent = new JLabel(errorMessage);
       }
       preview2DPanel.add(newComponent, BorderLayout.CENTER);
       preview2DPanel.revalidate();
@@ -291,7 +290,7 @@ public class SpectralMatchPanel extends JPanel {
 
     if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
       // TODO: uncomment all and change to JavaFX
-      btnExport = new JButton(/*IconUtil.scaled(iconAll, ICON_WIDTH)*/);
+      btnExport = new JButton(/* IconUtil.scaled(iconAll, ICON_WIDTH) */);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("all"));
@@ -299,7 +298,7 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.pdf).getValue()) {
-      btnExport = new JButton(/*IconUtil.scaled(iconPdf, ICON_WIDTH)*/);
+      btnExport = new JButton(/* IconUtil.scaled(iconPdf, ICON_WIDTH) */);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("pdf"));
@@ -307,7 +306,7 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.emf).getValue()) {
-      btnExport = new JButton(/*IconUtil.scaled(iconEmf, ICON_WIDTH)*/);
+      btnExport = new JButton(/* IconUtil.scaled(iconEmf, ICON_WIDTH) */);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("emf"));
@@ -315,7 +314,7 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.eps).getValue()) {
-      btnExport = new JButton(/*IconUtil.scaled(iconEps, ICON_WIDTH)*/);
+      btnExport = new JButton(/* IconUtil.scaled(iconEps, ICON_WIDTH) */);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("eps"));
@@ -323,7 +322,7 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
-      btnExport = new JButton(/*IconUtil.scaled(iconSvg, ICON_WIDTH)*/);
+      btnExport = new JButton(/* IconUtil.scaled(iconSvg, ICON_WIDTH) */);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("svg"));
@@ -358,8 +357,8 @@ public class SpectralMatchPanel extends JPanel {
         pnExport.getParent().repaint();
 
         /*
-        SwingExportUtil.writeToGraphics(this, f.getParentFile(), f.getName(), format);
-        */
+         * SwingExportUtil.writeToGraphics(this, f.getParentFile(), f.getName(), format);
+         */
         // save path
         param.setValue(FileAndPathUtil.eraseFormat(f));
       } catch (Exception ex) {
@@ -380,8 +379,7 @@ public class SpectralMatchPanel extends JPanel {
     int w = META_WIDTH * 3;
     int titleLineMultiplier = (int) ((boxTitlePanel.getPreferredSize().getWidth() / w) + 2);
     boxTitlePanel.setSize(w, boxTitlePanel.getHeight() * titleLineMultiplier);
-    int h = (boxTitlePanel.getHeight() + (int) metaDataPanel
-        .getPreferredSize().getHeight());
+    int h = (boxTitlePanel.getHeight() + (int) metaDataPanel.getPreferredSize().getHeight());
 
     JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
     frame.setSize(w, h);
@@ -397,8 +395,8 @@ public class SpectralMatchPanel extends JPanel {
   public void exportToGraphics(String format, File file) {
     try {
       /*
-      SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
-      */
+       * SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
+       */
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
     } finally {

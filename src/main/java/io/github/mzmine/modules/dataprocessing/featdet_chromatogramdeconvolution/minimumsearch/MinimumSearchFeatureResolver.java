@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedValue;
@@ -58,7 +59,10 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
     this.parameters = null;
   }
 
-  ;
+  @Override
+  public Class<? extends MZmineProcessingModule> getModuleClass() {
+    return MinimumSearchFeatureResolverModule.class;
+  }
 
   public MinimumSearchFeatureResolver(ParameterSet parameterSet) {
     this.parameters = parameterSet;

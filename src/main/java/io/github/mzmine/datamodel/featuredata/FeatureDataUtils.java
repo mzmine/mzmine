@@ -26,8 +26,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
@@ -66,12 +64,13 @@ public class FeatureDataUtils {
     double max = Double.MIN_VALUE;
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
-      final double mz = series.getIntensity(i);
-      if (mz < min) {
-        min = mz;
+      final double intensity = series.getIntensity(i);
+      // we add flanking 0s during building, don't count those
+      if (intensity < min && intensity > 0d) {
+        min = intensity;
       }
-      if (mz > max) {
-        max = mz;
+      if (intensity > max) {
+        max = intensity;
       }
     }
     return Range.closed((float) min, (float) max);
@@ -165,7 +164,7 @@ public class FeatureDataUtils {
       SummedIntensityMobilitySeries summedMobilogram = ((IonMobilogramTimeSeries) featureData)
           .getSummedMobilogram();
       Range<Float> mobilityRange = getMobilityRange(summedMobilogram);
-      feature.set(MobilityRangeType.class, mobilityRange);
+      feature.setMobilityRange(mobilityRange);
 
       int mostIntenseMobilityScanIndex = -1;
       double intensity = Double.MIN_VALUE;
@@ -176,8 +175,7 @@ public class FeatureDataUtils {
           mostIntenseMobilityScanIndex = i;
         }
       }
-      feature.set(MobilityType.class,
-          (float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
+      feature.setMobility((float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
     }
     // todo recalc quality parameters
   }

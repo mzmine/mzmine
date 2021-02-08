@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.parameters.ParameterSet;
@@ -46,6 +47,11 @@ public class BaselineFeatureResolver implements FeatureResolver {
   @Override
   public @Nonnull String getName() {
     return "Baseline cut-off";
+  }
+
+  @Override
+  public Class<? extends MZmineProcessingModule> getModuleClass() {
+    return BaselineFeatureResolverModule.class;
   }
 
   @Override

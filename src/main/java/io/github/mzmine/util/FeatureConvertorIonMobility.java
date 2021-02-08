@@ -67,7 +67,7 @@ public class FeatureConvertorIonMobility {
         Set<RetentionTimeMobilityDataPoint> entry = sortedDataPoints
             .computeIfAbsent(((RetentionTimeMobilityDataPoint) dp).getFrame(),
                 scan -> new TreeSet<>(
-                    Comparator.comparingInt(o -> o.getMobilityScan().getMobilityScamNumber())));
+                    Comparator.comparingInt(o -> o.getMobilityScan().getMobilityScanNumber())));
         entry.add((RetentionTimeMobilityDataPoint) dp);
       } else {
         throw new IllegalArgumentException("IMS feature contains invalid data points.");
@@ -87,12 +87,12 @@ public class FeatureConvertorIonMobility {
       } else {
         if (range == null) {
           range = Range.singleton(
-              ((RetentionTimeMobilityDataPoint) dp).getMobilityScan().getMobilityScamNumber());
+              ((RetentionTimeMobilityDataPoint) dp).getMobilityScan().getMobilityScanNumber());
         } else {
           if (!range.contains(
-              ((RetentionTimeMobilityDataPoint) dp).getMobilityScan().getMobilityScamNumber())) {
+              ((RetentionTimeMobilityDataPoint) dp).getMobilityScan().getMobilityScanNumber())) {
             range = range.span(Range.singleton(
-                ((RetentionTimeMobilityDataPoint) dp).getMobilityScan().getMobilityScamNumber()));
+                ((RetentionTimeMobilityDataPoint) dp).getMobilityScan().getMobilityScanNumber()));
           }
         }
       }

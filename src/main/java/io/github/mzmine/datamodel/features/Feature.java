@@ -21,6 +21,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
@@ -46,9 +47,19 @@ public interface Feature {
   double getMZ();
 
   /**
+   * Sets raw M/Z value of the feature
+   */
+  void setMZ(double mz);
+
+  /**
    * This method returns raw retention time of the feature in minutes
    */
   float getRT();
+
+  /**
+   * Sets retention time of the feature
+   */
+  void setRT(float rt);
 
   /**
    * This method returns the raw height of the feature
@@ -56,9 +67,19 @@ public interface Feature {
   float getHeight();
 
   /**
+   * Sets height of the feature
+   */
+  void setHeight(float height);
+
+  /**
    * This method returns the raw area of the feature
    */
   float getArea();
+
+  /**
+   * Sets area of the feature
+   */
+  void setArea(float area);
 
   /**
    * Returns raw data file where this feature is present
@@ -169,24 +190,64 @@ public interface Feature {
   ObservableList<Scan> getAllMS2FragmentScans();
 
   /**
-   * Sets raw M/Z value of the feature
+   * Set all fragment scan numbers
+   *
+   * @param allMS2FragmentScanNumbers
    */
-  void setMZ(double mz);
+  //void setAllMS2FragmentScanNumbers(List<Integer> allMS2FragmentScanNumbers); ?
+  void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
 
   /**
-   * Sets retention time of the feature
+   * @return The mobility if no mobility was set. Note that mobility can have different units.
+   * @see Feature#getMobilityUnit()
    */
-  void setRT(float rt);
+  @Nullable
+  Float getMobility();
 
   /**
-   * Sets height of the feature
+   * Sets the mobility of this feature. Note that mobility has a unit, which should be set by {@link
+   * Feature#setMobilityUnit(MobilityType)}.
+   *
+   * @param mobility The mobility.
    */
-  void setHeight(float height);
+  void setMobility(Float mobility);
 
   /**
-   * Sets area of the feature
+   * @return The unit of the mobility of this feature or null, if no mobility unit was set.
    */
-  void setArea(float area);
+  @Nullable
+  MobilityType getMobilityUnit();
+
+  /**
+   * Sets the {@link MobilityType} of this feature.
+   *
+   * @param mobilityUnit
+   */
+  void setMobilityUnit(MobilityType mobilityUnit);
+
+  /**
+   * @return The ccs value or null, if no value was set.
+   */
+  @Nullable
+  Float getCCS();
+
+  /**
+   * Sets the collision cross section of this feature.
+   *
+   * @param ccs The ccs value.
+   */
+  void setCCS(Float ccs);
+
+  /**
+   * @return The mobility range of this feature or null, if no range was set.
+   */
+  @Nullable
+  Range<Float> getMobilityRange();
+
+  /**
+   * Sets the mobiltiy range
+   */
+  void setMobilityRange(Range<Float> range);
 
   /**
    * Set best fragment scan
@@ -194,14 +255,6 @@ public interface Feature {
    * @param fragmentScan
    */
   void setFragmentScan(Scan fragmentScan);
-
-  /**
-   * Set all fragment scan numbers
-   *
-   * @param allMS2FragmentScanNumbers
-   */
-  //void setAllMS2FragmentScanNumbers(List<Integer> allMS2FragmentScanNumbers); ?
-  void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
 
   /**
    * Returns the isotope pattern of this feature or null if no pattern is attached
@@ -230,24 +283,24 @@ public interface Feature {
   float getFWHM();
 
   /**
-   * This method returns the tailing factor of the feature
-   */
-  float getTailingFactor();
-
-  /**
-   * This method returns the asymmetry factor of the feature
-   */
-  float getAsymmetryFactor();
-
-  /**
    * Sets the full width at half maximum (FWHM)
    */
   void setFWHM(double fwhm);
 
   /**
+   * This method returns the tailing factor of the feature
+   */
+  float getTailingFactor();
+
+  /**
    * Sets the tailing factor
    */
   void setTailingFactor(double tf);
+
+  /**
+   * This method returns the asymmetry factor of the feature
+   */
+  float getAsymmetryFactor();
 
   /**
    * Sets the asymmetry factor
@@ -257,9 +310,9 @@ public interface Feature {
   // dulab Edit
   void outputChromToFile();
 
-  void setFeatureInformation(SimpleFeatureInformation featureInfo);
-
   SimpleFeatureInformation getFeatureInformation();
+
+  void setFeatureInformation(SimpleFeatureInformation featureInfo);
   // End dulab Edit
 
   @Nullable

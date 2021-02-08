@@ -18,17 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.identification.sumformulaprediction;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.logging.Logger;
-import org.openscience.cdk.formula.MolecularFormulaGenerator;
-import org.openscience.cdk.formula.MolecularFormulaRange;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -54,6 +43,17 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.SpectraPlotUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.logging.Logger;
+import org.openscience.cdk.formula.MolecularFormulaGenerator;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Predicts sum formulas just like
@@ -307,10 +307,11 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     final double isotopeNoiseLevel =
         isotopeParameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
-    int isotopeBasePeak = detectedPattern.getBasePeakIndex();
-    if (isotopeBasePeak < 0)
+    Integer isotopeBasePeak = detectedPattern.getBasePeakIndex();
+    if (isotopeBasePeak == null) {
       return 0.0;
-    final double detectedPatternHeight = detectedPattern.getIntensityValues().get(isotopeBasePeak);
+    }
+    final double detectedPatternHeight = detectedPattern.getBasePeakIntensity();
 
     final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 

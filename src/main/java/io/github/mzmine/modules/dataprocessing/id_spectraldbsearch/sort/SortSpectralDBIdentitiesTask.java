@@ -93,7 +93,8 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
 
     // Add task description to peakList
     featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Sorted spectral database identities of DB search ", parameters));
+        "Sorted spectral database identities of DB search ",
+        SortSpectralDBIdentitiesModule.class,  parameters));
 
     setStatus(TaskStatus.FINISHED);
   }

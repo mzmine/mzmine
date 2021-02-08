@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverParameters.PeakIntegrationMethod;
@@ -77,6 +78,11 @@ public class CentWaveResolver implements FeatureResolver {
   public Class<? extends ParameterSet> getParameterSetClass() {
 
     return CentWaveResolverParameters.class;
+  }
+
+  @Override
+  public Class<? extends MZmineProcessingModule> getModuleClass() {
+    return CentWaveResolverModule.class;
   }
 
   @Override

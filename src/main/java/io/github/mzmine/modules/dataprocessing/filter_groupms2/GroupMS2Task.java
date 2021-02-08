@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
@@ -71,7 +72,7 @@ public class GroupMS2Task extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list         feature list to process.
+   * @param list feature list to process.
    * @param parameterSet task parameters.
    */
   public GroupMS2Task(final MZmineProject project, final FeatureList list,
@@ -117,6 +118,8 @@ public class GroupMS2Task extends AbstractTask {
         processedRows++;
       }
 
+      list.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+          GroupMS2Module.class, parameters));
       setStatus(TaskStatus.FINISHED);
       logger.info("Finished adding all MS2 scans to their features in " + list.getName());
 
@@ -185,7 +188,7 @@ public class GroupMS2Task extends AbstractTask {
         if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getLargestPeakMz())) {
 
           // todo: maybe revisit this for a more sophisticated range check
-          int mobilityScannumberOffset = frame.getMobilityScan(0).getMobilityScamNumber();
+          int mobilityScannumberOffset = frame.getMobilityScan(0).getMobilityScanNumber();
           float mobility1 = (float) frame.getMobilityForMobilityScanNumber(
               imsMsMsInfo.getSpectrumNumberRange().lowerEndpoint() - mobilityScannumberOffset);
           float mobility2 = (float) frame.getMobilityForMobilityScanNumber(

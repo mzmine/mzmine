@@ -18,26 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.Vector;
-import java.util.logging.Logger;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.Vector;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 
 class RTCalibrationTask extends AbstractTask {
@@ -215,7 +213,8 @@ class RTCalibrationTask extends AbstractTask {
 
       // Add task description to feature list
       normalizedFeatureLists[i].addDescriptionOfAppliedTask(
-          new SimpleFeatureListAppliedMethod("Retention time normalization", parameters));
+          new SimpleFeatureListAppliedMethod("Retention time normalization",
+              RTCalibrationModule.class, parameters));
 
       // Remove the original feature lists if requested
       if (removeOriginal)

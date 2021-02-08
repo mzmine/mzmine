@@ -23,6 +23,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.maths.CenterFunction;
+import io.github.mzmine.util.maths.CenterMeasure;
+import io.github.mzmine.util.maths.Weighting;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
@@ -41,6 +44,9 @@ import javax.annotation.Nullable;
 public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   private static final Logger logger = Logger.getLogger(SimpleIonTimeSeries.class.getName());
+
+  private static final CenterFunction mzCentering = new CenterFunction(CenterMeasure.AVG,
+      Weighting.logger10, 0d, 4);
 
   protected final List<SimpleIonMobilitySeries> mobilograms;
   protected final List<Frame> frames;

@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
-import java.util.Random;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -32,6 +30,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.BinningType;
+import java.util.Random;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
 
@@ -64,8 +64,11 @@ class Fx3DSamplingTask extends AbstractTask {
    * Task constructor
    *
    * @param dataFile
-   * @param msLevel
-   * @param visualizer
+   * @param scanSel
+   * @param mzRange
+   * @param rtResolution
+   * @param mzResolution
+   * @param controller
    */
   Fx3DSamplingTask(RawDataFile dataFile, ScanSelection scanSel, Range<Double> mzRange,
       int rtResolution, int mzResolution, Fx3DBorderPaneController controller) {
@@ -130,8 +133,8 @@ class Fx3DSamplingTask extends AbstractTask {
 
         double[] scanMZValues = new double[scan.getNumberOfDataPoints()];
         double[] scanIntensityValues = new double[scan.getNumberOfDataPoints()];
-        scan.getMzValues().get(0, scanMZValues);
-        scan.getIntensityValues().get(0, scanIntensityValues);
+        scan.getMzValues(scanMZValues);
+        scan.getIntensityValues(scanIntensityValues);
 
         double[] binnedIntensities = ScanUtils.binValues(scanMZValues, scanIntensityValues, mzRange,
             mzResolution, scan.getSpectrumType() != MassSpectrumType.CENTROIDED, BinningType.MAX);

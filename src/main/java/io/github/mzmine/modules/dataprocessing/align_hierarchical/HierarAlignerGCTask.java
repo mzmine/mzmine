@@ -666,7 +666,8 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     // Add task description to peakList
     alignedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(HierarAlignerGCTask.TASK_NAME, parameters));
+        new SimpleFeatureListAppliedMethod(HierarAlignerGCTask.TASK_NAME,
+            HierarAlignerGcModule.class, parameters));
 
     logger.info("Finished join aligner GC");
     setStatus(TaskStatus.FINISHED);

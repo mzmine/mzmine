@@ -18,17 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import org.slf4j.LoggerFactory;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import io.github.mzmine.parameters.ParameterSet;
@@ -36,14 +35,14 @@ import io.github.mzmine.parameters.parametertypes.MassListComponent;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
 public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
-  private static final org.slf4j.Logger logger =
-      LoggerFactory.getLogger(PeakListIdentificationTask.class);
+  private static final Logger logger = Logger.getLogger(PeakListIdentificationTask.class.getName());
 
   // Counters.
   private int numItems;
@@ -123,7 +122,8 @@ public class PeakListIdentificationTask extends AbstractTask {
         // Identify the feature list rows starting from the biggest
         // peaks.
         FeatureListRow rows[] = peakList.getRows().toArray(FeatureListRow[]::new);
-        Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+        Arrays.sort(rows,
+            new FeatureListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 
         // Initialize counters.
         numItems = rows.length;
@@ -132,13 +132,12 @@ public class PeakListIdentificationTask extends AbstractTask {
         for (int index = 0; !isCanceled() && index < numItems;) {
           try {
             semaphore.acquire();
-            logger.debug("Semaphore ACQUIRED");
             Thread th =
                 new Thread(new SiriusThread(rows[index++], parameters, semaphore, latch, this));
             th.setDaemon(true);
             th.start();
           } catch (InterruptedException e) {
-            logger.error("The thread was interrupted");
+            logger.warning("The thread was interrupted");
           }
         }
 
@@ -152,7 +151,7 @@ public class PeakListIdentificationTask extends AbstractTask {
         }
       } catch (Throwable t) {
         final String msg = "Could not search ";
-        logger.warn(msg, t);
+        t.printStackTrace();
         setStatus(TaskStatus.ERROR);
         setErrorMessage(msg + ": " + ExceptionUtils.exceptionToString(t));
       }

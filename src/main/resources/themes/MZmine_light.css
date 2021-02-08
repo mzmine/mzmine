@@ -3,16 +3,6 @@
     -fx-font-family: "sans-serif";
 }
 
-.table-column {
-    -fx-alignment: CENTER-LEFT;
-}
-
-
-.tooltip {
-    -fx-font-size: 10.0pt;
-    -fx-show-delay: 10ms;
-}
-
 .tool-bar {
 	-fx-background-color: white;
 }
@@ -24,42 +14,7 @@
 .chart-series-line {
     -fx-stroke-width: 1.0px;
     -fx-effect: null;
-	-fx-background-color: white;  
-}
-
-.splashText {
-	-fx-font-size: 8.0pt;
-} 
-
-#memoryBarLabel { 
-	-fx-font-size: 9.0pt; 
-	-fx-label-padding: 0.0 20.0 0.0 20.0; 
-}
-
-.white-larger-label {
-  -fx-font-size: 14.0pt;
-  -fx-text-fill: white;
-  -fx-wrap-text: true;
-  -fx-font-weight: bold;
-}
-
-.title-label {
-  -fx-font-size: 16.0pt;
-}
-
-.bold-title-label {
-  -fx-font-size: 16.0pt;
-  -fx-font-weight: bold;
-}
-
-.white-score-label {
-  -fx-font-size: 20.0pt;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-}
-
-.text-label {
-  -fx-wrap-text: true;
+	-fx-background-color: white;
 }
 
 .region{
@@ -74,11 +29,6 @@
     -fx-selection-bar: #dddddd;
     -fx-selection-bar-non-focused: #aaaaaa;
 }
-
-.number-column {
-  -fx-alignment: CENTER-RIGHT;
-}
-
 
 /* Some useful CSS properties: */
 /* 

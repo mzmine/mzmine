@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -32,11 +33,13 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
+import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
@@ -44,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
@@ -583,5 +587,52 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public void setArea(float area) {
     set(AreaType.class, area);
+  }
+
+  @Nullable
+  @Override
+  public Float getMobility() {
+    Property<Float> v = get(io.github.mzmine.datamodel.features.types.numbers.MobilityType.class);
+    return v == null || v.getValue() == null ? null : v.getValue();
+  }
+
+  @Override
+  public void setMobility(Float mobility) {
+    set(io.github.mzmine.datamodel.features.types.numbers.MobilityType.class, mobility);
+  }
+
+  @Nullable
+  @Override
+  public MobilityType getMobilityUnit() {
+    Property<MobilityType> v = get(MobilityUnitType.class);
+    return v == null || v.getValue() == null ? null : v.getValue();
+  }
+
+  @Override
+  public void setMobilityUnit(MobilityType mobilityUnit) {
+    set(MobilityUnitType.class, mobilityUnit);
+  }
+
+  @Override
+  public Float getCCS() {
+    Property<Float> v = get(CCSType.class);
+    return v == null || v.getValue() == null ? null : v.getValue();
+  }
+
+  @Override
+  public void setCCS(Float ccs) {
+    set(CCSType.class, ccs);
+  }
+
+  @Nullable
+  @Override
+  public Range<Float> getMobilityRange() {
+    ObjectProperty<Range<Float>> v = get(MobilityRangeType.class);
+    return v == null || v.getValue() == null ? null : v.getValue();
+  }
+
+  @Override
+  public void setMobilityRange(Range<Float> range) {
+    set(MobilityRangeType.class, range);
   }
 }

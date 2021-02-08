@@ -13,6 +13,16 @@
 
 package io.github.mzmine.modules.io.import_mzml_msdk.msdk;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import org.apache.commons.codec.digest.DigestUtils;
 import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKMethod;
 import io.github.msdk.datamodel.ActivationInfo;
@@ -35,19 +45,9 @@ import io.github.msdk.io.mzml.data.MzMLPrecursorSelectedIon;
 import io.github.msdk.io.mzml.data.MzMLProduct;
 import io.github.msdk.io.mzml.data.MzMLRawDataFile;
 import io.github.msdk.io.mzml.data.MzMLTags;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.security.DigestOutputStream;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import javax.annotation.Nonnull;
 import javolution.xml.internal.stream.XMLStreamWriterImpl;
 import javolution.xml.stream.XMLStreamException;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 /**
  * <p>
@@ -70,7 +70,7 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
 
   private static final String PREFIX_XSI = "xsi";
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final @Nonnull RawDataFile rawDataFile;
   private final @Nonnull File target;
@@ -107,8 +107,7 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    *
    * <p>
    * Execute the process of writing the data from the the input
-   * {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile} to the target
-   * {@link File File}
+   * {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile} to the target {@link File File}
    * </p>
    */
   @Override
@@ -744,9 +743,8 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    * <p>
    * Write a <code>&lt;cvParam&gt;</code> to the <code>xmlStreamWriter</code>
    * </p>
-   * 
-   * @param xmlStreamWriter an {@link XMLStreamWriterImpl
-   *        XMLStreamWriterImpl} instance
+   *
+   * @param xmlStreamWriter an {@link XMLStreamWriterImpl XMLStreamWriterImpl} instance
    * @param cvParam the CV Parameter to be written to the target {@link File File}
    * @throws XMLStreamException
    */
@@ -783,11 +781,10 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    * <p>
    * Write a group (or list) of <code>&lt;cvParam&gt;</code> to the <code>xmlStreamWriter</code>
    * </p>
-   * 
-   * @param xmlStreamWriter an {@link XMLStreamWriterImpl
-   *        XMLStreamWriterImpl} instance
-   * @param cvGroup the list (or group) of CV Parameters to be written to the target
-   *        {@link File File}
+   *
+   * @param xmlStreamWriter an {@link XMLStreamWriterImpl XMLStreamWriterImpl} instance
+   * @param cvGroup the list (or group) of CV Parameters to be written to the target {@link File
+   *        File}
    * @throws XMLStreamException
    */
   private void writeCVGroup(XMLStreamWriterImpl xmlStreamWriter, MzMLCVGroup cvGroup)

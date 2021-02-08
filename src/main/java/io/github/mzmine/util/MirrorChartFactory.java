@@ -435,12 +435,21 @@ public class MirrorChartFactory {
    * @param alwaysShowBest
    * @return
    */
-  public static EChartPanel createMSMSChartPanel(FeatureListRow row, RawDataFile raw,
+  /*public static EChartPanel createMSMSChartPanel(FeatureListRow row, RawDataFile raw,
       boolean showTitle, boolean showLegend, boolean alwaysShowBest, boolean useBestForMissingRaw) {
     Scan scan = getMSMSScan(row, raw, alwaysShowBest, useBestForMissingRaw);
     if (scan == null) {
       return null;
     }
     return SpectrumChartFactory.createScanChartPanel(scan, showTitle, showLegend);
+  }*/
+
+  public static EChartViewer createMSMSChartViewer(FeatureListRow row, RawDataFile raw,
+      boolean showTitle, boolean showLegend, boolean alwaysShowBest, boolean useBestForMissingRaw) {
+    Scan scan = getMSMSScan(row, raw, alwaysShowBest, useBestForMissingRaw);
+    if (scan == null) {
+      return null;
+    }
+    return SpectrumChartFactory.createScanChartViewer(scan, showTitle, showLegend);
   }
 }

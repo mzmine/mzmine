@@ -18,10 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import org.jfree.chart.labels.XYToolTipGenerator;
-import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -30,6 +26,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ExtendedIsotopePatternDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * Tooltip generator for raw data points
@@ -73,11 +73,11 @@ public class SpectraToolTipGenerator implements XYToolTipGenerator {
 
       IsotopePattern pattern = isotopeDataSet.getIsotopePattern();
 
-
       double relativeIntensity = 0.0;
-      int basePeak = pattern.getBasePeakIndex();
-      if (basePeak >= 0)
-        relativeIntensity = intValue / pattern.getIntensityValues().get(basePeak) * 100;
+      Integer basePeak = pattern.getBasePeakIndex();
+      if (basePeak == null) {
+        relativeIntensity = intValue / pattern.getBasePeakIntensity() * 100;
+      }
 
       String tooltip = "Isotope pattern: " + pattern.getDescription() + "\nStatus: "
           + pattern.getStatus() + "\nData point m/z: " + mzFormat.format(mzValue)

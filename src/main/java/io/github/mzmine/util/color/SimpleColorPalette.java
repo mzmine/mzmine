@@ -183,7 +183,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
         return false;
       }
     }
-    if (this.size() < 3) {
+    if (this.isEmpty()) {
+      return false;
+    }
+    if (positiveColor == null || negativeColor == null || neutralColor == null) {
       return false;
     }
     return true;

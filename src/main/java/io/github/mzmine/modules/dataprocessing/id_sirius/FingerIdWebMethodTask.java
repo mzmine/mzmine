@@ -18,20 +18,17 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-
+import java.util.logging.Logger;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
@@ -41,7 +38,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
  * PeakListRow)
  */
 public class FingerIdWebMethodTask extends AbstractTask {
-  private static final Logger logger = LoggerFactory.getLogger(FingerIdWebMethodTask.class);
+  private static final Logger logger = Logger.getLogger(FingerIdWebMethodTask.class.getName());
 
   /* Web-request parameters */
   private final SiriusIonAnnotation annotation;
@@ -63,7 +60,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   /**
    * Constructor for FingerIdWebMethodTask
-   * 
+   *
    * @param annotation - SiriusIonAnnotation to process by FingerId
    * @param experiment - contains necessary information for a web-request
    * @param candidatesAmount - amount of candidates to return from this task
@@ -72,7 +69,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
    */
   private FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
       Integer candidatesAmount, ResultWindowFX windowFX, FeatureListRow row) {
-    if (windowFX== null && row == null)
+    if (windowFX == null && row == null)
       throw new RuntimeException("Only one result container can be null at a time");
 
     this.candidatesAmount = candidatesAmount;
@@ -85,7 +82,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   /**
    * Set the barrier, the main Task will wait until all of them finish
-   * 
+   *
    * @param latch
    */
   public void setLatch(final CountDownLatch latch) {
@@ -94,7 +91,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   /**
    * Constructor for FingerIdWebMethodTask, used by SingleRowIdentificationTask
-   * 
+   *
    * @param annotation
    * @param experiment
    * @param candidatesAmount
@@ -107,7 +104,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   /**
    * Constructor for FingerIdWebMethodTask, used by PeakListIdentificationTask
-   * 
+   *
    * @param annotation
    * @param experiment
    * @param candidatesAmount
@@ -140,21 +137,21 @@ public class FingerIdWebMethodTask extends AbstractTask {
     try {
       method = new FingerIdWebMethod(experiment, annotation, candidatesAmount);
       fingerResults = method.execute();
-      logger.debug("Successfully processed {} by FingerWebMethod", formula);
+      logger.finest("Successfully processed " + formula + " by FingerWebMethod");
     } catch (RuntimeException e) {
       e.printStackTrace();
-      logger.error("Error during processing FingerIdWebMethod --- return initial compound");
+      logger.severe("Error during processing FingerIdWebMethod --- return initial compound");
       fingerResults = null;
     } catch (MSDKException e) {
       e.printStackTrace();
-      logger.error("Internal FingerIdWebMethod error occured.");
+      logger.severe("Internal FingerIdWebMethod error occured.");
       fingerResults = null;
     }
 
     // Check exception handling and empty results from web request
     if (fingerResults == null || fingerResults.size() == 0) {
-      logger.info("No results found by FingerId Web Method for {}, adding initial compound",
-          formula);
+      logger.info(
+          "No results found by FingerId Web Method for " + formula + ", adding initial compound");
       fingerResults = new LinkedList<>();
       fingerResults.add(annotation);
     }
@@ -169,12 +166,12 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   /**
    * Updates result container - stores the results of execution
-   * 
+   *
    * @param results
    */
   private void submitResults(List<IonAnnotation> results) {
     if (windowFX != null) // Update ResultWindow - if called from
-                        // SingleRowIdentificationTask
+      // SingleRowIdentificationTask
       windowFX.addListofItems(results);
 
     if (row != null) { // Update PeakListRow - if called from

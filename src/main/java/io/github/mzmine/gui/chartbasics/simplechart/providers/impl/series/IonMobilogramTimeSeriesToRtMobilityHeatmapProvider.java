@@ -18,9 +18,11 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
@@ -32,11 +34,13 @@ import org.jfree.chart.renderer.PaintScale;
 
 /**
  * Provides a {@link io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset} with a
- * {@link IonMobilogramTimeSeries}. The underlying data is used, no calculations are needed.
+ * {@link IonMobilogramTimeSeries}. The underlying data is used, no calculations are needed. Domain
+ * axis = retention time, range axis = mobility, z axis = time.
  *
  * @author https://github.com/SteffenHeu
  */
-public class IonMobilogramTimeSeriesHeatmapProvider implements PlotXYZDataProvider {
+public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotXYZDataProvider,
+    MassSpectrumProvider<MobilityScan> {
 
   private final IonMobilogramTimeSeries data;
   private final String seriesKey;
@@ -44,7 +48,7 @@ public class IonMobilogramTimeSeriesHeatmapProvider implements PlotXYZDataProvid
   int numValues = 0;
   private double progress;
 
-  public IonMobilogramTimeSeriesHeatmapProvider(final ModularFeature f) {
+  public IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(final ModularFeature f) {
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException("Cannot create IMS heatmap for non-IMS feature");
     }
@@ -54,7 +58,7 @@ public class IonMobilogramTimeSeriesHeatmapProvider implements PlotXYZDataProvid
     progress = 1d;
   }
 
-  public IonMobilogramTimeSeriesHeatmapProvider(final IonMobilogramTimeSeries data,
+  public IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(final IonMobilogramTimeSeries data,
       final String seriesKey, final javafx.scene.paint.Color color) {
     this.data = data;
     this.seriesKey = seriesKey;
@@ -170,6 +174,19 @@ public class IonMobilogramTimeSeriesHeatmapProvider implements PlotXYZDataProvid
   @Nullable
   @Override
   public Double getBoxWidth() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public MobilityScan getSpectrum(int index) {
+    for (SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
+      if (index >= mobilitySeries.getNumberOfValues()) {
+        index -= mobilitySeries.getNumberOfValues();
+      } else {
+        return mobilitySeries.getSpectrum(index);
+      }
+    }
     return null;
   }
 }

@@ -334,10 +334,12 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     Rectangle2D block;
     PlotOrientation orientation = plot.getOrientation();
     if (orientation.equals(PlotOrientation.HORIZONTAL)) {
-      block = new Rectangle2D.Double(Math.min(yy0, yy1), Math.min(xx0, xx1), Math.abs(yy1 - yy0),
+      block = new Rectangle2D.Double(Math.min(yy0, yy1), Math.min(xx0, xx1),
+          Math.abs(yy1 - yy0),
           Math.abs(xx0 - xx1));
     } else {
-      block = new Rectangle2D.Double(Math.min(xx0, xx1), Math.min(yy0, yy1), Math.abs(xx1 - xx0),
+      block = new Rectangle2D.Double(Math.min(xx0, xx1), Math.min(yy0, yy1),
+          Math.abs(xx1 - xx0),
           Math.abs(yy1 - yy0));
     }
     g2.setPaint(p);

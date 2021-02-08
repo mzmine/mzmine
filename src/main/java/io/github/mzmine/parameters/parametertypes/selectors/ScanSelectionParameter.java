@@ -18,17 +18,15 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.util.RangeUtils;
-import java.util.Collection;
-import java.util.Objects;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.XMLUtils;
+import java.util.Collection;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public class ScanSelectionParameter
     implements UserParameter<ScanSelection, ScanSelectionComponent> {
@@ -94,8 +92,7 @@ public class ScanSelectionParameter
 
     scanNumberRange = XMLUtils.parseIntegerRange(xmlElement, "scan_numbers");
     scanMobilityRange = XMLUtils.parseDoubleRange(xmlElement, "mobility");
-    scanRTRange = RangeUtils.toFloatRange(
-        Objects.requireNonNull(XMLUtils.parseDoubleRange(xmlElement, "retention_time")));
+    scanRTRange = XMLUtils.parseFloatRange(xmlElement, "retention_time");
 
     NodeList items = xmlElement.getElementsByTagName("ms_level");
     for (int i = 0; i < items.getLength(); i++) {

@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 /**
  * A fragment scan consists of a list of MS/MS spectra surrounded by MS1 scans
@@ -176,8 +176,8 @@ class FragmentScan {
           values[1][k] =
               (1d - rtRange) * chimericIntensityLeft + (rtRange) * chimericIntensityRight;
         } else {
-          LoggerFactory.getLogger(FragmentScan.class)
-              .warn("Retention time is non-monotonic within scan numbers.");
+          Logger.getLogger(FragmentScan.class.getName())
+              .warning("Retention time is non-monotonic within scan numbers.");
           values[0][k] = precursorIntensityLeft + precursorIntensityRight;
           values[1][k] = chimericIntensityLeft + chimericIntensityRight;
         }

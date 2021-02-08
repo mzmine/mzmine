@@ -19,7 +19,6 @@
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 
-import org.jfree.chart.JFreeChart;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -36,6 +35,7 @@ import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import org.jfree.chart.JFreeChart;
 
 /**
  * JFreeChart theme settings for {@link EStandardChartTheme}s
@@ -65,9 +65,9 @@ public class ChartThemeParameters extends SimpleParameterSet {
           new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 11.0)));
   public static final FontParameter titleFont = new FontParameter("Title", "Title font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
-  public static final FontParameter subTitleFont = new FontParameter("Subtitles", "Subtitle font",
+  public static final FontParameter subTitleFont = new FontParameter("Axis labels", "Subtitle font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
-  public static final FontParameter labelFont = new FontParameter("Labels", "Axis label font",
+  public static final FontParameter labelFont = new FontParameter("Labels", "Item label font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
 
   public static final OptionalParameter<ColorParameter> xGridPaint =
@@ -202,6 +202,7 @@ public class ChartThemeParameters extends SimpleParameterSet {
     theme.setItemLabelPaint(FxColorUtil.fxColorToAWT(labelFont.getColor()));
     theme.setLegendItemPaint(FxColorUtil.fxColorToAWT(subtitleFont.getColor()));
     theme.setAxisLinePaint(FxColorUtil.fxColorToAWT(subtitleFont.getColor()));
+    theme.setSubtitlePaint(FxColorUtil.fxColorToAWT(titleFont.getColor()));
 
     theme.setShowXAxis(showXAxis);
     theme.setShowYAxis(showYAxis);

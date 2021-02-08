@@ -1,27 +1,26 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
-package io.github.mzmine.modules.io.export_netcdf;
+package io.github.mzmine.modules.io.export_mzml;
 
 import java.io.File;
 import java.util.Collection;
 import javax.annotation.Nonnull;
-import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -34,7 +33,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 /**
  * Raw data export module
  */
-public class RawDataExportModule implements MZmineProcessingModule {
+public class MzMLExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Raw data export";
   private static final String MODULE_DESCRIPTION =
@@ -54,29 +53,19 @@ public class RawDataExportModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(final @Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    RawDataFileType type = parameters.getParameter(RawDataExportParameters.type).getValue();
-    String extension = "";
-    switch (type) {
-      case MZML:
-        extension = "mzML";
-        break;
-      case NETCDF:
-        extension = "cdf";
-        break;
-      default:
-        throw new MSDKRuntimeException("This format is not covered in the export module");
-    }
 
-    File folder = parameters.getParameter(RawDataExportParameters.fileName).getValue();
+    String extension = "mzML";
+
+    File folder = parameters.getParameter(MzMLExportParameters.fileName).getValue();
     if (!folder.isDirectory())
       folder = folder.getParentFile();
 
-    RawDataFile[] dataFile = parameters.getParameter(RawDataExportParameters.dataFiles).getValue()
+    RawDataFile[] dataFile = parameters.getParameter(MzMLExportParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
 
     for (RawDataFile r : dataFile) {
       File fullName = FileAndPathUtil.getRealFilePath(folder, r.getName(), extension);
-      Task newTask = new RawDataExportTask(r, fullName);
+      Task newTask = new MzMLExportTask(r, fullName);
       tasks.add(newTask);
     }
     return ExitCode.OK;
@@ -89,7 +78,7 @@ public class RawDataExportModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return RawDataExportParameters.class;
+    return MzMLExportParameters.class;
   }
 
 }

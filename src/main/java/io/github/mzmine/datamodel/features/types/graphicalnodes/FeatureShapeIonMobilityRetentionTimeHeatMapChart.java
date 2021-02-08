@@ -26,7 +26,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMobilogramTimeSeriesHeatmapProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMobilogramTimeSeriesToRtMobilityHeatmapProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
@@ -43,9 +43,9 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
   public FeatureShapeIonMobilityRetentionTimeHeatMapChart(@Nonnull ModularFeature f,
       AtomicDouble progress) {
 
-    SimpleXYZScatterPlot<IonMobilogramTimeSeriesHeatmapProvider> chart = new SimpleXYZScatterPlot<>();
+    SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> chart = new SimpleXYZScatterPlot<>();
     ColoredXYZDataset dataset = new FastColoredXYZDataset(
-        new IonMobilogramTimeSeriesHeatmapProvider(f));
+        new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(f));
     MobilityType mt = ((IMSRawDataFile) f.getRawDataFile()).getMobilityType();
     UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     chart.setRangeAxisLabel(mt.getAxisLabel());
@@ -61,6 +61,9 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
+
+    chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
+
     chart.addDatasetsChangedListener(
         (e) -> Platform.runLater(() -> chart.getXYPlot().getRangeAxis().setAutoRange(true)));
     getChildren().add(chart);

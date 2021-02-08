@@ -76,12 +76,11 @@ public class SpectraMerging {
     List<IndexedDataPoint> dataPoints = new ArrayList<>();
     int index = 0;
     for (T spectrum : source) {
-//      double[] mzs = new double[spectrum.getNumberOfDataPoints()];
-//      double[] intensities = new double[spectrum.getNumberOfDataPoints()];
+      double[] rawMzs = new double[spectrum.getNumberOfDataPoints()];
+      double[] rawIntensities = new double[spectrum.getNumberOfDataPoints()];
 
-      double[][] data = DataPointUtils
-          .getDatapointsAboveNoiseLevel(spectrum.getMzValues(), spectrum.getIntensityValues(),
-              noiseLevel);
+      double[][] data = DataPointUtils.getDatapointsAboveNoiseLevel(spectrum.getMzValues(rawMzs),
+          spectrum.getIntensityValues(rawIntensities), noiseLevel);
 
       double[] mzs = data[0];
       double[] intensities = data[1];
@@ -198,7 +197,7 @@ public class SpectraMerging {
     double precursorMz = info.getLargestPeakMz();
 
     List<MobilityScan> mobilityScans = frame.getMobilityScans().stream()
-        .filter(ms -> spectraNumbers.contains(ms.getMobilityScamNumber())).collect(
+        .filter(ms -> spectraNumbers.contains(ms.getMobilityScanNumber())).collect(
             Collectors.toList());
 
     if (mobilityScans.isEmpty()) {

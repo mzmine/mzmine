@@ -151,7 +151,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
     defaultLabelGenerator = new SimpleXYLabelGenerator(this);
-    defaultToolTipGenerator = new SimpleToolTipGenerator(this);
+    defaultToolTipGenerator = new SimpleToolTipGenerator();
     defaultShapeRenderer = new ColoredXYShapeRenderer();
     defaultLineRenderer = new ColoredXYLineRenderer();
     defaultRenderer = new SimpleObjectProperty<>();
@@ -163,6 +163,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     });
     defaultRenderer.set(defaultLineRenderer);
     plot.setRenderer(defaultRenderer.get());
+
+    defaultLineRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
+    defaultShapeRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
 
     datasetListeners = new ArrayList<>();
   }

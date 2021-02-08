@@ -90,7 +90,7 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
     if (scan == null || scan.getBasePeakMz() == null || scan.getBasePeakIntensity() == null) {
       return null;
     }
-    return "Scan #" + scan.getMobilityScamNumber() + "\nMobility: "
+    return "Scan #" + scan.getMobilityScanNumber() + "\nMobility: "
         + mobilityFormat.format(scan.getMobility()) + "\nBase peak m/z "
         + mzFormat.format(scan.getBasePeakMz()) + "\nBase peak intensity "
         + intensityFormat.format(scan.getBasePeakIntensity());

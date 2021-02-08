@@ -40,6 +40,7 @@ import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -109,6 +110,18 @@ public class MZmineGUI extends Application implements Desktop {
       rootScene = loader.load();
       mainWindowController = loader.getController();
       stage.setScene(rootScene);
+      rootScene.getStylesheets()
+          .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
+
+      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
+          .getParameter(MZminePreferences.darkMode).getValue();
+      if (darkMode != null && darkMode == true) {
+        rootScene.getStylesheets()
+            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
+      } else {
+        rootScene.getStylesheets()
+            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
+      }
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -420,7 +433,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void setStatusBarText(String message) {
-    setStatusBarText(message, Color.BLACK);
+    Color messageColor = MZmineCore.getConfiguration().isDarkMode() ? Color.LIGHTGRAY : Color.BLACK;
+    setStatusBarText(message, messageColor);
   }
 
   @Override

@@ -18,10 +18,8 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.generators;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider;
 import org.jfree.chart.labels.XYToolTipGenerator;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -31,26 +29,14 @@ import org.jfree.data.xy.XYDataset;
  */
 public class SimpleToolTipGenerator implements XYToolTipGenerator {
 
-  private final EChartViewer chart;
-  private final XYPlot plot;
-
-  public SimpleToolTipGenerator(EChartViewer chart) {
+  public SimpleToolTipGenerator() {
     super();
-
-    this.chart = chart;
-    plot = chart.getChart().getXYPlot();
-
-    if (plot == null) {
-      throw new IllegalArgumentException("SimpleToolTipGenerator can only be used for XY-plots.");
-    }
-
   }
 
   @Override
   public String generateToolTip(XYDataset dataset, int series, int item) {
     if (!(dataset instanceof ToolTipTextProvider)) {
-      return plot.getDomainAxis().getLabel() + ": " + dataset.getX(series, item) + "\n" +
-          plot.getRangeAxis().getLabel() + ": " + dataset.getY(series, item);
+      return "X: " + dataset.getX(series, item) + "\nY: " + dataset.getY(series, item);
     }
     return ((ToolTipTextProvider) dataset).getToolTipText(item);
   }

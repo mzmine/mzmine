@@ -63,6 +63,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected final NumberFormat intensityFormat;
   protected ComboBox<ModularFeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
+  protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
 
   public FeatureResolverSetupDialog(boolean valueCheckRequired,
       ParameterSet parameters, String message) {
@@ -83,10 +84,13 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
-          if(newValue!=null)
-            fBox.setItems((ObservableList<ModularFeature>)(ObservableList<? extends Feature>) newValue.getFeatures(newValue.getRawDataFile(0)));
-          else
+          if (newValue != null) {
+            fBox.setItems(
+                (ObservableList<ModularFeature>) (ObservableList<? extends Feature>) newValue
+                    .getFeatures(newValue.getRawDataFile(0)));
+          } else {
             fBox.setItems(FXCollections.emptyObservableList());
+          }
         }));
     fBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
@@ -98,6 +102,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     pnControls.add(fBox, 1, 1);
     previewWrapperPane.setBottom(pnControls);
     previewWrapperPane.setCenter(previewChart);
+    shapeRenderer.setDefaultItemLabelPaint(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
   }
 
   protected void onSelectedFeatureChanged(ModularFeature newValue) {
@@ -106,7 +112,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
     previewChart.removeAllDatasets();
 
-    ResolvingDimension dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
+    ResolvingDimension dimension = parameterSet.getParameter(GeneralResolverParameters.dimension)
+        .getValue();
     // add preview depending on which dimension is selected.
     if (dimension == ResolvingDimension.RETENTION_TIME) {
       Platform.runLater(() -> {
@@ -151,13 +158,13 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
           FastColoredXYDataset ds = new FastColoredXYDataset(
               new IonTimeSeriesToXYProvider(series, "",
                   new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
-          Platform.runLater(() -> previewChart.addDataset(ds, new ColoredXYShapeRenderer()));
+          Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
         } else {
           FastColoredXYDataset ds = new FastColoredXYDataset(
               new SummedMobilogramXYProvider(
                   ((IonMobilogramTimeSeries) series).getSummedMobilogram(),
                   new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
-          Platform.runLater(() -> previewChart.addDataset(ds, new ColoredXYShapeRenderer()));
+          Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
         }
       }
 
@@ -169,7 +176,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       for (ResolvedPeak rp : resolved) {
         FastColoredXYDataset ds = new FastColoredXYDataset(rp);
         ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
-        Platform.runLater(() -> previewChart.addDataset(ds, new ColoredXYShapeRenderer()));
+        Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
       }
     }
   }

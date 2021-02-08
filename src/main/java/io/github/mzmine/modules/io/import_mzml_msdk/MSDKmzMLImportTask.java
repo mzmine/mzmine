@@ -23,9 +23,9 @@ import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLMsScan;
@@ -132,7 +132,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     int frameNumber = 1;
     SimpleFrame buildingFrame = null;
 
-    final List<MobilityScan> mobilityScans = new ArrayList<>();
+    final List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
     final List<Double> mobilities = new ArrayList<>();
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
     Set<ImsMsMsInfo> finishedImsMsMsInfos = null;
@@ -146,7 +146,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
         if (buildingFrame != null) { // finish the frame
           final SimpleFrame finishedFrame = buildingFrame;
-          mobilityScans.forEach(s -> finishedFrame.addMobilityScan(s));
+          finishedFrame.setMobilityScans(mobilityScans);
           finishedFrame
               .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
           newImsFile.addScan(buildingFrame);
@@ -173,8 +173,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
             "Importing " + file.getName() + ", parsed " + parsedScans + "/" + totalScans + " scans";
       }
 
-      mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(newImsFile,
-          mobilityScanNumberCounter, scan, buildingFrame));
+      mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, scan));
       mobilities.add(mzMLScan.getMobility().mobility());
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);

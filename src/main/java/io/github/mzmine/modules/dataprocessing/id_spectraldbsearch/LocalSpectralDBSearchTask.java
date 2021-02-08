@@ -122,7 +122,8 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
     // Add task description to peakList
     featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Peak identification using MS/MS spectral database " + dataBaseFile, parameters));
+        "Peak identification using MS/MS spectral database " + dataBaseFile,
+        LocalSpectralDBSearchModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 

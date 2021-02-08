@@ -19,8 +19,12 @@
 package io.github.mzmine.modules.io.projectsave;
 
 
+import com.Ostermiller.util.Base64;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -38,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import javafx.collections.ObservableList;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -46,17 +51,6 @@ import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-import com.Ostermiller.util.Base64;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.FeatureInformation;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import javafx.collections.ObservableList;
 
 public class PeakListSaveHandler {
 
@@ -137,12 +131,12 @@ public class PeakListSaveHandler {
       hd.characters(methodName.toCharArray(), 0, methodName.length());
       hd.endElement("", "", PeakListElementName.METHOD_NAME.getElementName());
 
-      hd.startElement("", "", PeakListElementName.METHOD_PARAMETERS.getElementName(), atts);
+      /*hd.startElement("", "", PeakListElementName.METHOD_PARAMETERS.getElementName(), atts);
       String methodParameters = proc.getParameters();
       hd.characters(methodParameters.toCharArray(), 0, methodParameters.length());
       hd.endElement("", "", PeakListElementName.METHOD_PARAMETERS.getElementName());
 
-      hd.endElement("", "", PeakListElementName.METHOD.getElementName());
+      hd.endElement("", "", PeakListElementName.METHOD.getElementName());*/
 
     }
     atts.clear();
