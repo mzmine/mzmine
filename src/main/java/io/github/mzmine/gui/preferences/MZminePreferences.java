@@ -25,6 +25,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.OptOutParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
@@ -34,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePalettePa
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
+import java.util.Map;
 import javafx.collections.FXCollections;
 import org.w3c.dom.Element;
 
@@ -103,12 +106,17 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final BooleanParameter darkMode = new BooleanParameter("Dark mode",
       "Enables dark mode");
 
+  public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> imsModuleWarnings =
+      new HiddenParameter<>(new OptOutParameter("Ion mobility compatibility warnings",
+          "Shows a warning message when a module without explicit ion mobility support is "
+              + "used to process ion mobility data."));
+
   public MZminePreferences() {
     super(
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             unitFormat,
             numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
-            defaultColorPalette, defaultPaintScale, chartParam, darkMode});
+            defaultColorPalette, defaultPaintScale, chartParam, darkMode, imsModuleWarnings});
   }
 
   @Override

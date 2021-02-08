@@ -28,6 +28,7 @@ import io.github.mzmine.util.ExitCode;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -137,9 +138,17 @@ public class HeadLessDesktop implements Desktop {
   public List<MZmineTab> getTabsInMainWindow() {
     return Collections.emptyList();
   }
+
   @Override
   public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ButtonType createAlertWithOptOut(String title, String headerText, String message,
+      String optOutMessage, Consumer<Boolean> optOutAction) {
+    logger.warning(title + "; " + headerText + "; " + message);
+    return ButtonType.YES;
   }
 
 }

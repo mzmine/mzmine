@@ -85,4 +85,11 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     dialog.showAndWait();
     return dialog.getExitCode();
   }
+
+  @Override
+  public String getUntestedIonMobilityCompatibilityMessage() {
+    return "ADAP chromatogram builder will build two-dimensional chromatograms based on summed "
+        + "frame data (if there is any). Thus, ion mobility data is not taken into account. "
+        + "Do you wish to continue any way?";
+  }
 }

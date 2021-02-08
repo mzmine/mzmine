@@ -299,7 +299,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             selectedFeature.getRepresentativeScan(), selectedFeature.getIsotopePattern()));
 
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
-        () -> selectedFeature != null && rowHasSpectralDBMatchResults(selectedRows.get(0)));
+        () -> !selectedRows.isEmpty() && rowHasSpectralDBMatchResults(selectedRows.get(0)));
     showSpectralDBResults
         .setOnAction(e -> SpectraIdentificationResultsModule.showNewTab(selectedRows.get(0)));
 
