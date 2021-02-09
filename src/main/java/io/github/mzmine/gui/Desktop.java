@@ -18,23 +18,23 @@
 
 package io.github.mzmine.gui;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import java.util.List;
-import java.net.URL;
-import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import java.net.URL;
+import java.util.List;
+import java.util.function.Consumer;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javax.annotation.Nonnull;
 
 /**
  * This interface represents the application GUI
- *
  */
 public interface Desktop extends MZmineModule {
 
@@ -85,15 +85,27 @@ public interface Desktop extends MZmineModule {
 
   /**
    * Displays an error message
-   *
    */
   public void displayException(Exception e);
 
   /**
    * Displays a confirmation Yes/No alert. Can be called from any thread.
-   *
    */
   public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes);
+
+  /**
+   * Displays an opt-out yes/no dialog. Can be called from any thread.
+   *
+   * @param title
+   * @param headerText
+   * @param message
+   * @param optOutMessage
+   * @param optOutAction
+   * @return {@link ButtonType#YES} or {@link ButtonType#NO}. In headless mode, YES is always
+   * returned and the message is logged at warning level.
+   */
+  public ButtonType createAlertWithOptOut(String title, String headerText,
+      String message, String optOutMessage, Consumer<Boolean> optOutAction);
 
   /**
    * Returns array of currently selected raw data files in GUI
@@ -141,6 +153,5 @@ public interface Desktop extends MZmineModule {
    */
   @Nonnull
   public List<MZmineTab> getTabsInMainWindow();
-
 
 }

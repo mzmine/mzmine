@@ -16,15 +16,33 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
+package io.github.mzmine.parameters.impl;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+public enum IonMobilitySupport {
+  /**
+   * Module requires mobility data to work.
+   */
+  ONLY,
 
-public class IMSFeatureVisualizerParameters extends SimpleParameterSet {
+  /**
+   * Module can be used to process non-ims and ims data.
+   */
+  SUPPORTED,
 
-  @Override
-  public IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.ONLY;
-  }
+  /**
+   * Module has not been tested with ion mobility data, but should work.
+   */
+  UNTESTED,
+
+  /**
+   * Module has been tested with ion mobility data and shows certain restrictions when processing
+   * that data. A specific warning message should be displayed by overriding {@link
+   * SimpleParameterSet#getRestrictedIonMobilitySupportMessage()}.
+   */
+  RESTRICTED,
+
+  /**
+   * Module does not support ion mobility data and will produce wrong results.
+   */
+  UNSUPPORTED,
 }
