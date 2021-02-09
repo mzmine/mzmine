@@ -170,6 +170,18 @@ public class ImageBuilderTask extends AbstractTask {
       }
       Range<Double> containsDataPointRange = rangeSet.rangeContaining(imageDataPoint.getMZ());
       Range<Double> toleranceRange = mzTolerance.getToleranceRange(imageDataPoint.getMZ());
+      if (containsDataPointRange != null) {
+        IImage image = rangeToImageMap.get(containsDataPointRange);
+        for(ImageDataPoint dp : image.getDataPoints()) {
+          if(dp == imageDataPoint) {
+            containsDataPointRange = null;
+          }
+        }
+        /*Optional<ImageDataPoint> someDp = image.getDataPoints().stream()
+            .filter(dp -> dp.getScanNumber() == imageDataPoint.getScanNumber()).findAny();
+        if(someDp.isPresent())
+          containsDataPointRange = null;*/
+      }
       if (containsDataPointRange == null) {
         // look +- mz tolerance to see if ther is a range near by.
         // If there is use the proper boundry of that range for the
@@ -215,9 +227,10 @@ public class ImageBuilderTask extends AbstractTask {
         } else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
           IImage currentImage = rangeToImageMap.get(plusRange);
           currentImage.getDataPoints().add(imageDataPoint);
-        } else
+        } else {
           throw new IllegalStateException(String.format("Incorrect range [%f, %f] for m/z %f",
               toBeLowerBound, toBeUpperBound, imageDataPoint.getMZ()));
+        }
 
       } else {
         // In this case we do not need to update the rangeSet

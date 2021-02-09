@@ -282,6 +282,7 @@ public class FeatureConvertors {
     SimpleIonTimeSeries data = new SimpleIonTimeSeries(
         ((ModularFeatureList) image.getFeatureList()).getMemoryMapStorage(), dp[0], dp[1],
         image.getScanNumbers().stream().collect(Collectors.toList()));
+    modularFeature.set(FeatureDataType.class, data);
 
     // Ranges
     Range<Float> rtRange = Range.closed(0.f, 0.f);

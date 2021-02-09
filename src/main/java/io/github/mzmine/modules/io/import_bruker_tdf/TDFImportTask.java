@@ -20,6 +20,7 @@ package io.github.mzmine.modules.io.import_bruker_tdf;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -38,6 +39,7 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrame
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFPrecursorTable;
+import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -152,6 +154,8 @@ public class TDFImportTask extends AbstractTask {
     if (isMaldi) {
       try {
         newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName());
+        ((IMSImagingRawDataFile) newMZmineFile)
+            .setImagingParam(new ImagingParameters(maldiFrameInfoTable));
       } catch (IOException e) {
         e.printStackTrace();
         return;
@@ -393,7 +397,7 @@ public class TDFImportTask extends AbstractTask {
       return false;
     }).findAny().get();
 
-    return new File[] {tdf, tdf_bin};
+    return new File[]{tdf, tdf_bin};
   }
 
   private void identifySegments(IMSRawDataFileImpl rawDataFile) {
