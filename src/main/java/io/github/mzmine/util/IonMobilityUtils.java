@@ -75,4 +75,20 @@ public class IonMobilityUtils {
     }
     return false;
   }
+
+  public static boolean isFeatureWithinMzCCSRegion(@Nonnull ModularFeature feature,
+      @Nonnull final Collection<Path2D> regions) {
+    if (feature != null) {
+      Float ccs = feature.getCCS();
+      if (ccs != null) {
+        Point2D point = new Point2D.Double(feature.getMZ(), ccs.doubleValue());
+        for (Path2D region : regions) {
+          if (region.contains(point)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
 }

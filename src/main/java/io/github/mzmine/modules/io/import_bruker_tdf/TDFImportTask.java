@@ -384,7 +384,7 @@ public class TDFImportTask extends AbstractTask {
       return false;
     }).findAny().get();
 
-    return new File[] {tdf, tdf_bin};
+    return new File[]{tdf, tdf_bin};
   }
 
   private void identifySegments(IMSRawDataFileImpl rawDataFile) {
@@ -412,7 +412,9 @@ public class TDFImportTask extends AbstractTask {
         Frame parentFrame = optionalFrame.orElseGet(() -> null);
 
         ImsMsMsInfo info = new ImsMsMsInfoImpl(building.getLargestPeakMz(),
-            building.getSpectrumNumberRange(), building.getCollisionEnergy(),
+            Range.closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
+                building.getSpectrumNumberRange().upperEndpoint() - 1),
+            building.getCollisionEnergy(),
             building.getPrecursorCharge(), parentFrame, frame);
 
         frame.getImsMsMsInfos().add(info);

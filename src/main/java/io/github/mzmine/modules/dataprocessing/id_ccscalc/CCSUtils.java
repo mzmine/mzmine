@@ -54,7 +54,7 @@ public class CCSUtils {
    * @author https://github.com/SteffenHeu
    */
   public static Float calcCCSFromTimsMobility(double mobility, int charge, double mz) {
-    return TDFUtils.calculateCCS(mobility, charge, mz).floatValue();
+    return TDFUtils.calculateCCS(mobility, (long) charge, mz).floatValue();
   }
 
   public static Float logUnsupportedMobilityUnit() {

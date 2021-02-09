@@ -479,7 +479,7 @@ public class TDFUtils {
     return array;
   }
 
-  public static Double calculateCCS(double ook0, int charge, double mz) {
+  public static Double calculateCCS(double ook0, long charge, double mz) {
     if (tdfLib == null) {
       boolean loaded = TDFUtils.loadLibrary();
       if (!loaded) {

@@ -22,43 +22,42 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.IonMobilityUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.List;
-import java.util.Objects;
-import javafx.beans.property.SimpleDoubleProperty;
+import java.util.stream.Collectors;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
-public class FeaturesToMobilityMzHeatmapProvider implements
-    PlotXYZDataProvider {
+public class FeaturesToCCSMzHeatmapProvider implements PlotXYZDataProvider {
 
   private final String seriesKey;
   private final NumberFormat rtFormat;
   private final NumberFormat mzFormat;
   private final NumberFormat mobilityFormat;
   private final NumberFormat intensityFormat;
+  private final NumberFormat ccsFormat;
   private final UnitFormat unitFormat;
   private final List<ModularFeature> features;
   private double boxWidth;
   private double boxHeight;
 
-  public FeaturesToMobilityMzHeatmapProvider(@Nonnull final List<ModularFeature> f) {
-    features = f;
-    seriesKey = (f.isEmpty()) ? "No features found" : f.get(0).getFeatureList().getName();
+  public FeaturesToCCSMzHeatmapProvider(@Nonnull final List<ModularFeature> f) {
+    features = f.stream().filter(feature -> feature.getCCS() != null).collect(Collectors.toList());
+    seriesKey = (features.isEmpty()) ? "No features found" : f.get(0).getFeatureList().getName();
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    ccsFormat = MZmineCore.getConfiguration().getCCSFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
   }
 
@@ -118,7 +117,9 @@ public class FeaturesToMobilityMzHeatmapProvider implements
       sb.append(mobilityFormat.format(mobrange.upperEndpoint()));
       sb.append("\n");
     }
-    sb.append("Height: ");
+    sb.append("CCS: ");
+    sb.append(ccsFormat.format(f.getCCS()));
+    sb.append("\nHeight: ");
     sb.append(intensityFormat.format(f.getHeight()));
     sb.append("MS data file: ");
     sb.append(f.getRawDataFile().getName());
@@ -132,16 +133,22 @@ public class FeaturesToMobilityMzHeatmapProvider implements
     for (int i = 0; i < features.size(); i += (features.size() / numSamples)) {
       Range<Double> mzRange = features.get(i).getRawDataPointsMZRange();
       width += mzRange.upperEndpoint() - mzRange.lowerEndpoint();
+      Range<Float> mobRange = features.get(i).getMobilityRange();
+      double mz = features.get(i).getMZ();
+      io.github.mzmine.datamodel.MobilityType mt = features.get(i).getMobilityUnit();
+      int charge = features.get(i).getCharge();
+
+//      if (mobRange != null && mt != null && mt != io.github.mzmine.datamodel.MobilityType.NONE
+//          && charge != 0) {
+      Float ccsLower = CCSUtils.calcCCS(mz, mobRange.lowerEndpoint(), mt, charge);
+      Float ccsUpper = CCSUtils.calcCCS(mz, mobRange.upperEndpoint(), mt, charge);
+      boxHeight += Math.abs(ccsUpper - ccsLower);
+//      }
 
     }
     width /= numSamples;
     boxWidth = width;
-
-    if (!features.isEmpty()) {
-      boxHeight = IonMobilityUtils.getSmallestMobilityDelta(
-          ((IMSRawDataFile) features.get(0).getRawDataFile()).getFrame(0)) * 3;
-    }
-
+    boxHeight /= numSamples;
   }
 
   @Override
@@ -151,10 +158,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements
 
   @Override
   public double getRangeValue(int index) {
-    return Objects
-        .requireNonNullElse(features.get(index).get(MobilityType.class),
-            new SimpleDoubleProperty(0))
-        .getValue().doubleValue();
+    return features.get(index).getCCS();
   }
 
   @Override
@@ -188,4 +192,5 @@ public class FeaturesToMobilityMzHeatmapProvider implements
   public List<ModularFeature> getSourceFeatures() {
     return features;
   }
+
 }
