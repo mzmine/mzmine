@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
@@ -148,6 +149,14 @@ public class TDFImportTask extends AbstractTask {
     isMaldi = false;
 
     readMetadata();
+    if (isMaldi) {
+      try {
+        newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName());
+      } catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
+    }
 
     rawDataFileName = tdfBin.getParentFile().getName();
 
@@ -185,7 +194,7 @@ public class TDFImportTask extends AbstractTask {
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
         SimpleFrame frame = TDFUtils
             .exctractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
-                metaDataTable, frameTable, framePrecursorTable);
+                metaDataTable, frameTable, framePrecursorTable, maldiFrameInfoTable);
         newMZmineFile.addScan(frame);
         frames.add(frame);
         loadedFrames++;

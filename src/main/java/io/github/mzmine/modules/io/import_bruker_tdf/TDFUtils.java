@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.TDFLibrary;
@@ -39,6 +40,7 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.FramePrecurso
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.import_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_mzml_msdk.ConversionUtils;
 import java.io.File;
 import java.io.IOException;
@@ -340,7 +342,8 @@ public class TDFUtils {
   public static SimpleFrame exctractCentroidScanForTimsFrame(IMSRawDataFile newFile,
       final long handle, final long frameId, @Nonnull final TDFMetaDataTable metaDataTable,
       @Nonnull final TDFFrameTable frameTable,
-      @Nonnull final FramePrecursorTable framePrecursorTable) {
+      @Nonnull final FramePrecursorTable framePrecursorTable,
+      @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -363,10 +366,22 @@ public class TDFUtils {
 
     Range<Double> mzRange = metaDataTable.getMzRange();
 
-    SimpleFrame frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
-        (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-        0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-        MobilityType.TIMS, null);
+    SimpleFrame frame;
+    if (maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
+          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
+          0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
+          MobilityType.TIMS, null);
+    } else {
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
+          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
+          0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
+          MobilityType.TIMS, null);
+      Coordinates coords = new Coordinates(maldiFrameInfoTable.getxIndexPosColumn().get(
+          (int) (frameId - 1)).intValue(),
+          maldiFrameInfoTable.getyIndexPosColumn().get((int) (frameId - 1)).intValue(), 0);
+      ((SimpleImagingFrame) frame).setCoordinates(coords);
+    }
 
     frame.setMobilities(mobilities);
 
