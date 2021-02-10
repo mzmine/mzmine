@@ -28,9 +28,9 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -205,10 +205,11 @@ public class GroupMS2Task extends AbstractTask {
     }
     feature.set(ImsMsMsInfoType.class, eligibleMsMsInfos);
 
+    MZTolerance mergeTol = new MZTolerance(0.008, 25);
     ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();
     for (ImsMsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging
-          .getMergedMsMsSpectrumForPASEF(info, 1E1, mzTol, MergingType.SUMMED,
+          .getMergedMsMsSpectrumForPASEF(info, 1E1, mergeTol, MergingType.SUMMED,
               ((ModularFeatureList) list).getMemoryMapStorage());
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
