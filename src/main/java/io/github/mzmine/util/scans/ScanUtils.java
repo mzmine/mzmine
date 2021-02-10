@@ -107,9 +107,10 @@ public class ScanUtils {
     buf.append(scan.getPolarity().asSingleChar());
 
     if(scan instanceof MergedMsMsSpectrum) {
-      buf.append(" merged");
+      buf.append(" merged ");
       buf.append(((MergedMsMsSpectrum) scan).getSourceSpectra().size());
-      buf.append(" spectra");
+      buf.append(" spectra, CE: ");
+      buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
     }
 
     /*

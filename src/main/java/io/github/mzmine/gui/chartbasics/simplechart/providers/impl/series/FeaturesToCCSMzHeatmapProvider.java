@@ -153,7 +153,8 @@ public class FeaturesToCCSMzHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public double getDomainValue(int index) {
-    return features.get(index).getMZ();
+    ModularFeature f = features.get(index);
+    return f.getMZ() * f.getCharge();
   }
 
   @Override

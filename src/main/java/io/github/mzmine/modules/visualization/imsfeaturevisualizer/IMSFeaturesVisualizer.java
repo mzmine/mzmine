@@ -90,6 +90,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
   private final NumberFormat mzFormat;
   private final NumberFormat mobilityFormat;
   private final NumberFormat intensityFormat;
+  private final NumberFormat ccsFormat;
   private final UnitFormat unitFormat;
 
   private final Stroke markerStroke = new BasicStroke(1f);
@@ -120,6 +121,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
+    ccsFormat = MZmineCore.getConfiguration().getCCSFormat();
 
     initCharts();
 //    this.setOnKeyPressed(e -> {
@@ -226,10 +228,15 @@ public class IMSFeaturesVisualizer extends BorderPane {
         throw new IllegalArgumentException(
             "Cannot visualize non-ion mobility spectrometry files in an IMS visualizer");
       }
-      String axisLabel =
-          plotType == PlotType.MOBILITY ? ((IMSRawDataFile) file).getMobilityType().getAxisLabel()
-              : unitFormat.format("CCS", "A^2");
-      heatmap.setRangeAxisLabel(axisLabel);
+      if ((plotType == PlotType.MOBILITY)) {
+        heatmap.setRangeAxisLabel(((IMSRawDataFile) file).getMobilityType().getAxisLabel());
+        heatmap.setRangeAxisNumberFormatOverride(mobilityFormat);
+        heatmap.setDomainAxisLabel("m/z");
+      } else {
+        heatmap.setRangeAxisLabel(unitFormat.format("CCS", "A^2"));
+        heatmap.setRangeAxisNumberFormatOverride(ccsFormat);
+        heatmap.setDomainAxisLabel("Da");
+      }
     }
 
     this.features = features;
