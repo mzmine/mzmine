@@ -4,7 +4,7 @@
 .root {
     -fx-base: #151515;
 
-    -fx-accent: derive(-fx-base, 40%);
+    -fx-accent: yellow;
     -fx-focus-color: -fx-accent;
 
     /*-fx-control-inner-background: -fx-base;*/
@@ -14,7 +14,7 @@
 /** declare colors here
  deriving most of the colors off the default one makes it easy to get uniform looking themes **/
 {
-  -akk-gradient: linear-gradient(from 0% 50% to 0% 100%, blue 0%, black 100%);
+  -akk-gradient: linear-gradient(from 0% 50% to 0% 100%, black 0%, blue 100%);
 
   -pane-bg-match: -akk-gradient;/*derive(-fx-base, 30%);*/
   -control-bg: -akk-gradient;
@@ -33,7 +33,7 @@
   -cell-odd-bg: derive(blue, 10%);
   -cell-selected-bg: derive(blue, 20%);
 
-  -text-color: yellow;
+  -text-color: green;
 }
 /** All panes **/
 .grid-pane, .anchor-pane, .border-pane, .split-pane, .tab-pane,  .region-match-chart-bg  {
