@@ -60,7 +60,7 @@ public class OptOutParameter implements UserParameter<Map<String, Boolean>, OptO
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    return false;
+    return true;
   }
 
   @Override
