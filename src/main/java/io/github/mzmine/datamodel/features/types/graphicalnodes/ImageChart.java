@@ -21,79 +21,82 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageDataPoint;
-import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageHeatMapPlot;
-import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageXYZDataset;
-import java.util.ArrayList;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
+import java.awt.Color;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
-import org.jfree.data.xy.XYZDataset;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class ImageChart extends StackPane {
 
+  private static Logger logger = Logger.getLogger(ImageChart.class.getName());
   private Double dataPointWidth;
   private Double dataPointHeight;
   private PaintScale paintScaleParameter;
 
-  private static Logger logger = Logger.getLogger(ImageChart.class.getName());
-
-  public ImageChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
-    try {
+  public ImageChart(@Nonnull ModularFeature f, AtomicDouble progress) {
+    /*try {
       Double[] xValues = null;
       Double[] yValues = null;
       Double[] zValues = null;
 
-      int size = row.getFilesFeatures().size();
       int fi = 0;
-      for (Feature f : row.getFeatures()) {
-        List<? extends DataPoint> dps = f.getDataPoints();
-        List<ImageDataPoint> dataPoints = new ArrayList<>();
-        dataPoints.addAll((Collection<? extends ImageDataPoint>) dps);
-        // add data points retention time -> intensity
-        List<Double> xValuesSet = new ArrayList<>();
-        List<Double> yValuesSet = new ArrayList<>();
-        List<Double> zValuesSet = new ArrayList<>();
-        for (ImageDataPoint dp : dataPoints) {
-          if (dataPointHeight == null) {
-            dataPointHeight = dp.getDataPointHeigth();
-            dataPointWidth = dp.getDataPointWidth();
-            paintScaleParameter = dp.getPaintScale();
-          }
-          xValuesSet.add(dp.getxWorld());
-          yValuesSet.add(dp.getyWorld());
-          zValuesSet.add(dp.getIntensity());
-          if (progress != null)
-            progress.addAndGet(1.0 / size / dataPoints.size());
+      List<? extends DataPoint> dps = f.getDataPoints();
+      List<ImageDataPoint> dataPoints = new ArrayList<>();
+      dataPoints.addAll((Collection<? extends ImageDataPoint>) dps);
+      // add data points retention time -> intensity
+      List<Double> xValuesSet = new ArrayList<>();
+      List<Double> yValuesSet = new ArrayList<>();
+      List<Double> zValuesSet = new ArrayList<>();
+      for (ImageDataPoint dp : dataPoints) {
+        if (dataPointHeight == null) {
+          dataPointHeight = dp.getDataPointHeigth();
+          dataPointWidth = dp.getDataPointWidth();
+          paintScaleParameter = dp.getPaintScale();
         }
-        xValues = new Double[xValuesSet.size()];
-        xValues = xValuesSet.toArray(xValues);
-        yValues = new Double[yValuesSet.size()];
-        yValues = yValuesSet.toArray(yValues);
-        zValues = new Double[zValuesSet.size()];
-        zValues = zValuesSet.toArray(zValues);
-
-        if (progress != null)
-          progress.set((double) fi / size);
-        XYZDataset dataset = new ImageXYZDataset(xValues, yValues, zValues, "");
-        ImageHeatMapPlot retentionTimeMobilityHeatMapPlot = new ImageHeatMapPlot(dataset,
-            createPaintScale(zValues), dataPointWidth, dataPointHeight);
-        this.getChildren().add(retentionTimeMobilityHeatMapPlot);
+        xValuesSet.add(dp.getxWorld());
+        yValuesSet.add(dp.getyWorld());
+        zValuesSet.add(dp.getIntensity());
+        if (progress != null) {
+          progress.addAndGet(1.0 / dataPoints.size());
+        }
       }
+      xValues = new Double[xValuesSet.size()];
+      xValues = xValuesSet.toArray(xValues);
+      yValues = new Double[yValuesSet.size()];
+      yValues = yValuesSet.toArray(yValues);
+      zValues = new Double[zValuesSet.size()];
+      zValues = zValuesSet.toArray(zValues);
+
+      XYZDataset dataset = new ImageXYZDataset(xValues, yValues, zValues, "");
+      ImageHeatMapPlot retentionTimeMobilityHeatMapPlot = new ImageHeatMapPlot(dataset,
+          createPaintScale(zValues), dataPointWidth, dataPointHeight);
+      this.getChildren().add(retentionTimeMobilityHeatMapPlot);
+
     } catch (Exception ex) {
       logger.log(Level.WARNING, "error in DP", ex);
-    }
+    }*/
+
+    FeatureImageProvider prov = new FeatureImageProvider(f);
+    SimpleXYZScatterPlot<FeatureImageProvider> chart = new SimpleXYZScatterPlot<>();
+    FastColoredXYZDataset ds = new FastColoredXYZDataset(prov);
+    chart.setRangeAxisLabel("µm");
+    chart.setDomainAxisLabel("µm");
+    setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
+    chart.getChart().setBackgroundPaint(new Color(0, 0, 0, 0));
+    getChildren().add(chart);
+    Platform.runLater(() -> chart.setDataset(ds));
   }
 
   private PaintScale createPaintScale(Double[] zValues) {

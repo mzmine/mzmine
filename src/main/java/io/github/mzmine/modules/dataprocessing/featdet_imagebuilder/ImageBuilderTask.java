@@ -171,18 +171,14 @@ public class ImageBuilderTask extends AbstractTask {
       }
       Range<Double> containsDataPointRange = rangeSet.rangeContaining(imageDataPoint.getMZ());
       Range<Double> toleranceRange = mzTolerance.getToleranceRange(imageDataPoint.getMZ());
-      if (containsDataPointRange != null) {
+      /*if (containsDataPointRange != null) {
         IImage image = rangeToImageMap.get(containsDataPointRange);
         for(ImageDataPoint dp : image.getDataPoints()) {
           if (dp.getScanNumber() == imageDataPoint.getScanNumber()) {
             containsDataPointRange = null;
           }
         }
-        /*Optional<ImageDataPoint> someDp = image.getDataPoints().stream()
-            .filter(dp -> dp.getScanNumber() == imageDataPoint.getScanNumber()).findAny();
-        if(someDp.isPresent())
-          containsDataPointRange = null;*/
-      }
+      }*/
       if (containsDataPointRange == null) {
         // look +- mz tolerance to see if ther is a range near by.
         // If there is use the proper boundry of that range for the
@@ -347,7 +343,7 @@ public class ImageBuilderTask extends AbstractTask {
     // ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
     // allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile,
-    // dataFile.getDataRTRange(1), rawDataPointsMZRange);
+    // dataFile.getDataR66TRange(1), rawDataPointsMZRange);
 
     // if (fragmentScan > 0) {
     // Scan fragmentScanObject = dataFile.getScan(fragmentScan);
@@ -373,9 +369,10 @@ public class ImageBuilderTask extends AbstractTask {
     for (IImage image : images) {
       image.setFeatureList(featureList);
       ModularFeature modular = FeatureConvertors.ImageToModularFeature(image, rawDataFile);
+      modular.set(ImageType.class, false);
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
-      newRow.set(ImageType.class, newRow.getFeaturesProperty());
+//      newRow.set(ImageType.class, newRow.getFeaturesProperty());
       // newRow.set(MobilityType.class, image.getMobility());
       // newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
       // newRow.set(FeatureShapeMobilogramType.class, newRow.getFeaturesProperty());
