@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid;
 
+import gnu.trove.list.array.TDoubleArrayList;
 import java.util.ArrayList;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.DataPoint;
@@ -32,25 +33,29 @@ import io.github.mzmine.parameters.ParameterSet;
 public class CentroidMassDetector implements MassDetector {
 
   @Override
-  public DataPoint[] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
+  public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
 
     double noiseLevel =
         parameters.getParameter(CentroidMassDetectorParameters.noiseLevel).getValue();
 
-    ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
+    // use number of centroid signals als base array list capacity
+    int initialSize = spectrum.getNumberOfDataPoints();
+    // lists of primitive doubles
+    TDoubleArrayList mzs = new TDoubleArrayList(initialSize);
+    TDoubleArrayList intensities = new TDoubleArrayList(initialSize);
 
     // Find possible mzPeaks
-    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
-
+    int points = spectrum.getNumberOfDataPoints();
+    for (int i = 0; i < points; i++) {
       // Is intensity above the noise level?
-      if (spectrum.getIntensityValue(i) >= noiseLevel) {
+      double intensity = spectrum.getIntensityValue(i);
+      if (intensity >= noiseLevel) {
         // Yes, then mark this index as mzPeak
-        DataPoint newDP =
-            new SimpleDataPoint(spectrum.getMzValue(i), spectrum.getIntensityValue(i));
-        mzPeaks.add(newDP);
+        mzs.add(spectrum.getMzValue(i));
+        intensities.add(intensity);
       }
     }
-    return mzPeaks.toArray(new DataPoint[0]);
+    return new double[][]{mzs.toArray(), intensities.toArray()};
   }
 
   @Override

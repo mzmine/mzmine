@@ -33,8 +33,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 public class RecursiveMassDetector implements MassDetector {
 
   @Override
-  public DataPoint[] getMassValues(MassSpectrum scan, ParameterSet parameters) {
-
+  public double[][] getMassValues(MassSpectrum scan, ParameterSet parameters) {
     double noiseLevel =
         parameters.getParameter(RecursiveMassDetectorParameters.noiseLevel).getValue();
     double minimumMZPeakWidth =
@@ -50,7 +49,17 @@ public class RecursiveMassDetector implements MassDetector {
     // Find MzPeaks
     recursiveThreshold(mzPeaks, dataPoints, 1, dataPoints.length - 1, noiseLevel,
         minimumMZPeakWidth, maximumMZPeakWidth, 0);
-    return mzPeaks.toArray(new DataPoint[0]);
+
+    // convert to double[][] TODO remove use of DataPoint
+    int size = mzPeaks.size();
+    DataPoint[] detected = mzPeaks.toArray(new DataPoint[0]);
+    double[] mzs = new double[size];
+    double[] intensities = new double[size];
+    for(int i=0; i<size; i++) {
+      mzs[i] = detected[i].getMZ();
+      intensities[i] = detected[i].getIntensity();
+    }
+    return new double[][]{mzs, intensities};
   }
 
   /**
