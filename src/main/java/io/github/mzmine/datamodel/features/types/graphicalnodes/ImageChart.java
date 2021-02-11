@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
+import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 
 /*
@@ -54,6 +55,11 @@ public class ImageChart extends StackPane {
       axis.setInverted(true);
       axis.setAutoRangeStickyZero(false);
       axis.setAutoRangeIncludesZero(false);
+
+      axis = (NumberAxis) chart.getXYPlot().getDomainAxis();
+      axis.setAutoRangeStickyZero(false);
+      axis.setAutoRangeIncludesZero(false);
+      chart.getXYPlot().setDomainAxisLocation(AxisLocation.TOP_OR_RIGHT);
 
       setPrefHeight(300);
       setPrefWidth(300);
