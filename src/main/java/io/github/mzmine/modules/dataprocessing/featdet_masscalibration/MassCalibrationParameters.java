@@ -245,13 +245,9 @@ public class MassCalibrationParameters extends SimpleParameterSet {
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to mass list name as a suffix", "calibrated");
 
-  public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove original mass list",
-          "If checked, original mass list will be removed and only filtered version remains");
-
   public MassCalibrationParameters() {
     super(new Parameter[] {dataFiles, massList, intensityThreshold, duplicateErrorFilter,
-        referenceLibrary, rangeExtractionMethod, biasEstimationMethod, suffix, autoRemove});
+        referenceLibrary, rangeExtractionMethod, biasEstimationMethod, suffix});
   }
 
   @Override

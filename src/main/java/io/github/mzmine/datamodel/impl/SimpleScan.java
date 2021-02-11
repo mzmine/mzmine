@@ -47,7 +47,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
-  private ObservableList<MassList> massLists = FXCollections.observableArrayList();
+  private MassList massList = null;
 
   /**
    * Clone constructor
@@ -169,48 +169,19 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
-
-    // Remove all mass lists with same name, if there are any
-    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
-    for (MassList ml : currentMassLists) {
-      if (ml.getName().equals(massList.getName())) {
-        removeMassList(ml);
-      }
-    }
-
-    // Add the new mass list
-    massLists.add(massList);
-
+    this.massList=massList;
   }
 
   @Override
-  public synchronized void removeMassList(final @Nonnull MassList massList) {
-    massLists.remove(massList);
+  public MassList getMassList() {
+    return massList;
   }
-
-  @Override
-  @Nonnull
-  public MassList[] getMassLists() {
-    return massLists.toArray(new MassList[0]);
-  }
-
-  @Override
-  public MassList getMassList(@Nonnull String name) {
-    for (MassList ml : massLists) {
-      if (ml.getName().equals(name)) {
-        return ml;
-      }
-    }
-    return null;
-  }
-
 
   @Override
   @Nonnull
   public RawDataFile getDataFile() {
     return dataFile;
   }
-
 
   @Override
   @Nonnull

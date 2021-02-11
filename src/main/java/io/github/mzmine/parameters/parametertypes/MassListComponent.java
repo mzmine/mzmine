@@ -86,20 +86,7 @@ public class MassListComponent extends FlowPane {
    * @return unique MassList names
    */
   public static List<String> getMassListNames() {
-    ArrayList<String> names = new ArrayList<>();
-    RawDataFile dataFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-    for (RawDataFile dataFile : dataFiles) {
-      for(Scan scan : dataFile.getScans()) {
-        MassList massLists[] = scan.getMassLists();
-        for (MassList massList : massLists) {
-          String name = massList.getName();
-          if (!names.contains(name))
-            names.add(name);
-        }
-      }
-    }
-
-    return names;
+    return List.of("ONLY ONE");
   }
 
 }

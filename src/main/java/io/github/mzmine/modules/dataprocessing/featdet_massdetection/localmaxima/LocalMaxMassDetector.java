@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima;
 
+import gnu.trove.list.array.TDoubleArrayList;
 import java.util.ArrayList;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.DataPoint;
@@ -32,13 +33,14 @@ import io.github.mzmine.parameters.ParameterSet;
 public class LocalMaxMassDetector implements MassDetector {
 
   @Override
-  public DataPoint[] getMassValues(MassSpectrum scan, ParameterSet parameters) {
+  public double[][] getMassValues(MassSpectrum scan, ParameterSet parameters) {
 
     double noiseLevel =
         parameters.getParameter(LocalMaxMassDetectorParameters.noiseLevel).getValue();
 
-    // List of found mz peaks
-    ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
+    // lists of primitive doubles
+    TDoubleArrayList mzs = new TDoubleArrayList(100);
+    TDoubleArrayList intensities = new TDoubleArrayList(100);
 
     // All data points of current m/z peak
 
@@ -50,10 +52,12 @@ public class LocalMaxMassDetector implements MassDetector {
 
     // Iterate through all data points
     for (int i = 0; i < scan.getNumberOfDataPoints() - 1; i++) {
+      double intensity = scan.getIntensityValue(i);
+      double nextIntensity = scan.getIntensityValue(i+1);
 
-      boolean nextIsBigger = scan.getIntensityValue(i + 1) > scan.getIntensityValue(i);
-      boolean nextIsZero = scan.getIntensityValue(i + 1) == 0;
-      boolean currentIsZero = scan.getIntensityValue(i) == 0;
+      boolean nextIsBigger =  nextIntensity > intensity;
+      boolean nextIsZero = Double.compare(nextIntensity, 0d) == 0;
+      boolean currentIsZero = Double.compare(intensity, 0d) == 0;
 
       // Ignore zero intensity regions
       if (currentIsZero)
@@ -71,17 +75,16 @@ public class LocalMaxMassDetector implements MassDetector {
 
         // Add the m/z peak if it is above the noise level
         if (scan.getIntensityValue(currentMzPeakTop) > noiseLevel) {
-          mzPeaks.add(new SimpleDataPoint(scan.getMzValue(currentMzPeakTop),
-              scan.getIntensityValue(currentMzPeakTop)));
+          mzs.add(scan.getMzValue(currentMzPeakTop));
+          intensities.add(scan.getIntensityValue(currentMzPeakTop));
         }
 
         // Reset and start with new peak
         ascending = true;
-
       }
-
     }
-    return mzPeaks.toArray(new DataPoint[0]);
+    // Return an array of detected MzPeaks sorted by MZ
+    return new double[][]{mzs.toArray(), intensities.toArray()};
   }
 
   @Override

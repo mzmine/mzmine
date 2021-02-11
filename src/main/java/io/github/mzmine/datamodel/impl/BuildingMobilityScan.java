@@ -219,18 +219,7 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   @Override
-  public void removeMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
-  }
-
-  @Nonnull
-  @Override
-  public Set<MassList> getMassLists() {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
-  }
-
-  @Override
-  public MassList getMassList(@Nonnull String name) {
+  public MassList getMassList() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 

@@ -66,9 +66,7 @@ public class MassCalibrationTask extends AbstractTask {
   private final RawDataFile dataFile;
 
   // User parameters
-  private final String massListName;
   private final String suffix;
-  private final boolean autoRemove;
 
   // scan counter
   protected int processedScans = 0, totalScans;
@@ -109,9 +107,7 @@ public class MassCalibrationTask extends AbstractTask {
     this.parameters = parameters;
     this.previewRun = previewRun;
 
-    this.massListName = parameters.getParameter(MassCalibrationParameters.massList).getValue();
     this.suffix = parameters.getParameter(MassCalibrationParameters.suffix).getValue();
-    this.autoRemove = parameters.getParameter(MassCalibrationParameters.autoRemove).getValue();
   }
 
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters) {
@@ -218,7 +214,7 @@ public class MassCalibrationTask extends AbstractTask {
     boolean haveMassList = false;
     for (int i = 0; i < totalScans; i++) {
       Scan scan = scanNumbers.get(i);
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
       if (massList != null) {
         haveMassList = true;
         break;
@@ -226,7 +222,7 @@ public class MassCalibrationTask extends AbstractTask {
     }
     if (!haveMassList) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage(dataFile.getName() + " has no mass list called '" + massListName + "'");
+      setErrorMessage(dataFile.getName() + " has no mass list");
       endMillis = System.currentTimeMillis();
       return;
     }
@@ -241,7 +237,7 @@ public class MassCalibrationTask extends AbstractTask {
 
       Scan scan = scanNumbers.get(i);
 
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
 
       // Skip those scans which do not have a mass list of given name
       if (massList == null) {
@@ -300,7 +296,7 @@ public class MassCalibrationTask extends AbstractTask {
       }
 
       Scan scan = scanNumbers.get(i);
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
 
       // Skip those scans which do not have a mass list of given name
       if (massList == null) {
@@ -314,13 +310,9 @@ public class MassCalibrationTask extends AbstractTask {
       DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks);
 
       SimpleMassList newMassList =
-          new SimpleMassList(massListName + " " + suffix, scan, newMzPeaks);
+          new SimpleMassList(scan, newMzPeaks);
 
       scan.addMassList(newMassList);
-
-      // Remove old mass list
-      if (autoRemove && previewRun == false)
-        scan.removeMassList(massList);
 
       processedScans++;
     }

@@ -58,17 +58,11 @@ public class MassListParameter implements UserParameter<String, MassListComponen
     this.description = "Please select a mass list name";
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;

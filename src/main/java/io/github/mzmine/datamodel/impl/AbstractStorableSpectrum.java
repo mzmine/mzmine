@@ -70,7 +70,6 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
   }
 
   /**
-   * @param dataPoints
    */
   public synchronized void setDataPoints(@Nonnull double mzValues[],
       @Nonnull double intensityValues[]) {

@@ -68,7 +68,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final String suffix;
   private final List<Frame> frames;
   private final MZTolerance mzTolerance;
-  private final String massList;
   private final int minDataPointsRt;
   private final int minTotalSignals;
   private final ScanSelection scanSelection;
@@ -85,7 +84,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     this.rawDataFile = rawDataFile;
     this.mzTolerance =
         parameters.getParameter(IonMobilityTraceBuilderParameters.mzTolerance).getValue();
-    this.massList = parameters.getParameter(IonMobilityTraceBuilderParameters.massList).getValue();
     this.minDataPointsRt =
         parameters.getParameter(IonMobilityTraceBuilderParameters.minDataPointsRt).getValue();
     this.minTotalSignals =
@@ -144,12 +142,12 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         continue;
       }
       for (MobilityScan scan : frame.getMobilityScans()) {
-        if (scan.getMassList(massList) == null) {
+        if (scan.getMassList() == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(
-              "Scan #" + scan.getMobilityScanNumber() + " does not have a mass list " + massList);
+              "Scan #" + scan.getMobilityScanNumber() + " does not have a mass list. Run mass detection ");
         } else {
-          Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
+          Arrays.stream(scan.getMassList().getDataPoints()).forEach(
               dp -> allDataPoints.add(
                   new RetentionTimeMobilityDataPoint(scan, dp.getMZ(), dp.getIntensity())));
         }

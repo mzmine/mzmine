@@ -73,9 +73,9 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
   }
 
   public DataPoint[] getQueryDataPoints() {
-    if (massListName == null || queryScan == null || queryScan.getMassList(massListName) == null)
+    if (massListName == null || queryScan == null || queryScan.getMassList() == null)
       return null;
-    return queryScan.getMassList(massListName).getDataPoints();
+    return queryScan.getMassList().getDataPoints();
   }
 
   public DataPoint[] getLibraryDataPoints(DataPointsTag tag) {
