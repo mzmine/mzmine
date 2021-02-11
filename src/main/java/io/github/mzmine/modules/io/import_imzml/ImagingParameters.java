@@ -93,6 +93,9 @@ public class ImagingParameters {
     lateralHeight = Math
         .abs(maldiFrameInfoTable.getMotorPositionYColumn().stream().min(Double::compare).get()
             - maldiFrameInfoTable.getMotorPositionYColumn().stream().max(Double::compare).get());
+
+    pixelWidth = getLateralWidth() / getMaxNumberOfPixelX();
+//    pixelHeight = getLateralHeight() / getMaxNumberOfPixelY();
   }
 
   public ImagingParameters(ImzML imz) {

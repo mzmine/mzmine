@@ -36,6 +36,8 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
 
   private final ModularFeature feature;
   private final IonTimeSeries<ImagingScan> series;
+  private double width;
+  private double height;
 
   public FeatureImageProvider(ModularFeature feature) {
     this.feature = feature;
@@ -81,17 +83,20 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-
+    ImagingParameters imagingParam = ((ImagingRawDataFile) feature.getRawDataFile())
+        .getImagingParam();
+    height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
+    width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
   }
 
   @Override
   public double getDomainValue(int index) {
-    return series.getSpectra().get(index).getCoordinates().getX();
+    return series.getSpectra().get(index).getCoordinates().getX() * width;
   }
 
   @Override
   public double getRangeValue(int index) {
-    return series.getSpectra().get(index).getCoordinates().getY();
+    return series.getSpectra().get(index).getCoordinates().getY() * height;
   }
 
   @Override
@@ -112,16 +117,12 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
   @Nullable
   @Override
   public Double getBoxHeight() {
-    ImagingParameters imagingParam = ((ImagingRawDataFile) feature.getRawDataFile())
-        .getImagingParam();
-    return imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
+    return height;
   }
 
   @Nullable
   @Override
   public Double getBoxWidth() {
-    ImagingParameters imagingParam = ((ImagingRawDataFile) feature.getRawDataFile())
-        .getImagingParam();
-    return imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
+    return width;
   }
 }

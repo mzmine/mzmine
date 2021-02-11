@@ -288,6 +288,7 @@ public class TDFImportTask extends AbstractTask {
       } else {
         setDescription("MALDI info for " + tdf.getName());
         maldiFrameInfoTable.executeQuery(connection);
+        maldiFrameInfoTable.process();
         // maldiFrameInfoTable.print();
       }
 

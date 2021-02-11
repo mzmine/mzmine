@@ -171,14 +171,7 @@ public class ImageBuilderTask extends AbstractTask {
       }
       Range<Double> containsDataPointRange = rangeSet.rangeContaining(imageDataPoint.getMZ());
       Range<Double> toleranceRange = mzTolerance.getToleranceRange(imageDataPoint.getMZ());
-      /*if (containsDataPointRange != null) {
-        IImage image = rangeToImageMap.get(containsDataPointRange);
-        for(ImageDataPoint dp : image.getDataPoints()) {
-          if (dp.getScanNumber() == imageDataPoint.getScanNumber()) {
-            containsDataPointRange = null;
-          }
-        }
-      }*/
+
       if (containsDataPointRange == null) {
         // look +- mz tolerance to see if ther is a range near by.
         // If there is use the proper boundry of that range for the
@@ -310,6 +303,8 @@ public class ImageBuilderTask extends AbstractTask {
       }
 
     }
+
+    image.setDataPoints(new ArrayList<>(sortedRetentionTimeMobilityDataPoints));
 
     // TODO think about representative scan
     image.setScanNumbers(scanNumbers);

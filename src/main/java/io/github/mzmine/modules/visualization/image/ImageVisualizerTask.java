@@ -18,15 +18,6 @@
 
 package io.github.mzmine.modules.visualization.image;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.logging.Logger;
-import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
@@ -44,7 +35,16 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.logging.Logger;
 import javafx.application.Platform;
+import org.jfree.data.xy.XYZDataset;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
