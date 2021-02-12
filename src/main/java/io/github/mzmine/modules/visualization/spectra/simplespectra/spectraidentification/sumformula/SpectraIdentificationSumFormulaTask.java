@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula;
 
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -151,7 +152,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     logger.finest("Starting search for formulas for " + massRange + " Da");
 
     // create mass list for scan
-    DataPoint[] massList = null;
+    double[][] massList = null;
     ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
     MassDetector massDetector = null;
     ArrayList<String> allCompoundIDs = new ArrayList<>();
@@ -179,7 +180,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
     for (int i = 0; i < massList.length; i++) {
       massRange =
-          mzTolerance.getToleranceRange((massList[i].getMZ() - ionType.getAddedMass()) / charge);
+          mzTolerance.getToleranceRange((massList[0][i] - ionType.getAddedMass()) / charge);
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
           massRange.upperEndpoint(), elementCounts);
 
@@ -197,11 +198,11 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
           String formula = MolecularFormulaManipulator.getString(cdkFormula);
 
           // calc rel mass deviation
-          Double relMassDev = ((((massList[i].getMZ() - //
+          Double relMassDev = ((((massList[0][i] - //
               ionType.getAddedMass()) / charge)//
               - (FormulaUtils.calculateExactMass(//
                   MolecularFormulaManipulator.getString(cdkFormula))) / charge)
-              / ((massList[i].getMZ() //
+              / ((massList[0][i] //
                   - ionType.getAddedMass()) / charge))
               * 1000000;
 
@@ -228,7 +229,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
       }
       if (annotation != "") {
         allCompoundIDs.add(annotation);
-        massListAnnotated.add(massList[i]);
+        massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
       }
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
           + " formulas");

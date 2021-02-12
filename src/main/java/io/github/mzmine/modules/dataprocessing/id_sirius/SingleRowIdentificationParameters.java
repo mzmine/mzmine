@@ -41,6 +41,6 @@ public class SingleRowIdentificationParameters extends SiriusParameters {
 
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {ION_MASS, ionizationType, MZ_TOLERANCE, SIRIUS_CANDIDATES,
-        FINGERID_CANDIDATES, ELEMENTS, MASS_LIST, SIRIUS_TIMEOUT});
+        FINGERID_CANDIDATES, ELEMENTS, SIRIUS_TIMEOUT});
   }
 }

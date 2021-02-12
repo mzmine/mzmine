@@ -282,7 +282,7 @@ class SQLExportTask extends AbstractTask {
                 statement.setNull(i + 1, Types.BLOB);
                 break;
               }
-              MassList msmsMassList = msmsScan.getMassList(dataValue);
+              MassList msmsMassList = msmsScan.getMassList();
               // Check if there is a masslist for the scan
               if (msmsMassList == null) {
                 statement.setNull(i + 1, Types.BLOB);

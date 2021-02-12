@@ -45,7 +45,6 @@ public class CombinedModulePlot extends EChartViewer {
   private CombinedModuleDataset dataset;
   private Range<Float> rtRange;
   private Range<Double> mzRange;
-  private String massList;
   private Double noiseLevel;
   private ColorScale colorScale;
   private static final Color gridColor = Color.lightGray;
@@ -72,7 +71,7 @@ public class CombinedModulePlot extends EChartViewer {
 
   public void setPlot(RawDataFile dataFile, CombinedModuleVisualizerTabController visualizer,
       Range<Float> rtRange, Range<Double> mzRange, AxisType xAxisType, AxisType yAxisType,
-      String massList, Double noiseLevel, ColorScale colorScale) {
+      Double noiseLevel, ColorScale colorScale) {
 
     this.visualizer = visualizer;
     this.dataFile = dataFile;
@@ -80,7 +79,6 @@ public class CombinedModulePlot extends EChartViewer {
     this.mzRange = mzRange;
     this.noiseLevel = noiseLevel;
     this.colorScale = colorScale;
-    this.massList = massList;
 
     chart = getChart();
     chart.setBackgroundPaint(Color.white);

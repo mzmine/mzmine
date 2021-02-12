@@ -37,9 +37,8 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
   private final SpectralSimilarity similarity;
 
   private Scan queryScan;
-  private String massListName;
 
-  public SpectralDBFeatureIdentity(Scan queryScan, String massListName, SpectralDBEntry entry,
+  public SpectralDBFeatureIdentity(Scan queryScan, SpectralDBEntry entry,
       SpectralSimilarity similarity, String method) {
     super(
         MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
@@ -53,7 +52,6 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
     this.entry = entry;
     this.similarity = similarity;
     this.queryScan = queryScan;
-    this.massListName = massListName;
   }
 
   public SpectralDBEntry getEntry() {
@@ -68,12 +66,8 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
     return queryScan;
   }
 
-  public String getMassListName() {
-    return massListName;
-  }
-
   public DataPoint[] getQueryDataPoints() {
-    if (massListName == null || queryScan == null || queryScan.getMassList() == null)
+    if (queryScan == null || queryScan.getMassList() == null)
       return null;
     return queryScan.getMassList().getDataPoints();
   }

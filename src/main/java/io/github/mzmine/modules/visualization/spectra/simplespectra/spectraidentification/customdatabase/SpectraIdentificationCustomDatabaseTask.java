@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
 
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
@@ -77,7 +78,6 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
    * Create the task.
    *
    * @param parameters task parameters.
-   * @param peakListRow peak-list row to identify.
    */
   public SpectraIdentificationCustomDatabaseTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
@@ -131,7 +131,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // create mass list for scan
-    DataPoint[] massList = null;
+    double[][] massList = null;
     ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
     MassDetector massDetector = null;
     ArrayList<String> allCompoundIDs = new ArrayList<>();
@@ -180,7 +180,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
           if (getStatus() != TaskStatus.PROCESSING) {
             return;
           }
-          double searchedMass = massList[i].getMZ();
+          double searchedMass = massList[0][i];
 
           Range<Double> mzRange = mzTolerance.getToleranceRange(searchedMass);
 
@@ -197,7 +197,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
           }
           if (annotation != "") {
             allCompoundIDs.add(annotation);
-            massListAnnotated.add(massList[i]);
+            massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
           }
         }
         finishedLines++;

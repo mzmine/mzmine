@@ -67,16 +67,11 @@ public class GnpsFbmnExportTask extends AbstractTask {
   private int currentIndex = 0;
   private final MsMsSpectraMergeParameters mergeParameters;
 
-  private final String massListName;
-
   GnpsFbmnExportTask(ParameterSet parameters) {
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
 
     this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-
-    this.massListName =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MASS_LIST).getValue();
 
     if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
       mergeParameters = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
@@ -192,11 +187,11 @@ public class GnpsFbmnExportTask extends AbstractTask {
       }
       if (msmsScan != null) {
         // MS/MS scan must exist, because msmsScanNumber was > 0
-        MassList massList = msmsScan.getMassList(massListName);
+        MassList massList = msmsScan.getMassList();
 
         if (massList == null) {
-          MZmineCore.getDesktop().displayErrorMessage("There is no mass list called " + massListName
-                  + " for MS/MS scan #" + msmsScan.getScanNumber() + " (" + bestFeature.getRawDataFile() + ")");
+          MZmineCore.getDesktop().displayErrorMessage("There is no mass list in MS/MS scan #"
+              + msmsScan.getScanNumber() + " (" + bestFeature.getRawDataFile() + ")");
           return;
         }
 
@@ -230,7 +225,7 @@ public class GnpsFbmnExportTask extends AbstractTask {
           MsMsSpectraMergeModule merger =
                   MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
           MergedSpectrum spectrum =
-                  merger.getBestMergedSpectrum(mergeParameters, row, massListName);
+                  merger.getBestMergedSpectrum(mergeParameters, row);
           if (spectrum != null) {
             dataPoints = spectrum.data;
             writer.write("MERGED_STATS=");

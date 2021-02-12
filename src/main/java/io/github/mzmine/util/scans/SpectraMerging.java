@@ -185,8 +185,7 @@ public class SpectraMerging {
   }
 
   public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(ImsMsMsInfo info,
-      double noiseLevel,
-      MZTolerance tolerance, MergingType mergingType, MemoryMapStorage storage) {
+      double noiseLevel, MZTolerance tolerance, MergingType mergingType, MemoryMapStorage storage) {
 
     if (info == null) {
       return null;
@@ -223,12 +222,7 @@ public class SpectraMerging {
         merged[1], precursorMz, collisionEnergy, frame.getMSLevel(), mobilityScans,
         mergingType, cf);
 
-    DataPoint[] dps = new DataPoint[merged[0].length];
-    for (int i = 0; i < merged[0].length; i++) {
-      dps[i] = new SimpleDataPoint(merged[0][i], merged[1][i]);
-    }
-
-    MassList newMl = new SimpleMassList(mergedSpectrum, dps);
+    MassList newMl = new SimpleMassList(mergedSpectrum, storage, merged[0], merged[1]);
     mergedSpectrum.addMassList(newMl);
     return mergedSpectrum;
   }

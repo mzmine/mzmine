@@ -158,7 +158,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       String name = attrs.getValue(RawDataElementName_2_5.NAME.getElementName());
       int storageID =
           Integer.parseInt(attrs.getValue(RawDataElementName_2_5.STORAGE_ID.getElementName()));
-      MassList newML = new SimpleMassList(null, null, null);
+      MassList newML = new SimpleMassList(null, null, null, null);
       massLists.add(newML);
     }
   }

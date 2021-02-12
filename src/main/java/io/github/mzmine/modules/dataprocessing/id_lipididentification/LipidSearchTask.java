@@ -59,7 +59,6 @@ public class LipidSearchTask extends AbstractTask {
   private IonizationType ionizationType;
   private Boolean searchForMSMSFragments;
   private Boolean searchForModifications;
-  private String massListName;
   private double[] lipidModificationMasses;
   private LipidModification[] lipidModification;
 
@@ -99,8 +98,6 @@ public class LipidSearchTask extends AbstractTask {
       mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)
           .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.mzToleranceMS2)
           .getValue();
-      massListName = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)
-          .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.massList).getValue();
     }
 
     // Convert Objects to LipidClasses
@@ -240,7 +237,7 @@ public class LipidSearchTask extends AbstractTask {
 
         DataPoint[] massList = null;
         // check if MS/MS scan already has a mass list
-        massList = msmsScan.getMassList(massListName).getDataPoints();
+        massList = msmsScan.getMassList().getDataPoints();
         MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
 
         // check for negative polarity

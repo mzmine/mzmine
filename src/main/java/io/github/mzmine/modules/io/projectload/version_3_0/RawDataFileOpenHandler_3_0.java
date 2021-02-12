@@ -67,7 +67,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   private int storedDataNumDP;
   private TreeMap<Integer, Long> dataPointsOffsets;
   private TreeMap<Integer, Integer> dataPointsLengths;
-  private ArrayList<MassList> massLists;
+  private MassList massList;
   private PolarityType polarity = PolarityType.UNKNOWN;
   private String scanDescription = "";
   private Range<Double> scanMZRange = null;
@@ -98,7 +98,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       boolean isImagingRawDataFile) throws IOException, ParserConfigurationException, SAXException {
 
     charBuffer = new StringBuffer();
-    massLists = new ArrayList<MassList>();
+    massList = null;
 
     if (isIMSRawDataFile) {
       newRawDataFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(null);
@@ -166,8 +166,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       String name = attrs.getValue(RawDataElementName_3_0.NAME.getElementName());
       int storageID =
           Integer.parseInt(attrs.getValue(RawDataElementName_3_0.STORAGE_ID.getElementName()));
-      MassList newML = new SimpleMassList(null, null, null);
-      massLists.add(newML);
+      massList = new SimpleMassList(null, null, null, null);
     }
 
     if (qName.equals(RawDataElementName_3_0.FRAME.getElementName())) {
@@ -313,10 +312,9 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
         throw new SAXException(e);
       }
 
-      for (MassList newML : massLists) {
+      // TODO where do we read the massList?
         // newML.setScan(storableScan);
-        storableScan.addMassList(newML);
-      }
+        storableScan.addMassList(massList);
 
       // Cleanup
       resetReadValues();
@@ -368,7 +366,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   }
 
   private void resetReadValues() {
-    massLists.clear();
+    massList = null;
     currentStorageID = -1;
     dataPointsNumber = -1;
     scanNumber = -1;

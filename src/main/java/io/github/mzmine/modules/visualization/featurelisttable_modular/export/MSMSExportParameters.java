@@ -21,7 +21,6 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular.export;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
@@ -31,10 +30,9 @@ public class MSMSExportParameters extends SimpleParameterSet {
       new FileNameParameter("Output file", "Please set the path and name of the output text file",
           FileSelectionType.SAVE);
 
-  public static final MassListParameter massList = new MassListParameter();
 
   public MSMSExportParameters() {
-    super(new Parameter[]{outputFile, massList});
+    super(new Parameter[]{outputFile});
   }
 
 }

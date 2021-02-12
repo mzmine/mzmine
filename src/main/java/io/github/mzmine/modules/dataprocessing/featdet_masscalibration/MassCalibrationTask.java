@@ -44,6 +44,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
 
@@ -94,24 +96,29 @@ public class MassCalibrationTask extends AbstractTask {
   protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
   protected double biasEstimate;
 
+  private final MemoryMapStorage storageMemoryMap;
   protected boolean previewRun = false;
   protected Runnable afterHook = null;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storageMemoryMap
    * @param previewRun
    */
-  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters, boolean previewRun) {
+  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
+      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun) {
     this.dataFile = dataFile;
     this.parameters = parameters;
+    this.storageMemoryMap = storageMemoryMap;
     this.previewRun = previewRun;
 
     this.suffix = parameters.getParameter(MassCalibrationParameters.suffix).getValue();
   }
 
-  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters) {
-    this(dataFile, parameters, false);
+  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storageMemoryMap) {
+    this(dataFile, parameters, storageMemoryMap, false);
   }
 
   /**
@@ -309,8 +316,8 @@ public class MassCalibrationTask extends AbstractTask {
       // DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, biasEstimate);
       DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks);
 
-      SimpleMassList newMassList =
-          new SimpleMassList(scan, newMzPeaks);
+      MassList newMassList =
+          SimpleMassList.create(scan, storageMemoryMap, newMzPeaks);
 
       scan.addMassList(newMassList);
 

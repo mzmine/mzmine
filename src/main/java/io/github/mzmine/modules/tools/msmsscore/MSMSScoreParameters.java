@@ -20,13 +20,10 @@ package io.github.mzmine.modules.tools.msmsscore;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class MSMSScoreParameters extends SimpleParameterSet {
-
-  public static final MassListParameter massList = new MassListParameter();
 
   public static final MZToleranceParameter msmsTolerance = new MZToleranceParameter(
       "MS/MS m/z tolerance", "Tolerance of the mass value to search (+/- range)");
@@ -35,7 +32,7 @@ public class MSMSScoreParameters extends SimpleParameterSet {
       "If the score for MS/MS is lower, discard this match");
 
   public MSMSScoreParameters() {
-    super(new Parameter[] {massList, msmsTolerance, msmsMinScore});
+    super(new Parameter[] {msmsTolerance, msmsMinScore});
   }
 
 }

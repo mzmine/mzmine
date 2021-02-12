@@ -26,7 +26,6 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -40,8 +39,6 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final ScanSelectionParameter scanSelection =
       new ScanSelectionParameter(new ScanSelection(1));
-
-  public static final MassListParameter massList = new MassListParameter();
 
   public static final IntegerParameter minimumScanSpan = new IntegerParameter(
       "Min group size in # of scans",
@@ -68,7 +65,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   // End Owen Edit
 
   public ADAPChromatogramBuilderParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, massList, minimumScanSpan, IntensityThresh2,
+    super(new Parameter[]{dataFiles, scanSelection, minimumScanSpan, IntensityThresh2,
         startIntensity, mzTolerance, suffix});
   }
 

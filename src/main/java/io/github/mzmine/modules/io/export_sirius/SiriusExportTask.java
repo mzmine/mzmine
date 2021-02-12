@@ -62,7 +62,6 @@ public class SiriusExportTask extends AbstractTask {
       };
   private final FeatureList[] featureLists;
   private final File fileName;
-  private final String massListName;
   protected long finishedRows, totalRows;
 
   private final boolean mergeEnabled;
@@ -84,7 +83,6 @@ public class SiriusExportTask extends AbstractTask {
     this.featureLists = parameters.getParameter(SiriusExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();
     this.fileName = parameters.getParameter(SiriusExportParameters.FILENAME).getValue();
-    this.massListName = parameters.getParameter(SiriusExportParameters.MASS_LIST).getValue();
     this.mergeEnabled = parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER).getValue();
     this.mergeParameters =
         parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER).getEmbeddedParameters();
@@ -205,7 +203,7 @@ public class SiriusExportTask extends AbstractTask {
             if (mergeMode == MergeMode.CONSECUTIVE_SCANS) {
               // merge MS/MS
               List<MergedSpectrum> spectra =
-                  merger.mergeConsecutiveScans(mergeParameters, f, massListName);
+                  merger.mergeConsecutiveScans(mergeParameters, f);
               for (MergedSpectrum spectrum : spectra) {
                 writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS,
                     spectrum.filterByRelativeNumberOfScans(mergeParameters
@@ -214,7 +212,7 @@ public class SiriusExportTask extends AbstractTask {
                 writeSpectrum(writer, spectrum.data);
               }
             } else {
-              MergedSpectrum spectrum = merger.mergeFromSameSample(mergeParameters, f, massListName)
+              MergedSpectrum spectrum = merger.mergeFromSameSample(mergeParameters, f)
                   .filterByRelativeNumberOfScans(mergeParameters
                       .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER).getValue());
               if (spectrum.data.length > 0) {
@@ -230,7 +228,7 @@ public class SiriusExportTask extends AbstractTask {
             -1, null);
         writeCorrelationSpectrum(writer, row.getBestFeature());
         // merge everything into one
-        MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row, massListName)
+        MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row)
             .filterByRelativeNumberOfScans(mergeParameters
                 .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER).getValue());
         if (spectrum.data.length > 0) {
@@ -242,7 +240,7 @@ public class SiriusExportTask extends AbstractTask {
     } else {
       // No merging
       Feature bestFeature = row.getBestFeature();
-      MassList ms1MassList = bestFeature.getRepresentativeScan().getMassList(massListName);
+      MassList ms1MassList = bestFeature.getRepresentativeScan().getMassList();
       if (ms1MassList != null) {
         writeHeader(writer, row, bestFeature.getRawDataFile(), polarity, MsType.MS,
             bestFeature.getRepresentativeScan());
@@ -252,7 +250,7 @@ public class SiriusExportTask extends AbstractTask {
       for (Feature f : row.getFeatures()) {
         for (Scan ms2scan : f.getAllMS2FragmentScans()) {
           writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, ms2scan);
-          MassList ms2MassList = ms2scan.getMassList(massListName);
+          MassList ms2MassList = ms2scan.getMassList();
           if (ms2MassList == null)
             continue;
           writeSpectrum(writer, ms2MassList.getDataPoints());

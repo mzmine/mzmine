@@ -38,9 +38,8 @@ public class ScanSorter implements Comparator<Scan> {
   private final MassListSorter comp;
 
   /**
-   * Scans need at least one MassList (define name or use empty/null massListName for first
-   * MassList)
-   * 
+   * Scans need a MassList
+   *
    * @param noiseLevel
    * @param sortMode sorting mode
    */

@@ -88,8 +88,6 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   private JToggleButton btnToggleUse;
   private JTextField txtAdduct;
   private ScanSortMode sort;
-  // null or empty to use first masslist
-  private @Nullable String massListName;
   // noise level to cut off signals
   private double noiseLevel;
   // minimum of 1
@@ -135,8 +133,8 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
    * Create the panel.
    */
   public ScanSelectPanel(FeatureListRow row, ScanSortMode sort, double noiseLevel,
-      int minNumberOfSignals, String massListName) {
-    this(sort, noiseLevel, minNumberOfSignals, massListName);
+      int minNumberOfSignals) {
+    this(sort, noiseLevel, minNumberOfSignals);
     this.row = row;
     // create chart with current sort mode
     setSortMode(sort);
@@ -145,8 +143,8 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   public ScanSelectPanel(ObservableList<Scan> scansEntry, ScanSortMode sort, double noiseLevel,
-      int minNumberOfSignals, String massListName) {
-    this(sort, noiseLevel, minNumberOfSignals, massListName);
+      int minNumberOfSignals) {
+    this(sort, noiseLevel, minNumberOfSignals);
     this.scansEntry = scansEntry;
     // create chart with current sort mode
     setSortMode(sort);
@@ -154,15 +152,13 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     setMZandChargeFromScan();
   }
 
-  public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals,
-      String massListName) {
+  public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals) {
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     colorUsedData = palette.getPositiveColorAWT();
     colorRemovedData = palette.getNegativeColorAWT();
 
     setBorder(new LineBorder(UIManager.getColor("textHighlight")));
-    this.massListName = massListName;
     this.sort = sort;
     this.noiseLevel = noiseLevel;
     setMinNumberOfSignals(minNumberOfSignals);
@@ -430,8 +426,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     createSortedScanList();
   }
 
-  public void setFilter(String massListName, double noiseLevel, int minNumberOfSignals) {
-    this.massListName = massListName;
+  public void setFilter(double noiseLevel, int minNumberOfSignals) {
     this.noiseLevel = noiseLevel;
     this.minNumberOfSignals = minNumberOfSignals;
     createSortedScanList();
@@ -448,16 +443,16 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
       if (row != null) {
         if (isFragmentScan) {
           // first entry is the best fragmentation scan
-          scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals,
+          scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minNumberOfSignals,
               sort);
         } else {
           // get most representative MS 1 scans of all features
           scans =
-              ScanUtils.listAllMS1Scans(row, massListName, noiseLevel, minNumberOfSignals, sort);
+              ScanUtils.listAllMS1Scans(row, noiseLevel, minNumberOfSignals, sort);
         }
       } else if (scansEntry != null) {
         scans =
-            ScanUtils.listAllScans(scansEntry, massListName, noiseLevel, minNumberOfSignals, sort);
+            ScanUtils.listAllScans(scansEntry, noiseLevel, minNumberOfSignals, sort);
       }
       selectedScanI = 0;
 
@@ -570,7 +565,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   private void analyzeScan(Scan scan) {
-    MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
+    MassList massList = scan.getMassList();
     if (massList != null) {
       DataPoint[] dp = massList.getDataPoints();
       double tic = ScanUtils.getTIC(dp, noiseLevel);
@@ -591,7 +586,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   public DataPoint[] getFilteredDataPoints() {
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
-      MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
+      MassList massList = scan.getMassList();
       if (massList != null)
         return ScanUtils.getFiltered(massList.getDataPoints(), noiseLevel);
     }
@@ -607,7 +602,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   public DataPoint[] getFilteredDataPointsRemoved() {
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
-      MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
+      MassList massList = scan.getMassList();
       if (massList != null)
         return ScanUtils.getBelowThreshold(massList.getDataPoints(), noiseLevel);
     }

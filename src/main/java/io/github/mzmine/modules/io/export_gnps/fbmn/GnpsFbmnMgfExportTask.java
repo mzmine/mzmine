@@ -70,7 +70,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   private final File fileName;
   private final String plNamePattern = "{}";
   private int currentIndex = 0;
-  private final String massListName;
   private final MsMsSpectraMergeParameters mergeParameters;
 
   // by robin
@@ -88,8 +87,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
         .getValue().getMatchingFeatureLists();
 
     this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    this.massListName =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MASS_LIST).getValue();
     this.filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
     if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
       mergeParameters = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
@@ -196,7 +193,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
       if (msmsScan != null) {
         // MS/MS scan must exist, because msmsScanNumber was > 0
 
-        MassList massList = msmsScan.getMassList(massListName);
+        MassList massList = msmsScan.getMassList();
 
         if (massList == null) {
           setErrorMessage("MS2 scan has no mass list. Run Mass detection on all scans");
@@ -235,7 +232,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
           MsMsSpectraMergeModule merger =
               MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
           MergedSpectrum spectrum =
-              merger.getBestMergedSpectrum(mergeParameters, row, massListName);
+              merger.getBestMergedSpectrum(mergeParameters, row);
           if (spectrum != null) {
             dataPoints = spectrum.data;
             writer.write("MERGED_STATS=");

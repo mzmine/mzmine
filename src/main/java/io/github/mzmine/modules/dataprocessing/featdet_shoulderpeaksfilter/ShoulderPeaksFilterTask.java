@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 
@@ -44,14 +45,18 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 
   // User parameters
   private ParameterSet parameters;
+  private final MemoryMapStorage storage;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storage
    */
-  public ShoulderPeaksFilterTask(RawDataFile dataFile, ParameterSet parameters) {
+  public ShoulderPeaksFilterTask(RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storage) {
     this.dataFile = dataFile;
     this.parameters = parameters;
+    this.storage = storage;
   }
 
   /**
@@ -123,9 +128,9 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 
       DataPoint newMzPeaks[] = ShoulderPeaksFilter.filterMassValues(mzPeaks, parameters);
 
-      SimpleMassList newMassList =
-          new SimpleMassList(scan, newMzPeaks);
 
+      MassList newMassList =
+          SimpleMassList.create(scan, storage, newMzPeaks);
       scan.addMassList(newMassList);
 
       processedScans++;

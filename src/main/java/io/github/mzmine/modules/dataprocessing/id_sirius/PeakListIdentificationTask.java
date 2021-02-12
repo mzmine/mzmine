@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.MassListComponent;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
@@ -84,16 +83,8 @@ public class PeakListIdentificationTask extends AbstractTask {
     fingerCandidates =
         parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
 
-    String massListName =
-        parameters.getParameter(PeakListIdentificationParameters.MASS_LIST).getValue();
-    List<String> massLists = MassListComponent.getMassListNames();
-
     if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0 || threadsAmount <= 0) {
       MZmineCore.getDesktop().displayErrorMessage("Sirius parameters can't be negative");
-      setStatus(TaskStatus.ERROR);
-    } else if (!massLists.contains(massListName)) {
-      MZmineCore.getDesktop().displayErrorMessage(
-          String.format("Mass List parameter is set wrong [%s]", massListName));
       setStatus(TaskStatus.ERROR);
     }
   }

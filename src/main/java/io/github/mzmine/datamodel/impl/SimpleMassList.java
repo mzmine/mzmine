@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import javax.annotation.Nonnull;
 
@@ -36,6 +37,19 @@ public class SimpleMassList extends MassList {
     super(storage, mzValues, intensityValues);
     this.scan = scan;
   }
+
+  /**
+   * Use mzValues and intensityValues constructor
+   * @param scan
+   * @param storageMemoryMap
+   * @param dps
+   */
+  @Deprecated
+  public static MassList create(Scan scan, MemoryMapStorage storageMemoryMap, DataPoint[] dps) {
+    double[][] mzIntensity = DataPointUtils.getDataPointsAsDoubleArray(dps);
+    return new SimpleMassList(scan, storageMemoryMap, mzIntensity[0], mzIntensity[1]);
+  }
+
 
   @Override
   public @Nonnull Scan getScan() {
