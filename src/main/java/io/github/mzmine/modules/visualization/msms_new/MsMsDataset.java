@@ -99,8 +99,9 @@ public class MsMsDataset implements PlotXYZDataProvider {
       if (!intensityFilter.equals("")) {
         if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
           intensityFilterValue = Integer.parseInt(intensityFilter);
-        } else if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT) {
-          intensityFilterValue = Double.parseDouble(intensityFilter) / 100;
+        } else if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT
+            || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
+          intensityFilterValue = Double.parseDouble(intensityFilter);
         }
       }
     } catch (NumberFormatException exception) {
@@ -177,16 +178,23 @@ public class MsMsDataset implements PlotXYZDataProvider {
       // Filter features
       List<Integer> filteredScanIndices = new ArrayList<>();
 
-      // Base peak percent
-      if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT) {
-        double intensityThreshold = scan.getBasePeakIntensity() * intensityFilterValue;
+      // Intensity threshold
+      if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT
+          || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
+
+        // Base peak percent
+        double intensityThreshold = intensityFilterValue;
+        if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT) {
+          intensityThreshold = scan.getBasePeakIntensity() * (intensityFilterValue / 100);
+        }
+
         for (int scanIndex = 0; scanIndex < scan.getNumberOfDataPoints(); scanIndex++) {
-          if (scan.getIntensityValue(scanIndex) > intensityThreshold) {
+          if (scan.getIntensityValue(scanIndex) >= intensityThreshold) {
             filteredScanIndices.add(scanIndex);
           }
         }
 
-        // Number of most intense fragments
+      // Number of most intense fragments
       } else if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
         filteredScanIndices = IntStream.range(0, scan.getNumberOfDataPoints())
             .boxed().sorted((i, j) -> Doubles.compare(scan.getIntensityValue(j), scan.getIntensityValue(i)))

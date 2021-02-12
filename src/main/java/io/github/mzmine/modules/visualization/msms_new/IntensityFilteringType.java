@@ -24,7 +24,10 @@ public enum IntensityFilteringType {
   NUM_OF_BEST_FRAGMENTS("Number of best fragments"),
 
   // Threshold for the data points' intensities as a percent of base peak intensity
-  BASE_PEAK_PERCENT("Base peak percent, %");
+  BASE_PEAK_PERCENT("Base peak percent, %"),
+
+  // Ions with intensities lower then threshold will not be plotted
+  INTENSITY_THRESHOLD("Intensity threshold");
 
   private final String type;
 
