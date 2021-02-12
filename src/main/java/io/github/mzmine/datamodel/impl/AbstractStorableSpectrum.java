@@ -29,14 +29,16 @@ import javax.annotation.Nonnull;
 
 /**
  * An implementation of MassSpectrum that stores the data points in a MemoryMapStorage.
+ * <p>
+ * TODO: Allow null as MemoryMapStorage and store data in ram if that is the case to allow fast
+ * processing on servers. Or create a central MemoryMapStorage in MZmineCore, the project or
+ * somehwere else to prevent crashes from {@link SimpleMergedMsMsSpectrum} requirering a storage.
  */
 public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
   private static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
-
   protected final MemoryMapStorage storage;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   protected DoubleBuffer mzValues;
   protected DoubleBuffer intensityValues;
 

@@ -18,12 +18,6 @@
 
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -38,6 +32,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.ManualFeatureUtils;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 
 /**
@@ -89,6 +89,8 @@ public class FeatureDataSetCalc extends AbstractTask {
 
     // TODO: new ModularFeatureList name
     ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode());
+    newFeatureList
+        .setForceFeatureDataIntoRam(true); // temporary flist for previews -> store in ram.
 
     for (RawDataFile rawDataFile : rawDataFiles) {
       if (getStatus() == TaskStatus.CANCELED) {
