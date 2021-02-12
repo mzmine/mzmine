@@ -377,8 +377,8 @@ public class SpectraVisualizerTab extends MZmineTab {
     final String finalSpectrumTitle = spectrumTitle;
     final String finalSpectrumSubtitle = spectrumSubtitle;
 
-    Platform.runLater(() -> {
-      // setTitle(windowTitle);
+//    Platform.runLater(() -> { // this should be the fx thread, otherwise loading isotopes will fail
+    // setTitle(windowTitle);
       spectrumPlot.setTitle(finalSpectrumTitle, finalSpectrumSubtitle);
 
       // Set plot data set
@@ -386,7 +386,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
       spectrumPlot.addDataSet(massListDataSet, massListColor, false);
       spectrumPlot.getXYPlot().getRenderer().setDefaultPaint(dataFileColor);
-    });
+//    });
 
   }
 

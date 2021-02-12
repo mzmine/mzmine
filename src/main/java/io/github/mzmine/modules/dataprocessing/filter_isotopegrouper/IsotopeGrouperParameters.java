@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,10 +23,12 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 
 public class IsotopeGrouperParameters extends SimpleParameterSet {
 
@@ -43,6 +45,11 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
+
+  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerace =
+      new OptionalParameter<>(new MobilityToleranceParameter("Mobility tolerance",
+          "If enabled (and mobility dimension was recorded), "
+              + "isotopic peaks will only be grouped if they fit within the given tolerance."));
 
   public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
       "If true, then monotonically decreasing height of isotope pattern is required");
@@ -62,8 +69,8 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
       "If checked, original peaklist will be removed and only deisotoped version remains");
 
   public IsotopeGrouperParameters() {
-    super(new Parameter[] {peakLists, suffix, mzTolerance, rtTolerance, monotonicShape,
-        maximumCharge, representativeIsotope, autoRemove});
+    super(new Parameter[]{peakLists, suffix, mzTolerance, rtTolerance, mobilityTolerace,
+        monotonicShape, maximumCharge, representativeIsotope, autoRemove});
   }
 
 }
