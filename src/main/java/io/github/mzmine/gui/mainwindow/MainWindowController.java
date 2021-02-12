@@ -193,8 +193,10 @@ public class MainWindowController {
   @FXML
   public void initialize() {
 
+    rawDataList.setEditable(false);
     rawDataList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+    featureListsList.setEditable(false);
     featureListsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     featureListsList.setGrouping(featureList -> featureList.isAligned()
         ? "Aligned feature lists"
@@ -254,7 +256,7 @@ public class MainWindowController {
 
     // Add long mouse pressed event handler
     rawDataList.addEventHandler(MouseEvent.ANY, new EventHandler<MouseEvent>() {
-      final PauseTransition timer = new PauseTransition(Duration.millis(400));
+      final PauseTransition timer = new PauseTransition(Duration.millis(800));
 
       @Override
       public void handle(MouseEvent event) {
