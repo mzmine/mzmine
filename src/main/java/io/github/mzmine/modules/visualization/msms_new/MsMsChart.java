@@ -20,7 +20,6 @@ package io.github.mzmine.modules.visualization.msms_new;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
-import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZDotRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -44,7 +43,6 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataset> {
     setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getMZFormat());
 
     renderer = new ColoredXYZDotRenderer();
-    renderer.setDefaultToolTipGenerator(new SimpleToolTipGenerator());
     setDefaultRenderer(renderer);
 
     dataset = new MsMsDataset(parameters);

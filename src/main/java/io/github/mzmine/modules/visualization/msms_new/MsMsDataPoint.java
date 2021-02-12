@@ -18,8 +18,16 @@
 
 package io.github.mzmine.modules.visualization.msms_new;
 
+import io.github.mzmine.main.MZmineCore;
+import java.text.NumberFormat;
+
 class MsMsDataPoint {
 
+  private static final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private static final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+  private static final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+
+  private static final int defaultPrecursorCharge = 1;
   private final double mzValue;
   private final double precursorMZ;
   private final int precursorCharge;
@@ -28,13 +36,10 @@ class MsMsDataPoint {
   private double precursorMass;
   private final double intensity;
 
-  private static final int defaultPrecursorCharge = 1;
-
   private boolean isHighlighted = false;
 
   public MsMsDataPoint(double mzValue, double precursorMZ, int precursorCharge, double retentionTime,
       double intensity) {
-
     this.mzValue = mzValue;
     this.precursorMZ = precursorMZ;
     this.precursorCharge = precursorCharge;
@@ -49,7 +54,6 @@ class MsMsDataPoint {
     }
 
     neutralLoss = precursorMass - mzValue;
-
   }
 
   public int getPrecursorCharge() {
@@ -86,6 +90,16 @@ class MsMsDataPoint {
 
   public boolean isHighlighted() {
     return isHighlighted;
+  }
+
+  @Override
+  public String toString() {
+    return "Product m/z: " + mzFormat.format(mzValue) + '\n'
+        + "Retention time: " + rtFormat.format(retentionTime) + '\n'
+        + "Precursor m/z: " + mzFormat.format(precursorMZ) + '\n'
+        + "Neutral loss: " + mzFormat.format(neutralLoss) + '\n'
+        + "Precursor charge: " + precursorCharge + '\n'
+        + "Base peak intensity: " + intensityFormat.format(intensity);
   }
 
 }

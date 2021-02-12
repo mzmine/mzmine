@@ -151,8 +151,7 @@ public class MsMsDataset implements PlotXYZDataProvider {
   @Nullable
   @Override
   public String getToolTipText(int itemIndex) {
-    // TODO:
-    return "" + dataPoints.get(itemIndex).getPrecursorMZ();
+    return dataPoints.get(itemIndex).toString();
   }
 
   @Override
