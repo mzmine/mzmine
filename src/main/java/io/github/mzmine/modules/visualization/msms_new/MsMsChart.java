@@ -48,6 +48,11 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataset> {
     dataset = new MsMsDataset(parameters);
     Platform.runLater(() -> addDataset(dataset));
 
+    getXYPlot().getDomainAxis().setUpperMargin(0);
+    getXYPlot().getDomainAxis().setLowerMargin(0);
+    getXYPlot().getRangeAxis().setUpperMargin(0);
+    getXYPlot().getRangeAxis().setLowerMargin(0);
+
     setLegendCanvas(new Canvas());
   }
 
