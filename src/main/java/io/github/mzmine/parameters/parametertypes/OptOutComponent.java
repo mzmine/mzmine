@@ -16,15 +16,10 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import javafx.scene.layout.FlowPane;
 
-public class IMSFeatureVisualizerParameters extends SimpleParameterSet {
-
-  @Override
-  public IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.ONLY;
-  }
+public class OptOutComponent extends FlowPane {
+// no visual representation
 }

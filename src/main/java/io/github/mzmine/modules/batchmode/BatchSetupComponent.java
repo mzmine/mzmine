@@ -44,7 +44,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
@@ -243,7 +242,7 @@ public class BatchSetupComponent extends BorderPane implements LastFilesComponen
 
         // Add step to queue.
         batchQueue.add(step);
-        currentStepsList.setItems(FXCollections.observableArrayList(batchQueue));
+        currentStepsList.setItems(batchQueue);
         currentStepsList.getSelectionModel().select(batchQueue.size() - 1);
 
       }

@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
@@ -60,5 +61,10 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
   public IonMobilityTraceBuilderParameters() {
     super(new Parameter[]{rawDataFiles, massList, scanSelection, mzTolerance, minDataPointsRt,
         minTotalSignals, suffix});
+  }
+
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.ONLY;
   }
 }
