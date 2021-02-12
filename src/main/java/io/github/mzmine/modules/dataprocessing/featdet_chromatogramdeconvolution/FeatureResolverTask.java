@@ -371,8 +371,8 @@ public class FeatureResolverTask extends AbstractTask {
         f.set(RawFileType.class, originalFeature.getRawDataFile());
         f.set(FeatureDataType.class, resolved);
         f.set(DetectionType.class, originalFeature.get(DetectionType.class));
-        if (originalFeature.get(MobilityUnitType.class).getValue() != null) {
-          f.set(MobilityUnitType.class, originalFeature.get(MobilityUnitType.class).getValue());
+        if (originalFeature.getMobilityUnit() != null) {
+          f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
         }
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
         newRow.addFeature(originalFeature.getRawDataFile(), f);
@@ -435,9 +435,9 @@ public class FeatureResolverTask extends AbstractTask {
         final ModularFeature newFeature = FeatureConvertors
             .ResolvedPeakToMoularFeature(resolvedFeatureList, peak,
                 originalFeature.getFeatureData());
-        if (originalFeature.get(MobilityUnitType.class).getValue() != null) {
+        if (originalFeature.getMobilityUnit() != null) {
           newFeature
-              .set(MobilityUnitType.class, originalFeature.get(MobilityUnitType.class).getValue());
+              .set(MobilityUnitType.class, originalFeature.getMobilityUnit());
         }
 
         newRow.addFeature(dataFile, newFeature);
