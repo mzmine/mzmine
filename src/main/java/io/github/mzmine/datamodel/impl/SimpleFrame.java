@@ -46,6 +46,15 @@ import javax.annotation.Nullable;
  */
 public class SimpleFrame extends SimpleScan implements Frame {
 
+  public static double numDp = 0d;
+
+  @Override
+  public synchronized void setDataPoints(@Nonnull double[] mzValues,
+      @Nonnull double[] intensityValues) {
+    super.setDataPoints(mzValues, intensityValues);
+    numDp += mzValues.length;
+  }
+
 //  private final int numMobilitySpectra;
   /**
    * key = scan num, value = mobility scan
@@ -157,6 +166,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
     final int numDatapoints =
         offsets[offsets.length - 1] + originalMobilityScans.get(offsets.length - 1)
             .getNumberOfDataPoints();
+
+    numDp += numDatapoints;
 
     // now store all the data in a single array
     double[] data = new double[numDatapoints];

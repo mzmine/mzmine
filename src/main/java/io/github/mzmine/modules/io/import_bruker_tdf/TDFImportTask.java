@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
@@ -213,6 +212,9 @@ public class TDFImportTask extends AbstractTask {
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
 
+    logger.info("num dp (import): " + TDFUtils.numDP);
+    logger.info("num dp (stored): " + SimpleFrame.numDp);
+
     // } else {
     // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
     // metaDataTable, maldiFrameInfoTable);
@@ -337,7 +339,7 @@ public class TDFImportTask extends AbstractTask {
 
   }
 
-  private void appendScansFromMaldiTimsSegment(@Nonnull final IMSRawDataFile rawDataFile,
+  /*private void appendScansFromMaldiTimsSegment(@Nonnull final IMSRawDataFile rawDataFile,
       final long handle, final long firstFrameId, final long lastFrameId,
       @Nonnull final TDFFrameTable tdfFrameTable, @Nonnull final TDFMetaDataTable tdfMetaDataTable,
       @Nonnull final TDFMaldiFrameInfoTable tdfMaldiTable) {
@@ -359,7 +361,7 @@ public class TDFImportTask extends AbstractTask {
         TDFUtils.close(handle);
       }
     }
-  }
+  }*/
 
   private File[] getDataFilesFromDir(File dir) {
 

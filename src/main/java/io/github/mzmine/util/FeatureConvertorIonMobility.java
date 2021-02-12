@@ -43,7 +43,8 @@ public class FeatureConvertorIonMobility {
       SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> sortedDataPoints) {
     List<DataPoint> summedDataPoints = new ArrayList<>();
     // sum intensity over mobility dimension
-    for (Entry<Frame, SortedSet<RetentionTimeMobilityDataPoint>> entry : sortedDataPoints.entrySet()) {
+    for (Entry<Frame, SortedSet<RetentionTimeMobilityDataPoint>> entry : sortedDataPoints
+        .entrySet()) {
       double mz = 0;
       double intensity = 0;
       for (RetentionTimeMobilityDataPoint dp : entry.getValue()) {
@@ -56,6 +57,11 @@ public class FeatureConvertorIonMobility {
     return summedDataPoints;
   }
 
+  /**
+   * @param originalDataPoints
+   * @return Keys (=Frame) sorted by ascending rt + scan number, values (=data points) sorted by ascending
+   * mobility scan number.
+   */
   public static SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> groupDataPointsByFrameId(
       @Nonnull final Collection<? extends DataPoint> originalDataPoints) {
 

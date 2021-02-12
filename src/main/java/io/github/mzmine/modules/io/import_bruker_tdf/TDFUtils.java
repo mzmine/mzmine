@@ -67,6 +67,8 @@ public class TDFUtils {
   public static int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private static TDFLibrary tdfLib = null;
 
+  public static double numDP = 0;
+
   private TDFUtils() {
   }
 
@@ -263,6 +265,7 @@ public class TDFUtils {
 
       spectra.add(
           new BuildingMobilityScan(i, dataPoints.get(i)[0], dataPoints.get(i)[1]));
+      numDP += dataPoints.get(i).length;
     }
 
     return spectra;
@@ -348,6 +351,8 @@ public class TDFUtils {
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
     final double[][] data = extractCentroidsForFrame(handle, frameId, 0, numScans);
+
+    numDP += data[0].length;
 
     final String scanDefinition = metaDataTable.getInstrumentType() + " - "
         + BrukerScanMode.fromScanMode(frameTable.getScanModeColumn().get(frameIndex).intValue());
