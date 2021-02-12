@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.ScanUtils;
 import javax.annotation.Nonnull;
 
 /**
@@ -35,5 +36,14 @@ public abstract class MassList extends AbstractStorableSpectrum {
 
   @Nonnull
   public abstract Scan getScan();
+
+  /**
+   * Try to directly access m/z and intensity values by index
+   * @return
+   */
+  @Deprecated
+  public DataPoint[] getDataPoints() {
+    return ScanUtils.extractDataPoints(this);
+  }
 
 }
