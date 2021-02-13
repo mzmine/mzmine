@@ -265,7 +265,7 @@ public class TDFUtils {
 
       spectra.add(
           new BuildingMobilityScan(i, dataPoints.get(i)[0], dataPoints.get(i)[1]));
-      numDP += dataPoints.get(i).length;
+      numDP += dataPoints.get(i)[0].length;
     }
 
     return spectra;
