@@ -29,6 +29,9 @@
 
 package io.github.mzmine.modules.io.export_gnps.fbmn;
 
+import io.github.mzmine.modules.io.export_features_csv.ExportRowCommonElement;
+import io.github.mzmine.modules.io.export_features_csv.ExportRowDataFileElement;
+import io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
@@ -182,23 +185,20 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     final String name = FilenameUtils.removeExtension(full.getName());
     full = new File(full.getParentFile(), name + "_quant.csv");
 
-    /*
-     * TODO: need to use new CSV export module ExportRowCommonElement[] common = new
-     * ExportRowCommonElement[] {ExportRowCommonElement.ROW_ID, ExportRowCommonElement.ROW_MZ,
-     * ExportRowCommonElement.ROW_RT};
-     *
-     * ExportRowDataFileElement[] rawdata = new ExportRowDataFileElement[]
-     * {ExportRowDataFileElement.FEATURE_AREA};
-     *
-     * RowFilter filter =
-     * parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
-     *
-     * CSVExportTask quanExport = new CSVExportTask(
-     * parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-     * .getMatchingFeatureLists(), // full, ",", common, rawdata, false, ";", filter);
-     * 
-     * if (tasks != null) tasks.add(quanExport); return quanExport;
-     */
+     // TODO: need to use new CSV export module
+      ExportRowCommonElement[] common = new ExportRowCommonElement[] {ExportRowCommonElement.ROW_ID, ExportRowCommonElement.ROW_MZ,
+     ExportRowCommonElement.ROW_RT};
+     ExportRowDataFileElement[] rawdata = new ExportRowDataFileElement[]
+     {ExportRowDataFileElement.FEATURE_AREA};
+
+     RowFilter filter =
+     parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
+
+     CSVExportTask quanExport = new CSVExportTask(
+     parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
+     .getMatchingFeatureLists(), full, ",", common, rawdata, false, ";", filter);
+
+     if (tasks != null) tasks.add(quanExport); return quanExport;
     return null;
   }
 
