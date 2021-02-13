@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
@@ -74,8 +75,13 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
           "Merge high-quality MS/MS instead of exporting just the most intense one.",
           new MsMsSpectraMergeParameters(), true);
 
+  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY =
+      new ComboParameter<>("Feature intensity", "Intensity in the quantification table (csv).",
+          FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
+
+
   public GnpsFbmnExportAndSubmitParameters() {
-    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, SUBMIT,
+    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, FEATURE_INTENSITY, SUBMIT,
         OPEN_FOLDER});
   }
 

@@ -34,6 +34,8 @@ import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowCommonElement;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowDataFileElement;
+import io.github.mzmine.modules.io.export_gnps.gc.GnpsGcExportAndSubmitParameters;
+import io.github.mzmine.util.FeatureMeasurementType;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
@@ -66,6 +68,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
 
   private ParameterSet parameters;
   private AtomicDouble progress = new AtomicDouble(0);
+  private FeatureMeasurementType featureMeasure;
 
   GnpsFbmnExportAndSubmitTask(ParameterSet parameters) {
     this.parameters = parameters;
@@ -98,6 +101,9 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     File file = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     file = FileAndPathUtil.eraseFormat(file);
     parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(file);
+
+    featureMeasure =
+        parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY).getValue();
 
     List<AbstractTask> list = new ArrayList<>(3);
     GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters);
@@ -224,7 +230,9 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
         LegacyExportRowCommonElement.ROW_RT};
     LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]
-        {LegacyExportRowDataFileElement.FEATURE_AREA};
+        {featureMeasure.equals(FeatureMeasurementType.AREA)
+            ? LegacyExportRowDataFileElement.FEATURE_AREA
+            : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
     FeatureListRowsFilter filter =
         parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
