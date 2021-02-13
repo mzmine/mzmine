@@ -105,7 +105,7 @@ public class LegacyCSVExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to CSV file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to CSV file(s) (legacy MZmine 2 format)";
   }
 
   @Override

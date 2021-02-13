@@ -30,6 +30,7 @@
 package io.github.mzmine.modules.io.export_gnps.fbmn;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowCommonElement;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowDataFileElement;
@@ -102,8 +103,10 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters);
     list.add(task);
 
-    // add csv quant table
-    list.add(addQuantTableTask(parameters, null));
+    // add old csv quant table for old FBMN support
+    list.add(addLegacyQuantTableTask(parameters, null));
+    // add new csv export for whole table
+    list.add(addFullQuantTableTask(parameters, null));
 
     // finish listener to submit
     final File fileName = file;
@@ -179,17 +182,44 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   }
 
   /**
+   * Export the whole quant table in the new format
+   *
+   * @param parameters export parameters {@link GnpsFbmnExportAndSubmitParameters}
+   * @param tasks      new task is added to this list of tasks
+   */
+  private AbstractTask addFullQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
+    File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
+    final String name = FilenameUtils.removeExtension(full.getName());
+    full = new File(full.getParentFile(), name + "_quant_full.csv");
+
+    ModularFeatureList[] flist = parameters
+        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
+        .getMatchingFeatureLists();
+
+    FeatureListRowsFilter filter =
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
+
+    CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";",
+        filter);
+
+    if (tasks != null) {
+      tasks.add(quanExportModular);
+    }
+    return quanExportModular;
+  }
+
+
+  /**
    * Export quant table in new and old format
    *
    * @param parameters export parameters {@link GnpsFbmnExportAndSubmitParameters}
    * @param tasks      new task is added to this list of tasks
    */
-  private AbstractTask addQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
+  private AbstractTask addLegacyQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
     File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     final String name = FilenameUtils.removeExtension(full.getName());
     full = new File(full.getParentFile(), name + "_quant.csv");
-
-    // TODO: need to use new CSV export module
+    // add old CSV export
     LegacyExportRowCommonElement[] common = new LegacyExportRowCommonElement[]{
         LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
         LegacyExportRowCommonElement.ROW_RT};
@@ -202,6 +232,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     ModularFeatureList[] flist = parameters
         .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();
+
     LegacyCSVExportTask quanExport = new LegacyCSVExportTask(flist, full, ",", common, rawdata,
         false, ";", filter);
 
