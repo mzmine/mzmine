@@ -17,9 +17,12 @@
 
 package io.github.mzmine.modules.io.export_features_csv_legacy;
 
+import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -40,11 +43,11 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
       "Character(s) used to separate fields in the exported file", ",");
 
   public static final MultiChoiceParameter<LegacyExportRowCommonElement> exportCommonItems =
-      new MultiChoiceParameter<LegacyExportRowCommonElement>("Export common elements",
+      new MultiChoiceParameter<>("Export common elements",
           "Selection of row's elements to export", LegacyExportRowCommonElement.values());
 
   public static final MultiChoiceParameter<LegacyExportRowDataFileElement> exportDataFileItems =
-      new MultiChoiceParameter<LegacyExportRowDataFileElement>("Export data file elements",
+      new MultiChoiceParameter<>("Export data file elements",
           "Selection of feature's elements to export", LegacyExportRowDataFileElement.values());
 
   public static final BooleanParameter exportAllFeatureInfo =
@@ -54,9 +57,9 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
   public static final StringParameter idSeparator = new StringParameter("Identification separator",
       "Character(s) used to separate identification results in the exported file", ";");
 
-  public static final ComboParameter<RowFilter> filter = new ComboParameter<RowFilter>(
+  public static final ComboParameter<FeatureListRowsFilter> filter = new ComboParameter<>(
       "Filter rows", "Limit the exported rows to those with MS/MS data (or annotated rows)",
-      RowFilter.values(), RowFilter.ALL);
+      FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
 
   public LegacyCSVExportParameters() {
     super(new Parameter[]{featureLists, filename, fieldSeparator, exportCommonItems,

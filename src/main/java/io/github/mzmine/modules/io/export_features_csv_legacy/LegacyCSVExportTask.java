@@ -21,6 +21,7 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.util.FeatureUtils;
 import java.io.File;
 import java.io.FileWriter;
@@ -33,7 +34,6 @@ import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -41,46 +41,49 @@ import io.github.mzmine.util.RangeUtils;
 
 public class LegacyCSVExportTask extends AbstractTask {
 
-  private FeatureList[] featureLists;
+  private final FeatureList[] featureLists;
   private int processedRows = 0, totalRows = 0;
 
   // parameter values
-  private File fileName;
-  private String plNamePattern = "{}";
-  private String fieldSeparator;
-  private LegacyExportRowCommonElement[] commonElements;
-  private LegacyExportRowDataFileElement[] dataFileElements;
-  private Boolean exportAllFeatureInfo;
-  private String idSeparator;
-  private RowFilter filter;
+  private final File fileName;
+  private final String plNamePattern = "{}";
+  private final String fieldSeparator;
+  private final LegacyExportRowCommonElement[] commonElements;
+  private final LegacyExportRowDataFileElement[] dataFileElements;
+  private final Boolean exportAllFeatureInfo;
+  private final String idSeparator;
+  private final FeatureListRowsFilter filter;
 
   public LegacyCSVExportTask(ParameterSet parameters) {
     this.featureLists =
-        parameters.getParameter(LegacyCSVExportParameters.featureLists).getValue().getMatchingFeatureLists();
+        parameters.getParameter(LegacyCSVExportParameters.featureLists).getValue()
+            .getMatchingFeatureLists();
     fileName = parameters.getParameter(LegacyCSVExportParameters.filename).getValue();
     fieldSeparator = parameters.getParameter(LegacyCSVExportParameters.fieldSeparator).getValue();
-    commonElements = parameters.getParameter(LegacyCSVExportParameters.exportCommonItems).getValue();
-    dataFileElements = parameters.getParameter(LegacyCSVExportParameters.exportDataFileItems).getValue();
-    exportAllFeatureInfo = parameters.getParameter(LegacyCSVExportParameters.exportAllFeatureInfo).getValue();
+    commonElements = parameters.getParameter(LegacyCSVExportParameters.exportCommonItems)
+        .getValue();
+    dataFileElements = parameters.getParameter(LegacyCSVExportParameters.exportDataFileItems)
+        .getValue();
+    exportAllFeatureInfo = parameters.getParameter(LegacyCSVExportParameters.exportAllFeatureInfo)
+        .getValue();
     idSeparator = parameters.getParameter(LegacyCSVExportParameters.idSeparator).getValue();
     this.filter = parameters.getParameter(LegacyCSVExportParameters.filter).getValue();
-
   }
 
   /**
-   *
-   * @param featureLists
-   * @param fileName
-   * @param fieldSeparator
-   * @param commonElements
-   * @param dataFileElements
-   * @param exportAllFeatureInfo
-   * @param idSeparator
-   * @param filter Row filter
+   * @param featureLists         feature lists to export
+   * @param fileName             export to file name
+   * @param fieldSeparator       separator for each column
+   * @param commonElements       common columns (average values etc)
+   * @param dataFileElements     columns for each data file
+   * @param exportAllFeatureInfo export all feature information
+   * @param idSeparator          separator for identity fields
+   * @param filter               Row filter
    */
   public LegacyCSVExportTask(FeatureList[] featureLists, File fileName, String fieldSeparator,
-      LegacyExportRowCommonElement[] commonElements, LegacyExportRowDataFileElement[] dataFileElements,
-      Boolean exportAllFeatureInfo, String idSeparator, RowFilter filter) {
+      LegacyExportRowCommonElement[] commonElements,
+      LegacyExportRowDataFileElement[] dataFileElements,
+      Boolean exportAllFeatureInfo, String idSeparator, FeatureListRowsFilter filter) {
     super();
     this.featureLists = featureLists;
     this.fileName = fileName;
@@ -160,21 +163,23 @@ public class LegacyCSVExportTask extends AbstractTask {
 
       // If feature list substitution pattern wasn't found,
       // treat one feature list only
-      if (!substitute)
+      if (!substitute) {
         break;
+      }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING)
+    if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
+    }
 
   }
 
   private void exportFeatureList(FeatureList featureList, FileWriter writer, File fileName) {
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    RawDataFile rawDataFiles[] = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
+    RawDataFile[] rawDataFiles = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Buffer for writing
-    StringBuffer line = new StringBuffer();
+    StringBuilder line = new StringBuilder();
 
     // Write column headers
 
@@ -185,25 +190,28 @@ public class LegacyCSVExportTask extends AbstractTask {
       name = commonElements[i].toString();
       name = name.replace("Export ", "");
       name = escapeStringForCSV(name);
-      line.append(name + fieldSeparator);
+      line.append(name);
+      line.append(fieldSeparator);
     }
 
     // feature Information
     Set<String> featureInformationFields = new HashSet<>();
 
     for (FeatureListRow row : featureList.getRows()) {
-      if (!filter.filter(row))
+      if (!filter.filter(row)) {
         continue;
+      }
       if (row.getFeatureInformation() != null) {
-        for (String key : row.getFeatureInformation().getAllProperties().keySet()) {
-          featureInformationFields.add(key);
-        }
+        featureInformationFields.addAll(row.getFeatureInformation().getAllProperties().keySet());
       }
     }
 
-    if (exportAllFeatureInfo)
-      for (String field : featureInformationFields)
-        line.append(field + fieldSeparator);
+    if (exportAllFeatureInfo) {
+      for (String field : featureInformationFields) {
+        line.append(field);
+        line.append(fieldSeparator);
+      }
+    }
 
     // Data file elements
     length = dataFileElements.length;
@@ -212,7 +220,8 @@ public class LegacyCSVExportTask extends AbstractTask {
         name = rawDataFiles[df].getName();
         name = name + " " + dataFileElements[i].toString();
         name = escapeStringForCSV(name);
-        line.append(name + fieldSeparator);
+        line.append(name);
+        line.append(fieldSeparator);
       }
     }
 
@@ -272,8 +281,9 @@ public class LegacyCSVExportTask extends AbstractTask {
                 .toArray(new FeatureIdentity[0]);
             propertyValue = "";
             for (int x = 0; x < featureIdentities.length; x++) {
-              if (x > 0)
+              if (x > 0) {
                 propertyValue += idSeparator;
+              }
               propertyValue += featureIdentities[x].toString();
             }
             propertyValue = escapeStringForCSV(propertyValue);
@@ -286,8 +296,9 @@ public class LegacyCSVExportTask extends AbstractTask {
               break;
             }
             propertyValue = featureId.getDescription();
-            if (propertyValue != null)
+            if (propertyValue != null) {
               propertyValue = propertyValue.replaceAll("\\n", ";");
+            }
             propertyValue = escapeStringForCSV(propertyValue);
             line.append(propertyValue + fieldSeparator);
             break;
@@ -315,8 +326,9 @@ public class LegacyCSVExportTask extends AbstractTask {
 
           for (String key : featureInformationFields) {
             String value = allPropertiesMap.get(key);
-            if (value == null)
+            if (value == null) {
               value = "";
+            }
             line.append(value + fieldSeparator);
           }
         }
@@ -408,16 +420,18 @@ public class LegacyCSVExportTask extends AbstractTask {
 
   private String escapeStringForCSV(final String inputString) {
 
-    if (inputString == null)
+    if (inputString == null) {
       return "";
+    }
 
     // Remove all special characters (particularly \n would mess up our CSV
     // format).
     String result = inputString.replaceAll("[\\p{Cntrl}]", " ");
 
     // Skip too long strings (see Excel 2007 specifications)
-    if (result.length() >= 32766)
+    if (result.length() >= 32766) {
       result = result.substring(0, 32765);
+    }
 
     // If the text contains fieldSeparator, we will add
     // parenthesis

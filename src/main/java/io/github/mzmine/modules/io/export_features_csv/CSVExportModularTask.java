@@ -18,10 +18,7 @@
 
 package io.github.mzmine.modules.io.export_features_csv;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -34,23 +31,19 @@ import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
+import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javafx.beans.property.Property;
@@ -68,11 +61,12 @@ public class CSVExportModularTask extends AbstractTask {
   private String fieldSeparator;
   private String idSeparator;
   private String headerSeparator = ":";
-  private RowFilter filter;
+  private FeatureListRowsFilter filter;
 
   public CSVExportModularTask(ParameterSet parameters) {
     this.featureLists =
-        parameters.getParameter(CSVExportModularParameters.featureLists).getValue().getMatchingFeatureLists();
+        parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
+            .getMatchingFeatureLists();
     fileName = parameters.getParameter(CSVExportModularParameters.filename).getValue();
     fieldSeparator = parameters.getParameter(
         CSVExportModularParameters.fieldSeparator).getValue();
@@ -81,16 +75,21 @@ public class CSVExportModularTask extends AbstractTask {
   }
 
   /**
-   *
-   * @param featureLists
-   * @param fileName
-   * @param fieldSeparator
-   * @param idSeparator
-   * @param filter Row filter
+   * @param featureLists   feature lists to export
+   * @param fileName       export file name
+   * @param fieldSeparator separation of columns
+   * @param idSeparator    identity field separation
+   * @param filter         Row filter
    */
-  public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName, String fieldSeparator,
-      String idSeparator, RowFilter filter) {
+  public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
+      String fieldSeparator,
+      String idSeparator, FeatureListRowsFilter filter) {
     super();
+    if (fieldSeparator.equals(idSeparator)) {
+      throw new IllegalArgumentException(MessageFormat
+          .format("Column separator cannot equal the identity separator (currently {0})",
+              idSeparator));
+    }
     this.featureLists = featureLists;
     this.fileName = fileName;
     this.fieldSeparator = fieldSeparator;
@@ -113,7 +112,6 @@ public class CSVExportModularTask extends AbstractTask {
 
   @Override
   public void run() {
-
     setStatus(TaskStatus.PROCESSING);
 
     // Shall export several files?
@@ -141,7 +139,8 @@ public class CSVExportModularTask extends AbstractTask {
 
       // Open file
 
-      try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(), StandardCharsets.UTF_8)) {
+      try (BufferedWriter writer = Files
+          .newBufferedWriter(curFile.toPath(), StandardCharsets.UTF_8)) {
         exportFeatureList(featureList, writer, curFile);
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
@@ -156,12 +155,14 @@ public class CSVExportModularTask extends AbstractTask {
 
       // If feature list substitution pattern wasn't found,
       // treat one feature list only
-      if (!substitute)
+      if (!substitute) {
         break;
+      }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING)
+    if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
+    }
   }
 
   private void exportFeatureList(ModularFeatureList flist, BufferedWriter writer, File fileName)
@@ -178,15 +179,16 @@ public class CSVExportModularTask extends AbstractTask {
 
     // Write feature row headers
     String header = getJoinedHeader(rowTypes, "");
-    for(RawDataFile raw : rawDataFiles)
-      header += (header.isEmpty()? "" : fieldSeparator) + getJoinedHeader(featureTypes,
+    for (RawDataFile raw : rawDataFiles) {
+      header += (header.isEmpty() ? "" : fieldSeparator) + getJoinedHeader(featureTypes,
           DATAFILE_PREFIX + headerSeparator + raw.getName());
+    }
 
     writer.append(header);
     writer.newLine();
 
     // write data
-    for(FeatureListRow row : flist.getRows()) {
+    for (FeatureListRow row : flist.getRows()) {
       if (!filter.filter(row)) {
         processedRows++;
         continue;
@@ -204,7 +206,8 @@ public class CSVExportModularTask extends AbstractTask {
   }
 
   public boolean filterType(DataType type) {
-    return !(type instanceof NoTextColumn || type instanceof NullColumnType || type instanceof LinkedDataType);
+    return !(type instanceof NoTextColumn || type instanceof NullColumnType
+        || type instanceof LinkedDataType);
   }
 
   private String joinRowData(ModularFeatureListRow row,
@@ -213,7 +216,7 @@ public class CSVExportModularTask extends AbstractTask {
     joinData(b, row, rowTypes);
 
     // add feature types
-    for(RawDataFile raw : raws) {
+    for (RawDataFile raw : raws) {
       ModularFeature feature = row.getFeature(raw);
       joinData(b, feature, featureTypes);
     }
@@ -221,36 +224,37 @@ public class CSVExportModularTask extends AbstractTask {
   }
 
   /**
-   *
    * @param b
-   * @param data {@link ModularFeatureListRow}, {@link ModularFeature}, {@link ModularTypeProperty}
+   * @param data  {@link ModularFeatureListRow}, {@link ModularFeature}, {@link
+   *              ModularTypeProperty}
    * @param types
    * @return
    */
   private void joinData(StringBuilder b, ModularDataModel data, List<DataType> types) {
     for (DataType type : types) {
-      if(type instanceof ModularType) {
+      if (type instanceof ModularType) {
         ModularType modType = (ModularType) type;
         ModularTypeProperty modProp = data.get(modType);
         // join all the sub types of a modular data type
         List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
             .filter(this::filterType).collect(Collectors.toList());
         joinData(b, modProp, filteredSubTypes);
-      }
-      else if(type instanceof SubColumnsFactory subCols) {
+      } else if (type instanceof SubColumnsFactory subCols) {
         Property property = data.get(type);
+        Object value = property == null? null : property.getValue();
         int numberOfSub = subCols.getNumberOfSubColumns();
-        for(int i=0; i<numberOfSub; i++) {
-          String field = subCols.getFormattedSubColValue(i,null, null, property.getValue(), null);
-          if (!b.isEmpty())
+        for (int i = 0; i < numberOfSub; i++) {
+          String field = subCols.getFormattedSubColValue(i, null, null, value, null);
+          if (!b.isEmpty()) {
             b.append(fieldSeparator);
-          b.append(field==null? "" : field);
+          }
+          b.append(field == null ? "" : field);
         }
-      }
-      else {
+      } else {
         Property property = data.get(type);
-        if (!b.isEmpty())
+        if (!b.isEmpty()) {
           b.append(fieldSeparator);
+        }
         b.append(escapeStringForCSV(type.getFormattedString(property)));
       }
     }
@@ -259,53 +263,58 @@ public class CSVExportModularTask extends AbstractTask {
 
   /**
    * Join headers by field separator and sub data types by headerSeparator (Standard is colon :)
+   *
    * @param types
    * @param prefix
    * @return
    */
   private String getJoinedHeader(List<DataType> types, String prefix) {
     StringBuilder b = new StringBuilder();
-    for(DataType t : types) {
-        String header = (prefix==null || prefix.isEmpty()? "" : prefix+headerSeparator) + t.getHeaderString();
-        if(t instanceof ModularType) {
-          ModularType modType = (ModularType) t;
-          // join all the sub headers
-          List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
-              .filter(this::filterType).collect(Collectors.toList());
-          header = getJoinedHeader(filteredSubTypes, header);
-          if(!b.isEmpty())
-            b.append(fieldSeparator);
-          b.append(header);
+    for (DataType t : types) {
+      String header = (prefix == null || prefix.isEmpty() ? "" : prefix + headerSeparator) + t
+          .getHeaderString();
+      if (t instanceof ModularType) {
+        ModularType modType = (ModularType) t;
+        // join all the sub headers
+        List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
+            .filter(this::filterType).collect(Collectors.toList());
+        header = getJoinedHeader(filteredSubTypes, header);
+        if (!b.isEmpty()) {
+          b.append(fieldSeparator);
         }
-        else if(t instanceof SubColumnsFactory subCols) {
-          int numberOfSub = subCols.getNumberOfSubColumns();
-          for(int i=0; i<numberOfSub; i++) {
-            String field = subCols.getHeader(i);
-            if (!b.isEmpty())
-              b.append(fieldSeparator);
-            b.append(field==null? "" : (header+headerSeparator+field));
+        b.append(header);
+      } else if (t instanceof SubColumnsFactory subCols) {
+        int numberOfSub = subCols.getNumberOfSubColumns();
+        for (int i = 0; i < numberOfSub; i++) {
+          String field = subCols.getHeader(i);
+          if (!b.isEmpty()) {
+            b.append(fieldSeparator);
           }
+          b.append(field == null ? "" : (header + headerSeparator + field));
         }
-        else {
-          if(!b.isEmpty())
-            b.append(fieldSeparator);
-          b.append(header);
+      } else {
+        if (!b.isEmpty()) {
+          b.append(fieldSeparator);
         }
+        b.append(header);
+      }
     }
     return b.toString();
   }
 
   private String escapeStringForCSV(final String inputString) {
-    if (inputString == null)
+    if (inputString == null) {
       return "";
+    }
 
     // Remove all special characters (particularly \n would mess up our CSV
     // format).
     String result = inputString.replaceAll("[\\p{Cntrl}]", " ");
 
     // Skip too long strings (see Excel 2007 specifications)
-    if (result.length() >= 32766)
+    if (result.length() >= 32766) {
       result = result.substring(0, 32765);
+    }
 
     // If the text contains fieldSeparator, we will add
     // parenthesis

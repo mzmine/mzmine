@@ -29,7 +29,6 @@
 
 package io.github.mzmine.modules.io.export_gnps.fbmn;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -44,37 +43,6 @@ import io.github.mzmine.util.ExitCode;
 
 public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
-  /**
-   * Define which rows to export
-   *
-   * @author Robin Schmid (robinschmid@uni-muenster.de)
-   *
-   */
-  public enum RowFilter {
-    ALL, ONLY_WITH_MS2;
-
-    @Override
-    public String toString() {
-      return super.toString().replaceAll("_", " ");
-    }
-
-    /**
-     * Filter a row
-     *
-     * @param row
-     * @return
-     */
-    public boolean filter(FeatureListRow row) {
-      switch (this) {
-        case ALL:
-          return true;
-        case ONLY_WITH_MS2:
-          return row.getBestFragmentation() != null;
-      }
-      throw new UnsupportedOperationException("Unhandled enum case "+this.toString());
-    }
-  }
-
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
@@ -85,12 +53,12 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
       "mgf", FileSelectionType.SAVE);
 
   public static final OptionalModuleParameter<GnpsFbmnSubmitParameters> SUBMIT =
-      new OptionalModuleParameter<GnpsFbmnSubmitParameters>("Submit to GNPS",
+      new OptionalModuleParameter<>("Submit to GNPS",
           "Directly submits a GNPS job", new GnpsFbmnSubmitParameters());
 
-  public static final ComboParameter<RowFilter> FILTER = new ComboParameter<RowFilter>(
+  public static final ComboParameter<FeatureListRowsFilter> FILTER = new ComboParameter<>(
       "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
-      RowFilter.values(), RowFilter.ONLY_WITH_MS2);
+      FeatureListRowsFilter.values(), FeatureListRowsFilter.ONLY_WITH_MS2);
 
   // public static final BooleanParameter OPEN_GNPS = new
   // BooleanParameter("Open GNPS website",
@@ -107,7 +75,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
           new MsMsSpectraMergeParameters(), true);
 
   public GnpsFbmnExportAndSubmitParameters() {
-    super(new Parameter[] {FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, SUBMIT,
+    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, SUBMIT,
         OPEN_FOLDER});
   }
 

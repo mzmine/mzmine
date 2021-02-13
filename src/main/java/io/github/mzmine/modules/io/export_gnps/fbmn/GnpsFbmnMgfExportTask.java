@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
@@ -80,7 +79,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   // correlation
   private NumberFormat corrForm = new DecimalFormat("0.0000");
 
-  private RowFilter filter;
+  private FeatureListRowsFilter filter;
 
   GnpsFbmnMgfExportTask(ParameterSet parameters) {
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
@@ -174,7 +173,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
 
     // count exported
     int count = 0;
-    int countMissingMassList = 0;
     for (FeatureListRow row : featureList.getRows()) {
       // do not export if no MSMS
       if (!filter.filter(row)) {
@@ -257,16 +255,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
           MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
               count, featureList.getName()));
 
-    if (countMissingMassList > 0)
-      logger.warning(MessageFormat.format(
-          "WARNING: Total of {0} feature rows have an MS/MS scan but NO mass list (this shouldn't be a problem if a scan filter was applied in the mass detection step) ({1})",
-          countMissingMassList, featureList.getName()));
-
     return count;
-  }
-
-  public Scan getScan(Feature f, int msmsscan) {
-    return f.getRawDataFile().getScan(msmsscan);
   }
 
   @Override
