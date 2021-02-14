@@ -154,7 +154,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         } else {
           MassList ml = scan.getMassList();
           mzBuffer = ml.getMzValues(mzBuffer);
-          intensityBuffer = ml.getMzValues(intensityBuffer);
+          intensityBuffer = ml.getIntensityValues(intensityBuffer);
           numDp = scan.getMassList().getNumberOfDataPoints();
           for(int i = 0; i < numDp; i++) {
             allDataPoints.add(new RetentionTimeMobilityDataPoint(scan, mzBuffer[i], intensityBuffer[i]));
