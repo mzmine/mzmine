@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationParameters.BiasEstimationChoice;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationParameters.MassPeakMatchingChoice;
@@ -317,7 +317,7 @@ public class MassCalibrationTask extends AbstractTask {
       DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks);
 
       MassList newMassList =
-          SimpleMassList.create(scan, storageMemoryMap, newMzPeaks);
+          SimpleMassList.create(storageMemoryMap, newMzPeaks);
 
       scan.addMassList(newMassList);
 

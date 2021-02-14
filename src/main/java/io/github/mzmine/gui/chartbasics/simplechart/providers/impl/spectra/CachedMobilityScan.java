@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.util.DataPointUtils;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -189,7 +188,7 @@ public class CachedMobilityScan implements MobilityScan {
   }
 
   @Override
-  public void addMassList(@Nonnull MassList massList) {
+  public void setMassList(@Nonnull MassList massList) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }

@@ -18,31 +18,20 @@
 
 package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
-import javax.annotation.Nonnull;
 
 /**
  * This class represent detected masses (ions) in one mass spectrum. Each ion is represented by a
  * DataPoint
  */
-public abstract class MassList extends AbstractStorableSpectrum {
-
-  public MassList(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues) {
-    super(storage, mzValues, intensityValues);
-  }
-
-  @Nonnull
-  public abstract Scan getScan();
+public interface MassList extends MassSpectrum {
 
   /**
    * Try to directly access m/z and intensity values by index
    * @return
    */
   @Deprecated
-  public DataPoint[] getDataPoints() {
+  default public DataPoint[] getDataPoints() {
     return ScanUtils.extractDataPoints(this);
   }
 
