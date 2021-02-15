@@ -301,15 +301,15 @@ public class FeatureConvertors {
     // Quality parameters
     // float fwhm = QualityParameters.calculateFWHM(modularFeature);
     // if (!Float.isNaN(fwhm)) {
-    modularFeature.set(FwhmType.class, -1);
+    modularFeature.set(FwhmType.class, -1f);
     // }
     // float tf = QualityParameters.calculateTailingFactor(modularFeature);
     // if (!Float.isNaN(tf)) {
-    modularFeature.set(TailingFactorType.class, -1);
+    modularFeature.set(TailingFactorType.class, -1f);
     // }
     // float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
     // if (!Float.isNaN(af)) {
-    modularFeature.set(AsymmetryFactorType.class, -1);
+    modularFeature.set(AsymmetryFactorType.class, -1f);
     // }
 
     return modularFeature;

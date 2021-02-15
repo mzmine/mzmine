@@ -64,7 +64,7 @@ public class RetentionTimeMobilityDataPoint implements DataPoint, Comparable {
     if (o instanceof RetentionTimeMobilityDataPoint) {
       int i = Double.compare(getIntensity(), ((RetentionTimeMobilityDataPoint) o).getIntensity());
       if (i != 0) {
-        return i;
+        return i * -1; // descending, most intense first
       }
       int f = Integer.compare(getFrame().getFrameId(),
           ((RetentionTimeMobilityDataPoint) o).getFrame().getFrameId());

@@ -20,17 +20,16 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
-import java.util.Collection;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -64,7 +63,7 @@ public class ImageBuilderModule implements MZmineProcessingModule {
         continue;
       }
       ImageBuilderTask task = new ImageBuilderTask(project, file, parameters);
-      MZmineCore.getTaskController().addTask(task);
+      tasks.add(task);
     }
 
     return ExitCode.OK;

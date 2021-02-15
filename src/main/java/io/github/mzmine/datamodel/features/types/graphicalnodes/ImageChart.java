@@ -20,6 +20,7 @@
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
@@ -31,6 +32,7 @@ import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.data.Range;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -46,23 +48,27 @@ public class ImageChart extends StackPane {
 
     FeatureImageProvider prov = new FeatureImageProvider(f);
     FastColoredXYZDataset ds = new FastColoredXYZDataset(prov);
+    // checked in ImagingChart.class
 
     Platform.runLater(() -> {
       SimpleXYZScatterPlot<FeatureImageProvider> chart = new SimpleXYZScatterPlot<>();
       chart.setRangeAxisLabel("µm");
       chart.setDomainAxisLabel("µm");
+      ImagingRawDataFile imagingFile = (ImagingRawDataFile) f.getRawDataFile();
       NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
       axis.setInverted(true);
       axis.setAutoRangeStickyZero(false);
       axis.setAutoRangeIncludesZero(false);
+      axis.setRange(new Range(0, imagingFile.getImagingParam().getLateralHeight()));
 
       axis = (NumberAxis) chart.getXYPlot().getDomainAxis();
       axis.setAutoRangeStickyZero(false);
       axis.setAutoRangeIncludesZero(false);
       chart.getXYPlot().setDomainAxisLocation(AxisLocation.TOP_OR_RIGHT);
+      axis.setRange(new Range(0, imagingFile.getImagingParam().getLateralWidth()));
 
-      setPrefHeight(300);
-      setPrefWidth(300);
+      setPrefHeight(200);
+      setPrefWidth(200);
       chart.getXYPlot().setBackgroundPaint(Color.BLACK);
       getChildren().add(chart);
       chart.setDataset(ds);
