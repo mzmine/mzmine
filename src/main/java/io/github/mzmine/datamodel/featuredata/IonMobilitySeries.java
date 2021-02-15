@@ -7,4 +7,8 @@ import io.github.mzmine.datamodel.MobilityScan;
  */
 public interface IonMobilitySeries extends IonSpectrumSeries<MobilityScan>, MobilitySeries {
 
+  @Override
+  default double getMobility(int index) {
+    return getSpectrum(index).getMobility();
+  }
 }
