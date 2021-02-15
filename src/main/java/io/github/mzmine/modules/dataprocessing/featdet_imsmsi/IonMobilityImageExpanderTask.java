@@ -1,6 +1,8 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imsmsi;
 
 import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -36,9 +39,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class IonMobilityImageBuilderTask extends AbstractTask {
+public class IonMobilityImageExpanderTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(IonMobilityImageBuilderTask.class.getName());
+  private static final Logger logger = Logger
+      .getLogger(IonMobilityImageExpanderTask.class.getName());
 
   private MZmineProject project;
   private final ModularFeatureList flist;
@@ -50,7 +54,7 @@ public class IonMobilityImageBuilderTask extends AbstractTask {
   private int newRowId = 1;
   private String description;
 
-  public IonMobilityImageBuilderTask(MZmineProject project, ParameterSet parameters,
+  public IonMobilityImageExpanderTask(MZmineProject project, ParameterSet parameters,
       ModularFeatureList flist) {
     this.project = project;
     this.flist = flist;
@@ -81,6 +85,7 @@ public class IonMobilityImageBuilderTask extends AbstractTask {
 
 //    List<List<ModularFeature>> partionedLists = Lists.partition(sortedFeatures, featuresPerStep);
 
+
     final IMSImagingRawDataFile file = (IMSImagingRawDataFile) flist.getRawDataFile(0);
 
     description = "Sorting frames";
@@ -89,41 +94,35 @@ public class IonMobilityImageBuilderTask extends AbstractTask {
 
     final ModularFeatureList newflist = new ModularFeatureList(flist.getName() + " ims", file);
     newflist.addRowType(new FeatureShapeMobilogramType());
-
-    // get a sublist
-//    for (List<ModularFeature> sublist : partionedLists) {
-    List<ModularFeature> sublist = sortedFeatures;
-    Range<Double> mzRange = getListMZRange(sublist);
-
-    description = "Extracting data points";
-    SortedSet<RetentionTimeMobilityDataPoint> dps = extractDataPoints(frames, mzRange);
-    List<RetentionTimeMobilityDataPoint> dpList = new ArrayList<>(dps);
-    List<BuildingImage> images = new ArrayList<>(sublist.size());
-
-    if (isCanceled()) {
-      return;
-    }
-
-    // sort dps and features by their intensity to associate them. I know this is rather
-    // primitive, but should work for now.
-    sublist.sort((f1, f2) -> Double.compare(f1.getHeight(), f2.getHeight()) * -1);
-    processed = 0;
-    total = sublist.size();
-    description = "Assigning ims data points for feature " + processed + "/" + total;
-    images = assignDataPointsToFeatures(sublist, dpList);
-
-    total = images.size();
-    processed = 0;
     AtomicInteger emptyImageCounter = new AtomicInteger(0);
-    images.forEach(image -> {
-      description = "Building image for feature " + processed + "/" + total;
-      if (!image.getDataPoints().isEmpty()) {
-        ModularFeature newFeature = buildingImageToModularFeature(newflist, image);
-        newflist.addRow(new ModularFeatureListRow(newflist, newRowId++, newFeature));
-      } else {
-        emptyImageCounter.getAndIncrement();
+    List<ModularFeature> sublist = sortedFeatures;
+      Range<Double> mzRange = getListMZRange(sublist);
+    SortedSet<RetentionTimeMobilityDataPoint> dps = extractDataPoints(frames, mzRange);
+
+      description = "Extracting data points";
+      if (isCanceled()) {
+        return;
       }
-    });
+
+      // sort dps and features by their intensity to associate them. I know this is rather
+      // primitive, but should work for now.
+      sublist.sort((f1, f2) -> Double.compare(f1.getHeight(), f2.getHeight()) * -1);
+      processed = 0;
+      total = sublist.size();
+      description = "Assigning ims data points for feature " + processed + "/" + total;
+    Collection<BuildingImage> images = assignFeaturesToDataPoints(sublist, dps);
+
+      total = images.size();
+      processed = 0;
+      images.forEach(image -> {
+        description = "Building image for feature " + processed + "/" + total;
+        if (!image.getDataPoints().isEmpty()) {
+          ModularFeature newFeature = buildingImageToModularFeature(newflist, image);
+          newflist.addRow(new ModularFeatureListRow(newflist, newRowId++, newFeature));
+        } else {
+          emptyImageCounter.getAndIncrement();
+        }
+      });
 //    }
 
     newflist.getAppliedMethods().addAll(flist.getAppliedMethods());
@@ -135,49 +134,29 @@ public class IonMobilityImageBuilderTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private List<BuildingImage> assignDataPointsToFeatures(Collection<ModularFeature> sublist, Collection<RetentionTimeMobilityDataPoint> dps) {
+  private Collection<BuildingImage> assignFeaturesToDataPoints(Collection<ModularFeature> sublist, Collection<RetentionTimeMobilityDataPoint> dps) {
     List<BuildingImage> images = new ArrayList<>();
-    for (ModularFeature f : sublist) {
-      description = "Assigning ims data points for feature " + processed + "/" + total;
-      // current assumption: since previous images are build by and ADAP-like algorithm, their m/z
-      // ranges do not overlap. So if the mzrange of an image contains a certain data point, the others won't
-      BuildingImage img = new BuildingImage(f);
-      Range<Double> mzRange = f.getRawDataPointsMZRange();
-      for (RetentionTimeMobilityDataPoint dp : dps) {
-        if (mzRange.contains(dp.getMZ())) {
-          img.addDataPoint(dp);
-        }
-      }
-      description =
-          "Removing data points of feature " + processed + "/" + total + " from collection";
-      dps.removeAll(img.getDataPoints());
-      images.add(img);
+    RangeMap<Double, BuildingImage> featuresMap = TreeRangeMap.create();
+    sublist.forEach(f -> featuresMap.put(f.getRawDataPointsMZRange(), new BuildingImage(f)));
+
+    processed = 0;
+    total = dps.size();
+    for (Iterator<RetentionTimeMobilityDataPoint> iterator = dps.iterator(); iterator.hasNext(); ) {
+      RetentionTimeMobilityDataPoint dp = iterator.next();
+      BuildingImage img = featuresMap.get(dp.getMZ());
       processed++;
+      if(img == null) {
+        continue;
+      }
+      img.addDataPoint(dp);
+//      if(img.addDataPoint(dp)) {
+//        iterator.remove();
+//      }
     }
-    return images;
+
+    return featuresMap.asMapOfRanges().values();
   }
 
-  /*private List<BuildingImage> assignFeaturesToDataPoints(Collection<ModularFeature> sublist, Collection<RetentionTimeMobilityDataPoint> dps) {
-    List<BuildingImage> images = new ArrayList<>();
-    for (ModularFeature f : sublist) {
-      description = "Assigning ims data points for feature " + processed + "/" + total;
-      // current assumption: since previous images are build by and ADAP-like algorithm, their m/z
-      // ranges do not overlap. So if the mzrange of an image contains a certain data point, the others won't
-      BuildingImage img = new BuildingImage(f);
-      for (RetentionTimeMobilityDataPoint dp : dps) {
-        if (img.getOriginalFeature().getRawDataPointsMZRange().contains(dp.getMZ())) {
-          img.addDataPoint(dp);
-        }
-      }
-      description =
-          "Removing data points of feature " + processed + "/" + total + " from collection";
-      dps.removeAll(img.getDataPoints());
-      images.add(img);
-      processed++;
-    }
-    return images;
-  }
-*/
   private Range<Double> getListMZRange(List<ModularFeature> features) {
     if (features.isEmpty()) {
       return Range.singleton(0d);
@@ -212,7 +191,15 @@ public class IonMobilityImageBuilderTask extends AbstractTask {
 //    dataBuffer[1] = new double[bufferSize];
 //    resetBuffer(dataBuffer);
 
-    SortedSet<RetentionTimeMobilityDataPoint> dps = new TreeSet<>();
+    SortedSet<RetentionTimeMobilityDataPoint> dps = new TreeSet<>(
+        /*new Comparator<RetentionTimeMobilityDataPoint>() {
+          @Override
+          public int compare(RetentionTimeMobilityDataPoint o1, RetentionTimeMobilityDataPoint o2) {
+            int cmp = Double.compare(o1.getMZ(), o2.getMZ());
+            // we don't want to delete equal elements (tree set checks equality by compareTo)
+            return cmp == 0 ? -1 : cmp;
+          }
+        }*/);
 
     processed = 0;
     total = frames.size();

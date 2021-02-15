@@ -40,7 +40,7 @@ public class IonMobilityImageExpanderModule implements
     for (ModularFeatureList matchingFeatureList : parameters
         .getParameter(IonMobilityImageExpanderParameters.featureLists).getValue()
         .getMatchingFeatureLists()) {
-      tasks.add(new IonMobilityImageBuilderTask(project, parameters, matchingFeatureList));
+      tasks.add(new IonMobilityImageExpanderTask(project, parameters, matchingFeatureList));
     }
 
     return ExitCode.OK;
