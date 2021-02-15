@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
@@ -69,14 +70,14 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
    */
   public T smooth(@Nonnull double[] rtWeights, @Nonnull double[] mobilityWeights) {
     // smooth mobilograms in case there are any, use the mobilityWeights there.
-    List<SimpleIonMobilitySeries> smoothedMobilograms = null;
+    List<IonMobilitySeries> smoothedMobilograms = null;
     if (origSeries instanceof SimpleIonMobilogramTimeSeries) {
       smoothedMobilograms = new ArrayList<>();
-      for (SimpleIonMobilitySeries mobilogram : ((SimpleIonMobilogramTimeSeries) origSeries)
+      for (IonMobilitySeries mobilogram : ((SimpleIonMobilogramTimeSeries) origSeries)
           .getMobilograms()) {
         List<? extends MassSpectrum> mobilityScans = mobilogram.getSpectrum(0).getFrame()
             .getMobilityScans();
-        IonSpectrumSeriesSmoothing<SimpleIonMobilitySeries> smoothing = new IonSpectrumSeriesSmoothing<>(
+        IonSpectrumSeriesSmoothing<IonMobilitySeries> smoothing = new IonSpectrumSeriesSmoothing<>(
             mobilogram, newStorage, (List<MassSpectrum>) mobilityScans, mobilitySmoothingType);
         smoothedMobilograms.add(smoothing.smooth(rtWeights, mobilityWeights));
       }

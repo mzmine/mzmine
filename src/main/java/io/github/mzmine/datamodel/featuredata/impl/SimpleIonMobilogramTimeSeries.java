@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -48,7 +49,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   private static final CenterFunction mzCentering = new CenterFunction(CenterMeasure.AVG,
       Weighting.logger10, 0d, 4);
 
-  protected final List<SimpleIonMobilitySeries> mobilograms;
+  protected final List<IonMobilitySeries> mobilograms;
   protected final List<Frame> frames;
   protected final DoubleBuffer intensityValues;
   protected final DoubleBuffer mzValues;
@@ -68,7 +69,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    * double[])
    */
   public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<SimpleIonMobilitySeries> mobilograms) {
+      @Nonnull List<IonMobilitySeries> mobilograms) {
     if (!checkRawFileIntegrity(mobilograms)) {
       throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
     }
@@ -76,7 +77,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     frames = new ArrayList<>(mobilograms.size());
     this.mobilograms = mobilograms;
 
-    for (SimpleIonMobilitySeries ims : mobilograms) {
+    for (IonMobilitySeries ims : mobilograms) {
       final Frame frame = ims.getSpectra().get(0).getFrame();
       frames.add(frame);
     }
@@ -125,7 +126,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    * double[])
    */
   private SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
-      @Nonnull double[] intensities, List<SimpleIonMobilitySeries> mobilograms,
+      @Nonnull double[] intensities, List<IonMobilitySeries> mobilograms,
       List<Frame> frames) {
     if (mzs.length != intensities.length || mobilograms.size() != intensities.length
         || mzs.length != mobilograms.size()) {
@@ -179,7 +180,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    * double[])
    */
   private SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
-      @Nonnull double[] intensities, @Nonnull List<SimpleIonMobilitySeries> mobilograms,
+      @Nonnull double[] intensities, @Nonnull List<IonMobilitySeries> mobilograms,
       @Nonnull List<Frame> frames, @Nullable double[] summedMobilogramMobilitities,
       @Nullable double[] smoothedSummedMobilogramIntensities) {
 
@@ -281,8 +282,8 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       intensities[i] = getIntensityForSpectrum(subset.get(i));
     }
 
-    List<SimpleIonMobilitySeries> subMobilograms = new ArrayList<>(subset.size());
-    for (SimpleIonMobilitySeries mobilogram : mobilograms) {
+    List<IonMobilitySeries> subMobilograms = new ArrayList<>(subset.size());
+    for (IonMobilitySeries mobilogram : mobilograms) {
       if (subset.contains(mobilogram.getSpectrum(0).getFrame())) {
         subMobilograms.add(mobilogram);
       }
@@ -310,7 +311,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   }
 
   @Override
-  public List<SimpleIonMobilitySeries> getMobilograms() {
+  public List<IonMobilitySeries> getMobilograms() {
     return Collections.unmodifiableList(mobilograms);
   }
 
@@ -347,7 +348,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues,
-      @Nonnull List<SimpleIonMobilitySeries> newMobilograms,
+      @Nonnull List<IonMobilitySeries> newMobilograms,
       @Nullable double[] smoothedSummedMobilogramIntensities) {
 
     double[] summedMobilogramMobilities = null;
@@ -361,12 +362,12 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         smoothedSummedMobilogramIntensities);
   }
 
-  private double[] weightMzs(List<SimpleIonMobilitySeries> mobilograms,
+  private double[] weightMzs(List<IonMobilitySeries> mobilograms,
       double[] summedIntensities) {
     double[] weightedMzs = new double[mobilograms.size()];
 
     for (int i = 0; i < mobilograms.size(); i++) {
-      SimpleIonMobilitySeries ims = mobilograms.get(i);
+      IonMobilitySeries ims = mobilograms.get(i);
       DoubleBuffer intensities = ims.getIntensityValues();
       DoubleBuffer mzValues = ims.getMZValues();
       double weightedMz = 0;
@@ -382,10 +383,10 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     return weightedMzs;
   }
 
-  private double[] sumIntensities(List<SimpleIonMobilitySeries> mobilograms) {
+  private double[] sumIntensities(List<IonMobilitySeries> mobilograms) {
     double[] summedIntensities = new double[mobilograms.size()];
     for (int i = 0; i < mobilograms.size(); i++) {
-      SimpleIonMobilitySeries ims = mobilograms.get(i);
+      IonMobilitySeries ims = mobilograms.get(i);
       DoubleBuffer intensities = ims.getIntensityValues();
       for (int j = 0; j < intensities.capacity(); j++) {
         summedIntensities[i] += intensities.get(j);
@@ -394,9 +395,9 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     return summedIntensities;
   }
 
-  private boolean checkRawFileIntegrity(List<SimpleIonMobilitySeries> mobilograms) {
+  private boolean checkRawFileIntegrity(List<IonMobilitySeries> mobilograms) {
     final RawDataFile file = mobilograms.get(0).getSpectrum(0).getDataFile();
-    for (SimpleIonMobilitySeries mobilogram : mobilograms) {
+    for (IonMobilitySeries mobilogram : mobilograms) {
       if (mobilogram.getSpectrum(0).getDataFile() != file) {
         return false;
       }

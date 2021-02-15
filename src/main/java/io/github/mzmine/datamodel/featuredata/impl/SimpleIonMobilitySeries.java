@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -38,7 +39,7 @@ import javax.annotation.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public class SimpleIonMobilitySeries implements IonSpectrumSeries<MobilityScan> {
+public class SimpleIonMobilitySeries implements IonMobilitySeries {
 
   private static final Logger logger = Logger.getLogger(SimpleIonMobilitySeries.class.getName());
 

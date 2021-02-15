@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
@@ -86,8 +87,8 @@ public class ResolvingUtil {
 
       } else if (dimension == ResolvingDimension.MOBILITY
           && data instanceof IonMobilogramTimeSeries) {
-        List<SimpleIonMobilitySeries> resolvedMobilograms = new ArrayList<>();
-        for (SimpleIonMobilitySeries mobilogram : ((IonMobilogramTimeSeries) data)
+        List<IonMobilitySeries> resolvedMobilograms = new ArrayList<>();
+        for (IonMobilitySeries mobilogram : ((IonMobilogramTimeSeries) data)
             .getMobilograms()) {
           // make a sub list of the original scans
           List<MobilityScan> subset = mobilogram.getSpectra().stream()

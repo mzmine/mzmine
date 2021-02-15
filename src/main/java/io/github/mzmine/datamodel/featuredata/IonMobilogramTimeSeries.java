@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
@@ -39,9 +38,9 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame> {
     return getSpectrum(index).getRetentionTime();
   }
 
-  List<SimpleIonMobilitySeries> getMobilograms();
+  List<IonMobilitySeries> getMobilograms();
 
-  default SimpleIonMobilitySeries getMobilogram(int index) {
+  default IonMobilitySeries getMobilogram(int index) {
     return getMobilograms().get(index);
   }
 
@@ -62,7 +61,7 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame> {
    */
   IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues,
-      @Nonnull List<SimpleIonMobilitySeries> newMobilograms,
+      @Nonnull List<IonMobilitySeries> newMobilograms,
       @Nullable double[] smoothedSummedMobilogramIntensities);
 
   /**

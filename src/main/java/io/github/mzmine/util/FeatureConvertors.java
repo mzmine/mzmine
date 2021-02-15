@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
@@ -203,7 +204,7 @@ public class FeatureConvertors {
 
     MemoryMapStorage storage = ((ModularFeatureList) ionTrace.getFeatureList())
         .getMemoryMapStorage();
-    List<SimpleIonMobilitySeries> mobilograms = new ArrayList<>();
+    List<IonMobilitySeries> mobilograms = new ArrayList<>();
     var sortedDp = FeatureConvertorIonMobility.groupDataPointsByFrameId(ionTrace.getDataPoints());
     for (Entry<Frame, SortedSet<RetentionTimeMobilityDataPoint>> entry : sortedDp.entrySet()) {
       double[][] data = DataPointUtils.getDataPointsAsDoubleArray(entry.getValue());
