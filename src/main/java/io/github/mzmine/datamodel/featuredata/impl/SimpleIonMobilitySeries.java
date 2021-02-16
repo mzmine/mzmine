@@ -26,7 +26,6 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -132,9 +131,19 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries {
     return getSpectra().get(index).getMobility();
   }
 
+  /**
+   * Unlike other implementations, this returns the actual list of scans in this series due to
+   * {@link SimpleIonMobilogramTimeSeries#storeMobilograms(MemoryMapStorage, List)} creating a
+   * {@link StorableIonMobilitySeries}, since we don't want to create wrapper objects over and over
+   * again.
+   *
+   * @return The spectra list.
+   */
   @Override
   public List<MobilityScan> getSpectra() {
-    return Collections.unmodifiableList(scans);
+    // intentionally returning the source list, so it is not wrapped in an unmodifiable list
+    // over and over again during storing.
+    return scans;
   }
 
   @Override

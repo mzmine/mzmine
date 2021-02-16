@@ -122,7 +122,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
     }
 
-    this.mobilograms = mobilograms;
+    this.mobilograms = storeMobilograms(storage, mobilograms);
     this.frames = frames;
 
     summedMobilogram = new SummedIntensityMobilitySeries(storage,
@@ -163,7 +163,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       throw new IllegalArgumentException("Cannot combine mobilograms of different raw data files.");
     }
 
-    this.mobilograms = mobilograms;
+    this.mobilograms = storeMobilograms(storage, mobilograms);
     this.frames = frames;
 
     final double mz = Arrays.stream(mzs).filter(val -> Double.compare(val, 0d) != 0).average()
@@ -194,9 +194,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   private SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage,
       @Nonnull IonMobilogramTimeSeries series, List<Frame> frames) {
     this.frames = frames;
-    this.mobilograms = new ArrayList<>();
-    series.getMobilograms().forEach(m -> mobilograms.add(
-        (SimpleIonMobilitySeries) m.copy(storage)));
+    this.mobilograms = storeMobilograms(storage, series.getMobilograms());
 
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
@@ -365,15 +363,18 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       StorableIonMobilitySeries mobilogram/*, double[] dst*/) {
 //    assert mobilogram.getNumberOfValues() <= dst.length;
 //    mobilogramMzValues.get(mobilogram.getStorageOffset(), dst, 0, mobilogram.getNumberOfValues());
-    return mobilogramMzValues.slice(mobilogram.getStorageOffset(), mobilogram.getNumberOfValues());
+    double[] values = new double[mobilogram.getNumberOfValues()];
+    mobilogramMzValues.get(mobilogram.getStorageOffset(), values, 0, values.length);
+    return DoubleBuffer.wrap(values);
   }
 
   protected DoubleBuffer getMobilogramIntensityValues(
       StorableIonMobilitySeries mobilogram/*, double[] dst*/) {
 //    assert mobilogram.getNumberOfValues() <= dst.length;
 //    mobilogramIntensityValues.get(mobilogram.getStorageOffset(), dst, 0, mobilogram.getNumberOfValues());
-    return mobilogramIntensityValues
-        .slice(mobilogram.getStorageOffset(), mobilogram.getNumberOfValues());
+    double[] values = new double[mobilogram.getNumberOfValues()];
+    mobilogramIntensityValues.get(mobilogram.getStorageOffset(), values, 0, values.length);
+    return DoubleBuffer.wrap(values);
   }
 
   protected double getMobilogramMzValue(StorableIonMobilitySeries mobilogram, int index) {

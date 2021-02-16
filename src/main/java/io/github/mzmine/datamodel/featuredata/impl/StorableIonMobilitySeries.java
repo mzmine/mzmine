@@ -100,8 +100,18 @@ public class StorableIonMobilitySeries implements IonMobilitySeries {
   }
 
   @Override
+  public double getIntensity(int index) {
+    return ionTrace.getMobilogramIntensityValue(this, index);
+  }
+
+  @Override
+  public double getMZ(int index) {
+    return ionTrace.getMobilogramMzValue(this, index);
+  }
+
+  @Override
   public DoubleBuffer getIntensityValues() {
-    return ionTrace.getMobilogramMzValues(this);
+    return ionTrace.getMobilogramIntensityValues(this);
   }
 
   @Override

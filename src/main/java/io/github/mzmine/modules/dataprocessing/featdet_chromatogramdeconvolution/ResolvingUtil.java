@@ -98,8 +98,9 @@ public class ResolvingUtil {
           if (subset.size() < 3) {
             continue;
           }
+          // IonMobilitySeries are stored in ram until they are added to an IonMobilogramTimeSeries
           SimpleIonMobilitySeries resolvedMobilogram = (SimpleIonMobilitySeries) mobilogram
-              .subSeries(storage, subset);
+              .subSeries(null, subset);
           resolvedMobilograms.add(resolvedMobilogram);
         }
         IonMobilogramTimeSeries resolved = new SimpleIonMobilogramTimeSeries(
@@ -141,10 +142,10 @@ public class ResolvingUtil {
 
         // tims 1/k0 decreases with scan number, drift time increases
         MobilityType mt = mobData.getSpectra().get(0).getMobilityType();
-        int operation = mt == MobilityType.TIMS ? -1 : +1;
+        int direction = mt == MobilityType.TIMS ? -1 : +1;
         int dataIndex = 0;
         for (int j = (mt == MobilityType.TIMS ? summedMobilogram.getNumberOfValues() - 1 : 0);
-            j < summedMobilogram.getNumberOfValues() && j >= 0; j += operation) {
+            j < summedMobilogram.getNumberOfValues() && j >= 0; j += direction) {
           xdata[dataIndex] = summedMobilogram.getMobility(j);
           ydata[dataIndex] = summedMobilogram.getIntensity(j);
           dataIndex++;
