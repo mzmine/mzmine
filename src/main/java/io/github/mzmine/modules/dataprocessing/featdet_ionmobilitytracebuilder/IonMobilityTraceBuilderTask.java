@@ -554,8 +554,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         delta = currentDelta;
       }
       if (currentDelta > delta) {
-        logger.info(String.format("Original mobility: %f\t closest mobility: %f", mobility,
-            mobilityScans.get(i - 1).getMobility()));
+        /*logger.info(String.format("Original mobility: %f\t closest mobility: %f", mobility,
+            mobilityScans.get(i - 1).getMobility()));*/
         return mobilityScans.get(i - 1);
       }
     }

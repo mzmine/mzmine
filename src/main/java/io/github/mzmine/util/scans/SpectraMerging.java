@@ -165,28 +165,6 @@ public class SpectraMerging {
     return data;
   }
 
-  /*private static Range<Double> createNewNonOverlappingRange(RangeMap<Double, ?> rangeMap,
-      Range<Double> proposedRange) {
-
-    Entry<Range<Double>, ?> lowerEntry = rangeMap.getEntry(proposedRange.lowerEndpoint());
-    Entry<Range<Double>, ?> upperEntry = rangeMap.getEntry(proposedRange.upperEndpoint());
-
-    double lowerBound =
-        (lowerEntry == null) ? proposedRange.lowerEndpoint() : lowerEntry.getKey().upperEndpoint();
-    double upperBound =
-        (upperEntry == null) ? proposedRange.upperEndpoint() : upperEntry.getKey().lowerEndpoint();
-
-    if (lowerEntry == null && upperEntry == null) {
-      return Range.closed(lowerBound, upperBound);
-    } else if (lowerEntry != null && upperEntry == null) {
-      return Range.openClosed(lowerBound, upperBound);
-    } else if (lowerEntry == null && upperEntry != null) {
-      return Range.closedOpen(lowerBound, upperBound);
-    } else {
-      return Range.open(lowerBound, upperBound);
-    }
-  }*/
-
   /**
    * Creates a new non overlapping range for this range map. Ranges are created seamless, therefore
    * no gaps are introduced during this process.

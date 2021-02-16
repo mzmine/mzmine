@@ -20,10 +20,12 @@ package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.StorableIonMobilitySeries;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters.MobilitySmoothingType;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -69,44 +71,29 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
    */
   public T smooth(@Nonnull double[] rtWeights, @Nonnull double[] mobilityWeights) {
     // smooth mobilograms in case there are any, use the mobilityWeights there.
-    List<SimpleIonMobilitySeries> smoothedMobilograms = null;
+    List<IonMobilitySeries> smoothedMobilograms = null;
     if (origSeries instanceof SimpleIonMobilogramTimeSeries) {
       smoothedMobilograms = new ArrayList<>();
-      for (SimpleIonMobilitySeries mobilogram : ((SimpleIonMobilogramTimeSeries) origSeries)
+      for (IonMobilitySeries mobilogram : ((SimpleIonMobilogramTimeSeries) origSeries)
           .getMobilograms()) {
         List<? extends MassSpectrum> mobilityScans = mobilogram.getSpectrum(0).getFrame()
             .getMobilityScans();
-        IonSpectrumSeriesSmoothing<SimpleIonMobilitySeries> smoothing = new IonSpectrumSeriesSmoothing<>(
+        IonSpectrumSeriesSmoothing<IonMobilitySeries> smoothing = new IonSpectrumSeriesSmoothing<>(
             mobilogram, newStorage, (List<MassSpectrum>) mobilityScans, mobilitySmoothingType);
         smoothedMobilograms.add(smoothing.smooth(rtWeights, mobilityWeights));
       }
     }
 
-    // this is the case if 0 was selected.
-    /*if (rtWeights.length == 1 && origSeries instanceof TimeSeries) {
-      return (T) origSeries.copy(newStorage);
-    } else
-    if (mobilityWeights.length == 1 && origSeries instanceof MobilitySeries) {
-      return (T) origSeries.copy(newStorage);
-    }*/
-
     // use mobilityWeights for SimpleIonMobilitySeries
     final double[] weights =
-        (origSeries instanceof SimpleIonMobilitySeries) ? mobilityWeights : rtWeights;
-
-    // if mobility shouldn't be smoothed, just make a copy
-    /*if (weights.length == 1 && origSeries instanceof MobilitySeries
-        && mobilitySmoothingType != MobilitySmoothingType.INDIVIDUAL) {
-      return (T) origSeries.copy(newStorage);
-    } else {
-      // todo check if this is correct - if no rt smoothing is wanted, mobility shall be smoothed anyway.
-
-    }*/
+        (origSeries instanceof IonMobilitySeries) ? mobilityWeights : rtWeights;
 
     double[] newIntensities = smoothIntensities(origSeries, weights);
     double[] origMz = DataPointUtils.getDoubleBufferAsArray(origSeries.getMZValues());
-    if (origSeries instanceof SimpleIonMobilitySeries) {
-      return (T) new SimpleIonMobilitySeries(newStorage, origMz, newIntensities,
+    if (origSeries instanceof SimpleIonMobilitySeries
+        || origSeries instanceof StorableIonMobilitySeries) {
+      // IonMobilitySeries are stored in ram until they are added to an IonMobilogramTimeSeries
+      return (T) new SimpleIonMobilitySeries(null, origMz, newIntensities,
           origSeries.getSpectra());
     } else if (origSeries instanceof SimpleIonTimeSeries) {
       return (T) ((SimpleIonTimeSeries) origSeries)
@@ -188,7 +175,6 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
 
 
   private double[] smoothIntensities(T origSeries, double[] weights) {
-
     if (weights.length == 1) {
       return DataPointUtils.getDoubleBufferAsArray(origSeries.getIntensityValues());
     }

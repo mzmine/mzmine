@@ -15,7 +15,7 @@
  deriving most of the colors off the default one makes it easy to get uniform looking themes **/
 {
   -pane-bg-match: derive(-fx-base, 30%);
-  -control-bg: derive(-fx-base, 20%);
+  -control-bg: derive(-fx-base, 15%);
   -control-bg-hovered: derive(-control-bg, 25%);
 
   -default-border-color: -fx-base;
