@@ -37,7 +37,7 @@ import javax.annotation.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public class StorableIonMobilitySeries implements IonMobilitySeries {
+public class StorableIonMobilitySeries implements IonMobilitySeries, ModifiableSpectra<MobilityScan> {
 
   private static final Logger logger = Logger.getLogger(StorableIonMobilitySeries.class.getName());
 
@@ -143,5 +143,16 @@ public class StorableIonMobilitySeries implements IonMobilitySeries {
   @Override
   public int getNumberOfValues() {
     return numValues;
+  }
+
+  @Override
+  public List<MobilityScan> getSpectraModifiable() {
+    return scans;
+  }
+
+  @Override
+  public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues) {
+    return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
   }
 }

@@ -93,8 +93,7 @@ public class IonSpectrumSeriesSmoothing<T extends IonSpectrumSeries> {
     if (origSeries instanceof SimpleIonMobilitySeries
         || origSeries instanceof StorableIonMobilitySeries) {
       // IonMobilitySeries are stored in ram until they are added to an IonMobilogramTimeSeries
-      return (T) new SimpleIonMobilitySeries(null, origMz, newIntensities,
-          origSeries.getSpectra());
+      return (T) ((IonMobilitySeries) origSeries).copyAndReplace(null, origMz, newIntensities);
     } else if (origSeries instanceof SimpleIonTimeSeries) {
       return (T) ((SimpleIonTimeSeries) origSeries)
           .copyAndReplace(newStorage, origMz, newIntensities);

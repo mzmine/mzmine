@@ -24,10 +24,9 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
 import java.nio.DoubleBuffer;
+import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,14 +37,14 @@ import javax.annotation.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public class SimpleIonMobilitySeries implements IonMobilitySeries {
+public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpectra<MobilityScan> {
 
   private static final Logger logger = Logger.getLogger(SimpleIonMobilitySeries.class.getName());
 
   protected final List<MobilityScan> scans;
 
-  protected DoubleBuffer intensityValues;
-  protected DoubleBuffer mzValues;
+  protected final DoubleBuffer intensityValues;
+  protected final DoubleBuffer mzValues;
 
   /**
    * @param storage         May be null if forceStoreInRam is true.
@@ -67,22 +66,8 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries {
     }
 
     this.scans = scans;
-
-    if (storage != null) {
-      try {
-        this.mzValues = storage.storeData(mzValues);
-        this.intensityValues = storage.storeData(intensityValues);
-      } catch (IOException e) {
-        e.printStackTrace();
-        logger.log(Level.SEVERE,
-            "Error while storing data points on disk, keeping them in memory instead", e);
-        this.mzValues = DoubleBuffer.wrap(mzValues);
-        this.intensityValues = DoubleBuffer.wrap(intensityValues);
-      }
-    } else {
-      this.mzValues = DoubleBuffer.wrap(mzValues);
-      this.intensityValues = DoubleBuffer.wrap(intensityValues);
-    }
+    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
+    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
   }
 
   @Override
@@ -131,19 +116,9 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries {
     return getSpectra().get(index).getMobility();
   }
 
-  /**
-   * Unlike other implementations, this returns the actual list of scans in this series due to
-   * {@link SimpleIonMobilogramTimeSeries#storeMobilograms(MemoryMapStorage, List)} creating a
-   * {@link StorableIonMobilitySeries}, since we don't want to create wrapper objects over and over
-   * again.
-   *
-   * @return The spectra list.
-   */
   @Override
   public List<MobilityScan> getSpectra() {
-    // intentionally returning the source list, so it is not wrapped in an unmodifiable list
-    // over and over again during storing.
-    return scans;
+    return Collections.unmodifiableList(scans);
   }
 
   @Override
@@ -152,5 +127,16 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries {
         .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
     return new SimpleIonMobilitySeries(storage, data[0], data[1], scans);
+  }
+
+  @Override
+  public List<MobilityScan> getSpectraModifiable() {
+    return scans;
+  }
+
+  @Override
+  public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues) {
+    return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
   }
 }

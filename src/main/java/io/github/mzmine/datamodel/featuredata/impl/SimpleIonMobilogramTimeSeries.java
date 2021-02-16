@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -240,8 +241,16 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     List<IonMobilitySeries> storedMobilograms = new ArrayList<>();
     for (int i = 0; i < offsets.length; i++) {
+      IonMobilitySeries mobilogram = mobilograms.get(i);
+      List<MobilityScan> spectra;
+      if(mobilogram instanceof ModifiableSpectra) {
+        spectra = ((ModifiableSpectra)mobilogram).getSpectraModifiable();
+      } else {
+        spectra = mobilogram.getSpectra();
+      }
+
       storedMobilograms.add(new StorableIonMobilitySeries(this, offsets[i],
-          mobilograms.get(i).getNumberOfValues(), mobilograms.get(i).getSpectra()));
+         mobilogram.getNumberOfValues(), spectra));
     }
     return storedMobilograms;
   }
