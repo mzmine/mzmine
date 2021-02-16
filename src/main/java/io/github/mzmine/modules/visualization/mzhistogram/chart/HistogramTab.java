@@ -71,7 +71,6 @@ public class HistogramTab extends MZmineTab implements ActionListener {
   // parameters
   private ScanSelection scanSelection;
   private Scan[] scans;
-  private String massListName;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
   private Boolean useRTRange;
@@ -101,7 +100,6 @@ public class HistogramTab extends MZmineTab implements ActionListener {
 
     this.dataFile = dataFile;
     scanSelection = parameters.getParameter(MZDistributionHistoParameters.scanSelection).getValue();
-    massListName = parameters.getParameter(MZDistributionHistoParameters.massList).getValue();
 
     mzRange = parameters.getParameter(MZDistributionHistoParameters.mzRange).getValue();
     useRTRange = parameters.getParameter(MZDistributionHistoParameters.rtRange).getValue();
@@ -173,10 +171,10 @@ public class HistogramTab extends MZmineTab implements ActionListener {
             && scan instanceof Frame) {
           for (MobilityScan mobilityScan : ((Frame) scan).getMobilityScans()) {
             // go through all mass lists
-            MassList massList = mobilityScan.getMassList(massListName);
+            MassList massList = mobilityScan.getMassList();
             if (massList == null) {
               throw new NullPointerException("Scan " + dataFile + " #" + scan.getScanNumber()
-                  + " does not have a mass list " + massListName);
+                  + " does not have a mass list");
             }
             DataPoint mzValues[] = massList.getDataPoints();
 
@@ -186,10 +184,10 @@ public class HistogramTab extends MZmineTab implements ActionListener {
           }
         } else {
           // go through all mass lists
-          MassList massList = scan.getMassList(massListName);
+          MassList massList = scan.getMassList();
           if (massList == null) {
             throw new NullPointerException("Scan " + dataFile + " #" + scan.getScanNumber()
-                + " does not have a mass list " + massListName);
+                + " does not have a mass list");
           }
           DataPoint mzValues[] = massList.getDataPoints();
 

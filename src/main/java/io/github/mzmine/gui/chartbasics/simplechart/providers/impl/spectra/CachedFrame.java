@@ -258,28 +258,15 @@ public class CachedFrame implements Frame {
     return originalFrame.getPolarity();
   }
 
-  @Nonnull
-  @Override
-  public MassList[] getMassLists() {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
   @Nullable
   @Override
-  public MassList getMassList(@Nonnull String name) {
+  public MassList getMassList() {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
 
   @Override
   public void addMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
-  @Override
-  public void removeMassList(@Nonnull MassList massList) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }

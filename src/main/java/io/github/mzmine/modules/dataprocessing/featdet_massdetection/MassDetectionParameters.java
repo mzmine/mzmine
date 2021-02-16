@@ -62,10 +62,6 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new ModuleComboParameter<MassDetector>("Mass detector",
           "Algorithm to use for mass detection and its parameters", massDetectors);
 
-  public static final StringParameter name = new StringParameter("Mass list name",
-      "Name of the new mass list. If the processed scans already have a mass list of that name, it will be replaced.",
-      "masses");
-
   public static final FileNameParameter outFilename =
       new FileNameParameter("Output netCDF filename (optional)",
           "If selected, centroided spectra will be written to this file netCDF file. "
@@ -76,7 +72,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new OptionalParameter<>(outFilename);
 
   public MassDetectionParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, massDetector, name, outFilenameOption});
+    super(new Parameter[]{dataFiles, scanSelection, massDetector, outFilenameOption});
   }
 
   @Override

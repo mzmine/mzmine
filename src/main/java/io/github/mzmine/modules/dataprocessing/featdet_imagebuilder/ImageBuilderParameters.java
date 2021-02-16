@@ -26,7 +26,6 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorSt
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.PaintScaleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -40,8 +39,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 public class ImageBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
-
-  public static final MassListParameter massList = new MassListParameter("Mass list", "", false);
 
   public static final ScanSelectionParameter scanSelection =
       new ScanSelectionParameter("Scan " + "selection",
@@ -58,7 +55,7 @@ public class ImageBuilderParameters extends SimpleParameterSet {
 
   public static final PaintScaleParameter paintScale =
       new PaintScaleParameter("Color scale", "Select paint scale",
-          new PaintScale[] {
+          new PaintScale[]{
               new PaintScale(PaintScaleColorStyle.RAINBOW, PaintScaleBoundStyle.NONE,
                   Range.closed(0.0, 100.0)),
               new PaintScale(PaintScaleColorStyle.GRREN_RED, PaintScaleBoundStyle.NONE,
@@ -76,7 +73,7 @@ public class ImageBuilderParameters extends SimpleParameterSet {
       new StringParameter("Suffix", "This string is added to filename as suffix", "image");
 
   public ImageBuilderParameters() {
-    super(new Parameter[] {rawDataFiles, massList, scanSelection, mzTolerance, minTotalSignals,
+    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minTotalSignals,
         paintScale, suffix});
   }
 }

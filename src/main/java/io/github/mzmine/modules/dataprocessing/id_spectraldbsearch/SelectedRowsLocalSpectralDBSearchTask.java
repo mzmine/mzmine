@@ -44,8 +44,6 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final FeatureListRow[] peakListRows;
-  private final @Nonnull
-  String massListName;
   private final File dataBaseFile;
 
   private ParameterSet parameters;
@@ -64,7 +62,6 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
     this.parameters = parameters;
     this.table = table;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
-    massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
   }
 
   /**

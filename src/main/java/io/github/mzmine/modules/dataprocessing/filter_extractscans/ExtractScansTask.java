@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_extractscans;
 
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -45,7 +46,6 @@ class ExtractScansTask extends AbstractTask {
   private List<RawDataFile> dataFiles;
   private boolean useMassList, autoMax, exportSummary, exportHeader;
   private String delimiter = "\t";
-  private String massList;
 
   private double minTime, maxTime;
   private boolean useCenterTime;
@@ -62,8 +62,6 @@ class ExtractScansTask extends AbstractTask {
     exportHeader = parameters.getParameter(ExtractScansParameters.exportHeader).getValue();
     // export mass list
     useMassList = parameters.getParameter(ExtractScansParameters.useMassList).getValue();
-    massList = parameters.getParameter(ExtractScansParameters.useMassList).getEmbeddedParameter()
-        .getValue();
     useCenterTime = parameters.getParameter(ExtractScansParameters.useCenterTime).getValue();
     Range<Double> r = parameters.getParameter(ExtractScansParameters.rangeTime).getValue();
     if (r != null) {
@@ -118,7 +116,13 @@ class ExtractScansTask extends AbstractTask {
         if (start < 0)
           start = 0;
 
-        exportScans(file, raw, start, scans, 1.0 / dataFiles.size());
+        try {
+          exportScans(file, raw, start, scans, 1.0 / dataFiles.size());
+        } catch (MissingMassListException e) {
+          setErrorMessage(e.getMessage());
+          setStatus(TaskStatus.ERROR);
+          return;
+        }
         //
         perc = (double) (r + 1) / dataFiles.size();
       }
@@ -151,8 +155,15 @@ class ExtractScansTask extends AbstractTask {
             break;
           }
         }
-        if (start != -1 && end != -1)
-          exportScans(file, raw, start, end - start, 1.0 / dataFiles.size());
+        if (start != -1 && end != -1) {
+          try {
+            exportScans(file, raw, start, end - start, 1.0 / dataFiles.size());
+          } catch (MissingMassListException e) {
+            setErrorMessage(e.getMessage());
+            setStatus(TaskStatus.ERROR);
+            return;
+          }
+        }
         //
         perc = (double) (r + 1) / dataFiles.size();
       }
@@ -162,7 +173,8 @@ class ExtractScansTask extends AbstractTask {
       setStatus(TaskStatus.FINISHED);
   }
 
-  private void exportScans(File dir, RawDataFile raw, int start, int scans, double pp) {
+  private void exportScans(File dir, RawDataFile raw, int start, int scans, double pp)
+      throws MissingMassListException {
     // Open file
     DecimalFormat format = new DecimalFormat("00");
     File fileDir = new File(dir, FilenameUtils.removeExtension(raw.getName()));
@@ -213,7 +225,9 @@ class ExtractScansTask extends AbstractTask {
         }
         // write data
         if (useMassList) {
-          MassList mass = s.getMassList(massList);
+          MassList mass = s.getMassList();
+          if(mass == null)
+            throw new MissingMassListException(s);
           DataPoint[] dp = mass.getDataPoints();
           for (int k = 0; k < dp.length; k++) {
             out.append(dp[k].getMZ() + delimiter + dp[k].getIntensity() + "\n");

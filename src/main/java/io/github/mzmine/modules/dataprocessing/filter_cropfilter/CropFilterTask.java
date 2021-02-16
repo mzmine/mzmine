@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.logging.Logger;
 
@@ -87,13 +88,18 @@ public class CropFilterTask extends AbstractTask {
 
       for (Scan scan : scans) {
 
-        SimpleScan scanCopy = new SimpleScan(newFile, scan);
+        SimpleScan scanCopy = null;
 
         // Check if we have something to crop
         if (!mzRange.encloses(scan.getDataPointMZRange())) {
           DataPoint croppedDataPoints[] =
               ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange);
-          scanCopy.setDataPoints(croppedDataPoints);
+
+          double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(croppedDataPoints);
+          scanCopy = new SimpleScan(newFile, scan, dp[0], dp[1]);
+        } else {
+          scanCopy = new SimpleScan(newFile, scan, scan.getMzValues(new double[0]),
+              scan.getIntensityValues(new double[0]));
         }
 
         newFile.addScan(scanCopy);

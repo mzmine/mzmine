@@ -57,7 +57,7 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
   private final int msLevel;
   private final Range<Double> scanningMzRange;
   private final PolarityType polarity;
-  private ObservableList<MassList> massLists = FXCollections.observableArrayList();
+  private MassList massList = null;
   private final String scanDefinition;
 
   public SimpleMergedMsMsSpectrum(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
@@ -181,34 +181,15 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
     return 0;
   }
 
-  @Nonnull
-  @Override
-  public MassList[] getMassLists() {
-    return massLists.toArray(new MassList[0]);
-  }
-
   @Nullable
   @Override
-  public MassList getMassList(@Nonnull String name) {
-    for (MassList ml : massLists) {
-      if (ml.getName().equals(name)) {
-        return ml;
-      }
-    }
-    return null;
+  public MassList getMassList() {
+    return massList;
   }
 
   @Override
   public void addMassList(@Nonnull MassList massList) {
-    MassList ml = getMassList(massList.getName());
-    if(ml != null){
-      removeMassList(ml);
-    }
-    massLists.add(massList);
+    this.massList = massList;
   }
 
-  @Override
-  public void removeMassList(@Nonnull MassList massList) {
-    massLists.remove(massList);
-  }
 }

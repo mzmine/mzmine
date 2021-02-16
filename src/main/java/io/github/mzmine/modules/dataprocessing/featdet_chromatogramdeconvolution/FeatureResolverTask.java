@@ -439,9 +439,9 @@ public class FeatureResolverTask extends AbstractTask {
         final ModularFeature newFeature = FeatureConvertors
             .ResolvedPeakToMoularFeature(resolvedFeatureList, peak,
                 originalFeature.getFeatureData());
-        if (originalFeature.get(MobilityUnitType.class).getValue() != null) {
+        if (originalFeature.getMobilityUnit() != null) {
           newFeature
-              .set(MobilityUnitType.class, originalFeature.get(MobilityUnitType.class).getValue());
+              .set(MobilityUnitType.class, originalFeature.getMobilityUnit());
         }
 
         newRow.addFeature(dataFile, newFeature);

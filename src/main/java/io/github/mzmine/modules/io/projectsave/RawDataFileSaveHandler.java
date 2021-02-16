@@ -325,17 +325,14 @@ class RawDataFileSaveHandler {
      */
 
     // <MASS_LIST>
-    MassList massLists[] = scan.getMassLists();
-    for (MassList massList : massLists) {
-      MassList stMassList = massList;
+      MassList stMassList = scan.getMassList();
       atts.addAttribute("", "", RawDataElementName.NAME.getElementName(), "CDATA",
-          stMassList.getName());
+          "masses");
       // atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
       // String.valueOf(stMassList.getStorageID()));
       hd.startElement("", "", RawDataElementName.MASS_LIST.getElementName(), atts);
       atts.clear();
       hd.endElement("", "", RawDataElementName.MASS_LIST.getElementName());
-    }
 
     // <POLARITY>
     hd.startElement("", "", RawDataElementName.POLARITY.getElementName(), atts);

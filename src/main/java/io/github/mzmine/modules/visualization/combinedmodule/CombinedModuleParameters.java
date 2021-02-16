@@ -23,7 +23,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
@@ -34,8 +33,6 @@ public class CombinedModuleParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
   public static final RTRangeParameter retentionTimeRange = new RTRangeParameter();
-
-  public static final MassListParameter massList = new MassListParameter();
 
   public static final MZRangeParameter mzRange =
       new MZRangeParameter("Precursor m/z", "Range of precursor m/z values");
@@ -56,7 +53,7 @@ public class CombinedModuleParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public CombinedModuleParameters() {
-    super(new Parameter[]{dataFiles, xAxisType, yAxisType, massList, retentionTimeRange, mzRange,
+    super(new Parameter[]{dataFiles, xAxisType, yAxisType, retentionTimeRange, mzRange,
         colorScale, noiseLevel, windowSettings});
   }
 }

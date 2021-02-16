@@ -77,7 +77,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
     setStatus(TaskStatus.PROCESSING);
 
     MassDetector detector = massDetector.getModule();
-    DataPoint[] masses = detector.getMassValues(getDataPoints(), massDetector.getParameterSet());
+    double[][] masses = detector.getMassValues(getDataPoints(), massDetector.getParameterSet());
 
     if (masses == null || masses.length <= 0) {
       Logger.info(
@@ -86,7 +86,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
       return;
     }
 
-    ProcessedDataPoint[] dp = ProcessedDataPoint.convert(masses);
+    ProcessedDataPoint[] dp = ProcessedDataPoint.convert(masses[0], masses[1]);
 
     currentIndex = dataPoints.getNumberOfDataPoints();
 
