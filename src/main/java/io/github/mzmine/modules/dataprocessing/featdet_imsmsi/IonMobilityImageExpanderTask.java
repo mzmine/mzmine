@@ -11,6 +11,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
@@ -234,7 +235,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
     SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> sortedMap = FeatureConvertorIonMobility
         .groupDataPointsByFrameId(image.getDataPoints());
 
-    List<SimpleIonMobilitySeries> mobilograms = new ArrayList<>();
+    List<IonMobilitySeries> mobilograms = new ArrayList<>();
     for (SortedSet<RetentionTimeMobilityDataPoint> dps : sortedMap.values()) {
       double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
       List<MobilityScan> scans = dps.stream().map(RetentionTimeMobilityDataPoint::getMobilityScan)
@@ -242,7 +243,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
       if (scans.size() == 0) {
         ;
       }
-      mobilograms.add(new SimpleIonMobilitySeries(newflist.getMemoryMapStorage(), data[0], data[1],
+      mobilograms.add(new SimpleIonMobilitySeries(null, data[0], data[1],
           scans));
     }
     IonMobilogramTimeSeries ionMobilogramTimeSeries = new SimpleIonMobilogramTimeSeries(
