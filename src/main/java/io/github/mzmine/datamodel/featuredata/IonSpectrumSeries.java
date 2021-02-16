@@ -66,4 +66,16 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    * @return The subset series.
    */
   IonSpectrumSeries<T> subSeries(@Nullable MemoryMapStorage storage, @Nonnull List<T> subset);
+
+  /**
+   * Creates a copy of this series using the same list of scans but possibly new mz/intensity
+   * values.
+   *
+   * @param storage            May be null if the new series shall be stored in ram.
+   * @param newMzValues
+   * @param newIntensityValues
+   * @return
+   */
+  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage, @Nonnull double[] newMzValues,
+      @Nonnull double[] newIntensityValues);
 }
