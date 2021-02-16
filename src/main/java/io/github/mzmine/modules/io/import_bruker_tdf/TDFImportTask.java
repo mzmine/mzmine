@@ -212,8 +212,8 @@ public class TDFImportTask extends AbstractTask {
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
 
-    logger.info("num dp (import): " + TDFUtils.numDP);
-    logger.info("num dp (stored): " + SimpleFrame.numDp);
+//    logger.info("num dp (import): " + TDFUtils.numDP);
+//    logger.info("num dp (stored): " + SimpleFrame.numDp);
 
     // } else {
     // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
