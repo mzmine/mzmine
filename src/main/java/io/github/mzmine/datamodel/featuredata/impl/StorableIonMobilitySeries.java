@@ -24,10 +24,12 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Stores data points of several {@link MobilityScan}s. Usually wrapped in a {@link
@@ -35,18 +37,20 @@ import javax.annotation.Nonnull;
  *
  * @author https://github.com/SteffenHeu
  */
-public class StorableIonMobilitySeries implements IonSpectrumSeries<MobilityScan> {
+public class StorableIonMobilitySeries implements IonMobilitySeries {
 
   private static final Logger logger = Logger.getLogger(StorableIonMobilitySeries.class.getName());
 
   protected final List<MobilityScan> scans;
 
-  protected int offset;
-  protected int numPoints;
+  protected final int storageOffset;
+  protected final int numValues;
+  protected final SimpleIonMobilogramTimeSeries ionTrace;
 
-  protected StorableIonMobilitySeries(final int offset, final int numPoints,
-      @Nonnull List<MobilityScan> scans) {
-    if (numPoints != scans.size()) {
+  protected StorableIonMobilitySeries(final SimpleIonMobilogramTimeSeries ionTrace,
+      final int offset,
+      final int numValues, @Nonnull List<MobilityScan> scans) {
+    if (numValues != scans.size()) {
       throw new IllegalArgumentException("numPoints and number of scans scans does not match.");
     }
 
@@ -57,8 +61,10 @@ public class StorableIonMobilitySeries implements IonSpectrumSeries<MobilityScan
       }
     }
 
+    this.storageOffset = offset;
+    this.numValues = numValues;
     this.scans = scans;
-
+    this.ionTrace = ionTrace;
   }
 
   @Override
@@ -90,17 +96,17 @@ public class StorableIonMobilitySeries implements IonSpectrumSeries<MobilityScan
       intensities[i] = getIntensityForSpectrum(subset.get(i));
     }
 
-    return new StorableIonMobilitySeries(storage, mzs, intensities, subset);
+    return new SimpleIonMobilitySeries(storage, mzs, intensities, subset);
   }
 
   @Override
   public DoubleBuffer getIntensityValues() {
-    return intensityValues;
+    return ionTrace.getMobilogramMzValues(this);
   }
 
   @Override
   public DoubleBuffer getMZValues() {
-    return mzValues;
+    return ionTrace.getMobilogramMzValues(this);
   }
 
   public double getMobility(int index) {
@@ -117,6 +123,15 @@ public class StorableIonMobilitySeries implements IonSpectrumSeries<MobilityScan
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
-    return new StorableIonMobilitySeries(storage, data[0], data[1], scans);
+    return new SimpleIonMobilitySeries(storage, data[0], data[1], scans);
+  }
+
+  public int getStorageOffset() {
+    return storageOffset;
+  }
+
+  @Override
+  public int getNumberOfValues() {
+    return numValues;
   }
 }
