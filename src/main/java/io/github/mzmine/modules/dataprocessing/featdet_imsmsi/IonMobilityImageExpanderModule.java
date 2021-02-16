@@ -49,6 +49,6 @@ public class IonMobilityImageExpanderModule implements
   @Nonnull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return null;
+    return MZmineModuleCategory.FEATUREDETECTION;
   }
 }

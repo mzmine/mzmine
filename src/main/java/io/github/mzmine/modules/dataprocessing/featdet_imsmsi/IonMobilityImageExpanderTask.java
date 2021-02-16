@@ -48,7 +48,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
   private final ModularFeatureList flist;
   //  private final MZTolerance mzTolerance;
   private final int featuresPerStep;
-  private double processed;
+  private AtomicInteger processed = new AtomicInteger(0);
   private int total;
   private final ParameterSet parameters;
   private int newRowId = 1;
@@ -71,7 +71,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return processed / total;
+    return processed.get() / (double)total;
   }
 
   @Override
@@ -107,21 +107,22 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
       // sort dps and features by their intensity to associate them. I know this is rather
       // primitive, but should work for now.
       sublist.sort((f1, f2) -> Double.compare(f1.getHeight(), f2.getHeight()) * -1);
-      processed = 0;
+      processed.set(0);
       total = sublist.size();
-      description = "Assigning ims data points for feature " + processed + "/" + total;
+      description = "Assigning ims data points for feature " + processed.get() + "/" + total;
     Collection<BuildingImage> images = assignFeaturesToDataPoints(sublist, dps);
 
       total = images.size();
-      processed = 0;
+      processed.set(0);
       images.forEach(image -> {
-        description = "Building image for feature " + processed + "/" + total;
+        description = "Building image for feature " + processed.get() + "/" + total;
         if (!image.getDataPoints().isEmpty()) {
           ModularFeature newFeature = buildingImageToModularFeature(newflist, image);
           newflist.addRow(new ModularFeatureListRow(newflist, newRowId++, newFeature));
         } else {
           emptyImageCounter.getAndIncrement();
         }
+        processed.getAndIncrement();
       });
 //    }
 
@@ -139,12 +140,12 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
     RangeMap<Double, BuildingImage> featuresMap = TreeRangeMap.create();
     sublist.forEach(f -> featuresMap.put(f.getRawDataPointsMZRange(), new BuildingImage(f)));
 
-    processed = 0;
+    processed.set(0);
     total = dps.size();
     for (Iterator<RetentionTimeMobilityDataPoint> iterator = dps.iterator(); iterator.hasNext(); ) {
       RetentionTimeMobilityDataPoint dp = iterator.next();
       BuildingImage img = featuresMap.get(dp.getMZ());
-      processed++;
+      processed.getAndIncrement();
       if(img == null) {
         continue;
       }
@@ -201,10 +202,10 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
           }
         }*/);
 
-    processed = 0;
+    processed.set(0);
     total = frames.size();
     for (Frame frame : frames) {
-      description = "Extracting data points for frame " + processed + "/" + total;
+      description = "Extracting data points for frame " + processed.get() + "/" + total;
       List<MobilityScan> mobilityScans = frame.getMobilityScans();
       for (MobilityScan mobScan : mobilityScans) {
         MassList ml = mobScan.getMassLists().stream().findFirst().get();
@@ -223,7 +224,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
 //        }
 //        resetBuffer(dataBuffer);
       }
-      processed++;
+      processed.getAndIncrement();
     }
 
     return dps;
