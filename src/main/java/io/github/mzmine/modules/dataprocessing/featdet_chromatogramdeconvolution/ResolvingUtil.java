@@ -101,6 +101,10 @@ public class ResolvingUtil {
               .subSeries(storage, subset);
           resolvedMobilograms.add(resolvedMobilogram);
         }
+        if(resolvedMobilograms.isEmpty()) {
+          continue;
+        }
+
         IonMobilogramTimeSeries resolved = new SimpleIonMobilogramTimeSeries(
             storage, resolvedMobilograms);
         resolvedSeries.add(resolved);
