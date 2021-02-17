@@ -23,7 +23,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
@@ -36,7 +35,6 @@ public class MZDistributionHistoParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
   public static final ScanSelectionParameter scanSelection =
       new ScanSelectionParameter(new ScanSelection(1));
-  public static final MassListParameter massList = new MassListParameter();
   public static final MZRangeParameter mzRange = new MZRangeParameter(true);
   public static final OptionalParameter<RTRangeParameter> rtRange =
       new OptionalParameter<>(new RTRangeParameter(false));
@@ -47,7 +45,7 @@ public class MZDistributionHistoParameters extends SimpleParameterSet {
       "Binning of m/z values for feature picking ", MZmineCore.getConfiguration().getMZFormat());
 
   public MZDistributionHistoParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, massList, mzRange, rtRange, binWidth,
+    super(new Parameter[]{dataFiles, scanSelection, mzRange, rtRange, binWidth,
         useMobilityScans});
   }
 

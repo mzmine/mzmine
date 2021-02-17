@@ -54,8 +54,27 @@ public class ProcessedDataPoint extends SimpleDataPoint {
     return pdp;
   }
 
+  /**
+   * Generates an array of ProcessedDataPoints from DataPoints.
+   *
+   * @return Array of ProcessedDataPoints from DataPoints.
+   */
+  public static ProcessedDataPoint[] convert(@Nonnull double[] mz, @Nonnull double[] intensity) {
+    ProcessedDataPoint[] pdp = new ProcessedDataPoint[mz.length];
+    for (int i = 0; i < pdp.length; i++)
+      pdp[i] = new ProcessedDataPoint(mz[i], intensity[i]);
+    return pdp;
+  }
+
   public ProcessedDataPoint(@Nonnull DataPoint dp) {
     super(dp);
+  }
+  /**
+   * @param mz
+   * @param intensity
+   */
+  public ProcessedDataPoint(double mz, double intensity) {
+    super(mz, intensity);
   }
 
   public ProcessedDataPoint(@Nonnull DataPoint dp, @Nonnull DPPResult<?> result) {

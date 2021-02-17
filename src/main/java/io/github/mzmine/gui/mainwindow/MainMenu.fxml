@@ -225,29 +225,27 @@
 
     <Menu text="Export feature list">
       <MenuItem text="CSV" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.csvexport.CSVExportModule"/>
-      <MenuItem text="CSV (modular)" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.csvexport_modular.CSVExportModularModule"/>
+        userData="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"/>
       <MenuItem text="MetaboAnalyst" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.metaboanalystexport.MetaboAnalystExportModule"/>
+        userData="io.github.mzmine.modules.io.export_metaboanalyst.MetaboAnalystExportModule"/>
       <MenuItem text="mzTab" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.mztabexport.MzTabExportModule"/>
+        userData="io.github.mzmine.modules.io.export_mztab.MzTabExportModule"/>
       <MenuItem text="mzTab-m" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.mztabmexport.MZTabmExportModule"/>
+        userData="io.github.mzmine.modules.io.export_mztabm.MZTabmExportModule"/>
       <MenuItem text="SQL Database" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.sqlexport.SQLExportModule"/>
+        userData="io.github.mzmine.modules.io.export_sql.SQLExportModule"/>
       <MenuItem text="MSP file (ADAP)" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.adapmspexport.AdapMspExportModule"/>
+        userData="io.github.mzmine.modules.io.export_msp.AdapMspExportModule"/>
       <MenuItem text="MGF file (ADAP)" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportModule"/>
+        userData="io.github.mzmine.modules.io.export_mgf.AdapMgfExportModule"/>
       <MenuItem text="GNPS - feature based molecular networking"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitModule"/>
+        userData="io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitModule"/>
       <MenuItem text="GNPS-GC-MS (with ADAP)"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.gnpsexport.gc.GnpsGcExportAndSubmitModule"/>
+        userData="io.github.mzmine.modules.io.export_gnps.gc.GnpsGcExportAndSubmitModule"/>
       <MenuItem text="SIRIUS / CSI-FingerID" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.siriusexport.SiriusExportModule"/>
+        userData="io.github.mzmine.modules.io.export_sirius.SiriusExportModule"/>
     </Menu>
 
     <Menu text="Spectral deconvolution">

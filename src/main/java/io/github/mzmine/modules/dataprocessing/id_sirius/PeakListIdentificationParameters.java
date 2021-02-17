@@ -43,7 +43,7 @@ public class PeakListIdentificationParameters extends SiriusParameters {
       30);
 
   public PeakListIdentificationParameters() {
-    super(new Parameter[] {peakLists, ionizationType, MZ_TOLERANCE, ELEMENTS, MASS_LIST,
-        CANDIDATES_AMOUNT, CANDIDATES_FINGERID, THREADS_AMOUNT, SIRIUS_TIMEOUT});
+    super(new Parameter[] {peakLists, ionizationType, MZ_TOLERANCE, ELEMENTS, CANDIDATES_AMOUNT,
+        CANDIDATES_FINGERID, THREADS_AMOUNT, SIRIUS_TIMEOUT});
   }
 }

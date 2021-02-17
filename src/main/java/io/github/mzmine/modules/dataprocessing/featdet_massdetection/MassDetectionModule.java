@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -54,13 +55,16 @@ public class MassDetectionModule implements MZmineProcessingModule {
     RawDataFile[] dataFiles = parameters.getParameter(MassDetectionParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
 
+    // create a single storage map for all mass lists that were created with the same parameters
+    // i.e., in the same mass detection run
+    final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
+
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new MassDetectionTask(dataFile, parameters);
+      Task newTask = new MassDetectionTask(dataFile, parameters, storageMemoryMap);
       tasks.add(newTask);
     }
 
     return ExitCode.OK;
-
   }
 
   @Override

@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 
@@ -43,24 +44,19 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
   private ObservableList<Scan> scanNumbers;
 
   // User parameters
-  private String massListName, suffix;
-  private boolean autoRemove;
   private ParameterSet parameters;
+  private final MemoryMapStorage storage;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storage
    */
-  public ShoulderPeaksFilterTask(RawDataFile dataFile, ParameterSet parameters) {
-
+  public ShoulderPeaksFilterTask(RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storage) {
     this.dataFile = dataFile;
     this.parameters = parameters;
-
-    this.massListName = parameters.getParameter(ShoulderPeaksFilterParameters.massList).getValue();
-
-    this.suffix = parameters.getParameter(ShoulderPeaksFilterParameters.suffix).getValue();
-    this.autoRemove = parameters.getParameter(ShoulderPeaksFilterParameters.autoRemove).getValue();
-
+    this.storage = storage;
   }
 
   /**
@@ -100,7 +96,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
     boolean haveMassList = false;
     for (int i = 0; i < totalScans; i++) {
       Scan scan = scanNumbers.get(i);
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
       if (massList != null) {
         haveMassList = true;
         break;
@@ -108,7 +104,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
     }
     if (!haveMassList) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage(dataFile.getName() + " has no mass list called '" + massListName + "'");
+      setErrorMessage(dataFile.getName() + " has no mass list");
       return;
     }
 
@@ -120,7 +116,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 
       Scan scan = scanNumbers.get(i);
 
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
 
       // Skip those scans which do not have a mass list of given name
       if (massList == null) {
@@ -132,14 +128,10 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 
       DataPoint newMzPeaks[] = ShoulderPeaksFilter.filterMassValues(mzPeaks, parameters);
 
-      SimpleMassList newMassList =
-          new SimpleMassList(massListName + " " + suffix, scan, newMzPeaks);
 
+      MassList newMassList =
+          SimpleMassList.create(scan, storage, newMzPeaks);
       scan.addMassList(newMassList);
-
-      // Remove old mass list
-      if (autoRemove)
-        scan.removeMassList(massList);
 
       processedScans++;
     }

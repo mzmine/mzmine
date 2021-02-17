@@ -68,12 +68,8 @@ public interface MobilityScan extends MassSpectrum, Comparable<MobilityScan> {
 
   void addMassList(final @Nonnull MassList massList);
 
-  void removeMassList(final @Nonnull MassList massList);
-
-  @Nonnull
-  Set<MassList> getMassLists();
-
-  MassList getMassList(@Nonnull String name);
+  @Nullable
+  MassList getMassList();
 
   @Override
   default int compareTo(@Nonnull MobilityScan o) {

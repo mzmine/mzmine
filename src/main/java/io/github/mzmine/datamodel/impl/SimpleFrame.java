@@ -288,25 +288,4 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilityScanIntensityBuffer.get(scan.getStorageOffset() + index);
   }
 
-  /*
-   * @Override public boolean equals(Object o) { if (this == o) { return true; } if (!(o instanceof
-   * SimpleFrame)) { return false; } SimpleFrame that = (SimpleFrame) o; return getScanNumber() ==
-   * that.getScanNumber() && getMSLevel() == that.getMSLevel() &&
-   * Double.compare(that.getPrecursorMZ(), getPrecursorMZ()) == 0 && getPrecursorCharge() ==
-   * that.getPrecursorCharge() && Float.compare(that.getRetentionTime(), getRetentionTime()) == 0 &&
-   * getNumberOfDataPoints() == that.getNumberOfDataPoints() &&
-   * Objects.equals(getDataPointMZRange(), that.getDataPointMZRange()) &&
-   * Objects.equals(getHighestDataPoint(), that.getHighestDataPoint()) && Double.compare(getTIC(),
-   * that.getTIC()) == 0 && getSpectrumType() == that.getSpectrumType() &&
-   * getDataFile().equals(that.getDataFile()) && Objects.equals(getMassLists(), that.getMassLists())
-   * && getPolarity() == that.getPolarity() && Objects.equals(getScanDefinition(),
-   * that.getScanDefinition()) && getScanningMZRange().equals(that.getScanningMZRange()) &&
-   * getMobilityType() == that.getMobilityType() && getFrameId() == that.getFrameId(); }
-   *
-   * @Override public int hashCode() { return Objects.hash(getScanNumber(), getMSLevel(),
-   * getPrecursorMZ(), getPrecursorCharge(), getRetentionTime(), getDataPointMZRange(),
-   * getHighestDataPoint(), getTIC(), getSpectrumType(), getNumberOfDataPoints(), getDataFile(),
-   * getMassLists(), getPolarity(), getScanDefinition(), getScanningMZRange(), getMobilityType(),
-   * getFrameId()); }
-   */
 }

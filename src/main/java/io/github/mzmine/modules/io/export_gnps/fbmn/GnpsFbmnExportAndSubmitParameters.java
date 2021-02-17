@@ -36,7 +36,6 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -85,8 +84,6 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
           + "If the file already exists, it will be overwritten.",
       "mgf", FileSelectionType.SAVE);
 
-  public static final MassListParameter MASS_LIST = new MassListParameter();
-
   public static final OptionalModuleParameter<GnpsFbmnSubmitParameters> SUBMIT =
       new OptionalModuleParameter<GnpsFbmnSubmitParameters>("Submit to GNPS",
           "Directly submits a GNPS job", new GnpsFbmnSubmitParameters());
@@ -110,7 +107,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
           new MsMsSpectraMergeParameters(), true);
 
   public GnpsFbmnExportAndSubmitParameters() {
-    super(new Parameter[] {FEATURE_LISTS, FILENAME, MASS_LIST, MERGE_PARAMETER, FILTER, SUBMIT,
+    super(new Parameter[] {FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, SUBMIT,
         OPEN_FOLDER});
   }
 

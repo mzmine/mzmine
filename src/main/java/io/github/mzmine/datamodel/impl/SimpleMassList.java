@@ -18,6 +18,8 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -27,44 +29,31 @@ import io.github.mzmine.datamodel.Scan;
 /**
  * This class represent detected masses (ions) in one mass spectrum
  */
-public class SimpleMassList implements MassList {
+public class SimpleMassList extends MassList {
+  private final Scan scan;
 
-  private String name;
-  private Scan scan;
-  private DataPoint mzPeaks[];
-
-  public SimpleMassList(String name, Scan scan, DataPoint mzPeaks[]) {
-    this.name = name;
+  public SimpleMassList(Scan scan, @Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
+      @Nonnull double[] intensityValues) {
+    super(storage, mzValues, intensityValues);
     this.scan = scan;
-    this.mzPeaks = mzPeaks;
   }
 
-  @Override
-  public @Nonnull String getName() {
-    return name;
+  /**
+   * Use mzValues and intensityValues constructor
+   * @param scan
+   * @param storageMemoryMap
+   * @param dps
+   */
+  @Deprecated
+  public static MassList create(Scan scan, MemoryMapStorage storageMemoryMap, DataPoint[] dps) {
+    double[][] mzIntensity = DataPointUtils.getDataPointsAsDoubleArray(dps);
+    return new SimpleMassList(scan, storageMemoryMap, mzIntensity[0], mzIntensity[1]);
   }
+
 
   @Override
   public @Nonnull Scan getScan() {
     return scan;
-  }
-
-  public void setScan(Scan scan) {
-    this.scan = scan;
-  }
-
-  @Override
-  public @Nonnull DataPoint[] getDataPoints() {
-    return mzPeaks;
-  }
-
-  public void setDataPoints(DataPoint mzPeaks[]) {
-    this.mzPeaks = mzPeaks;
-  }
-
-  @Override
-  public String toString() {
-    return name;
   }
 
 }
