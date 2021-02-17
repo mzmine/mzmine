@@ -26,9 +26,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 
-public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataset> {
+public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
-  MsMsDataset dataset;
+  MsMsDataProvider dataset;
   ColoredXYZDotRenderer renderer;
 
   public MsMsChart(ParameterSet parameters) {
@@ -45,7 +45,7 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataset> {
     renderer = new ColoredXYZDotRenderer();
     setDefaultRenderer(renderer);
 
-    dataset = new MsMsDataset(parameters);
+    dataset = new MsMsDataProvider(parameters);
     Platform.runLater(() -> addDataset(dataset));
 
     getXYPlot().getDomainAxis().setUpperMargin(0);

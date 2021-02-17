@@ -43,7 +43,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
-public class MsMsDataset implements PlotXYZDataProvider {
+public class MsMsDataProvider implements PlotXYZDataProvider {
 
   private static final PaintScale paintScale = new MsMsPaintScale();
 
@@ -73,7 +73,7 @@ public class MsMsDataset implements PlotXYZDataProvider {
   private int processedScans = 0;
   private double maxIntensity = 0;
 
-  MsMsDataset(ParameterSet parameters) {
+  MsMsDataProvider(ParameterSet parameters) {
     // Basic parameters
     dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
