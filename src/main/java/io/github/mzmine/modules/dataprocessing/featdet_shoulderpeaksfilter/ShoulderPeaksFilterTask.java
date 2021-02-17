@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -130,7 +130,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 
 
       MassList newMassList =
-          SimpleMassList.create(scan, storage, newMzPeaks);
+          SimpleMassList.create(storage, newMzPeaks);
       scan.addMassList(newMassList);
 
       processedScans++;
