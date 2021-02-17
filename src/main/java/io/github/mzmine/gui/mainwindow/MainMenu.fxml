@@ -226,6 +226,8 @@
     <Menu text="Export feature list">
       <MenuItem text="CSV" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"/>
+      <MenuItem text="CSV (legacy MZmine 2)" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule" />
       <MenuItem text="MetaboAnalyst" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_metaboanalyst.MetaboAnalystExportModule"/>
       <MenuItem text="mzTab" onAction="#runModule"
