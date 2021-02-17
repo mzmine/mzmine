@@ -20,42 +20,33 @@ package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
-import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.XYShapeRenderer;
+import org.jfree.data.xy.XYDataset;
 
-public class ColoredXYZDotRenderer extends XYLineAndShapeRenderer {
+public class ColoredXYZDotRenderer extends XYShapeRenderer {
 
-  private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5, 5);
+  private static final Shape dataPointsShape = new Ellipse2D.Double(0, 0, 7, 7);
 
   public ColoredXYZDotRenderer() {
-    super(false, true);
+    super();
 
     SimpleToolTipGenerator toolTipGenerator = new SimpleToolTipGenerator();
     setDefaultToolTipGenerator(toolTipGenerator);
 
     setDefaultItemLabelsVisible(false);
-
     setSeriesVisibleInLegend(0, false);
     setSeriesItemLabelsVisible(0, false);
-    setSeriesShape(0, dataPointsShape);
 
-    setDrawSeriesLineAsPath(true);
+    setSeriesShape(0, dataPointsShape);
   }
 
   @Override
-  public Paint getItemPaint(int row, int col) {
-    double zValue = ((ColoredXYZDataset) getPlot().getDataset()).getZValue(row, col);
-
-    if (zValue > 1) {
-      int rgbVal = (int) Math.round(220 - (zValue - 1) * 220);
-      return new Color(255, rgbVal, rgbVal);
-    } else {
-      int rgbVal = (int) Math.round(220 - zValue * 220);
-      return new Color(rgbVal, rgbVal, 255);
-    }
+  protected Paint getPaint(XYDataset dataset, int series, int item) {
+    return ((ColoredXYZDataset) dataset).getPaintScale()
+        .getPaint(((ColoredXYZDataset) dataset).getZValue(series, item));
   }
 
 }
