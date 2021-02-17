@@ -45,6 +45,8 @@ import org.jfree.chart.renderer.PaintScale;
 
 public class MsMsDataset implements PlotXYZDataProvider {
 
+  private static final PaintScale paintScale = new MsMsPaintScale();
+
   // Parameters
 
   // Basic parameters
@@ -290,7 +292,7 @@ public class MsMsDataset implements PlotXYZDataProvider {
   @Nullable
   @Override
   public PaintScale getPaintScale () {
-    return null;
+    return paintScale;
   }
 
   @Override
