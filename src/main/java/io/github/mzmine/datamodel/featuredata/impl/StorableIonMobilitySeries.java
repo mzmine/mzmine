@@ -37,25 +37,21 @@ import javax.annotation.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpectra<MobilityScan> {
+public class StorableIonMobilitySeries implements IonMobilitySeries, ModifiableSpectra<MobilityScan> {
 
-  private static final Logger logger = Logger.getLogger(SimpleIonMobilitySeries.class.getName());
+  private static final Logger logger = Logger.getLogger(StorableIonMobilitySeries.class.getName());
 
   protected final List<MobilityScan> scans;
 
-  protected final DoubleBuffer intensityValues;
-  protected final DoubleBuffer mzValues;
+  protected final int storageOffset;
+  protected final int numValues;
+  protected final SimpleIonMobilogramTimeSeries ionTrace;
 
-  /**
-   * @param storage         May be null if forceStoreInRam is true.
-   * @param mzValues
-   * @param intensityValues
-   * @param scans
-   */
-  public SimpleIonMobilitySeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues, @Nonnull List<MobilityScan> scans) {
-    if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
-      throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
+  protected StorableIonMobilitySeries(final SimpleIonMobilogramTimeSeries ionTrace,
+      final int offset,
+      final int numValues, @Nonnull List<MobilityScan> scans) {
+    if (numValues != scans.size()) {
+      throw new IllegalArgumentException("numPoints and number of scans scans does not match.");
     }
 
     final Frame frame = scans.get(0).getFrame();
@@ -65,9 +61,10 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
       }
     }
 
+    this.storageOffset = offset;
+    this.numValues = numValues;
     this.scans = scans;
-    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
-    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
+    this.ionTrace = ionTrace;
   }
 
   @Override
@@ -89,7 +86,7 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
   }
 
   @Override
-  public IonSpectrumSeries<MobilityScan> subSeries(@Nullable MemoryMapStorage storage,
+  public IonMobilitySeries subSeries(@Nullable MemoryMapStorage storage,
       @Nonnull List<MobilityScan> subset) {
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
@@ -103,13 +100,23 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
   }
 
   @Override
+  public double getIntensity(int index) {
+    return ionTrace.getMobilogramIntensityValue(this, index);
+  }
+
+  @Override
+  public double getMZ(int index) {
+    return ionTrace.getMobilogramMzValue(this, index);
+  }
+
+  @Override
   public DoubleBuffer getIntensityValues() {
-    return intensityValues;
+    return ionTrace.getMobilogramIntensityValues(this);
   }
 
   @Override
   public DoubleBuffer getMZValues() {
-    return mzValues;
+    return ionTrace.getMobilogramMzValues(this);
   }
 
   public double getMobility(int index) {
@@ -127,6 +134,15 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
         .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
 
     return new SimpleIonMobilitySeries(storage, data[0], data[1], scans);
+  }
+
+  public int getStorageOffset() {
+    return storageOffset;
+  }
+
+  @Override
+  public int getNumberOfValues() {
+    return numValues;
   }
 
   @Override

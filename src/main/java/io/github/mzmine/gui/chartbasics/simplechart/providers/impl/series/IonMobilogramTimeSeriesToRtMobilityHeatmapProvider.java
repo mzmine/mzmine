@@ -19,8 +19,8 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
@@ -121,7 +121,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
 
   @Override
   public double getDomainValue(int index) {
-    for (SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (IonMobilitySeries mobilitySeries : data.getMobilograms()) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
@@ -133,7 +133,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
 
   @Override
   public double getRangeValue(int index) {
-    for (SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (IonMobilitySeries mobilitySeries : data.getMobilograms()) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
@@ -155,7 +155,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
 
   @Override
   public double getZValue(int index) {
-    for (SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (IonMobilitySeries mobilitySeries : data.getMobilograms()) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
@@ -180,7 +180,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
   @Nullable
   @Override
   public MobilityScan getSpectrum(int index) {
-    for (SimpleIonMobilitySeries mobilitySeries : data.getMobilograms()) {
+    for (IonMobilitySeries mobilitySeries : data.getMobilograms()) {
       if (index >= mobilitySeries.getNumberOfValues()) {
         index -= mobilitySeries.getNumberOfValues();
       } else {
