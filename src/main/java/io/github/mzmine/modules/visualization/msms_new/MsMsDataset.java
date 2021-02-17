@@ -233,7 +233,7 @@ public class MsMsDataset implements PlotXYZDataProvider {
         }
 
         // Base peak intensity
-        double intensity = scan.getBasePeakIntensity();
+        double intensity = Math.pow(scan.getBasePeakIntensity(), 0.2);
         if (intensity > maxIntensity) {
           maxIntensity = intensity;
         }
