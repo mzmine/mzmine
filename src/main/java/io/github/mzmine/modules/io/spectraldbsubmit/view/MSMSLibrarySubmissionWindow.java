@@ -74,7 +74,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
-import io.github.mzmine.parameters.parametertypes.MassListComponent;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -226,8 +225,6 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
   }
 
   private void addListener() {
-    // listen for changes in masslist selection and preprocessing
-    MassListComponent mc = getMassListComponent();
     // mc.addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
     DoubleComponent nc = getNoiseLevelComponent();
     // nc.addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
@@ -248,7 +245,6 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
    * Sort rows
    *
    * @param rows
-   * @param raw
    * @param sorting
    * @param direction
    */
@@ -262,7 +258,6 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
    * Create charts and show
    *
    * @param rows
-   * @param raw
    */
   public void setData(FeatureListRow[] rows, boolean isFragmentScan) {
     getMSLevelComponent().setText(isFragmentScan ? "2" : "1");
@@ -603,10 +598,9 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
     if (checkInput()) {
       Integer minSignals = paramSubmit.getParameter(LibrarySubmitParameters.minSignals).getValue();
       Double noiseLevel = paramSubmit.getParameter(LibrarySubmitParameters.noiseLevel).getValue();
-      String massListName = paramSubmit.getParameter(LibrarySubmitParameters.massList).getValue();
-      if (pnScanSelect != null && minSignals != null && noiseLevel != null && massListName != null)
+      if (pnScanSelect != null && minSignals != null && noiseLevel != null)
         for (ScanSelectPanel pn : pnScanSelect)
-          pn.setFilter(massListName, noiseLevel, minSignals);
+          pn.setFilter(noiseLevel, minSignals);
     }
   }
 
@@ -700,8 +694,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
     if (checkInput()) {
       Integer minSignals = paramSubmit.getParameter(LibrarySubmitParameters.minSignals).getValue();
       Double noiseLevel = paramSubmit.getParameter(LibrarySubmitParameters.noiseLevel).getValue();
-      String massListName = paramSubmit.getParameter(LibrarySubmitParameters.massList).getValue();
-      if (minSignals != null && noiseLevel != null && massListName != null) {
+      if (minSignals != null && noiseLevel != null) {
         ScanSortMode sort = getComboSortMode().getSelectionModel().getSelectedItem();
 
         if (rows != null) {
@@ -728,7 +721,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
           for (int i = 0; i < scanList.size(); i++) {
             ObservableList<Scan> scansEntry = scanList.get(i);
             ScanSelectPanel pn =
-                new ScanSelectPanel(scansEntry, sort, noiseLevel, minSignals, massListName);
+                new ScanSelectPanel(scansEntry, sort, noiseLevel, minSignals);
             pnScanSelect[i] = pn;
             pn.addChartChangedListener(chart -> regroupCharts());
             pnCharts.add(pn);
@@ -893,10 +886,6 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   private DoubleComponent getNoiseLevelComponent() {
     return getComponentForParameter(LibrarySubmitParameters.noiseLevel);
-  }
-
-  private MassListComponent getMassListComponent() {
-    return getComponentForParameter(LibrarySubmitParameters.massList);
   }
 
   private ComboBox<ScanSortMode> getComboSortMode() {

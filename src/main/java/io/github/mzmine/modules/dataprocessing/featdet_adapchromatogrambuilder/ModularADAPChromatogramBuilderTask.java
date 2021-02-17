@@ -74,7 +74,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private Scan[] scans;
 
   // User parameters
-  private String suffix, massListName;
+  private String suffix;
   private MZTolerance mzTolerance;
   private double minimumHeight;
   private int minimumScanSpan;
@@ -96,8 +96,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     this.dataFile = dataFile;
     this.scanSelection =
         parameters.getParameter(ADAPChromatogramBuilderParameters.scanSelection).getValue();
-    this.massListName =
-        parameters.getParameter(ADAPChromatogramBuilderParameters.massList).getValue();
 
     this.mzTolerance =
         parameters.getParameter(ADAPChromatogramBuilderParameters.mzTolerance).getValue();
@@ -203,11 +201,11 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (isCanceled())
         return;
 
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
       if (massList == null) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-            + " does not have a mass list " + massListName);
+            + " does not have a mass list. Run mass detection");
         return;
       }
 
@@ -215,7 +213,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
       if (mzValues == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Mass list " + massListName + " does not contain m/z values for scan #"
+        setErrorMessage("Mass list does not contain m/z values for scan #"
             + scan.getScanNumber() + " of file " + dataFile);
         return;
       }

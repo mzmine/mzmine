@@ -19,6 +19,8 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase;
 
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.DATABASE;
+
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -76,7 +78,6 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
    * Create the task.
    *
    * @param parameters task parameters.
-   * @param peakListRow peak-list row to identify.
    */
   public SpectraIdentificationOnlineDatabaseTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
@@ -126,7 +127,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // create mass list for scan
-    DataPoint[] massList = null;
+    double[][] massList = null;
     ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
     MassDetector massDetector = null;
     ArrayList<String> allCompoundIDs = new ArrayList<>();
@@ -150,7 +151,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
       if (getStatus() != TaskStatus.PROCESSING) {
         return;
       }
-      searchedMass = massList[i].getMZ() - ionType.getAddedMass();
+      searchedMass = massList[0][i] - ionType.getAddedMass();
       try {
         // find candidate compounds
         String compoundIDs[] =
@@ -173,7 +174,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
         }
         if (annotation != "") {
           allCompoundIDs.add(annotation);
-          massListAnnotated.add(massList[i]);
+          massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
         }
       } catch (Exception e) {
         e.printStackTrace();

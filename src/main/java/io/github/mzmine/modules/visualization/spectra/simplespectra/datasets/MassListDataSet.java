@@ -31,7 +31,7 @@ public class MassListDataSet extends DataPointsDataSet {
   private static final long serialVersionUID = 1L;
 
   public MassListDataSet(MassList massList) {
-    super("Mass list " + massList.getName(), massList.getDataPoints());
+    super("Mass list", massList.getDataPoints());
   }
 
 }

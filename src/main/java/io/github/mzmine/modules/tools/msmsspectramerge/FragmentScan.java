@@ -28,11 +28,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-
-/**
- * A fragment scan consists of a list of MS/MS spectra surrounded by MS1 scans
- */
-
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
@@ -57,11 +52,6 @@ class FragmentScan {
    * The feature this scans are derived from
    */
   protected final Feature feature;
-
-  /**
-   * mass list to use
-   */
-  protected final String massList;
 
   /**
    * the MS1 scan that comes before the first MS/MS
@@ -90,7 +80,7 @@ class FragmentScan {
   protected int precursorCharge;
   private PolarityType polarity;
 
-  static FragmentScan[] getAllFragmentScansFor(Feature feature, String massList,
+  static FragmentScan[] getAllFragmentScansFor(Feature feature,
       Range<Double> isolationWindow, MZTolerance massAccuracy) {
     final RawDataFile file = feature.getRawDataFile();
     final Scan[] ms2 = feature.getAllMS2FragmentScans().stream()
@@ -103,14 +93,14 @@ class FragmentScan {
       Scan precursorScan = ScanUtils.findPrecursorScan(scan);
       Scan precursorScan2 = ScanUtils.findSucceedingPrecursorScan(scan);
       int j = precursorScan2 == null ? ms2.length
-          : Arrays.binarySearch(ms2, precursorScan2.getScanNumber());
+          : Arrays.binarySearch(ms2, precursorScan2);
       if (j < 0)
         j = -j - 1;
       final Scan[] subms2 = new Scan[j - i];
       for (int k = i; k < j; ++k)
         subms2[k - i] = ms2[k];
 
-      fragmentScans.add(new FragmentScan(file, feature, massList,
+      fragmentScans.add(new FragmentScan(file, feature,
           precursorScan != null ? precursorScan.getScanNumber() : null,
           precursorScan2 != null ? precursorScan2.getScanNumber() : null, subms2, isolationWindow,
           massAccuracy));
@@ -119,12 +109,11 @@ class FragmentScan {
     return fragmentScans.toArray(new FragmentScan[0]);
   }
 
-  FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber,
+  FragmentScan(RawDataFile origin, Feature feature, Integer ms1ScanNumber,
       Integer ms1ScanNumber2, Scan[] ms2ScanNumbers, Range<Double> isolationWindow,
       MZTolerance massAccuracy) {
     this.origin = origin;
     this.feature = feature;
-    this.massList = massList;
     this.ms1ScanNumber = ms1ScanNumber;
     this.ms1SucceedingScanNumber = ms1ScanNumber2;
     this.ms2ScanNumbers = ms2ScanNumbers;

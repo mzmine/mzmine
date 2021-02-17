@@ -112,10 +112,10 @@ public class FeatureFilterTask extends AbstractTask {
         logger.info("Finished feature list filter");
       }
     } catch (Throwable t) {
-
+      t.printStackTrace();
       setErrorMessage(t.getMessage());
+      logger.log(Level.SEVERE, t.getMessage());
       setStatus(TaskStatus.ERROR);
-      logger.log(Level.SEVERE, "Feature list filter error", t);
     }
 
   }
@@ -267,7 +267,7 @@ public class FeatureFilterTask extends AbstractTask {
       // empty row?
       boolean isEmpty = Booleans.asList(keepPeak).stream().allMatch(keep -> !keep);
       if (!isEmpty)
-        newPeakList.addRow(copyPeakRow(row, keepPeak));
+        newPeakList.addRow(copyPeakRow(newPeakList, row, keepPeak));
 
     }
 
@@ -279,7 +279,8 @@ public class FeatureFilterTask extends AbstractTask {
   /**
    * Create a copy of a feature list row.
    */
-  private FeatureListRow copyPeakRow(final ModularFeatureListRow row, final boolean[] keepPeak) {
+  private FeatureListRow copyPeakRow(final ModularFeatureList filteredPeakList,
+      final ModularFeatureListRow row, final boolean[] keepPeak) {
     // Copy the feature list row.
     final FeatureListRow newRow = new ModularFeatureListRow(filteredPeakList, row, false);
 

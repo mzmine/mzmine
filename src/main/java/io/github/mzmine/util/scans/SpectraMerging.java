@@ -22,16 +22,14 @@ import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
@@ -48,8 +46,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -246,8 +244,7 @@ public class SpectraMerging {
   }
 
   public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(ImsMsMsInfo info,
-      double noiseLevel,
-      MZTolerance tolerance, MergingType mergingType, MemoryMapStorage storage) {
+      double noiseLevel, MZTolerance tolerance, MergingType mergingType, MemoryMapStorage storage) {
 
     if (info == null) {
       return null;
@@ -268,14 +265,14 @@ public class SpectraMerging {
 
     CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
 
-    Optional<Set<MassList>> firstSet = mobilityScans.stream().map(MobilityScan::getMassLists)
-        .filter(set -> set.size() > 0).findFirst();
+    Optional<MassList> firstSet = mobilityScans.stream().map(MobilityScan::getMassList)
+        .filter(Objects::nonNull).findFirst();
 
     if(firstSet.isEmpty()) {
       return null;
     }
 
-    MassList ml = firstSet.get().stream().findFirst().get();
+    MassList ml = firstSet.get();
 
     double[][] merged = calculatedMergedMzsAndIntensities(mobilityScans, noiseLevel, tolerance,
         mergingType, cf);
@@ -284,12 +281,7 @@ public class SpectraMerging {
         merged[1], precursorMz, collisionEnergy, frame.getMSLevel(), mobilityScans,
         mergingType, cf);
 
-    DataPoint[] dps = new DataPoint[merged[0].length];
-    for (int i = 0; i < merged[0].length; i++) {
-      dps[i] = new SimpleDataPoint(merged[0][i], merged[1][i]);
-    }
-
-    MassList newMl = new SimpleMassList(ml.getName(), mergedSpectrum, dps);
+    MassList newMl = new SimpleMassList(storage, merged[0], merged[1]);
     mergedSpectrum.addMassList(newMl);
     return mergedSpectrum;
   }

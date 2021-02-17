@@ -44,13 +44,12 @@ public class MSMSScoreCalculator {
 
     MZTolerance msmsTolerance =
         parameters.getParameter(MSMSScoreParameters.msmsTolerance).getValue();
-    String massListName = parameters.getParameter(MSMSScoreParameters.massList).getValue();
 
-    MassList massList = msmsScan.getMassList(massListName);
+    MassList massList = msmsScan.getMassList();
 
     if (massList == null) {
       throw new IllegalArgumentException("Scan #" + msmsScan.getScanNumber()
-          + " does not have a mass list called '" + massListName + "'");
+          + " does not have a mass list");
     }
 
     DataPoint msmsIons[] = massList.getDataPoints();

@@ -35,29 +35,28 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class ScanSorter implements Comparator<Scan> {
 
-  private final String massListName;
   private final MassListSorter comp;
 
   /**
-   * Scans need at least one MassList (define name or use empty/null massListName for first
-   * MassList)
-   * 
-   * @param massListName any name or null/empty to use the first MassList of each scan
+   * Scans need a MassList
+   *
    * @param noiseLevel
-   * @param sort sorting mode
+   * @param sortMode sorting mode
    */
-  public ScanSorter(String massListName, double noiseLevel, ScanSortMode sortMode) {
-    this.massListName = massListName;
+  public ScanSorter(double noiseLevel, ScanSortMode sortMode) {
     comp = new MassListSorter(noiseLevel, sortMode);
   }
 
   @Override
   public int compare(Scan a, Scan b) {
-    MassList ma = ScanUtils.getMassListOrFirst(a, massListName);
-    MassList mb = ScanUtils.getMassListOrFirst(b, massListName);
-    if (ma == null || mb == null)
-      throw new RuntimeException(new MissingMassListException(massListName));
-    return comp.compare(ma.getDataPoints(), mb.getDataPoints());
+    MassList ma = a.getMassList();
+    MassList mb = b.getMassList();
+    if (ma == null)
+      throw new RuntimeException(new MissingMassListException(a));
+    else if (mb == null)
+      throw new RuntimeException(new MissingMassListException(b));
+    else
+      return comp.compare(ma, mb);
   }
 
 }

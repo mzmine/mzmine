@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
 import java.util.ArrayList;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
@@ -40,7 +41,6 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
 
   /**
    * @param parameters
-   * @param massDetectorTypeNumber
    */
   public MassDetectorSetupDialog(boolean valueCheckRequired, Class<?> massDetectorClass,
       ParameterSet parameters) {
@@ -74,12 +74,12 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     if (!paramsOK)
       return;
 
-    DataPoint[] mzValues = massDetector.getMassValues(previewScan, parameters);
+    double[][] mzValues = massDetector.getMassValues(previewScan, parameters);
 
-    DataPointsDataSet peaksDataSet = new DataPointsDataSet("Detected peaks", mzValues);
+    MzIntensityDataSet peaksDataSet = new MzIntensityDataSet("Detected peaks",
+        mzValues[0], mzValues[1]);
 
     spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerTab.peaksColor, false);
-
   }
 
 }

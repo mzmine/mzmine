@@ -24,6 +24,7 @@ import com.google.common.collect.TreeRangeSet;
 import com.google.common.math.Quantiles;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -40,7 +41,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertorIonMobility;
 import io.github.mzmine.util.FeatureConvertors;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -68,7 +68,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final String suffix;
   private final List<Frame> frames;
   private final MZTolerance mzTolerance;
-  private final String massList;
   private final int minDataPointsRt;
   private final int minTotalSignals;
   private final ScanSelection scanSelection;
@@ -85,7 +84,6 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     this.rawDataFile = rawDataFile;
     this.mzTolerance =
         parameters.getParameter(IonMobilityTraceBuilderParameters.mzTolerance).getValue();
-    this.massList = parameters.getParameter(IonMobilityTraceBuilderParameters.massList).getValue();
     this.minDataPointsRt =
         parameters.getParameter(IonMobilityTraceBuilderParameters.minDataPointsRt).getValue();
     this.minTotalSignals =
@@ -143,15 +141,24 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       if (!scanSelection.matches(frame)) {
         continue;
       }
+
+      double[] mzBuffer = new double[0];
+      double[] intensityBuffer = new double[0];
+      int numDp = 0;
+
       for (MobilityScan scan : frame.getMobilityScans()) {
-        if (scan.getMassList(massList) == null) {
+        if (scan.getMassList() == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(
-              "Scan #" + scan.getMobilityScanNumber() + " does not have a mass list " + massList);
+              "Scan #" + scan.getMobilityScanNumber() + " does not have a mass list. Run mass detection ");
         } else {
-          Arrays.stream(scan.getMassList(massList).getDataPoints()).forEach(
-              dp -> allDataPoints.add(
-                  new RetentionTimeMobilityDataPoint(scan, dp.getMZ(), dp.getIntensity())));
+          MassList ml = scan.getMassList();
+          mzBuffer = ml.getMzValues(mzBuffer);
+          intensityBuffer = ml.getIntensityValues(intensityBuffer);
+          numDp = scan.getMassList().getNumberOfDataPoints();
+          for(int i = 0; i < numDp; i++) {
+            allDataPoints.add(new RetentionTimeMobilityDataPoint(scan, mzBuffer[i], intensityBuffer[i]));
+          }
         }
       }
       progress = (processedFrame / (double) frames.size()) / 4;

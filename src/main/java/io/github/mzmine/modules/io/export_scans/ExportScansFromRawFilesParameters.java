@@ -21,7 +21,6 @@ package io.github.mzmine.modules.io.export_scans;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -32,8 +31,6 @@ public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
   public static final ScanSelectionParameter scanSelect = new ScanSelectionParameter();
-  public static final OptionalParameter<MassListParameter> masslist =
-      new OptionalParameter<MassListParameter>(new MassListParameter());
   public static final FileNameParameter file =
       new FileNameParameter("File", "file destination", FileSelectionType.SAVE);
   public static final ComboParameter<ScanFormats> formats = new ComboParameter<>("Format",
@@ -41,7 +38,7 @@ public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
       ScanFormats.values(), ScanFormats.mgf);
 
   public ExportScansFromRawFilesParameters() {
-    super(new Parameter[] {dataFiles, scanSelect, masslist, file, formats});
+    super(new Parameter[] {dataFiles, scanSelect, file, formats});
   }
 
 }

@@ -29,52 +29,20 @@
 
 package io.github.mzmine.modules.io.export_gnps.fbmn;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
-
-  /**
-   * Define which rows to export
-   *
-   * @author Robin Schmid (robinschmid@uni-muenster.de)
-   *
-   */
-  public enum RowFilter {
-    ALL, ONLY_WITH_MS2;
-
-    @Override
-    public String toString() {
-      return super.toString().replaceAll("_", " ");
-    }
-
-    /**
-     * Filter a row
-     *
-     * @param row
-     * @return
-     */
-    public boolean filter(FeatureListRow row) {
-      switch (this) {
-        case ALL:
-          return true;
-        case ONLY_WITH_MS2:
-          return row.getBestFragmentation() != null;
-      }
-      throw new UnsupportedOperationException("Unhandled enum case "+this.toString());
-    }
-  }
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
@@ -85,15 +53,13 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
           + "If the file already exists, it will be overwritten.",
       "mgf", FileSelectionType.SAVE);
 
-  public static final MassListParameter MASS_LIST = new MassListParameter();
-
   public static final OptionalModuleParameter<GnpsFbmnSubmitParameters> SUBMIT =
-      new OptionalModuleParameter<GnpsFbmnSubmitParameters>("Submit to GNPS",
+      new OptionalModuleParameter<>("Submit to GNPS",
           "Directly submits a GNPS job", new GnpsFbmnSubmitParameters());
 
-  public static final ComboParameter<RowFilter> FILTER = new ComboParameter<RowFilter>(
+  public static final ComboParameter<FeatureListRowsFilter> FILTER = new ComboParameter<>(
       "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
-      RowFilter.values(), RowFilter.ONLY_WITH_MS2);
+      FeatureListRowsFilter.values(), FeatureListRowsFilter.ONLY_WITH_MS2);
 
   // public static final BooleanParameter OPEN_GNPS = new
   // BooleanParameter("Open GNPS website",
@@ -109,8 +75,13 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
           "Merge high-quality MS/MS instead of exporting just the most intense one.",
           new MsMsSpectraMergeParameters(), true);
 
+  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY =
+      new ComboParameter<>("Feature intensity", "Intensity in the quantification table (csv).",
+          FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
+
+
   public GnpsFbmnExportAndSubmitParameters() {
-    super(new Parameter[] {FEATURE_LISTS, FILENAME, MASS_LIST, MERGE_PARAMETER, FILTER, SUBMIT,
+    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, FEATURE_INTENSITY, SUBMIT,
         OPEN_FOLDER});
   }
 

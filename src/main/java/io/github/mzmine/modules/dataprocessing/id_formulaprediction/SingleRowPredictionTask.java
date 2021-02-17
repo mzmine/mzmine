@@ -249,12 +249,11 @@ public class SingleRowPredictionTask extends AbstractTask {
     Scan msmsScan = bestPeak.getMostIntenseFragmentScan();
 
     if ((checkMSMS) && (msmsScan != null)) {
-      String massListName = msmsParameters.getParameter(MSMSScoreParameters.massList).getValue();
-      MassList ms2MassList = msmsScan.getMassList(massListName);
+      MassList ms2MassList = msmsScan.getMassList();
       if (ms2MassList == null) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("The MS/MS scan #" + msmsScan.getScanNumber() + " in file "
-            + dataFile.getName() + " does not have a mass list called '" + massListName + "'");
+            + dataFile.getName() + " does not have a mass list");
         return;
       }
 

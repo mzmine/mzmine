@@ -69,11 +69,6 @@ public class RawDataFileImpl implements RawDataFile {
 
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
 
-  // To store mass lists that have been added but not yet reflected in the GUI
-  // by the
-  // notifyUpdatedMassLists() method
-  // private final List<MassList> newMassLists = new ArrayList<>();
-
   protected final ObservableList<Scan> scans;
 
   protected final ObservableList<FeatureListAppliedMethod> appliedMethods
@@ -112,12 +107,6 @@ public class RawDataFileImpl implements RawDataFile {
   public int getNumOfScans() {
     return scans.size();
   }
-
-  // @Deprecated
-  // @Override
-  // public @Nullable Scan getScan(int scanNumber) {
-  // return scans.get(scanNumber);
-  // }
 
   /**
    * @param rt The rt
@@ -338,12 +327,6 @@ public class RawDataFileImpl implements RawDataFile {
     return getDataRTRange(0);
   }
 
-  // @Nonnull
-  // @Override
-  // public Range<Double> getDataMobilityRange() {
-  // return null;
-  // }
-
   @Nonnull
   @Override
   public Range<Float> getDataRTRange(Integer msLevel) {
@@ -381,18 +364,6 @@ public class RawDataFileImpl implements RawDataFile {
 
     return rtRange;
   }
-
-  // @Nonnull
-  // @Override
-  // public Range<Double> getDataMobilityRange(int msLevel) {
-  // return mobilityRange;
-  // }
-  //
-  // @Nonnull
-  // @Override
-  // public MobilityType getMobilityType() {
-  // return mobilityType;
-  // }
 
   @Override
   public void setRTRange(int msLevel, Range<Float> rtRange) {
