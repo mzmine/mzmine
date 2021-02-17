@@ -12,7 +12,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Used to store lists of arrays into a single DoubleBuffer to safe memory.
+ * Used to store lists of arrays into a single DoubleBuffer to save memory.
  *
  * @author https://github.com/SteffenHeu
  */
