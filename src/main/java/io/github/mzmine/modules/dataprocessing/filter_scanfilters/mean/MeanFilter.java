@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.mean;
 
-import java.util.Vector;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -28,7 +26,10 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Vector;
+import javax.annotation.Nonnull;
 
 public class MeanFilter implements ScanFilter {
 
@@ -90,12 +91,12 @@ public class MeanFilter implements ScanFilter {
 
     }
 
+    double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDataPoints);
     // Create filtered scan
     SimpleScan newScan =
         new SimpleScan(newFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
-            sc.getPrecursorMZ(), sc.getPrecursorCharge(), null, null, MassSpectrumType.CENTROIDED,
+            sc.getPrecursorMZ(), sc.getPrecursorCharge(), dp[0], dp[1], MassSpectrumType.CENTROIDED,
             sc.getPolarity(), sc.getScanDefinition(), sc.getScanningMZRange());
-    newScan.setDataPoints(newDataPoints);
     return newScan;
 
   }

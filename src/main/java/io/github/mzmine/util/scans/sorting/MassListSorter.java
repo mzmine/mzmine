@@ -18,12 +18,13 @@
 
 package io.github.mzmine.util.scans.sorting;
 
+import io.github.mzmine.datamodel.MassSpectrum;
 import java.util.Comparator;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.util.scans.ScanUtils;
 
-public class MassListSorter implements Comparator<DataPoint[]> {
+public class MassListSorter implements Comparator<MassSpectrum> {
   private double noiseLevel;
   private ScanSortMode sort;
 
@@ -33,7 +34,7 @@ public class MassListSorter implements Comparator<DataPoint[]> {
   }
 
   @Override
-  public int compare(DataPoint[] a, DataPoint[] b) {
+  public int compare(MassSpectrum a, MassSpectrum b) {
     switch (sort) {
       case NUMBER_OF_SIGNALS:
         int result = Integer.compare(getNumberOfSignals(a), getNumberOfSignals(b));
@@ -54,7 +55,7 @@ public class MassListSorter implements Comparator<DataPoint[]> {
    * @param a
    * @return
    */
-  private double getTIC(DataPoint[] a) {
+  private double getTIC(MassSpectrum a) {
     return ScanUtils.getTIC(a, noiseLevel);
   }
 
@@ -64,7 +65,7 @@ public class MassListSorter implements Comparator<DataPoint[]> {
    * @param a
    * @return
    */
-  private int getNumberOfSignals(DataPoint[] a) {
+  private int getNumberOfSignals(MassSpectrum a) {
     return ScanUtils.getNumberOfSignals(a, noiseLevel);
   }
 

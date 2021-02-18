@@ -26,6 +26,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.XYResolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
@@ -83,5 +84,10 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
   @Override
   public XYResolver<Double, Double, double[], double[]> getXYResolver(ParameterSet parameters) {
     return new MinimumSearchFeatureResolver(parameters);
+  }
+
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

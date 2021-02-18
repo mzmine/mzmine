@@ -18,8 +18,13 @@
 
 package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
 
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 
 public class IMSFeatureVisualizerParameters extends SimpleParameterSet {
 
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.ONLY;
+  }
 }

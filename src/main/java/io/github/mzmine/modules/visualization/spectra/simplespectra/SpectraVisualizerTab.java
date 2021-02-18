@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -123,7 +124,6 @@ public class SpectraVisualizerTab extends MZmineTab {
   private final SpectraBottomPanel bottomPanel;
 
   private RawDataFile dataFile;
-  private String massList;
 
   // Currently loaded scan
   private Scan currentScan;
@@ -141,12 +141,10 @@ public class SpectraVisualizerTab extends MZmineTab {
   private static final double zoomCoefficient = 1.2f;
   private Color dataFileColor;
 
-  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, String massList,
-      boolean enableProcessing) {
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing) {
     super("Spectra visualizer", true, false);
     // setTitle("Spectrum loading...");
     this.dataFile = dataFile;
-    this.massList = massList;
     this.currentScan = scanNumber;
     dataFileColor = dataFile.getColorAWT();
 
@@ -284,7 +282,7 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   public SpectraVisualizerTab(RawDataFile dataFile) {
-    this(dataFile, null, null, false);
+    this(dataFile, null, false);
   }
 
   private void loadColorSettings() {
@@ -303,8 +301,9 @@ public class SpectraVisualizerTab extends MZmineTab {
         "Loading scan #" + scan.getScanNumber() + " from " + dataFile + " for spectra visualizer");
 
     spectrumDataSet = new ScanDataSet(scan);
+    MassList massList = scan.getMassList();
     if (massList != null) {
-      massListDataSet = new MassListDataSet(scan.getMassList(massList));
+      massListDataSet = new MassListDataSet(massList);
     }
 
     this.currentScan = scan;
@@ -357,7 +356,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     bottomPanel.setMSMSSelectorVisible(msmsVisible);
 
     // Set window and plot titles
-    String massListTitle = massList != null ? " mass list " + massList : "";
+    String massListTitle = "";
     String windowTitle = "Spectrum: [" + dataFile.getName() + "; scan #"
         + currentScan.getScanNumber() + massListTitle + "]";
 
@@ -377,8 +376,8 @@ public class SpectraVisualizerTab extends MZmineTab {
     final String finalSpectrumTitle = spectrumTitle;
     final String finalSpectrumSubtitle = spectrumSubtitle;
 
-    Platform.runLater(() -> {
-      // setTitle(windowTitle);
+//    Platform.runLater(() -> { // this should be the fx thread, otherwise loading isotopes will fail
+    // setTitle(windowTitle);
       spectrumPlot.setTitle(finalSpectrumTitle, finalSpectrumSubtitle);
 
       // Set plot data set
@@ -386,7 +385,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
       spectrumPlot.addDataSet(massListDataSet, massListColor, false);
       spectrumPlot.getXYPlot().getRenderer().setDefaultPaint(dataFileColor);
-    });
+//    });
 
   }
 

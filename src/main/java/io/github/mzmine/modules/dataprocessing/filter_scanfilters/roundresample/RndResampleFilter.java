@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.roundresample;
 
-import java.util.Arrays;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -29,6 +27,7 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.scans.ScanUtils;
+import javax.annotation.Nonnull;
 
 public class RndResampleFilter implements ScanFilter {
 
@@ -108,9 +107,15 @@ public class RndResampleFilter implements ScanFilter {
       prevMz = newDps[i].getMZ();
     }
 
+    double[][] newDp = new double[2][];
+    newDp[0] = new double[newNumOfDataPoints];
+    newDp[1] = new double[newNumOfDataPoints];
+    for(int i = 0; i < newNumOfDataPoints; i++) {
+      newDp[0][i] = dps[i].getMZ();
+      newDp[1][i] = dps[i].getIntensity();
+    }
     // Create updated scan
-    SimpleScan newScan = new SimpleScan(newFile, scan);
-    newScan.setDataPoints(Arrays.copyOfRange(dps, 0, newNumOfDataPoints));
+    SimpleScan newScan = new SimpleScan(newFile, scan, newDp[0], newDp[1]);
     newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
 
     return newScan;

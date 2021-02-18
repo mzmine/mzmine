@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MASS_LIST;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MERGE_PARAMETER;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_MATCH_FACTOR;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR;
@@ -110,7 +109,6 @@ public class NistMsSearchTask extends AbstractTask {
 
   // The mass-list and peak-list.
   private final FeatureList peakList;
-  private final String massList;
 
   // The feature list row to search for (null => all).
   private final FeatureListRow peakListRow;
@@ -139,7 +137,7 @@ public class NistMsSearchTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list the feature list to search.
+   * @param list   the feature list to search.
    * @param params search parameters.
    */
   public NistMsSearchTask(final FeatureList list, final ParameterSet params) {
@@ -150,8 +148,8 @@ public class NistMsSearchTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param row the feature list row to search for.
-   * @param list the feature list to search.
+   * @param row    the feature list row to search for.
+   * @param list   the feature list to search.
    * @param params search parameters.
    */
   public NistMsSearchTask(final FeatureListRow row, final FeatureList list,
@@ -169,7 +167,6 @@ public class NistMsSearchTask extends AbstractTask {
     msLevel = params.getParameter(MS_LEVEL).getValue();
     nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
     nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
-    massList = params.getParameter(MASS_LIST).getValue();
 
     // Optional parameters.
     if (params.getParameter(MERGE_PARAMETER).getValue()) {
@@ -297,7 +294,7 @@ public class NistMsSearchTask extends AbstractTask {
               MsMsSpectraMergeModule merger =
                   MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
               MergedSpectrum spectrum =
-                  merger.getBestMergedSpectrum(mergeParameters, row, massList);
+                  merger.getBestMergedSpectrum(mergeParameters, row);
               if (spectrum != null) {
                 dataPoints = spectrum.data;
                 comment = "MERGED_STATS= " + spectrum.getMergeStatsDescription();
@@ -491,9 +488,9 @@ public class NistMsSearchTask extends AbstractTask {
   /**
    * Writes a search spectrum file for the given row and data points.
    *
-   * @param peakRow the row.
+   * @param peakRow   the row.
    * @param dataPoint the chosen spectral results.
-   * @param comment details of scan or merging stats.
+   * @param comment   details of scan or merging stats.
    * @return the file.
    * @throws IOException if an i/o problem occurs.
    */

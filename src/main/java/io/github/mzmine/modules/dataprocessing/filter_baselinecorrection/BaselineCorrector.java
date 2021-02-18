@@ -18,9 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -30,11 +27,15 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.logging.Logger;
 
 /**
  * @description Abstract corrector class for baseline correction. Has to be specialized via the
@@ -207,8 +208,8 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       }
 
       // Create new copied scan.
-      final SimpleScan newScan = new SimpleScan(writer, origScan);
-      newScan.setDataPoints(newDataPoints);
+      double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDataPoints);
+      final SimpleScan newScan = new SimpleScan(writer, origScan, dp[0], dp[1]);
       writer.addScan(newScan);
       progressMap.get(origDataFile)[0]++;
     }
@@ -258,9 +259,9 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final DataPoint[] origDataPoints = ScanUtils.extractDataPoints(origScan);
 
       // Create and write new corrected scan.
-      final SimpleScan newScan = new SimpleScan(writer, origScan);
-      newScan.setDataPoints(
+      double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(
           subtractBasePeakBaselines(origDataFile, origDataPoints, baseChrom, numBins, scanIndex));
+      final SimpleScan newScan = new SimpleScan(writer, origScan, dp[0], dp[1]);
       writer.addScan(newScan);
       progressMap.get(origDataFile)[0]++;
     }
@@ -320,9 +321,9 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final DataPoint[] origDataPoints = ScanUtils.extractDataPoints(origScan);
 
       // Create and write new corrected scan.
-      final SimpleScan newScan = new SimpleScan(writer, origScan);
-      newScan.setDataPoints(
+      double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(
           subtractTICBaselines(origDataFile, origDataPoints, baseChrom, numBins, scanIndex));
+      final SimpleScan newScan = new SimpleScan(writer, origScan, dp[0], dp[1]);
       writer.addScan(newScan);
       progressMap.get(origDataFile)[0]++;
     }

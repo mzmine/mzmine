@@ -78,7 +78,6 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   private Double sortMSMSFactor = 0d;
 
   /**
-   *
    * @param parameters
    * @param featureList
    */
@@ -153,8 +152,9 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0.0;
+    }
     return (double) finishedRows / (double) totalRows;
   }
 
@@ -199,15 +199,17 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       // for sorting
       List<MolecularFormulaIdentity> flist = new ArrayList<>();
       while ((cdkFormula = generator.getNextFormula()) != null) {
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         // Mass is ok, so test other constraints
         if (checkConstraints(cdkFormula, row)) {
           Double isotopeScore = calcIsotopePatternScore(cdkFormula, row);
           Double msmsScore = calcIsotopePatternScore(cdkFormula, row);
-          if (getStatus().equals(TaskStatus.ERROR))
+          if (getStatus().equals(TaskStatus.ERROR)) {
             return;
+          }
 
           if ((isotopeScore == null || isotopeScore >= minScore)
               && (msmsScore == null || msmsScore >= minMSMSScore)) {
@@ -219,8 +221,9 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
         }
       }
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       // sort formulas by ppm difference
       FormulaUtils.sortFormulaList(flist, sortPPMFactor, sortIsotopeFactor, sortMSMSFactor);
@@ -234,14 +237,16 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
           ctr++;
         }
       }
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
       finishedRows++;
 
     }
 
-    if (isCanceled())
+    if (isCanceled()) {
       return;
+    }
 
     featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
         FormulaPredictionFeatureListModule.class, parameters));
@@ -275,7 +280,6 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   }
 
   /**
-   *
    * @param cdkFormula
    * @param featureListRow
    * @return null for no MSMS pattern - or a double as the score
@@ -288,12 +292,12 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     Scan msmsScan = bestFeature.getMostIntenseFragmentScan();
 
     if ((checkMSMS) && (msmsScan != null)) {
-      String massListName = msmsParameters.getParameter(MSMSScoreParameters.massList).getValue();
-      MassList ms2MassList = msmsScan.getMassList(massListName);
+      MassList ms2MassList = msmsScan.getMassList();
       if (ms2MassList == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("The MS/MS scan #" + msmsScan.getScanNumber() + " in file " + dataFile.getName()
-            + " does not have a mass list called '" + massListName + "'");
+        setErrorMessage(
+            "The MS/MS scan #" + msmsScan.getScanNumber() + " in file " + dataFile.getName()
+                + " does not have a mass list");
         return null;
       }
 
@@ -307,7 +311,6 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   }
 
   /**
-   *
    * @param cdkFormula
    * @param peakListRow
    * @return null for no isotope pattern - or a double as the score
@@ -327,8 +330,9 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
           .getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
       int isotopeBasePeak = detectedPattern.getBasePeakIndex();
-      if (isotopeBasePeak < 0)
+      if (isotopeBasePeak < 0) {
         return 0.0;
+      }
       final double detectedPatternHeight =
           detectedPattern.getIntensityValue(isotopeBasePeak);
 

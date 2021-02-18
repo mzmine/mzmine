@@ -29,7 +29,6 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
@@ -51,8 +50,6 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
       "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification",
       FileSelectionType.OPEN);
-
-  public static final MassListParameter massList = new MassListParameter();
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "Spectral m/z tolerance",
@@ -95,7 +92,7 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
           SpectralSimilarityFunction.FUNCTIONS);
 
   public SpectraIdentificationSpectralDatabaseParameters() {
-    super(new Parameter[] {massList, dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, noiseLevel,
+    super(new Parameter[] {dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, noiseLevel,
         deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance, minMatch,
         similarityFunction});
   }

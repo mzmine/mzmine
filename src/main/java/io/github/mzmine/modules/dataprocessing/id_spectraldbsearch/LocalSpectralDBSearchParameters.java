@@ -28,7 +28,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -76,9 +75,6 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       new MZToleranceParameter("Precursor m/z tolerance",
           "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
 
-  public static final MassListParameter massList =
-      new MassListParameter("MassList", "MassList for either MS1 or MS/MS scans to match");
-
   public static final OptionalParameter<RTToleranceParameter> rtTolerance =
       new OptionalParameter<>(new RTToleranceParameter());
 
@@ -110,7 +106,7 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   }
 
   public LocalSpectralDBSearchParameters() {
-    super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, allMS2Spectra,
+    super(new Parameter[] {peakLists, dataBaseFile, msLevel, allMS2Spectra,
         mzTolerancePrecursor, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
         mzTolerance, rtTolerance, minMatch, similarityFunction});
   }

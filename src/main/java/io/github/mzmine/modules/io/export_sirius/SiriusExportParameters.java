@@ -16,7 +16,6 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameter
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -31,7 +30,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
           new MsMsSpectraMergeParameters(), true);
 
   public SiriusExportParameters() {
-    super(new Parameter[] {FEATURE_LISTS, MASS_LIST, FILENAME, MERGE_PARAMETER});
+    super(new Parameter[] {FEATURE_LISTS, FILENAME, MERGE_PARAMETER});
   }
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
@@ -53,8 +52,6 @@ public class SiriusExportParameters extends SimpleParameterSet {
    * "For each MS/MS scan include also the corresponding MS scan (additionally to possibly detected isotope patterns). MS1 scans might contain valuable informations that can be processed by SIRIUS. But they increase file size significantly"
    * , true );
    */
-
-  public static final MassListParameter MASS_LIST = new MassListParameter();
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {

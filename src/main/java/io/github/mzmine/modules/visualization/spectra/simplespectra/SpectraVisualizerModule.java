@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import javafx.application.Platform;
 import javax.annotation.Nonnull;
 
 /**
@@ -42,12 +43,14 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   private static final String MODULE_DESCRIPTION = "Spectra visualizer."; // TODO
 
   @Override
-  public @Nonnull String getName() {
+  public @Nonnull
+  String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @Nonnull
+  String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
@@ -59,8 +62,7 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
         .getValue().getMatchingRawDataFiles();
 
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
-    String massList = parameters.getParameter(SpectraVisualizerParameters.massList).getValue();
-    addNewSpectrumTab(dataFiles[0], dataFiles[0].getScanAtNumber(scanNumber), massList);
+    addNewSpectrumTab(dataFiles[0], dataFiles[0].getScanAtNumber(scanNumber));
     return ExitCode.OK;
   }
 
@@ -71,11 +73,6 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile,
       Scan scan) {
     return addNewSpectrumTab(dataFile, scan, null, null, null, null);
-  }
-
-  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile,
-      Scan scan, String massList) {
-    return addNewSpectrumTab(dataFile, scan, null, null, null, null, massList);
   }
 
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
@@ -96,13 +93,9 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
 
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
-      IsotopePattern spectrum){
-    return addNewSpectrumTab(dataFile, scan, peak, detectedPattern, predictedPattern, spectrum, null);
-  }
+      IsotopePattern spectrum) {
 
-  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
-      Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
-      IsotopePattern spectrum, String massList) {
+    assert Platform.isFxApplicationThread();
 
     if (scan == null) {
       MZmineCore.getDesktop().displayErrorMessage(
@@ -110,49 +103,48 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
       return null;
     }
 
-    if (massList != null && massList.trim().length() == 0) {
-      massList = null;
-    }
-
     // check if the scan contains the specified mass list
-    if (massList != null) {
-      MassList massListObject = scan.getMassList(massList);
-      if (massListObject == null) {
-        MZmineCore.getDesktop().displayErrorMessage(
-          "Raw data file " + dataFile + " scan #" + scan + " does not contain mass list " + massList);
-        return null;
-      }
+    MassList massListObject = scan.getMassList();
+    if (massListObject == null) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Raw data file " + dataFile + " scan #" + scan + " does not contain mass list");
+      return null;
     }
 
-    SpectraVisualizerTab newTab = new SpectraVisualizerTab(dataFile, scan, massList, true);
+    SpectraVisualizerTab newTab = new SpectraVisualizerTab(dataFile, scan, true);
     newTab.loadRawData(scan);
 
-    if (peak != null)
+    if (peak != null) {
       newTab.loadSinglePeak(peak);
+    }
 
-    if (detectedPattern != null)
+    if (detectedPattern != null) {
       newTab.loadIsotopes(detectedPattern);
+    }
 
-    if (predictedPattern != null)
+    if (predictedPattern != null) {
       newTab.loadIsotopes(predictedPattern);
+    }
 
-    if (spectrum != null)
+    if (spectrum != null) {
       newTab.loadSpectrum(spectrum);
+    }
 
     //newWindow.show();
     MZmineCore.getDesktop().addTab(newTab);
 
     return newTab;
-
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @Nonnull
+  MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONRAWDATA;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @Nonnull
+  Class<? extends ParameterSet> getParameterSetClass() {
     return SpectraVisualizerParameters.class;
   }
 

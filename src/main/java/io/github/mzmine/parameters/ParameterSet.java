@@ -18,9 +18,10 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import org.w3c.dom.Element;
-import io.github.mzmine.util.ExitCode;
 
 /**
  * This class represents a general parameter set of a module. Typical module will use a
@@ -41,6 +42,19 @@ public interface ParameterSet extends ParameterContainer {
   public boolean checkParameterValues(Collection<String> errorMessages);
 
   public ParameterSet cloneParameterSet();
+
+  /**
+   * This method specifies the fitness of a module to process data acquired on a ion mobility
+   * spectrometry (IMS)-mass spectrometer. The default implementation returns {@link
+   * IonMobilitySupport#UNTESTED}. However, overriding this method is encouraged to clarify it's
+   * fitness for ion mobility data, even if it will still return {@link
+   * IonMobilitySupport#UNTESTED}.
+   *
+   * @return
+   */
+  default IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.UNTESTED;
+  }
 
   /**
    * Represent method's parameters and their values in human-readable format

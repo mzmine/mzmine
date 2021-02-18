@@ -43,7 +43,6 @@ import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Exports a spectrum to a file.
- *
  */
 public class ExportScansTask extends AbstractTask {
 
@@ -59,15 +58,11 @@ public class ExportScansTask extends AbstractTask {
 
   private boolean useMassList;
 
-  private String massListName;
-
   public ExportScansTask(Scan[] scans, ParameterSet parameters) {
     progress = 0;
     progressMax = 0;
     this.scans = scans;
-    useMassList = parameters.getParameter(ExportScansParameters.masslist).getValue();
-    massListName =
-        parameters.getParameter(ExportScansParameters.masslist).getEmbeddedParameter().getValue();
+    useMassList = parameters.getParameter(ExportScansParameters.export_masslist).getValue();
     extension = parameters.getParameter(ExportScansParameters.formats).getValue().toString();
 
     this.exportFile = FileAndPathUtil
@@ -76,13 +71,15 @@ public class ExportScansTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    if (scans == null)
+    if (scans == null) {
       return "";
-    if (scans.length == 1)
+    }
+    if (scans.length == 1) {
       return "Exporting spectrum # " + scans[0].getScanNumber() + " for "
           + scans[0].getDataFile().getName();
-    else
+    } else {
       return "Exporting " + scans.length + " spectra";
+    }
   }
 
   @Override
@@ -158,13 +155,15 @@ public class ExportScansTask extends AbstractTask {
 
         // Write the data points
         DataPoint[] dataPoints = null;
-        if (useMassList && massListName != null) {
-          MassList list = scan.getMassList(massListName);
-          if (list != null)
+        if (useMassList) {
+          MassList list = scan.getMassList();
+          if (list != null) {
             dataPoints = list.getDataPoints();
+          }
         }
-        if (dataPoints == null)
+        if (dataPoints == null) {
           dataPoints = ScanUtils.extractDataPoints(scan);
+        }
 
         final int itemCount = dataPoints.length;
         progressMax = itemCount;

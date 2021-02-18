@@ -767,19 +767,18 @@ public class ScanUtils {
    * specified or first massList, if none was specified
    *
    * @param row all MS2 scans of all features in this row
-   * @param massListName the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @param sort the sorting property (best first, index=0)
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllFragmentScans(FeatureListRow row, @Nullable String massListName,
+  public static List<Scan> listAllFragmentScans(FeatureListRow row,
       double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
       throws MissingMassListException {
-    List<Scan> scans = listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals);
+    List<Scan> scans = listAllFragmentScans(row, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
-    scans.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
+    scans.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
     return scans;
   }
 
@@ -788,17 +787,16 @@ public class ScanUtils {
    * massList, if none was specified
    *
    * @param row
-   * @param massListName the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
    */
   @Nonnull
   public static ObservableList<Scan> listAllFragmentScans(FeatureListRow row,
-      @Nullable String massListName, double noiseLevel, int minNumberOfSignals)
+      double noiseLevel, int minNumberOfSignals)
       throws MissingMassListException {
     ObservableList<Scan> scans = row.getAllMS2Fragmentations();
-    return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+    return listAllScans(scans, noiseLevel, minNumberOfSignals);
   }
 
   /**
@@ -806,19 +804,17 @@ public class ScanUtils {
    * signals >= noiseLevel in the specified or first massList, if none was specified
    *
    * @param row all representative MS1 scans of all features in this row
-   * @param massListName the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @param sort the sorting property (best first, index=0)
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllMS1Scans(FeatureListRow row, @Nullable String massListName,
-      double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
-      throws MissingMassListException {
-    List<Scan> scans = listAllMS1Scans(row, massListName, noiseLevel, minNumberOfSignals);
+  public static List<Scan> listAllMS1Scans(FeatureListRow row, double noiseLevel,
+      int minNumberOfSignals, ScanSortMode sort) throws MissingMassListException {
+    List<Scan> scans = listAllMS1Scans(row, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
-    scans.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
+    scans.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
     return scans;
   }
 
@@ -827,17 +823,16 @@ public class ScanUtils {
    * >= noiseLevel in the specified or first massList, if none was specified
    *
    * @param row
-   * @param massListName the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
    */
   @Nonnull
   public static ObservableList<Scan> listAllMS1Scans(FeatureListRow row,
-      @Nullable String massListName, double noiseLevel, int minNumberOfSignals)
+      double noiseLevel, int minNumberOfSignals)
       throws MissingMassListException {
     ObservableList<Scan> scans = getAllMostIntenseMS1Scans(row);
-    return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+    return listAllScans(scans, noiseLevel, minNumberOfSignals);
   }
 
   /**
@@ -855,19 +850,18 @@ public class ScanUtils {
    * List of all scans with n signals >= noiseLevel in the specified or first massList, if none was
    * specified
    *
-   * @param massListName the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
    */
   @Nonnull
   public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans,
-      @Nullable String massListName, double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
+      double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
       throws MissingMassListException {
     ObservableList<Scan> filtered =
-        listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+        listAllScans(scans, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
-    filtered.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
+    filtered.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
     return filtered;
   }
 
@@ -875,53 +869,29 @@ public class ScanUtils {
    * List of all scans with n signals >= noiseLevel in the specified or first massList, if none was
    * specified
    *
-   * @param massListName the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
    */
   @Nonnull
   public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans,
-      @Nullable String massListName, double noiseLevel, int minNumberOfSignals)
+      double noiseLevel, int minNumberOfSignals)
       throws MissingMassListException {
     ObservableList<Scan> filtered = FXCollections.observableArrayList();
     for (Scan scan : scans) {
       // find mass list: with name or first
-      final MassList massList = getMassListOrFirst(scan, massListName);
+      final MassList massList = scan.getMassList();
       if (massList == null) {
-        throw new MissingMassListException("", massListName);
+        throw new MissingMassListException(scan);
       }
 
       // minimum number of signals >= noiseLevel
-      int signals = 0;
-      for (DataPoint dp : massList.getDataPoints()) {
-        if (dp.getIntensity() >= noiseLevel) {
-          signals++;
-        }
-      }
+      int signals = getNumberOfSignals(massList, noiseLevel);
       if (signals >= minNumberOfSignals) {
         filtered.add(scan);
       }
     }
     return filtered;
-  }
-
-  /**
-   * Get specific masslist or the first if no masslist name is specified
-   *
-   * @param scan
-   * @param massListName
-   * @return null if no masslist with this name or if name was not specified and this scan has zero
-   *         masslists
-   * @throws MissingMassListException
-   */
-  public static MassList getMassListOrFirst(Scan scan, String massListName) {
-    final MassList massList;
-    if (Strings.isNullOrEmpty(massListName)) {
-      return Arrays.stream(scan.getMassLists()).findFirst().orElse(null);
-    } else {
-      return massList = scan.getMassList(massListName);
-    }
   }
 
   /**
@@ -974,6 +944,42 @@ public class ScanUtils {
     return n;
   }
 
+
+  /**
+   * Sum of intensity of all data points >= noiseLevel
+   *
+   * @param spec
+   * @param noiseLevel
+   * @return
+   */
+  public static double getTIC(MassSpectrum spec, double noiseLevel) {
+    int size = spec.getNumberOfDataPoints();
+    double sum = 0;
+    for(int i=0; i<size; i++) {
+      double intensity = spec.getIntensityValue(i);
+      if(intensity >= noiseLevel)
+        sum += intensity;
+    }
+    return sum;
+  }
+
+  /**
+   * Number of signals >=noiseLevel
+   *
+   * @param spec
+   * @param noiseLevel
+   * @return
+   */
+  public static int getNumberOfSignals(MassSpectrum spec, double noiseLevel) {
+    int size = spec.getNumberOfDataPoints();
+    int n = 0;
+    for(int i=0; i<size; i++) {
+      if(spec.getIntensityValue(i) >= noiseLevel)
+        n++;
+    }
+    return n;
+  }
+
   /**
    * Finds the first MS1 scan preceding the given MS2 scan. If no such scan exists, returns null.
    */
@@ -1022,27 +1028,22 @@ public class ScanUtils {
    * Selects best N MS/MS scans from a feature list row
    */
   public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull FeatureListRow row,
-      @Nonnull String massListName, @Nonnull Integer topN) throws MissingMassListException {
-
-    @SuppressWarnings("null")
+      @Nonnull Integer topN) throws MissingMassListException {
     final @Nonnull List<Scan> allMS2Scans = row.getAllMS2Fragmentations();
-
-    return selectBestMS2Scans(allMS2Scans, massListName, topN);
+    return selectBestMS2Scans(allMS2Scans, topN);
   }
 
   /**
    * Selects best N MS/MS scans from a collection of scans
    */
   public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull Collection<Scan> scans,
-      @Nonnull String massListName, @Nonnull Integer topN) throws MissingMassListException {
-
+      @Nonnull Integer topN) throws MissingMassListException {
     assert scans != null;
-    assert massListName != null;
     assert topN != null;
 
     // Keeps MS2 scans sorted by decreasing quality
     TreeSet<Scan> sortedScans = new TreeSet<>(
-        Collections.reverseOrder(new ScanSorter(massListName, 0, ScanSortMode.MAX_TIC)));
+        Collections.reverseOrder(new ScanSorter(0, ScanSortMode.MAX_TIC)));
     sortedScans.addAll(scans);
 
     // Filter top N scans into an immutable list

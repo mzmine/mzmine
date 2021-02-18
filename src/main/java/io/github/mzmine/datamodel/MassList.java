@@ -18,21 +18,21 @@
 
 package io.github.mzmine.datamodel;
 
-import javax.annotation.Nonnull;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * This class represent detected masses (ions) in one mass spectrum. Each ion is represented by a
  * DataPoint
  */
-public interface MassList {
+public interface MassList extends MassSpectrum {
 
-  @Nonnull
-  public String getName();
-
-  @Nonnull
-  public Scan getScan();
-
-  @Nonnull
-  public DataPoint[] getDataPoints();
+  /**
+   * Try to directly access m/z and intensity values by index
+   * @return
+   */
+  @Deprecated
+  default public DataPoint[] getDataPoints() {
+    return ScanUtils.extractDataPoints(this);
+  }
 
 }

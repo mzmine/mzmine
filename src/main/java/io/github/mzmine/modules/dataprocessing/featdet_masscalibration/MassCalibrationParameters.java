@@ -28,7 +28,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.combonested.NestedComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -42,8 +41,6 @@ import io.github.mzmine.util.ExitCode;
 public class MassCalibrationParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
-
-  public static final MassListParameter massList = new MassListParameter();
 
   public enum MassPeakMatchingChoice {
     STANDARDS_LIST("Standard Calibrant Library (SCL)"), //
@@ -245,13 +242,9 @@ public class MassCalibrationParameters extends SimpleParameterSet {
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to mass list name as a suffix", "calibrated");
 
-  public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove original mass list",
-          "If checked, original mass list will be removed and only filtered version remains");
-
   public MassCalibrationParameters() {
-    super(new Parameter[] {dataFiles, massList, intensityThreshold, duplicateErrorFilter,
-        referenceLibrary, rangeExtractionMethod, biasEstimationMethod, suffix, autoRemove});
+    super(new Parameter[] {dataFiles, intensityThreshold, duplicateErrorFilter,
+        referenceLibrary, rangeExtractionMethod, biasEstimationMethod, suffix});
   }
 
   @Override

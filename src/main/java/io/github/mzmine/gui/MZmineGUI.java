@@ -20,18 +20,7 @@ package io.github.mzmine.gui;
 
 
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.FutureTask;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import org.apache.commons.io.FilenameUtils;
-import org.controlsfx.control.StatusBar;
+
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -56,17 +45,31 @@ import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -76,128 +79,23 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javax.annotation.Nonnull;
+import org.apache.commons.io.FilenameUtils;
+import org.controlsfx.control.StatusBar;
 
 /**
  * MZmine JavaFX Application class
  */
 public class MZmineGUI extends Application implements Desktop {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
+  public static final int MAX_TABS = 7;
   private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
 
   private static MainWindowController mainWindowController;
-
-  public static final int MAX_TABS = 7;
-
   private static Stage mainStage;
   private static Scene rootScene;
-
-  @Override
-  public void start(Stage stage) {
-
-    MZmineGUI.mainStage = stage;
-    MZmineCore.setDesktop(this);
-
-    logger.finest("Initializing MZmine main window");
-
-    try {
-      // Load the main window
-      URL mainFXML = this.getClass().getResource(mzMineFXML);
-      FXMLLoader loader = new FXMLLoader(mainFXML);
-
-      rootScene = loader.load();
-      mainWindowController = loader.getController();
-      stage.setScene(rootScene);
-      rootScene.getStylesheets()
-          .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
-
-      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.darkMode).getValue();
-      if (darkMode != null && darkMode == true) {
-        rootScene.getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
-      } else {
-        rootScene.getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
-      }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      logger.severe("Error loading MZmine GUI from FXML: " + e);
-      Platform.exit();
-    }
-
-    stage.setTitle("MZmine " + MZmineCore.getMZmineVersion());
-    stage.setMinWidth(600);
-    stage.setMinHeight(400);
-
-    // Set application icon
-    stage.getIcons().setAll(mzMineIcon);
-
-    stage.setOnCloseRequest(e -> {
-      requestQuit();
-      e.consume();
-    });
-
-    // Drag over surface
-    rootScene.setOnDragOver(MZmineGUI::activateSetOnDragOver);
-    // Dropping over surface
-    rootScene.setOnDragDropped(MZmineGUI::activateSetOnDragDropped);
-
-    // Configure desktop properties such as the application taskbar icon
-    // on a new thread. It is important to start this thread after the
-    // JavaFX subsystem has started. Otherwise we could be treated like a
-    // Swing application.
-    Thread desktopSetupThread = new Thread(new DesktopSetup());
-    desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
-    desktopSetupThread.start();
-
-    setStatusBarText("Welcome to MZmine " + MZmineCore.getMZmineVersion());
-
-    stage.show();
-
-    // update the size and position of the main window
-    /*
-     * ParameterSet paramSet = configuration.getPreferences(); WindowSettingsParameter settings =
-     * paramSet .getParameter(MZminePreferences.windowSetttings);
-     * settings.applySettingsToWindow(desktop.getMainWindow());
-     */
-    // add last project menu items
-    /*
-     * if (desktop instanceof MainWindow) { ((MainWindow) desktop).createLastUsedProjectsMenu(
-     * configuration.getLastProjects()); // listen for changes
-     * configuration.getLastProjectsParameter() .addFileListChangedListener(list -> { // new list of
-     * last used projects Desktop desk = getDesktop(); if (desk instanceof MainWindow) {
-     * ((MainWindow) desk) .createLastUsedProjectsMenu(list); } }); }
-     */
-
-    // Activate project - bind it to the desktop's project tree
-    MZmineProjectImpl currentProject =
-        (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
-    MZmineGUI.activateProject(currentProject);
-
-
-    // Check for updated version
-    NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
-    Thread nvcThread = new Thread(NVC);
-    nvcThread.setPriority(Thread.MIN_PRIORITY);
-    nvcThread.start();
-
-    // Tracker
-    GoogleAnalyticsTracker GAT =
-        new GoogleAnalyticsTracker("MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
-    Thread gatThread = new Thread(GAT);
-    gatThread.setPriority(Thread.MIN_PRIORITY);
-    gatThread.start();
-
-    // register shutdown hook only if we have GUI - we don't want to
-    // save configuration on exit if we only run a batch
-    ShutDownHook shutDownHook = new ShutDownHook();
-    Runtime.getRuntime().addShutdownHook(shutDownHook);
-
-  }
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public static void requestQuit() {
     Platform.runLater(() -> {
@@ -389,6 +287,110 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
+  public void start(Stage stage) {
+
+    MZmineGUI.mainStage = stage;
+    MZmineCore.setDesktop(this);
+
+    logger.finest("Initializing MZmine main window");
+
+    try {
+      // Load the main window
+      URL mainFXML = this.getClass().getResource(mzMineFXML);
+      FXMLLoader loader = new FXMLLoader(mainFXML);
+
+      rootScene = loader.load();
+      mainWindowController = loader.getController();
+      stage.setScene(rootScene);
+      rootScene.getStylesheets()
+          .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
+
+      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
+          .getParameter(MZminePreferences.darkMode).getValue();
+      if (darkMode != null && darkMode == true) {
+        rootScene.getStylesheets()
+            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
+      } else {
+        rootScene.getStylesheets()
+            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      logger.severe("Error loading MZmine GUI from FXML: " + e);
+      Platform.exit();
+    }
+
+    stage.setTitle("MZmine " + MZmineCore.getMZmineVersion());
+    stage.setMinWidth(600);
+    stage.setMinHeight(400);
+
+    // Set application icon
+    stage.getIcons().setAll(mzMineIcon);
+
+    stage.setOnCloseRequest(e -> {
+      requestQuit();
+      e.consume();
+    });
+
+    // Drag over surface
+    rootScene.setOnDragOver(MZmineGUI::activateSetOnDragOver);
+    // Dropping over surface
+    rootScene.setOnDragDropped(MZmineGUI::activateSetOnDragDropped);
+
+    // Configure desktop properties such as the application taskbar icon
+    // on a new thread. It is important to start this thread after the
+    // JavaFX subsystem has started. Otherwise we could be treated like a
+    // Swing application.
+    Thread desktopSetupThread = new Thread(new DesktopSetup());
+    desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
+    desktopSetupThread.start();
+
+    setStatusBarText("Welcome to MZmine " + MZmineCore.getMZmineVersion());
+
+    stage.show();
+
+    // update the size and position of the main window
+    /*
+     * ParameterSet paramSet = configuration.getPreferences(); WindowSettingsParameter settings =
+     * paramSet .getParameter(MZminePreferences.windowSetttings);
+     * settings.applySettingsToWindow(desktop.getMainWindow());
+     */
+    // add last project menu items
+    /*
+     * if (desktop instanceof MainWindow) { ((MainWindow) desktop).createLastUsedProjectsMenu(
+     * configuration.getLastProjects()); // listen for changes
+     * configuration.getLastProjectsParameter() .addFileListChangedListener(list -> { // new list of
+     * last used projects Desktop desk = getDesktop(); if (desk instanceof MainWindow) {
+     * ((MainWindow) desk) .createLastUsedProjectsMenu(list); } }); }
+     */
+
+    // Activate project - bind it to the desktop's project tree
+    MZmineProjectImpl currentProject =
+        (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
+    MZmineGUI.activateProject(currentProject);
+
+    // Check for updated version
+    NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
+    Thread nvcThread = new Thread(NVC);
+    nvcThread.setPriority(Thread.MIN_PRIORITY);
+    nvcThread.start();
+
+    // Tracker
+    GoogleAnalyticsTracker GAT =
+        new GoogleAnalyticsTracker("MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
+    Thread gatThread = new Thread(GAT);
+    gatThread.setPriority(Thread.MIN_PRIORITY);
+    gatThread.start();
+
+    // register shutdown hook only if we have GUI - we don't want to
+    // save configuration on exit if we only run a batch
+    ShutDownHook shutDownHook = new ShutDownHook();
+    Runtime.getRuntime().addShutdownHook(shutDownHook);
+
+  }
+
+  @Override
   public String getName() {
     return "MZmine desktop";
   }
@@ -462,6 +464,8 @@ public class MZmineGUI extends Application implements Desktop {
     Platform.runLater(() -> {
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
       dialog.setContentText(msg);
@@ -485,16 +489,19 @@ public class MZmineGUI extends Application implements Desktop {
 
     FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION, msg, buttonTypes);
+      alert.getDialogPane().getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       alert.showAndWait();
       return alert.getResult();
     });
 
     // Show the dialog
     try {
-      if (Platform.isFxApplicationThread())
+      if (Platform.isFxApplicationThread()) {
         alertTask.run();
-      else
+      } else {
         Platform.runLater(alertTask);
+      }
       return alertTask.get();
     } catch (Exception e) {
       e.printStackTrace();
@@ -564,4 +571,55 @@ public class MZmineGUI extends Application implements Desktop {
     return tabs;
   }
 
+  public ButtonType createAlertWithOptOut(String title, String headerText,
+      String message, String optOutMessage, Consumer<Boolean> optOutAction) {
+    // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
+    FutureTask<ButtonType> task = new FutureTask<>(() -> {
+      Alert alert = new Alert(AlertType.WARNING);
+      alert.getDialogPane().getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      // Need to force the alert to layout in order to grab the graphic,
+      // as we are replacing the dialog pane with a custom pane
+      alert.getDialogPane().applyCss();
+      Node graphic = alert.getDialogPane().getGraphic();
+      // Create a new dialog pane that has a checkbox instead of the hide/show details button
+      // Use the supplied callback for the action of the checkbox
+      alert.setDialogPane(new DialogPane() {
+        @Override
+        protected Node createDetailsButton() {
+          CheckBox optOut = new CheckBox();
+          optOut.setText(optOutMessage);
+          optOut.setOnAction(e -> optOutAction.accept(optOut.isSelected()));
+          return optOut;
+        }
+      });
+      alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
+      alert.getDialogPane().setContentText(message);
+      // Fool the dialog into thinking there is some expandable content
+      // a Group won't take up any space if it has no children
+      alert.getDialogPane().setExpandableContent(new Group());
+      alert.getDialogPane().setExpanded(true);
+      // Reset the dialog graphic using the default style
+      alert.getDialogPane().setGraphic(graphic);
+      alert.setTitle(title);
+      alert.setHeaderText(headerText);
+      alert.showAndWait();
+      return alert.getResult();
+    });
+
+    if (Platform.isFxApplicationThread()) {
+      task.run();
+    } else {
+      Platform.runLater(task);
+    }
+
+    try {
+      return task.get();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    }
+    return ButtonType.NO;
+  }
 }

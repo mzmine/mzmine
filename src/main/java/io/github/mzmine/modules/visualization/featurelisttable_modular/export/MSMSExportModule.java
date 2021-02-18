@@ -48,9 +48,8 @@ public class MSMSExportModule implements MZmineModule {
     }
 
     File outputFile = parameters.getParameter(MSMSExportParameters.outputFile).getValue();
-    String massListName = parameters.getParameter(MSMSExportParameters.massList).getValue();
 
-    if ((outputFile == null) || (massListName == null)) {
+    if (outputFile == null) {
       return;
     }
 
@@ -67,10 +66,10 @@ public class MSMSExportModule implements MZmineModule {
     // MS/MS scan must exist, because msmsScanNumber was > 0
     Scan msmsScan = msmsScanNumber;
 
-    MassList massList = msmsScan.getMassList(massListName);
+    MassList massList = msmsScan.getMassList();
     if (massList == null) {
       MZmineCore.getDesktop().displayErrorMessage(
-          "There is no mass list called " + massListName + " for MS/MS scan #" + msmsScanNumber
+          "There is no mass list for MS/MS scan #" + msmsScanNumber
               + " (" + bestFeature.getRawDataFile() + ")");
       return;
     }

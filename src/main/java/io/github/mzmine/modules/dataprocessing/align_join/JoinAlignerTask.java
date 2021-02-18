@@ -71,7 +71,6 @@ public class JoinAlignerTask extends AbstractTask {
   // fields for spectra similarity
   private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
   private int msLevel;
-  private String massList;
 
   public JoinAlignerTask(MZmineProject project, ParameterSet parameters) {
 
@@ -110,9 +109,6 @@ public class JoinAlignerTask extends AbstractTask {
           .getEmbeddedParameters().getParameter(JoinAlignerSpectraSimilarityScoreParameters.msLevel)
           .getValue();
 
-      massList = parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity)
-          .getEmbeddedParameters()
-          .getParameter(JoinAlignerSpectraSimilarityScoreParameters.massList).getValue();
     }
   }
 
@@ -246,10 +242,10 @@ public class JoinAlignerTask extends AbstractTask {
             // scans
             if (msLevel == 1) {
               rowDPs =
-                  row.getBestFeature().getRepresentativeScan().getMassList(massList)
+                  row.getBestFeature().getRepresentativeScan().getMassList()
                       .getDataPoints();
               candidateDPs = candidate.getBestFeature().getRepresentativeScan()
-                  .getMassList(massList)
+                  .getMassList()
                   .getDataPoints();
             }
 
@@ -257,9 +253,9 @@ public class JoinAlignerTask extends AbstractTask {
             // fragmentation scans
             if (msLevel == 2) {
               if (row.getBestFragmentation() != null && candidate.getBestFragmentation() != null) {
-                rowDPs = row.getBestFragmentation().getMassList(massList).getDataPoints();
+                rowDPs = row.getBestFragmentation().getMassList().getDataPoints();
                 candidateDPs =
-                    candidate.getBestFragmentation().getMassList(massList).getDataPoints();
+                    candidate.getBestFragmentation().getMassList().getDataPoints();
               } else {
                 continue;
               }
