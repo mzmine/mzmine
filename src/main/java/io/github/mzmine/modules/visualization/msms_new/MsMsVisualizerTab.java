@@ -71,24 +71,30 @@ public class MsMsVisualizerTab extends MZmineTab {
     borderPane.setCenter(chart);
 
     // Axes selection
-    ComboBox<MsMsAxisType> xAxisTypes = new ComboBox<>();
-    xAxisTypes.getItems().addAll(MsMsAxisType.values());
+    ComboBox<MsMsXYAxisType> xAxisTypes = new ComboBox<>();
+    xAxisTypes.getItems().addAll(MsMsXYAxisType.values());
     xAxisTypes.setValue(parameters.getParameter(MsMsParameters.xAxisType).getValue());
     xAxisTypes.setOnAction(event -> {
       chart.setDomainAxisLabel(xAxisTypes.getValue().toString());
       chart.setXAxisType(xAxisTypes.getValue());
     });
-    ComboBox<MsMsAxisType> yAxisTypes = new ComboBox<>();
-    yAxisTypes.getItems().addAll(MsMsAxisType.values());
+    ComboBox<MsMsXYAxisType> yAxisTypes = new ComboBox<>();
+    yAxisTypes.getItems().addAll(MsMsXYAxisType.values());
     yAxisTypes.setValue(parameters.getParameter(MsMsParameters.yAxisType).getValue());
     yAxisTypes.setOnAction(event -> {
       chart.setRangeAxisLabel(yAxisTypes.getValue().toString());
       chart.setYAxisType(yAxisTypes.getValue());
     });
+    ComboBox<MsMsZAxisType> zAxisTypes = new ComboBox<>();
+    zAxisTypes.getItems().addAll(MsMsZAxisType.values());
+    zAxisTypes.setValue(parameters.getParameter(MsMsParameters.zAxisType).getValue());
+    zAxisTypes.setOnAction(event -> {
+      chart.setZAxisType(zAxisTypes.getValue());
+    });
     HBox bottomBox = new HBox();
     bottomBox.setAlignment(Pos.CENTER_LEFT);
-    bottomBox.getChildren().addAll(new Text("X axis: "), xAxisTypes,
-        new Separator(Orientation.VERTICAL), new Text("Y axis: "), yAxisTypes);
+    bottomBox.getChildren().addAll(new Text("  X axis: "), xAxisTypes, new Text("  Y axis: "),
+        yAxisTypes, new Text("  Z axis: "), zAxisTypes);
     borderPane.setBottom(bottomBox);
 
     // Tool bar

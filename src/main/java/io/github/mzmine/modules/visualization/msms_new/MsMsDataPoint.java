@@ -28,40 +28,42 @@ class MsMsDataPoint {
   private static final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
   private static final int defaultPrecursorCharge = 1;
-  private final double mzValue;
-  private final double precursorMZ;
-  private final int precursorCharge;
-  private final double retentionTime;
-  private final double neutralLoss;
+  private double productMz;
+  private double precursorMz;
+  private int precursorCharge;
+  private double retentionTime;
+  private double neutralLoss;
   private double precursorMass;
-  private final double intensity;
+  private double productIntensity;
+  private double precursorIntensity;
 
   private boolean isHighlighted = false;
 
-  public MsMsDataPoint(double mzValue, double precursorMZ, int precursorCharge, double retentionTime,
-      double intensity) {
-    this.mzValue = mzValue;
-    this.precursorMZ = precursorMZ;
+  public MsMsDataPoint(double productMz, double precursorMz, int precursorCharge,
+      double retentionTime, double productIntensity, double precursorIntensity) {
+    this.productMz = productMz;
+    this.precursorMz = precursorMz;
     this.precursorCharge = precursorCharge;
     this.retentionTime = retentionTime;
-    this.intensity = intensity;
+    this.productIntensity = productIntensity;
+    this.precursorIntensity = precursorIntensity;
 
-    precursorMass = precursorMZ;
+    precursorMass = precursorMz;
     if (precursorCharge > 0) {
       precursorMass *= precursorCharge;
-    } else if (precursorCharge == 0 && precursorMass < mzValue) {
+    } else if (precursorCharge == 0 && precursorMass < productMz) {
       precursorMass *= defaultPrecursorCharge;
     }
 
-    neutralLoss = precursorMass - mzValue;
+    neutralLoss = precursorMass - productMz;
   }
 
   public int getPrecursorCharge() {
     return precursorCharge;
   }
 
-  public double getPrecursorMZ() {
-    return precursorMZ;
+  public double getPrecursorMz() {
+    return precursorMz;
   }
 
   public double getPrecursorMass() {
@@ -73,15 +75,19 @@ class MsMsDataPoint {
   }
 
   public double getProductMZ() {
-    return mzValue;
+    return productMz;
   }
 
   public double getNeutralLoss() {
     return neutralLoss;
   }
 
-  public double getIntensity() {
-    return intensity;
+  public double getProductIntensity() {
+    return productIntensity;
+  }
+
+  public double getPrecursorIntensity() {
+    return precursorIntensity;
   }
 
   public void setHighlighted(boolean isHighlighted) {
@@ -94,12 +100,13 @@ class MsMsDataPoint {
 
   @Override
   public String toString() {
-    return "Product m/z: " + mzFormat.format(mzValue) + '\n'
+    return "Product m/z: " + mzFormat.format(productMz) + '\n'
         + "Retention time: " + rtFormat.format(retentionTime) + '\n'
-        + "Precursor m/z: " + mzFormat.format(precursorMZ) + '\n'
+        + "Precursor m/z: " + mzFormat.format(precursorMz) + '\n'
         + "Neutral loss: " + mzFormat.format(neutralLoss) + '\n'
         + "Precursor charge: " + precursorCharge + '\n'
-        + "Base peak intensity: " + intensityFormat.format(intensity);
+        + "Product intensity: " + intensityFormat.format(productIntensity) + '\n'
+        + "Precursor intensity: " + intensityFormat.format(precursorIntensity);
   }
 
 }

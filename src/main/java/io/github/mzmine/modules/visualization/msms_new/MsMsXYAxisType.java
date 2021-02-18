@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.msms_new;
 
-public enum MsMsAxisType {
+public enum MsMsXYAxisType {
 
   RETENTION_TIME("Retention time"),
   PRECURSOR_MZ("Precursor ion m/z"),
@@ -27,7 +27,7 @@ public enum MsMsAxisType {
 
   private final String type;
 
-  MsMsAxisType(String type) {
+  MsMsXYAxisType(String type) {
     this.type = type;
   }
 

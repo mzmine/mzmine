@@ -53,8 +53,11 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   private final RawDataFile dataFile;
   private final Range<Float> rtRange;
   private final Range<Double> mzRange;
-  private MsMsAxisType xAxisType;
-  private MsMsAxisType yAxisType;
+  private MsMsXYAxisType xAxisType;
+  private MsMsXYAxisType yAxisType;
+  private MsMsZAxisType zAxisType;
+  int msLevel;
+  private final MZTolerance mzTolerance;
 
   private final Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
 
@@ -63,34 +66,38 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   double intensityFilterValue;
 
   // Diagnostic fragmentation filtering
-  private MZTolerance mzDifference;
   private List<Double> dffListMz;
   private List<Double> dffListNl;
 
-  private final List<Scan> scans;
+  private final List<Scan> allScans;
   private final List<MsMsDataPoint> dataPoints = new ArrayList<>();
 
   private int processedScans = 0;
-  private double maxIntensity = 0;
+  private double maxProductIntensity = 0;
+  private double maxPrecursorIntensity = 0;
+  private float maxRt = 0;
 
   MsMsDataProvider(ParameterSet parameters) {
+
     // Basic parameters
     dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
     rtRange = RangeUtils.toFloatRange(
-        parameters.getParameter(MsMsParameters.retentionTimeRange).getValue());
+        parameters.getParameter(MsMsParameters.rtRange).getValue());
     mzRange = parameters.getParameter(MsMsParameters.mzRange).getValue();
     xAxisType = parameters.getParameter(MsMsParameters.xAxisType).getValue();
     yAxisType = parameters.getParameter(MsMsParameters.yAxisType).getValue();
+    zAxisType = parameters.getParameter(MsMsParameters.zAxisType).getValue();
+    mzTolerance = parameters.getParameter(MsMsParameters.mzTolerance).getValue();
 
-    int msLevel = parameters.getParameter(MsMsParameters.msLevel).getValue();
+    msLevel = parameters.getParameter(MsMsParameters.msLevel).getValue();
     if (msLevel < 2) {
       Alert alert = new Alert(AlertType.ERROR);
       alert.setTitle("Invalid MS level");
       alert.setHeaderText("MS level must be greater then 1 for the MS/MS visualizer");
       alert.showAndWait();
     }
-    scans = dataFile.getScanNumbers(msLevel);
+    allScans = dataFile.getScans();
 
     // Most intense fragments filtering
     intensityFilterType
@@ -120,9 +127,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     OptionalModuleParameter dffParameter = parameters.getParameter(MsMsParameters.dffParameters);
     if (dffParameter.getValue()) {
       ParameterSet dffParameters = dffParameter.getEmbeddedParameters();
-      this.mzDifference = dffParameters.getParameter(MsMsParameters.mzDifference).getValue();
-      this.dffListMz = dffParameters.getParameter(MsMsParameters.targetedMZ_List).getValue();
-      this.dffListNl = dffParameters.getParameter(MsMsParameters.targetedNF_List).getValue();
+      dffListMz = dffParameters.getParameter(MsMsParameters.targetedMZ_List).getValue();
+      dffListNl = dffParameters.getParameter(MsMsParameters.targetedNF_List).getValue();
     }
 
   }
@@ -166,18 +172,31 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     }
 
     processedScans = 0;
+    Scan lastMS1scan = null;
 
     scansLoop:
-    for (Scan scan : scans) {
+    for (Scan scan : allScans) {
+
+      if (scan == null || (scan.getMSLevel() != 1 && scan.getMSLevel() != msLevel)) {
+        processedScans++;
+        continue;
+      }
+
+      // Save current MS1 scan to store the intensity of precursor ion
+      if (scan.getMSLevel() == 1) {
+        lastMS1scan = scan;
+        processedScans++;
+        continue;
+      }
 
       // Skip empty scans and check parent m/z and rt bounds
-      if (scan == null || scan.getBasePeakMz() == null || !mzRange.contains(scan.getPrecursorMZ())
+      if (scan.getBasePeakMz() == null || !mzRange.contains(scan.getPrecursorMZ())
           || !rtRange.contains(scan.getRetentionTime())) {
         processedScans++;
         continue;
       }
 
-      // Filter features
+      // Filter scans according to the input parameters
       List<Integer> filteredScanIndices = new ArrayList<>();
 
       // Intensity threshold
@@ -190,6 +209,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           intensityThreshold = scan.getBasePeakIntensity() * (intensityFilterValue / 100);
         }
 
+        // Filter scans
         for (int scanIndex = 0; scanIndex < scan.getNumberOfDataPoints(); scanIndex++) {
           if (scan.getIntensityValue(scanIndex) >= intensityThreshold) {
             filteredScanIndices.add(scanIndex);
@@ -211,9 +231,9 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
         // Diagnostic fragmentation filtering (m/z)
         if (!(dffListMz == null || dffListMz.isEmpty())) {
+          Range<Double> toleranceRange = mzTolerance.getToleranceRange(scan.getMzValue(scanIndex));
           for (double targetMz : dffListMz) {
-            if (!mzDifference.getToleranceRange(targetMz)
-                .contains(scan.getMzValue(scanIndex))) {
+            if (!toleranceRange.contains(targetMz)) {
               processedScans++;
               continue scansLoop;
             }
@@ -223,23 +243,50 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         // Diagnostic fragmentation filtering (neutral loss)
         if (!(dffListNl == null || dffListNl.isEmpty())) {
           double neutralLoss = scan.getPrecursorMZ() - scan.getMzValue(scanIndex);
+          Range<Double> toleranceRange = mzTolerance.getToleranceRange(neutralLoss);
           for (double targetNeutralLoss : dffListNl) {
-            if (!mzDifference.getToleranceRange(targetNeutralLoss)
-                .contains(neutralLoss)) {
+            if (!toleranceRange.contains(targetNeutralLoss)) {
               processedScans++;
               continue scansLoop;
             }
           }
         }
 
-        // Base peak intensity
-        double intensity = Math.pow(scan.getBasePeakIntensity(), 0.2);
-        if (intensity > maxIntensity) {
-          maxIntensity = intensity;
+        // Product intensity(scaled)
+        double productIntensity = scaleIntensity(scan.getIntensityValue(scanIndex));
+        if (productIntensity > maxProductIntensity) {
+          maxProductIntensity = productIntensity;
         }
 
+        // Precursor intensity
+        double precursorIntensity = 0;
+        if (lastMS1scan != null) {
+
+          // Sum intensities of all ions from MS1 scan with similar m/z values
+          Range<Double> toleranceRange = mzTolerance.getToleranceRange(scan.getPrecursorMZ());
+          for (int i = 0; i < lastMS1scan.getNumberOfDataPoints(); i++) {
+            if (toleranceRange.contains(lastMS1scan.getMzValue(i))) {
+              precursorIntensity += lastMS1scan.getIntensityValue(i);
+            }
+          }
+        }
+
+        // Scale precursor intensity
+        precursorIntensity = scaleIntensity(precursorIntensity);
+
+        // Find max precursor intensity for further normalization
+        if (precursorIntensity > maxPrecursorIntensity) {
+          maxPrecursorIntensity = precursorIntensity;
+        }
+
+        // Find max rt for further normalization
+        if (scan.getRetentionTime() > maxRt) {
+          maxRt = scan.getRetentionTime();
+        }
+
+        // Create new data point
         MsMsDataPoint newPoint = new MsMsDataPoint(scan.getMzValue(scanIndex), scan.getPrecursorMZ(),
-            scan.getPrecursorCharge(), scan.getRetentionTime(), intensity);
+            scan.getPrecursorCharge(), scan.getRetentionTime(), productIntensity, precursorIntensity);
 
         dataPoints.add(newPoint);
 
@@ -248,13 +295,13 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       processedScans++;
     }
 
-    // Show message, if there are nothing to plot
+    // Show message, if there is nothing to plot
     if (dataPoints.isEmpty()) {
       Platform.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING);
         alert.setTitle("Suspicious module parameters");
-        alert.setHeaderText("There are no data points satisfying module parameters in "
-            + dataFile.getName() + " data file");
+        alert.setHeaderText("There are no data points in " + dataFile.getName()
+            + " data file, satisfying module parameters");
         alert.showAndWait();
       });
     }
@@ -262,18 +309,18 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   @Override
   public double getDomainValue(int index) {
-    return getValue(xAxisType, index);
+    return getXYValue(xAxisType, index);
   }
 
   @Override
   public double getRangeValue(int index) {
-    return getValue(yAxisType, index);
+    return getXYValue(yAxisType, index);
   }
 
-  private double getValue(MsMsAxisType axisType, int index) {
+  private double getXYValue(MsMsXYAxisType axisType, int index) {
     return switch (axisType) {
       case PRODUCT_MZ -> dataPoints.get(index).getProductMZ();
-      case PRECURSOR_MZ -> dataPoints.get(index).getPrecursorMass();
+      case PRECURSOR_MZ -> dataPoints.get(index).getPrecursorMz();
       case RETENTION_TIME -> dataPoints.get(index).getRetentionTime();
       case NEUTRAL_LOSS -> dataPoints.get(index).getNeutralLoss();
     };
@@ -286,7 +333,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   @Override
   public double getComputationFinishedPercentage() {
-    return processedScans / (double) scans.size();
+    return processedScans / (double) allScans.size();
   }
 
   @Nullable
@@ -297,11 +344,17 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   @Override
   public double getZValue (int index) {
-    double zValue = dataPoints.get(index).getIntensity();
+    double zValue = switch (zAxisType) {
+      case PRECURSOR_INTENSITY -> dataPoints.get(index).getPrecursorIntensity() / maxPrecursorIntensity;
+      case PRODUCT_INTENSITY -> dataPoints.get(index).getProductIntensity() / maxProductIntensity;
+      case RETENTION_TIME -> dataPoints.get(index).getRetentionTime() / maxRt;
+    };
+
     if (dataPoints.get(index).isHighlighted()) {
-      return zValue / maxIntensity + 1;
+      zValue += 1;
     }
-    return  zValue / maxIntensity;
+
+    return  zValue;
   }
 
   @Nullable
@@ -316,18 +369,26 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     return null;
   }
 
-  public void setXAxisType(MsMsAxisType xAxisType) {
+  public void setXAxisType(MsMsXYAxisType xAxisType) {
     this.xAxisType = xAxisType;
   }
 
-  public void setYAxisType(MsMsAxisType yAxisType) {
+  public void setYAxisType(MsMsXYAxisType yAxisType) {
     this.yAxisType = yAxisType;
+  }
+
+  public void setZAxisType(MsMsZAxisType zAxisType) {
+    this.zAxisType = zAxisType;
   }
 
   public void highlightPrecursorMz(Range<Double> mzRange) {
     for (MsMsDataPoint dataPoint : dataPoints) {
-      dataPoint.setHighlighted(mzRange.contains(dataPoint.getPrecursorMZ()));
+      dataPoint.setHighlighted(mzRange.contains(dataPoint.getPrecursorMz()));
     }
+  }
+
+  private double scaleIntensity(double intensity) {
+    return Math.pow(intensity, 0.2);
   }
 
 }

@@ -38,17 +38,21 @@ public class MsMsParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final RTRangeParameter retentionTimeRange = new RTRangeParameter();
+  public static final RTRangeParameter rtRange = new RTRangeParameter();
 
   public static final MZRangeParameter mzRange =
-      new MZRangeParameter("Precursor m/z", "Range of precursor m/z values");
+      new MZRangeParameter("Product m/z", "Range of product m/z values");
 
-  public static final ComboParameter<MsMsAxisType> xAxisType =
-      new ComboParameter<MsMsAxisType>("X axis", "X axis type", MsMsAxisType
+  public static final ComboParameter<MsMsXYAxisType> xAxisType =
+      new ComboParameter<>("X axis", "X axis type", MsMsXYAxisType
           .values());
 
-  public static final ComboParameter<MsMsAxisType> yAxisType =
-      new ComboParameter<MsMsAxisType>("Y axis", "Y axis type", MsMsAxisType
+  public static final ComboParameter<MsMsXYAxisType> yAxisType =
+      new ComboParameter<>("Y axis", "Y axis type", MsMsXYAxisType
+          .values());
+
+  public static final ComboParameter<MsMsZAxisType> zAxisType =
+      new ComboParameter<>("Z axis", "Z axis type", MsMsZAxisType
           .values());
 
   public static final IntegerParameter msLevel = new IntegerParameter("MS level",
@@ -64,7 +68,7 @@ public class MsMsParameters extends SimpleParameterSet {
 
   // Diagnostic fragmentation filtering
 
-  public static final MZToleranceParameter mzDifference = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final ListDoubleParameter targetedMZ_List =
       new ListDoubleParameter("Diagnostic product ions (m/z)",
@@ -76,12 +80,12 @@ public class MsMsParameters extends SimpleParameterSet {
 
   public static final OptionalModuleParameter dffParameters = new OptionalModuleParameter(
       "Diagnostic fragmentation filtering", "",
-      new SimpleParameterSet(new Parameter[]{mzDifference, targetedMZ_List, targetedNF_List}));
+      new SimpleParameterSet(new Parameter[]{targetedMZ_List, targetedNF_List}));
 
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public MsMsParameters() {
-    super(new Parameter[]{dataFiles, xAxisType, yAxisType, msLevel, retentionTimeRange,
+    super(new Parameter[]{dataFiles, xAxisType, yAxisType, zAxisType, msLevel, mzTolerance, rtRange,
         mzRange, intensityFiltering, dffParameters, windowSettings});
   }
 

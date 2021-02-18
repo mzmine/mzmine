@@ -34,8 +34,8 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
   public MsMsChart(ParameterSet parameters) {
     super("MS/MS visualizer");
 
-    MsMsAxisType xAxisType = parameters.getParameter(MsMsParameters.xAxisType).getValue();
-    MsMsAxisType yAxisType = parameters.getParameter(MsMsParameters.yAxisType).getValue();
+    MsMsXYAxisType xAxisType = parameters.getParameter(MsMsParameters.xAxisType).getValue();
+    MsMsXYAxisType yAxisType = parameters.getParameter(MsMsParameters.yAxisType).getValue();
 
     setDomainAxisLabel(xAxisType.toString());
     setRangeAxisLabel(yAxisType.toString());
@@ -56,13 +56,18 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     setLegendCanvas(new Canvas());
   }
 
-  public void setXAxisType(MsMsAxisType xAxisType) {
+  public void setXAxisType(MsMsXYAxisType xAxisType) {
     dataset.setXAxisType(xAxisType);
     setDataset(dataset);
   }
 
-  public void setYAxisType(MsMsAxisType yAxisType) {
+  public void setYAxisType(MsMsXYAxisType yAxisType) {
     dataset.setYAxisType(yAxisType);
+    setDataset(dataset);
+  }
+
+  public void setZAxisType(MsMsZAxisType zAxisType) {
+    dataset.setZAxisType(zAxisType);
     setDataset(dataset);
   }
 
