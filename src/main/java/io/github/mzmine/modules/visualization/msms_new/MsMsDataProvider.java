@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.msms_new;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
@@ -177,7 +178,20 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     scansLoop:
     for (Scan scan : allScans) {
 
-      if (scan == null || (scan.getMSLevel() != 1 && scan.getMSLevel() != msLevel)) {
+      // Check the scan for the mass list of
+      if (scan.getMassList() == null) {
+        Platform.runLater(() -> {
+          Alert alert = new Alert(AlertType.ERROR);
+          alert.setTitle("Mass detection issue");
+          alert.setHeaderText("Masses are not detected properly for the " + dataFile.getName()
+              + " data file. Scan #" + scan.getScanNumber() + " has no mass list. Run"
+              + " \"Raw data methods\" -> \"Mass detection\", if you haven't done it yet.");
+          alert.showAndWait();
+        });
+        return;
+      }
+
+      if (scan.getMSLevel() != 1 && scan.getMSLevel() != msLevel) {
         processedScans++;
         continue;
       }
@@ -191,10 +205,13 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
       // Skip empty scans and check parent m/z and rt bounds
       if (scan.getBasePeakMz() == null || !mzRange.contains(scan.getPrecursorMZ())
-          || !rtRange.contains(scan.getRetentionTime())) {
+          || !rtRange.contains(scan.getRetentionTime())
+          || scan.getMassList().getNumberOfDataPoints() < 1) {
         processedScans++;
         continue;
       }
+
+      MassList massList = scan.getMassList();
 
       // Filter scans according to the input parameters
       List<Integer> filteredScanIndices = new ArrayList<>();
@@ -210,16 +227,16 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
 
         // Filter scans
-        for (int scanIndex = 0; scanIndex < scan.getNumberOfDataPoints(); scanIndex++) {
-          if (scan.getIntensityValue(scanIndex) >= intensityThreshold) {
+        for (int scanIndex = 0; scanIndex < massList.getNumberOfDataPoints(); scanIndex++) {
+          if (massList.getIntensityValue(scanIndex) >= intensityThreshold) {
             filteredScanIndices.add(scanIndex);
           }
         }
 
       // Number of most intense fragments
       } else if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
-        filteredScanIndices = IntStream.range(0, scan.getNumberOfDataPoints())
-            .boxed().sorted((i, j) -> Doubles.compare(scan.getIntensityValue(j), scan.getIntensityValue(i)))
+        filteredScanIndices = IntStream.range(0, massList.getNumberOfDataPoints())
+            .boxed().sorted((i, j) -> Doubles.compare(massList.getIntensityValue(j), massList.getIntensityValue(i)))
             .limit((int) intensityFilterValue).mapToInt(i -> i).boxed().collect(Collectors.toList());
       }
 
@@ -229,9 +246,12 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           return;
         }
 
+        double mzValue = massList.getMzValue(scanIndex);
+        double intensityValue = massList.getIntensityValue(scanIndex);
+
         // Diagnostic fragmentation filtering (m/z)
         if (!(dffListMz == null || dffListMz.isEmpty())) {
-          Range<Double> toleranceRange = mzTolerance.getToleranceRange(scan.getMzValue(scanIndex));
+          Range<Double> toleranceRange = mzTolerance.getToleranceRange(mzValue);
           for (double targetMz : dffListMz) {
             if (!toleranceRange.contains(targetMz)) {
               processedScans++;
@@ -242,7 +262,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
         // Diagnostic fragmentation filtering (neutral loss)
         if (!(dffListNl == null || dffListNl.isEmpty())) {
-          double neutralLoss = scan.getPrecursorMZ() - scan.getMzValue(scanIndex);
+          double neutralLoss = scan.getPrecursorMZ() - mzValue;
           Range<Double> toleranceRange = mzTolerance.getToleranceRange(neutralLoss);
           for (double targetNeutralLoss : dffListNl) {
             if (!toleranceRange.contains(targetNeutralLoss)) {
@@ -253,7 +273,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
 
         // Product intensity(scaled)
-        double productIntensity = scaleIntensity(scan.getIntensityValue(scanIndex));
+        double productIntensity = scaleIntensity(intensityValue);
         if (productIntensity > maxProductIntensity) {
           maxProductIntensity = productIntensity;
         }
@@ -285,7 +305,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
 
         // Create new data point
-        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getMzValue(scanIndex), scan.getPrecursorMZ(),
+        MsMsDataPoint newPoint = new MsMsDataPoint(mzValue, scan.getPrecursorMZ(),
             scan.getPrecursorCharge(), scan.getRetentionTime(), productIntensity, precursorIntensity);
 
         dataPoints.add(newPoint);
