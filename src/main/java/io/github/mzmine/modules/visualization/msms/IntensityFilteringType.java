@@ -16,18 +16,27 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.combinedmodule;
+package io.github.mzmine.modules.visualization.msms;
 
-public enum ColorScale {
-  PRECURSORION("Precursor ion intensity"), //
-  PRODUCTION("Product ion intensity"); //
-  private String type;
+public enum IntensityFilteringType {
 
-  ColorScale(String type) {
+  // Number of the data points with the highest intensities among each scan
+  NUM_OF_BEST_FRAGMENTS("Number of best fragments"),
+
+  // Threshold for the data points' intensities as a percent of base peak intensity
+  BASE_PEAK_PERCENT("Base peak percent, %"),
+
+  // Ions with intensities lower then threshold will not be plotted
+  INTENSITY_THRESHOLD("Intensity threshold");
+
+  private final String type;
+
+  IntensityFilteringType(String type) {
     this.type = type;
   }
 
   public String toString() {
     return type;
   }
+
 }

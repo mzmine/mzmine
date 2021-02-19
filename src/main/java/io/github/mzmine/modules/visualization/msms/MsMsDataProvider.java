@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.msms_new;
+package io.github.mzmine.modules.visualization.msms;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;

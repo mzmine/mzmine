@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.msms_new;
+package io.github.mzmine.modules.visualization.msms;
 
 import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;

@@ -410,19 +410,10 @@
       userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
     <MenuItem text="3D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
-    <MenuItem text="MS/MS plot" onAction="#runModule"
+    <MenuItem text="MS/MS visualizer" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
-    <MenuItem text="Neutral loss plot" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule"/>
-    <MenuItem text="Combined module" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.combinedmodule.CombinedModule"/>
-    <MenuItem text="MS/MS NEW" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.msms_new.MsMsVisualizerModule"/>
     <MenuItem text="m/z scan histogram" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule"/>
-    <MenuItem text="Diagnostic fragmentation filtering"
-      onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule"/>
     <MenuItem text="Raw data overview" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
 
