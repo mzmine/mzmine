@@ -44,18 +44,21 @@ public class ResolvingUtil {
    *
    * @param resolver
    * @param data
-   * @param storage   May be null, if the values shall be stored in ram (e.g. previews)
+   * @param storage      May be null, if the values shall be stored in ram (e.g. previews)
    * @param dimension
+   * @param selectedScans
    * @return
    */
   public static List<IonTimeSeries<? extends Scan>> resolve(@Nonnull final XYResolver resolver,
       @Nonnull final IonTimeSeries<? extends Scan> data, @Nullable final MemoryMapStorage storage,
-      @Nonnull final ResolvingDimension dimension) {
+      @Nonnull final ResolvingDimension dimension,
+      List<? extends Scan> selectedScans) {
     final double[][] extractedData = extractData(data, dimension);
+    final int totalScans = selectedTotalScans(data, dimension, selectedScans);
 
     final List<IonTimeSeries<? extends Scan>> resolvedSeries = new ArrayList<>();
     final Collection<List<ResolvedValue<Double, Double>>> resolvedData = resolver
-        .resolve(extractedData[0], extractedData[1]);
+        .resolve(extractedData[0], extractedData[1], totalScans);
     for (List<ResolvedValue<Double, Double>> resolvedValues : resolvedData) {
       // 3 points to a triangle
       if (resolvedValues.size() < 3) {
@@ -157,4 +160,27 @@ public class ResolvingUtil {
     return new double[][]{xdata, ydata};
   }
 
+  /**
+   * All scans that were used to build a chromatogram or the maximum number of mobility scans in all
+   * Frames used to construct the mobilogram
+   *
+   * @param data
+   * @param dimension
+   * @param selectedScans
+   * @return
+   */
+  public static int selectedTotalScans(@Nonnull IonTimeSeries<? extends Scan> data,
+      @Nonnull ResolvingDimension dimension, List<? extends Scan> selectedScans) {
+    if (dimension == ResolvingDimension.RETENTION_TIME) {
+      return selectedScans.size();
+    } else {
+      if (data instanceof IonMobilogramTimeSeries mobData) {
+        return mobData.getSpectra().stream().mapToInt(f -> f.getMobilityScans().size()).max()
+            .orElseThrow();
+      }
+      throw new IllegalArgumentException(
+          "Cannot resolve ion mobility data for " + data.getClass().getName()
+              + ". No mobility dimension.");
+    }
+  }
 }

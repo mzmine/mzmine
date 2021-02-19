@@ -76,7 +76,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
 
   @Override
   public FeatureResolver getResolver() {
-    return new MinimumSearchFeatureResolver();
+    throw new UnsupportedOperationException("Legacy resolver method. Unsupported in local min.");
   }
 
   @Nullable
