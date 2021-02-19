@@ -19,12 +19,17 @@
 package io.github.mzmine.modules.visualization.msms_new;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZDotRenderer;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.input.MouseButton;
 
 public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
@@ -36,6 +41,8 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
     MsMsXYAxisType xAxisType = parameters.getParameter(MsMsParameters.xAxisType).getValue();
     MsMsXYAxisType yAxisType = parameters.getParameter(MsMsParameters.yAxisType).getValue();
+    RawDataFile[] dataFiles = parameters.getParameter(MsMsParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles();
 
     setDomainAxisLabel(xAxisType.toString());
     setRangeAxisLabel(yAxisType.toString());
@@ -53,6 +60,26 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     getXYPlot().getRangeAxis().setUpperMargin(0);
     getXYPlot().getRangeAxis().setLowerMargin(0);
 
+    // Show spectrum of the clicked data point scan
+    setOnMousePressed(event -> {
+
+      if (!event.getButton().equals(MouseButton.PRIMARY) || event.getClickCount() != 2) {
+        return;
+      }
+
+      MsMsDataPoint clickedDataPoint = dataset.getDataPoint(getCursorPosition().getValueIndex());
+
+      // Run spectrum module
+      ParameterSet spectrumParameters =
+          MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
+      spectrumParameters.getParameter(SpectraVisualizerParameters.dataFiles)
+          .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, dataFiles);
+      spectrumParameters.getParameter(SpectraVisualizerParameters.scanNumber)
+          .setValue(clickedDataPoint.getScanNumber());
+      MZmineCore.runMZmineModule(SpectraVisualizerModule.class, spectrumParameters);
+    });
+
+    // Do not show legend
     setLegendCanvas(new Canvas());
   }
 
