@@ -138,8 +138,6 @@ public class ZipImportTask extends AbstractTask {
       List<Task> newTasks = new ArrayList<>();
       RawDataFileUtils.createRawDataImportTasks(project, newTasks, tmpFile);
       // Run the import module on the decompressed file
-      RawDataFile newMZmineFile = MZmineCore.createNewFile(newName);
-
       if (newTasks.size() != 1) {
         setErrorMessage("File type " + fileType + " of file " + newName + " is not supported.");
         setStatus(TaskStatus.ERROR);

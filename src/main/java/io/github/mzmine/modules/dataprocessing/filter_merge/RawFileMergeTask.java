@@ -29,6 +29,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -53,9 +54,11 @@ class RawFileMergeTask extends AbstractTask {
   private String suffix;
   private boolean useMS2Marker;
   private String ms2Marker;
+  private final MemoryMapStorage storage;
   private MZmineProject project;
 
-  RawFileMergeTask(MZmineProject project, ParameterSet parameters, RawDataFile[] raw) {
+  RawFileMergeTask(MZmineProject project, ParameterSet parameters, RawDataFile[] raw,
+      MemoryMapStorage storage) {
     this.project = project;
     this.parameters = parameters;
     this.raw = raw;
@@ -63,6 +66,7 @@ class RawFileMergeTask extends AbstractTask {
     useMS2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getValue();
     ms2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getEmbeddedParameter()
         .getValue();
+    this.storage = storage;
     if (ms2Marker.isEmpty())
       useMS2Marker = false;
   }
@@ -112,7 +116,7 @@ class RawFileMergeTask extends AbstractTask {
       scans.sort(Comparator.comparingDouble(Scan::getRetentionTime));
 
       // create new file
-      RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix);
+      RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix, storage);
 
       int i = 0;
       for (Scan scan : scans) {

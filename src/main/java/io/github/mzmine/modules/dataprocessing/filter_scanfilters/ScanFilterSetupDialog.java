@@ -40,8 +40,6 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
   private RawDataFile tmpFile;
 
   /**
-   * @param parameters
-   * @param rawDataFilterTypeNumber
    */
   public ScanFilterSetupDialog(boolean valueCheckRequired, ParameterSet filterParameters,
       Class<? extends ScanFilter> filterClass) {
@@ -51,7 +49,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
     try {
       this.rawDataFilter = filterClass.getDeclaredConstructor().newInstance();
-      this.tmpFile = MZmineCore.createNewFile("tmp");
+      this.tmpFile = MZmineCore.createNewFile("tmp", null);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -60,7 +58,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
   /**
    * This function set all the information into the plot chart
    *
-   * @param scanNumber
+   * @param
    */
   @Override
   protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
