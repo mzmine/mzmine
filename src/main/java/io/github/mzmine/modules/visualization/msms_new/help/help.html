@@ -1,0 +1,118 @@
+<html>
+<head>
+    <title>Visualization - MS/MS visualizer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+<body>
+
+<h1>MS/MS visualizer</h1>
+
+<h2>Description</h2>
+
+<p>
+    This tool displays a three-dimensional plot of the MSn data. The are 4 options for X and Y axes:
+    Retention time, Precursor ion m/z, Product ion m/z, Neutral loss and 3 options for Z axis:
+    Precursor ion intensity, Product ion intensity, Retention time. Also there is an option for
+    diagnostic fragmentation filtering.
+</p>
+
+<h3>Diagnostic fragmentation filtering</h3>
+
+<p>
+    Due to common structural features, compounds within the same class undergo similar MS/MS fragmentation
+    and as a result of many identical product ions and/or neutral losses.
+    Diagnostic fragmentation filter (product ion filter) is a post-acquisition approach to screen
+    LC-MS/MS datasets for entire classes of both known and unknown natural products. This tool searches
+    all MS/MS spectra for product ions and/or neutral losses that has defined as being diagnostic for
+    the entire class of compounds. In other words it screens LC-MS/MS datasets for MS/MS spectra
+    containing production ions and/or neutral losses that are specific to that class of compounds.
+
+    The user defines the diagnostic product ions and/or the diagnostic neutral loss values (Da) to
+    use in the filtering. The user can also define the minimum diagnostic ion intensity (% base peak)
+    to use in the filtering.If a recurrent neutral loss occurs, a line pattern in the plot can be observed.
+    If compounds carrying those diagnostic product ions and/or the neutral loss values are detected
+    the resulting plot will show their product ion m/z and precusor ion m/z. Additionally, an output
+    file may be specified that will output the results of the filtering.
+    For a detailed view of diagnostic fragmentation filtering:
+    <a href=https://onlinelibrary.wiley.com/doi/abs/10.1002/rcm.8306>Walsh, Jacob P., et al.
+        "Diagnostic Fragmentation Filtering for the Discovery of New Chaetoglobosins and Cytochalasins."
+        Rapid Communications in Mass Spectrometry (2018)</a>.
+</p>
+
+<p>
+    This tool is very useful to get an overview of large amounts of MS/MS data.
+</p>
+
+<p>
+    <img src="msms_visualizer.png" alt="MS/MS Visualizer" style="height:80%;">
+</p>
+
+<h4>Parameters</h4>
+
+<dd>
+    <dt>Raw data file</dt>
+    <dd>Selection of the raw data file to display. Only one file can be selected.
+    
+
+    <dt>X axis</dt>
+    <dd>Selection of the X axis of MS/MS plot. There are 4 options:
+    <ul>
+        <li>Retention time</li>
+        <li>Precursor ion m/z</li>
+        <li>Product ion m/z</li>
+        <li>Neutral loss</li>
+    </ul>
+    </dd>
+
+    <dt>Y axis</dt>
+    <dd>Selection of the Y axis of MS/MS plot. Options are the same as for X axis.</dd>
+
+    <dt>Z axis</dt>
+    <dd>Selection of the Z axis of MS/MS plot. There are 3 options:
+    <ul>
+        <li>Precursor ion intensity</li>
+        <li>Product ion intensity</li>
+        <li>Retention time</li>
+    </ul>
+    </dd>
+
+    <dt>MS level</dt>
+    <dd>MS level of the scans to be plotted.</dd>
+
+    <dt>Retention time</dt>
+    <dd>Retention time range.</dd>
+
+    <dt>m/z range</dt>
+    <dd>Range of m/z values for precursor ions in MSn scans.</dd>
+
+    <dt>m/z tolerance</dt>
+    <dd>Maximum allowed difference between two m/z values to be considered same.</dd>
+
+    <dt>Intensities filtering</dt>
+    <dd>Optional parameter to filter ions by intensity. There are 3 different options:
+        <ul>
+            <li>Number of best fragments - Number of most intense fragments from each scan. For example 5.</li>
+            <li>Base peak percent, % - Only fragments, that has intensity greater or equal to the given percent of base peak intensity will be plotted. For example 95.</li>
+            <li>Intensity threshold - Fragments, that have intensity lower than given value will not be plotted. For example 6.0E6</li>
+        </ul>
+    </dd>
+
+    <dt>Diagnostic fragmentation filtering</dt>
+    <dd>Optional parameter for diagnostic fragmentation filtering described above. Has 2 subparameters:
+        diagnostic product ions and diagnostic neutral loss values.</dd>
+
+</dl>
+
+<h4>Functionality</h4>
+<p>
+    This plot is using the third part library JfreeChart for its basic functionality.
+    To zoom in, drag the mouse from left to right, selecting the area to zoom. To zoom out drag the
+    zoom from right to left. Axes types can be changed in the combo boxes below the plot.
+    The user can also highlight spots in a range of precursor m/z with red color by clicking the button
+    on the right side. Holding mouse on the data point will show a tooltip with detailed information.
+    Double click will show spectrum plot of the spectrum of clicked data point.
+</p>
+
+</body>
+</html>

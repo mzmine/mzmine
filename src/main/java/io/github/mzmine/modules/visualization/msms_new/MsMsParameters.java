@@ -68,8 +68,6 @@ public class MsMsParameters extends SimpleParameterSet {
 
   // Diagnostic fragmentation filtering
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
-
   public static final ListDoubleParameter targetedMZ_List =
       new ListDoubleParameter("Diagnostic product ions (m/z)",
           "Product m/z-values that must be included in MS/MS", false, null);
@@ -78,6 +76,8 @@ public class MsMsParameters extends SimpleParameterSet {
       new ListDoubleParameter("Diagnostic neutral loss values (Da)",
           "Neutral loss m/z-values that must be included in MS/MS", false, null);
 
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+
   public static final OptionalModuleParameter dffParameters = new OptionalModuleParameter(
       "Diagnostic fragmentation filtering", "",
       new SimpleParameterSet(new Parameter[]{targetedMZ_List, targetedNF_List}));
@@ -85,8 +85,8 @@ public class MsMsParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public MsMsParameters() {
-    super(new Parameter[]{dataFiles, xAxisType, yAxisType, zAxisType, msLevel, mzTolerance, rtRange,
-        mzRange, intensityFiltering, dffParameters, windowSettings});
+    super(new Parameter[]{dataFiles, xAxisType, yAxisType, zAxisType, msLevel, rtRange,
+        mzRange, mzTolerance, intensityFiltering, dffParameters, windowSettings});
   }
 
 }

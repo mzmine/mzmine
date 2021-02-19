@@ -37,10 +37,12 @@ class MsMsDataPoint {
   private double productIntensity;
   private double precursorIntensity;
 
+  private int scanNumber;
   private boolean isHighlighted = false;
 
-  public MsMsDataPoint(double productMz, double precursorMz, int precursorCharge,
+  public MsMsDataPoint(int scanNumber, double productMz, double precursorMz, int precursorCharge,
       double retentionTime, double productIntensity, double precursorIntensity) {
+    this.scanNumber = scanNumber;
     this.productMz = productMz;
     this.precursorMz = precursorMz;
     this.precursorCharge = precursorCharge;
@@ -90,6 +92,10 @@ class MsMsDataPoint {
     return precursorIntensity;
   }
 
+  public int getScanNumber() {
+    return scanNumber;
+  }
+
   public void setHighlighted(boolean isHighlighted) {
     this.isHighlighted = isHighlighted;
   }
@@ -100,7 +106,8 @@ class MsMsDataPoint {
 
   @Override
   public String toString() {
-    return "Product m/z: " + mzFormat.format(productMz) + '\n'
+    return "Scan number: " + scanNumber + '\n'
+        + "Product m/z: " + mzFormat.format(productMz) + '\n'
         + "Retention time: " + rtFormat.format(retentionTime) + '\n'
         + "Precursor m/z: " + mzFormat.format(precursorMz) + '\n'
         + "Neutral loss: " + mzFormat.format(neutralLoss) + '\n'

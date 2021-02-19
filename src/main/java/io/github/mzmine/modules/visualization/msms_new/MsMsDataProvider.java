@@ -324,7 +324,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
 
         // Create new data point
-        MsMsDataPoint newPoint = new MsMsDataPoint(mzValue, scan.getPrecursorMZ(),
+        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), mzValue, scan.getPrecursorMZ(),
             scan.getPrecursorCharge(), scan.getRetentionTime(), productIntensity, precursorIntensity);
 
         dataPoints.add(newPoint);
@@ -430,4 +430,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     return Math.pow(intensity, 0.2);
   }
 
+  public MsMsDataPoint getDataPoint(int index) {
+    return dataPoints.get(index);
+  }
 }
