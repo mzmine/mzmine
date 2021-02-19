@@ -46,15 +46,15 @@ public class MsMsParameters extends SimpleParameterSet {
 
   public static final ComboParameter<MsMsXYAxisType> xAxisType =
       new ComboParameter<>("X axis", "X axis type", MsMsXYAxisType
-          .values());
+          .values(), MsMsXYAxisType.RETENTION_TIME);
 
   public static final ComboParameter<MsMsXYAxisType> yAxisType =
       new ComboParameter<>("Y axis", "Y axis type", MsMsXYAxisType
-          .values());
+          .values(), MsMsXYAxisType.NEUTRAL_LOSS);
 
   public static final ComboParameter<MsMsZAxisType> zAxisType =
       new ComboParameter<>("Z axis", "Z axis type", MsMsZAxisType
-          .values());
+          .values(), MsMsZAxisType.PRECURSOR_INTENSITY);
 
   public static final IntegerParameter msLevel = new IntegerParameter("MS level",
       "MS level for plotting, must be greater than 1", 2, 2, 1000);

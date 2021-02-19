@@ -96,7 +96,6 @@ public class ComboFieldParameter<E extends Enum<?>> implements UserParameter<Com
       }
     }
 
-    throw new IllegalStateException("");
   }
 
   @Override
