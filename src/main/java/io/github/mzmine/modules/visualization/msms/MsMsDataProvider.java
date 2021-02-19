@@ -73,7 +73,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   private List<Double> dffListMz;
   private List<Double> dffListNl;
 
-  private final List<Scan> allScans;
+  private List<Scan> allScans;
   private final List<MsMsDataPoint> dataPoints = new ArrayList<>();
 
   private int processedScans = 0;
@@ -433,4 +433,10 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   public MsMsDataPoint getDataPoint(int index) {
     return dataPoints.get(index);
   }
+
+  public void setDataFile(RawDataFile dataFile) {
+    dataPoints.clear();
+    allScans = dataFile.getScans();
+  }
+
 }

@@ -33,8 +33,8 @@ import javafx.scene.input.MouseButton;
 
 public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
-  MsMsDataProvider dataset;
-  ColoredXYZDotRenderer renderer;
+  private MsMsDataProvider dataset;
+  private ColoredXYZDotRenderer renderer;
 
   public MsMsChart(ParameterSet parameters) {
     super("MS/MS visualizer");
@@ -103,4 +103,8 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     setDataset(dataset);
   }
 
+  public void setDataFile(RawDataFile dataFile) {
+    dataset.setDataFile(dataFile);
+    setDataset(dataset);
+  }
 }

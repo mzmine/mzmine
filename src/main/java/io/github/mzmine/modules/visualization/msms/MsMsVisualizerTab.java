@@ -53,6 +53,7 @@ public class MsMsVisualizerTab extends MZmineTab {
 
   private final ParameterSet parameters;
   private final MsMsChart chart;
+  private RawDataFile dataFile;
 
   private static final Image POINTS_ICON =
       FxIconUtil.loadImageFromResources("icons/pointsicon.png");
@@ -61,6 +62,8 @@ public class MsMsVisualizerTab extends MZmineTab {
     super("MS/MS Visualizer", true, false);
 
     this.parameters = parameters;
+    dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles()[0];
 
     BorderPane borderPane = new BorderPane();
     setContent(borderPane);
@@ -169,8 +172,7 @@ public class MsMsVisualizerTab extends MZmineTab {
   @Nonnull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return Collections.singletonList(parameters.getParameter(MsMsParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles()[0]);
+    return Collections.singletonList(dataFile);
   }
 
   @Nonnull
@@ -187,7 +189,19 @@ public class MsMsVisualizerTab extends MZmineTab {
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    // TODO
+    if (rawDataFiles == null || rawDataFiles.isEmpty()) {
+      return;
+    }
+
+    // Get first raw data file
+    RawDataFile newFile = rawDataFiles.iterator().next();
+
+    if (dataFile.equals(newFile)) {
+      return;
+    }
+
+    dataFile = newFile;
+    chart.setDataFile(newFile);
   }
 
   @Override
