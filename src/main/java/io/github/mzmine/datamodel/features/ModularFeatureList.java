@@ -79,6 +79,7 @@ public class ModularFeatureList implements FeatureList {
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
     selectedScans = FXCollections.observableMap(new HashMap<>());
+    this.memoryMapStorage = storage;
 
     // only a few standard types
     addRowType(new IDType());
