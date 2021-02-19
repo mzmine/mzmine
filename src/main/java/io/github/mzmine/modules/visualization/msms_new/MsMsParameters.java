@@ -25,6 +25,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ListDoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ComboFieldParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
@@ -60,11 +61,10 @@ public class MsMsParameters extends SimpleParameterSet {
 
   // Most intense fragments filtering
 
-  public static final ComboFieldParameter<IntensityFilteringType> intensityFiltering =
-      new ComboFieldParameter<>("Intensities filtering",
-          "Most intense fragments filtering to be plotted",
-          IntensityFilteringType.class, false,
-          new ComboFieldValue<>("5", IntensityFilteringType.NUM_OF_BEST_FRAGMENTS));
+  public static final OptionalParameter<ComboFieldParameter<IntensityFilteringType>> intensityFiltering
+      = new OptionalParameter<>(new ComboFieldParameter<>("Intensities filtering",
+      "Most intense fragments filtering to be plotted", IntensityFilteringType.class,
+      false, new ComboFieldValue<>("95", IntensityFilteringType.BASE_PEAK_PERCENT)));
 
   // Diagnostic fragmentation filtering
 

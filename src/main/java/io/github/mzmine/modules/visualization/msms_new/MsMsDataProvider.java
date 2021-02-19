@@ -26,6 +26,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboFieldParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -63,6 +65,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   private final Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
 
   // Most intense fragments filtering
+  boolean intensityFiltering;
   IntensityFilteringType intensityFilterType;
   double intensityFilterValue;
 
@@ -101,31 +104,39 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     allScans = dataFile.getScans();
 
     // Most intense fragments filtering
-    intensityFilterType
-        = parameters.getParameter(MsMsParameters.intensityFiltering).getValue().getValueType();
-    try {
-      String intensityFilter = parameters.getParameter(MsMsParameters.intensityFiltering)
-          .getValue().getFieldText();
-      if (!intensityFilter.equals("")) {
-        if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
-          intensityFilterValue = Integer.parseInt(intensityFilter);
-        } else if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT
-            || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
-          intensityFilterValue = Double.parseDouble(intensityFilter);
+    OptionalParameter<ComboFieldParameter<IntensityFilteringType>> intensityFilterParameter
+        = parameters.getParameter(MsMsParameters.intensityFiltering);
+    intensityFiltering = intensityFilterParameter.getValue();
+    if (intensityFiltering) {
+      try {
+        ComboFieldParameter<IntensityFilteringType> intensityFilterTypeParameter
+            = intensityFilterParameter.getEmbeddedParameter();
+
+        String intensityFilter = intensityFilterTypeParameter.getValue().getFieldText();
+        intensityFilterType = intensityFilterTypeParameter.getValue().getValueType();
+
+        // Parse the filed depending on the selected filtering option
+        if (!intensityFilter.equals("")) {
+          if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
+            intensityFilterValue = Integer.parseInt(intensityFilter);
+          } else if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT
+              || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
+            intensityFilterValue = Double.parseDouble(intensityFilter);
+          }
         }
+      } catch (NumberFormatException exception) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle("Invalid intensity filtering value level");
+        alert.setHeaderText("Intensity filtering value must be a double number for \""
+            + IntensityFilteringType.BASE_PEAK_PERCENT.toString()
+            + "\" option and an integer number for \""
+            + IntensityFilteringType.NUM_OF_BEST_FRAGMENTS.toString() + "\" option");
+        alert.showAndWait();
       }
-    } catch (NumberFormatException exception) {
-      Alert alert = new Alert(AlertType.ERROR);
-      alert.setTitle("Invalid intensity filtering value level");
-      alert.setHeaderText("Intensity filtering value must be a double number for \""
-          + IntensityFilteringType.BASE_PEAK_PERCENT.toString()
-          + "\" option and an integer number for \""
-          + IntensityFilteringType.NUM_OF_BEST_FRAGMENTS.toString() + "\" option");
-      alert.showAndWait();
     }
 
     // Diagnostic fragmentation filtering
-    OptionalModuleParameter dffParameter = parameters.getParameter(MsMsParameters.dffParameters);
+    OptionalModuleParameter<?> dffParameter = parameters.getParameter(MsMsParameters.dffParameters);
     if (dffParameter.getValue()) {
       ParameterSet dffParameters = dffParameter.getEmbeddedParameters();
       dffListMz = dffParameters.getParameter(MsMsParameters.targetedMZ_List).getValue();
@@ -173,7 +184,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     }
 
     processedScans = 0;
-    Scan lastMS1scan = null;
+    Scan lastMS1Scan = null;
 
     scansLoop:
     for (Scan scan : allScans) {
@@ -198,7 +209,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
       // Save current MS1 scan to store the intensity of precursor ion
       if (scan.getMSLevel() == 1) {
-        lastMS1scan = scan;
+        lastMS1Scan = scan;
         processedScans++;
         continue;
       }
@@ -215,29 +226,36 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
       // Filter scans according to the input parameters
       List<Integer> filteredScanIndices = new ArrayList<>();
+      if (intensityFiltering) {
 
-      // Intensity threshold
-      if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT
-          || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
+        // Intensity threshold
+        if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT
+            || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
 
-        // Base peak percent
-        double intensityThreshold = intensityFilterValue;
-        if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT) {
-          intensityThreshold = scan.getBasePeakIntensity() * (intensityFilterValue / 100);
-        }
-
-        // Filter scans
-        for (int scanIndex = 0; scanIndex < massList.getNumberOfDataPoints(); scanIndex++) {
-          if (massList.getIntensityValue(scanIndex) >= intensityThreshold) {
-            filteredScanIndices.add(scanIndex);
+          // Test base peak percent condition
+          double intensityThreshold = intensityFilterValue;
+          if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT) {
+            intensityThreshold = scan.getBasePeakIntensity() * (intensityFilterValue / 100);
           }
-        }
 
-      // Number of most intense fragments
-      } else if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
-        filteredScanIndices = IntStream.range(0, massList.getNumberOfDataPoints())
-            .boxed().sorted((i, j) -> Doubles.compare(massList.getIntensityValue(j), massList.getIntensityValue(i)))
-            .limit((int) intensityFilterValue).mapToInt(i -> i).boxed().collect(Collectors.toList());
+          // Filter scans
+          for (int scanIndex = 0; scanIndex < massList.getNumberOfDataPoints(); scanIndex++) {
+            if (massList.getIntensityValue(scanIndex) >= intensityThreshold) {
+              filteredScanIndices.add(scanIndex);
+            }
+          }
+
+          // Number of most intense fragments
+        } else if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
+          filteredScanIndices = IntStream.range(0, massList.getNumberOfDataPoints() - 1)
+              .boxed().sorted((i, j)
+                  -> Doubles.compare(massList.getIntensityValue(j), massList.getIntensityValue(i)))
+              .limit((int) intensityFilterValue).mapToInt(i -> i).boxed()
+              .collect(Collectors.toList());
+        }
+      } else {
+        filteredScanIndices = IntStream.rangeClosed(0, massList.getNumberOfDataPoints() - 1).boxed()
+            .collect(Collectors.toList());
       }
 
       for (int scanIndex : filteredScanIndices) {
@@ -280,13 +298,14 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
         // Precursor intensity
         double precursorIntensity = 0;
-        if (lastMS1scan != null) {
+        if (lastMS1Scan != null) {
 
           // Sum intensities of all ions from MS1 scan with similar m/z values
+          MassList lastMS1ScanMassList = lastMS1Scan.getMassList();
           Range<Double> toleranceRange = mzTolerance.getToleranceRange(scan.getPrecursorMZ());
-          for (int i = 0; i < lastMS1scan.getNumberOfDataPoints(); i++) {
-            if (toleranceRange.contains(lastMS1scan.getMzValue(i))) {
-              precursorIntensity += lastMS1scan.getIntensityValue(i);
+          for (int i = 0; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
+            if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
+              precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
             }
           }
         }
