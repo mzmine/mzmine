@@ -25,7 +25,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -43,11 +42,6 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Feature lists to operate on.
    */
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
-
-  /**
-   * Mass List of MSn fragment ions.
-   */
-  public static final MassListParameter MASS_LIST = new MassListParameter();
 
   /**
    * NIST MS Search path.
@@ -98,7 +92,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Construct the parameter set.
    */
   public NistMsSearchParameters() {
-    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, MASS_LIST, MIN_MATCH_FACTOR,
+    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, MIN_MATCH_FACTOR,
         MIN_REVERSE_MATCH_FACTOR, MERGE_PARAMETER, INTEGER_MZ});
   }
 

@@ -29,6 +29,13 @@
 
 package io.github.mzmine.modules.io.export_gnps.fbmn;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
+import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
+import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowCommonElement;
+import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowDataFileElement;
+import io.github.mzmine.modules.io.export_gnps.gc.GnpsGcExportAndSubmitParameters;
+import io.github.mzmine.util.FeatureMeasurementType;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
@@ -53,14 +60,15 @@ import io.github.mzmine.util.files.FileAndPathUtil;
  * Exports all files needed for GNPS
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
+
   // Logger.
   private final Logger logger = Logger.getLogger(getClass().getName());
 
   private ParameterSet parameters;
   private AtomicDouble progress = new AtomicDouble(0);
+  private FeatureMeasurementType featureMeasure;
 
   GnpsFbmnExportAndSubmitTask(ParameterSet parameters) {
     this.parameters = parameters;
@@ -94,12 +102,17 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     file = FileAndPathUtil.eraseFormat(file);
     parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(file);
 
+    featureMeasure =
+        parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY).getValue();
+
     List<AbstractTask> list = new ArrayList<>(3);
     GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters);
     list.add(task);
 
-    // add csv quant table
-    list.add(addQuantTableTask(parameters, null));
+    // add old csv quant table for old FBMN support
+    list.add(addLegacyQuantTableTask(parameters, null));
+    // add new csv export for whole table
+    list.add(addFullQuantTableTask(parameters, null));
 
     // finish listener to submit
     final File fileName = file;
@@ -121,18 +134,20 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
                 Desktop.getDesktop().open(folder);
               }
             } catch (Exception ex) {
+              logger.log(Level.WARNING, "Cannot open folder " + ex.getMessage(), ex);
             }
           } finally {
             // finish task
-            if (thistask.getStatus() == TaskStatus.PROCESSING)
+            if (thistask.getStatus() == TaskStatus.PROCESSING) {
               thistask.setStatus(TaskStatus.FINISHED);
+            }
           }
         }, lerror -> {
-          setErrorMessage("GNPS submit was not started due too errors while file export");
-          thistask.setStatus(TaskStatus.ERROR);
-          throw new MSDKRuntimeException(
-              "GNPS submit was not started due too errors while file export");
-        },
+      setErrorMessage("GNPS submit was not started due too errors while file export");
+      thistask.setStatus(TaskStatus.ERROR);
+      throw new MSDKRuntimeException(
+          "GNPS submit was not started due too errors while file export");
+    },
         // cancel if one was cancelled
         listCancelled -> cancel()) {
       @Override
@@ -143,7 +158,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
       }
     };
 
-    MZmineCore.getTaskController().addTasks(list.toArray(new AbstractTask[list.size()]));
+    MZmineCore.getTaskController().addTasks(list.toArray(AbstractTask[]::new));
 
     // wait till finish
     while (!(isCanceled() || isFinished())) {
@@ -158,48 +173,81 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   /**
    * Submit GNPS job
    *
-   * @param fileName
-   * @param param
+   * @param fileName base file name
+   * @param param    parameters for the direct submission
    */
   private void submit(File fileName, GnpsFbmnSubmitParameters param) {
     try {
       String url = GNPSUtils.submitFbmnJob(fileName, param);
-      if (url == null || url.isEmpty())
+      if (url == null || url.isEmpty()) {
         logger.log(Level.WARNING, "GNPS submit failed (response url empty)");
+      }
     } catch (Exception e) {
       logger.log(Level.WARNING, "GNPS submit failed", e);
     }
   }
 
   /**
-   * Export quant table
+   * Export the whole quant table in the new format
    *
-   * @param parameters
-   * @param tasks
+   * @param parameters export parameters {@link GnpsFbmnExportAndSubmitParameters}
+   * @param tasks      new task is added to this list of tasks
    */
-  private AbstractTask addQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
+  private AbstractTask addFullQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
+    File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
+    final String name = FilenameUtils.removeExtension(full.getName());
+    full = new File(full.getParentFile(), name + "_quant_full.csv");
+
+    ModularFeatureList[] flist = parameters
+        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
+        .getMatchingFeatureLists();
+
+    FeatureListRowsFilter filter =
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
+
+    CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";",
+        filter);
+
+    if (tasks != null) {
+      tasks.add(quanExportModular);
+    }
+    return quanExportModular;
+  }
+
+
+  /**
+   * Export quant table in new and old format
+   *
+   * @param parameters export parameters {@link GnpsFbmnExportAndSubmitParameters}
+   * @param tasks      new task is added to this list of tasks
+   */
+  private AbstractTask addLegacyQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
     File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     final String name = FilenameUtils.removeExtension(full.getName());
     full = new File(full.getParentFile(), name + "_quant.csv");
+    // add old CSV export
+    LegacyExportRowCommonElement[] common = new LegacyExportRowCommonElement[]{
+        LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
+        LegacyExportRowCommonElement.ROW_RT};
+    LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]
+        {featureMeasure.equals(FeatureMeasurementType.AREA)
+            ? LegacyExportRowDataFileElement.FEATURE_AREA
+            : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
-    /*
-     * TODO: need to use new CSV export module ExportRowCommonElement[] common = new
-     * ExportRowCommonElement[] {ExportRowCommonElement.ROW_ID, ExportRowCommonElement.ROW_MZ,
-     * ExportRowCommonElement.ROW_RT};
-     *
-     * ExportRowDataFileElement[] rawdata = new ExportRowDataFileElement[]
-     * {ExportRowDataFileElement.FEATURE_AREA};
-     *
-     * RowFilter filter =
-     * parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
-     *
-     * CSVExportTask quanExport = new CSVExportTask(
-     * parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-     * .getMatchingFeatureLists(), // full, ",", common, rawdata, false, ";", filter);
-     * 
-     * if (tasks != null) tasks.add(quanExport); return quanExport;
-     */
-    return null;
+    FeatureListRowsFilter filter =
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
+
+    ModularFeatureList[] flist = parameters
+        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
+        .getMatchingFeatureLists();
+
+    LegacyCSVExportTask quanExport = new LegacyCSVExportTask(flist, full, ",", common, rawdata,
+        false, ";", filter);
+
+    if (tasks != null) {
+      tasks.add(quanExport);
+    }
+    return quanExport;
   }
 
 }

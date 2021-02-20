@@ -239,8 +239,9 @@ public class RawDataFileUtils {
    *
    */
   public static boolean hasMassLists(RawDataFile dataFile) {
-    for (Scan scan : dataFile.getScanNumbers(1)) {
-      if (scan.getMassLists().length == 0)
+    List<Scan> scans = dataFile.getScanNumbers(1);
+    for (Scan scan : scans) {
+      if (scan.getMassList() == null)
         return false;
     }
     return true;

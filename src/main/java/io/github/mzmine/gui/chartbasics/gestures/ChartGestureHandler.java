@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.gestures;
 
+import io.github.mzmine.datamodel.Scan;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;

@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationParameters.BiasEstimationChoice;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationParameters.MassPeakMatchingChoice;
@@ -44,6 +44,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
 
@@ -66,9 +68,7 @@ public class MassCalibrationTask extends AbstractTask {
   private final RawDataFile dataFile;
 
   // User parameters
-  private final String massListName;
   private final String suffix;
-  private final boolean autoRemove;
 
   // scan counter
   protected int processedScans = 0, totalScans;
@@ -96,26 +96,29 @@ public class MassCalibrationTask extends AbstractTask {
   protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
   protected double biasEstimate;
 
+  private final MemoryMapStorage storageMemoryMap;
   protected boolean previewRun = false;
   protected Runnable afterHook = null;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storageMemoryMap
    * @param previewRun
    */
-  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters, boolean previewRun) {
+  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
+      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun) {
     this.dataFile = dataFile;
     this.parameters = parameters;
+    this.storageMemoryMap = storageMemoryMap;
     this.previewRun = previewRun;
 
-    this.massListName = parameters.getParameter(MassCalibrationParameters.massList).getValue();
     this.suffix = parameters.getParameter(MassCalibrationParameters.suffix).getValue();
-    this.autoRemove = parameters.getParameter(MassCalibrationParameters.autoRemove).getValue();
   }
 
-  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters) {
-    this(dataFile, parameters, false);
+  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storageMemoryMap) {
+    this(dataFile, parameters, storageMemoryMap, false);
   }
 
   /**
@@ -218,7 +221,7 @@ public class MassCalibrationTask extends AbstractTask {
     boolean haveMassList = false;
     for (int i = 0; i < totalScans; i++) {
       Scan scan = scanNumbers.get(i);
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
       if (massList != null) {
         haveMassList = true;
         break;
@@ -226,7 +229,7 @@ public class MassCalibrationTask extends AbstractTask {
     }
     if (!haveMassList) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage(dataFile.getName() + " has no mass list called '" + massListName + "'");
+      setErrorMessage(dataFile.getName() + " has no mass list");
       endMillis = System.currentTimeMillis();
       return;
     }
@@ -241,7 +244,7 @@ public class MassCalibrationTask extends AbstractTask {
 
       Scan scan = scanNumbers.get(i);
 
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
 
       // Skip those scans which do not have a mass list of given name
       if (massList == null) {
@@ -300,7 +303,7 @@ public class MassCalibrationTask extends AbstractTask {
       }
 
       Scan scan = scanNumbers.get(i);
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
 
       // Skip those scans which do not have a mass list of given name
       if (massList == null) {
@@ -313,14 +316,10 @@ public class MassCalibrationTask extends AbstractTask {
       // DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, biasEstimate);
       DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks);
 
-      SimpleMassList newMassList =
-          new SimpleMassList(massListName + " " + suffix, scan, newMzPeaks);
+      MassList newMassList =
+          SimpleMassList.create(storageMemoryMap, newMzPeaks);
 
       scan.addMassList(newMassList);
-
-      // Remove old mass list
-      if (autoRemove && previewRun == false)
-        scan.removeMassList(massList);
 
       processedScans++;
     }

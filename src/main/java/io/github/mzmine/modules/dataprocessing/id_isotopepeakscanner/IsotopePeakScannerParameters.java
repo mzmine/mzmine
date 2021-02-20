@@ -28,8 +28,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -37,9 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 import io.github.mzmine.util.ExitCode;
 
 /**
- *
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
  */
 public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
@@ -94,12 +90,13 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   public static final IntegerParameter charge =
       new IntegerParameter("Charge", "Amount and polarity (e.g.: [M]+=+1 / [M]-=-1", 1, true);
 
-  public static final OptionalParameter<MassListParameter> massList =
-      new OptionalParameter<MassListParameter>(new MassListParameter("Calculate accurate average",
-          "Please select a mass list.\nThis method will use averaged intensitys over all mass lists in "
+  public static final BooleanParameter calculate_accurate_average =
+      new BooleanParameter("Calculate accurate average",
+          "This method will use averaged intensitys over all mass lists in "
               + "which ALL relevant masses were detected in.\nThis will only be done for peaks that match the "
               + "defined rating-calculation with the given rating.\nMake sure the mass list is contained in the"
-              + " feature list.\nIf there are no Scans that match all criteria avg rating will be -1.0."));
+              + " feature list.\nIf there are no Scans that match all criteria avg rating will be -1.0.",
+          false);
 
   public static final OptionalModuleParameter autoCarbonOpt = new OptionalModuleParameter(
       "Auto carbon",
@@ -112,15 +109,16 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
       "If selected this will add a preview chart of the calculated isotope pattern with the current settings.");
 
   public IsotopePeakScannerParameters() {
-    super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, autoCarbonOpt,
+    super(new Parameter[]{PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, autoCarbonOpt,
         charge, minPatternIntensity, mergeWidth, showPreview, minHeight, checkIntensity, minRating,
-        ratingChoices, massList, suffix});
+        ratingChoices, calculate_accurate_average, suffix});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0))
+    if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
+    }
 
     IsotopePeakScannerSetupDialog dialog =
         new IsotopePeakScannerSetupDialog(valueCheckRequired, this);

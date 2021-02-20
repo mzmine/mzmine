@@ -65,7 +65,6 @@ public class ImageBuilderTask extends AbstractTask {
   private final ImagingRawDataFile rawDataFile;
   private final String suffix;
   private final MZTolerance mzTolerance;
-  private final String massList;
   private final int minTotalSignals;
   private final ScanSelection scanSelection;
   private final ImagingParameters imagingParameters;
@@ -81,7 +80,6 @@ public class ImageBuilderTask extends AbstractTask {
     this.rawDataFile = (ImagingRawDataFile) rawDataFile;
     this.imagingParameters = ((ImagingRawDataFile) rawDataFile).getImagingParam();
     this.mzTolerance = parameters.getParameter(ImageBuilderParameters.mzTolerance).getValue();
-    this.massList = parameters.getParameter(ImageBuilderParameters.massList).getValue();
     this.minTotalSignals =
         parameters.getParameter(ImageBuilderParameters.minTotalSignals).getValue();
     this.scanSelection = parameters.getParameter(ImageBuilderParameters.scanSelection).getValue();
@@ -143,11 +141,11 @@ public class ImageBuilderTask extends AbstractTask {
       if (!(scan instanceof ImagingScan) || !scanSelection.matches(scan)) {
         continue;
       }
-      if (scan.getMassList(massList) == null) {
+      if (scan.getMassList() == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Scan #" + scan.getScanNumber() + " does not have a mass list " + massList);
+        setErrorMessage("Scan #" + scan.getScanNumber() + " does not have a mass list. Run mass detection ");
       } else {
-        Arrays.stream(scan.getMassList(massList).getDataPoints())
+        Arrays.stream(scan.getMassList().getDataPoints())
             .forEach(dp -> allDataPoints.add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(),
                 (ImagingScan) scan, ((ImagingScan) scan).getCoordinates().getX() * pixelWidth,
                 ((ImagingScan) scan).getCoordinates().getY() * pixelHeight, 1, pixelHeight,

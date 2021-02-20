@@ -24,7 +24,7 @@
   fx:id="mainScene"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
   <stylesheets>
-    <URL value="@../../../../../../resources/themes/MZmine_default.css"/>
+    <URL value="@/themes/MZmine_default.css"/>
   </stylesheets>
   <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400" minWidth="600"
     prefWidth="1300" prefHeight="800" xmlns="http://javafx.com/javafx/14.0.1"

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch;
 
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -77,7 +78,6 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
    * Create the task.
    *
    * @param parameters task parameters.
-   * @param peakListRow peak-list row to identify.
    */
   public SpectraIdentificationLipidSearchTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
@@ -138,7 +138,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // create mass list for scan
-    DataPoint[] massList = null;
+    double[][] massList = null;
     ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
     MassDetector massDetector = null;
     ArrayList<String> allCompoundIDs = new ArrayList<>();
@@ -179,7 +179,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
         for (int chainDoubleBonds =
             minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
           for (int i = 0; i < massList.length; i++) {
-            searchedMass = massList[i].getMZ();
+            searchedMass = massList[0][i];
             // Task canceled?
             if (isCanceled())
               return;
@@ -201,12 +201,12 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
             annotation = findPossibleLipid(lipidChain, searchedMass);
             if (annotation != "") {
               allCompoundIDs.add(annotation);
-              massListAnnotated.add(massList[i]);
+              massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
             }
             annotation = findPossibleLipidModification(lipidChain, searchedMass);
             if (annotation != "") {
               allCompoundIDs.add(annotation);
-              massListAnnotated.add(massList[i]);
+              massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
             }
           }
           finishedSteps++;

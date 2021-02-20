@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass;
 
+import gnu.trove.list.array.TDoubleArrayList;
+import gnu.trove.list.array.TIntArrayList;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -30,14 +32,15 @@ import io.github.mzmine.parameters.ParameterSet;
 public class ExactMassDetector implements MassDetector {
 
   @Override
-  public DataPoint[] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
-
+  public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
     if (spectrum.getNumberOfDataPoints() == 0)
-      return new DataPoint[0];
+      return EMPTY_DATA;
 
     double noiseLevel = parameters.getParameter(ExactMassDetectorParameters.noiseLevel).getValue();
 
-    List<DataPoint> result = new ArrayList<>();
+    // lists of primitive doubles
+    TDoubleArrayList mzs = new TDoubleArrayList(100);
+    TDoubleArrayList intensities = new TDoubleArrayList(100);
 
     // First get all candidate peaks (local maximum)
     int localMaximumIndex = 0;
@@ -47,10 +50,12 @@ public class ExactMassDetector implements MassDetector {
 
     // Iterate through all data points
     for (int i = 0; i < spectrum.getNumberOfDataPoints() - 1; i++) {
+      double intensity = spectrum.getIntensityValue(i);
+      double nextIntensity = spectrum.getIntensityValue(i+1);
 
-      boolean nextIsBigger = spectrum.getIntensityValue(i + 1) > spectrum.getIntensityValue(i);
-      boolean nextIsZero = spectrum.getIntensityValue(i + 1) == 0;
-      boolean currentIsZero = spectrum.getIntensityValue(i) == 0.0;
+      boolean nextIsBigger =  nextIntensity > intensity;
+      boolean nextIsZero = Double.compare(nextIntensity, 0d) == 0;
+      boolean currentIsZero = Double.compare(intensity, 0d) == 0;
 
       // Ignore zero intensity regions
       if (currentIsZero) {
@@ -69,29 +74,24 @@ public class ExactMassDetector implements MassDetector {
 
       // Check for the end of the peak
       if ((!ascending) && (nextIsBigger || nextIsZero)) {
-
         // Add the m/z peak if it is above the noise level
         if (spectrum.getIntensityValue(localMaximumIndex) > noiseLevel) {
-
           // Calculate the exact mass
           double exactMz = calculateExactMass(spectrum, localMaximumIndex, rangeDataPoints);
 
-          SimpleDataPoint dp =
-              new SimpleDataPoint(exactMz, spectrum.getIntensityValue(localMaximumIndex));
-          result.add(dp);
-
+          // add data point to lists
+          mzs.add(exactMz);
+          intensities.add(spectrum.getIntensityValue(localMaximumIndex));
         }
 
         // Reset and start with new peak
         ascending = true;
         rangeDataPoints.clear();
       }
-
     }
 
     // Return an array of detected MzPeaks sorted by MZ
-    return result.toArray(new DataPoint[result.size()]);
-
+    return new double[][]{mzs.toArray(), intensities.toArray()};
   }
 
 
@@ -99,7 +99,6 @@ public class ExactMassDetector implements MassDetector {
    * This method calculates the exact mass of a peak using the FWHM concept and linear equation (y =
    * mx + b).
    *
-   * @param ExactMassDataPoint
    * @return double
    */
   private double calculateExactMass(MassSpectrum spectrum, int topIndex,

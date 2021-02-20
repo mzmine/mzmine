@@ -112,10 +112,9 @@ public class MergedSpectrum {
    * build a merged spectrum containing only a single spectrum
    * 
    * @param single the spectrum
-   * @param massList the name of the mass list that should be used for extracting peak information
    */
-  public MergedSpectrum(Scan single, String massList) {
-    DataPoint[] dataPoints = single.getMassList(massList).getDataPoints();
+  public MergedSpectrum(Scan single) {
+    DataPoint[] dataPoints = single.getMassList().getDataPoints();
     this.data = new MergedDataPoint[dataPoints.length];
     for (int k = 0; k < dataPoints.length; ++k) {
       this.data[k] =

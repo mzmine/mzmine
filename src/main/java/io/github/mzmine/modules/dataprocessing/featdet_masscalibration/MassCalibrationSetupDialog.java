@@ -207,8 +207,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
         previewTask.cancel();
       }
 
-      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, true);
-      // previewTask.run();
+      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true);
 
       previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun(rerun)));
       MZmineCore.getTaskController().addTask(previewTask);

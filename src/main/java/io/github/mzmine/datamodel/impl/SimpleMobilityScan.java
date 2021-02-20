@@ -17,15 +17,6 @@
  */
 package io.github.mzmine.datamodel.impl;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
@@ -37,6 +28,11 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import java.util.Iterator;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -47,7 +43,7 @@ public class SimpleMobilityScan implements MobilityScan {
   private static final Logger logger = Logger.getLogger(SimpleMobilityScan.class.getName());
 
   private final SimpleFrame frame;
-  private MassList[] massLists;
+  private MassList massList = null;
   private final int storageOffset;
   private final int numDataPoints;
   private final int mobilityScanNumber;
@@ -56,7 +52,6 @@ public class SimpleMobilityScan implements MobilityScan {
   public SimpleMobilityScan(int mobilityScanNumber, SimpleFrame frame, int storageOffset,
       int numDataPoints, int basePeakIndex) {
     this.frame = frame;
-    this.massLists = null;
     this.mobilityScanNumber = mobilityScanNumber;
     this.storageOffset = storageOffset;
     this.numDataPoints = numDataPoints;
@@ -134,7 +129,7 @@ public class SimpleMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Double getTIC() {
-    return null;
+    throw new UnsupportedOperationException("Intentionally unimplemented to safe RAM.");
   }
 
   @Nonnull
@@ -183,53 +178,13 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public synchronized void addMassList(final @Nonnull MassList massList) {
-    // Remove all mass lists with same name, if there are any
-    if (massLists == null || massLists.length == 0) {
-      massLists = new MassList[] {massList};
-      return;
-    }
-
-    for (int i = 0; i < massLists.length; i++) {
-      if (massLists[i].getName().equals(massList.getName())) {
-        massLists[i] = massList;
-        return;
-      }
-    }
-
-    // Add the new mass list
-    MassList[] oldMassLists = massLists;
-    massLists = new MassList[oldMassLists.length + 1];
-
-    for (int i = 0; i < oldMassLists.length; i++) {
-      massLists[i] = oldMassLists[i];
-    }
-    massLists[oldMassLists.length] = massList;
+  public synchronized void setMassList(final @Nonnull MassList massList) {
+    this.massList = massList;
   }
 
   @Override
-  public synchronized void removeMassList(final @Nonnull MassList massList) {
-    // Remove the mass list
-    massLists = (MassList[]) Arrays.stream(massLists).filter(ml -> ml != massList).toArray();
-  }
-
-  @Override
-  @Nonnull
-  public Set<MassList> getMassLists() {
-    return Objects.requireNonNullElse(Set.of(massLists), Collections.emptySet());
-  }
-
-  @Override
-  public MassList getMassList(@Nonnull String name) {
-    if (massLists == null) {
-      return null;
-    }
-    for (MassList ml : massLists) {
-      if (ml.getName().equals(name)) {
-        return ml;
-      }
-    }
-    return null;
+  public MassList getMassList() {
+    return massList;
   }
 
   @Override

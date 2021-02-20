@@ -27,7 +27,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
@@ -44,8 +43,6 @@ public abstract class SiriusParameters extends SimpleParameterSet {
 
   public static final ElementsParameter ELEMENTS =
       new ElementsParameter("Elements", "Elements and ranges");
-
-  public static final MassListParameter MASS_LIST = new MassListParameter();
 
   /**
    * Disclaimer message about boecker-labs
