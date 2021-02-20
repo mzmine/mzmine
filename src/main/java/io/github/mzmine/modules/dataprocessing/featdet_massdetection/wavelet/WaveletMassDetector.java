@@ -47,7 +47,7 @@ public class WaveletMassDetector implements MassDetector {
   private static final int WAVELET_ESR = 5;
 
   @Override
-  public DataPoint[] getMassValues(MassSpectrum scan, ParameterSet parameters) {
+  public double[][] getMassValues(MassSpectrum scan, ParameterSet parameters) {
 
     double noiseLevel =
         parameters.getParameter(WaveletMassDetectorParameters.noiseLevel).getValue();
@@ -59,9 +59,18 @@ public class WaveletMassDetector implements MassDetector {
 
     DataPoint waveletDataPoints[] = performCWT(originalDataPoints, waveletWindow, scaleLevel);
 
-    DataPoint mzPeaks[] = getMzPeaks(noiseLevel, originalDataPoints, waveletDataPoints);
+    DataPoint detected[] = getMzPeaks(noiseLevel, originalDataPoints, waveletDataPoints);
 
-    return mzPeaks;
+
+    // convert to double[][] TODO remove use of DataPoint
+    int size = detected.length;
+    double[] mzs = new double[size];
+    double[] intensities = new double[size];
+    for(int i=0; i<size; i++) {
+      mzs[i] = detected[i].getMZ();
+      intensities[i] = detected[i].getIntensity();
+    }
+    return new double[][]{mzs, intensities};
   }
 
   /**
@@ -123,9 +132,9 @@ public class WaveletMassDetector implements MassDetector {
   /**
    * This function calculates the wavelets's coefficients in Time domain
    *
-   * @param double x Step of the wavelet
-   * @param double a Window Width of the wavelet
-   * @param double b Offset from the center of the peak
+   * @param x Step of the wavelet
+   * @param a Window Width of the wavelet
+   * @param b Offset from the center of the peak
    */
   private double cwtMEXHATreal(double x, double a, double b) {
     /* c = 2 / ( sqrt(3) * pi^(1/4) ) */

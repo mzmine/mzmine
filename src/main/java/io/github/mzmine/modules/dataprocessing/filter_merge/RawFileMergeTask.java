@@ -119,7 +119,8 @@ class RawFileMergeTask extends AbstractTask {
         if (isCanceled())
           return;
         // copy, reset scan number
-        SimpleScan scanCopy = new SimpleScan(newFile, scan);
+        SimpleScan scanCopy = new SimpleScan(newFile, scan, scan.getMzValues(new double[0]),
+            scan.getIntensityValues(new double[0]));
         scanCopy.setScanNumber(i);
         newFile.addScan(scanCopy);
         i++;

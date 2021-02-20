@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -31,8 +31,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
-
-  public static final MassListParameter massList = new MassListParameter("Mass list", "", false);
 
   public static final ScanSelectionParameter scanSelection =
       new ScanSelectionParameter("Scan " + "selection",
@@ -58,7 +56,12 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
       "This string is added to filename as suffix", "ionmobilitytrace");
 
   public IonMobilityTraceBuilderParameters() {
-    super(new Parameter[]{rawDataFiles, massList, scanSelection, mzTolerance, minDataPointsRt,
+    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minDataPointsRt,
         minTotalSignals, suffix});
+  }
+
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.ONLY;
   }
 }

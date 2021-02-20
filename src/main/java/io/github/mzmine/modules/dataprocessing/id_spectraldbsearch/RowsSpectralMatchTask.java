@@ -65,7 +65,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private int errorCounter = 0;
   private String description;
   private FeatureListRow[] rows;
-  private final @Nonnull String massListName;
   private final File dataBaseFile;
   private final MZTolerance mzToleranceSpectra;
   private final MZTolerance mzTolerancePrecursor;
@@ -120,7 +119,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.matchListener = matchListener;
     listsize = list.size();
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
-    massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
     mzToleranceSpectra =
         parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerance).getValue();
     msLevel = parameters.getParameter(LocalSpectralDBSearchParameters.msLevel).getValue();
@@ -213,7 +211,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
                 && (!needsIsotopePattern || SpectralMatchTask.checkForIsotopePattern(sim,
                     mzToleranceSpectra, minMatchedIsoSignals))
                 && (best == null || best.getSimilarity().getScore() < sim.getScore())) {
-              best = new SpectralDBFeatureIdentity(scans.get(i), massListName, ident, sim, METHOD);
+              best = new SpectralDBFeatureIdentity(scans.get(i), ident, sim, METHOD);
             }
           }
           // has match?
@@ -332,11 +330,11 @@ public class RowsSpectralMatchTask extends AbstractTask {
    */
   private DataPoint[] getDataPoints(Scan scan, boolean noiseFilter)
       throws MissingMassListException {
-    if (scan == null || scan.getMassList(massListName) == null) {
+    if (scan == null || scan.getMassList() == null) {
       return new DataPoint[0];
     }
 
-    MassList masses = scan.getMassList(massListName);
+    MassList masses = scan.getMassList();
     DataPoint[] dps = masses.getDataPoints();
     return noiseFilter ? ScanUtils.getFiltered(dps, noiseLevel) : dps;
   }
@@ -348,7 +346,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       return scans;
     } else {
       // first entry is the best scan
-      List<Scan> scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minMatch,
+      List<Scan> scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minMatch,
           ScanSortMode.MAX_TIC);
       if (allMS2Scans)
         return scans;

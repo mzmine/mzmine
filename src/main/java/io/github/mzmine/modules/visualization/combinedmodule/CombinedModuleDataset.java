@@ -49,7 +49,6 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
   private HashMap<Integer, Vector<CombinedModuleDataPoint>> dataSeries;
   int totalScans;
   private AxisType xAxisType, yAxisType;
-  private String massListName;
   private Double noiseLevel;
   private ColorScale colorScale;
   private static int RAW_LEVEL = 0;
@@ -58,7 +57,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
 
   public CombinedModuleDataset(RawDataFile dataFile, Range<Float> rtRange, Range<Double> mzRange,
       CombinedModuleVisualizerTabController visualizer, AxisType xAxisType, AxisType yAxisType,
-      Double noiseLevel, ColorScale colorScale, String massList) {
+      Double noiseLevel, ColorScale colorScale) {
     this.rawDataFile = dataFile;
     this.totalMZRange = mzRange;
     this.totalRTRange = rtRange;
@@ -67,7 +66,6 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
     this.yAxisType = yAxisType;
     this.noiseLevel = noiseLevel;
     this.colorScale = colorScale;
-    this.massListName = massList;
 
     scanNumbers = rawDataFile.getScans();
     totalScans = scanNumbers.size();
@@ -111,7 +109,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
       retentionList.add(scan.getRetentionTime());
       precursorList.add(scan.getPrecursorMZ());
 
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
       if (massList == null) {
         setStatus(TaskStatus.ERROR);
         return;

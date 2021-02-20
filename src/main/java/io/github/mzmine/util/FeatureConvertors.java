@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
@@ -203,7 +204,7 @@ public class FeatureConvertors {
 
     MemoryMapStorage storage = ((ModularFeatureList) ionTrace.getFeatureList())
         .getMemoryMapStorage();
-    List<SimpleIonMobilitySeries> mobilograms = new ArrayList<>();
+    List<IonMobilitySeries> mobilograms = new ArrayList<>();
     var sortedDp = FeatureConvertorIonMobility.groupDataPointsByFrameId(ionTrace.getDataPoints());
     for (Entry<Frame, SortedSet<RetentionTimeMobilityDataPoint>> entry : sortedDp.entrySet()) {
       double[][] data = DataPointUtils.getDataPointsAsDoubleArray(entry.getValue());
@@ -300,15 +301,15 @@ public class FeatureConvertors {
     // Quality parameters
     // float fwhm = QualityParameters.calculateFWHM(modularFeature);
     // if (!Float.isNaN(fwhm)) {
-    modularFeature.set(FwhmType.class, -1);
+    modularFeature.set(FwhmType.class, -1f);
     // }
     // float tf = QualityParameters.calculateTailingFactor(modularFeature);
     // if (!Float.isNaN(tf)) {
-    modularFeature.set(TailingFactorType.class, -1);
+    modularFeature.set(TailingFactorType.class, -1f);
     // }
     // float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
     // if (!Float.isNaN(af)) {
-    modularFeature.set(AsymmetryFactorType.class, -1);
+    modularFeature.set(AsymmetryFactorType.class, -1f);
     // }
 
     return modularFeature;

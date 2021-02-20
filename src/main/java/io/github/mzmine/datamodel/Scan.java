@@ -80,16 +80,17 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
    */
   int getPrecursorCharge();
 
-  @Nonnull
-  MassList[] getMassLists();
-
   @Nullable
-  MassList getMassList(@Nonnull String name);
+  MassList getMassList();
 
   void addMassList(@Nonnull MassList massList);
 
-  void removeMassList(@Nonnull MassList massList);
-
+//  @Nullable
+//  MassList getMassList(@Nonnull String name);
+//
+//  void addMassList(@Nonnull MassList massList);
+//
+//  void removeMassList(@Nonnull MassList massList);
 
 
   /**
