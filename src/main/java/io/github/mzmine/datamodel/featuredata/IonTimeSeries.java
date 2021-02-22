@@ -59,21 +59,10 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
     return 0;
   }
 
-  /**
-   * Creates a copy of this series using the same list of scans but possibly new mz/intensity
-   * values.
-   *
-   * @param storage            May be null if the new series shall be stored in ram.
-   * @param newMzValues
-   * @param newIntensityValues
-   * @return
-   */
-  IonTimeSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage, @Nonnull double[] newMzValues,
-      @Nonnull double[] newIntensityValues);
-
-
   @Override
   IonTimeSeries<T> subSeries(@Nullable MemoryMapStorage storage, @Nonnull List<T> subset);
 
-
+  @Override
+  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues);
 }

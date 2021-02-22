@@ -23,6 +23,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -81,5 +82,17 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public String getRestrictedIonMobilitySupportMessage() {
+    return "ADAP chromatogram builder will build two-dimensional chromatograms based on summed "
+        + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
+        + "Do you wish to continue any way?";
+  }
+
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.RESTRICTED;
   }
 }

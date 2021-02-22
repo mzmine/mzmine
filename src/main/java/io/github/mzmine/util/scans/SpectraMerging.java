@@ -18,19 +18,18 @@
 
 package io.github.mzmine.util.scans;
 
+import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
@@ -49,12 +48,13 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class SpectraMerging {
+
+  public static final double EPSILON = 1E-15;
 
   private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Intensity,
       SortingDirection.Descending);
@@ -163,8 +163,9 @@ public class SpectraMerging {
     return data;
   }
 
-  private static Range<Double> createNewNonOverlappingRange(RangeMap<Double, ?> rangeMap,
+  /*private static Range<Double> createNewNonOverlappingRange(RangeMap<Double, ?> rangeMap,
       Range<Double> proposedRange) {
+
     Entry<Range<Double>, ?> lowerEntry = rangeMap.getEntry(proposedRange.lowerEndpoint());
     Entry<Range<Double>, ?> upperEntry = rangeMap.getEntry(proposedRange.upperEndpoint());
 
@@ -182,6 +183,64 @@ public class SpectraMerging {
     } else {
       return Range.open(lowerBound, upperBound);
     }
+  }*/
+
+  /**
+   * Creates a new non overlapping range for this range map. Ranges are created seamless, therefore
+   * no gaps are introduced during this process.
+   *
+   * @param rangeMap
+   * @param proposedRange The proposed range must not enclose a range in this map without
+   *                      overlapping, otherwise the enclosed range will be deleted.
+   * @return
+   */
+  private static Range<Double> createNewNonOverlappingRange(RangeMap<Double, ?> rangeMap,
+      final Range<Double> proposedRange) {
+
+    Entry<Range<Double>, ?> lowerEntry = rangeMap.getEntry(
+        proposedRange.lowerBoundType() == BoundType.CLOSED ? proposedRange.lowerEndpoint()
+            : proposedRange.lowerEndpoint() + EPSILON);
+
+    Entry<Range<Double>, ?> upperEntry = rangeMap.getEntry(
+        proposedRange.upperBoundType() == BoundType.CLOSED ? proposedRange.upperEndpoint()
+            : proposedRange.upperEndpoint() - EPSILON);
+
+    if (lowerEntry == null && upperEntry == null) {
+      return proposedRange;
+    }
+
+    if (lowerEntry != null && proposedRange.intersection(lowerEntry.getKey()).isEmpty()
+        && upperEntry == null) {
+      return proposedRange;
+    }
+
+    if (upperEntry != null && proposedRange.intersection(upperEntry.getKey()).isEmpty()
+        && lowerEntry == null) {
+      return proposedRange;
+    }
+
+    if (upperEntry != null && lowerEntry != null && proposedRange.intersection(lowerEntry.getKey())
+        .isEmpty() && proposedRange.intersection(upperEntry.getKey()).isEmpty()) {
+      return proposedRange;
+    }
+
+    BoundType lowerBoundType = proposedRange.lowerBoundType();
+    BoundType upperBoundType = proposedRange.upperBoundType();
+    double lowerBound = proposedRange.lowerEndpoint();
+    double upperBound = proposedRange.upperEndpoint();
+
+    // check if the ranges actually overlap or if they are closed and open
+    if (lowerEntry != null && !proposedRange.intersection(lowerEntry.getKey()).isEmpty()) {
+      lowerBound = lowerEntry.getKey().upperEndpoint();
+      lowerBoundType = BoundType.OPEN;
+    }
+    if (upperEntry != null && !proposedRange.intersection(upperEntry.getKey()).isEmpty()) {
+      upperBound = upperEntry.getKey().lowerEndpoint();
+      upperBoundType = BoundType.OPEN;
+    }
+
+    return createNewNonOverlappingRange(rangeMap,
+        Range.range(lowerBound, lowerBoundType, upperBound, upperBoundType));
   }
 
   public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(ImsMsMsInfo info,
@@ -222,7 +281,7 @@ public class SpectraMerging {
         merged[1], precursorMz, collisionEnergy, frame.getMSLevel(), mobilityScans,
         mergingType, cf);
 
-    MassList newMl = new SimpleMassList(mergedSpectrum, storage, merged[0], merged[1]);
+    MassList newMl = new SimpleMassList(storage, merged[0], merged[1]);
     mergedSpectrum.addMassList(newMl);
     return mergedSpectrum;
   }

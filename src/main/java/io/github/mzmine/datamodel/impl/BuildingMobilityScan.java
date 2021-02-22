@@ -33,7 +33,6 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -68,6 +67,7 @@ public class BuildingMobilityScan implements MobilityScan {
         }
         if (mzs[i - 1] > mzs[i]) {
           haveToSort = true;
+          break;
         }
       }
     } else if (mzs.length == 1) {
@@ -214,7 +214,7 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   @Override
-  public void addMassList(@Nonnull MassList massList) {
+  public void setMassList(@Nonnull MassList massList) {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 

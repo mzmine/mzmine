@@ -29,6 +29,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -140,7 +141,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
           + "data file. Only the centroid mass detector officially supports mobility scan peak "
           + "detection due to the size of ion mobility raw data files."
           + " Do you want to continue anyway?";
-      if(MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO) == ButtonType.NO) {
+      if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
+          == ButtonType.NO) {
         return ExitCode.CANCEL;
       }
     }
@@ -149,4 +151,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   }
 
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

@@ -17,15 +17,6 @@
  */
 package io.github.mzmine.datamodel.impl;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
@@ -37,6 +28,11 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import java.util.Iterator;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -133,7 +129,7 @@ public class SimpleMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Double getTIC() {
-    return null;
+    throw new UnsupportedOperationException("Intentionally unimplemented to safe RAM.");
   }
 
   @Nonnull
@@ -182,7 +178,7 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public synchronized void addMassList(final @Nonnull MassList massList) {
+  public synchronized void setMassList(final @Nonnull MassList massList) {
     this.massList = massList;
   }
 

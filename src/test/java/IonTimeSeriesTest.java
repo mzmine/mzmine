@@ -17,7 +17,6 @@
  */
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
@@ -30,7 +29,6 @@ import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -69,7 +67,7 @@ class IonTimeSeriesTest {
 
     List<Frame> frames = new ArrayList<>();
     SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f, 0, 0,
-        new DataPoint[]{new SimpleDataPoint(1d, 1d)},
+        new double[] {1d}, new double[]{1d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(11d, 11d), MobilityType.TIMS, null);
     frame.setMobilities(new double[]{1d, 2d});

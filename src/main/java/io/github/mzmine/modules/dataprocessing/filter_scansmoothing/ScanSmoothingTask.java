@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.List;
@@ -135,7 +136,6 @@ public class ScanSmoothingTask extends AbstractTask {
         Scan scan = scanNumbers.get(i);
         if (scan != null) {
           double rt = scan.getRetentionTime();
-          final SimpleScan newScan = new SimpleScan(newRDFW, scan);
           DataPoint[] newDP = null;
           sj = si = i;
           ssi = ssj = i;
@@ -244,7 +244,8 @@ public class ScanSmoothingTask extends AbstractTask {
 
           // Register new smoothing data
           if (scan != null && newDP != null) {
-            newScan.setDataPoints(newDP);
+            double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDP);
+            final SimpleScan newScan = new SimpleScan(newRDFW, scan, dp[0], dp[1]);
             newRDFW.addScan(newScan);
           }
         }
