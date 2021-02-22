@@ -428,7 +428,9 @@ public class TDFImportTask extends AbstractTask {
         Frame parentFrame = optionalFrame.orElseGet(() -> null);
 
         ImsMsMsInfo info = new ImsMsMsInfoImpl(building.getLargestPeakMz(),
-            building.getSpectrumNumberRange(), building.getCollisionEnergy(),
+            Range.closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
+                building.getSpectrumNumberRange().upperEndpoint() - 1),
+            building.getCollisionEnergy(),
             building.getPrecursorCharge(), parentFrame, frame);
 
         frame.getImsMsMsInfos().add(info);
