@@ -12,8 +12,8 @@ version = "3.0"
 description = "MZmine"
 
 // JDK 14+ is needed for jpackage
-sourceCompatibility = "15"
-targetCompatibility = "15"
+sourceCompatibility = "14"
+targetCompatibility = "14"
 defaultTasks "jpackage"
 
 // Check the OS
