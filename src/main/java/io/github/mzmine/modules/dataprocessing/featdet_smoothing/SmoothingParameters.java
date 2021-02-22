@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -89,5 +90,10 @@ public class SmoothingParameters extends SimpleParameterSet {
     public String toString() {
       return str;
     }
+  }
+
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

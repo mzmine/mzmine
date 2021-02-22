@@ -18,6 +18,17 @@
 
 package io.github.mzmine.modules.io.import_mzxml;
 
+import com.google.common.base.Strings;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CompressionUtils;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -34,17 +45,6 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import com.google.common.base.Strings;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.CompressionUtils;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  *
@@ -383,7 +383,8 @@ public class MzXMLImportTask extends AbstractTask {
         buildingScan.setSpectrumType(spectrumType);
 
         // Set the final data points to the scan
-        buildingScan.setDataPoints(mzValues, intensityValues);
+        // This line awaits you, Robin: ~SteffenHeu :)
+//        buildingScan.setDataPoints(mzValues, intensityValues);
 
         return;
       }
