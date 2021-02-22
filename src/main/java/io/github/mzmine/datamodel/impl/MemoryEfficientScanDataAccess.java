@@ -17,16 +17,24 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.util.Iterator;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class MemoryEfficientDataAccess {
+public class MemoryEfficientScanDataAccess implements MassSpectrum {
 
   public enum DataType {
     RAW, CENTROID;
@@ -42,7 +50,7 @@ public class MemoryEfficientDataAccess {
   protected int currentScan = -1;
   protected int currentNumberOfDataPoints = -1;
 
-  public MemoryEfficientDataAccess(RawDataFile dataFile,
+  public MemoryEfficientScanDataAccess(RawDataFile dataFile,
       DataType type, ScanSelection selection) {
     this.dataFile = dataFile;
     this.type = type;
@@ -54,13 +62,26 @@ public class MemoryEfficientDataAccess {
     intensities = new double[length];
   }
 
-
   /**
    * Number of data points in the current scan depending of the defined DataType (RAW/CENTROID)
+   *
    * @return
    */
+  @Override
   public int getNumberOfDataPoints() {
     return currentNumberOfDataPoints;
+  }
+
+  public Scan getCurrentScan() {
+    assert currentScan >= 0 && hasNextScan();
+    return scans[currentScan];
+  }
+
+  /**
+   * @return
+   */
+  private MassList getMassList() {
+    return getCurrentScan().getMassList();
   }
 
   /**
@@ -69,7 +90,8 @@ public class MemoryEfficientDataAccess {
    * @param index
    * @return
    */
-  public double getMz(int index) {
+  @Override
+  public double getMzValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
     return mzs[index];
   }
@@ -80,7 +102,8 @@ public class MemoryEfficientDataAccess {
    * @param index
    * @return
    */
-  public double getIntensity(int index) {
+  @Override
+  public double getIntensityValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
     return intensities[index];
   }
@@ -88,10 +111,11 @@ public class MemoryEfficientDataAccess {
   /**
    * Set the data to the next scan, if available
    *
+   * @return
    * @throws MissingMassListException if DataType.CENTROID is selected and mass list is missing in
    *                                  the current scan
    */
-  public void nextScan() throws MissingMassListException {
+  public Scan nextScan() throws MissingMassListException {
     if (hasNextScan()) {
       currentScan++;
       switch (type) {
@@ -110,19 +134,32 @@ public class MemoryEfficientDataAccess {
           currentNumberOfDataPoints = masses.getNumberOfDataPoints();
           break;
       }
+      return scans[currentScan];
     }
+    return null;
   }
 
   /**
    * The current list of scans has another element
+   *
    * @return
    */
   public boolean hasNextScan() {
-    return currentScan < scans.length;
+    return currentScan < getNumberOfScans();
+  }
+
+  /**
+   * Number of selected scans
+   *
+   * @return
+   */
+  public int getNumberOfScans() {
+    return scans.length;
   }
 
   /**
    * Maximum number of data points is used to create the arrays that back the data
+   *
    * @return
    */
   private int getMaxNumberOfDataPoints() {
@@ -131,5 +168,95 @@ public class MemoryEfficientDataAccess {
       case RAW -> dataFile.getMaxRawDataPoints();
       default -> throw new IllegalStateException("Unexpected value: " + type);
     };
+  }
+
+  // ###############################################
+  // general MassSpectrum methods
+  @Override
+  public MassSpectrumType getSpectrumType() {
+    return switch (type) {
+      case RAW -> scans[currentScan].getSpectrumType();
+      case CENTROID -> MassSpectrumType.CENTROIDED;
+      default -> throw new IllegalStateException("Unexpected value: " + type);
+    };
+  }
+
+  @Nullable
+  @Override
+  public Double getBasePeakMz() {
+    return getMzValue(getBasePeakIndex());
+  }
+
+  @Nullable
+  @Override
+  public Double getBasePeakIntensity() {
+    return getIntensityValue(getBasePeakIndex());
+  }
+
+  @Nullable
+  @Override
+  public Integer getBasePeakIndex() {
+    switch (type) {
+      case RAW:
+        return getCurrentScan().getBasePeakIndex();
+      case CENTROID:
+        MassList masses = getMassList();
+        return masses == null ? null : masses.getBasePeakIndex();
+      default:
+        throw new IllegalStateException("Unexpected value: " + type);
+    }
+  }
+
+  @Nullable
+  @Override
+  public Range<Double> getDataPointMZRange() {
+    switch (type) {
+      case RAW:
+        return getCurrentScan().getDataPointMZRange();
+      case CENTROID:
+        MassList masses = getMassList();
+        return masses == null ? null : masses.getDataPointMZRange();
+      default:
+        throw new IllegalStateException("Unexpected value: " + type);
+    }
+  }
+
+  @Nullable
+  @Override
+  public Double getTIC() {
+    switch (type) {
+      case RAW:
+        return getCurrentScan().getTIC();
+      case CENTROID:
+        MassList masses = getMassList();
+        return masses == null ? null : masses.getTIC();
+      default:
+        throw new IllegalStateException("Unexpected value: " + type);
+    }
+  }
+
+  @Override
+  public double[] getMzValues(@Nonnull double[] dst) {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all scans and data points");
+  }
+
+  @Override
+  public double[] getIntensityValues(@Nonnull double[] dst) {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all scans and data points");
+  }
+
+  @Override
+  public Stream<DataPoint> stream() {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all scans and data points");
+  }
+
+  @Nonnull
+  @Override
+  public Iterator<DataPoint> iterator() {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all scans and data points");
   }
 }
