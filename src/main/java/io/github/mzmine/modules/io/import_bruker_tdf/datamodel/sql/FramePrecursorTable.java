@@ -138,8 +138,9 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
 
       Set<BuildingPASEFMsMsInfo> entry = info.computeIfAbsent(frameId, k -> new HashSet<>());
       entry.add(new BuildingPASEFMsMsInfo(largestPeakMzColumn.get(i),
-          Range.closedOpen(scanNumBeginColumn.get(i).intValue(),
-              scanNumEndColumn.get(i).intValue()), collisionEnergyColumn.get(i).floatValue(),
+          Range.closedOpen(scanNumBeginColumn.get(i).intValue() - 1,
+              // bruker scan numbers start at 1, ours start at 0
+              scanNumEndColumn.get(i).intValue() - 1), collisionEnergyColumn.get(i).floatValue(),
           chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue(), frameId));
     }
   }
