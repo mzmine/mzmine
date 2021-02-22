@@ -119,7 +119,7 @@ public class ParameterSetupDialog extends Stage {
   @SuppressWarnings({"rawtypes", "unchecked"})
   public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters, String message) {
 
-    Image mzmineIcon = FxIconUtil.loadImageFromResources("MzmineIcon.png");
+    Image mzmineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
     this.getIcons().add(mzmineIcon);
 
     this.valueCheckRequired = valueCheckRequired;
