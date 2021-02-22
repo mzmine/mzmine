@@ -383,6 +383,7 @@ public class MzXMLImportTask extends AbstractTask {
         buildingScan.setSpectrumType(spectrumType);
 
         // Set the final data points to the scan
+        // This line awaits you, Robin: ~SteffenHeu :)
 //        buildingScan.setDataPoints(mzValues, intensityValues);
 
         return;

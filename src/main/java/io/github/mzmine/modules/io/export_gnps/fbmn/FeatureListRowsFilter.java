@@ -12,31 +12,36 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.modules.io.export_features_csv;
+package io.github.mzmine.modules.io.export_gnps.fbmn;
 
-public enum ExportRowCommonElement {
+import io.github.mzmine.datamodel.features.FeatureListRow;
 
-  ROW_ID("Export row ID"), //
-  ROW_MZ("Export row m/z"), //
-  ROW_RT("Export row retention time"), //
-  ROW_IDENTITY("Export row identity (main ID)"), //
-  ROW_IDENTITY_ALL("Export row identity (all IDs)"), //
-  ROW_IDENTITY_DETAILS("Export row identity (main ID + details)"), //
-  ROW_COMMENT("Export row comment"), //
-  ROW_FEATURE_NUMBER("Export row number of detected features");
-
-  private final String name;
-
-  ExportRowCommonElement(String name) {
-    this.name = name;
-  }
+/**
+ * Define which rows to export
+ *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
+public enum FeatureListRowsFilter {
+  ALL, ONLY_WITH_MS2;
 
   @Override
   public String toString() {
-    return this.name;
+    return super.toString().replaceAll("_", " ");
+  }
+
+  /**
+   * Filter a row
+   *
+   * @return true if row conforms to the filter
+   */
+  public boolean filter(FeatureListRow row) {
+    return switch (this) {
+      case ALL -> true;
+      case ONLY_WITH_MS2 -> row.getBestFragmentation() != null;
+    };
   }
 }

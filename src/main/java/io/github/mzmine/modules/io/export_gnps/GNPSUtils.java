@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,11 +20,14 @@ package io.github.mzmine.modules.io.export_gnps;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -43,11 +46,11 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 
 /**
  * Class to submit GNPS feature based molecular networking jobs directly
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class GNPSUtils {
+
   // Logger.
   private static final Logger logger = Logger.getLogger(GNPSUtils.class.getName());
 
@@ -58,9 +61,9 @@ public class GNPSUtils {
 
   /**
    * Submit feature-based molecular networking (FBMN) job to GNPS
-   * 
-   * @param file
-   * @param param
+   *
+   * @param file  base file name to find mgf (file) and csv (file_quant.csv)
+   * @param param submission parameters
    * @return
    */
   public static String submitFbmnJob(File file, GnpsFbmnSubmitParameters param) throws IOException {
@@ -81,24 +84,21 @@ public class GNPSUtils {
 
     // NEEDED files
     if (mgf.exists() && quan.exists()) {
-      File meta = !useMeta ? null
-          : param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getEmbeddedParameter()
-              .getValue();
 
-      return submitFbmnJob(mgf, quan, meta, null, title, email, username, password, presets,
-          openWebsite);
-    } else
-      return "";
+    }
+    File meta = !useMeta ? null
+        : param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getEmbeddedParameter()
+            .getValue();
+
+    return submitFbmnJob(mgf, quan, meta, null, title, email, username, password, presets,
+        openWebsite);
   }
 
   /**
    * Submit feature-based molecular networking (FBMN) job to GNPS
-   * 
-   * @param file
-   * @param param
-   * @return
    */
-  public static String submitFbmnJob(File mgf, File quan, File meta, File[] additionalEdges,
+  public static String submitFbmnJob(@Nonnull File mgf, @Nonnull File quan, @Nullable File meta,
+      @Nullable File[] additionalEdges,
       String title, String email, String username, String password, String presets,
       boolean openWebsite) throws IOException {
     // NEEDED files
@@ -122,14 +122,18 @@ public class GNPSUtils {
         entity.addPart("email", new StringBody(email));
         entity.addPart("username", new StringBody(username));
         entity.addPart("password", new StringBody(password));
-        if (meta != null && meta.exists())
+        if (meta != null && meta.exists()) {
           entity.addPart("samplemetadata", new FileBody(meta));
+        }
 
         // add additional edges
-        if (additionalEdges != null)
-          for (File edge : additionalEdges)
-            if (edge != null && edge.exists())
+        if (additionalEdges != null) {
+          for (File edge : additionalEdges) {
+            if (edge != null && edge.exists()) {
               entity.addPart("additionalpairs", new FileBody(edge));
+            }
+          }
+        }
 
         HttpPost httppost = new HttpPost(FBMN_SUBMIT_SITE);
         httppost.setEntity(entity);
@@ -143,8 +147,9 @@ public class GNPSUtils {
             logger.info("GNPS submit response content length: " + resEntity.getContentLength());
 
             // open job website
-            if (openWebsite)
+            if (openWebsite) {
               openWebsite(resEntity);
+            }
             EntityUtils.consume(resEntity);
           }
         } finally {
@@ -159,7 +164,7 @@ public class GNPSUtils {
 
   /**
    * Open website with GNPS job
-   * 
+   *
    * @param resEntity
    */
   private static void openWebsite(HttpEntity resEntity) {
@@ -169,8 +174,9 @@ public class GNPSUtils {
         String url = res.getString("url");
         logger.info("Response: " + res.toString());
 
-        if (url != null && !url.isEmpty())
+        if (url != null && !url.isEmpty()) {
           Desktop.getDesktop().browse(new URI(url));
+        }
 
       } catch (ParseException | IOException | URISyntaxException | JSONException e) {
         logger.log(Level.SEVERE, "Error while submitting GNPS job", e);

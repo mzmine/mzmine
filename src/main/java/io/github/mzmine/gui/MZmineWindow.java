@@ -68,7 +68,7 @@ public class MZmineWindow extends Stage {
   public MZmineWindow(boolean isExclusive) {
     super();
 
-    Image mzmineIcon = FxIconUtil.loadImageFromResources("MzmineIcon.png");
+    Image mzmineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
     this.getIcons().add(mzmineIcon);
 
     setWidth(DEFAULT_WIDTH);

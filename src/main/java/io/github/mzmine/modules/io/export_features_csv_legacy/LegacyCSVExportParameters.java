@@ -12,22 +12,23 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.modules.io.export_features_csv;
+package io.github.mzmine.modules.io.export_features_csv_legacy;
 
 import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
-public class CSVExportModularParameters extends SimpleParameterSet {
+public class LegacyCSVExportParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
@@ -41,15 +42,28 @@ public class CSVExportModularParameters extends SimpleParameterSet {
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the exported file", ",");
 
+  public static final MultiChoiceParameter<LegacyExportRowCommonElement> exportCommonItems =
+      new MultiChoiceParameter<>("Export common elements",
+          "Selection of row's elements to export", LegacyExportRowCommonElement.values());
+
+  public static final MultiChoiceParameter<LegacyExportRowDataFileElement> exportDataFileItems =
+      new MultiChoiceParameter<>("Export data file elements",
+          "Selection of feature's elements to export", LegacyExportRowDataFileElement.values());
+
+  public static final BooleanParameter exportAllFeatureInfo =
+      new BooleanParameter("Export quantitation results and other information",
+          "If checked, all feature-information results for a feature will be exported. ", false);
+
   public static final StringParameter idSeparator = new StringParameter("Identification separator",
-      "Character(s) used to separate multi object columns in the exported file", ";");
+      "Character(s) used to separate identification results in the exported file", ";");
 
   public static final ComboParameter<FeatureListRowsFilter> filter = new ComboParameter<>(
       "Filter rows", "Limit the exported rows to those with MS/MS data (or annotated rows)",
       FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
 
-  public CSVExportModularParameters() {
-    super(new Parameter[] {featureLists, filename, fieldSeparator, idSeparator, filter});
+  public LegacyCSVExportParameters() {
+    super(new Parameter[]{featureLists, filename, fieldSeparator, exportCommonItems,
+        exportDataFileItems, exportAllFeatureInfo, idSeparator, filter});
   }
 
 }
