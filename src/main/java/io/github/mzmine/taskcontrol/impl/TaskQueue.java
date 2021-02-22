@@ -18,9 +18,10 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -61,6 +62,14 @@ public class TaskQueue {
 
   void addWrappedTask(WrappedTask task) {
     logger.finest("Adding task \"" + task + "\" to the task controller queue");
+    if (task.getActualTask() instanceof AbstractTask) {
+      ((AbstractTask) task.getActualTask()).addTaskStatusListener((t, oldStatus, newStatus) -> {
+        if (t.getStatus() == TaskStatus.FINISHED) {
+          Platform.runLater(() -> queue.remove(task));
+        }
+      });
+    }
+
     Platform.runLater(() -> queue.add(task));
 
   }
