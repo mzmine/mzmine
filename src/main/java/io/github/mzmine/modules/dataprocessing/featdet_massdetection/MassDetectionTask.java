@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.MemoryEfficientScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -131,18 +132,23 @@ public class MassDetectionTask extends AbstractTask {
 
       logger.info("Started mass detector on " + dataFile);
 
-      final Scan scans[] = scanSelection.getMatchingScans(dataFile);
-      totalScans = scans.length;
-      // Process scans one by one
-      for (Scan scan : scans) {
+      // uses only a single array for each (mz and intensity) to loop over all scans
+      MemoryEfficientScanDataAccess data = new MemoryEfficientScanDataAccess(dataFile,
+          MemoryEfficientScanDataAccess.DataType.RAW, scanSelection);
+      totalScans = data.getNumberOfScans();
 
+      // all scans
+      while(data.hasNextScan()) {
         if (isCanceled()) {
           return;
         }
 
+        Scan scan = data.nextScan();
+
         MassDetector detector = massDetector.getModule();
+        // run mass detection on data object
         // [mzs, intensities]
-        double[][] mzPeaks = detector.getMassValues(scan, massDetector.getParameterSet());
+        double[][] mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
 
         if (scan instanceof Frame) {
           // for ion mobility, detect subscans, too
