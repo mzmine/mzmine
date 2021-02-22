@@ -24,7 +24,10 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.listeners.MassListChangedListener;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
@@ -35,6 +38,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
+  @Nonnull
   private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
@@ -46,6 +50,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private String scanDefinition;
   private Range<Double> scanMZRange;
   private MassList massList = null;
+  private List<MassListChangedListener> massListListener;
+
 
   /**
    * Clone constructor
@@ -55,7 +61,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
       double[] newIntensityValues) {
 
     this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getPrecursorMZ(),
-        sc.getPrecursorCharge(), newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
+        sc.getPrecursorCharge(), newMzValues, newIntensityValues, sc.getSpectrumType(),
+        sc.getPolarity(),
         sc.getScanDefinition(), sc.getScanningMZRange());
   }
 
@@ -166,7 +173,41 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
+    // we are not going into any details if this.massList equals massList
+    // do not call listeners if the same object is passed multiple times
+    if (this.massList == massList) {
+      return;
+    }
+    MassList old = this.massList;
     this.massList = massList;
+
+    if (massListListener != null) {
+      for (MassListChangedListener l : massListListener) {
+        l.changed(this, old, massList);
+      }
+    }
+  }
+
+  @Override
+  public void addChangeListener(MassListChangedListener listener) {
+    if (massListListener == null) {
+      massListListener = new ArrayList<>();
+    }
+    massListListener.add(listener);
+  }
+
+  @Override
+  public void removeChangeListener(MassListChangedListener listener) {
+    if (massListListener != null) {
+      massListListener.remove(listener);
+    }
+  }
+
+  @Override
+  public void clearChangeListener() {
+    if (massListListener != null) {
+      massListListener.clear();
+    }
   }
 
   @Override

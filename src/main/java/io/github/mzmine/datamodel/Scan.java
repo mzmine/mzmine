@@ -17,6 +17,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.listeners.MassListChangedListener;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
@@ -84,6 +85,11 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   MassList getMassList();
 
   void addMassList(@Nonnull MassList massList);
+
+
+  void addChangeListener(MassListChangedListener listener);
+  void removeChangeListener(MassListChangedListener listener);
+  void clearChangeListener();
 
 //  @Nullable
 //  MassList getMassList(@Nonnull String name);

@@ -12,28 +12,26 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.datamodel.listeners;
 
-import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.Scan;
 
 /**
- * This class represent detected masses (ions) in one mass spectrum. Each ion is represented by a
- * DataPoint
+ * MassList was changed
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
-public interface MassList extends MassSpectrum {
+public interface MassListChangedListener {
 
   /**
-   * Try to directly access m/z and intensity values by index
+   * MassList of scan was changed
    *
-   * @return
+   * @param scan   the scan
+   * @param masses the new centroid mass list
    */
-  @Deprecated
-  default public DataPoint[] getDataPoints() {
-    return ScanUtils.extractDataPoints(this);
-  }
-
+  void changed(Scan scan, MassList old, MassList masses);
 }

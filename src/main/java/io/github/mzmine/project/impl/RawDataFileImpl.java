@@ -18,27 +18,30 @@
 
 package io.github.mzmine.project.impl;
 
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.listeners.MassListChangedListener;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
+import javax.annotation.Nonnull;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -50,7 +53,7 @@ import javafx.scene.paint.Color;
  * the two TreeMaps. When the project is saved, the contents of the dataPointsFile are consolidated
  * - only data points referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
  */
-public class RawDataFileImpl implements RawDataFile {
+public class RawDataFileImpl implements RawDataFile, MassListChangedListener {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
 
@@ -60,9 +63,11 @@ public class RawDataFileImpl implements RawDataFile {
   private String dataFileName;
 
   private final Hashtable<Integer, Range<Double>> dataMZRange = new Hashtable<>();
-  private final Hashtable<Integer, Range<Float>> dataRTRange = new Hashtable<>();;
+  private final Hashtable<Integer, Range<Float>> dataRTRange = new Hashtable<>();
+  ;
   private final Hashtable<Integer, Double> dataMaxBasePeakIntensity = new Hashtable<>();
-  private final Hashtable<Integer, Double> dataMaxTIC = new Hashtable<>();;
+  private final Hashtable<Integer, Double> dataMaxTIC = new Hashtable<>();
+  ;
 
   // Temporary file for scan data storage
   private final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
@@ -70,6 +75,9 @@ public class RawDataFileImpl implements RawDataFile {
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
 
   protected final ObservableList<Scan> scans;
+  // maximum number of data points and centroid data points in all scans
+  protected int maxRawDataPoints = -1;
+  protected int maxCentroidDataPoints = -1;
 
   protected final ObservableList<FeatureListAppliedMethod> appliedMethods
       = FXCollections.observableArrayList();
@@ -87,10 +95,9 @@ public class RawDataFileImpl implements RawDataFile {
     this.color.setValue(color);
   }
 
-
-
   @Override
-  public @Nonnull MemoryMapStorage getMemoryMapStorage() {
+  public @Nonnull
+  MemoryMapStorage getMemoryMapStorage() {
     return storageMemoryMap;
   }
 
@@ -99,6 +106,30 @@ public class RawDataFileImpl implements RawDataFile {
     return (RawDataFile) super.clone();
   }
 
+  /**
+   * The maximum number of centroid data points in all scans (after mass detection and optional
+   * processing)
+   *
+   * @return
+   */
+  @Override
+  public int getMaxCentroidDataPoints() {
+    if (maxCentroidDataPoints == -1) {
+      maxCentroidDataPoints = scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
+          .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
+    }
+    return maxCentroidDataPoints;
+  }
+
+  /**
+   * The maximum number of raw data points in all scans
+   *
+   * @return
+   */
+  @Override
+  public int getMaxRawDataPoints() {
+    return maxRawDataPoints;
+  }
 
   /**
    * @see io.github.mzmine.datamodel.RawDataFile#getNumOfScans()
@@ -109,10 +140,10 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   /**
-   * @param rt The rt
+   * @param rt      The rt
    * @param mslevel The ms level
    * @return The scan number at a given retention time within a range of 2 (min/sec?) or -1 if no
-   *         scan can be found.
+   * scan can be found.
    */
   @Override
   public Scan getScanNumberAtRT(float rt, int mslevel) {
@@ -138,7 +169,7 @@ public class RawDataFileImpl implements RawDataFile {
   /**
    * @param rt The rt
    * @return The scan at a given retention time within a range of 2 (min/sec?) or null if no scan
-   *         can be found.
+   * can be found.
    */
   @Override
   public Scan getScanNumberAtRT(float rt) {
@@ -170,7 +201,8 @@ public class RawDataFileImpl implements RawDataFile {
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
    */
   @Override
-  public @Nonnull Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
+  public @Nonnull
+  Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
     assert rtRange != null;
     return scans.stream()
         .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
@@ -263,10 +295,22 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
 
-
   @Override
   public synchronized void addScan(Scan newScan) throws IOException {
     scans.add(newScan);
+    if (newScan.getNumberOfDataPoints() > maxRawDataPoints) {
+      // TODO how to make sure changes to Frames are reflected
+      // Scan will be unmodifiable - Frame is the average spectrum calculated from all MobilityScans
+      // so data changes
+      maxRawDataPoints = newScan.getNumberOfDataPoints();
+    }
+    MassList masses = newScan.getMassList();
+    if (masses != null && masses.getNumberOfDataPoints() > maxCentroidDataPoints) {
+      // TODO how to make sure changes to the mass list are reflected to this var
+      maxCentroidDataPoints = masses.getNumberOfDataPoints();
+    }
+    // listen for changes to the mass list
+    newScan.addChangeListener(this);
 
     // Remove cached values
     dataMZRange.clear();
@@ -304,8 +348,9 @@ public class RawDataFileImpl implements RawDataFile {
       if (mzRange == null) {
         mzRange = scanMzRange;
       } else {
-        if (scanMzRange != null)
+        if (scanMzRange != null) {
           mzRange = mzRange.span(scanMzRange);
+        }
       }
 
     }
@@ -438,5 +483,11 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     return appliedMethods;
+  }
+
+  @Override
+  public void changed(Scan scan, MassList old, MassList masses) {
+    // set to -1 to indicate change
+    maxCentroidDataPoints = -1;
   }
 }
