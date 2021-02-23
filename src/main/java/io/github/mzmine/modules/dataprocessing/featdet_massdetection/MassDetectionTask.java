@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.MemoryEfficientScanDataAccess;
+import io.github.mzmine.datamodel.data_access.MemoryEfficientScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;

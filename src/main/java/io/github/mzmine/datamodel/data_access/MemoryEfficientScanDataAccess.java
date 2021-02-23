@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.impl;
+package io.github.mzmine.datamodel.data_access;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -32,6 +32,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * The intended use of this memory access is to loop over all scans and access data points via
+ * {@link #getMzValue(int)} and {@link #getIntensityValue(int)}
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class MemoryEfficientScanDataAccess implements MassSpectrum {
@@ -42,7 +45,7 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
 
   protected final RawDataFile dataFile;
   protected final DataType type;
-  private final Scan[] scans;
+  protected final Scan[] scans;
 
   // current data
   protected final double[] mzs;
@@ -50,6 +53,14 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
   protected int currentScan = -1;
   protected int currentNumberOfDataPoints = -1;
 
+  /**
+   * The intended use of this memory access is to loop over all scans and access data points via
+   * {@link #getMzValue(int)} and {@link #getIntensityValue(int)}
+   *
+   * @param dataFile
+   * @param type      processed or raw data
+   * @param selection processed or raw data
+   */
   public MemoryEfficientScanDataAccess(RawDataFile dataFile,
       DataType type, ScanSelection selection) {
     this.dataFile = dataFile;
@@ -109,12 +120,15 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
   }
 
   /**
-   * Set the data to the next scan, if available
+   * Set the data to the next scan, if available. Returns the scan for additional data access. m/z
+   * and intensity values should be accessed from this data class via {@link #getMzValue(int)} and
+   * {@link #getIntensityValue(int)}
    *
-   * @return
+   * @return the scan or null
    * @throws MissingMassListException if DataType.CENTROID is selected and mass list is missing in
    *                                  the current scan
    */
+  @Nullable
   public Scan nextScan() throws MissingMassListException {
     if (hasNextScan()) {
       currentScan++;
