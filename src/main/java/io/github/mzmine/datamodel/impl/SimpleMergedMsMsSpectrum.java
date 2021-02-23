@@ -26,7 +26,6 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.listeners.MassListChangedListener;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -59,7 +58,6 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
   private final PolarityType polarity;
   private MassList massList = null;
   private final String scanDefinition;
-  private List<MassListChangedListener> massListListener;
 
   public SimpleMergedMsMsSpectrum(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, double precursorMz,
@@ -199,32 +197,9 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
     MassList old = this.massList;
     this.massList = massList;
 
-    if (massListListener != null) {
-      for (MassListChangedListener l : massListListener) {
-        l.changed(this, old, massList);
-      }
+    if (rawDataFile != null) {
+      rawDataFile.applyMassListChanged(this, old, massList);
     }
   }
 
-  @Override
-  public void addChangeListener(MassListChangedListener listener) {
-    if (massListListener == null) {
-      massListListener = new ArrayList<>();
-    }
-    massListListener.add(listener);
-  }
-
-  @Override
-  public void removeChangeListener(MassListChangedListener listener) {
-    if (massListListener != null) {
-      massListListener.remove(listener);
-    }
-  }
-
-  @Override
-  public void clearChangeListener() {
-    if (massListListener != null) {
-      massListListener.clear();
-    }
-  }
 }

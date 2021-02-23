@@ -151,6 +151,16 @@ public interface RawDataFile {
 
   ObservableList<Scan> getScans();
 
+
+  /**
+   * Mass list has changed. reset all precomputed values
+   *
+   * @param scan   the scan that was changed
+   * @param old    old mass list
+   * @param masses new mass list
+   */
+  void applyMassListChanged(Scan scan, MassList old, MassList masses);
+
   /**
    * The scan at the specified scan number or null
    *

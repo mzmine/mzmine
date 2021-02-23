@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.listeners.MassListChangedListener;
 import io.github.mzmine.util.DataPointUtils;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
@@ -268,24 +267,6 @@ public class CachedFrame implements Frame {
 
   @Override
   public void addMassList(@Nonnull MassList massList) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
-  @Override
-  public void addChangeListener(MassListChangedListener listener) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
-  @Override
-  public void removeChangeListener(MassListChangedListener listener) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
-  @Override
-  public void clearChangeListener() {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }

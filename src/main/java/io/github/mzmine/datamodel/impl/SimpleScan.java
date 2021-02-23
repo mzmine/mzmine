@@ -24,19 +24,13 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.listeners.MassListChangedListener;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 /**
  * Simple implementation of the Scan interface.
  */
 public class SimpleScan extends AbstractStorableSpectrum implements Scan {
-
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   @Nonnull
   private final RawDataFile dataFile;
@@ -50,13 +44,10 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private String scanDefinition;
   private Range<Double> scanMZRange;
   private MassList massList = null;
-  private List<MassListChangedListener> massListListener;
-
 
   /**
    * Clone constructor
    */
-
   public SimpleScan(@Nonnull RawDataFile dataFile, Scan sc, double[] newMzValues,
       double[] newIntensityValues) {
 
@@ -71,7 +62,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
    * Constructor for creating scan with given data
    */
   public SimpleScan(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, double mzValues[], double intensityValues[],
+      double precursorMZ, int precursorCharge, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
 
@@ -151,7 +142,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Scan#
+   *
    */
   @Override
   public float getRetentionTime() {
@@ -181,32 +172,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     MassList old = this.massList;
     this.massList = massList;
 
-    if (massListListener != null) {
-      for (MassListChangedListener l : massListListener) {
-        l.changed(this, old, massList);
-      }
-    }
-  }
-
-  @Override
-  public void addChangeListener(MassListChangedListener listener) {
-    if (massListListener == null) {
-      massListListener = new ArrayList<>();
-    }
-    massListListener.add(listener);
-  }
-
-  @Override
-  public void removeChangeListener(MassListChangedListener listener) {
-    if (massListListener != null) {
-      massListListener.remove(listener);
-    }
-  }
-
-  @Override
-  public void clearChangeListener() {
-    if (massListListener != null) {
-      massListListener.clear();
+    if (dataFile != null) {
+      dataFile.applyMassListChanged(this, old, massList);
     }
   }
 
@@ -230,6 +197,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return polarity;
   }
 
+  @Nonnull
   @Override
   public String getScanDefinition() {
     if (scanDefinition == null) {

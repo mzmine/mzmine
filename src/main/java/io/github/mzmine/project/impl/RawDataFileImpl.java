@@ -25,7 +25,6 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.listeners.MassListChangedListener;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -53,7 +52,7 @@ import javax.annotation.Nonnull;
  * the two TreeMaps. When the project is saved, the contents of the dataPointsFile are consolidated
  * - only data points referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
  */
-public class RawDataFileImpl implements RawDataFile, MassListChangedListener {
+public class RawDataFileImpl implements RawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
 
@@ -303,11 +302,9 @@ public class RawDataFileImpl implements RawDataFile, MassListChangedListener {
     }
     MassList masses = newScan.getMassList();
     if (masses != null && masses.getNumberOfDataPoints() > maxCentroidDataPoints) {
-      // TODO how to make sure changes to the mass list are reflected to this var
+      // mass list changes set this var to -1
       maxCentroidDataPoints = masses.getNumberOfDataPoints();
     }
-    // listen for changes to the mass list
-    newScan.addChangeListener(this);
 
     // Remove cached values
     dataMZRange.clear();
@@ -483,8 +480,14 @@ public class RawDataFileImpl implements RawDataFile, MassListChangedListener {
     return appliedMethods;
   }
 
-  @Override
-  public void changed(Scan scan, MassList old, MassList masses) {
+  /**
+   * Mass list has changed. reset all precomputed values
+   *
+   * @param scan   the scan that was changed
+   * @param old    old mass list
+   * @param masses new mass list
+   */
+  public void applyMassListChanged(Scan scan, MassList old, MassList masses) {
     // set to -1 to indicate change
     maxCentroidDataPoints = -1;
   }
