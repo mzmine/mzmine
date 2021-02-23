@@ -87,7 +87,7 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
   /**
    * Get mass-to-charge ratio at index
    *
-   * @param index
+   * @param index data point index
    * @return
    */
   @Override
@@ -99,7 +99,7 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
   /**
    * Get intensity at index
    *
-   * @param index
+   * @param index data point index
    * @return
    */
   @Override
@@ -119,12 +119,12 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
     if (hasNextScan()) {
       currentScan++;
       switch (type) {
-        case RAW:
+        case RAW -> {
           scans[currentScan].getMzValues(mzs);
           scans[currentScan].getIntensityValues(intensities);
           currentNumberOfDataPoints = scans[currentScan].getNumberOfDataPoints();
-          break;
-        case CENTROID:
+        }
+        case CENTROID -> {
           MassList masses = scans[currentScan].getMassList();
           if (masses == null) {
             throw new MissingMassListException(scans[currentScan]);
@@ -132,7 +132,7 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
           masses.getMzValues(mzs);
           masses.getIntensityValues(intensities);
           currentNumberOfDataPoints = masses.getNumberOfDataPoints();
-          break;
+        }
       }
       return scans[currentScan];
     }
@@ -184,13 +184,15 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
   @Nullable
   @Override
   public Double getBasePeakMz() {
-    return getMzValue(getBasePeakIndex());
+    Integer index = getBasePeakIndex();
+    return index != null && index >= 0 ? getMzValue(index) : null;
   }
 
   @Nullable
   @Override
   public Double getBasePeakIntensity() {
-    return getIntensityValue(getBasePeakIndex());
+    Integer index = getBasePeakIndex();
+    return index != null && index >= 0 ? getIntensityValue(index) : null;
   }
 
   @Nullable
