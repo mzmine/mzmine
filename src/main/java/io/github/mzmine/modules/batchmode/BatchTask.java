@@ -21,6 +21,7 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -107,10 +108,12 @@ public class BatchTask extends AbstractTask {
 
     // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
-    if (createdDataFiles.isEmpty())
+    if (createdDataFiles.isEmpty()) {
       createdDataFiles = previousCreatedDataFiles;
-    if (createdFeatureLists.isEmpty())
+    }
+    if (createdFeatureLists.isEmpty()) {
       createdFeatureLists = previousCreatedFeatureLists;
+    }
 
     // Update the RawDataFilesParameter parameters to reflect the current
     // state of the batch
@@ -146,7 +149,6 @@ public class BatchTask extends AbstractTask {
       }
     }
 
-
     // Check if the parameter settings are valid
     ArrayList<String> messages = new ArrayList<String>();
     boolean paramsCheck = batchStepParameters.checkParameterValues(messages);
@@ -156,7 +158,7 @@ public class BatchTask extends AbstractTask {
           + Arrays.toString(messages.toArray()));
     }
 
-    ArrayList<Task> currentStepTasks = new ArrayList<Task>();
+    List<Task> currentStepTasks = new ArrayList<Task>();
     ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks);
 
     if (exitCode != ExitCode.OK) {
@@ -166,38 +168,45 @@ public class BatchTask extends AbstractTask {
     }
 
     // If current step didn't produce any tasks, continue with next step
-    if (currentStepTasks.isEmpty())
+    if (currentStepTasks.isEmpty()) {
       return;
+    }
 
     boolean allTasksFinished = false;
 
     // Submit the tasks to the task controller for processing
-    MZmineCore.getTaskController().addTasks(currentStepTasks.toArray(new Task[0]));
+    WrappedTask[] currentStepWrappedTasks = MZmineCore.getTaskController()
+        .addTasks(currentStepTasks.toArray(new Task[0]));
+    currentStepTasks = null;
 
     while (!allTasksFinished) {
 
       // If we canceled the batch, cancel all running tasks
       if (isCanceled()) {
-        for (Task stepTask : currentStepTasks)
-          stepTask.cancel();
+        for (WrappedTask stepTask : currentStepWrappedTasks) {
+          stepTask.getActualTask().cancel();
+        }
         return;
       }
 
       // First set to true, then check all tasks
       allTasksFinished = true;
 
-      for (Task stepTask : currentStepTasks) {
+      for (WrappedTask stepTask : currentStepWrappedTasks) {
 
-        TaskStatus stepStatus = stepTask.getStatus();
+        TaskStatus stepStatus = stepTask.getActualTask().getStatus();
 
         // If any of them is not finished, keep checking
-        if (stepStatus != TaskStatus.FINISHED)
+        if (stepStatus != TaskStatus.FINISHED) {
           allTasksFinished = false;
+        }
 
         // If there was an error, we have to stop the whole batch
         if (stepStatus == TaskStatus.ERROR) {
           setStatus(TaskStatus.ERROR);
-          setErrorMessage(stepTask.getTaskDescription() + ": " + stepTask.getErrorMessage());
+          setErrorMessage(
+              stepTask.getActualTask().getTaskDescription() + ": " + stepTask.getActualTask()
+                  .getErrorMessage());
           return;
         }
 
@@ -205,8 +214,9 @@ public class BatchTask extends AbstractTask {
         // whole batch
         if (stepStatus == TaskStatus.CANCELED) {
           setStatus(TaskStatus.CANCELED);
-          for (Task t : currentStepTasks)
-            t.cancel();
+          for (WrappedTask t : currentStepWrappedTasks) {
+            t.getActualTask().cancel();
+          }
           return;
         }
 
@@ -230,10 +240,12 @@ public class BatchTask extends AbstractTask {
     createdFeatureLists.removeAll(beforeFeatureLists);
     // Clear the saved data files and feature lists. Save them to the
     // "previous" lists, in case the next step does not produce any new data
-    if (!createdDataFiles.isEmpty())
+    if (!createdDataFiles.isEmpty()) {
       previousCreatedDataFiles = createdDataFiles;
-    if (!createdFeatureLists.isEmpty())
+    }
+    if (!createdFeatureLists.isEmpty()) {
       previousCreatedFeatureLists = createdFeatureLists;
+    }
   }
 
   @Override
@@ -244,8 +256,9 @@ public class BatchTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (totalSteps == 0)
+    if (totalSteps == 0) {
       return 0;
+    }
     return (double) processedSteps / totalSteps;
   }
 

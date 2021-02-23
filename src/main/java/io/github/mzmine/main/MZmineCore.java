@@ -18,6 +18,7 @@
 
 package io.github.mzmine.main;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -232,16 +233,16 @@ public final class MZmineCore {
     return initializedModules.values();
   }
 
-  public static RawDataFile createNewFile(String name) throws IOException {
-    return new RawDataFileImpl(name);
+  public static RawDataFile createNewFile(String name, MemoryMapStorage storage) throws IOException {
+    return new RawDataFileImpl(name, storage);
   }
 
-  public static IMSRawDataFile createNewIMSFile(String name) throws IOException {
-    return new IMSRawDataFileImpl(name);
+  public static IMSRawDataFile createNewIMSFile(String name, MemoryMapStorage storage) throws IOException {
+    return new IMSRawDataFileImpl(name, storage);
   }
 
-  public static ImagingRawDataFile createNewImagingFile(String name) throws IOException {
-    return new ImagingRawDataFileImpl(name);
+  public static ImagingRawDataFile createNewImagingFile(String name, MemoryMapStorage storage) throws IOException {
+    return new ImagingRawDataFileImpl(name, storage);
   }
 
   @Nonnull

@@ -19,6 +19,7 @@
 package io.github.mzmine.taskcontrol;
 
 import io.github.mzmine.taskcontrol.impl.TaskQueue;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
 
 /**
  * 
@@ -27,11 +28,11 @@ public interface TaskController {
 
   public void addTask(Task task);
 
-  public void addTasks(Task tasks[]);
+  public WrappedTask[] addTasks(Task tasks[]);
 
   public void addTask(Task task, TaskPriority priority);
 
-  public void addTasks(Task tasks[], TaskPriority[] priority);
+  public WrappedTask[] addTasks(Task tasks[], TaskPriority[] priority);
 
   public void setTaskPriority(Task task, TaskPriority priority);
 

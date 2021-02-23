@@ -18,6 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
+import io.github.mzmine.util.MemoryMapStorage;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -33,9 +37,6 @@ import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.logging.Logger;
 
 /**
  * @description Abstract corrector class for baseline correction. Has to be specialized via the
@@ -102,7 +103,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   public final RawDataFile correctDatafile(final RSessionWrapper rSession,
       final RawDataFile dataFile, final ParameterSet parameters,
-      final ParameterSet commonParameters) throws IOException, RSessionWrapperException {
+      final ParameterSet commonParameters, MemoryMapStorage storage) throws IOException, RSessionWrapperException {
 
     if (isAborted(dataFile) || !rSession.isSessionRunning())
       return null;
@@ -119,7 +120,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       progressMap.put(origDataFile, new int[] {0, 0, 0});
 
     // Create a new temporary file to write in.
-    RawDataFile newFile = MZmineCore.createNewFile(origDataFile.getName() + ' ' + suffix);
+    RawDataFile newFile = MZmineCore.createNewFile(origDataFile.getName() + ' ' + suffix, storage);
 
     // Determine number of bins.
     final double mzLen = origDataFile.getDataMZRange().upperEndpoint()

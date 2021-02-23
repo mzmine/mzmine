@@ -32,6 +32,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
@@ -55,6 +56,7 @@ public class BaselineCorrectionTask extends AbstractTask {
   // Original data file and newly created baseline corrected file.
   private final MZmineProject project;
   private final RawDataFile origDataFile;
+  private final MemoryMapStorage storage;
   private RawDataFile correctedDataFile;
 
   // Remove original data file.
@@ -73,16 +75,17 @@ public class BaselineCorrectionTask extends AbstractTask {
 
   /**
    * Creates the task.
-   * 
-   * @param dataFile raw data file on which to perform correction.
+   *  @param dataFile raw data file on which to perform correction.
    * @param parameters correction parameters.
+   * @param storage
    */
   public BaselineCorrectionTask(MZmineProject project, final RawDataFile dataFile,
-      final ParameterSet parameters) {
+      final ParameterSet parameters, MemoryMapStorage storage) {
 
     // Initialize.
     this.project = project;
     this.origDataFile = dataFile;
+    this.storage = storage;
     this.correctedDataFile = null;
     this.removeOriginal =
         parameters.getParameter(BaselineCorrectionParameters.REMOVE_ORIGINAL).getValue();
@@ -126,7 +129,7 @@ public class BaselineCorrectionTask extends AbstractTask {
 
       final RawDataFile correctedDataFile =
           this.baselineCorrectorProcStep.getModule().correctDatafile(this.rSession, origDataFile,
-              baselineCorrectorProcStep.getParameterSet(), this.commonParameters);
+              baselineCorrectorProcStep.getParameterSet(), this.commonParameters, storage);
 
       // If this task was canceled, stop processing.
       if (!isCanceled() && correctedDataFile != null) {

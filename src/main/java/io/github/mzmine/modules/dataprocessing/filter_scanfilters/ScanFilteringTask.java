@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
@@ -54,12 +55,15 @@ class ScanFilteringTask extends AbstractTask {
 
   private ScanSelection select;
   private ParameterSet parameters;
+  private final MemoryMapStorage storage;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storage
    */
-  ScanFilteringTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  ScanFilteringTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storage) {
 
     this.project = project;
     this.dataFile = dataFile;
@@ -70,6 +74,7 @@ class ScanFilteringTask extends AbstractTask {
     select = parameters.getParameter(ScanFiltersParameters.scanSelect).getValue();
 
     this.parameters = parameters;
+    this.storage = storage;
   }
 
   /**
@@ -114,7 +119,7 @@ class ScanFilteringTask extends AbstractTask {
       // Create new raw data file
 
       String newName = dataFile.getName() + " " + suffix;
-      newFile = MZmineCore.createNewFile(newName);
+      newFile = MZmineCore.createNewFile(newName, storage);
 
       for (int i = 0; i < totalScans; i++) {
 

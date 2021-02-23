@@ -65,7 +65,7 @@ public class RawDataFileImpl implements RawDataFile {
   private final Hashtable<Integer, Double> dataMaxTIC = new Hashtable<>();;
 
   // Temporary file for scan data storage
-  private final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
+  private final MemoryMapStorage storageMemoryMap;
 
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
 
@@ -74,13 +74,14 @@ public class RawDataFileImpl implements RawDataFile {
   protected final ObservableList<FeatureListAppliedMethod> appliedMethods
       = FXCollections.observableArrayList();
 
-  public RawDataFileImpl(String dataFileName) throws IOException {
-    this(dataFileName, MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
+  public RawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
+    this(dataFileName, storage, MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
   }
 
-  public RawDataFileImpl(String dataFileName, Color color) throws IOException {
+  public RawDataFileImpl(String dataFileName, MemoryMapStorage storage, Color color) throws IOException {
 
     this.dataFileName = dataFileName;
+    this.storageMemoryMap = storage;
 
     scans = FXCollections.observableArrayList();
 
