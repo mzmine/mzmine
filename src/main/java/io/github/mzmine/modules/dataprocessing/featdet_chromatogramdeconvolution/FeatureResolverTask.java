@@ -354,6 +354,8 @@ public class FeatureResolverTask extends AbstractTask {
     ResolvingDimension dimension = parameters.getParameter(GeneralResolverParameters.dimension)
         .getValue();
 
+    final List<? extends Scan> seletedScans = originalFeatureList.getSeletedScans(dataFile);
+
     int c = 0;
     for (int i = 0; i < totalRows; i++) {
       final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList
@@ -362,7 +364,7 @@ public class FeatureResolverTask extends AbstractTask {
       final IonTimeSeries<? extends Scan> data = originalFeature.getFeatureData();
 
       final List<IonTimeSeries<? extends Scan>> resolvedSeries = ResolvingUtil
-          .resolve(resolver, data, resolvedFeatureList.getMemoryMapStorage(), dimension);
+          .resolve(resolver, data, resolvedFeatureList.getMemoryMapStorage(), dimension, seletedScans);
 
       for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
