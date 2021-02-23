@@ -64,10 +64,9 @@ public class RawDataFileImpl implements RawDataFile, MassListChangedListener {
 
   private final Hashtable<Integer, Range<Double>> dataMZRange = new Hashtable<>();
   private final Hashtable<Integer, Range<Float>> dataRTRange = new Hashtable<>();
-  ;
+
   private final Hashtable<Integer, Double> dataMaxBasePeakIntensity = new Hashtable<>();
   private final Hashtable<Integer, Double> dataMaxTIC = new Hashtable<>();
-  ;
 
   // Temporary file for scan data storage
   private final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
@@ -266,7 +265,7 @@ public class RawDataFileImpl implements RawDataFile, MassListChangedListener {
     // check if we have this value already cached
     Double maxTIC = dataMaxTIC.get(msLevel);
     if (maxTIC != null) {
-      return maxTIC.doubleValue();
+      return maxTIC;
     }
 
     // find the value
@@ -279,7 +278,6 @@ public class RawDataFileImpl implements RawDataFile, MassListChangedListener {
       if ((maxTIC == null) || (scan.getTIC() > maxTIC)) {
         maxTIC = scan.getTIC();
       }
-
     }
 
     // return -1 if no scan at this MS level
@@ -291,7 +289,6 @@ public class RawDataFileImpl implements RawDataFile, MassListChangedListener {
     dataMaxTIC.put(msLevel, maxTIC);
 
     return maxTIC;
-
   }
 
 
@@ -425,6 +422,7 @@ public class RawDataFileImpl implements RawDataFile, MassListChangedListener {
     return getScanNumbers(msLevel).size();
   }
 
+  @Nonnull
   @Override
   public List<PolarityType> getDataPolarity() {
     Set<PolarityType> polarities =
