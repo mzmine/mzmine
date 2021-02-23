@@ -215,7 +215,7 @@ tasks.withType(JavaExec) {
  * Set the basic Java runtime parameters (heap size etc.)
  */
 application {
-    mainClassName = "io.github.mzmine.main.MZmineCore"
+    mainClass.set("io.github.mzmine.main.MZmineCore")
     applicationName = "MZmine"
 }
 
