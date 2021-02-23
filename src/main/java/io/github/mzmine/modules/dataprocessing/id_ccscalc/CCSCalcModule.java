@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -43,7 +43,7 @@ import javax.annotation.Nullable;
  * @see https://www.waters.com/webassets/cms/library/docs/720005374en.pdf or
  * https://www.sciencedirect.com/science/article/abs/pii/S1367593117301229?via%3Dihub
  */
-public class CCSCalcModule implements MZmineRunnableModule {
+public class CCSCalcModule implements MZmineProcessingModule {
 
   public static final String NAME = "CCS calculation module";
 
