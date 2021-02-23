@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
@@ -148,6 +147,17 @@ public class TDFImportTask extends AbstractTask {
     isMaldi = false;
 
     readMetadata();
+    /*if (isMaldi) {
+      try {
+        newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
+            newMZmineFile.getMemoryMapStorage());
+        ((IMSImagingRawDataFile) newMZmineFile)
+            .setImagingParam(new ImagingParameters(maldiFrameInfoTable));
+      } catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
+    }*/
 
     rawDataFileName = tdfBin.getParentFile().getName();
 
@@ -157,7 +167,8 @@ public class TDFImportTask extends AbstractTask {
       return;
     }
 
-    long handle = TDFUtils.openFile(tdfBin);
+    logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
+    final long handle = TDFUtils.openFile(tdfBin);
     newMZmineFile.setName(rawDataFileName);
 
     loadedFrames = 0;
@@ -168,11 +179,13 @@ public class TDFImportTask extends AbstractTask {
       return;
     }
 
-    int numFrames = frameTable.getFrameIdColumn().size();
+    final int numFrames = frameTable.getFrameIdColumn().size();
 
     Date start = new Date();
 
     identifySegments((IMSRawDataFileImpl) newMZmineFile);
+
+    logger.finest("Starting frame import.");
 
     loadedFrames = 0;
     // collect average spectra for each frame
@@ -185,7 +198,7 @@ public class TDFImportTask extends AbstractTask {
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
         SimpleFrame frame = TDFUtils
             .exctractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
-                metaDataTable, frameTable, framePrecursorTable);
+                metaDataTable, frameTable, framePrecursorTable/*, maldiFrameInfoTable*/);
         newMZmineFile.addScan(frame);
         frames.add(frame);
         loadedFrames++;
@@ -199,6 +212,9 @@ public class TDFImportTask extends AbstractTask {
     }
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
+
+//    logger.info("num dp (import): " + TDFUtils.numDP);
+//    logger.info("num dp (stored): " + SimpleFrame.numDp);
 
     // } else {
     // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
@@ -275,6 +291,7 @@ public class TDFImportTask extends AbstractTask {
       } else {
         setDescription("MALDI info for " + tdf.getName());
         maldiFrameInfoTable.executeQuery(connection);
+        /*maldiFrameInfoTable.process();*/
         // maldiFrameInfoTable.print();
       }
 
@@ -285,6 +302,8 @@ public class TDFImportTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.toString());
     }
+
+    logger.info("Metadata read successfully for " + rawDataFileName);
   }
 
   private void setDescription(String desc) {
@@ -323,7 +342,7 @@ public class TDFImportTask extends AbstractTask {
 
   }
 
-  private void appendScansFromMaldiTimsSegment(@Nonnull final IMSRawDataFile rawDataFile,
+  /*private void appendScansFromMaldiTimsSegment(@Nonnull final IMSRawDataFile rawDataFile,
       final long handle, final long firstFrameId, final long lastFrameId,
       @Nonnull final TDFFrameTable tdfFrameTable, @Nonnull final TDFMetaDataTable tdfMetaDataTable,
       @Nonnull final TDFMaldiFrameInfoTable tdfMaldiTable) {
@@ -345,7 +364,7 @@ public class TDFImportTask extends AbstractTask {
         TDFUtils.close(handle);
       }
     }
-  }
+  }*/
 
   private File[] getDataFilesFromDir(File dir) {
 
@@ -384,7 +403,7 @@ public class TDFImportTask extends AbstractTask {
       return false;
     }).findAny().get();
 
-    return new File[] {tdf, tdf_bin};
+    return new File[]{tdf, tdf_bin};
   }
 
   private void identifySegments(IMSRawDataFileImpl rawDataFile) {
@@ -412,7 +431,9 @@ public class TDFImportTask extends AbstractTask {
         Frame parentFrame = optionalFrame.orElseGet(() -> null);
 
         ImsMsMsInfo info = new ImsMsMsInfoImpl(building.getLargestPeakMz(),
-            building.getSpectrumNumberRange(), building.getCollisionEnergy(),
+            Range.closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
+                building.getSpectrumNumberRange().upperEndpoint() - 1),
+            building.getCollisionEnergy(),
             building.getPrecursorCharge(), parentFrame, frame);
 
         frame.getImsMsMsInfos().add(info);
