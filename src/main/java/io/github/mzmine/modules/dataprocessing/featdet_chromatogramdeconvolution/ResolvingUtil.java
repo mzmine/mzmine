@@ -55,7 +55,7 @@ public class ResolvingUtil {
       @Nonnull final ResolvingDimension dimension,
       List<? extends Scan> selectedScans) {
     final double[][] extractedData = extractData(data, dimension);
-    final int totalScans = selectedTotalScans(data, dimension, selectedScans);
+    final int totalScans = getTotalNumberOfScansInDimension(data, dimension, selectedScans);
 
     final List<IonTimeSeries<? extends Scan>> resolvedSeries = new ArrayList<>();
     final Collection<List<ResolvedValue<Double, Double>>> resolvedData = resolver
@@ -175,7 +175,7 @@ public class ResolvingUtil {
    * @param selectedScans
    * @return
    */
-  public static int selectedTotalScans(@Nonnull IonTimeSeries<? extends Scan> data,
+  public static int getTotalNumberOfScansInDimension(@Nonnull IonTimeSeries<? extends Scan> data,
       @Nonnull ResolvingDimension dimension, List<? extends Scan> selectedScans) {
     if (dimension == ResolvingDimension.RETENTION_TIME) {
       return selectedScans.size();
