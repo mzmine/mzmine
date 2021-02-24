@@ -27,10 +27,13 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import sun.misc.Unsafe;
 
 /**
  * This class defines a memory-mapped temporary file storage for large primitive type arrays. The
@@ -65,6 +68,7 @@ public class MemoryMapStorage {
   private static final long STORAGE_FILE_CAPACITY = 1_000_000_000L;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final Set<File> temporaryFiles = new HashSet<>();
+  private final List<MappedByteBuffer> mappedByteBufferList = new ArrayList<>();
 
   /**
    * The file that we are currently writing into.
@@ -91,6 +95,7 @@ public class MemoryMapStorage {
     // Map the file into memory
     MappedByteBuffer mappedFileBuffer =
         storageFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, STORAGE_FILE_CAPACITY);
+    mappedByteBufferList.add(mappedFileBuffer);
 
     // Close the temporary file, the memory mapping will remain
     storageFile.close();
@@ -277,13 +282,22 @@ public class MemoryMapStorage {
   /**
    * Discard this memory-mapped storage and remove all the associated temporary files.
    */
-  public synchronized void discard() throws IOException {
+  public synchronized void discard(Unsafe theUnsafe) throws IOException {
+
+    if (theUnsafe != null) {
+      for (MappedByteBuffer mappedByteBuffer : mappedByteBufferList) {
+        theUnsafe.invokeCleaner(mappedByteBuffer);
+      }
+    }
+
     for (File tmpFile : temporaryFiles) {
       if (!tmpFile.delete()) {
         logger.warning("Could not delete temporary file " + tmpFile.getAbsolutePath());
       }
     }
+
     temporaryFiles.clear();
     currentMappedFile = null;
   }
+
 }

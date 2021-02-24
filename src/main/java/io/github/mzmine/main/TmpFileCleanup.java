@@ -29,7 +29,6 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -107,11 +106,17 @@ public class TmpFileCleanup implements Runnable {
       return;
     }
 
+    if(theUnsafe == null) {
+      theUnsafe = initUnsafe();
+      if(theUnsafe == null) {
+        return;
+      }
+    }
+
     project.getRawDataFiles().forEach(raw -> {
       try {
         MemoryMapStorage memoryMapStorage = raw.getMemoryMapStorage();
-        unsafeReleaseOfMappedFiles(memoryMapStorage);
-        memoryMapStorage.discard();
+        memoryMapStorage.discard(theUnsafe);
       } catch (IOException e) {
         e.printStackTrace();
         logger.log(Level.SEVERE, "Cannot delete temp file for raw data file.", e);
@@ -121,38 +126,12 @@ public class TmpFileCleanup implements Runnable {
     project.getFeatureLists().forEach(flist -> {
       try {
         MemoryMapStorage memoryMapStorage = ((ModularFeatureList) flist).getMemoryMapStorage();
-        unsafeReleaseOfMappedFiles(memoryMapStorage);
-        memoryMapStorage.discard();
+        memoryMapStorage.discard(theUnsafe);
       } catch (IOException e) {
         e.printStackTrace();
         logger.log(Level.SEVERE, "Cannot delete temp file for feature list.", e);
       }
     });
-  }
-
-  /**
-   * Method to remove a memory mapped file. Unsafe operation and should only be used to close files
-   * on exit of MZmine.
-   *
-   * @author https://github.com/SteffenHeu
-   */
-  private void unsafeReleaseOfMappedFiles(MemoryMapStorage storage) {
-    try {
-      Field currentMappedFileField = storage.getClass().getDeclaredField("currentMappedFile");
-      currentMappedFileField.setAccessible(true);
-      MappedByteBuffer currentMappedFile = (MappedByteBuffer) currentMappedFileField.get(storage);
-
-      if (theUnsafe == null) {
-        theUnsafe = initUnsafe();
-      }
-      if (theUnsafe != null) {
-        theUnsafe.invokeCleaner(currentMappedFile);
-      }
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
-      // but that method should be added if sun.misc.Unsafe is removed.
-      e.printStackTrace();
-    }
   }
 
   /**
