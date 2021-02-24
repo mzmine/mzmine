@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -51,7 +52,7 @@ public class HierarAlignerGcModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    Task newTask = new HierarAlignerGCTask(project, parameters);
+    Task newTask = new HierarAlignerGCTask(project, parameters, MemoryMapStorage.forFeatureList());
     tasks.add(newTask);
     return ExitCode.OK;
 
