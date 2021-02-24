@@ -64,13 +64,22 @@ public class ModularFeatureList implements FeatureList {
     this(name, List.of(dataFiles));
   }
 
+  public ModularFeatureList(String name, MemoryMapStorage storage, @Nonnull RawDataFile... dataFiles) {
+    this(name, storage, List.of(dataFiles));
+  }
+
   public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
+    this(name,null, dataFiles);
+  }
+
+  public ModularFeatureList(String name, MemoryMapStorage storage, @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
     selectedScans = FXCollections.observableMap(new HashMap<>());
+    this.memoryMapStorage = storage;
 
     // only a few standard types
     addRowType(new IDType());

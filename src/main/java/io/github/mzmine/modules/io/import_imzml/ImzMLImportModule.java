@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.import_imzml;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -84,6 +85,9 @@ public class ImzMLImportModule implements MZmineProcessingModule {
     // Find common prefix in raw file names if in GUI mode
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
+    // one storage for all files in the same module call
+    MemoryMapStorage storage = new MemoryMapStorage();
+
     for (int i = 0; i < fileNames.length; i++) {
 
       if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
@@ -105,7 +109,7 @@ public class ImzMLImportModule implements MZmineProcessingModule {
       logger.finest("File " + fileNames[i] + " type detected as " + fileType);
 
       try {
-        ImagingRawDataFile newMZmineFile = MZmineCore.createNewImagingFile(newName);
+        ImagingRawDataFile newMZmineFile = MZmineCore.createNewImagingFile(newName, storage);
         Task newTask = new ImzMLImportTask(project, fileNames[i], newMZmineFile);
         tasks.add(newTask);
 

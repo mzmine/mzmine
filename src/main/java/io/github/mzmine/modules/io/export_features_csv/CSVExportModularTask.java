@@ -245,14 +245,14 @@ public class CSVExportModularTask extends AbstractTask {
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
           String field = subCols.getFormattedSubColValue(i, null, null, value, null);
-          if (!b.isEmpty()) {
+          if (b.length() != 0) {
             b.append(fieldSeparator);
           }
           b.append(field == null ? "" : field);
         }
       } else {
         Property property = data.get(type);
-        if (!b.isEmpty()) {
+        if (b.length() != 0) {
           b.append(fieldSeparator);
         }
         b.append(escapeStringForCSV(type.getFormattedString(property)));
@@ -279,7 +279,7 @@ public class CSVExportModularTask extends AbstractTask {
         List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
             .filter(this::filterType).collect(Collectors.toList());
         header = getJoinedHeader(filteredSubTypes, header);
-        if (!b.isEmpty()) {
+        if (b.length() != 0) {
           b.append(fieldSeparator);
         }
         b.append(header);
@@ -287,13 +287,13 @@ public class CSVExportModularTask extends AbstractTask {
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
           String field = subCols.getHeader(i);
-          if (!b.isEmpty()) {
+          if (b.length() != 0) {
             b.append(fieldSeparator);
           }
           b.append(field == null ? "" : (header + headerSeparator + field));
         }
       } else {
-        if (!b.isEmpty()) {
+        if (b.length() != 0) {
           b.append(fieldSeparator);
         }
         b.append(header);

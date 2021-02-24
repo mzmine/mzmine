@@ -157,6 +157,7 @@ public class MassDetectionTask extends AbstractTask {
           Frame frame = (Frame) scan;
           frameMassList.generateAndAddMobilityScanMassLists(frame.getMobilityScans(),
               storageMemoryMap, detector, massDetector.getParameterSet());
+          frame.addMassList(frameMassList);
         } else {
           SimpleMassList newMassList = new SimpleMassList(storageMemoryMap, mzPeaks[0], mzPeaks[1]);
           scan.addMassList(newMassList);

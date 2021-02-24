@@ -25,6 +25,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
@@ -47,6 +48,9 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
       @Nonnull final Collection<Task> tasks) {
+    // one memory map storage per module call to reduce number of files and connect related feature lists
+    MemoryMapStorage storage = new MemoryMapStorage();
+
     FeatureList[] peakLists = parameters.getParameter(GeneralResolverParameters.PEAK_LISTS).getValue()
         .getMatchingFeatureLists();
 
@@ -77,7 +81,7 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
     }
 
     for (final FeatureList peakList : peakLists) {
-      tasks.add(new FeatureResolverTask(project, peakList, parameters, mzCenterFunction));
+      tasks.add(new FeatureResolverTask(project, storage, peakList, parameters, mzCenterFunction));
     }
 
     return ExitCode.OK;
