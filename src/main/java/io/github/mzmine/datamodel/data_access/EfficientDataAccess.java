@@ -51,7 +51,7 @@ public class EfficientDataAccess {
    * @param flist target feature list. Loops through all features in all RawDataFiles
    * @param type  defines the data accession type
    */
-  public FeatureDataAccess of(FeatureList flist,
+  public static FeatureDataAccess of(FeatureList flist,
       FeatureDataType type) {
     return of(flist, type, null);
   }
@@ -64,7 +64,7 @@ public class EfficientDataAccess {
    * @param type     defines the data accession type
    * @param dataFile define the data file in an aligned feature list
    */
-  public FeatureDataAccess of(FeatureList flist,
+  public static FeatureDataAccess of(FeatureList flist,
       FeatureDataType type, RawDataFile dataFile) {
     return new FeatureDataAccess(flist, type, dataFile);
   }
