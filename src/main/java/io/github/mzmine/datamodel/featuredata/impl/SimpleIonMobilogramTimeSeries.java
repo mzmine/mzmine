@@ -265,25 +265,6 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     return mzValues;
   }
 
-
-  @Override
-  public double[] getMzValues(double[] dst) {
-    if (dst.length < getNumberOfValues()) {
-      dst = new double[getNumberOfValues()];
-    }
-    getMZValues().get(0, dst);
-    return dst;
-  }
-
-  @Override
-  public double[] getIntensityValues(double[] dst) {
-    if (dst.length < getNumberOfValues()) {
-      dst = new double[getNumberOfValues()];
-    }
-    getIntensityValues().get(0, dst);
-    return dst;
-  }
-
   /**
    * @return The frames.
    */

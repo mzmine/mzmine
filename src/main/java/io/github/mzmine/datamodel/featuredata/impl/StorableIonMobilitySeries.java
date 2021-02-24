@@ -119,25 +119,6 @@ public class StorableIonMobilitySeries implements IonMobilitySeries, ModifiableS
     return ionTrace.getMobilogramMzValues(this);
   }
 
-
-  @Override
-  public double[] getMzValues(double[] dst) {
-    if (dst.length < getNumberOfValues()) {
-      dst = new double[getNumberOfValues()];
-    }
-    getMZValues().get(0, dst);
-    return dst;
-  }
-
-  @Override
-  public double[] getIntensityValues(double[] dst) {
-    if (dst.length < getNumberOfValues()) {
-      dst = new double[getNumberOfValues()];
-    }
-    getIntensityValues().get(0, dst);
-    return dst;
-  }
-
   public double getMobility(int index) {
     return getSpectra().get(index).getMobility();
   }

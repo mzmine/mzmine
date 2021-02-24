@@ -109,7 +109,7 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    mzValues.get(0, dst);
+    mzValues.get(0, dst, 0, getNumberOfDataPoints());
     return dst;
   }
 
@@ -118,7 +118,7 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    intensityValues.get(0, dst);
+    intensityValues.get(0, dst, 0, getNumberOfDataPoints());
     return dst;
   }
 }
