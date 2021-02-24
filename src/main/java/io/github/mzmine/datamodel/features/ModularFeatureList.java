@@ -87,12 +87,19 @@ public class ModularFeatureList implements FeatureList {
     return name;
   }
 
+  /**
+   * The selected scans to build this feature/chromatogram
+   *
+   * @param file  the data file of the scans
+   * @param scans all filtered scans that were used to build the chromatogram in the first place.
+   *              For ion mobility data, the Frames are returned
+   */
   public void setSelectedScans(@Nonnull RawDataFile file, @Nullable List<? extends Scan> scans) {
     selectedScans.put(file, scans);
   }
 
   /**
-   * @param file
+   * @param file the data file
    * @return The scans used to build this feature list. For ion mobility data, the frames are
    * returned.
    */

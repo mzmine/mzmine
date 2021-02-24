@@ -21,8 +21,9 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.data_access.MemoryEfficientScanDataAccess;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -133,8 +134,8 @@ public class MassDetectionTask extends AbstractTask {
       logger.info("Started mass detector on " + dataFile);
 
       // uses only a single array for each (mz and intensity) to loop over all scans
-      MemoryEfficientScanDataAccess data = new MemoryEfficientScanDataAccess(dataFile,
-          MemoryEfficientScanDataAccess.DataType.RAW, scanSelection);
+      ScanDataAccess data = EfficientDataAccess.of(dataFile,
+          ScanDataAccess.DataType.RAW, scanSelection);
       totalScans = data.getNumberOfScans();
 
       // all scans

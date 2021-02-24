@@ -37,10 +37,10 @@ import javax.annotation.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class MemoryEfficientScanDataAccess implements MassSpectrum {
+public class ScanDataAccess implements MassSpectrum {
 
   public enum DataType {
-    RAW, CENTROID;
+    RAW, CENTROID
   }
 
   protected final RawDataFile dataFile;
@@ -57,11 +57,11 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
    * The intended use of this memory access is to loop over all scans and access data points via
    * {@link #getMzValue(int)} and {@link #getIntensityValue(int)}
    *
-   * @param dataFile
+   * @param dataFile  target data file to loop over all scans or mass lists
    * @param type      processed or raw data
    * @param selection processed or raw data
    */
-  public MemoryEfficientScanDataAccess(RawDataFile dataFile,
+  protected ScanDataAccess(RawDataFile dataFile,
       DataType type, ScanSelection selection) {
     this.dataFile = dataFile;
     this.type = type;
@@ -74,9 +74,9 @@ public class MemoryEfficientScanDataAccess implements MassSpectrum {
   }
 
   /**
-   * Number of data points in the current scan depending of the defined DataType (RAW/CENTROID)
    *
-   * @return
+   *
+   * @return Number of data points in the current scan depending of the defined DataType (RAW/CENTROID)
    */
   @Override
   public int getNumberOfDataPoints() {

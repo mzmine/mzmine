@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.List;
 import javafx.collections.ObservableList;
@@ -328,5 +329,16 @@ public interface Feature {
   default int getNumberOfDataPoints() {
     List<DataPoint> dp = getDataPoints();
     return dp == null ? -1 : dp.size();
+  }
+
+
+  /**
+   * The detected data points of this feature/chromatogram
+   *
+   * @return
+   */
+  default IonTimeSeries<? extends Scan> getFeatureData() {
+    throw new UnsupportedOperationException(
+        "Get feature data is not implemented for this sub class. Use ModularFeature or implement");
   }
 }
