@@ -159,7 +159,7 @@ public class ScanDataAccess implements MassSpectrum {
    * @return
    */
   public boolean hasNextScan() {
-    return currentScan < getNumberOfScans();
+    return currentScan + 1 < getNumberOfScans();
   }
 
   /**

@@ -295,7 +295,7 @@ public class FeatureDataAccess implements IonTimeSeries<Scan> {
    * @return
    */
   public boolean hasNextFeature() {
-    return currentFeatureIndex < getNumOfFeatures();
+    return currentFeatureIndex + 1 < getNumOfFeatures();
   }
 
   /**
