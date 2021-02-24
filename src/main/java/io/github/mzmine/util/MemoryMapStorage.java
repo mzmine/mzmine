@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.main.MZmineCore;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -69,6 +70,11 @@ public class MemoryMapStorage {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final Set<File> temporaryFiles = new HashSet<>();
   private final List<MappedByteBuffer> mappedByteBufferList = new ArrayList<>();
+
+  public MemoryMapStorage() {
+    // register this storage to MZmineCore, so we can delete all temp files later.
+    MZmineCore.registerStorage(this);
+  }
 
   /**
    * The file that we are currently writing into.
