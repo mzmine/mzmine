@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
 public class ModularFeatureList implements FeatureList {
 
   // storage of data points in case features are edited
-  private MemoryMapStorage memoryMapStorage = null;
+  private final MemoryMapStorage memoryMapStorage;
 
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
@@ -56,23 +56,23 @@ public class ModularFeatureList implements FeatureList {
   private Range<Double> mzRange;
   private Range<Float> rtRange;
 
-  public ModularFeatureList(String name) {
+  /*public ModularFeatureList(String name) {
     this(name, List.of());
-  }
+  }*/
 
-  public ModularFeatureList(String name, @Nonnull RawDataFile... dataFiles) {
+  /*public ModularFeatureList(String name, @Nonnull RawDataFile... dataFiles) {
     this(name, List.of(dataFiles));
-  }
+  }*/
 
-  public ModularFeatureList(String name, MemoryMapStorage storage, @Nonnull RawDataFile... dataFiles) {
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, @Nonnull RawDataFile... dataFiles) {
     this(name, storage, List.of(dataFiles));
   }
 
-  public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
+  /*public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
     this(name,null, dataFiles);
-  }
+  }*/
 
-  public ModularFeatureList(String name, MemoryMapStorage storage, @Nonnull List<RawDataFile> dataFiles) {
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
@@ -502,8 +502,8 @@ public class ModularFeatureList implements FeatureList {
    * @param title
    * @return
    */
-  public ModularFeatureList createCopy(String title) {
-    ModularFeatureList flist = new ModularFeatureList(title, this.getRawDataFiles());
+  public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage) {
+    ModularFeatureList flist = new ModularFeatureList(title, storage, this.getRawDataFiles());
     // copy all rows and features
     this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true))
         .forEach(newRow -> flist.addRow(newRow));
@@ -521,10 +521,8 @@ public class ModularFeatureList implements FeatureList {
     return rowBindings;
   }
 
+  @Nullable
   public MemoryMapStorage getMemoryMapStorage() {
-    if (memoryMapStorage == null) {
-      memoryMapStorage = new MemoryMapStorage();
-    }
     return memoryMapStorage;
   }
 
