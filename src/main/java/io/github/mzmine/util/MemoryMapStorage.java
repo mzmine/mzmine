@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import sun.misc.Unsafe;
 
 /**
@@ -71,7 +72,35 @@ public class MemoryMapStorage {
   private final Set<File> temporaryFiles = new HashSet<>();
   private final List<MappedByteBuffer> mappedByteBufferList = new ArrayList<>();
 
-  public MemoryMapStorage() {
+  private static boolean storeFeaturesInRam = false;
+  private static boolean storeRawFilesInRam = false;
+  private static boolean storeMassListsInRam = false;
+
+  /**
+   * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
+   */
+  @Nullable
+  public static MemoryMapStorage forFeatureList() {
+    return storeFeaturesInRam ? null : new MemoryMapStorage();
+  }
+
+  /**
+   * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
+   */
+  @Nullable
+  public static MemoryMapStorage forRawDataFile() {
+    return storeRawFilesInRam ? null : new MemoryMapStorage();
+  }
+
+  /**
+   * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
+   */
+  @Nullable
+  public static MemoryMapStorage forMassList() {
+    return storeMassListsInRam ? null : new MemoryMapStorage();
+  }
+
+  private MemoryMapStorage() {
     // register this storage to MZmineCore, so we can delete all temp files later.
     MZmineCore.registerStorage(this);
   }
