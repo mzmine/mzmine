@@ -33,6 +33,14 @@ public interface MzSeries extends SeriesValueCount {
    */
   DoubleBuffer getMZValues();
 
+
+  /**
+   *
+   * @param dst results are reflected in this array
+   * @return All m/z values of detected data points.
+   */
+  double[] getMzValues(double[] dst);
+
   /**
    * @param index
    * @return The value at the index position. Note the index does not correspond to scan numbers.

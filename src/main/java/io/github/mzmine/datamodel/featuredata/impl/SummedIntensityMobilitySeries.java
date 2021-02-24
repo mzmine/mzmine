@@ -169,6 +169,15 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     return mobilityValues;
   }
 
+  @Override
+  public double[] getIntensityValues(double[] dst) {
+    if (dst.length < getNumberOfDataPoints()) {
+      dst = new double[getNumberOfDataPoints()];
+    }
+    intensityValues.get(0, dst);
+    return dst;
+  }
+
   public double getMZ() {
     return mz;
   }

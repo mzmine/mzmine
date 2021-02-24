@@ -35,6 +35,13 @@ public interface IntensitySeries extends SeriesValueCount {
 
   /**
    *
+   * @param dst results are reflected in this array
+   * @return All non-zero intensities.
+   */
+  double[] getIntensityValues(double[] dst);
+
+  /**
+   *
    * @param index
    * @return The intensity at the index position. Note that this
    */
