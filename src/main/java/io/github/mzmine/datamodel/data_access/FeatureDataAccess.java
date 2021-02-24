@@ -42,8 +42,11 @@ import javax.annotation.Nullable;
 public class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   /**
-   * Different types to handle feature data: {@link #ONLY_DETECTED}: Use only detected data points;
-   * {@link #INCLUDE_ZEROS}: Fill all missing data points in the chromatogram with zeros;
+   * Different types to handle feature data: {@link #ONLY_DETECTED}: Use only detected data points,
+   * currently assigned to the feature. Features might include leading and/or trailing zeros
+   * depending on the state of processing. Leading and trailing zeros are added during chromatogram
+   * detection, bit might be removed during feature resolving or other processing steps.; {@link
+   * #INCLUDE_ZEROS}: Fill all missing data points in the chromatogram with zeros;
    */
   public enum FeatureDataType {
     ONLY_DETECTED, INCLUDE_ZEROS
@@ -74,8 +77,8 @@ public class FeatureDataAccess implements IonTimeSeries<Scan> {
    * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
    * by retention time)
    *
-   * @param flist    target feature list. Loops through all features in all RawDataFiles
-   * @param type     defines the data accession type
+   * @param flist target feature list. Loops through all features in all RawDataFiles
+   * @param type  defines the data accession type
    */
   protected FeatureDataAccess(FeatureList flist,
       FeatureDataType type) {

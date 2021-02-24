@@ -92,7 +92,6 @@ public interface Feature {
    * This method returns numbers of scans that contain this feature
    */
   @Nonnull
-  @Deprecated
   List<Scan> getScanNumbers();
 
   /**
