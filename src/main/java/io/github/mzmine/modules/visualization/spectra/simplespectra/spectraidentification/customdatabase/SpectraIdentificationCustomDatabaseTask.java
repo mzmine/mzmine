@@ -81,6 +81,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
    */
   public SpectraIdentificationCustomDatabaseTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
+    super(null); // no new data stored -> null
 
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;

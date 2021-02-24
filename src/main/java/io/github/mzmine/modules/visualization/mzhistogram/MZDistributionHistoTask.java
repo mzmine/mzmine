@@ -44,7 +44,7 @@ public class MZDistributionHistoTask extends AbstractTask {
    */
   public MZDistributionHistoTask(MZmineProject project, RawDataFile dataFile,
       ParameterSet parameters) {
-
+    super(null); // no new data stored -> null
     this.project = project;
     this.dataFile = dataFile;
     this.parameters = parameters;

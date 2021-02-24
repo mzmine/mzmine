@@ -45,6 +45,7 @@ public class BuildMultipleTICRanges extends AbstractTask {
   public BuildMultipleTICRanges(@Nonnull List<Range<Double>> mzRanges, @Nonnull IMSRawDataFile file,
       @Nonnull ScanSelection scanSelection,
       @Nonnull IMSRawDataOverviewPane pane) {
+    super(null); // no new data stored -> null
     finishedPercentage = 0d;
     this.mzRanges = mzRanges;
     this.pane = pane;
