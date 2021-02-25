@@ -28,7 +28,10 @@ import javax.annotation.Nullable;
 
 public class ModularFeatureList implements FeatureList {
 
-  // storage of data points in case features are edited
+  /**
+   * The storage of this feature list. May be null if data points of features shall be stored in ram.
+   */
+  @Nullable
   private final MemoryMapStorage memoryMapStorage;
 
   // columns: summary of all

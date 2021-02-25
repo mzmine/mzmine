@@ -50,6 +50,7 @@ public class MobilogramSmootherTask extends AbstractTask {
 
   public MobilogramSmootherTask(List<Frame> frames, ParameterSet parameters) {
     super(null); // this module is phased out atm
+    // todo "Implement memory map storage for this class"
     logger.warning("Implement memory map storage for this class");
     this.frames = frames;
     weights = SavitzkyGolayFilter.getNormalizedWeights(

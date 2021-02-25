@@ -291,7 +291,7 @@ public final class MZmineCore {
 
   }
 
-  public static synchronized void registerStorage(MemoryMapStorage storage) {
+  public static void registerStorage(MemoryMapStorage storage) {
     storageList.add(storage);
   }
 
