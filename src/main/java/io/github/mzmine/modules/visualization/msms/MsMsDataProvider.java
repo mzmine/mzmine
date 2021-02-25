@@ -258,6 +258,33 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
             .collect(Collectors.toList());
       }
 
+      // Precursor intensity
+      double precursorIntensity = 0;
+      if (lastMS1Scan != null) {
+
+        // Sum intensities of all ions from MS1 scan with similar m/z values
+        MassList lastMS1ScanMassList = lastMS1Scan.getMassList();
+        Range<Double> toleranceRange = mzTolerance.getToleranceRange(scan.getPrecursorMZ());
+        for (int i = 0; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
+          if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
+            precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
+          }
+        }
+      }
+
+      // Scale precursor intensity
+      precursorIntensity = scaleIntensity(precursorIntensity);
+
+      // Find max precursor intensity for further normalization
+      if (precursorIntensity > maxPrecursorIntensity) {
+        maxPrecursorIntensity = precursorIntensity;
+      }
+
+      // Find max rt for further normalization
+      if (scan.getRetentionTime() > maxRt) {
+        maxRt = scan.getRetentionTime();
+      }
+
       for (int scanIndex : filteredScanIndices) {
 
         if (status.getValue() == TaskStatus.CANCELED) {
@@ -296,33 +323,6 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           maxProductIntensity = productIntensity;
         }
 
-        // Precursor intensity
-        double precursorIntensity = 0;
-        if (lastMS1Scan != null) {
-
-          // Sum intensities of all ions from MS1 scan with similar m/z values
-          MassList lastMS1ScanMassList = lastMS1Scan.getMassList();
-          Range<Double> toleranceRange = mzTolerance.getToleranceRange(scan.getPrecursorMZ());
-          for (int i = 0; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
-            if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
-              precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
-            }
-          }
-        }
-
-        // Scale precursor intensity
-        precursorIntensity = scaleIntensity(precursorIntensity);
-
-        // Find max precursor intensity for further normalization
-        if (precursorIntensity > maxPrecursorIntensity) {
-          maxPrecursorIntensity = precursorIntensity;
-        }
-
-        // Find max rt for further normalization
-        if (scan.getRetentionTime() > maxRt) {
-          maxRt = scan.getRetentionTime();
-        }
-
         // Create new data point
         MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), mzValue, scan.getPrecursorMZ(),
             scan.getPrecursorCharge(), scan.getRetentionTime(), productIntensity, precursorIntensity);
@@ -333,6 +333,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
       processedScans++;
     }
+
+    System.out.println("[DEBUG] Total number of data points: " + dataPoints.size());
 
     // Show message, if there is nothing to plot
     if (dataPoints.isEmpty()) {
@@ -393,7 +395,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       zValue += 1;
     }
 
-    return  zValue;
+    return zValue;
   }
 
   @Nullable
