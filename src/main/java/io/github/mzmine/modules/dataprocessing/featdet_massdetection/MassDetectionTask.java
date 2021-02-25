@@ -135,7 +135,7 @@ public class MassDetectionTask extends AbstractTask {
 
       // uses only a single array for each (mz and intensity) to loop over all scans
       ScanDataAccess data = EfficientDataAccess.of(dataFile,
-          ScanDataAccess.DataType.RAW, scanSelection);
+          EfficientDataAccess.ScanDataType.RAW, scanSelection);
       totalScans = data.getNumberOfScans();
 
       // all scans

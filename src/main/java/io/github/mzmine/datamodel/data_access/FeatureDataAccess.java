@@ -17,6 +17,7 @@
 
 package io.github.mzmine.datamodel.data_access;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
@@ -29,7 +30,11 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -39,35 +44,19 @@ import javax.annotation.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class FeatureDataAccess implements IonTimeSeries<Scan> {
-
-  /**
-   * Different types to handle feature data: {@link #ONLY_DETECTED}: Use only detected data points,
-   * currently assigned to the feature. Features might include leading and/or trailing zeros
-   * depending on the state of processing. Leading and trailing zeros are added during chromatogram
-   * detection, bit might be removed during feature resolving or other processing steps.; {@link
-   * #INCLUDE_ZEROS}: Fill all missing data points in the chromatogram with zeros;
-   */
-  public enum FeatureDataType {
-    ONLY_DETECTED, INCLUDE_ZEROS
-  }
+public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   protected final FeatureList flist;
-  protected final FeatureDataType type;
-  private final List<FeatureListRow> rows;
+  protected final List<FeatureListRow> rows;
   protected final int totalFeatures;
   // data file is only set for aligned lists to access all features of this data file
   @Nullable
-  private final RawDataFile dataFile;
+  protected final RawDataFile dataFile;
 
   // current data
-  private Feature feature;
-  private IonTimeSeries<? extends Scan> featureData;
-  // all scans of the whole chromatogram; only used if FeatureDataType != ONLY_DETECTED
-  private List<? extends Scan> allScans;
+  protected Feature feature;
+  protected IonTimeSeries<Scan> featureData;
 
-  protected final double[] mzs;
-  protected final double[] intensities;
   protected int currentFeatureIndex = -1;
   protected int currentRowIndex = -1;
   protected int currentRawFileIndex = -1;
@@ -78,11 +67,9 @@ public class FeatureDataAccess implements IonTimeSeries<Scan> {
    * by retention time)
    *
    * @param flist target feature list. Loops through all features in all RawDataFiles
-   * @param type  defines the data accession type
    */
-  protected FeatureDataAccess(FeatureList flist,
-      FeatureDataType type) {
-    this(flist, type, null);
+  protected FeatureDataAccess(FeatureList flist) {
+    this(flist, null);
   }
 
   /**
@@ -90,13 +77,10 @@ public class FeatureDataAccess implements IonTimeSeries<Scan> {
    * by retention time)
    *
    * @param flist    target feature list. Loops through all features in dataFile
-   * @param type     defines the data accession type
    * @param dataFile define the data file in an aligned feature list
    */
-  protected FeatureDataAccess(FeatureList flist,
-      FeatureDataType type, @Nullable RawDataFile dataFile) {
+  protected FeatureDataAccess(FeatureList flist, @Nullable RawDataFile dataFile) {
     this.flist = flist;
-    this.type = type;
     this.dataFile = dataFile;
 
     // set rows and number of features
@@ -126,102 +110,38 @@ public class FeatureDataAccess implements IonTimeSeries<Scan> {
       totalFeatures = rows.size();
     }
     this.totalFeatures = totalFeatures;
-
-    // find maximum length depending on FeatureDataType
-    int length = getMaxNumOfDataPoints();
-    mzs = new double[length];
-    intensities = new double[length];
   }
 
   /**
-   * The maximum number of data points depending on the FeatureDataType
+   * The maximum number of data points on a feature/chromatogram
    */
-  private int getMaxNumOfDataPoints() {
-    switch (type) {
-      case ONLY_DETECTED -> {
-        // Find maximum number of detected data points
-        int max = 0;
-        if (dataFile != null) {
-          for (FeatureListRow row : rows) {
-            int scans = row.getFeature(dataFile).getNumberOfDataPoints();
-            if (max < scans) {
-              max = scans;
-            }
-          }
-        } else {
-          // aligned feature list or dataFile not set
-          for (FeatureListRow row : rows) {
-            for (Feature f : row.getFeatures()) {
-              int scans = f.getNumberOfDataPoints();
-              if (max < scans) {
-                max = scans;
-              }
-            }
-          }
-        }
-        return max;
-      }
-      case INCLUDE_ZEROS -> {
-        // return all scans that were used to create the chromatograms in the first place
-        if (dataFile == null && flist.getNumberOfRawDataFiles() > 1) {
-          int max = 0;
-          for (RawDataFile raw : flist.getRawDataFiles()) {
-            int scans = flist.getSeletedScans(raw).size();
-            if (max < scans) {
-              max = scans;
-            }
-          }
-          return max;
-        } else {
-          // one raw data file
-          return flist.getSeletedScans(dataFile != null ? dataFile : flist.getRawDataFile(0))
-              .size();
+  protected int getMaxNumOfDetectedDataPoints() {
+    // Find maximum number of detected data points
+    int max = 0;
+    if (dataFile != null) {
+      for (FeatureListRow row : rows) {
+        int scans = row.getFeature(dataFile).getNumberOfDataPoints();
+        if (max < scans) {
+          max = scans;
         }
       }
-      default -> throw new IllegalStateException("Unexpected value: " + type);
+    } else {
+      // aligned feature list or dataFile not set
+      for (FeatureListRow row : rows) {
+        for (Feature f : row.getFeatures()) {
+          int scans = f.getNumberOfDataPoints();
+          if (max < scans) {
+            max = scans;
+          }
+        }
+      }
     }
-  }
-
-
-  @Override
-  public List<Scan> getSpectra() {
-    return null;
+    return max;
   }
 
   @Override
-  public float getRetentionTime(int index) {
-    assert index < getNumOfDataPoints() && index >= 0;
-    return allScans != null ? allScans.get(index).getRetentionTime()
-        : featureData.getRetentionTime(index);
-  }
-
-  /**
-   * Get mass to charge value at index
-   *
-   * @param index data point index
-   * @return mass to charge value at index
-   */
-  public double getMzValue(int index) {
-    assert index < getNumOfDataPoints() && index >= 0;
-    return mzs[index];
-  }
-
-  /**
-   * Get intensity at index
-   *
-   * @param index data point index
-   * @return intensity at index
-   */
-  public double getIntensity(int index) {
-    assert index < getNumOfDataPoints() && index >= 0;
-    return intensities[index];
-  }
-
-  /**
-   * @return current number of data points depending on FeatureDataType
-   */
-  private int getNumOfDataPoints() {
-    return currentNumberOfDataPoints;
+  public Scan getSpectrum(int index) {
+    return getSpectra().get(index);
   }
 
   /**
@@ -255,29 +175,11 @@ public class FeatureDataAccess implements IonTimeSeries<Scan> {
             .getFeature(dataFile != null ? dataFile : getRow().getRawDataFiles().get(0));
       }
 
-      featureData = feature.getFeatureData();
-      switch (type) {
-        case ONLY_DETECTED -> {
-          featureData.getMzValues(mzs);
-          featureData.getIntensityValues(intensities);
-          currentNumberOfDataPoints = featureData.getNumberOfValues();
-        }
-        case INCLUDE_ZEROS -> {
-          // add detected data points and zero for missing values
-          allScans = flist.getSeletedScans(feature.getRawDataFile());
-          List<Scan> detectedScans = feature.getScanNumbers();
-          int detectedIndex = 0;
-          for (int i = 0; i < intensities.length; i++) {
-            if (allScans.get(i) == detectedScans.get(detectedIndex)) {
-              intensities[i] = featureData.getIntensity(detectedIndex);
-              mzs[i] = featureData.getMZ(detectedIndex);
-              detectedIndex++;
-            }
-          }
-          currentNumberOfDataPoints = allScans.size();
-        }
-      }
+      featureData = (IonTimeSeries<Scan>) feature.getFeatureData();
       return feature;
+    } else {
+      feature = null;
+      featureData = null;
     }
     return null;
   }
@@ -318,6 +220,13 @@ public class FeatureDataAccess implements IonTimeSeries<Scan> {
     return totalFeatures;
   }
 
+  /**
+   * @return current number of data points depending on FeatureDataType
+   */
+  @Override
+  public int getNumberOfValues() {
+    return currentNumberOfDataPoints;
+  }
 
   //#######################################
   // Unsupported methods due to different intended use
@@ -361,6 +270,42 @@ public class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   @Override
   public double[] getMzValues(double[] dst) {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  @Override
+  public double getIntensityForSpectrum(Scan scan) {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  @Override
+  public double getMzForSpectrum(Scan scan) {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  @Override
+  public Iterator<DataPoint> iterator() {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  @Override
+  public Stream<DataPoint> stream() {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  @Override
+  public void forEach(Consumer<? super DataPoint> action) {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  @Override
+  public Spliterator<DataPoint> spliterator() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }

@@ -17,9 +17,8 @@
 
 package io.github.mzmine.datamodel.data_access;
 
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data_access.FeatureDataAccess.FeatureDataType;
-import io.github.mzmine.datamodel.data_access.ScanDataAccess.DataType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
@@ -31,6 +30,27 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 public class EfficientDataAccess {
 
   /**
+   * Different types to handle feature data: {@link #ONLY_DETECTED}: Use only detected data points,
+   * currently assigned to the feature. Features might include leading and/or trailing zeros
+   * depending on the state of processing. Leading and trailing zeros are added during chromatogram
+   * detection, bit might be removed during feature resolving or other processing steps.; {@link
+   * #INCLUDE_ZEROS}: Fill all missing data points in the chromatogram with zeros;
+   */
+  public enum FeatureDataType {
+    ONLY_DETECTED, INCLUDE_ZEROS
+  }
+
+
+  /**
+   * Different types to handle Scan data: {@link #RAW}: Use raw data as imported; {@link #CENTROID}:
+   * Use processed centroid data ({@link MassList}
+   */
+  public enum ScanDataType {
+    RAW, CENTROID
+  }
+
+
+  /**
    * The intended use of this memory access is to loop over all scans in a {@link RawDataFile} and
    * access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
    * ScanDataAccess#getIntensityValue(int)}
@@ -39,7 +59,8 @@ public class EfficientDataAccess {
    * @param type      processed or raw data
    * @param selection processed or raw data
    */
-  public static ScanDataAccess of(RawDataFile dataFile, DataType type, ScanSelection selection) {
+  public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type,
+      ScanSelection selection) {
     return new ScanDataAccess(dataFile, type, selection);
   }
 
@@ -66,6 +87,9 @@ public class EfficientDataAccess {
    */
   public static FeatureDataAccess of(FeatureList flist,
       FeatureDataType type, RawDataFile dataFile) {
-    return new FeatureDataAccess(flist, type, dataFile);
+    return switch(type) {
+      case ONLY_DETECTED -> new FeatureDetectedDataAccess(flist, dataFile);
+      case INCLUDE_ZEROS -> new FeatureFullDataAccess(flist, dataFile);
+    };
   }
 }

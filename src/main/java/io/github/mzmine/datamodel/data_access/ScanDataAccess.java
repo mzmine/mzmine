@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.Iterator;
@@ -39,12 +40,8 @@ import javax.annotation.Nullable;
  */
 public class ScanDataAccess implements MassSpectrum {
 
-  public enum DataType {
-    RAW, CENTROID
-  }
-
   protected final RawDataFile dataFile;
-  protected final DataType type;
+  protected final ScanDataType type;
   protected final Scan[] scans;
 
   // current data
@@ -62,7 +59,7 @@ public class ScanDataAccess implements MassSpectrum {
    * @param selection processed or raw data
    */
   protected ScanDataAccess(RawDataFile dataFile,
-      DataType type, ScanSelection selection) {
+      ScanDataType type, ScanSelection selection) {
     this.dataFile = dataFile;
     this.type = type;
     scans = selection.getMatchingScans(dataFile);
@@ -74,9 +71,8 @@ public class ScanDataAccess implements MassSpectrum {
   }
 
   /**
-   *
-   *
-   * @return Number of data points in the current scan depending of the defined DataType (RAW/CENTROID)
+   * @return Number of data points in the current scan depending of the defined DataType
+   * (RAW/CENTROID)
    */
   @Override
   public int getNumberOfDataPoints() {
@@ -180,7 +176,6 @@ public class ScanDataAccess implements MassSpectrum {
     return switch (type) {
       case CENTROID -> dataFile.getMaxCentroidDataPoints();
       case RAW -> dataFile.getMaxRawDataPoints();
-      default -> throw new IllegalStateException("Unexpected value: " + type);
     };
   }
 
@@ -191,7 +186,6 @@ public class ScanDataAccess implements MassSpectrum {
     return switch (type) {
       case RAW -> scans[currentScan].getSpectrumType();
       case CENTROID -> MassSpectrumType.CENTROIDED;
-      default -> throw new IllegalStateException("Unexpected value: " + type);
     };
   }
 
