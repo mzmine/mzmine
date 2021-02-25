@@ -38,7 +38,7 @@ public class CentroidMassDetector implements MassDetector {
     double noiseLevel =
         parameters.getParameter(CentroidMassDetectorParameters.noiseLevel).getValue();
 
-    // use number of centroid signals als base array list capacity
+    // use number of centroid signals as base array list capacity
     int initialSize = spectrum.getNumberOfDataPoints();
     // lists of primitive doubles
     TDoubleArrayList mzs = new TDoubleArrayList(initialSize);
