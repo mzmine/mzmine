@@ -49,7 +49,7 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
       @Nonnull final Collection<Task> tasks) {
     // one memory map storage per module call to reduce number of files and connect related feature lists
-    MemoryMapStorage storage = new MemoryMapStorage();
+    MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     FeatureList[] peakLists = parameters.getParameter(GeneralResolverParameters.PEAK_LISTS).getValue()
         .getMatchingFeatureLists();

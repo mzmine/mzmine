@@ -17,15 +17,6 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nullable;
 import dulab.adap.common.algorithms.machineleanring.OptimizationParameters;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
@@ -43,13 +34,23 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.adap.ADAPInterface;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * @author aleksandrsmirnov
@@ -67,8 +68,9 @@ public class ADAP3AlignerTask extends AbstractTask {
 
   private final Project alignment;
 
-  public ADAP3AlignerTask(MZmineProject project, ParameterSet parameters) {
-
+  public ADAP3AlignerTask(MZmineProject project, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.parameters = parameters;
 
@@ -173,7 +175,7 @@ public class ADAP3AlignerTask extends AbstractTask {
 
     // Create new feature list
     final ModularFeatureList alignedPeakList =
-        new ModularFeatureList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
+        new ModularFeatureList(peakListName, getMemoryMapStorage(), allDataFiles.toArray(new RawDataFile[0]));
 
     int rowID = 0;
 

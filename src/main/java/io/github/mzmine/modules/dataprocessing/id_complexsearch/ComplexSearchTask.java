@@ -53,6 +53,7 @@ public class ComplexSearchTask extends AbstractTask {
    * @param peakList
    */
   public ComplexSearchTask(ParameterSet parameters, FeatureList peakList) {
+    super(null); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;

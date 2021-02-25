@@ -73,6 +73,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param list feature list to operate on.
    */
   PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list) {
+    super(null); // no new data stored -> null
 
     peakList = list;
     numItems = 0;

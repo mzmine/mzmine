@@ -15,16 +15,16 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.Collection;
-import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -63,8 +63,10 @@ public class ADAPHierarchicalClusteringModule implements MZmineProcessingModule 
     FeatureList[] peakLists = parameters.getParameter(ADAP3DecompositionV1_5Parameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
 
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+
     for (FeatureList peakList : peakLists) {
-      Task newTask = new ADAP3DecompositionV1_5Task(project, peakList, parameters);
+      Task newTask = new ADAP3DecompositionV1_5Task(project, peakList, parameters, storage);
       tasks.add(newTask);
     }
 

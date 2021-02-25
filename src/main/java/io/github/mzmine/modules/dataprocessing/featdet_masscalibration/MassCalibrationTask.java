@@ -108,6 +108,7 @@ public class MassCalibrationTask extends AbstractTask {
    */
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
       @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun) {
+    super(storageMemoryMap);
     this.dataFile = dataFile;
     this.parameters = parameters;
     this.storageMemoryMap = storageMemoryMap;

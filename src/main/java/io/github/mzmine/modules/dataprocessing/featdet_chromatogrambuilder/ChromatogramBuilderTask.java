@@ -35,10 +35,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.FeatureSorter;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class ChromatogramBuilderTask extends AbstractTask {
 
@@ -66,7 +68,8 @@ public class ChromatogramBuilderTask extends AbstractTask {
    * @param parameters
    */
   public ChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters) {
+      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -133,7 +136,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
     }
 
     // Create new feature list
-    newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
+    newPeakList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(), dataFile);
 
     Chromatogram[] chromatograms;
     HighestDataPointConnector massConnector = new HighestDataPointConnector(dataFile,

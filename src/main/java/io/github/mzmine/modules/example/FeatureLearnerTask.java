@@ -32,10 +32,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureSorter;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 class FeatureLearnerTask extends AbstractTask {
 
@@ -61,7 +63,9 @@ class FeatureLearnerTask extends AbstractTask {
    *
    * @param parameters
    */
-  public FeatureLearnerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
+  public FeatureLearnerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.featureList = (ModularFeatureList) featureList;
     this.parameters = parameters;
@@ -99,7 +103,7 @@ class FeatureLearnerTask extends AbstractTask {
     logger.info("Running learner task on " + featureList);
 
     // Create a new results feature list which is added at the end
-    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, featureList.getRawDataFiles());
+    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, getMemoryMapStorage(), featureList.getRawDataFiles());
 
     /**
      * - A FeatureList is a list of Features (feature in retention time dimension with accurate m/z)<br>

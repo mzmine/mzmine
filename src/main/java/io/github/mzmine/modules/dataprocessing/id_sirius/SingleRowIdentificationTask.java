@@ -103,6 +103,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param peakListRow peak-list row to identify.
    */
   public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow) {
+    super(null); // no new data stored -> null
     this.peakListRow = peakListRow;
     siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES).getValue();
     fingerCandidates = parameters.getParameter(FINGERID_CANDIDATES).getValue();

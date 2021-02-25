@@ -61,6 +61,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
 
   SpectraIdentificationSpectralDatabaseTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
+    super(null); // no new data stored -> null
 
     this.parameters = parameters;
     dataBaseFile = parameters

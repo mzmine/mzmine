@@ -60,6 +60,7 @@ class MzTabExportTask extends AbstractTask {
   private final boolean exportall;
 
   MzTabExportTask(MZmineProject project, ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.project = project;
     this.featureLists =
         parameters.getParameter(MzTabExportParameters.featureLists).getValue().getMatchingFeatureLists();

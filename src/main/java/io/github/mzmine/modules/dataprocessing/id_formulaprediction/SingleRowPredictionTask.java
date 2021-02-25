@@ -75,6 +75,7 @@ public class SingleRowPredictionTask extends AbstractTask {
    * @param peakListRow =
    */
   SingleRowPredictionTask(ParameterSet parameters, FeatureListRow peakListRow) {
+    super(null); // no new data stored -> null
 
     searchedMass = parameters.getParameter(FormulaPredictionParameters.neutralMass).getValue();
     charge = parameters.getParameter(FormulaPredictionParameters.neutralMass).getCharge();

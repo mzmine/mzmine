@@ -30,7 +30,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class StandardCompoundNormalizerTask extends AbstractTask {
 
@@ -50,7 +52,8 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
   private ParameterSet parameters;
 
   public StandardCompoundNormalizerTask(MZmineProject project, FeatureList featureList,
-      ParameterSet parameters) {
+      ParameterSet parameters,  @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.originalFeatureList = (ModularFeatureList) featureList;
@@ -94,7 +97,8 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     }
 
     // Initialize new alignment result for the normalized result
-    normalizedFeatureList = originalFeatureList.createCopy(originalFeatureList + " " + suffix);
+    normalizedFeatureList = originalFeatureList.createCopy(originalFeatureList + " " + suffix,
+        getMemoryMapStorage());
 
     // Copy raw data files from original alignment result to new alignment
     // result

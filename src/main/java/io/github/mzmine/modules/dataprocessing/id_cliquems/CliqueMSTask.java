@@ -65,6 +65,7 @@ public class CliqueMSTask extends AbstractTask {
 
   public CliqueMSTask(final ParameterSet parameters,
       final FeatureList list) {
+    super(null); // no new data stored -> null
     this.parameters = parameters;
     peakList = list;
   }

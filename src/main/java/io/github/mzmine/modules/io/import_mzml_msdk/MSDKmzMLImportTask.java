@@ -56,6 +56,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private String description;
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
+    super(null); // storage in raw data file
     this.file = fileToOpen;
     this.project = project;
     this.newMZmineFile = newMZmineFile;

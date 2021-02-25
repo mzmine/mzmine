@@ -36,6 +36,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.math.BigDecimal;
@@ -74,7 +75,10 @@ public class NeutralLossFilterTask extends AbstractTask {
   IIsotope[] el;
   private IMolecularFormula formula;
 
-  NeutralLossFilterTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
+  NeutralLossFilterTask(MZmineProject project, FeatureList peakList, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
+
     this.parameters = parameters;
     this.project = project;
     this.peakList = peakList;
@@ -148,7 +152,8 @@ public class NeutralLossFilterTask extends AbstractTask {
     PeakListHandler plh = new PeakListHandler();
     plh.setUp(peakList);
 
-    resultPeakList = new ModularFeatureList(peakList.getName() + suffix, peakList.getRawDataFiles());
+    resultPeakList = new ModularFeatureList(peakList.getName() + suffix, storage,
+        peakList.getRawDataFiles());
     PeakListHandler resultMap = new PeakListHandler();
 
     for (int i = 0; i < totalRows; i++) {

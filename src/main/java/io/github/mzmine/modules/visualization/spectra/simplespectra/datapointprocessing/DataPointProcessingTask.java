@@ -18,10 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
@@ -29,6 +25,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -44,6 +45,8 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
  *
  */
 public abstract class DataPointProcessingTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(DataPointProcessingTask.class.getName());
 
   private SpectraPlot targetPlot;
   protected MassSpectrum dataPoints;
@@ -72,6 +75,9 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   public DataPointProcessingTask(@Nonnull MassSpectrum dataPoints, @Nonnull SpectraPlot plot,
       @Nonnull ParameterSet parameterSet, @Nonnull DataPointProcessingController controller,
       @Nonnull TaskStatusListener listener) {
+    super(null); // no new data stored -> null
+    logger.warning("Rethink storage creation when re-implementing data point processing");
+
     setDataPoints(dataPoints);
     setTargetPlot(plot);
     setParameterSet(parameterSet);

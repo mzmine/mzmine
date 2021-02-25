@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -50,6 +51,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -75,7 +77,11 @@ public class ImageBuilderTask extends AbstractTask {
   private String taskDescription = "";
   private final ParameterSet parameterSet;
 
-  public ImageBuilderTask(MZmineProject project, RawDataFile rawDataFile, ParameterSet parameters) {
+  public ImageBuilderTask(MZmineProject project, RawDataFile rawDataFile, ParameterSet parameters,
+      @Nullable
+          MemoryMapStorage storage) {
+    super(storage);
+
     this.project = project;
     this.rawDataFile = (ImagingRawDataFile) rawDataFile;
     this.imagingParameters = ((ImagingRawDataFile) rawDataFile).getImagingParam();
@@ -347,7 +353,7 @@ public class ImageBuilderTask extends AbstractTask {
   private void buildModularFeatureList(SortedSet<IImage> images) {
     taskDescription = "Build feature list";
     ModularFeatureList featureList =
-        new ModularFeatureList(rawDataFile + " " + suffix, rawDataFile);
+        new ModularFeatureList(rawDataFile + " " + suffix, getMemoryMapStorage(), rawDataFile);
     // featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
     // featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
     // featureList.addRowType(new FeatureShapeMobilogramType());

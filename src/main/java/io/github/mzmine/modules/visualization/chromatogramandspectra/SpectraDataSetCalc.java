@@ -43,6 +43,7 @@ public class SpectraDataSetCalc extends AbstractTask {
   public SpectraDataSetCalc(final Collection<RawDataFile> rawDataFiles,
       final ChromatogramCursorPosition pos, final ScanSelection scanSelection,
       boolean showSpectraOfEveryRawFile, SpectraPlot spectrumPlot) {
+    super(null);
     filesAndDataSets = new HashMap<>();
     this.rawDataFiles = rawDataFiles;
     this.pos = pos;

@@ -38,17 +38,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.commons.JUnitException;
 
 class IonTimeSeriesTest {
+
+  private static final MemoryMapStorage rawStorage = MemoryMapStorage.forRawDataFile();
+  private static final MemoryMapStorage flsitStorage = MemoryMapStorage.forFeatureList();
 
   private static final Logger logger = Logger.getLogger(IonTimeSeriesTest.class.getName());
 
   public static IonTimeSeries<? extends Scan> makeSimpleTimeSeries() throws IOException {
 
-    RawDataFile file = new RawDataFileImpl("test", null, Color.BLACK);
+    RawDataFile file = new RawDataFileImpl("test", rawStorage, Color.BLACK);
     List<Scan> scans = new ArrayList();
     scans.add(new SimpleScan(file, 0, 1, 1f, 0, 0, new double[]{10d, 10d}, new double[]{10d, 10d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
@@ -56,15 +59,13 @@ class IonTimeSeriesTest {
     scans.add(new SimpleScan(file, 1, 1, 1f, 0, 0, new double[]{11d, 11d}, new double[]{11d, 11d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(11d, 11d)));
-    SimpleIonTimeSeries series = new SimpleIonTimeSeries(new MemoryMapStorage(),
+    SimpleIonTimeSeries series = new SimpleIonTimeSeries(rawStorage,
         new double[]{5d, 10d}, new double[]{30d, 31d}, scans);
     return series;
   }
 
   public static IonTimeSeries<Frame> makeIonMobilityTimeSeries() throws IOException {
-    RawDataFile file = new RawDataFileImpl("test", null, Color.BLACK);
-
-    MemoryMapStorage storage = new MemoryMapStorage();
+    RawDataFile file = new RawDataFileImpl("test", rawStorage, Color.BLACK);
 
     List<Frame> frames = new ArrayList<>();
     SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f, 0, 0,
@@ -81,10 +82,10 @@ class IonTimeSeriesTest {
 
     frame.setMobilityScans(mobilityScans);
 
-    SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(storage,
+    SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(flsitStorage,
         new double[]{1d, 2d}, new double[]{2d, 4d}, frame.getMobilityScans());
 
-    return new SimpleIonMobilogramTimeSeries(storage, List.of(ionMobilitySeries));
+    return new SimpleIonMobilogramTimeSeries(flsitStorage, List.of(ionMobilitySeries));
   }
 
   @Disabled("Needs test file?")
@@ -93,32 +94,22 @@ class IonTimeSeriesTest {
 
     try {
       IonTimeSeries<? extends Scan> scanSeries = makeSimpleTimeSeries();
-      if (scanSeries instanceof SimpleIonTimeSeries) {
-        logger.info("IonTimeSeries created by makeSimpleTimeSeries() is an instance of "
-            + SimpleIonTimeSeries.class.getSimpleName());
-      }
-      if (scanSeries instanceof IonMobilogramTimeSeries) {
-        logger.info("IonTimeSeries created by makeSimpleTimeSeries() is an instance of "
-            + IonMobilogramTimeSeries.class.getSimpleName());
-        throw new JUnitException("Illegal cast.");
-      }
+      Assertions.assertTrue(scanSeries instanceof SimpleIonTimeSeries);
+      Assertions.assertFalse(scanSeries instanceof IonMobilogramTimeSeries);
+
+      List<Scan> scans = (List<Scan>) scanSeries.getSpectra();
+      Assertions.assertTrue(scans.get(0) instanceof Scan);
+      Assertions.assertFalse(scans.get(0) instanceof Frame);
+
 
       IonTimeSeries<? extends Scan> imFrameSeries = makeIonMobilityTimeSeries();
-      if (imFrameSeries instanceof SimpleIonTimeSeries) {
-        logger.info("IonTimeSeries created by makeIonMobilityTimeSeries() is an instance of "
-            + SimpleIonTimeSeries.class.getSimpleName());
-        throw new JUnitException("Illegal cast.");
-      }
-      logger.info("Testing cast IonMobilityTimeSeries to MsTimeSeries<Scan> "
-          + ((IonTimeSeries<Scan>) imFrameSeries).getRetentionTime(0));
-      if (imFrameSeries instanceof IonMobilogramTimeSeries) {
-        logger.info("IonTimeSeries created by makeIonMobilityTimeSeries() is an instance of "
-            + IonMobilogramTimeSeries.class.getSimpleName());
-      } else {
-        logger.info("IonTimeSeries created by makeIonMobilityTimeSeries() is not an instance of "
-            + IonMobilogramTimeSeries.class.getSimpleName());
-        throw new JUnitException("Illegal cast.");
-      }
+      Assertions.assertFalse(imFrameSeries instanceof SimpleIonTimeSeries);
+      Assertions.assertTrue(imFrameSeries instanceof IonMobilogramTimeSeries);
+
+      List<Scan> frames = (List<Scan>) imFrameSeries.getSpectra();
+      Assertions.assertTrue(frames.get(0) instanceof Scan);
+      Assertions.assertTrue(frames.get(0) instanceof Frame);
+
     } catch (IOException e) {
       e.printStackTrace();
     }

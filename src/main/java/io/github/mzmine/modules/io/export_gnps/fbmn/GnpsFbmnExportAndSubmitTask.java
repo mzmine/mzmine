@@ -71,6 +71,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   private FeatureMeasurementType featureMeasure;
 
   GnpsFbmnExportAndSubmitTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.parameters = parameters;
   }
 

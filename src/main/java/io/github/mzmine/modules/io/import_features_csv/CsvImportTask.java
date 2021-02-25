@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.io.import_features_csv;
 
-import java.io.File;
-import java.io.FileReader;
 import com.google.common.collect.Range;
 import com.opencsv.CSVReader;
 import io.github.mzmine.datamodel.DataPoint;
@@ -35,6 +33,10 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.io.File;
+import java.io.FileReader;
+import javax.annotation.Nullable;
 
 public class CsvImportTask extends AbstractTask {
 
@@ -43,7 +45,8 @@ public class CsvImportTask extends AbstractTask {
   private final File fileName;
   private double percent = 0.0;
 
-  CsvImportTask(MZmineProject project, ParameterSet parameters) {
+  CsvImportTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     // first file only
     this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue()
@@ -69,7 +72,7 @@ public class CsvImportTask extends AbstractTask {
     try {
       FileReader fileReader = new FileReader(fileName);
       CSVReader csvReader = new CSVReader(fileReader);
-      ModularFeatureList newFeatureList = new ModularFeatureList(fileName.getName(), rawDataFile);
+      ModularFeatureList newFeatureList = new ModularFeatureList(fileName.getName(), storage, rawDataFile);
       String[] dataLine;
       int counter = 0;
       while ((dataLine = csvReader.readNext()) != null) {

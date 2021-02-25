@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.main.MZmineCore;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -27,48 +28,87 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import sun.misc.Unsafe;
 
 /**
  * This class defines a memory-mapped temporary file storage for large primitive type arrays. The
  * storeData() function stores an array into the underlying temporary file and returns a buffer. The
  * buffer is directly bound to the memory-mapped portion of the file so the data can be directly
  * accessed without loading it into another intermediate primitive type array.
- *
+ * <p>
  * The size of each temporary file is STORAGE_FILE_CAPACITY bytes. When the file is full, a new file
  * is automatically created using the createNewMappedFile() function. The size of each temporary
  * file in the filesystem may show as 1GB, but actually only a portion of that space is occupied on
  * the disk, depending on the amount of stored data (this can be examined using the 'du -hs' Linux
  * command.
- *
+ * <p>
  * There is no support for removing data from the file - we assume such operation is rare and
  * therefore the data can be left on the disk until the whole temporary file is discarded.
- *
+ * <p>
  * There is a limit on the number of open file descriptors (e.g. 1024 by default on Linux). With 1
  * GB per temporary file, this would give us about 1 TB of storage space, so perhaps it is okay.
  * There is no way to remove the memory-mapped file, it is removed automatically when the
  * MappedByteBuffer is garbage-collected.
- *
+ * <p>
  * The total amount of storage space is also limited by the amount of addressable virtual memory
  * (e.g., 128TB on Linux). For this reason, this approach requires a 64-bit system - the limit would
  * be only 2GB on a 32-bit system.
- *
- *
  */
 public class MemoryMapStorage {
-
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   /**
    * One temporary file can store STORAGE_FILE_CAPACITY bytes. We need to fit within 2GB limit for a
    * single MappedByteBuffer. 1 GB per file seems like a good start.
    */
   private static final long STORAGE_FILE_CAPACITY = 1_000_000_000L;
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final Set<File> temporaryFiles = new HashSet<>();
+  private final List<MappedByteBuffer> mappedByteBufferList = new ArrayList<>();
+
+  private static boolean storeFeaturesInRam = false;
+  private static boolean storeRawFilesInRam = false;
+  private static boolean storeMassListsInRam = false;
+
+  /**
+   * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
+   */
+  @Nullable
+  public static MemoryMapStorage forFeatureList() {
+    return storeFeaturesInRam ? null : new MemoryMapStorage();
+  }
+
+  /**
+   * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
+   */
+  @Nullable
+  public static MemoryMapStorage forRawDataFile() {
+    return storeRawFilesInRam ? null : new MemoryMapStorage();
+  }
+
+  /**
+   * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
+   */
+  @Nullable
+  public static MemoryMapStorage forMassList() {
+    return storeMassListsInRam ? null : new MemoryMapStorage();
+  }
+
+  @Nonnull
+  public static MemoryMapStorage create() {
+    return new MemoryMapStorage();
+  }
+
+  private MemoryMapStorage() {
+    // register this storage to MZmineCore, so we can delete all temp files later.
+    MZmineCore.registerStorage(this);
+  }
 
   /**
    * The file that we are currently writing into.
@@ -95,6 +135,7 @@ public class MemoryMapStorage {
     // Map the file into memory
     MappedByteBuffer mappedFileBuffer =
         storageFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, STORAGE_FILE_CAPACITY);
+    mappedByteBufferList.add(mappedFileBuffer);
 
     // Close the temporary file, the memory mapping will remain
     storageFile.close();
@@ -116,7 +157,8 @@ public class MemoryMapStorage {
    * @return a read-only DoubleBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  public synchronized @Nonnull DoubleBuffer storeData(@Nonnull final double data[])
+  @Nonnull
+  public synchronized DoubleBuffer storeData(@Nonnull final double data[])
       throws IOException {
     return storeData(data, 0, data.length);
   }
@@ -125,13 +167,14 @@ public class MemoryMapStorage {
    * Store the given double[] array in a memory-mapped temporary file and return a read-only
    * DoubleBuffer that can access the data.
    *
-   * @param data the double[] array with the data
+   * @param data   the double[] array with the data
    * @param offset offset of the stored portion of the data[] array
    * @param length size of the stored portion of the data[] array
    * @return a read-only DoubleBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  public synchronized @Nonnull DoubleBuffer storeData(@Nonnull final double data[], int offset,
+  @Nonnull
+  public synchronized DoubleBuffer storeData(@Nonnull final double data[], int offset,
       int length) throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
@@ -171,7 +214,8 @@ public class MemoryMapStorage {
    * @return a read-only FloatBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  public synchronized @Nonnull FloatBuffer storeData(@Nonnull final float data[])
+  @Nonnull
+  public synchronized FloatBuffer storeData(@Nonnull final float data[])
       throws IOException {
     return storeData(data, 0, data.length);
   }
@@ -180,13 +224,14 @@ public class MemoryMapStorage {
    * Store the given float[] array in a memory-mapped temporary file and return a read-only
    * FloatBuffer that can access the data.
    *
-   * @param data the float[] array with the data
+   * @param data   the float[] array with the data
    * @param offset offset of the stored portion of the data[] array
    * @param length size of the stored portion of the data[] array
    * @return a read-only FloatBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  public synchronized @Nonnull FloatBuffer storeData(@Nonnull final float data[], int offset,
+  @Nonnull
+  public synchronized FloatBuffer storeData(@Nonnull final float data[], int offset,
       int length) throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
@@ -226,7 +271,8 @@ public class MemoryMapStorage {
    * @return a read-only IntBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  public synchronized @Nonnull IntBuffer storeData(@Nonnull final int data[]) throws IOException {
+  @Nonnull
+  public synchronized IntBuffer storeData(@Nonnull final int data[]) throws IOException {
     return storeData(data, 0, data.length);
   }
 
@@ -234,13 +280,14 @@ public class MemoryMapStorage {
    * Store the given int[] array in a memory-mapped temporary file and return a read-only IntBuffer
    * that can access the data.
    *
-   * @param data the int[] array with the data
+   * @param data   the int[] array with the data
    * @param offset offset of the stored portion of the data[] array
    * @param length size of the stored portion of the data[] array
    * @return a read-only IntBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  public synchronized @Nonnull IntBuffer storeData(@Nonnull final int data[], int offset,
+  @Nonnull
+  public synchronized IntBuffer storeData(@Nonnull final int data[], int offset,
       int length) throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
@@ -275,9 +322,20 @@ public class MemoryMapStorage {
   /**
    * Discard this memory-mapped storage and remove all the associated temporary files.
    */
-  public synchronized void discard() throws IOException {
-    for (File tmpFile : temporaryFiles)
-      tmpFile.delete();
+  public synchronized void discard(Unsafe theUnsafe) throws IOException {
+
+    if (theUnsafe != null) {
+      for (MappedByteBuffer mappedByteBuffer : mappedByteBufferList) {
+        theUnsafe.invokeCleaner(mappedByteBuffer);
+      }
+    }
+
+    for (File tmpFile : temporaryFiles) {
+      if (!tmpFile.delete()) {
+        logger.warning("Could not delete temporary file " + tmpFile.getAbsolutePath());
+      }
+    }
+
     temporaryFiles.clear();
     currentMappedFile = null;
   }

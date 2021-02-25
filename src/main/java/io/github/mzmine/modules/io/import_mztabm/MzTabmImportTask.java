@@ -55,6 +55,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RawDataFileUtils;
+import javax.annotation.Nullable;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorList;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 
@@ -69,7 +70,9 @@ public class MzTabmImportTask extends AbstractTask {
   // underlying tasks for importing raw data
   private final List<Task> underlyingTasks = new ArrayList<Task>();
 
-  MzTabmImportTask(MZmineProject project, ParameterSet parameters, File inputFile) {
+  MzTabmImportTask(MZmineProject project, ParameterSet parameters, File inputFile,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.inputFile = inputFile;
     this.importRawFiles = parameters.getParameter(MzTabmImportParameters.importRawFiles).getValue();
@@ -144,7 +147,8 @@ public class MzTabmImportTask extends AbstractTask {
       // Create new feature list
       String featureListName = inputFile.getName().replace(".mzTab", "");
       RawDataFile rawDataArray[] = rawDataFiles.toArray(new RawDataFile[0]);
-      ModularFeatureList newFeatureList = new ModularFeatureList(featureListName, rawDataArray);
+      ModularFeatureList newFeatureList = new ModularFeatureList(featureListName,
+          getMemoryMapStorage(), rawDataArray);
 
       // Check if not canceled
       if (isCanceled()) {
@@ -248,7 +252,7 @@ public class MzTabmImportTask extends AbstractTask {
     }
 
     // one storage for all files imported in the same task as they are typically analyzed together
-    MemoryMapStorage storage = new MemoryMapStorage();
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     // Find a matching RawDataFile for each msRun object
     for (MsRun singleRun : msrun) {

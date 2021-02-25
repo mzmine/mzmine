@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 /**
  * Merge multiple raw data files into one. For example one positive, one negative and multiple with
@@ -54,11 +55,11 @@ class RawFileMergeTask extends AbstractTask {
   private String suffix;
   private boolean useMS2Marker;
   private String ms2Marker;
-  private final MemoryMapStorage storage;
   private MZmineProject project;
 
   RawFileMergeTask(MZmineProject project, ParameterSet parameters, RawDataFile[] raw,
-      MemoryMapStorage storage) {
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.parameters = parameters;
     this.raw = raw;
@@ -66,7 +67,6 @@ class RawFileMergeTask extends AbstractTask {
     useMS2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getValue();
     ms2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getEmbeddedParameter()
         .getValue();
-    this.storage = storage;
     if (ms2Marker.isEmpty())
       useMS2Marker = false;
   }
@@ -116,7 +116,8 @@ class RawFileMergeTask extends AbstractTask {
       scans.sort(Comparator.comparingDouble(Scan::getRetentionTime));
 
       // create new file
-      RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix, storage);
+      RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix,
+          getMemoryMapStorage());
 
       int i = 0;
       for (Scan scan : scans) {

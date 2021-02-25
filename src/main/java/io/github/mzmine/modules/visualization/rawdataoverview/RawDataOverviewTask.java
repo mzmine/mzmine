@@ -42,6 +42,7 @@ public class RawDataOverviewTask extends AbstractTask {
   private int appliedSteps = 0;
 
   public RawDataOverviewTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
 
     this.rawDataFiles = parameters.getParameter(RawDataOverviewParameters.rawDataFiles).getValue()
         .getMatchingRawDataFiles();

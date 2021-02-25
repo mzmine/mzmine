@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -64,8 +65,10 @@ public class SmoothingModule implements MZmineProcessingModule {
     FeatureList peakLists[] =
         parameters.getParameter(SmoothingParameters.peakLists).getValue().getMatchingFeatureLists();
 
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+
     for (final FeatureList peakList : peakLists) {
-      Task newTask = new SmoothingTask(project, peakList, parameters);
+      Task newTask = new SmoothingTask(project, peakList, parameters, storage);
       tasks.add(newTask);
     }
 
