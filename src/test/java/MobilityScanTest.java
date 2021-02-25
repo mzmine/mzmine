@@ -34,6 +34,7 @@ import java.util.Random;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.Assert;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class MobilityScanTest {
@@ -87,6 +88,7 @@ public class MobilityScanTest {
     return scans;
   }
 
+  @Disabled("Needs test file?")
   @Test
   public void testStorage() {
 
