@@ -1,26 +1,25 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataanalysis.heatmaps;
 
-import java.awt.Window;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.ArrayList;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -31,19 +30,18 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.R.REngineType;
 
 public class HeatMapParameters extends SimpleParameterSet {
 
-
   public static final String[] fileTypes = {"pdf", "svg", "png", "fig"};
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
 
-  public static final FileNameParameter fileName =
-      new FileNameParameter("Output name", "Select the path and name of the output file.");
+  public static final FileNameParameter fileName = new FileNameParameter("Output name",
+      "Select the path and name of the output file.", FileSelectionType.SAVE);
 
   public static final ComboParameter<String> fileTypeSelection =
       new ComboParameter<String>("Output file type", "Output file type", fileTypes, fileTypes[0]);
@@ -61,8 +59,8 @@ public class HeatMapParameters extends SimpleParameterSet {
   public static final BooleanParameter useIdenfiedRows =
       new BooleanParameter("Only identified rows", "Plot only identified rows.", false);
 
-  public static final BooleanParameter usePeakArea = new BooleanParameter("Use peak area",
-      "Peak area will be used if this option is selected. Peak height will be used otherwise",
+  public static final BooleanParameter useFeatureArea = new BooleanParameter("Use feature area",
+      "Feature area will be used if this option is selected. Feature height will be used otherwise",
       true);
 
   public static final BooleanParameter scale = new BooleanParameter("Scaling",
@@ -103,18 +101,19 @@ public class HeatMapParameters extends SimpleParameterSet {
       REngineType.RCALLER);
 
   public HeatMapParameters() {
-    super(new Parameter[] {peakLists, fileName, fileTypeSelection, selectionData, referenceGroup,
-        useIdenfiedRows, usePeakArea, scale, log, showControlSamples, plegend, star, height, width,
+    super(new Parameter[] {featureLists, fileName, fileTypeSelection, selectionData, referenceGroup,
+        useIdenfiedRows, useFeatureArea, scale, log, showControlSamples, plegend, star, height, width,
         columnMargin, rowMargin, RENGINE_TYPE});
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     // Update the parameter choices
     MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
     UserParameter<?, ?> newChoices[] = project.getParameters();
-    getParameter(HeatMapParameters.selectionData).setChoices(newChoices);
+    getParameter(HeatMapParameters.selectionData).getChoices().clear();
+    getParameter(HeatMapParameters.selectionData).getChoices().addAll(newChoices);
     if (newChoices.length > 0) {
       ArrayList<Object> values = new ArrayList<Object>();
       for (RawDataFile dataFile : project.getDataFiles()) {
@@ -126,11 +125,11 @@ public class HeatMapParameters extends SimpleParameterSet {
           values.add(paramValue);
         }
       }
-      Object newValues[] = values.toArray();
-      getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
+      getParameter(HeatMapParameters.referenceGroup).getChoices().clear();
+      getParameter(HeatMapParameters.referenceGroup).getChoices().addAll(values);
     }
-    HeatmapSetupDialog dialog = new HeatmapSetupDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
+    HeatmapSetupDialog dialog = new HeatmapSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

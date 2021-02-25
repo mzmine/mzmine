@@ -27,7 +27,6 @@ public class ScanAlignment {
   // hide the constructor
   private ScanAlignment() {}
 
-
   /**
    * Aligned data points within mzTolerance. Sort by intensity and match every signal only once
    * 
@@ -247,7 +246,6 @@ public class ScanAlignment {
     }
     return data;
   }
-
 
   /**
    * Converts a list of aligned datapoints back to mass lists

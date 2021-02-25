@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public enum DBEntryField {
 
-  ENTRY_ID, NAME, SYNONYM, COMMENT, ION_TYPE, RT(Double.class), MZ(Double.class), CHARGE(
+  ENTRY_ID, NAME, SYNONYM, COMMENT, ION_TYPE, RT(Float.class), MZ(Double.class), CHARGE(
       Integer.class), ION_MODE, COLLISION_ENERGY, FORMULA, MOLWEIGHT(Double.class), EXACT_MASS(
           Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
               Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION;
@@ -37,7 +37,6 @@ public enum DBEntryField {
           ION_MODE, INCHI, INCHIKEY, SMILES, NUM_PEAKS};
   public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[] {INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, ACQUISITION, SOFTWARE};
-
 
   private final Class clazz;
 
@@ -154,7 +153,8 @@ public enum DBEntryField {
    */
   public static DBEntryField forGnpsJasonID(String key) {
     for (DBEntryField f : values()) {
-      // equalsIgnoreCase is more robust against changes in library consistency
+      // equalsIgnoreCase is more robust against changes in library
+      // consistency
       if (f.getGnpsJsonID().equalsIgnoreCase(key))
         return f;
     }
@@ -240,7 +240,8 @@ public enum DBEntryField {
    */
   public static DBEntryField forMspID(String key) {
     for (DBEntryField f : values()) {
-      // equalsIgnoreCase is more robust against changes in library consistency
+      // equalsIgnoreCase is more robust against changes in library
+      // consistency
       if (f.getNistMspID().equalsIgnoreCase(key))
         return f;
     }
@@ -327,7 +328,8 @@ public enum DBEntryField {
    */
   public static DBEntryField forMgfID(String key) {
     for (DBEntryField f : values()) {
-      // equalsIgnoreCase is more robust against changes in library consistency
+      // equalsIgnoreCase is more robust against changes in library
+      // consistency
       if (f.getMgfID().equalsIgnoreCase(key))
         return f;
     }
@@ -413,7 +415,8 @@ public enum DBEntryField {
    */
   public static DBEntryField forJdxID(String key) {
     for (DBEntryField f : values()) {
-      // equalsIgnoreCase is more robust against changes in library consistency
+      // equalsIgnoreCase is more robust against changes in library
+      // consistency
       if (f.getJdxID().equalsIgnoreCase(key))
         return f;
     }

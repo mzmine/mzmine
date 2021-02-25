@@ -35,7 +35,8 @@ public class SpectraPlotUtils {
    * @param plot Plot to apply this method to.
    * @param ignore Class object of the instances to ignore.
    */
-  public static void clearDatasetLabelGenerators(SpectraPlot plot, Class<? extends XYDataset> ignore) {
+  public static void clearDatasetLabelGenerators(SpectraPlot plot,
+      Class<? extends XYDataset> ignore) {
     for (int i = 0; i < plot.getXYPlot().getDatasetCount(); i++) {
       XYDataset dataset = plot.getXYPlot().getDataset(i);
       // check if object of dataset is an instance of ignore.class

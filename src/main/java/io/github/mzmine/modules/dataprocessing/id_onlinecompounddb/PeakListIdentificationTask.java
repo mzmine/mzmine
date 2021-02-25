@@ -1,36 +1,35 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureListRowSorter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -41,14 +40,13 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
 public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(PeakListIdentificationTask.class.getName());
+  private static final Logger logger = Logger.getLogger(PeakListIdentificationTask.class.getName());
 
   // Minimum abundance.
   private static final double MIN_ABUNDANCE = 0.001;
@@ -60,20 +58,21 @@ public class PeakListIdentificationTask extends AbstractTask {
   private final MZmineProcessingStep<OnlineDatabases> db;
   private final MZTolerance mzTolerance;
   private final int numOfResults;
-  private final PeakList peakList;
+  private final FeatureList peakList;
   private final boolean isotopeFilter;
   private final ParameterSet isotopeFilterParameters;
   private final IonizationType ionType;
   private DBGateway gateway;
-  private PeakListRow currentRow;
+  private FeatureListRow currentRow;
+  private final ParameterSet parameters;
 
   /**
    * Create the identification task.
-   * 
+   *
    * @param parameters task parameters.
    * @param list feature list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
+  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list) {
 
     peakList = list;
     numItems = 0;
@@ -91,6 +90,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     isotopeFilterParameters = parameters
         .getParameter(SingleRowIdentificationParameters.ISOTOPE_FILTER).getEmbeddedParameters();
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
+    this.parameters = parameters;
   }
 
   @Override
@@ -117,11 +117,12 @@ public class PeakListIdentificationTask extends AbstractTask {
         setStatus(TaskStatus.PROCESSING);
 
         // Create database gateway.
-        gateway = db.getModule().getGatewayClass().newInstance();
+        gateway = db.getModule().getGatewayClass().getDeclaredConstructor().newInstance();
 
-        // Identify the feature list rows starting from the biggest peaks.
-        final PeakListRow[] rows = peakList.getRows();
-        Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+        // Identify the feature list rows starting from the biggest
+        // peaks.
+        final FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
+        Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 
         // Initialize counters.
         numItems = rows.length;
@@ -139,25 +140,28 @@ public class PeakListIdentificationTask extends AbstractTask {
       } catch (Throwable t) {
 
         final String msg = "Could not search " + db;
-        LOG.log(Level.WARNING, msg, t);
+        logger.log(Level.WARNING, msg, t);
         setStatus(TaskStatus.ERROR);
         setErrorMessage(msg + ": " + ExceptionUtils.exceptionToString(t));
       }
     }
+
+    peakList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(OnlineDBSearchModule.class, parameters));
   }
 
   /**
    * Search the database for the peak's identity.
-   * 
+   *
    * @param row the feature list row.
    * @throws IOException if there are i/o problems.
    */
-  private void retrieveIdentification(final PeakListRow row) throws IOException {
+  private void retrieveIdentification(final FeatureListRow row) throws IOException {
 
     currentRow = row;
 
     // Determine peak charge.
-    final Feature bestPeak = row.getBestPeak();
+    final Feature bestPeak = row.getBestFeature();
     int charge = bestPeak.getCharge();
     if (charge <= 0) {
       charge = 1;
@@ -165,7 +169,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
     // Calculate mass value.
 
-    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
+    final double massValue = row.getAverageMZ() * charge - ionType.getAddedMass();
 
     // Isotope pattern.
     final IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();
@@ -182,7 +186,7 @@ public class PeakListIdentificationTask extends AbstractTask {
       if (compound == null)
         continue;
 
-      final String formula = compound.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+      final String formula = compound.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
 
       // If required, check isotope score.
       if (isotopeFilter && rowIsotopePattern != null && formula != null) {
@@ -190,8 +194,8 @@ public class PeakListIdentificationTask extends AbstractTask {
         // First modify the formula according to ionization.
         final String adjustedFormula = FormulaUtils.ionizeFormula(formula, ionType, charge);
 
-        LOG.finest("Calculating isotope pattern for compound formula " + formula + " adjusted to "
-            + adjustedFormula);
+        logger.finest("Calculating isotope pattern for compound formula " + formula
+            + " adjusted to " + adjustedFormula);
 
         // Generate IsotopePattern for this compound
         final IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
@@ -206,14 +210,8 @@ public class PeakListIdentificationTask extends AbstractTask {
       }
 
       // Add the retrieved identity to the feature list row
-      row.addPeakIdentity(compound, false);
+      row.addFeatureIdentity(compound, false);
 
-      // Notify the GUI about the change in the project
-      MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
-      // Repaint the window to reflect the change in the feature list
-      Desktop desktop = MZmineCore.getDesktop();
-      if (!(desktop instanceof HeadLessDesktop))
-        desktop.getMainWindow().repaint();
     }
   }
 }

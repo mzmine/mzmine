@@ -1,33 +1,33 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -53,11 +53,11 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
-        .getValue().getMatchingPeakLists();
+    FeatureList featureLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
+        .getValue().getMatchingFeatureLists();
 
-    for (PeakList peakList : peakLists) {
-      Task newTask = new LocalSpectralDBSearchTask(peakList, parameters);
+    for (FeatureList featureList : featureLists) {
+      Task newTask = new LocalSpectralDBSearchTask(featureList, parameters);
       tasks.add(newTask);
     }
 
@@ -70,12 +70,12 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
    * 
    * @param row the feature list row.
    */
-  public static void showSelectedRowsIdentificationDialog(final PeakListRow[] rows,
-      PeakListTable table) {
+  public static void showSelectedRowsIdentificationDialog(final FeatureListRow[] rows,
+      FeatureTableFX table) {
 
     final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();
 
-    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+    if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(
           new SelectedRowsLocalSpectralDBSearchTask(rows, table, parameters.cloneParameterSet()));

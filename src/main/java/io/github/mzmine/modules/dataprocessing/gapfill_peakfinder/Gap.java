@@ -1,43 +1,44 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import java.util.List;
-import java.util.Vector;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.List;
+import java.util.Vector;
 
 public class Gap {
 
-  private PeakListRow peakListRow;
+  private FeatureListRow peakListRow;
   private RawDataFile rawDataFile;
 
-  private Range<Double> mzRange, rtRange;
+  private Range<Double> mzRange;
+  private Range<Float> rtRange;
   private double intTolerance;
 
   // These store information about peak that is currently under construction
@@ -45,22 +46,20 @@ public class Gap {
   private List<GapDataPoint> bestPeakDataPoints;
   private double bestPeakHeight;
 
-
   /**
    * Constructor: Initializes an empty gap
    * 
-   * @param mz M/Z coordinate of this empty gap
-   * @param rt RT coordinate of this empty gap
+   * @param mzRange M/Z coordinate of this empty gap
+   * @param rtRange RT coordinate of this empty gap
    */
-  public Gap(PeakListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
-      Range<Double> rtRange, double intTolerance) {
+  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
+      Range<Float> rtRange, double intTolerance) {
 
     this.peakListRow = peakListRow;
     this.rawDataFile = rawDataFile;
     this.intTolerance = intTolerance;
     this.mzRange = mzRange;
     this.rtRange = rtRange;
-
   }
 
   public void offerNextScan(Scan scan) {
@@ -81,10 +80,10 @@ public class Gap {
     GapDataPoint currentDataPoint;
     if (basePeak != null) {
       currentDataPoint =
-          new GapDataPoint(scan.getScanNumber(), basePeak.getMZ(), scanRT, basePeak.getIntensity());
+          new GapDataPoint(scan, basePeak.getMZ(), scanRT, basePeak.getIntensity());
     } else {
       currentDataPoint =
-          new GapDataPoint(scan.getScanNumber(), RangeUtils.rangeCenter(mzRange), scanRT, 0);
+          new GapDataPoint(scan, RangeUtils.rangeCenter(mzRange), scanRT, 0);
     }
 
     // If we have not yet started, just create a new peak
@@ -115,7 +114,6 @@ public class Gap {
   /**
    * Finalizes the gap, adds a peak
    * 
-   * @param lock A lock for multi threading purpose. null if single threaded
    */
   public void noMoreOffers() {
 
@@ -128,11 +126,13 @@ public class Gap {
     // If we have best peak candidate, construct a SimpleChromatographicPeak
     if (bestPeakDataPoints != null) {
 
-      double area = 0, height = 0, mz = 0, rt = 0;
-      int scanNumbers[] = new int[bestPeakDataPoints.size()];
+      double mz = 0;
+      float rt = 0, height = 0, area = 0;
+      Scan scanNumbers[] = new Scan[bestPeakDataPoints.size()];
       DataPoint finalDataPoint[] = new DataPoint[bestPeakDataPoints.size()];
-      Range<Double> finalRTRange = null, finalMZRange = null, finalIntensityRange = null;
-      int representativeScan = 0;
+      Range<Double> finalMZRange = null;
+      Range<Float> finalRTRange = null, finalIntensityRange = null;
+      Scan representativeScan = null;
 
       // Process all datapoints
       for (int i = 0; i < bestPeakDataPoints.size(); i++) {
@@ -140,25 +140,25 @@ public class Gap {
         GapDataPoint dp = bestPeakDataPoints.get(i);
 
         if (i == 0) {
-          finalRTRange = Range.singleton(dp.getRT());
+          finalRTRange = Range.singleton((float) dp.getRT());
           finalMZRange = Range.singleton(dp.getMZ());
-          finalIntensityRange = Range.singleton(dp.getIntensity());
+          finalIntensityRange = Range.singleton((float) dp.getIntensity());
         } else {
           assert finalRTRange != null && finalMZRange != null && finalIntensityRange != null;
-          finalRTRange = finalRTRange.span(Range.singleton(dp.getRT()));
+          finalRTRange = finalRTRange.span(Range.singleton((float) dp.getRT()));
           finalMZRange = finalMZRange.span(Range.singleton(dp.getMZ()));
-          finalIntensityRange = finalIntensityRange.span(Range.singleton(dp.getIntensity()));
+          finalIntensityRange = finalIntensityRange.span(Range.singleton((float) dp.getIntensity()));
         }
 
-        scanNumbers[i] = bestPeakDataPoints.get(i).getScanNumber();
+        scanNumbers[i] = bestPeakDataPoints.get(i).getScan();
         finalDataPoint[i] = new SimpleDataPoint(dp.getMZ(), dp.getIntensity());
         mz += bestPeakDataPoints.get(i).getMZ();
 
         // Check height
         if (bestPeakDataPoints.get(i).getIntensity() > height) {
-          height = bestPeakDataPoints.get(i).getIntensity();
-          rt = bestPeakDataPoints.get(i).getRT();
-          representativeScan = bestPeakDataPoints.get(i).getScanNumber();
+          height = (float) bestPeakDataPoints.get(i).getIntensity();
+          rt = (float) bestPeakDataPoints.get(i).getRT();
+          representativeScan = bestPeakDataPoints.get(i).getScan();
         }
 
         // Skip last data point
@@ -182,18 +182,19 @@ public class Gap {
       mz /= bestPeakDataPoints.size();
 
       // Find the best fragmentation scan, if available
-      int fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
+      Scan fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
 
       // Find all MS2 level scans
-      int[] allMS2FragmentScanNumbers =
+      Scan[] allMS2FragmentScanNumbers =
           ScanUtils.findAllMS2FragmentScans(rawDataFile, finalRTRange, finalMZRange);
 
-      SimpleFeature newPeak = new SimpleFeature(rawDataFile, mz, rt, height, area, scanNumbers,
+      ModularFeature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
+          rawDataFile, mz, rt, height, area, scanNumbers,
           finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
           allMS2FragmentScanNumbers, finalRTRange, finalMZRange, finalIntensityRange);
 
       // Fill the gap
-      peakListRow.addPeak(rawDataFile, newPeak);
+      peakListRow.addFeature(rawDataFile, newPeak);
     }
   }
 
@@ -210,7 +211,7 @@ public class Gap {
       }
     }
 
-    if (rtRange.contains(dp.getRT())) {
+    if (rtRange.contains((float) dp.getRT())) {
       return true;
     }
 
@@ -232,7 +233,7 @@ public class Gap {
     double currentMaxHeight = 0f;
     for (int i = 1; i < currentPeakDataPoints.size() - 1; i++) {
 
-      if (rtRange.contains(currentPeakDataPoints.get(i).getRT())) {
+      if (rtRange.contains((float) currentPeakDataPoints.get(i).getRT())) {
 
         if ((currentPeakDataPoints.get(i).getIntensity() >= currentPeakDataPoints.get(i + 1)
             .getIntensity())

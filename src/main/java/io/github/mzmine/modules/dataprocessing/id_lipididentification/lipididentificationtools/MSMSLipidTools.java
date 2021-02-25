@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -23,7 +23,7 @@ import java.util.Arrays;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.util.FormulaUtils;
 
 /**
@@ -40,7 +40,7 @@ public class MSMSLipidTools {
    * returns a list of annotated fragments
    */
   public String checkForNegativeClassSpecificFragment(Range<Double> mzTolRangeMSMS,
-      PeakIdentity peakIdentity, double lipidIonMass, String[] classSpecificFragments) {
+      FeatureIdentity featureIdentity, double lipidIonMass, String[] classSpecificFragments) {
     String annotatedFragment = "";
 
     // load lipid tools to get information of annotations
@@ -48,8 +48,8 @@ public class MSMSLipidTools {
 
     // load fatty acid tools to build fatty acids
     FattyAcidTools fattyAcidTools = new FattyAcidTools();
-    ArrayList<String> fattyAcidFormulas = fattyAcidTools.calculateFattyAcidFormulas(peakIdentity);
-    ArrayList<String> fattyAcidNames = fattyAcidTools.getFattyAcidNames(peakIdentity);
+    ArrayList<String> fattyAcidFormulas = fattyAcidTools.calculateFattyAcidFormulas(featureIdentity);
+    ArrayList<String> fattyAcidNames = fattyAcidTools.getFattyAcidNames(featureIdentity);
 
     for (int i = 0; i < classSpecificFragments.length; i++) {
 
@@ -91,8 +91,6 @@ public class MSMSLipidTools {
         }
       }
 
-
-
       // check for fragments with M-FA and + sum formula
       else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")
           && classSpecificFragments[i].contains("+")) {
@@ -113,7 +111,8 @@ public class MSMSLipidTools {
         }
       }
 
-      // check for fragments with M-FA and - sum formula or M - sum formula
+      // check for fragments with M-FA and - sum formula or M - sum
+      // formula
       else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")) {
         if (classSpecificFragments[i].contains("FA")) {
           for (int j = 0; j < fattyAcidFormulas.size(); j++) {
@@ -157,7 +156,7 @@ public class MSMSLipidTools {
    * returns a list of annotated fragments
    */
   public String checkForPositiveClassSpecificFragment(Range<Double> mzTolRangeMSMS,
-      PeakIdentity peakIdentity, double lipidIonMass, String[] classSpecificFragments) {
+      FeatureIdentity featureIdentity, double lipidIonMass, String[] classSpecificFragments) {
     String annotatedFragment = "";
 
     // load lipid tools to get information of annotations
@@ -165,8 +164,8 @@ public class MSMSLipidTools {
 
     // load fatty acid tools to build fatty acids
     FattyAcidTools fattyAcidTools = new FattyAcidTools();
-    ArrayList<String> fattyAcidFormulas = fattyAcidTools.calculateFattyAcidFormulas(peakIdentity);
-    ArrayList<String> fattyAcidNames = fattyAcidTools.getFattyAcidNames(peakIdentity);
+    ArrayList<String> fattyAcidFormulas = fattyAcidTools.calculateFattyAcidFormulas(featureIdentity);
+    ArrayList<String> fattyAcidNames = fattyAcidTools.getFattyAcidNames(featureIdentity);
 
     for (int i = 0; i < classSpecificFragments.length; i++) {
 
@@ -179,7 +178,6 @@ public class MSMSLipidTools {
           }
         }
       }
-
 
       // check for fragments with M-FA and + sum formula
       if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")
@@ -201,8 +199,8 @@ public class MSMSLipidTools {
         }
       }
 
-
-      // check for fragments with M-FA and - sum formula or M - sum formula
+      // check for fragments with M-FA and - sum formula or M - sum
+      // formula
       else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")) {
         if (classSpecificFragments[i].contains("FA")) {
           for (int j = 0; j < fattyAcidFormulas.size(); j++) {
@@ -243,17 +241,18 @@ public class MSMSLipidTools {
    * using the annotated MS/MS fragments
    */
   public ArrayList<String> predictFattyAcidComposition(ArrayList<String> listOfDetectedFragments,
-      PeakIdentity peakIdentity, int numberOfAcylChains) {
+      FeatureIdentity featureIdentity, int numberOfAcylChains) {
     ArrayList<String> fattyAcidComposition = new ArrayList<String>();
     // get number of total C atoms, double bonds and number of chains
     LipidTools lipidTools = new LipidTools();
-    int totalNumberOfCAtoms = lipidTools.getNumberOfCAtoms(peakIdentity.getName());
-    int totalNumberOfDB = lipidTools.getNumberOfDB(peakIdentity.getName());
+    int totalNumberOfCAtoms = lipidTools.getNumberOfCAtoms(featureIdentity.getName());
+    int totalNumberOfDB = lipidTools.getNumberOfDB(featureIdentity.getName());
 
     int testNumberOfCAtoms = 0;
     int testNumberOfDoubleBonds = 0;
 
-    // combine all fragments with each other to check for a matching composition
+    // combine all fragments with each other to check for a matching
+    // composition
     for (int i = 0; i < listOfDetectedFragments.size(); i++) {
       if (listOfDetectedFragments.get(i).contains("FA(")) {
         int numberOfCAtomsInFragment = lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i));
@@ -277,7 +276,8 @@ public class MSMSLipidTools {
           if (numberOfAcylChains >= 2) {
             for (int j = 0; j < listOfDetectedFragments.size(); j++) {
 
-              // only check for annotated fragments with information on FA composition
+              // only check for annotated fragments with
+              // information on FA composition
               if (listOfDetectedFragments.get(j).contains("FA(")) {
                 // check if number of C atoms is equal
                 testNumberOfCAtoms = numberOfCAtomsInFragment
@@ -299,7 +299,8 @@ public class MSMSLipidTools {
               if (numberOfAcylChains >= 3) {
                 for (int k = 0; k < listOfDetectedFragments.size(); k++) {
 
-                  // only check for annotated fragments with information on FA composition
+                  // only check for annotated fragments with
+                  // information on FA composition
                   if (listOfDetectedFragments.get(k).contains("FA(")) {
                     // check if number of C atoms is equal
                     testNumberOfCAtoms = numberOfCAtomsInFragment
@@ -326,15 +327,19 @@ public class MSMSLipidTools {
                   if (numberOfAcylChains >= 4) {
                     for (int l = 0; l < listOfDetectedFragments.size(); l++) {
 
-                      // only check for annotated fragments with information on FA composition
+                      // only check for annotated
+                      // fragments with information on FA
+                      // composition
                       if (listOfDetectedFragments.get(k).contains("FA(")) {
-                        // check if number of C atoms is equal
+                        // check if number of C atoms is
+                        // equal
                         testNumberOfCAtoms = numberOfCAtomsInFragment
                             + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
                             + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k))
                             + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(l));
                         if (testNumberOfCAtoms == totalNumberOfCAtoms) {
-                          // check number of double bonds
+                          // check number of double
+                          // bonds
                           testNumberOfDoubleBonds = numberOfDBInFragment
                               + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j))
                               + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k))
@@ -370,7 +375,6 @@ public class MSMSLipidTools {
       fattyAcidComposition = removeDoubleEntries(fattyAcidComposition);
     return fattyAcidComposition;
   }
-
 
   private ArrayList<String> removeDoubleEntries(ArrayList<String> fattyAcidComposition) {
     for (int i = 0; i < fattyAcidComposition.size(); i++) {

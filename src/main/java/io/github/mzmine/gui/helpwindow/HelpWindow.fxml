@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.* ?>
+<?import javafx.scene.layout.* ?>
+<?import javafx.scene.web.WebView ?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+	fx:controller="io.github.mzmine.gui.helpwindow.HelpWindowController">
+	<center>
+		<WebView fx:id="helpWebView" />
+	</center>
+	<bottom>
+		<HBox alignment="CENTER" prefHeight="40.0">
+			<children>
+				<Button text="Close" onAction="#handleClose" />
+			</children>
+		</HBox>
+	</bottom>
+</BorderPane>

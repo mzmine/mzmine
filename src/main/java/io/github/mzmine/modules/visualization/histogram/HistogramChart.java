@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.visualization.histogram;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
@@ -35,17 +34,11 @@ import org.jfree.chart.renderer.xy.ClusteredXYBarRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 
-public class HistogramChart extends EChartPanel {
-
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+public class HistogramChart extends EChartViewer {
 
   // grid color
   private static final Color gridColor = Color.lightGray;
@@ -66,10 +59,7 @@ public class HistogramChart extends EChartPanel {
   private HistogramPlotDataset dataSet;
 
   public HistogramChart() {
-    super(null, true);
-
-    // initialize the chart by default time series chart from factory
-    chart = ChartFactory.createHistogram("", // title
+    super(ChartFactory.createHistogram("", // title
         "", // x-axis label
         "", // y-axis label
         null, // data set
@@ -77,7 +67,10 @@ public class HistogramChart extends EChartPanel {
         true, // create legend
         false, // generate tooltips
         false // generate URLs
-    );
+    ));
+
+    // initialize the chart by default time series chart from factory
+    chart = getChart();
 
     // title
     chartTitle = chart.getTitle();
@@ -95,11 +88,10 @@ public class HistogramChart extends EChartPanel {
     legend.setFrame(BlockBorder.NONE);
 
     chart.setBackgroundPaint(Color.white);
-    setChart(chart);
 
     // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
+    // setMaximumDrawWidth(Integer.MAX_VALUE);
+    // setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // set the plot properties
     plot = chart.getXYPlot();
@@ -133,10 +125,9 @@ public class HistogramChart extends EChartPanel {
     renderer.setShadowVisible(false);
     plot.setRenderer(renderer);
 
-    this.setMinimumSize(new Dimension(400, 400));
-    this.setDismissDelay(Integer.MAX_VALUE);
-    this.setInitialDelay(0);
-
+    // this.setMinimumSize(new Dimension(400, 400));
+    // this.setDismissDelay(Integer.MAX_VALUE);
+    // this.setInitialDelay(0);
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -165,9 +156,9 @@ public class HistogramChart extends EChartPanel {
     if (dataSet.getItemCount(0) > 6)
       axis.setVerticalTickLabels(true);
 
-    plot.getRangeAxis().setLabel("Number of peaks");
+    plot.getRangeAxis().setLabel("Number of features");
     plot.setDataset(0, newSet);
-    setTitle(dataSet.getPeakList().getName(), "Histogram of peaks's " + dataType);
+    setTitle(dataSet.getFeatureList().getName(), "Histogram of feature's " + dataType);
   }
 
   public void setAxisNumberFormat(HistogramDataType dataType) {

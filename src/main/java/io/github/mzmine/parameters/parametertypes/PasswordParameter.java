@@ -1,39 +1,37 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.parameters.parametertypes;
 
+import java.util.Collection;
 import org.w3c.dom.Element;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.exceptions.DecryptionException;
 import io.github.mzmine.util.exceptions.EncryptionException;
-
-import javax.swing.*;
-import java.util.Collection;
+import javafx.scene.control.PasswordField;
 
 /**
  * Password parameter
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class PasswordParameter implements UserParameter<String, PasswordComponent> {
+public class PasswordParameter implements UserParameter<String, PasswordField> {
 
   private String name, description, value;
   private int inputsize = 20;
@@ -130,20 +128,21 @@ public class PasswordParameter implements UserParameter<String, PasswordComponen
   }
 
   @Override
-  public PasswordComponent createEditingComponent() {
-    PasswordComponent passwordComponent = new PasswordComponent(inputsize);
-    passwordComponent.setBorder(BorderFactory.createCompoundBorder(passwordComponent.getBorder(),
-        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+  public PasswordField createEditingComponent() {
+    PasswordField passwordComponent = new PasswordField();
+    passwordComponent.setPrefColumnCount(inputsize);
+    // passwordComponent.setBorder(BorderFactory.createCompoundBorder(passwordComponent.getBorder(),
+    // BorderFactory.createEmptyBorder(0, 4, 0, 0)));
     return passwordComponent;
   }
 
   @Override
-  public void setValueFromComponent(PasswordComponent component) {
+  public void setValueFromComponent(PasswordField component) {
     value = component.getText().toString();
   }
 
   @Override
-  public void setValueToComponent(PasswordComponent component, String newValue) {
+  public void setValueToComponent(PasswordField component, String newValue) {
     component.setText(newValue);
   }
 

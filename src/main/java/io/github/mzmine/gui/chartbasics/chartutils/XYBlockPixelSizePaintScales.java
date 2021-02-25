@@ -1,30 +1,29 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General private License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General private License for more details.
- * 
- * You should have received a copy of the GNU General private License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * private License for more details.
+ *
+ * You should have received a copy of the GNU General private License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.gui.chartbasics.chartutils;
 
-import java.awt.Color;
-import java.awt.Paint;
 import com.google.common.collect.Range;
+import java.awt.Color;
 
 /**
  * Paint scales for XYZ datasets These scales can be used with the XYBlockRenderer
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class XYBlockPixelSizePaintScales {
@@ -33,9 +32,9 @@ public class XYBlockPixelSizePaintScales {
    * Method to select the right scale for the applied settings in the modules kendrickmassplot and
    * vankrevelendiagram
    */
-  public static Paint[] getPaintColors(String zAxisScaleType, Range<Double> zScaleRange,
+  public static Color[] getPaintColors(String zAxisScaleType, Range<Double> zScaleRange,
       String paintScaleStyle) {
-    Paint[] scale = null;
+    Color[] scale = null;
     // lower and upper bound
     if (zAxisScaleType.contains("percentile") && zScaleRange.lowerEndpoint() != 0
         && zScaleRange.upperEndpoint() != 100) {
@@ -99,10 +98,34 @@ public class XYBlockPixelSizePaintScales {
     return scale;
   }
 
+  public static Color[] scaleAlphaForPaintScale(Color[] colors) {
+    Color[] colorsWithScaledAlpha = new Color[colors.length];
+    for (int i = 0; i < colors.length; i++) {
+      int alpha;
+      alpha = scaleAlphaValueLinear(1, colors.length, i);
+      colorsWithScaledAlpha[i] =
+          new Color(colors[i].getRed(), colors[i].getGreen(), colors[i].getBlue(), alpha);
+    }
+    return colorsWithScaledAlpha;
+  }
+
+  private static int scaleAlphaValueLinear(int min, int max, int value) {
+    if (min == max) {
+      return 1;
+    } else {
+      int maxScaled = 255;
+      int minScaled = 1;
+      double a = (maxScaled - minScaled) / ((double) max - min);
+      double b = maxScaled - a * max;
+      return (int) (a * value + b);
+    }
+  }
+
+
   /*
    * returns an array with rainbow colors
    */
-  public static Paint[] getFullRainBowScale() {
+  public static Color[] getFullRainBowScale() {
     int ncolor = 360;
     Color[] readRainbow = new Color[ncolor];
     Color[] rainbow = new Color[ncolor];
@@ -120,7 +143,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with rainbow colors with black as lower bound and magenta as upper bound
    */
-  public static Paint[] getFullRainBowScaleLowerUpperBound() {
+  public static Color[] getFullRainBowScaleLowerUpperBound() {
     int ncolor = 360;
     Color[] readRainbow = new Color[ncolor];
     Color[] rainbow = new Color[ncolor];
@@ -144,7 +167,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with rainbow colors with black as lower bound
    */
-  public static Paint[] getFullRainBowScaleLowerBound() {
+  public static Color[] getFullRainBowScaleLowerBound() {
     int ncolor = 360;
     Color[] readRainbow = new Color[ncolor];
     Color[] rainbow = new Color[ncolor];
@@ -165,7 +188,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with rainbow colors with magenta as upper bound
    */
-  public static Paint[] getFullRainBowScaleUpperBound() {
+  public static Color[] getFullRainBowScaleUpperBound() {
     int ncolor = 360;
     Color[] readRainbow = new Color[ncolor];
     Color[] rainbow = new Color[ncolor];
@@ -186,7 +209,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with red colors
    */
-  public static Paint[] getRedScale() {
+  public static Color[] getRedScale() {
     int ncolor = 190;
     Color[] redScale = new Color[ncolor];
 
@@ -200,7 +223,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with red colors with black as lower bound and magenta as upper bound
    */
-  public static Paint[] getRedScaleLowerUpperBound() {
+  public static Color[] getRedScaleLowerUpperBound() {
     int ncolor = 190;
     Color[] redScale = new Color[ncolor];
 
@@ -220,7 +243,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with red colors with black as lower bound
    */
-  public static Paint[] getRedScaleLowerBound() {
+  public static Color[] getRedScaleLowerBound() {
     int ncolor = 190;
     Color[] redScale = new Color[ncolor];
 
@@ -237,7 +260,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with red colors magenta as upper bound
    */
-  public static Paint[] getRedScaleUpperBound() {
+  public static Color[] getRedScaleUpperBound() {
     int ncolor = 190;
     Color[] redScale = new Color[ncolor];
 
@@ -254,7 +277,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with green colors
    */
-  public static Paint[] getGreenScale() {
+  public static Color[] getGreenScale() {
     int ncolor = 190;
     Color[] greenScale = new Color[ncolor];
     for (int i = 0; i < greenScale.length; i++) {
@@ -269,7 +292,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with green colors with black as lower bound and magenta as upper bound
    */
-  public static Paint[] getGreenScaleLowerUpperBound() {
+  public static Color[] getGreenScaleLowerUpperBound() {
     int ncolor = 190;
     Color[] greenScale = new Color[ncolor];
 
@@ -289,7 +312,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with red colors with black as lower bound
    */
-  public static Paint[] getGreenScaleLowerBound() {
+  public static Color[] getGreenScaleLowerBound() {
     int ncolor = 190;
     Color[] greenScale = new Color[ncolor];
 
@@ -306,7 +329,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with red colors magenta as upper bound
    */
-  public static Paint[] getGreenScaleUpperBound() {
+  public static Color[] getGreenScaleUpperBound() {
     int ncolor = 190;
     Color[] greenScale = new Color[ncolor];
 
@@ -323,7 +346,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with yellow colors
    */
-  public static Paint[] getYellowScale() {
+  public static Color[] getYellowScale() {
     int ncolor = 190;
     Color[] yellowScale = new Color[ncolor];
     for (int i = 0; i < yellowScale.length; i++) {
@@ -338,7 +361,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with yellow colors with black as lower bound and magenta as upper bound
    */
-  public static Paint[] getYellowScaleLowerUpperBound() {
+  public static Color[] getYellowScaleLowerUpperBound() {
     int ncolor = 190;
     Color[] yellowScale = new Color[ncolor];
 
@@ -358,7 +381,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with yellow colors with black as lower bound
    */
-  public static Paint[] getYellowScaleLowerBound() {
+  public static Color[] getYellowScaleLowerBound() {
     int ncolor = 190;
     Color[] yellowScale = new Color[ncolor];
 
@@ -375,7 +398,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with yellow colors with magenta as upper bound
    */
-  public static Paint[] getYellowScaleUpperBound() {
+  public static Color[] getYellowScaleUpperBound() {
     int ncolor = 190;
     Color[] yellowScale = new Color[ncolor];
 
@@ -392,7 +415,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with cyan colors
    */
-  public static Paint[] getCyanScale() {
+  public static Color[] getCyanScale() {
     int ncolor = 190;
     Color[] cyanScale = new Color[ncolor];
     for (int i = 0; i < cyanScale.length; i++) {
@@ -407,7 +430,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with cyan colors with black as lower bound and magenta as upper bound
    */
-  public static Paint[] getCyanScaleLowerUpperBound() {
+  public static Color[] getCyanScaleLowerUpperBound() {
     int ncolor = 190;
     Color[] cyanScale = new Color[ncolor];
 
@@ -427,7 +450,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with yellow colors with black as lower bound
    */
-  public static Paint[] getCyanScaleLowerBound() {
+  public static Color[] getCyanScaleLowerBound() {
     int ncolor = 190;
     Color[] cyanScale = new Color[ncolor];
 
@@ -444,7 +467,7 @@ public class XYBlockPixelSizePaintScales {
   /*
    * returns an array with yellow colors with magenta as upper bound
    */
-  public static Paint[] getCyanScaleUpperBound() {
+  public static Color[] getCyanScaleUpperBound() {
     int ncolor = 190;
     Color[] cyanScale = new Color[ncolor];
 

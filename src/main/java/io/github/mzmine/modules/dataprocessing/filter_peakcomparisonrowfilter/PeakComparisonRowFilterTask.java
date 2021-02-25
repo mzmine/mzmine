@@ -1,42 +1,37 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakUtils;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Filters out feature list rows.
@@ -44,11 +39,12 @@ import io.github.mzmine.util.PeakUtils;
 public class PeakComparisonRowFilterTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(PeakComparisonRowFilterTask.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(PeakComparisonRowFilterTask.class.getName());
   // Feature lists.
   private final MZmineProject project;
-  private final PeakList origPeakList;
-  private PeakList filteredPeakList;
+  private final FeatureList origPeakList;
+  private FeatureList filteredPeakList;
   // Processed rows counter
   private int processedRows, totalRows;
   // Parameters.
@@ -60,7 +56,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
    * @param list feature list to process.
    * @param parameterSet task parameters.
    */
-  public PeakComparisonRowFilterTask(final MZmineProject project, final PeakList list,
+  public PeakComparisonRowFilterTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
 
     // Initialize.
@@ -89,7 +85,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
     try {
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering feature list rows");
+      logger.info("Filtering feature list rows");
 
       // Filter the feature list.
       filteredPeakList = filterPeakListRows(origPeakList);
@@ -101,21 +97,21 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         return;
 
       // Add new peaklist to the project
-      project.addPeakList(filteredPeakList);
+      project.addFeatureList(filteredPeakList);
 
       // Remove the original peaklist if requested
       if (parameters.getParameter(PeakComparisonRowFilterParameters.AUTO_REMOVE).getValue()) {
-        project.removePeakList(origPeakList);
+        project.removeFeatureList(origPeakList);
       }
 
       setStatus(TaskStatus.FINISHED);
-      LOG.info("Finished peak comparison rows filter");
+      logger.info("Finished peak comparison rows filter");
 
     } catch (Throwable t) {
       t.printStackTrace();
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
-      LOG.log(Level.SEVERE, "Peak comparison row filter error", t);
+      logger.log(Level.SEVERE, "Peak comparison row filter error", t);
     }
 
   }
@@ -126,23 +122,24 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
    * @param peakList feature list to filter.
    * @return a new feature list with rows of the original feature list that pass the filtering.
    */
-  private PeakList filterPeakListRows(final PeakList peakList) {
+  private FeatureList filterPeakListRows(final FeatureList peakList) {
 
     // Create new feature list.
-    final PeakList newPeakList = new SimplePeakList(
+    final ModularFeatureList newPeakList = new ModularFeatureList(
         peakList.getName() + ' '
             + parameters.getParameter(PeakComparisonRowFilterParameters.SUFFIX).getValue(),
         peakList.getRawDataFiles());
 
     // Copy previous applied methods.
-    for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
+    for (final FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
 
       newPeakList.addDescriptionOfAppliedTask(method);
     }
 
     // Add task description to peakList.
     newPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod(getTaskDescription(), parameters));
+        new SimpleFeatureListAppliedMethod(getTaskDescription(),
+            PeakComparisonRowFilterModule.class, parameters));
 
     // Get parameters.
     final boolean evalutateFoldChange =
@@ -166,13 +163,13 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
             .getEmbeddedParameter().getValue();
 
     // Setup variables
-    final PeakListRow[] rows = peakList.getRows();
+    final ModularFeatureListRow[] rows = peakList.getRows().toArray(ModularFeatureListRow[]::new);
     RawDataFile rawDataFile1;
     RawDataFile rawDataFile2;
     Feature peak1;
     Feature peak2;
     totalRows = rows.length;
-    final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
+    final RawDataFile[] rawDataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     boolean allCriteriaMatched = true;
 
@@ -206,12 +203,12 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
       double foldChange = 0.0;
       double ppmDiff = 0.0;
       double rtDiff = 0.0;
-      final PeakListRow row = rows[processedRows];
+      final ModularFeatureListRow row = rows[processedRows];
       rawDataFile1 = rawDataFiles[columnIndex1];
       rawDataFile2 = rawDataFiles[columnIndex2];
 
-      peak1 = row.getPeak(rawDataFile1);
-      peak2 = row.getPeak(rawDataFile2);
+      peak1 = row.getFeature(rawDataFile1);
+      peak2 = row.getFeature(rawDataFile2);
 
       if (peak1 != null) {
         peak1Area = peak1.getArea();
@@ -231,7 +228,6 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         if (!foldChangeRange.contains(foldChange))
           allCriteriaMatched = false;
 
-
         // PPM difference evaluation
         if (evalutatePPMdiff) {
           ppmDiff = (peak1MZ - peak2MZ) / peak1MZ * 1E6;
@@ -250,34 +246,11 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
       // Good row?
       if (allCriteriaMatched)
-        newPeakList.addRow(copyPeakRow(row));
+        newPeakList.addRow(new ModularFeatureListRow(newPeakList, row, true));
 
     }
 
     return newPeakList;
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static PeakListRow copyPeakRow(final PeakListRow row) {
-
-    // Copy the feature list row.
-    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-    PeakUtils.copyPeakListRowProperties(row, newRow);
-
-    // Copy the peaks.
-    for (final Feature peak : row.getPeaks()) {
-
-      final Feature newPeak = new SimpleFeature(peak);
-      PeakUtils.copyPeakProperties(peak, newPeak);
-      newRow.addPeak(peak.getDataFile(), newPeak);
-    }
-
-    return newRow;
   }
 
 }

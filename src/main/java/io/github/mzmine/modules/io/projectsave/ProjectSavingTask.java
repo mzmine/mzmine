@@ -1,23 +1,24 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,13 +27,13 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.xml.transform.TransformerConfigurationException;
+
 import org.xml.sax.SAXException;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.impl.MainWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -69,7 +70,7 @@ public class ProjectSavingTask extends AbstractTask {
     this.savedProject = (MZmineProjectImpl) project;
     this.saveFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
     dataFilesIDMap = new Hashtable<RawDataFile, String>();
-    this.totalSaveItems = project.getDataFiles().length + project.getPeakLists().length;
+    this.totalSaveItems = project.getDataFiles().length + project.getFeatureLists().size();
   }
 
   /**
@@ -217,10 +218,10 @@ public class ProjectSavingTask extends AbstractTask {
       savedProject.setProjectFile(saveFile);
 
       // Update the window title to reflect the new name of the project
-      if (MZmineCore.getDesktop() instanceof MainWindow) {
-        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-        mainWindow.updateTitle();
-      }
+      // if (MZmineCore.getDesktop() instanceof MainWindow) {
+      // MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+      // mainWindow.updateTitle();
+      // }
 
       logger.info("Finished saving the project to " + saveFile);
       setStatus(TaskStatus.FINISHED);
@@ -323,7 +324,7 @@ public class ProjectSavingTask extends AbstractTask {
   private void savePeakLists(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    PeakList peakLists[] = savedProject.getPeakLists();
+    FeatureList peakLists[] = savedProject.getFeatureLists().toArray(new FeatureList[0]);
 
     for (int i = 0; i < peakLists.length; i++) {
 

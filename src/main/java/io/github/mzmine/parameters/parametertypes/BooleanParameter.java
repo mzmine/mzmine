@@ -1,38 +1,34 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Insets;
 import java.util.Collection;
-
-import javax.swing.JCheckBox;
-
 import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import javafx.scene.control.CheckBox;
 
 /**
  * Simple Parameter implementation
  * 
  * 
  */
-public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
+public class BooleanParameter implements UserParameter<Boolean, CheckBox> {
 
   private String name, description;
   private Boolean value;
@@ -48,7 +44,7 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getName()
+   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -56,7 +52,7 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getDescription()
+   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {
@@ -64,9 +60,9 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
   }
 
   @Override
-  public JCheckBox createEditingComponent() {
-    JCheckBox checkBox = new JCheckBox();
-    checkBox.setMargin(new Insets(0, 7, 0, 0));
+  public CheckBox createEditingComponent() {
+    CheckBox checkBox = new CheckBox();
+    // checkBox.setMargin(new Insets(0, 7, 0, 0));
     return checkBox;
   }
 
@@ -88,12 +84,12 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
   }
 
   @Override
-  public void setValueFromComponent(JCheckBox component) {
+  public void setValueFromComponent(CheckBox component) {
     value = component.isSelected();
   }
 
   @Override
-  public void setValueToComponent(JCheckBox component, Boolean newValue) {
+  public void setValueToComponent(CheckBox component, Boolean newValue) {
     component.setSelected(newValue);
   }
 

@@ -1,34 +1,31 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.dataanalysis.clustering;
 
-import java.awt.BorderLayout;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.swing.JFrame;
-import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import org.jfree.data.xy.AbstractXYDataset;
-
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
@@ -39,7 +36,13 @@ import io.github.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotWindo
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
+import javafx.application.Platform;
+import javafx.embed.swing.SwingNode;
+import javafx.scene.Scene;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -61,7 +64,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   private double[] component2Coords;
   private ParameterSet parameters;
   private RawDataFile[] selectedRawDataFiles;
-  private PeakListRow[] selectedRows;
+  private FeatureListRow[] selectedRows;
   private int[] groupsForSelectedRawDataFiles, groupsForSelectedVariables;
   private Object[] parameterValuesForGroups;
   private int finalNumberOfGroups;
@@ -75,18 +78,18 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   private ClusteringDataType typeOfData;
   private Instances dataset;
   private int progress;
-  private PeakList peakList;
+  private FeatureList featureList;
 
   public ClusteringTask(ParameterSet parameters) {
 
     this.parameters = parameters;
 
-    this.peakList = parameters.getParameter(ClusteringParameters.peakLists).getValue()
-        .getMatchingPeakLists()[0];
+    this.featureList = parameters.getParameter(ClusteringParameters.featureLists).getValue()
+        .getMatchingFeatureLists()[0];
     this.selectedRawDataFiles = parameters.getParameter(ClusteringParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
     this.selectedRows =
-        parameters.getParameter(ClusteringParameters.rows).getMatchingRows(peakList);
+        parameters.getParameter(ClusteringParameters.rows).getMatchingRows(featureList);
     clusteringStep = parameters.getParameter(ClusteringParameters.clusteringAlgorithm).getValue();
     typeOfData = parameters.getParameter(ClusteringParameters.typeOfData).getValue();
 
@@ -144,8 +147,8 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
       name += " M/Z: " + this.selectedRows[item].getAverageMZ() + " RT:"
           + this.selectedRows[item].getAverageRT();
       if (selectedRows[item].getPeakIdentities() != null
-          && selectedRows[item].getPeakIdentities().length > 0) {
-        name += " CompoundName: " + selectedRows[item].getPeakIdentities()[0].getName();
+          && selectedRows[item].getPeakIdentities().size() > 0) {
+        name += " CompoundName: " + selectedRows[item].getPeakIdentities().get(0).getName();
       }
       return name;
     } else {
@@ -234,21 +237,31 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         } else {
           c = cluster;
         }
-        JFrame visualizationWindow = new JFrame(clusterNumber);
-        visualizationWindow.setSize(600, 500);
-        visualizationWindow.setLayout(new BorderLayout());
 
         HierarchyVisualizer visualizer = new HierarchyVisualizer(c);
-        visualizationWindow.add(visualizer, BorderLayout.CENTER);
+        SwingNode sn = new SwingNode();
         visualizer.fitToScreen();
+        SwingUtilities.invokeLater(() -> {
+          sn.setContent(visualizer);
+        });
+
+        BorderPane visualizationPane = new BorderPane();
+        visualizationPane.setCenter(sn);
+        Scene visualizationWindowScene = new Scene(visualizationPane);
 
         // Text field with the clustering result in Newick format
-        JTextField data = new JTextField(c);
-        visualizationWindow.add(data, BorderLayout.SOUTH);
-        visualizationWindow.setVisible(true);
-        visualizationWindow.pack();
+        TextField data = new TextField(c);
+        visualizationPane.setBottom(data);
 
-        visualizationWindow.setVisible(true);
+        Platform.runLater(() -> {
+          Stage visualizationWindow = new Stage();
+          visualizationWindow.setTitle(clusterNumber);
+          visualizationWindow.setScene(visualizationWindowScene);
+          visualizationWindow.setMinWidth(600.0);
+          visualizationWindow.setMinHeight(500.0);
+          visualizationWindow.show();
+        });
+
       }
       progress = 100;
     } else {
@@ -265,21 +278,21 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
 
         ClusteringReportWindow reportWindow = new ClusteringReportWindow(sampleNames,
             clusteringResult.toArray(new Integer[0]), "Clustering Report");
-        reportWindow.setVisible(true);
+        reportWindow.show();
       } else {
         String[] variableNames = new String[selectedRows.length];
         for (int i = 0; i < selectedRows.length; i++) {
           variableNames[i] = selectedRows[i].getID() + " - " + selectedRows[i].getAverageMZ()
               + " - " + selectedRows[i].getAverageRT();
           if (selectedRows[i].getPeakIdentities() != null
-              && selectedRows[i].getPeakIdentities().length > 0) {
-            variableNames[i] += " - " + selectedRows[i].getPeakIdentities()[0].getName();
+              && selectedRows[i].getPeakIdentities().size() > 0) {
+            variableNames[i] += " - " + selectedRows[i].getPeakIdentities().get(0).getName();
           }
         }
 
         ClusteringReportWindow reportWindow = new ClusteringReportWindow(variableNames,
             clusteringResult.toArray(new Integer[0]), "Clustering Report");
-        reportWindow.setVisible(true);
+        reportWindow.show();
 
       }
 
@@ -338,9 +351,11 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         component2Coords = sammonsResult[yAxisDimension - 1];
       }
 
-      ProjectionPlotWindow newFrame =
-          new ProjectionPlotWindow(desktop.getSelectedPeakLists()[0], this, parameters);
-      newFrame.setVisible(true);
+      Platform.runLater(() -> {
+        ProjectionPlotWindow newFrame =
+            new ProjectionPlotWindow(desktop.getSelectedPeakLists()[0], this, parameters);
+        newFrame.show();
+      });
     }
     status = TaskStatus.FINISHED;
     logger.info("Finished computing Clustering visualization.");
@@ -355,22 +370,22 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   private double[][] createMatrix(boolean isForSamples) {
     // Generate matrix of raw data (input to CDA)
     boolean useArea = true;
-    if (parameters.getParameter(ClusteringParameters.peakMeasurementType)
-        .getValue() == PeakMeasurementType.AREA) {
+    if (parameters.getParameter(ClusteringParameters.featureMeasurementType)
+        .getValue() == FeatureMeasurementType.AREA) {
       useArea = true;
     }
-    if (parameters.getParameter(ClusteringParameters.peakMeasurementType)
-        .getValue() == PeakMeasurementType.HEIGHT) {
+    if (parameters.getParameter(ClusteringParameters.featureMeasurementType)
+        .getValue() == FeatureMeasurementType.HEIGHT) {
       useArea = false;
     }
     double[][] rawData;
     if (isForSamples) {
       rawData = new double[selectedRawDataFiles.length][selectedRows.length];
       for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-        PeakListRow peakListRow = selectedRows[rowIndex];
+        FeatureListRow featureListRow = selectedRows[rowIndex];
         for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
           RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-          Feature p = peakListRow.getPeak(rawDataFile);
+          Feature p = featureListRow.getFeature(rawDataFile);
           if (p != null) {
             if (useArea) {
               rawData[fileIndex][rowIndex] = p.getArea();
@@ -383,10 +398,10 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     } else {
       rawData = new double[selectedRows.length][selectedRawDataFiles.length];
       for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-        PeakListRow peakListRow = selectedRows[rowIndex];
+        FeatureListRow featureListRow = selectedRows[rowIndex];
         for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
           RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-          Feature p = peakListRow.getPeak(rawDataFile);
+          Feature p = featureListRow.getFeature(rawDataFile);
           if (p != null) {
             if (useArea) {
               rawData[rowIndex][fileIndex] = p.getArea();
@@ -493,7 +508,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
   }
 
   /**
-   * @see io.github.mzmine.taskcontrol.Task#setStatus()
+   * // @see io.github.mzmine.taskcontrol.Task#setStatus()
    */
   public void setStatus(TaskStatus newStatus) {
     this.status = newStatus;

@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,26 +19,27 @@
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
 import java.util.ArrayList;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * This class is used to calculate ratings and store the peak with the best rating. Intensities and
  * m/z are either taken directly from the peakListRow or given to this class by the Candidates
  * class.
- * 
+ *
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public class Candidate {
 
-  private int candID; // row represents index in groupedPeaks list, candID is ID in original
+  private int candID; // row represents index in groupedPeaks list, candID is
+                      // ID in original
                       // PeakList
   private double rating;
   private double mz;
-  private PeakListRow row;
+  private FeatureListRow row;
 
   Candidate() {
     candID = 0;
@@ -62,25 +63,26 @@ public class Candidate {
   }
 
   /**
-   * 
+   *
    * @param parent row of parent peak
    * @param candidate row pf candidate peak
    * @param pParent data point of predicted parent mass and intensity
    * @param pChild data point of predicted child mass and intensity
    * @return
    */
-  public double calcIntensityAccuracy_Pattern(PeakListRow parent, PeakListRow candidate,
+  public double calcIntensityAccuracy_Pattern(FeatureListRow parent, FeatureListRow candidate,
       DataPoint pParent, DataPoint pChild) {
     double idealIntensity = pChild.getIntensity() / pParent.getIntensity();
     return ((idealIntensity * parent.getAverageHeight()) / candidate.getAverageHeight());
 
-    // return ( (pChild.getIntensity() / pParent.getIntensity()) * (parent.getAverageArea()) /
+    // return ( (pChild.getIntensity() / pParent.getIntensity()) *
+    // (parent.getAverageArea()) /
     // candidate.getAverageArea() );
   }
 
   /**
    * for RatingType.HIGHEST
-   * 
+   *
    * @param parent
    * @param candidate
    * @param pattern
@@ -89,11 +91,11 @@ public class Candidate {
    * @param checkIntensity
    * @return
    */
-  public boolean checkForBetterRating(PeakListRow parent, PeakListRow candidate,
+  public boolean checkForBetterRating(FeatureListRow parent, FeatureListRow candidate,
       IsotopePattern pattern, int peakNum, double minRating, boolean checkIntensity) {
     double parentMZ = parent.getAverageMZ();
     double candMZ = candidate.getAverageMZ();
-    DataPoint[] points = pattern.getDataPoints();
+    DataPoint[] points = ScanUtils.extractDataPoints(pattern);
     double mzDiff = points[peakNum].getMZ() - points[0].getMZ();
 
     double tempRating = candMZ / (parentMZ + mzDiff);
@@ -132,7 +134,7 @@ public class Candidate {
 
   /**
    * for RatingType.TEMPAVG
-   * 
+   *
    * @param parent dataPoint containing MZ and average intensity of parent
    * @param candidateIntensity average candidate intensity
    * @param pattern isotope pattern
@@ -142,11 +144,11 @@ public class Candidate {
    * @return
    */
   public boolean checkForBetterRating(DataPoint parent, double candidateIntensity,
-      PeakListRow candidate, IsotopePattern pattern, int peakNum, double minRating,
+      FeatureListRow candidate, IsotopePattern pattern, int peakNum, double minRating,
       boolean checkIntensity) {
     double parentMZ = parent.getMZ();
     double candMZ = candidate.getAverageMZ();
-    DataPoint[] points = pattern.getDataPoints();
+    DataPoint[] points = ScanUtils.extractDataPoints(pattern);
     double mzDiff = points[peakNum].getMZ() - points[0].getMZ();
 
     double tempRating = candMZ / (parentMZ + mzDiff);
@@ -184,7 +186,7 @@ public class Candidate {
 
   /**
    * method for neutralLoss
-   * 
+   *
    * @param pL
    * @param parentindex
    * @param candindex
@@ -192,7 +194,7 @@ public class Candidate {
    * @param minRating
    * @return
    */
-  public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex,
+  public boolean checkForBetterRating(ArrayList<FeatureListRow> pL, int parentindex, int candindex,
       double mzDiff, double minRating) {
     double parentMZ = pL.get(parentindex).getAverageMZ();
     double candMZ = pL.get(candindex).getAverageMZ();
@@ -225,7 +227,7 @@ public class Candidate {
 
   /**
    * done in the end, after all peaks have been identified, called by Candidates class
-   * 
+   *
    * @param parentMZ
    * @param pattern
    * @param peakNum
@@ -235,7 +237,7 @@ public class Candidate {
   public double recalcRatingWithAvgIntensities(double parentMZ, IsotopePattern pattern, int peakNum,
       double[] avgIntensity) {
     double candMZ = this.mz;
-    DataPoint[] points = pattern.getDataPoints();
+    DataPoint[] points = ScanUtils.extractDataPoints(pattern);
     double mzDiff = points[peakNum].getMZ() - points[0].getMZ();
 
     double tempRating = candMZ / (parentMZ + mzDiff);
@@ -261,7 +263,7 @@ public class Candidate {
   }
 
   /**
-   * 
+   *
    * @param iParent measured intensity of parent
    * @param iChild measured intensity of candidate
    * @param pParent parent dataPoint in pattern

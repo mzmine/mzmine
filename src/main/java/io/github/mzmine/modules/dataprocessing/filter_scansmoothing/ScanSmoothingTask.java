@@ -1,37 +1,42 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_scansmoothing;
 
-import java.io.IOException;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.io.IOException;
+import java.util.List;
+import java.util.logging.Logger;
 
 public class ScanSmoothingTask extends AbstractTask {
 
@@ -42,7 +47,7 @@ public class ScanSmoothingTask extends AbstractTask {
 
   // scan counter
   private int processedScans = 0, totalScans;
-  private int[] scanNumbers;
+  private List<Scan> scanNumbers;
 
   // User parameters
   private String suffix;
@@ -51,13 +56,17 @@ public class ScanSmoothingTask extends AbstractTask {
   private int mzPoints;
   private double mzTol;
   private boolean removeOriginal;
+  private ParameterSet parameters;
+  private final MemoryMapStorage storage;
   RawDataFile newRDF = null;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storage
    */
-  public ScanSmoothingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  public ScanSmoothingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storage) {
 
     this.project = project;
     this.dataFile = dataFile;
@@ -70,11 +79,14 @@ public class ScanSmoothingTask extends AbstractTask {
     this.suffix = parameters.getParameter(ScanSmoothingParameters.suffix).getValue();
     this.removeOriginal = parameters.getParameter(ScanSmoothingParameters.removeOld).getValue();
 
+    this.parameters = parameters;
+    this.storage = storage;
   }
 
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Smoothing scans in " + dataFile;
   }
@@ -82,6 +94,7 @@ public class ScanSmoothingTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalScans == 0)
       return 0;
@@ -96,6 +109,7 @@ public class ScanSmoothingTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -103,13 +117,13 @@ public class ScanSmoothingTask extends AbstractTask {
     logger.info("Started Scan Smoothing on " + dataFile);
 
     scanNumbers = dataFile.getScanNumbers(1);
-    totalScans = scanNumbers.length;
+    totalScans = scanNumbers.size();
 
-    RawDataFileWriter newRDFW = null;
+    RawDataFile newRDFW = null;
     int timepassed = 0;
     int mzpassed = 0;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix);
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, storage);
 
       DataPoint mzValues[][] = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, ssi, ssj;
@@ -119,23 +133,22 @@ public class ScanSmoothingTask extends AbstractTask {
           return;
 
         // Smoothing in TIME space
-        Scan scan = dataFile.getScan(scanNumbers[i]);
+        Scan scan = scanNumbers.get(i);
         if (scan != null) {
           double rt = scan.getRetentionTime();
-          final SimpleScan newScan = new SimpleScan(scan);
           DataPoint[] newDP = null;
           sj = si = i;
           ssi = ssj = i;
           if (timeSpan > 0 || scanSpan > 0) {
             double timeMZtol = Math.max(mzTol, 1e-5);
             for (si = i; si > 1; si--) {
-              Scan scanS = dataFile.getScan(scanNumbers[si - 1]);
+              Scan scanS = scanNumbers.get(si - 1);
               if (scanS == null || scanS.getRetentionTime() < rt - timeSpan / 2) {
                 break;
               }
             }
             for (sj = i; sj < totalScans - 1; sj++) {
-              Scan scanS = dataFile.getScan(scanNumbers[sj + 1]);
+              Scan scanS = scanNumbers.get(sj + 1);
               if (scanS == null || scanS.getRetentionTime() >= rt + timeSpan / 2) {
                 break;
               }
@@ -163,8 +176,8 @@ public class ScanSmoothingTask extends AbstractTask {
                 mzValues = new DataPoint[sj - si + 1][];
               // Load Data Points
               for (j = si; j <= sj; j++) {
-                Scan xscan = dataFile.getScan(scanNumbers[j]);
-                mzValues[j - si] = xscan.getDataPoints();
+                Scan xscan = scanNumbers.get(j);
+                mzValues[j - si] = ScanUtils.extractDataPoints(xscan);
               }
               // Estimate Averages
               ii = i - si;
@@ -202,7 +215,7 @@ public class ScanSmoothingTask extends AbstractTask {
               }
             }
           } else if (scan != null) {
-            newDP = scan.getDataPoints();
+            newDP = ScanUtils.extractDataPoints(scan);
           }
 
           // Smoothing in MZ space
@@ -231,7 +244,8 @@ public class ScanSmoothingTask extends AbstractTask {
 
           // Register new smoothing data
           if (scan != null && newDP != null) {
-            newScan.setDataPoints(newDP);
+            double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDP);
+            final SimpleScan newScan = new SimpleScan(newRDFW, scan, dp[0], dp[1]);
             newRDFW.addScan(newScan);
           }
         }
@@ -240,8 +254,11 @@ public class ScanSmoothingTask extends AbstractTask {
 
       if (!isCanceled()) {
 
-        // Finalize writing
-        newRDF = newRDFW.finishWriting();
+        for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
+          newRDF.getAppliedMethods().add(appliedMethod);
+        }
+        newRDF.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+            BaselineCorrectionModule.class, parameters));
 
         // Add the newly created file to the project
         project.addFile(newRDF);

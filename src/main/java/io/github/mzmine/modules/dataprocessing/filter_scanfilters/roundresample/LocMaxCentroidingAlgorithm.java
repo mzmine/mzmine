@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,12 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.roundresample;
 
 import java.util.ArrayList;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleScan;
 
 /*
  * Adapted from MSDK: https://github.com/msdk/msdk/blob/master/msdk-rawdata/
@@ -33,25 +29,10 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
  */
 public class LocMaxCentroidingAlgorithm {
 
-  private final DataPoint[] dataPoints;
-  private Scan inputScan;
-  private SimpleScan newScan;
+  public static DataPoint[] centroidScan(DataPoint dataPoints[]) {
 
-  // Data structures
-  private double mzBuffer[] = null;
-  private double intensityBuffer[] = null;
-
-  public LocMaxCentroidingAlgorithm(Scan inputScan) {
-    this.inputScan = inputScan;
-    this.dataPoints = inputScan.getDataPoints();
-    mzBuffer = new double[this.dataPoints.length];
-    intensityBuffer = new double[this.dataPoints.length];
-  }
-
-  public Scan centroidScan() {
-
-    // Copy all scan properties
-    this.newScan = new SimpleScan(inputScan);
+    double mzBuffer[] = new double[dataPoints.length];
+    double intensityBuffer[] = new double[dataPoints.length];
 
     // Load data points
     for (int i = 0; i < dataPoints.length; ++i) {
@@ -59,7 +40,7 @@ public class LocMaxCentroidingAlgorithm {
       intensityBuffer[i] = dataPoints[i].getIntensity();
     }
 
-    final int numOfDataPoints = inputScan.getNumberOfDataPoints();
+    final int numOfDataPoints = dataPoints.length;
     int newNumOfDataPoints = 0;
 
     // If there are no data points, just return the scan
@@ -68,9 +49,7 @@ public class LocMaxCentroidingAlgorithm {
       for (int i = 0; i < numOfDataPoints; ++i) {
         newDataPoints.add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
       }
-      newScan.setDataPoints(newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]));
-      newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
-      return newScan;
+      return newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]);
     }
 
     int localMaximumIndex = 0;
@@ -125,10 +104,8 @@ public class LocMaxCentroidingAlgorithm {
     for (int i = 0; i < newNumOfDataPoints; ++i) {
       newDataPoints.add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
     }
-    newScan.setDataPoints(newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]));
-    newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
 
-    return newScan;
+    return newDataPoints.toArray(new DataPoint[newDataPoints.size()]);
 
   }
 

@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,20 +19,19 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import java.util.Collection;
-
 import javax.annotation.Nonnull;
-
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import javafx.application.Platform;
 
 /**
  * Spectrum visualizer
@@ -60,64 +59,68 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
         .getValue().getMatchingRawDataFiles();
 
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
-
-    showNewSpectrumWindow(dataFiles[0], scanNumber);
-
+    addNewSpectrumTab(dataFiles[0], dataFiles[0].getScanAtNumber(scanNumber));
     return ExitCode.OK;
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
-      int scanNumber) {
-    return showNewSpectrumWindow(dataFile, scanNumber, null, null, null, null);
+  public static SpectraVisualizerTab addNewSpectrumTab(Scan scan) {
+    return addNewSpectrumTab(scan.getDataFile(), scan);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan) {
+    return addNewSpectrumTab(dataFile, scan, null, null, null, null);
+  }
+
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       Feature peak) {
-    return showNewSpectrumWindow(dataFile, scanNumber, peak, null, null, null);
+    return addNewSpectrumTab(dataFile, scan, peak, null, null, null);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       IsotopePattern detectedPattern) {
-    return showNewSpectrumWindow(dataFile, scanNumber, null, detectedPattern, null, null);
+    return addNewSpectrumTab(dataFile, scan, null, detectedPattern, null, null);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern) {
-    return showNewSpectrumWindow(dataFile, scanNumber, peak, detectedPattern, predictedPattern,
-        null);
+    return addNewSpectrumTab(dataFile, scan, peak, detectedPattern, predictedPattern, null);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, Scan scan,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
       IsotopePattern spectrum) {
 
-    Scan scan = dataFile.getScan(scanNumber);
+    assert Platform.isFxApplicationThread();
 
     if (scan == null) {
-      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Raw data file " + dataFile + " does not contain scan #" + scanNumber);
+      MZmineCore.getDesktop()
+          .displayErrorMessage("Raw data file " + dataFile + " does not contain scan #" + scan);
       return null;
     }
 
-    SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(dataFile, true);
-    newWindow.loadRawData(scan);
+    SpectraVisualizerTab newTab = new SpectraVisualizerTab(dataFile, scan, true);
+    newTab.loadRawData(scan);
 
-    if (peak != null)
-      newWindow.loadSinglePeak(peak);
+    if (peak != null) {
+      newTab.loadSinglePeak(peak);
+    }
 
-    if (detectedPattern != null)
-      newWindow.loadIsotopes(detectedPattern);
+    if (detectedPattern != null) {
+      newTab.loadIsotopes(detectedPattern);
+    }
 
-    if (predictedPattern != null)
-      newWindow.loadIsotopes(predictedPattern);
+    if (predictedPattern != null) {
+      newTab.loadIsotopes(predictedPattern);
+    }
 
-    if (spectrum != null)
-      newWindow.loadSpectrum(spectrum);
+    if (spectrum != null) {
+      newTab.loadSpectrum(spectrum);
+    }
 
-    newWindow.setVisible(true);
+    // newWindow.show();
+    MZmineCore.getDesktop().addTab(newTab);
 
-    return newWindow;
-
+    return newTab;
   }
 
   @Override

@@ -1,57 +1,49 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Dimension;
-import java.awt.Frame;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.util.Collection;
 import java.util.logging.Logger;
-
-import javax.swing.JFrame;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
 import io.github.mzmine.parameters.Parameter;
+import javafx.beans.value.ChangeListener;
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 
-public class WindowSettingsParameter implements Parameter<Object>, ComponentListener {
+public class WindowSettingsParameter implements Parameter<Object> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final String SIZE_ELEMENT = "size";
-  private static final String POSITION_ELEMENT = "position";
+  private static final String POSX_ELEMENT = "posX";
+  private static final String POSY_ELEMENT = "posY";
+  private static final String WIDTH_ELEMENT = "width";
+  private static final String HEIGHT_ELEMENT = "height";
   private static final String MAXIMIZED_ELEMENT = "maximized";
 
-  private static Point startPosition;
-
-  private Point position;
-  private Dimension dimension;
-  private boolean isMaximized = false;
-
-  private Point offset = new Point(20, 20);
+  private @Nullable Double posX, posY, width, height;
+  private @Nullable Integer screenIndex;
+  private @Nullable Boolean isMaximized;
 
   @Override
   public String getName() {
@@ -72,28 +64,28 @@ public class WindowSettingsParameter implements Parameter<Object>, ComponentList
   public void loadValueFromXML(Element xmlElement) {
 
     // Window position
-    NodeList posElement = xmlElement.getElementsByTagName(POSITION_ELEMENT);
-    if (posElement.getLength() == 1) {
-      String posString = posElement.item(0).getTextContent();
-      String posArray[] = posString.split(":");
-      if (posArray.length == 2) {
-        int posX = Integer.valueOf(posArray[0]);
-
-        int posY = Integer.valueOf(posArray[1]);
-        position = new Point(posX, posY);
-      }
+    NodeList posXElement = xmlElement.getElementsByTagName(POSX_ELEMENT);
+    if (posXElement.getLength() == 1) {
+      String posXString = posXElement.item(0).getTextContent();
+      posX = Double.parseDouble(posXString);
+    }
+    NodeList posYElement = xmlElement.getElementsByTagName(POSY_ELEMENT);
+    if (posYElement.getLength() == 1) {
+      String posYString = posYElement.item(0).getTextContent();
+      posY = Double.parseDouble(posYString);
     }
 
     // Window size
-    NodeList sizeElement = xmlElement.getElementsByTagName(SIZE_ELEMENT);
-    if (sizeElement.getLength() == 1) {
-      String sizeString = sizeElement.item(0).getTextContent();
-      String sizeArray[] = sizeString.split(":");
-      if (sizeArray.length == 2) {
-        int width = Integer.parseInt(sizeArray[0]);
-        int height = Integer.parseInt(sizeArray[1]);
-        dimension = new Dimension(width, height);
-      }
+    NodeList widthElement = xmlElement.getElementsByTagName(WIDTH_ELEMENT);
+    if (widthElement.getLength() == 1) {
+      String widthString = widthElement.item(0).getTextContent();
+      width = Double.parseDouble(widthString);
+    }
+
+    NodeList heightElement = xmlElement.getElementsByTagName(HEIGHT_ELEMENT);
+    if (heightElement.getLength() == 1) {
+      String heightString = heightElement.item(0).getTextContent();
+      height = Double.parseDouble(heightString);
     }
 
     // Window maximized
@@ -111,22 +103,35 @@ public class WindowSettingsParameter implements Parameter<Object>, ComponentList
     // Add elements
     Document doc = xmlElement.getOwnerDocument();
 
-    if (position != null) {
-      Element positionElement = doc.createElement(POSITION_ELEMENT);
-      xmlElement.appendChild(positionElement);
-      positionElement.setTextContent(position.x + ":" + position.y);
+    if (posX != null) {
+      Element posXElement = doc.createElement(POSX_ELEMENT);
+      xmlElement.appendChild(posXElement);
+      posXElement.setTextContent(posX.toString());
     }
 
-    if (dimension != null) {
-      Element sizeElement = doc.createElement(SIZE_ELEMENT);
-      xmlElement.appendChild(sizeElement);
-      sizeElement.setTextContent(dimension.width + ":" + dimension.height);
+    if (posY != null) {
+      Element posYElement = doc.createElement(POSY_ELEMENT);
+      xmlElement.appendChild(posYElement);
+      posYElement.setTextContent(posY.toString());
     }
 
-    Element maximizedElement = doc.createElement(MAXIMIZED_ELEMENT);
-    xmlElement.appendChild(maximizedElement);
-    maximizedElement.setTextContent(String.valueOf(isMaximized));
+    if (width != null) {
+      Element widthElement = doc.createElement(WIDTH_ELEMENT);
+      xmlElement.appendChild(widthElement);
+      widthElement.setTextContent(width.toString());
+    }
 
+    if (height != null) {
+      Element heightElement = doc.createElement(HEIGHT_ELEMENT);
+      xmlElement.appendChild(heightElement);
+      heightElement.setTextContent(height.toString());
+    }
+
+    if (isMaximized != null) {
+      Element maximizedElement = doc.createElement(MAXIMIZED_ELEMENT);
+      xmlElement.appendChild(maximizedElement);
+      maximizedElement.setTextContent(isMaximized.toString());
+    }
   }
 
   @Override
@@ -142,94 +147,54 @@ public class WindowSettingsParameter implements Parameter<Object>, ComponentList
   /**
    * Set window size and position according to the values in this instance
    */
-  public void applySettingsToWindow(JFrame frame) {
-    if (position != null) {
-      if (!isMaximized) {
-        // Reset to default, if we go outside screen limits
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Point bottomRightPos = new Point(position.x + offset.x + frame.getWidth(),
-            position.y + offset.y + frame.getHeight());
-        if (startPosition != null && !(new Rectangle(screenSize).contains(bottomRightPos))) {
-          position = new Point(startPosition);
-        }
-        // Keep translating otherwise
-        position.translate(offset.x, offset.y);
-      }
-      logger.finest("Setting window " + frame.getName() + " position to " + position);
-      frame.setLocation(position);
+  public void applySettingsToWindow(@Nonnull final Stage stage) {
 
-      if (startPosition == null)
-        startPosition = new Point(position);
-    }
-    if (dimension != null) {
-      frame.setSize(dimension);
-      logger.finest("Setting window " + frame.getName() + " size to " + dimension);
-    }
-    if (isMaximized) {
-      logger.finest("Setting window " + frame.getName() + " to maximized");
-      frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);
+    logger.finest("Setting window " + stage.getTitle() + " position " + posX + ":" + posY
+        + " and size " + width + "x" + height);
+    if (posX != null)
+      stage.setX(posX);
+    if (posY != null)
+      stage.setX(posY);
+    if (width != null)
+      stage.setWidth(width);
+    if (height != null)
+      stage.setHeight(height);
+
+    if ((isMaximized != null) && isMaximized) {
+      logger.finest("Setting window " + stage.getTitle() + " to maximized");
+      stage.setMaximized(true);
     }
 
     // when still outside of screen
     // e.g. changing from 2 screens to one
-    if (frame.isVisible() && !isOnScreen(frame)) {
-      // Maximise on screen 1
-      logger.finest("Window " + frame.getName() + " is not on screen, setting to maximized on screen 1");
-      frame.setLocation(0, 0);
-      frame.setSize(1024, 800);
-      frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);
+    if (stage.isShowing() && !isOnScreen(stage)) {
+      // Maximize on screen 1
+      logger.finest(
+          "Window " + stage.getTitle() + " is not on screen, setting to maximized on screen 1");
+      stage.setX(0.0);
+      stage.setY(0.0);
+      stage.sizeToScene();
+      stage.setMaximized(true);
     }
+
+    ChangeListener<Number> stageListener = (observable, oldValue, newValue) -> {
+      posX = stage.getX();
+      posY = stage.getY();
+      width = stage.getWidth();
+      height = stage.getHeight();
+    };
+    stage.widthProperty().addListener(stageListener);
+    stage.heightProperty().addListener(stageListener);
+    stage.xProperty().addListener(stageListener);
+    stage.yProperty().addListener(stageListener);
+
   }
 
-
-
-  private boolean isOnScreen(JFrame frame) {
-    Rectangle virtualBounds = getVirtualBounds();
-    return virtualBounds.contains(frame.getBounds());
-  }
-
-  private Rectangle getVirtualBounds() {
-    Rectangle bounds = new Rectangle(0, 0, 0, 0);
-    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice lstGDs[] = ge.getScreenDevices();
-    for (GraphicsDevice gd : lstGDs) {
-      bounds.add(gd.getDefaultConfiguration().getBounds());
-    }
-    return bounds;
-  }
-
-  @Override
-  public void componentMoved(ComponentEvent e) {
-    if (!(e.getComponent() instanceof JFrame))
-      return;
-    JFrame frame = (JFrame) e.getComponent();
-    int state = frame.getExtendedState();
-    isMaximized = ((state & Frame.MAXIMIZED_HORIZ) != 0) && ((state & Frame.MAXIMIZED_VERT) != 0);
-    if (!isMaximized) {
-      position = frame.getLocation();
-    }
-  }
-
-  @Override
-  public void componentResized(ComponentEvent e) {
-    if (!(e.getComponent() instanceof JFrame))
-      return;
-    JFrame frame = (JFrame) e.getComponent();
-    int state = frame.getExtendedState();
-    isMaximized = ((state & Frame.MAXIMIZED_HORIZ) != 0) && ((state & Frame.MAXIMIZED_VERT) != 0);
-    if (!isMaximized) {
-      dimension = frame.getSize();
-    }
-  }
-
-  @Override
-  public void componentHidden(ComponentEvent e) {
-    // ignore
-  }
-
-  @Override
-  public void componentShown(ComponentEvent e) {
-    // ignore
+  private boolean isOnScreen(Stage stage) {
+    Rectangle2D stagePosition =
+        new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+    var screens = Screen.getScreensForRectangle(stagePosition);
+    return !screens.isEmpty();
   }
 
 }

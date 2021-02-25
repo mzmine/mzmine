@@ -1,35 +1,33 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.twod;
 
+import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Date;
-import java.util.logging.Logger;
 
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.general.DatasetChangeEvent;
 
 import com.google.common.collect.Range;
 
@@ -37,8 +35,9 @@ import com.google.common.collect.Range;
  * This class is responsible for drawing the actual data points. Modified by Owen Myers 2017
  */
 class TwoDXYPlot extends BaseXYPlot {
+  boolean datasetChanged = false;
 
-  TwoDXYPlot(TwoDDataSet dataset, Range<Double> rtRange, Range<Double> mzRange,
+  TwoDXYPlot(TwoDDataSet dataset, Range<Float> rtRange, Range<Double> mzRange,
       ValueAxis domainAxis, ValueAxis rangeAxis) {
 
     super(dataset, rtRange, mzRange, domainAxis, rangeAxis);
@@ -74,7 +73,8 @@ class TwoDXYPlot extends BaseXYPlot {
         && (imageRTMax == totalRTRange.upperEndpoint())
         && (imageMZMin == totalMZRange.lowerEndpoint())
         && (imageMZMax == totalMZRange.upperEndpoint()) && (zoomOutBitmap.getWidth() == width)
-        && (zoomOutBitmap.getHeight() == height)) {
+        && (zoomOutBitmap.getHeight() == height)
+        && (!datasetChanged)) {
       g2.drawImage(zoomOutBitmap, x, y, null);
       return true;
     }
@@ -94,7 +94,7 @@ class TwoDXYPlot extends BaseXYPlot {
         double pointMZMin = imageMZMin + (j * imageMZStep);
         double pointMZMax = pointMZMin + imageMZStep;
 
-        double lv = dataset.upperEndpointIntensity(Range.closed(pointRTMin, pointRTMax),
+        double lv = dataset.upperEndpointIntensity(RangeUtils.toFloatRange(Range.closed(pointRTMin, pointRTMax)),
             Range.closed(pointMZMin, pointMZMax), plotMode);
 
         if (logScale) {
@@ -142,6 +142,9 @@ class TwoDXYPlot extends BaseXYPlot {
     // Paint image
     g2.drawImage(image, x, y, null);
 
+    // Set datasetChanged to false until setDataset is not called
+    datasetChanged = false;
+
     Date renderFinishTime = new Date();
 
     logger.finest("Finished rendering 2D visualizer, "
@@ -149,5 +152,10 @@ class TwoDXYPlot extends BaseXYPlot {
 
     return true;
 
+  }
+
+  public void setDataset(TwoDDataSet dataset) {
+    super.setDataset(dataset);
+    datasetChanged = true;
   }
 }

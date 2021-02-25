@@ -15,58 +15,54 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.*;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.GridPane;
 
 /**
  *
  * @author aleksandrsmirnov
  */
-public class ParameterSetComponent extends JPanel implements ActionListener {
+public class ParameterSetComponent extends GridPane {
 
-  private final JLabel lblParameters;
-  private final JButton btnChange;
-  private final JProgressBar progressBar;
+  private final Label lblParameters;
+  private final Button btnChange;
+  private final ProgressBar progressBar;
 
   private ParameterSet parameters;
 
   public ParameterSetComponent(final ParameterSet parameters) {
-    super(new GridBagLayout());
-
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.fill = GridBagConstraints.HORIZONTAL;
 
     this.parameters = parameters;
 
-    this.setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+    // this.setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    lblParameters = new JLabel();
-    lblParameters.setEnabled(false);
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    this.add(lblParameters, gbc);
+    lblParameters = new Label();
+    lblParameters.setDisable(true);
+    this.add(lblParameters, 0, 0);
 
-    btnChange = new JButton("Change");
-    btnChange.addActionListener(this);
-    btnChange.setEnabled(true);
-    gbc.gridx = 1;
-    gbc.gridy = 0;
-    this.add(btnChange, gbc);
+    btnChange = new Button("Change");
+    btnChange.setOnAction(e -> {
+      if (parameters == null)
+        return;
 
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    gbc.gridwidth = 2;
-    progressBar = new JProgressBar();
-    progressBar.setValue(0);
+      ExitCode exitCode = parameters.showSetupDialog(true);
+      if (exitCode != ExitCode.OK)
+        return;
+      updateLabel();
+
+    });
+    this.add(btnChange, 1, 0);
+
+    progressBar = new ProgressBar();
+    progressBar.setProgress(0.0);
     progressBar.setVisible(false);
-    progressBar.setStringPainted(true);
-    this.add(progressBar, gbc);
+    // progressBar.setStringPainted(true);
+    this.add(progressBar, 0, 1, 2, 1);
 
     // if (process != null) {
     // SwingUtilities.invokeLater(new Runnable() {
@@ -92,23 +88,6 @@ public class ParameterSetComponent extends JPanel implements ActionListener {
     // }
   }
 
-  @Override
-  public void actionPerformed(ActionEvent event) {
-    Object src = event.getSource();
-
-    if (src == btnChange) {
-
-      if (parameters == null)
-        return;
-
-      ExitCode exitCode = parameters.showSetupDialog(null, true);
-      if (exitCode != ExitCode.OK)
-        return;
-
-    }
-
-    updateLabel();
-  }
 
   public ParameterSet getValue() {
     return parameters;
@@ -122,7 +101,7 @@ public class ParameterSetComponent extends JPanel implements ActionListener {
 
   private void updateLabel() {
     // Update text for lblParameters
-    StringBuilder builder = new StringBuilder().append("<html>");
+    /*StringBuilder builder = new StringBuilder().append("<html>");
     Parameter[] params = parameters.getParameters();
     for (int i = 0; i < params.length; ++i) {
       builder.append(params[i].getName()).append(" = ").append(params[i].getValue());
@@ -131,6 +110,6 @@ public class ParameterSetComponent extends JPanel implements ActionListener {
     }
     builder.append("</html>");
 
-    lblParameters.setText(builder.toString());
+    lblParameters.setText(builder.toString());*/
   }
 }

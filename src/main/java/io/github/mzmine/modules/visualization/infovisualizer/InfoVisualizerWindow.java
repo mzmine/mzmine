@@ -1,163 +1,156 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.infovisualizer;
 
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
-
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.collections.FXCollections;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
-class InfoVisualizerWindow extends JFrame {
+class InfoVisualizerWindow extends Stage {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+  private final Scene mainScene;
+  private final GridPane mainPane;
+
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  Range<Double> rtRange, mzRange;
-  int numOfRows, numOfIdentities;
+  Range<Double> mzRange;
+  Range<Float> rtRange;
+  int numOfIdentities;
 
-  InfoVisualizerWindow(PeakList peakList) {
+  InfoVisualizerWindow(FeatureList featureList) {
 
-    super("Feature list information");
+    setTitle(featureList.getName() + " information");
 
-    // this.setTitle(peakList.getName() + " information");
+    mainPane = new GridPane();
+    mainScene = new Scene(mainPane);
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    setMinWidth(400.0);
+    setMinHeight(300.0);
+
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
 
-    this.getInfoRange(peakList);
+    this.getInfoRange(featureList);
 
-    if (peakList.getNumberOfRows() == 0) {
+    if (featureList.getNumberOfRows() == 0) {
       mzRange = Range.singleton(0.0);
-      rtRange = Range.singleton(0.0);
+      rtRange = Range.singleton(0f);
     }
 
+    int row = 0;
+    Label label, value;
+
     // Raw data file list
-    JList<RawDataFile> rawDataFileList = new JList<RawDataFile>(peakList.getRawDataFiles());
-    rawDataFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    rawDataFileList.setLayoutOrientation(JList.VERTICAL);
-    JScrollPane rawlistScroller = new JScrollPane(rawDataFileList);
-    rawlistScroller.setPreferredSize(new Dimension(250, 60));
-    rawlistScroller.setAlignmentX(LEFT_ALIGNMENT);
-    JPanel rawPanel = new JPanel();
-    rawPanel.setLayout(new BoxLayout(rawPanel, BoxLayout.Y_AXIS));
-    JLabel label = new JLabel("List of raw data files");
-    // label.setLabelFor(rawDataFileList);
-    rawPanel.add(label);
-    rawPanel.add(rawlistScroller);
-    rawPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+    label = new Label("List of raw data files");
+    ListView<RawDataFile> rawDataFileList =
+        new ListView<RawDataFile>(FXCollections.observableArrayList(featureList.getRawDataFiles()));
+    // rawDataFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    // rawDataFileList.setLayoutOrientation(JList.VERTICAL);
+    label.setLabelFor(rawDataFileList);
+    mainPane.add(label, 0, row);
+    mainPane.add(rawDataFileList, 1, row);
+
+    // rawlistScroller.setPreferredSize(new Dimension(250, 60));
+    // rawlistScroller.setAlignmentX(LEFT_ALIGNMENT);
+    // rawPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
     // Applied methods list
-    AppliedMethodList appliedMethodList = new AppliedMethodList(peakList.getAppliedMethods());
-    appliedMethodList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    appliedMethodList.setLayoutOrientation(JList.VERTICAL);
-    JScrollPane methodlistScroller = new JScrollPane(appliedMethodList);
-    methodlistScroller.setPreferredSize(new Dimension(250, 80));
-    methodlistScroller.setAlignmentX(LEFT_ALIGNMENT);
+    ListView<FeatureListAppliedMethod> appliedMethodList =
+        new ListView<>(FXCollections.observableArrayList(featureList.getAppliedMethods()));
+    // appliedMethodList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    // appliedMethodList.setLayoutOrientation(JList.VERTICAL);
 
-    JPanel methodPanel = new JPanel();
-    methodPanel.setLayout(new BoxLayout(methodPanel, BoxLayout.Y_AXIS));
+
+
     // JLabel label = new JLabel("List of applied methods");
     // label.setLabelFor(processInfoList);
-    methodPanel.add(new JLabel("List of applied methods"));
-    methodPanel.add(methodlistScroller);
-    methodPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+    label = new Label("List of applied methods");
+    row++;
+    mainPane.add(label, 0, row);
+    mainPane.add(appliedMethodList, 1, row);
 
     // Panels
-    JPanel pnlGrid = new JPanel();
-    pnlGrid.setLayout(new GridBagLayout());
-    GridBagConstraints c = new GridBagConstraints();
+    label = new Label("Name:");
+    value = new Label(featureList.getName());
+    row++;
+    mainPane.add(label, 0, row);
+    mainPane.add(value, 1, row);
 
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.insets = new Insets(10, 10, 10, 10);
-    c.gridwidth = 1;
-    c.weightx = 1.0; // Use all horizontal space
 
-    c.gridx = 0;
-    c.gridy = 0;
-    pnlGrid.add(
-        new JLabel("<html>Name: <font color=\"blue\">" + peakList.getName() + "</font></html>"), c);
-    c.gridx = 0;
-    c.gridy = 1;
-    pnlGrid.add(new JLabel("<html>Created (yyyy/MM/dd HH:mm:ss): <font color=\"blue\">"
-        + ((SimplePeakList) peakList).getDateCreated() + "</font></html>"), c);
-    c.gridx = 0;
-    c.gridy = 2;
-    pnlGrid.add(rawPanel, c);
-    c.gridx = 0;
-    c.gridy = 3;
-    pnlGrid.add(
-        new JLabel("<html>Number of rows: <font color=\"blue\">" + numOfRows + "</font></html>"),
-        c);
-    c.gridx = 0;
-    c.gridy = 4;
-    String text =
-        mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat.format(mzRange.upperEndpoint());
-    pnlGrid.add(new JLabel("<html>m/z range: <font color=\"blue\">" + text + "</font></html>"), c);
-    c.gridx = 0;
-    c.gridy = 5;
-    text =
-        rtFormat.format(rtRange.lowerEndpoint()) + " - " + rtFormat.format(rtRange.upperEndpoint());
-    pnlGrid.add(new JLabel("<html>RT range: <font color=\"blue\">" + text + "</font> min</html>"),
-        c);
-    c.gridx = 0;
-    c.gridy = 6;
-    pnlGrid.add(new JLabel("<html>Number of identified peaks: <font color=\"blue\">"
-        + numOfIdentities + "</font></html>"), c);
-    c.gridx = 0;
-    c.gridy = 7;
-    pnlGrid.add(methodPanel, c);
+    label = new Label("Created (yyyy/MM/dd HH:mm:ss):");
+    value = new Label(String.valueOf((featureList).getDateCreated()));
+    row++;
+    mainPane.add(label, 0, row);
+    mainPane.add(value, 1, row);
 
-    add(pnlGrid);
+    label = new Label("Number of rows:");
+    value = new Label(String.valueOf(featureList.getNumberOfRows()));
+    row++;
+    mainPane.add(label, 0, row);
+    mainPane.add(value, 1, row);
+
+    label = new Label("m/z range:");
+    value = new Label(mzFormat.format(mzRange.lowerEndpoint()) + " - "
+        + mzFormat.format(mzRange.upperEndpoint()));
+    row++;
+    mainPane.add(label, 0, row);
+    mainPane.add(value, 1, row);
+
+    label = new Label("RT range:");
+    value = new Label(rtFormat.format(rtRange.lowerEndpoint()) + " - "
+        + rtFormat.format(rtRange.upperEndpoint()));
+    row++;
+    mainPane.add(label, 0, row);
+    mainPane.add(value, 1, row);
+
+    label = new Label("Number of identified peaks:");
+    value = new Label(String.valueOf(numOfIdentities));
+    row++;
+    mainPane.add(label, 0, row);
+    mainPane.add(value, 1, row);
+
     setResizable(false);
+    sizeToScene();
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    WindowsMenu.addWindowsMenu(mainScene);
 
-    pack();
+    // pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
@@ -166,19 +159,28 @@ class InfoVisualizerWindow extends JFrame {
         paramSet.getParameter(InfoVisualizerParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
+    // this.addComponentListener(settings);
 
   }
 
-  void getInfoRange(PeakList peakList) {
-    PeakListRow[] rows = peakList.getRows();
-    numOfRows = rows.length;
+
+  /*
+   * public String getToolTipText(MouseEvent e) {
+   *
+   * int index = locationToIndex(e.getPoint()); if (index > -1) { parameters =
+   * ((PeakListAppliedMethod) getModel().getElementAt(index)).getParameters(); } if (parameters !=
+   * null) { String toolTipText = parameters.toString().replace(", ", "\n"); return toolTipText; }
+   * else return null; }
+   */
+
+  void getInfoRange(FeatureList peakList) {
+    FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
 
     mzRange = peakList.getRowsMZRange();
     rtRange = peakList.getRowsRTRange();
-    for (PeakListRow row : rows) {
-      if (row.getPreferredPeakIdentity() != null)
+    for (FeatureListRow row : rows) {
+      if (row.getPreferredFeatureIdentity() != null)
         numOfIdentities++;
     }
 

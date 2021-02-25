@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+
+import javafx.scene.Node;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
@@ -30,7 +32,7 @@ import org.jfree.data.Range;
 
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Button;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
@@ -44,9 +46,9 @@ import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class ChartGroup {
+public class ChartGroup extends Node {
   // Logger.
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   // max range of all charts
   private Range[] maxRange = new Range[2];
@@ -61,7 +63,6 @@ public class ChartGroup {
   private List<ChartViewWrapper> list = null;
   private List<AxisRangeChangedListener> rangeListener;
   private List<AxisRangeChangedListener> domainListener;
-
 
   public ChartGroup(boolean showClickDomainMarker, boolean showClickRangeMarker,
       boolean combineDomainAxes, boolean combineRangeAxes) {
@@ -92,7 +93,6 @@ public class ChartGroup {
       add(c);
   }
 
-
   public int size() {
     return list == null ? 0 : list.size();
   }
@@ -110,7 +110,7 @@ public class ChartGroup {
     GestureMouseAdapter m = chart.getGestureAdapter();
     if (m != null) {
       m.addGestureHandler(new ChartGestureHandler(
-          new ChartGesture(Entity.PLOT, Event.MOVED, Button.ALL, Key.ALL), e -> {
+          new ChartGesture(Entity.PLOT, Event.MOVED, GestureButton.ALL, Key.ALL), e -> {
             setCrosshair(e.getCoordinates());
           }));
     }
@@ -351,5 +351,4 @@ public class ChartGroup {
     if (maxRange != null)
       rangeHasChanged(maxRange[1]);
   }
-
 }

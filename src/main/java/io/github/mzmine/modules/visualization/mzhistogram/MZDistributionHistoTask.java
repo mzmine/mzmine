@@ -1,39 +1,32 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.mzhistogram;
 
-import java.util.Arrays;
+import io.github.mzmine.main.MZmineCore;
 import java.util.logging.Logger;
-import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.visualization.mzhistogram.chart.EHistogramDialog;
-import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramData;
+import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramTab;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import javafx.application.Platform;
 
 public class MZDistributionHistoTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -41,17 +34,9 @@ public class MZDistributionHistoTask extends AbstractTask {
   private MZmineProject project;
   private RawDataFile dataFile;
 
-  // scan counter
-  private int processedScans = 0, totalScans;
-  private ScanSelection scanSelection;
-  private Scan[] scans;
+  private HistogramTab tab;
 
-  // User parameters
-  private String suffix, massListName;
-  private Range<Double> mzRange;
-  private boolean useRTRange;
-  private Range<Double> rtRange;
-  private double binWidth;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -62,21 +47,13 @@ public class MZDistributionHistoTask extends AbstractTask {
 
     this.project = project;
     this.dataFile = dataFile;
-    this.scanSelection =
-        parameters.getParameter(MZDistributionHistoParameters.scanSelection).getValue();
-    this.massListName = parameters.getParameter(MZDistributionHistoParameters.massList).getValue();
-
-    this.mzRange = parameters.getParameter(MZDistributionHistoParameters.mzRange).getValue();
-    this.useRTRange = parameters.getParameter(MZDistributionHistoParameters.rtRange).getValue();
-    if (useRTRange)
-      this.rtRange = parameters.getParameter(MZDistributionHistoParameters.rtRange)
-          .getEmbeddedParameter().getValue();
-    this.binWidth = parameters.getParameter(MZDistributionHistoParameters.binWidth).getValue();
+    this.parameters = parameters;
   }
 
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Creating m/z distribution histogram of " + dataFile;
   }
@@ -84,68 +61,36 @@ public class MZDistributionHistoTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
+    if(tab == null) {
+      return 0;
+    }
+    int totalScans = tab.getTotalScans();
     if (totalScans == 0)
       return 0;
     else
-      return (double) processedScans / totalScans;
+      return (double) tab.getProcessedScans() / totalScans;
   }
 
   public RawDataFile getDataFile() {
     return dataFile;
   }
 
-
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Starting to build mz distribution histogram for " + dataFile);
 
-    // all selected scans
-    scans = scanSelection.getMatchingScans(dataFile);
-    totalScans = scans.length;
+    // create histogram dialog
+    Platform.runLater(() -> {
+      tab = new HistogramTab(dataFile, "m/z scan histogram Visualizer", "m/z",
+          parameters);
+      MZmineCore.getDesktop().addTab(tab);
+    });
 
-    // histo data
-    DoubleArrayList data = new DoubleArrayList();
-
-    for (Scan scan : scans) {
-      if (isCanceled())
-        return;
-
-      // retention time in range
-      if (!useRTRange || rtRange.contains(scan.getRetentionTime())) {
-        // go through all mass lists
-        MassList massList = scan.getMassList(massListName);
-        if (massList == null) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-              + " does not have a mass list " + massListName);
-          return;
-        }
-        DataPoint mzValues[] = massList.getDataPoints();
-
-        // insert all mz in order and count them
-        Arrays.stream(mzValues).mapToDouble(dp -> dp.getMZ()).filter(mz -> mzRange.contains(mz))
-            .forEach(mz -> data.add(mz));
-        processedScans++;
-      }
-    }
-
-    if (!data.isEmpty()) {
-      // to array
-      double[] histo = new double[data.size()];
-      for (int i = 0; i < data.size(); i++)
-        histo[i] = data.get(i);
-
-      // create histogram dialog
-      EHistogramDialog dialog =
-          new EHistogramDialog("m/z distribution", "m/z", new HistogramData(histo), binWidth);
-      dialog.setVisible(true);
-    } else {
-      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
-    }
     setStatus(TaskStatus.FINISHED);
     logger.info("Finished mz distribution histogram on " + dataFile);
   }

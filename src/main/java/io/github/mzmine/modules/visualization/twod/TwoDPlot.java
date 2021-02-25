@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -20,41 +20,27 @@ package io.github.mzmine.modules.visualization.twod;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
-import javax.swing.JFileChooser;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.chart.ui.RectangleEdge;
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
+import javafx.scene.Cursor;
 
 /**
- * 
+ *
  */
-class TwoDPlot extends EChartPanel {
+class TwoDPlot extends EChartViewer {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private static final long serialVersionUID = 1L;
 
   // crosshair (selection) color
   private static final Color crossHairColor = Color.gray;
@@ -64,13 +50,14 @@ class TwoDPlot extends EChartPanel {
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5, 3}, 0);
 
   private RawDataFile rawDataFile;
-  private Range<Double> rtRange, mzRange;
+  private Range<Double> mzRange;
+  private Range<Float> rtRange;
 
   private JFreeChart chart;
 
   private BaseXYPlot plot;
 
-  private PeakDataRenderer peakDataRenderer;
+  private FeatureDataRenderer featureDataRenderer;
 
   // title font
   private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
@@ -82,17 +69,17 @@ class TwoDPlot extends EChartPanel {
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer, TwoDDataSet dataset,
-      Range<Double> rtRange, Range<Double> mzRange, String whichPlotTypeStr) {
+  TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerTab visualizer, TwoDDataSet dataset,
+      Range<Float> rtRange, Range<Double> mzRange, String whichPlotTypeStr) {
 
-    super(null, true);
+    super(null);
 
     this.rawDataFile = rawDataFile;
     this.rtRange = rtRange;
     this.mzRange = mzRange;
 
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    // setBackground(Color.white);
+    setCursor(Cursor.CROSSHAIR);
 
     // set the X axis (retention time) properties
     xAxis = new NumberAxis("Retention time");
@@ -109,11 +96,11 @@ class TwoDPlot extends EChartPanel {
     yAxis.setLowerMargin(0);
 
     // set the plot properties
-    if (whichPlotTypeStr == "default") {
-      plot = new TwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
-    } else if (whichPlotTypeStr == "point2D") {
-      plot = new PointTwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
-    }
+    // if (whichPlotTypeStr == "default") {
+    plot = new TwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
+    // } else if (whichPlotTypeStr == "point2D") {
+    // plot = new PointTwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
+    // }
     plot.setBackgroundPaint(Color.white);
     plot.setDomainGridlinesVisible(false);
     plot.setRangeGridlinesVisible(false);
@@ -135,8 +122,8 @@ class TwoDPlot extends EChartPanel {
     chart.addSubtitle(chartSubTitle);
 
     // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
+    // setMaximumDrawWidth(Integer.MAX_VALUE);
+    // setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // set crosshair (selection) properties
     plot.setRangeCrosshairVisible(false);
@@ -147,22 +134,7 @@ class TwoDPlot extends EChartPanel {
     // set rendering order
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-    peakDataRenderer = new PeakDataRenderer();
-
-    JMenuItem plotTypeMenuItem = new JMenuItem("Toggle centroid/continuous mode");
-    plotTypeMenuItem.addActionListener(visualizer);
-    plotTypeMenuItem.setActionCommand("SWITCH_PLOTMODE");
-    add(plotTypeMenuItem);
-
-    JPopupMenu popupMenu = getPopupMenu();
-    popupMenu.addSeparator();
-    popupMenu.add(plotTypeMenuItem);
-
-    // Add EMF and EPS options to the save as menu
-    JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
-
+    featureDataRenderer = new FeatureDataRenderer();
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -170,56 +142,6 @@ class TwoDPlot extends EChartPanel {
       history.clear();
   }
 
-  @Override
-  public void actionPerformed(final ActionEvent event) {
-
-    super.actionPerformed(event);
-
-    final String command = event.getActionCommand();
-
-    if ("SAVE_EMF".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EMF Image", "EMF");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".emf"))
-          file += ".emf";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
-        new Thread(SI).start();
-
-      }
-    }
-
-    if ("SAVE_EPS".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EPS Image", "EPS");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".eps"))
-          file += ".eps";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
-        new Thread(SI).start();
-
-      }
-
-    }
-  }
 
   BaseXYPlot getXYPlot() {
     return plot;
@@ -231,12 +153,12 @@ class TwoDPlot extends EChartPanel {
 
   void switchDataPointsVisible() {
 
-    boolean dataPointsVisible = peakDataRenderer.getDefaultShapesVisible();
-    peakDataRenderer.setDefaultShapesVisible(!dataPointsVisible);
+    boolean dataPointsVisible = featureDataRenderer.getDefaultShapesVisible();
+    featureDataRenderer.setDefaultShapesVisible(!dataPointsVisible);
 
   }
 
-  void setPeaksNotVisible() {
+  void setFeaturesNotVisible() {
 
     if (plot.getDataset(1) == null)
       return;
@@ -251,42 +173,40 @@ class TwoDPlot extends EChartPanel {
     plot.setPlotMode(plotMode);
   }
 
-  void loadPeakList(PeakList peakList) {
+  void loadFeatureList(FeatureList featureList) {
 
-    logger.finest("Loading peaklist " + peakList);
+    logger.finest("Loading featurelist " + featureList);
 
-    PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList, rtRange, mzRange);
+    FeatureDataSet peaksDataSet = new FeatureDataSet(rawDataFile, featureList, rtRange, mzRange);
 
     plot.setDataset(1, peaksDataSet);
-    plot.setRenderer(1, peakDataRenderer);
+    plot.setRenderer(1, featureDataRenderer);
   }
 
-  public String getToolTipText(MouseEvent event) {
 
-    String tooltip = super.getToolTipText(event);
+  /*
+   * public String getToolTipText(MouseEvent event) {
+   *
+   *
+   * int mouseX = event.getX(); int mouseY = event.getY(); Rectangle2D plotArea =
+   * getScreenDataArea(); RectangleEdge xAxisEdge = plot.getDomainAxisEdge(); RectangleEdge
+   * yAxisEdge = plot.getRangeAxisEdge(); double rt = xAxis.java2DToValue(mouseX, plotArea,
+   * xAxisEdge); double mz = yAxis.java2DToValue(mouseY, plotArea, yAxisEdge);
+   *
+   *
+   * String tooltip = "Retention time: " + rtFormat.format(rt) + "\nm/z: " + mzFormat.format(mz);
+   *
+   * return tooltip;
+   *
+   * }
+   */
 
-    if (tooltip == null) {
-      int mouseX = event.getX();
-      int mouseY = event.getY();
-      Rectangle2D plotArea = getScreenDataArea();
-      RectangleEdge xAxisEdge = plot.getDomainAxisEdge();
-      RectangleEdge yAxisEdge = plot.getRangeAxisEdge();
-      double rt = (double) xAxis.java2DToValue(mouseX, plotArea, xAxisEdge);
-      double mz = (double) yAxis.java2DToValue(mouseY, plotArea, yAxisEdge);
-
-      tooltip = "Retention time: " + rtFormat.format(rt) + "\nm/z: " + mzFormat.format(mz);
-    }
-
-    return tooltip;
-
-  }
-
-  public void showPeaksTooltips(boolean mode) {
+  public void showFeaturesTooltips(boolean mode) {
     if (mode) {
-      PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
-      this.peakDataRenderer.setDefaultToolTipGenerator(toolTipGenerator);
+      FeatureToolTipGenerator toolTipGenerator = new FeatureToolTipGenerator();
+      this.featureDataRenderer.setDefaultToolTipGenerator(toolTipGenerator);
     } else {
-      this.peakDataRenderer.setDefaultToolTipGenerator(null);
+      this.featureDataRenderer.setDefaultToolTipGenerator(null);
     }
   }
 
@@ -294,5 +214,9 @@ class TwoDPlot extends EChartPanel {
     if (plot != null) {
       plot.setLogScale(logscale);
     }
+  }
+
+  public void addTwoDDataSet(TwoDDataSet dataset) {
+    plot.setDataset(dataset);
   }
 }

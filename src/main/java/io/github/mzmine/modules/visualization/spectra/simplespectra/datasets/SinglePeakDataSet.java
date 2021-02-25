@@ -1,28 +1,28 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 
 /**
  * Data set for a single highlighted peak
@@ -30,15 +30,23 @@ import io.github.mzmine.datamodel.Feature;
 public class SinglePeakDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
-  private DataPoint dataPoint;
   private String label;
+  private double mz;
+  private double intensity;
 
-  public SinglePeakDataSet(int scanNumber, Feature peak) {
+
+  public SinglePeakDataSet(Scan scanNumber, Feature peak) {
     this.label = peak.toString();
-    this.dataPoint = peak.getDataPoint(scanNumber);
+    if (peak instanceof ModularFeature) {
+      mz = ((ModularFeature) peak).getFeatureData().getMzForSpectrum(scanNumber);
+      intensity = ((ModularFeature) peak).getFeatureData().getIntensityForSpectrum(scanNumber);
+    } else {
+      mz = peak.getDataPoint(scanNumber).getMZ();
+      intensity = peak.getDataPoint(scanNumber).getIntensity();
+    }
   }
 
   @Override
@@ -56,11 +64,11 @@ public class SinglePeakDataSet extends AbstractXYDataset implements IntervalXYDa
   }
 
   public Number getX(int series, int item) {
-    return dataPoint.getMZ();
+    return mz;
   }
 
   public Number getY(int series, int item) {
-    return dataPoint.getIntensity();
+    return intensity;
   }
 
   public Number getEndX(int series, int item) {

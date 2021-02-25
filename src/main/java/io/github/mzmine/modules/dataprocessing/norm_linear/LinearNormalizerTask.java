@@ -1,73 +1,72 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
-import java.util.Hashtable;
-import java.util.logging.Logger;
-
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
-import io.github.mzmine.util.PeakUtils;
+import io.github.mzmine.util.FeatureMeasurementType;
+import java.util.Hashtable;
+import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 
 class LinearNormalizerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  static final double maximumOverallPeakHeightAfterNormalization = 100000.0;
+  static final float maximumOverallFeatureHeightAfterNormalization = 100000.0f;
 
   private final MZmineProject project;
-  private PeakList originalPeakList, normalizedPeakList;
+  private ModularFeatureList originalFeatureList, normalizedFeatureList;
 
   private int processedDataFiles, totalDataFiles;
 
   private String suffix;
   private NormalizationType normalizationType;
-  private PeakMeasurementType peakMeasurementType;
+  private FeatureMeasurementType featureMeasurementType;
   private boolean removeOriginal;
   private ParameterSet parameters;
 
-  public LinearNormalizerTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+  public LinearNormalizerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
 
     this.project = project;
-    this.originalPeakList = peakList;
+    this.originalFeatureList = (ModularFeatureList) featureList;
     this.parameters = parameters;
 
-    totalDataFiles = originalPeakList.getNumberOfRawDataFiles();
+    totalDataFiles = originalFeatureList.getNumberOfRawDataFiles();
 
     suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
     normalizationType =
         parameters.getParameter(LinearNormalizerParameters.normalizationType).getValue();
-    peakMeasurementType =
-        parameters.getParameter(LinearNormalizerParameters.peakMeasurementType).getValue();
+    featureMeasurementType =
+        parameters.getParameter(LinearNormalizerParameters.featureMeasurementType).getValue();
     removeOriginal = parameters.getParameter(LinearNormalizerParameters.autoRemove).getValue();
 
   }
@@ -77,7 +76,7 @@ class LinearNormalizerTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Linear normalization of " + originalPeakList + " by " + normalizationType;
+    return "Linear normalization of " + originalFeatureList + " by " + normalizationType;
   }
 
   public void run() {
@@ -87,19 +86,18 @@ class LinearNormalizerTask extends AbstractTask {
 
     // This hashtable maps rows from original alignment result to rows of
     // the normalized alignment
-    Hashtable<PeakListRow, SimplePeakListRow> rowMap =
-        new Hashtable<PeakListRow, SimplePeakListRow>();
+    Hashtable<FeatureListRow, ModularFeatureListRow> rowMap = new Hashtable<>();
 
     // Create new feature list
-    normalizedPeakList =
-        new SimplePeakList(originalPeakList + " " + suffix, originalPeakList.getRawDataFiles());
+    normalizedFeatureList =
+        new ModularFeatureList(originalFeatureList + " " + suffix, originalFeatureList.getRawDataFiles());
 
-    // Loop through all raw data files, and find the peak with biggest
+    // Loop through all raw data files, and find the feature with biggest
     // height
-    double maxOriginalHeight = 0.0;
-    for (RawDataFile file : originalPeakList.getRawDataFiles()) {
-      for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
-        Feature p = originalpeakListRow.getPeak(file);
+    float maxOriginalHeight = 0f;
+    for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
+      for (FeatureListRow originalFeatureListRow : originalFeatureList.getRows()) {
+        Feature p = originalFeatureListRow.getFeature(file);
         if (p != null) {
           if (maxOriginalHeight <= p.getHeight())
             maxOriginalHeight = p.getHeight();
@@ -107,8 +105,8 @@ class LinearNormalizerTask extends AbstractTask {
       }
     }
 
-    // Loop through all raw data files, and normalize peak values
-    for (RawDataFile file : originalPeakList.getRawDataFiles()) {
+    // Loop through all raw data files, and normalize feature values
+    for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
 
       // Cancel?
       if (isCanceled()) {
@@ -116,16 +114,16 @@ class LinearNormalizerTask extends AbstractTask {
       }
 
       // Determine normalization type and calculate normalization factor
-      double normalizationFactor = 1.0;
+      float normalizationFactor = 1.0f;
 
-      // - normalization by average peak intensity
+      // - normalization by average feature intensity
       if (normalizationType == NormalizationType.AverageIntensity) {
-        double intensitySum = 0;
+        float intensitySum = 0f;
         int intensityCount = 0;
-        for (PeakListRow peakListRow : originalPeakList.getRows()) {
-          Feature p = peakListRow.getPeak(file);
+        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
+          Feature p = featureListRow.getFeature(file);
           if (p != null) {
-            if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
+            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
               intensitySum += p.getHeight();
             } else {
               intensitySum += p.getArea();
@@ -133,17 +131,17 @@ class LinearNormalizerTask extends AbstractTask {
             intensityCount++;
           }
         }
-        normalizationFactor = intensitySum / (double) intensityCount;
+        normalizationFactor = intensitySum / (float) intensityCount;
       }
 
-      // - normalization by average squared peak intensity
+      // - normalization by average squared feature intensity
       if (normalizationType == NormalizationType.AverageSquaredIntensity) {
-        double intensitySum = 0.0;
+        float intensitySum = 0f;
         int intensityCount = 0;
-        for (PeakListRow peakListRow : originalPeakList.getRows()) {
-          Feature p = peakListRow.getPeak(file);
+        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
+          Feature p = featureListRow.getFeature(file);
           if (p != null) {
-            if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
+            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
               intensitySum += (p.getHeight() * p.getHeight());
             } else {
               intensitySum += (p.getArea() * p.getArea());
@@ -151,16 +149,16 @@ class LinearNormalizerTask extends AbstractTask {
             intensityCount++;
           }
         }
-        normalizationFactor = intensitySum / (double) intensityCount;
+        normalizationFactor = intensitySum / (float) intensityCount;
       }
 
-      // - normalization by maximum peak intensity
-      if (normalizationType == NormalizationType.MaximumPeakHeight) {
-        double maximumIntensity = 0.0;
-        for (PeakListRow peakListRow : originalPeakList.getRows()) {
-          Feature p = peakListRow.getPeak(file);
+      // - normalization by maximum feature intensity
+      if (normalizationType == NormalizationType.MaximumFeatureHeight) {
+        float maximumIntensity = 0;
+        for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
+          Feature p = featureListRow.getFeature(file);
           if (p != null) {
-            if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
+            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
               if (maximumIntensity < p.getHeight())
                 maximumIntensity = p.getHeight();
             } else {
@@ -176,50 +174,49 @@ class LinearNormalizerTask extends AbstractTask {
       // - normalization by total raw signal
       if (normalizationType == NormalizationType.TotalRawSignal) {
         normalizationFactor = 0;
-        for (int scanNumber : file.getScanNumbers(1)) {
-          Scan scan = file.getScan(scanNumber);
+        for (Scan scan : file.getScanNumbers(1)) {
           normalizationFactor += scan.getTIC();
         }
       }
 
       // Readjust normalization factor so that maximum height will be
-      // equal to maximumOverallPeakHeightAfterNormalization after
+      // equal to maximumOverallFeatureHeightAfterNormalization after
       // normalization
-      double maxNormalizedHeight = maxOriginalHeight / normalizationFactor;
+      float maxNormalizedHeight = maxOriginalHeight / normalizationFactor;
       normalizationFactor =
-          normalizationFactor * maxNormalizedHeight / maximumOverallPeakHeightAfterNormalization;
+          normalizationFactor * maxNormalizedHeight / maximumOverallFeatureHeightAfterNormalization;
 
       // Normalize all peak intenisities using the normalization factor
-      for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
+      ObservableList<FeatureListRow> rows = originalFeatureList.getRows();
+      for (int i = 0, rowsSize = rows.size(); i < rowsSize; i++) {
+        ModularFeatureListRow originalFeatureListRow = (ModularFeatureListRow) rows.get(i);
 
         // Cancel?
         if (isCanceled()) {
           return;
         }
 
-        Feature originalPeak = originalpeakListRow.getPeak(file);
-        if (originalPeak != null) {
+        Feature originalFeature = originalFeatureListRow.getFeature(file);
+        if (originalFeature != null) {
 
-          SimpleFeature normalizedPeak = new SimpleFeature(originalPeak);
-          PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
+          ModularFeature normalizedFeature = new ModularFeature(normalizedFeatureList, originalFeature);
 
-          double normalizedHeight = originalPeak.getHeight() / normalizationFactor;
-          double normalizedArea = originalPeak.getArea() / normalizationFactor;
-          normalizedPeak.setHeight(normalizedHeight);
-          normalizedPeak.setArea(normalizedArea);
+          float normalizedHeight = originalFeature.getHeight() / normalizationFactor;
+          float normalizedArea = originalFeature.getArea() / normalizationFactor;
+          normalizedFeature.setHeight(normalizedHeight);
+          normalizedFeature.setArea(normalizedArea);
 
-          SimplePeakListRow normalizedRow = rowMap.get(originalpeakListRow);
+          ModularFeatureListRow normalizedRow = rowMap.get(originalFeatureListRow);
 
           if (normalizedRow == null) {
 
-            normalizedRow = new SimplePeakListRow(originalpeakListRow.getID());
+            normalizedRow = new ModularFeatureListRow((ModularFeatureList) originalFeatureListRow.getFeatureList(),
+                    originalFeatureListRow, false);
 
-            PeakUtils.copyPeakListRowProperties(originalpeakListRow, normalizedRow);
-
-            rowMap.put(originalpeakListRow, normalizedRow);
+            rowMap.put(originalFeatureListRow, normalizedRow);
           }
 
-          normalizedRow.addPeak(file, normalizedPeak);
+          normalizedRow.addFeature(file, normalizedFeature);
 
         }
 
@@ -231,28 +228,29 @@ class LinearNormalizerTask extends AbstractTask {
     }
 
     // Finally add all normalized rows to normalized alignment result
-    for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
-      SimplePeakListRow normalizedRow = rowMap.get(originalpeakListRow);
+    for (FeatureListRow originalFeatureListRow : originalFeatureList.getRows()) {
+      ModularFeatureListRow normalizedRow = rowMap.get(originalFeatureListRow);
       if (normalizedRow == null)
         continue;
-      normalizedPeakList.addRow(normalizedRow);
+      normalizedFeatureList.addRow(normalizedRow);
     }
 
-    // Add new peaklist to the project
-    project.addPeakList(normalizedPeakList);
+    // Add new feature list to the project
+    project.addFeatureList(normalizedFeatureList);
 
     // Load previous applied methods
-    for (PeakListAppliedMethod proc : originalPeakList.getAppliedMethods()) {
-      normalizedPeakList.addDescriptionOfAppliedTask(proc);
+    for (FeatureListAppliedMethod proc : originalFeatureList.getAppliedMethods()) {
+      normalizedFeatureList.addDescriptionOfAppliedTask(proc);
     }
 
-    // Add task description to peakList
-    normalizedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-        "Linear normalization of by " + normalizationType, parameters));
+    // Add task description to feature List
+    normalizedFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
+        "Linear normalization of by " + normalizationType,
+        LinearNormalizerModule.class, parameters));
 
-    // Remove the original peaklist if requested
+    // Remove the original feature list if requested
     if (removeOriginal)
-      project.removePeakList(originalPeakList);
+      project.removeFeatureList(originalFeatureList);
 
     logger.info("Finished linear normalizer");
     setStatus(TaskStatus.FINISHED);

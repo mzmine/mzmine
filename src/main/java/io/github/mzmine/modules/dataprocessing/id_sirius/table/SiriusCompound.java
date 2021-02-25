@@ -1,45 +1,37 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_sirius.table;
 
-import de.unijena.bioinf.chemdb.DBLink;
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.swing.ImageIcon;
-
-import org.openscience.cdk.interfaces.IAtom;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
@@ -49,16 +41,23 @@ import org.openscience.cdk.renderer.generators.BasicBondGenerator;
 import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import de.unijena.bioinf.chemdb.DBLink;
+import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+
 
 /**
  * Class SiriusCompound May contain different amount of properties 1) if the IonAnnotation is from
  * SiriusIdentificationMethod, then there will be Sirius Score, formula, name == formula 2) if
  * FingerIdWebMethod is used, then name may differ, added SMILES & Inchi and links to DBs
  */
-public class SiriusCompound extends SimplePeakIdentity {
-  private static final Logger logger = LoggerFactory.getLogger(SiriusCompound.class);
+public class SiriusCompound extends SimpleFeatureIdentity {
+  private static final Logger logger = Logger.getLogger(SiriusCompound.class.getName());
   public static final int PREVIEW_HEIGHT = 150;
   public static final int PREVIEW_WIDTH = 150;
   public static final int STRUCTURE_WIDTH = 600;
@@ -69,7 +68,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   /**
    * Constructor for SiriusCompound
-   * 
+   *
    * @param annotation
    */
   public SiriusCompound(@Nonnull final SiriusIonAnnotation annotation) {
@@ -80,7 +79,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   /**
    * Copy constructor
-   * 
+   *
    * @param master - SiriusCompound to copy from
    */
   public SiriusCompound(final SiriusCompound master) {
@@ -92,7 +91,7 @@ public class SiriusCompound extends SimplePeakIdentity {
   /**
    * Construct parameters from SiriusIonAnnotation Amount of params differ, either it is identified
    * by SiriusIdentificationMethod, or also by FingerIdWebMethod
-   * 
+   *
    * @param annotation
    * @return constructed Hashtable
    */
@@ -145,6 +144,7 @@ public class SiriusCompound extends SimplePeakIdentity {
   /**
    * @return cloned object
    */
+  @Override
   public SiriusCompound clone() {
     final SiriusCompound compound = new SiriusCompound(this);
     return compound;
@@ -181,9 +181,9 @@ public class SiriusCompound extends SimplePeakIdentity {
       return null;
 
     Set<String> dbNames = new TreeSet<String>();
-
-    for (DBLink link : dblinks)
+    for (DBLink link : dblinks) {
       dbNames.add(link.name);
+    }
 
     String[] dbs = new String[dbNames.size()];
     dbs = dbNames.toArray(dbs);
@@ -200,7 +200,6 @@ public class SiriusCompound extends SimplePeakIdentity {
     IAtomContainer container = getIonAnnotation().getChemicalStructure();
     if (container == null)
       return null;
-
     return container;
   }
 
@@ -216,7 +215,7 @@ public class SiriusCompound extends SimplePeakIdentity {
   /**
    * Method returns image generated from Chemical Structure IAtomContainer Better to use 3:2
    * relation of width:height
-   * 
+   *
    * @param width of the image
    * @param height of the image
    * @return new Image object
@@ -249,7 +248,7 @@ public class SiriusCompound extends SimplePeakIdentity {
       renderer.paint(molecule, new AWTDrawVisitor(g2));
       return image;
     } catch (Exception ex) {
-      logger.info("Exception during ImageIcon construction occured");
+      logger.warning("Exception during ImageIcon construction occured");
     }
     return null;
   }
@@ -270,7 +269,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   /**
    * FingerId score had negative value, the closer it is to 0, the better result is (Ex.: -115.23)
-   * 
+   *
    * @return FingerId score, if exists
    */
   public String getFingerIdScore() {
@@ -286,4 +285,31 @@ public class SiriusCompound extends SimplePeakIdentity {
   public String getSiriusScore() {
     return getPropertyValue("Sirius score");
   }
+
+  public SimpleObjectProperty<Structure2DComponent> getChemicalStructureNode() throws CDKException {
+    SimpleObjectProperty<Structure2DComponent> chemicalStructure;
+
+    Structure2DComponent node = new Structure2DComponent(this.getContainer());
+    chemicalStructure = new SimpleObjectProperty<Structure2DComponent>(node);
+
+    return chemicalStructure;
+
+  }
+
+  public SimpleObjectProperty<Node> getDBSNode() {
+    String dbs[] = this.getDBS();
+    VBox vBox = new VBox();
+    String dbsWords = "";
+    Label label = new Label();
+    label.setMaxWidth(180);
+    label.setWrapText(true);
+    for (String S : dbs) {
+      dbsWords += S + " \n";
+    }
+    label.setText(dbsWords);
+    vBox.getChildren().add(label);
+
+    return new SimpleObjectProperty<>(label);
+  }
+
 }

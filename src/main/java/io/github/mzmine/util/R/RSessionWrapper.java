@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -64,7 +64,7 @@ import io.github.mzmine.util.R.Rsession.Rsession;
 public class RSessionWrapper {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(RSessionWrapper.class.getName());
+  private static final Logger logger = Logger.getLogger(RSessionWrapper.class.getName());
 
   // Rsession semaphore - non-parallelizable operations must be synchronized
   // using this semaphore.
@@ -77,10 +77,10 @@ public class RSessionWrapper {
 
   private static final Level rsLogLvl = Level.FINEST;
   private static final Level logLvl = Level.FINEST;
-  private static PrintStream logStream = new LoggerStream(LOG, rsLogLvl);
+  private static PrintStream logStream = new LoggerStream(logger, rsLogLvl);
 
   // Enhanced remote security stuffs.
-  private static final String RS_LOGIN = "MZmineUser";
+  private static final String RS_loggerIN = "MZmineUser";
   private static final String RS_DYN_PWD = String.valueOf(UUID.randomUUID());
   private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
@@ -101,7 +101,7 @@ public class RSessionWrapper {
    * since R uses int data type and we use byte. Unlike its real equivalent this one can be used in
    * comparisons, although {@link #isNA(byte) } is provided for consistency.
    */
-  public static final byte NA_LOGICAL = -128;
+  public static final byte NA_loggerICAL = -128;
 
   // ----
 
@@ -124,7 +124,6 @@ public class RSessionWrapper {
   private boolean userCanceled = false;
 
   private boolean wasRunAndReturned = false;
-
 
   // MISC UTILITIES
 
@@ -225,7 +224,8 @@ public class RSessionWrapper {
   // public RSessionWrapper(String callerFeatureName, String[] reqPackages,
   // String[] reqPackagesVersions) {
   //
-  // this(REngineType.RCALLER, callerFeatureName, reqPackages, reqPackagesVersions);
+  // this(REngineType.RCALLER, callerFeatureName, reqPackages,
+  // reqPackagesVersions);
   // }
 
   private void getRengineInstance() throws RSessionWrapperException {
@@ -247,7 +247,6 @@ public class RSessionWrapper {
 
       if (this.rEngine == null) {
 
-
         if (this.rEngineType == REngineType.RSERVE) {
 
           boolean isWindows = RSessionWrapper.isWindows();
@@ -268,24 +267,28 @@ public class RSessionWrapper {
 
               // Under *NUX, create the very first Rserve instance
               // (kind of proxy), designed only to spawn other
-              // (computing) instances (Released at app. exit - see
+              // (computing) instances (Released at app. exit -
+              // see
               // note below).
               if (!isWindows
                   && (RSessionWrapper.MASTER_SESSION == null || !checkMasterConnectivity())) {
 
                 // We absolutely need real new instance on a new
-                // port here (in case other Rserve, not spawned by
+                // port here (in case other Rserve, not spawned
+                // by
                 // MZmine, are running already).
                 // Note: this also fixes potential issues when
-                // running several instances of MZmine concurrently.
+                // running several instances of MZmine
+                // concurrently.
                 int port = RserverConf.getNewAvailablePort();
-                RserverConf conf = new RserverConf("localhost", port, RS_LOGIN, RS_DYN_PWD, null); // props);
+                RserverConf conf =
+                    new RserverConf("localhost", port, RS_loggerIN, RS_DYN_PWD, null); // props);
                 RSessionWrapper.MASTER_PORT = port;
                 RSessionWrapper.MASTER_SESSION = Rsession.newInstanceTry(logStream, conf, TMP_DIR);
                 int masterPID =
                     RSessionWrapper.MASTER_SESSION.connection.eval("Sys.getpid()").asInteger();
 
-                LOG.log(logLvl, ">> MASTER Rserve instance created (pid: '" + masterPID
+                logger.log(logLvl, ">> MASTER Rserve instance created (pid: '" + masterPID
                     + "' | port '" + RSessionWrapper.MASTER_PORT + "').");
 
                 // Note: no need to 'register()' that particular
@@ -294,12 +297,14 @@ public class RSessionWrapper {
               }
             }
 
-
-            // Need a new session to be completely instantiated before
+            // Need a new session to be completely instantiated
+            // before
             // asking for another one.
-            // Otherwise, under Windows, the "multi-instance emulation"
+            // Otherwise, under Windows, the "multi-instance
+            // emulation"
             // system will try several session startup on same port
-            // (aka: each new session port has to be in use/unavailable
+            // (aka: each new session port has to be in
+            // use/unavailable
             // before trying to get another one).
             // Win: Synch with any previous session, if applicable.
             // *NUX: Synch with nothing that matters.
@@ -311,7 +316,7 @@ public class RSessionWrapper {
               if (isWindows) {
                 // Win: Need to get a new port every time.
                 int port = RserverConf.getNewAvailablePort();
-                conf = new RserverConf("localhost", port, RS_LOGIN, RS_DYN_PWD, null); // props);
+                conf = new RserverConf("localhost", port, RS_loggerIN, RS_DYN_PWD, null); // props);
               } else {
                 // *NUX: Just fit/target the MASTER instance.
                 conf = RSessionWrapper.MASTER_SESSION.rServeConf;
@@ -319,18 +324,22 @@ public class RSessionWrapper {
 
               // Then, spawn a new computing instance.
               if (isWindows) {
-                // Win: Figure out a new standalone instance every
+                // Win: Figure out a new standalone instance
+                // every
                 // time.
                 this.session = Rsession.newInstanceTry(logStream, conf, TMP_DIR);
               } else {
                 // *NUX: Just spawn a new connection on MASTER
                 // instance.
                 // Need to target the same port, in case another
-                // Rserve (not started by this MZmine instance) is
+                // Rserve (not started by this MZmine instance)
+                // is
                 // running.
                 // We need to keep constantly a hand on what is
-                // spawned by the app. to remain able to shutdown
-                // everything related to it and it only when exiting
+                // spawned by the app. to remain able to
+                // shutdown
+                // everything related to it and it only when
+                // exiting
                 // (gracefully or not).
                 // Rsession.newLocalInstance(logStream, null);
                 this.session = Rsession.newRemoteInstance(logStream, conf, TMP_DIR);
@@ -350,27 +359,32 @@ public class RSessionWrapper {
             throw new RSessionWrapperException(globalFailureMsg);
           }
 
-          // As "Rsession.newInstanceTry()" runs an Rdaemon Thread. It is
-          // scheduled already, meaning the session will be opened even
+          // As "Rsession.newInstanceTry()" runs an Rdaemon Thread. It
+          // is
+          // scheduled already, meaning the session will be opened
+          // even
           // for "WAITING" tasks, in any case, and even if it's been
           // meanwhile canceled.
-          // Consequently, we need to kill it after the instance has been
+          // Consequently, we need to kill it after the instance has
+          // been
           // created, since trying to abort the instance (close the
-          // session) before it exists would result in no termination at
+          // session) before it exists would result in no termination
+          // at
           // all.
           if (this.session != null) {
 
             if (this.session.connection != null) {
-              // Keep an opened instance and store the related PID.
+              // Keep an opened instance and store the related
+              // PID.
               this.rServePid = this.session.connection.eval("Sys.getpid()").asInteger();
               this.rEngine = this.session.connection;
-              LOG.log(logLvl, "Rserve: started instance (pid: '" + this.rServePid + "' | port: '"
+              logger.log(logLvl, "Rserve: started instance (pid: '" + this.rServePid + "' | port: '"
                   + this.session.rServeConf.port + "').");
 
               // Quick test
-              LOG.log(logLvl, ((RConnection) this.rEngine).eval("R.version.string").asString());
-              LOG.log(logLvl, ((RConnection) this.rEngine).getServerVersion() + "");
-              LOG.log(logLvl, RConnection.transferCharset);
+              logger.log(logLvl, ((RConnection) this.rEngine).eval("R.version.string").asString());
+              logger.log(logLvl, ((RConnection) this.rEngine).getServerVersion() + "");
+              logger.log(logLvl, RConnection.transferCharset);
             }
             if (this.userCanceled) {
               this.close(true);
@@ -394,8 +408,10 @@ public class RSessionWrapper {
 
           // Quick test
           ((RCaller) this.rEngine).getRCode().addRCode("r_version <- R.version.string");
-          LOG.log(logLvl,
-              ((String[]) this.collect("r_version"/* , RCallerResultType.STRING_ARRAY */))[0]);
+          logger.log(logLvl,
+              ((String[]) this.collect("r_version"/*
+                                                   * , RCallerResultType. STRING_ARRAY
+                                                   */))[0]);
           // Done: Refresh R code stack
           this.clearCode();
 
@@ -430,20 +446,20 @@ public class RSessionWrapper {
     if (this.rEngineType == REngineType.RSERVE) {
 
       if (this.session != null && !this.userCanceled) {
-        LOG.log(logLvl, "Loading package '" + packageName + "'...");
+        logger.log(logLvl, "Loading package '" + packageName + "'...");
         int loaded = 0;
         try {
 
           REXP r = ((RConnection) this.rEngine).eval(loadCode);
           if (r.inherits("try-error")) {
-            LOG.severe("R Error [0]: " + r.asString());
-            LOG.severe("R eval attempt [0]: " + loadCode);
+            logger.severe("R Error [0]: " + r.asString());
+            logger.severe("R eval attempt [0]: " + loadCode);
           }
           loaded = r.asInteger();
-          LOG.log(logLvl, "Load status: '" + (loaded != 0) + "'.");
+          logger.log(logLvl, "Load status: '" + (loaded != 0) + "'.");
 
         } catch (RserveException | REXPMismatchException e) {
-          LOG.log(logLvl, "Loaded package KO: '" + e.getMessage() + "'.");
+          logger.log(logLvl, "Loaded package KO: '" + e.getMessage() + "'.");
           // Remain silent if eval KO ("server down").
           loaded = Integer.MIN_VALUE;
         }
@@ -455,7 +471,7 @@ public class RSessionWrapper {
           if (!this.userCanceled)
             throw new RSessionWrapperException(errorMsg);
 
-        LOG.log(logLvl, "Loaded package: '" + packageName + "'.");
+        logger.log(logLvl, "Loaded package: '" + packageName + "'.");
       }
 
     } else { // RCaller
@@ -485,7 +501,7 @@ public class RSessionWrapper {
         + "\" R package, which was found, but is too old? - please update '" + packageName
         + "' to version " + version + " or later.";
 
-    LOG.log(logLvl,
+    logger.log(logLvl,
         "Checking package version: '" + packageName + "' for version '" + version + "'...");
     if (this.rEngineType == REngineType.RSERVE) {
 
@@ -525,7 +541,7 @@ public class RSessionWrapper {
       }
 
     }
-    LOG.log(logLvl,
+    logger.log(logLvl,
         "Checked package version: '" + packageName + "' for version '" + version + "'.");
   }
 
@@ -547,7 +563,8 @@ public class RSessionWrapper {
     // ...Since 'Rscript' (used by RCaller) has this "lovely" feature of not
     // loading the (base package) methods for us...
     if (this.rEngineType == REngineType.RCALLER) {
-      this.loadPackage("methods"); // Contains 'new' to instantiate classes, etc...
+      this.loadPackage("methods"); // Contains 'new' to instantiate
+                                   // classes, etc...
       // this.loadPackage("utils");
     }
 
@@ -678,7 +695,6 @@ public class RSessionWrapper {
 
     } else { // RCaller
 
-
       try {
 
         if (object instanceof double[]) {
@@ -770,16 +786,16 @@ public class RSessionWrapper {
         // ////((RConnection) this.rEngine).eval(rCode);
         // REXP r = ((RConnection) this.rEngine).eval(rCode);
         // if (r2.inherits("try-error")) {
-        // LOG.severe("R Error [1]: " + r.asString());
-        // LOG.severe("R eval attempt [1]: " + rCode);
-        // LOG.severe("Debug string" + r.toDebugString());
+        // logger.severe("R Error [1]: " + r.asString());
+        // logger.severe("R eval attempt [1]: " + rCode);
+        // logger.severe("Debug string" + r.toDebugString());
         // }
         // //else { /* success ... */ }
-        // LOG.severe("R error [3]: " + ((RConnection)
+        // logger.severe("R error [3]: " + ((RConnection)
         // this.rEngine).getLastError());
         // }
         // catch (RserveException e) {
-        // LOG.severe("R error [2]: " + getErrMessage());
+        // logger.severe("R error [2]: " + getErrMessage());
         // throw new RSessionWrapperException(msg);
         // } catch (Exception e) {
         // throw new RSessionWrapperException(e.getMessage());
@@ -801,7 +817,8 @@ public class RSessionWrapper {
         ((RCaller) this.rEngine).getRCode().addRCode(rCode);
         // ((RCallerScriptEngine2) this.rEngine).eval(rCode);
 
-      } catch (ExecutionException /* | ScriptException */ ee) { // RCaller exception
+      } catch (ExecutionException /* | ScriptException */ ee) { // RCaller
+                                                                // exception
         if (stopOnError)
           throw new RSessionWrapperException(ee.getMessage());
         else
@@ -839,7 +856,8 @@ public class RSessionWrapper {
 
     Object object = null;
 
-    // MUST specify a type: "RCaller" requires to know what type of data to collect!
+    // MUST specify a type: "RCaller" requires to know what type of data to
+    // collect!
     if (this.rEngineType == REngineType.RCALLER) {
       String msg =
           "R computing result MUST be collected with " + "'collect(String obj, String type)' when "
@@ -863,13 +881,12 @@ public class RSessionWrapper {
 
         object = OutputObjectFactory.getObject(r);
       } catch (/* RserveException | */REXPMismatchException e) {
-        LOG.severe(this.getErrMessage());
+        logger.severe(this.getErrMessage());
         throw new RSessionWrapperException(msg);
       } catch (Exception e) {
         throw new RSessionWrapperException(e.getMessage());
       }
     }
-
 
     return object;
   }
@@ -906,8 +923,10 @@ public class RSessionWrapper {
         // If expression is complex code (not a simple object name),
         // turn it into single collectible object name
         if (!SourceVersion.isName(objOrExp))
-        // Not a valid name for a java variable, assuming we have the same
-        // requirement in R... Probably untrue, but let's say sufficient here...
+        // Not a valid name for a java variable, assuming we have the
+        // same
+        // requirement in R... Probably untrue, but let's say sufficient
+        // here...
         {
           obj = "result" + UUID.randomUUID().toString().replace("-", "");
 
@@ -924,8 +943,8 @@ public class RSessionWrapper {
           obj = objOrExp;
         }
 
-
-        // Collect expression result + collect additional type info at once!
+        // Collect expression result + collect additional type info at
+        // once!
         String obj_type_var = obj + "_type";
         ((RCaller) this.rEngine).getRCode().addRCode(obj_type_var + " <- typeof(" + obj + ")");
         String obj_ismatrix_var = obj + "_ismatrix";
@@ -938,7 +957,6 @@ public class RSessionWrapper {
         //
         ((RCaller) this.rEngine).runAndReturnResultOnline("obj_lst");
         this.wasRunAndReturned = true;
-
 
         // Let's get objects
         try {
@@ -1005,7 +1023,6 @@ public class RSessionWrapper {
     if (this.rEngineType != REngineType.RCALLER) {
       return null;
     }
-
 
     RCallerResultType type;
 
@@ -1091,12 +1108,11 @@ public class RSessionWrapper {
 
     if (this.rEngineType == REngineType.RSERVE) {
 
-
       if (this.session != null) {
 
         try {
 
-          LOG.log(logLvl,
+          logger.log(logLvl,
               "Rserve: try terminate " + ((this.rServePid == -1) ? "pending" : "") + " session"
                   + ((this.rServePid == -1) ? "..."
                       : " (pid: '" + this.rServePid + "' | port: '" + this.session.rServeConf.port
@@ -1104,7 +1120,8 @@ public class RSessionWrapper {
 
           // Avoid 'Rsession' to 'printStackTrace' while catching
           // 'SocketException'
-          // (since we are about to brute force kill the Rserve instance,
+          // (since we are about to brute force kill the Rserve
+          // instance,
           // such that
           // the session won't end properly).
           RSessionWrapper.muteStdOutErr();
@@ -1114,7 +1131,7 @@ public class RSessionWrapper {
           }
           RSessionWrapper.unMuteStdOutErr();
 
-          LOG.log(logLvl,
+          logger.log(logLvl,
               "Rserve: terminated " + ((this.rServePid == -1) ? "pending" : "") + " session"
                   + ((this.rServePid == -1) ? "..."
                       : " (pid: '" + this.rServePid + "' | port: '" + this.session.rServeConf.port
@@ -1125,7 +1142,8 @@ public class RSessionWrapper {
           this.session = null;
 
         } catch (Throwable t) {
-          // Adapt/refactor message accordingly to the way the termination
+          // Adapt/refactor message accordingly to the way the
+          // termination
           // was provoked:
           // User requested or unexpectedly...
           String msg;
@@ -1184,7 +1202,7 @@ public class RSessionWrapper {
   private static void unMuteStdOutErr() {
     System.setOut(System.out);
     System.setErr(System.err);
-    logStream = new LoggerStream(LOG, rsLogLvl);
+    logStream = new LoggerStream(logger, rsLogLvl);
   }
 
   public static void killRserveInstance(RSessionWrapper rSession) throws RSessionWrapperException {
@@ -1199,7 +1217,7 @@ public class RSessionWrapper {
           // // BEGIN OK
           // Rsession s = Rsession.newInstanceTry(logStream, null);
           // s.eval("tools::pskill("+ rSession.getPID() + ")");
-          // LOG.info("Eval: " + "tools::pskill("+ rSession.getPID() +
+          // logger.info("Eval: " + "tools::pskill("+ rSession.getPID() +
           // ")");
           // s.end();
           // // END OK
@@ -1290,7 +1308,7 @@ public class RSessionWrapper {
     for (int i = RSessionWrapper.R_SESSIONS_REG.size() - 1; i >= 0; --i) {
       try {
         if (RSessionWrapper.R_SESSIONS_REG.get(i) != null) {
-          LOG.info("CleanAll / instance: " + RSessionWrapper.R_SESSIONS_REG.get(i).getPID());
+          logger.info("CleanAll / instance: " + RSessionWrapper.R_SESSIONS_REG.get(i).getPID());
           RSessionWrapper.R_SESSIONS_REG.get(i).close(true);
         }
       } catch (RSessionWrapperException e) {

@@ -1,43 +1,48 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.main.MZmineCore;
+import java.text.Format;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * This class represents a manually picked chromatographic peak.
  */
-class SameRangePeak implements Feature {
-  private SimplePeakInformation peakInfo;
+public class SameRangePeak{
+  private SimpleFeatureInformation peakInfo;
 
   private RawDataFile dataFile;
 
@@ -46,16 +51,17 @@ class SameRangePeak implements Feature {
   private Double fwhm = null, tf = null, af = null;
 
   // Boundaries of the peak
-  private Range<Double> rtRange, mzRange, intensityRange;
+  private Range<Double> mzRange;
+  private Range<Float> rtRange, intensityRange;
 
   // Map of scan number and data point
-  private TreeMap<Integer, DataPoint> mzPeakMap;
+  private TreeMap<Scan, DataPoint> mzPeakMap;
 
   // Number of most intense fragment scan
-  private int fragmentScan, representativeScan;
+  private Scan fragmentScan, representativeScan;
 
   // Numbers of all MS2 fragment scans
-  private int[] allMS2FragmentScanNumbers;
+  private Scan[] allMS2FragmentScanNumbers;
 
   // Isotope pattern. Null by default but can be set later by deisotoping
   // method.
@@ -67,13 +73,12 @@ class SameRangePeak implements Feature {
    */
   SameRangePeak(RawDataFile dataFile) {
     this.dataFile = dataFile;
-    mzPeakMap = new TreeMap<Integer, DataPoint>();
+    mzPeakMap = new TreeMap<Scan, DataPoint>();
   }
 
   /**
    * This peak is always a result of manual feature detection, therefore MANUAL
    */
-  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return FeatureStatus.ESTIMATED;
   }
@@ -81,7 +86,6 @@ class SameRangePeak implements Feature {
   /**
    * This method returns M/Z value of the peak
    */
-  @Override
   public double getMZ() {
     return mz;
   }
@@ -89,7 +93,6 @@ class SameRangePeak implements Feature {
   /**
    * This method returns retention time of the peak
    */
-  @Override
   public double getRT() {
     return rt;
   }
@@ -97,7 +100,6 @@ class SameRangePeak implements Feature {
   /**
    * This method returns the raw height of the peak
    */
-  @Override
   public double getHeight() {
     return height;
   }
@@ -105,7 +107,6 @@ class SameRangePeak implements Feature {
   /**
    * This method returns the raw area of the peak
    */
-  @Override
   public double getArea() {
     return area;
   }
@@ -113,39 +114,30 @@ class SameRangePeak implements Feature {
   /**
    * This method returns numbers of scans that contain this peak
    */
-  @Override
-  public @Nonnull int[] getScanNumbers() {
-    return Ints.toArray(mzPeakMap.keySet());
+  public @Nonnull Scan[] getScanNumbers() {
+    return mzPeakMap.keySet().toArray(Scan[]::new);
   }
 
   /**
    * This method returns a representative datapoint of this peak in a given scan
    */
-  @Override
-  public DataPoint getDataPoint(int scanNumber) {
-    return mzPeakMap.get(scanNumber);
+  public DataPoint getDataPoint(Scan scan) {
+    return mzPeakMap.get(scan);
   }
 
-  @Override
-  public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
+  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
     return intensityRange;
   }
 
-  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return mzRange;
   }
 
-  @Override
-  public @Nonnull Range<Double> getRawDataPointsRTRange() {
+  public @Nonnull Range<Float> getRawDataPointsRTRange() {
     return rtRange;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.Feature#getDataFile()
-   */
-  @Override
-  public @Nonnull RawDataFile getDataFile() {
+  public @Nonnull RawDataFile getRawDataFile() {
     return dataFile;
   }
 
@@ -154,45 +146,50 @@ class SameRangePeak implements Feature {
    */
   @Override
   public String toString() {
-    return PeakUtils.peakToString(this);
+    StringBuffer buf = new StringBuffer();
+    Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+    buf.append("m/z ");
+    buf.append(mzFormat.format(getMZ()));
+    buf.append(" (");
+    buf.append(timeFormat.format(getRT()));
+    buf.append(" min) [" + getRawDataFile().getName() + "]");
+    return buf.toString();
   }
 
   /**
    * Adds a new data point to this peak
-   * 
-   * @param scanNumber
-   * @param dataPoints
-   * @param rawDataPoints
+   *
+   * @param scan
+   * @param dataPoint
    */
-  void addDatapoint(int scanNumber, DataPoint dataPoint) {
-
-    double rt = dataFile.getScan(scanNumber).getRetentionTime();
+  void addDatapoint(Scan scan, DataPoint dataPoint) {
+    float rt = scan.getRetentionTime();
 
     if (mzPeakMap.isEmpty()) {
       rtRange = Range.singleton(rt);
       mzRange = Range.singleton(dataPoint.getMZ());
-      intensityRange = Range.singleton(dataPoint.getIntensity());
+      intensityRange = Range.singleton((float) dataPoint.getIntensity());
     } else {
       rtRange = rtRange.span(Range.singleton(rt));
       mzRange = mzRange.span(Range.singleton(dataPoint.getMZ()));
-      intensityRange = intensityRange.span(Range.singleton(dataPoint.getIntensity()));
+      intensityRange = intensityRange.span(Range.singleton((float) dataPoint.getIntensity()));
     }
 
-    mzPeakMap.put(scanNumber, dataPoint);
-
+    mzPeakMap.put(scan, dataPoint);
   }
 
   void finalizePeak() {
 
     // Trim the zero-intensity data points from the beginning and end
     while (!mzPeakMap.isEmpty()) {
-      int scanNumber = mzPeakMap.firstKey();
+      Scan scanNumber = mzPeakMap.firstKey();
       if (mzPeakMap.get(scanNumber).getIntensity() > 0)
         break;
       mzPeakMap.remove(scanNumber);
     }
     while (!mzPeakMap.isEmpty()) {
-      int scanNumber = mzPeakMap.lastKey();
+      Scan scanNumber = mzPeakMap.lastKey();
       if (mzPeakMap.get(scanNumber).getIntensity() > 0)
         break;
       mzPeakMap.remove(scanNumber);
@@ -204,15 +201,15 @@ class SameRangePeak implements Feature {
     }
 
     // Get all scan numbers
-    int allScanNumbers[] = Ints.toArray(mzPeakMap.keySet());
+    Entry<Scan, DataPoint> [] allScanNumbers = mzPeakMap.entrySet().toArray(Entry[]::new);
 
     // Find the data point with top intensity and use its RT and height
-    for (int i = 0; i < allScanNumbers.length; i++) {
-      DataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
-      double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
+    for(Map.Entry<Scan, DataPoint> entry : allScanNumbers) {
+      DataPoint dataPoint = entry.getValue();
+      double rt = entry.getKey().getRetentionTime();
       if (dataPoint.getIntensity() > height) {
         height = dataPoint.getIntensity();
-        representativeScan = allScanNumbers[i];
+        representativeScan = entry.getKey();
         this.rt = rt;
       }
     }
@@ -220,21 +217,19 @@ class SameRangePeak implements Feature {
     // Calculate peak area
     area = 0;
     for (int i = 1; i < allScanNumbers.length; i++) {
-
       // For area calculation, we use retention time in seconds
-      double previousRT = dataFile.getScan(allScanNumbers[i - 1]).getRetentionTime() * 60d;
-      double currentRT = dataFile.getScan(allScanNumbers[i]).getRetentionTime() * 60d;
+      double previousRT = allScanNumbers[i - 1].getKey().getRetentionTime() * 60d;
+      double currentRT = allScanNumbers[i].getKey().getRetentionTime() * 60d;
 
       double rtDifference = currentRT - previousRT;
 
       // Intensity at the beginning and end of the interval
-      double previousIntensity = mzPeakMap.get(allScanNumbers[i - 1]).getIntensity();
-      double thisIntensity = mzPeakMap.get(allScanNumbers[i]).getIntensity();
+      double previousIntensity = allScanNumbers[i - 1].getValue().getIntensity();
+      double thisIntensity = allScanNumbers[i].getValue().getIntensity();
       double averageIntensity = (previousIntensity + thisIntensity) / 2;
 
       // Calculate area of the interval
       area += (rtDifference * averageIntensity);
-
     }
 
     // Calculate median MZ
@@ -247,119 +242,113 @@ class SameRangePeak implements Feature {
     fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
     allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
 
-    if (fragmentScan > 0) {
-      Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-      int precursorCharge = fragmentScanObject.getPrecursorCharge();
+    if (fragmentScan != null) {
+      int precursorCharge = fragmentScan.getPrecursorCharge();
       if ((precursorCharge > 0) && (this.charge == 0))
         this.charge = precursorCharge;
     }
-
   }
 
   public void setMZ(double mz) {
     this.mz = mz;
   }
 
-  @Override
-  public int getRepresentativeScanNumber() {
+  public Scan getRepresentativeScanNumber() {
     return representativeScan;
   }
 
-  @Override
-  public int getMostIntenseFragmentScanNumber() {
+  public Scan getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
-  @Override
-  public int[] getAllMS2FragmentScanNumbers() {
+  public Scan[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
-  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
-  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
-  @Override
   public int getCharge() {
     return charge;
   }
 
-  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
-  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
-  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
-  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
-  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
-  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
-  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
   // dulab Edit
-  @Override
   public void outputChromToFile() {
     int nothing = -1;
   }
 
-  @Override
-  public void setPeakInformation(SimplePeakInformation peakInfoIn) {
+  public void setPeakInformation(SimpleFeatureInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
-  @Override
-  public SimplePeakInformation getPeakInformation() {
+  public SimpleFeatureInformation getPeakInformation() {
     return peakInfo;
   }
 
-  @Override
-  public void setFragmentScanNumber(int fragmentScanNumber) {
+  public void setFragmentScanNumber(Scan fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
 
-  @Override
-  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
+  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
     // also set best scan by TIC
-    int best = -1;
+    Scan best = null;
     double tic = 0;
     if (allMS2FragmentScanNumbers != null) {
-      for (int i : allMS2FragmentScanNumbers) {
-        if (tic < dataFile.getScan(i).getTIC())
-          best = i;
+      for (Scan scan : allMS2FragmentScanNumbers) {
+        if (tic < scan.getTIC())
+          best = scan;
       }
     }
     setFragmentScanNumber(best);
   }
   // End dulab Edit
 
+  private FeatureList peakList;
+
+  public FeatureList getPeakList() {
+    return peakList;
+  }
+
+  public void setPeakList(FeatureList peakList) {
+    this.peakList = peakList;
+  }
+
+
+  public Collection<DataPoint> getDataPoints() {
+    return mzPeakMap.values();
+  }
 }

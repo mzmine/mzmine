@@ -1,32 +1,34 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.savitzkygolay;
 
-import java.util.Hashtable;
-import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Hashtable;
+import javax.annotation.Nonnull;
 
 public class SGFilter implements ScanFilter {
 
@@ -72,7 +74,7 @@ public class SGFilter implements ScanFilter {
   }
 
   @Override
-  public Scan filterScan(Scan scan, ParameterSet parameters) {
+  public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
 
     int numOfDataPoints = parameters.getParameter(SGFilterParameters.datapoints).getValue();
 
@@ -87,7 +89,7 @@ public class SGFilter implements ScanFilter {
     int marginSize = (numOfDataPoints + 1) / 2 - 1;
     double sumOfInts;
 
-    DataPoint oldDataPoints[] = scan.getDataPoints();
+    DataPoint oldDataPoints[] = ScanUtils.extractDataPoints(scan);
     int newDataPointsLength = oldDataPoints.length - (marginSize * 2);
 
     // only process scans with datapoints
@@ -123,8 +125,8 @@ public class SGFilter implements ScanFilter {
 
     }
 
-    SimpleScan newScan = new SimpleScan(scan);
-    newScan.setDataPoints(newDataPoints);
+    double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDataPoints);
+    SimpleScan newScan = new SimpleScan(newFile, scan, dp[0], dp[1]);
     return newScan;
 
   }

@@ -1,21 +1,20 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.utility;
 
@@ -24,7 +23,7 @@ import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
@@ -79,24 +78,22 @@ public class DynamicParameterUtils {
     if (result == null)
       return def;
 
-    if(!(result.getValue() instanceof ExtendedIsotopePattern))
+    if (!(result.getValue() instanceof SimpleIsotopePattern))
       return def;
-    
-    ExtendedIsotopePattern pattern = (ExtendedIsotopePattern) result.getValue();
+
+    SimpleIsotopePattern pattern = (SimpleIsotopePattern) result.getValue();
     String form = IsotopePatternUtils.makePatternSuggestion(pattern.getIsotopeCompositions());
-    
+
     MolecularFormulaRange range = new MolecularFormulaRange();
 
-    IMolecularFormula formula =
-        FormulaUtils.createMajorIsotopeMolFormula(form);
-    if(formula == null) {
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(form);
+    if (formula == null) {
       logger.finest("could not generate formula for m/z " + dp.getMZ() + " " + form);
       return def;
     }
 
     for (IIsotope isotope : def.isotopes())
-      range.addIsotope(isotope, def.getIsotopeCountMin(isotope),
-          def.getIsotopeCountMax(isotope));
+      range.addIsotope(isotope, def.getIsotopeCountMin(isotope), def.getIsotopeCountMax(isotope));
 
     for (IIsotope isotope : formula.isotopes()) {
       if (range.contains(isotope))
@@ -108,15 +105,14 @@ public class DynamicParameterUtils {
           (int) (count * upperElementBoundaryPercentage));
     }
 
-    for(IIsotope isotope : range.isotopes()) {
+    for (IIsotope isotope : range.isotopes()) {
       int min = range.getIsotopeCountMin(isotope);
       int max = range.getIsotopeCountMax(isotope);
-//      logger.info("m/z = " + dp.getMZ() + " " + isotope.getSymbol() + " " + min + " - " + max);
+      // logger.info("m/z = " + dp.getMZ() + " " + isotope.getSymbol() + "
+      // " + min + " - " + max);
     }
 
     return range;
   }
-
-
 
 }

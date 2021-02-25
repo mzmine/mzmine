@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -70,6 +70,10 @@ public class SavitzkyGolayFilter {
    */
   public static double[] getNormalizedWeights(final int width) {
 
+    if (width == 0) {
+      return new double[]{1d};
+    }
+
     // Get the raw values.
     final int[] values = VALUES.get(width);
     if (values == null) {
@@ -98,5 +102,36 @@ public class SavitzkyGolayFilter {
     }
 
     return weights;
+  }
+
+  /**
+   * Convolve a set of weights with a set of intensities.
+   *
+   * @param intensities the intensities.
+   * @param weights the filter weights.
+   * @return the convolution results.
+   */
+  public static double[] convolve(final double[] intensities, final double[] weights) {
+
+    // Initialise.
+    final int fullWidth = weights.length;
+    final int halfWidth = (fullWidth - 1) / 2;
+    final int numPoints = intensities.length;
+
+    // Convolve.
+    final double[] convolved = new double[numPoints];
+    for (int i = 0; i < numPoints; i++) {
+
+      double sum = 0.0;
+      final int k = i - halfWidth;
+      for (int j = Math.max(0, -k); j < Math.min(fullWidth, numPoints - k); j++) {
+        sum += intensities[k + j] * weights[j];
+      }
+
+      // Set the result.
+      convolved[i] = sum;
+    }
+
+    return convolved;
   }
 }

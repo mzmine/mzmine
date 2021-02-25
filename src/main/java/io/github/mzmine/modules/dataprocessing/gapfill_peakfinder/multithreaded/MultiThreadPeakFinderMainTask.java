@@ -1,32 +1,32 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import java.util.Collection;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
 import io.github.mzmine.main.MZmineCore;
@@ -49,7 +49,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
   private final MZmineProject project;
   private ParameterSet parameters;
-  private PeakList peakList, processedPeakList;
+  private ModularFeatureList peakList, processedPeakList;
   private String suffix;
   private boolean removeOriginal;
 
@@ -63,10 +63,10 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
    * @param parameters
    * @param batchTasks all sub tasks are registered to the batchtasks list
    */
-  public MultiThreadPeakFinderMainTask(MZmineProject project, PeakList peakList,
+  public MultiThreadPeakFinderMainTask(MZmineProject project, FeatureList peakList,
       ParameterSet parameters, Collection<Task> batchTasks) {
     this.project = project;
-    this.peakList = peakList;
+    this.peakList = (ModularFeatureList) peakList;
     this.parameters = parameters;
     this.batchTasks = batchTasks;
 
@@ -80,7 +80,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     logger.info("Running multithreaded gap filler on " + peakList);
 
     // Create new results feature list
-    processedPeakList = createResultsPeakList();
+    processedPeakList = peakList.createCopy(peakList + " " + suffix);
     progress = 0.5;
 
     // split raw data files into groups for each thread (task)
@@ -88,11 +88,11 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     // as this task uses one thread
     int maxRunningThreads = getMaxThreads();
     // raw files
-    int raw = peakList.getNumberOfRawDataFiles();
+    int raw = processedPeakList.getNumberOfRawDataFiles();
 
     // create consumer of resultpeaklist
     SubTaskFinishListener listener =
-        new SubTaskFinishListener(project, parameters, peakList, removeOriginal, maxRunningThreads);
+        new SubTaskFinishListener(project, parameters, processedPeakList, removeOriginal, maxRunningThreads);
 
     // Submit the tasks to the task controller for processing
     Task[] tasks = createSubTasks(raw, maxRunningThreads, listener);
@@ -135,26 +135,6 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private PeakList createResultsPeakList() {
-    SimplePeakList processedPeakList =
-        new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
-
-    // Fill new feature list with empty rows
-    for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-      PeakListRow sourceRow = peakList.getRow(row);
-      PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
-      newRow.setComment(sourceRow.getComment());
-      for (PeakIdentity ident : sourceRow.getPeakIdentities()) {
-        newRow.addPeakIdentity(ident, false);
-      }
-      if (sourceRow.getPreferredPeakIdentity() != null) {
-        newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
-      }
-      processedPeakList.addRow(newRow);
-    }
-    return processedPeakList;
-  }
-
   private int getMaxThreads() {
     int maxRunningThreads = 1;
     NumOfThreadsParameter parameter =
@@ -175,7 +155,6 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
   /**
    * Distributes the RawDataFiles on different tasks
    * 
-   * @param lock
    * @param raw
    * @param maxRunningThreads
    * @param listener
@@ -215,7 +194,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     return "Main task: Gap filling " + peakList;
   }
 
-  PeakList getPeakList() {
+  FeatureList getPeakList() {
     return peakList;
   }
 

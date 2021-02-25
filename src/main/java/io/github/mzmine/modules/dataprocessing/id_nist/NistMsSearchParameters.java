@@ -1,54 +1,47 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
-
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.io.File;
 import java.util.Collection;
-
-import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 
 /**
  * Holds NIST MS Search parameters.
  *
  * @author $Author$
- * @version $Revision$
+ * @version 2.0
  */
 public class NistMsSearchParameters extends SimpleParameterSet {
 
   /**
    * Feature lists to operate on.
    */
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   /**
    * NIST MS Search path.
@@ -58,48 +51,39 @@ public class NistMsSearchParameters extends SimpleParameterSet {
           "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
 
   /**
-   * Ionization method.
+   * MS Level for search.
    */
-  public static final ComboParameter<IonizationType> IONIZATION_METHOD =
-      new ComboParameter<IonizationType>("Ionization method",
-          "Type of ion used to calculate the neutral mass", IonizationType.values());
-
-  /**
-   * Spectrum RT width.
-   */
-  public static final RTToleranceParameter SPECTRUM_RT_WIDTH =
-      new RTToleranceParameter("Spectrum RT tolerance",
-          "The RT tolerance (>= 0) to use when forming search spectra; include all other"
-              + "\ndetected peaks whose RT is within the specified tolerance of a given peak");
-
-  /**
-   * Maximum number of peaks per spectrum.
-   */
-  public static final IntegerParameter MAX_NUM_PEAKS =
-      new IntegerParameter("Max. peaks per spectrum",
-          "The maximum number of peaks to include in a spectrum (0 -> unlimited)", 10, 0, null);
-
-  /**
-   * Must have same identities.
-   */
-
-  public static final BooleanParameter SAME_IDENTITIES = new BooleanParameter(
-      "Must have same identities",
-      "Two peaks will only be included in the same spectrum if they have the same identity (for use with CAMERA pseudo-spectra)",
-      true);
+  public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
+      "Choose MS level for spectal matching. Enter \"1\" for MS1 precursors or ADAP Cluster Spectra.",
+      2, 1, 1000);
 
   /**
    * Match factor cut-off.
    */
   public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter("Min. match factor",
-      "The minimum match factor (0 .. 1000) that search hits must have", 800, 0, 1000);
+      "The minimum match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
 
   /**
-   * Match factor cut-off.
+   * Reverse match factor cut-off.
    */
   public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR =
       new IntegerParameter("Min. reverse match factor",
-          "The minimum reverse match factor (0 .. 1000) that search hits must have", 800, 0, 1000);
+          "The minimum reverse match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
+
+  /**
+   * Optional MSMS merging parameters.
+   */
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
+      new OptionalModuleParameter<>("Merge MS/MS (experimental)",
+          "Merge high-quality MS/MS instead of exporting just the most intense one.",
+          new MsMsSpectraMergeParameters(), false);
+
+  /**
+   * Optional MZ rounding.
+   */
+  public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ =
+      new OptionalParameter<>(new ComboParameter<IntegerMode>("Integer m/z",
+          "Merging mode for fractional m/z to unit mass", IntegerMode.values()), false);
 
   // NIST MS Search executable.
   private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
@@ -108,8 +92,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Construct the parameter set.
    */
   public NistMsSearchParameters() {
-    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, IONIZATION_METHOD, SPECTRUM_RT_WIDTH,
-        MAX_NUM_PEAKS, SAME_IDENTITIES, MIN_MATCH_FACTOR, MIN_REVERSE_MATCH_FACTOR});
+    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, MIN_MATCH_FACTOR,
+        MIN_REVERSE_MATCH_FACTOR, MERGE_PARAMETER, INTEGER_MZ});
   }
 
   @Override
@@ -117,7 +101,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 
     // Unsupported OS.
     if (!isWindows()) {
-      errorMessages.add("NIST MS Search is only supported on the Windows operating system.");
+      errorMessages.add("NIST MS Search is only supported on Windows operating systems.");
       return false;
     }
 

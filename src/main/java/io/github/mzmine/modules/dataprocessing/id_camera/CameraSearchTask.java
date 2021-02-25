@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -24,36 +24,38 @@
 
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -65,13 +67,6 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map.Entry;
-
 /**
  * A task to perform a CAMERA search.
  *
@@ -79,7 +74,7 @@ import java.util.Map.Entry;
 public class CameraSearchTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(CameraSearchTask.class.getName());
+  private static final Logger logger = Logger.getLogger(CameraSearchTask.class.getName());
 
   // Required version of CAMERA.
   private static final String CAMERA_VERSION = "1.12";
@@ -101,7 +96,7 @@ public class CameraSearchTask extends AbstractTask {
       new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending);
 
   // Feature list to process.
-  private final PeakList peakList;
+  private final FeatureList peakList;
 
   // Task progress.
   private double progress;
@@ -130,7 +125,7 @@ public class CameraSearchTask extends AbstractTask {
   private REngineType rEngineType;
 
   public CameraSearchTask(final MZmineProject project, final ParameterSet parameters,
-      final PeakList list) {
+      final FeatureList list) {
 
     // Initialize.
     peakList = list;
@@ -191,7 +186,7 @@ public class CameraSearchTask extends AbstractTask {
       cameraSearch(peakList.getRawDataFile(0));
 
       // Create new list with IsotopePattern information
-      PeakList newPeakList = null;
+      FeatureList newPeakList = null;
 
       if (parameters.getParameter(CameraSearchParameters.CREATE_NEW_LIST).getValue()) {
         switch (groupBy) {
@@ -203,29 +198,27 @@ public class CameraSearchTask extends AbstractTask {
         }
       }
 
-
-
       if (!isCanceled()) {
 
         if (newPeakList != null) {
-          project.addPeakList(newPeakList);
+          project.addFeatureList(newPeakList);
 
-          QualityParameters.calculateQualityParameters(newPeakList);
+          //QualityParameters.calculateQualityParameters(newPeakList);
         }
 
         // Finished.
         setStatus(TaskStatus.FINISHED);
-        LOG.info("CAMERA Search completed");
+        logger.info("CAMERA Search completed");
       }
 
       // Repaint the window to reflect the change in the feature list
       Desktop desktop = MZmineCore.getDesktop();
-      if (!(desktop instanceof HeadLessDesktop))
-        desktop.getMainWindow().repaint();
+      // if (!(desktop instanceof HeadLessDesktop))
+      // desktop.getMainWindow().repaint();
 
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "CAMERA Search error", t);
+      logger.log(Level.SEVERE, "CAMERA Search error", t);
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
     }
@@ -238,7 +231,7 @@ public class CameraSearchTask extends AbstractTask {
    */
   private void cameraSearch(final RawDataFile rawFile) {
 
-    LOG.finest("Detecting peaks.");
+    logger.finest("Detecting peaks.");
 
     errorMsg = null;
     try {
@@ -249,7 +242,6 @@ public class CameraSearchTask extends AbstractTask {
           reqPackagesVersions);
       this.rSession.open();
 
-
       // Create empty peaks matrix.
       this.rSession.eval(
           "columnHeadings <- c('mz','mzmin','mzmax','rt','rtmin','rtmax','into','intb','maxo','sn')");
@@ -257,14 +249,14 @@ public class CameraSearchTask extends AbstractTask {
       this.rSession.eval("colnames(peaks) <- columnHeadings");
 
       // Initialize.
-      final Feature[] peaks = peakList.getPeaks(rawFile);
+      final Feature[] peaks = peakList.getFeatures(rawFile).toArray(Feature[]::new);
       progress = 0.0;
 
       // Initialize scan map.
       final Map<Scan, Set<DataPoint>> peakDataPointsByScan =
           new HashMap<Scan, Set<DataPoint>>(rawFile.getNumOfScans(MS_LEVEL));
       int dataPointCount = 0;
-      for (final int scanNumber : rawFile.getScanNumbers(MS_LEVEL)) {
+      for (final Scan scan : rawFile.getScanNumbers(MS_LEVEL)) {
 
         // Create a set to hold data points (sorted by m/z).
         final Set<DataPoint> dataPoints = new TreeSet<DataPoint>(ASCENDING_MASS_SORTER);
@@ -274,31 +266,29 @@ public class CameraSearchTask extends AbstractTask {
         dataPointCount++;
 
         // Map the set.
-        peakDataPointsByScan.put(rawFile.getScan(scanNumber), dataPoints);
+        peakDataPointsByScan.put(scan, dataPoints);
       }
 
       // Add peaks.
       // 80 percents for building peaks list.
-      double progressInc = 0.8 / (double) peaks.length;
+      double progressInc = 0.8 / peaks.length;
       for (final Feature peak : peaks) {
 
         // Get peak data.
-        Range<Double> rtRange = null;
+        Range<Float> rtRange = null;
         Range<Double> intRange = null;
         final double mz = peak.getMZ();
 
         // Get the peak's data points per scan.
-        for (final int scanNumber : peak.getScanNumbers()) {
-
-          final Scan scan = rawFile.getScan(scanNumber);
+        for (int i=0; i<peak.getNumberOfDataPoints(); i++){
+          Scan scan = peak.getScanAtIndex(i);
           if (scan.getMSLevel() != MS_LEVEL) {
-
             throw new IllegalStateException(
                 "CAMERA can only process feature lists from MS-level " + MS_LEVEL);
           }
 
           // Copy the data point.
-          final DataPoint dataPoint = peak.getDataPoint(scanNumber);
+          final DataPoint dataPoint = peak.getDataPointAtIndex(i);
           if (dataPoint != null) {
 
             final double intensity = dataPoint.getIntensity();
@@ -306,7 +296,7 @@ public class CameraSearchTask extends AbstractTask {
             dataPointCount++;
 
             // Update RT & intensity range.
-            final double rt = scan.getRetentionTime();
+            final float rt = scan.getRetentionTime();
             if (rtRange == null) {
               rtRange = Range.singleton(rt);
               intRange = Range.singleton(intensity);
@@ -321,9 +311,9 @@ public class CameraSearchTask extends AbstractTask {
         // Set peak values.
         final double area = peak.getArea();
         final double maxo = intRange == null ? peak.getHeight() : intRange.upperEndpoint();
-        final double rtMin =
+        final float rtMin =
             (rtRange == null ? peak.getRawDataPointsRTRange() : rtRange).lowerEndpoint();
-        final double rtMax =
+        final float rtMax =
             (rtRange == null ? peak.getRawDataPointsRTRange() : rtRange).upperEndpoint();
 
         // Add peak row.
@@ -354,15 +344,12 @@ public class CameraSearchTask extends AbstractTask {
       // Fill vectors.
       int scanIndex = 0;
       int pointIndex = 0;
-      for (final int scanNumber : rawFile.getScanNumbers(MS_LEVEL)) {
-
-        final Scan scan = rawFile.getScan(scanNumber);
+      for (final Scan scan : rawFile.getScanNumbers(MS_LEVEL)) {
         scanTimes[scanIndex] = scan.getRetentionTime();
         scanIndices[scanIndex] = pointIndex + 1;
         scanIndex++;
 
         for (final DataPoint dataPoint : peakDataPointsByScan.get(scan)) {
-
           masses[pointIndex] = dataPoint.getMZ();
           intensities[pointIndex] = dataPoint.getIntensity();
           pointIndex++;
@@ -404,13 +391,14 @@ public class CameraSearchTask extends AbstractTask {
           .eval("an <- groupFWHM(an, sigma=" + fwhmSigma + ", perfwhm=" + fwhmPercentage + ')');
       progress += progressInc;
 
-
-      // this.rSession.eval("write.csv(getPeaklist(an), file='/Users/aleksandrsmirnov/table.csv',
+      // this.rSession.eval("write.csv(getPeaklist(an),
+      // file='/Users/aleksandrsmirnov/table.csv',
       // row.names=FALSE)");
 
       switch (parameters.getParameter(CameraSearchParameters.ORDER).getValue()) {
         case CameraSearchParameters.GROUP_CORR_FIRST:
-          // Split groups by correlating peak shape (need to set xraw to raw
+          // Split groups by correlating peak shape (need to set xraw to
+          // raw
           // data).
           this.rSession.eval("an <- groupCorr(an, calcIso=FALSE, xraw=xRaw, cor_eic_th="
               + corrThreshold + ", pval=" + corrPValue + ')');
@@ -433,7 +421,8 @@ public class CameraSearchTask extends AbstractTask {
           // file='/Users/aleksandrsmirnov/test_camera.csv')");
           progress += progressInc;
 
-          // Split groups by correlating peak shape (need to set xraw to raw
+          // Split groups by correlating peak shape (need to set xraw to
+          // raw
           // data).
           this.rSession.eval("an <- groupCorr(an, calcIso=" + String.valueOf(calcIso).toUpperCase()
               + ", xraw=xRaw, cor_eic_th=" + corrThreshold + ", pval=" + corrPValue + ')');
@@ -456,7 +445,6 @@ public class CameraSearchTask extends AbstractTask {
       final String[] adducts = (String[]) rSession.collect("adducts");
       // Done: Refresh R code stack
       this.rSession.clearCode();
-
 
       // Add identities.
       if (spectra != null) {
@@ -495,7 +483,6 @@ public class CameraSearchTask extends AbstractTask {
       }
     }
 
-
     // Report error.
     if (errorMsg != null) {
       setErrorMessage(errorMsg);
@@ -507,8 +494,8 @@ public class CameraSearchTask extends AbstractTask {
    * Add pseudo-spectra identities.
    *
    * @param peaks peaks to annotate with identities.
-   * @param spectraExp the pseudo-spectra ids vector.
-   * @param isotopeExp the isotopes vector.
+   * @param spectra the pseudo-spectra ids vector.
+   * @param isotopes the isotopes vector.
    */
   private void addPseudoSpectraIdentities(final Feature[] peaks, final int[] spectra,
       final String[] isotopes, final String[] adducts) {
@@ -518,9 +505,9 @@ public class CameraSearchTask extends AbstractTask {
     for (final Feature peak : peaks) {
 
       // Create pseudo-spectrum identity
-      final SimplePeakIdentity identity =
-          new SimplePeakIdentity("Pseudo-spectrum #" + String.format("%03d", spectra[peakIndex]));
-      identity.setPropertyValue(PeakIdentity.PROPERTY_METHOD, "Bioconductor CAMERA");
+      final SimpleFeatureIdentity identity =
+          new SimpleFeatureIdentity("Pseudo-spectrum #" + String.format("%03d", spectra[peakIndex]));
+      identity.setPropertyValue(FeatureIdentity.PROPERTY_METHOD, "Bioconductor CAMERA");
 
       // Add isotope info, if any.
       if (isotopes != null) {
@@ -532,12 +519,13 @@ public class CameraSearchTask extends AbstractTask {
           final Matcher matcher = ISOTOPE_PATTERN.matcher(isotope);
           if (matcher.matches()) {
 
-            // identity.setPropertyValue("Isotope", matcher.group(1));
+            // identity.setPropertyValue("Isotope",
+            // matcher.group(1));
             identity.setPropertyValue("Isotope", isotope);
 
           } else {
 
-            LOG.warning("Irregular isotope value: " + isotope);
+            logger.warning("Irregular isotope value: " + isotope);
           }
         }
       }
@@ -549,14 +537,13 @@ public class CameraSearchTask extends AbstractTask {
       }
 
       // Add identity to peak's row.
-      PeakListRow row = peakList.getPeakRow(peak);
-      for (PeakIdentity peakIdentity : row.getPeakIdentities())
-        row.removePeakIdentity(peakIdentity);
-      peakList.getPeakRow(peak).addPeakIdentity(identity, true);
+      FeatureListRow row = peakList.getFeatureRow(peak);
+      for (FeatureIdentity peakIdentity : row.getPeakIdentities())
+        row.removeFeatureIdentity(peakIdentity);
+      peakList.getFeatureRow(peak).addFeatureIdentity(identity, true);
       peakIndex++;
     }
   }
-
 
   @Override
   public void cancel() {
@@ -576,25 +563,26 @@ public class CameraSearchTask extends AbstractTask {
 
   /**
    * Uses Isotope-field in PeakIdentity to group isotopes and build spectrum
-   * 
+   *
    * @param peakList PeakList object
    * @return new PeakList object
    */
 
-  private PeakList groupPeaksByIsotope(PeakList peakList) {
+  private FeatureList groupPeaksByIsotope(FeatureList peakList) {
     // Create new feature list.
-    final PeakList combinedPeakList = new SimplePeakList(
+    final FeatureList combinedPeakList = new ModularFeatureList(
         peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(),
         peakList.getRawDataFiles());
 
     // Load previous applied methods.
-    for (final PeakList.PeakListAppliedMethod method : peakList.getAppliedMethods()) {
+    for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
       combinedPeakList.addDescriptionOfAppliedTask(method);
     }
 
     // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Bioconductor CAMERA", parameters));
+        new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", CameraSearchModule.class,
+            parameters));
 
     // ------------------------------------------------
     // Find unique isotopes belonging to the same group
@@ -602,8 +590,8 @@ public class CameraSearchTask extends AbstractTask {
 
     Set<String> isotopeGroups = new HashSet<>();
 
-    for (PeakListRow row : peakList.getRows()) {
-      PeakIdentity identity = row.getPreferredPeakIdentity();
+    for (FeatureListRow row : peakList.getRows()) {
+      FeatureIdentity identity = row.getPreferredFeatureIdentity();
       if (identity == null)
         continue;
 
@@ -618,10 +606,10 @@ public class CameraSearchTask extends AbstractTask {
       isotopeGroups.add(isotopeGroup);
     }
 
-    List<PeakListRow> groupRows = new ArrayList<>();
+    List<FeatureListRow> groupRows = new ArrayList<>();
     Set<String> groupNames = new HashSet<>();
     Map<Double, Double> spectrum = new HashMap<>();
-    List<PeakListRow> newPeakListRows = new ArrayList<>();
+    List<FeatureListRow> newPeakListRows = new ArrayList<>();
 
     for (String isotopeGroup : isotopeGroups) {
       // -----------------------------------------
@@ -633,10 +621,10 @@ public class CameraSearchTask extends AbstractTask {
       spectrum.clear();
 
       int minLength = Integer.MAX_VALUE;
-      PeakListRow groupRow = null;
+      FeatureListRow groupRow = null;
 
-      for (PeakListRow row : peakList.getRows()) {
-        PeakIdentity identity = row.getPreferredPeakIdentity();
+      for (FeatureListRow row : peakList.getRows()) {
+        FeatureIdentity identity = row.getPreferredFeatureIdentity();
         if (identity == null)
           continue;
 
@@ -660,7 +648,8 @@ public class CameraSearchTask extends AbstractTask {
         }
       }
 
-      // Skip peaks that have different identity names (belong to different pcgroup)
+      // Skip peaks that have different identity names (belong to
+      // different pcgroup)
       if (groupRow == null || groupNames.size() != 1)
         continue;
 
@@ -671,7 +660,7 @@ public class CameraSearchTask extends AbstractTask {
       if (groupRow == null)
         continue;
 
-      PeakIdentity identity = groupRow.getPreferredPeakIdentity();
+      FeatureIdentity identity = groupRow.getPreferredFeatureIdentity();
       if (identity == null)
         continue;
 
@@ -683,7 +672,7 @@ public class CameraSearchTask extends AbstractTask {
       IsotopePattern pattern =
           new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, "Spectrum");
 
-      groupRow.getBestPeak().setIsotopePattern(pattern);
+      groupRow.getBestFeature().setIsotopePattern(pattern);
 
       // combinedPeakList.addRow(groupRow);
       newPeakListRows.add(groupRow);
@@ -694,8 +683,8 @@ public class CameraSearchTask extends AbstractTask {
     // -----------------------------------
 
     if (includeSingletons) {
-      for (PeakListRow row : peakList.getRows()) {
-        PeakIdentity identity = row.getPreferredPeakIdentity();
+      for (FeatureListRow row : peakList.getRows()) {
+        FeatureIdentity identity = row.getPreferredFeatureIdentity();
         if (identity == null)
           continue;
 
@@ -707,7 +696,7 @@ public class CameraSearchTask extends AbstractTask {
           IsotopePattern pattern =
               new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, "Spectrum");
 
-          row.getBestPeak().setIsotopePattern(pattern);
+          row.getBestFeature().setIsotopePattern(pattern);
 
           newPeakListRows.add(row);
         }
@@ -718,9 +707,9 @@ public class CameraSearchTask extends AbstractTask {
     // Sort new peak rows by retention time
     // ------------------------------------
 
-    Collections.sort(newPeakListRows, new Comparator<PeakListRow>() {
+    Collections.sort(newPeakListRows, new Comparator<FeatureListRow>() {
       @Override
-      public int compare(PeakListRow row1, PeakListRow row2) {
+      public int compare(FeatureListRow row1, FeatureListRow row2) {
         double retTime1 = row1.getAverageRT();
         double retTime2 = row2.getAverageRT();
 
@@ -728,7 +717,7 @@ public class CameraSearchTask extends AbstractTask {
       }
     });
 
-    for (PeakListRow row : newPeakListRows)
+    for (FeatureListRow row : newPeakListRows)
       combinedPeakList.addRow(row);
 
     return combinedPeakList;
@@ -736,25 +725,26 @@ public class CameraSearchTask extends AbstractTask {
 
   /**
    * Uses PCGroup-field in PeakIdentity to group peaks and build spectrum
-   * 
+   *
    * @param peakList a PeakList object
    * @return a new PeakList object
    */
 
-  private PeakList groupPeaksByPCGroup(PeakList peakList) {
+  private FeatureList groupPeaksByPCGroup(FeatureList peakList) {
     // Create new feature list.
-    final PeakList combinedPeakList = new SimplePeakList(
+    final FeatureList combinedPeakList = new ModularFeatureList(
         peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(),
         peakList.getRawDataFiles());
 
     // Load previous applied methods.
-    for (final PeakList.PeakListAppliedMethod method : peakList.getAppliedMethods()) {
+    for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
       combinedPeakList.addDescriptionOfAppliedTask(method);
     }
 
     // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Bioconductor CAMERA", parameters));
+        new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", CameraSearchModule.class,
+            parameters));
 
     // --------------------
     // Find unique PCGroups
@@ -762,8 +752,8 @@ public class CameraSearchTask extends AbstractTask {
 
     Set<String> pcGroups = new HashSet<>();
 
-    for (PeakListRow row : peakList.getRows()) {
-      PeakIdentity identity = row.getPreferredPeakIdentity();
+    for (FeatureListRow row : peakList.getRows()) {
+      FeatureIdentity identity = row.getPreferredFeatureIdentity();
       if (identity == null)
         continue;
 
@@ -774,10 +764,10 @@ public class CameraSearchTask extends AbstractTask {
       pcGroups.add(groupName);
     }
 
-    List<PeakListRow> groupRows = new ArrayList<>();
+    List<FeatureListRow> groupRows = new ArrayList<>();
     // Set <String> groupNames = new HashSet <> ();
     Map<Double, Double> spectrum = new HashMap<>();
-    List<PeakListRow> newPeakListRows = new ArrayList<>();
+    List<FeatureListRow> newPeakListRows = new ArrayList<>();
 
     for (String groupName : pcGroups) {
       // -----------------------------------------
@@ -789,10 +779,10 @@ public class CameraSearchTask extends AbstractTask {
       spectrum.clear();
 
       double maxIntensity = 0.0;
-      PeakListRow groupRow = null;
+      FeatureListRow groupRow = null;
 
-      for (PeakListRow row : peakList.getRows()) {
-        PeakIdentity identity = row.getPreferredPeakIdentity();
+      for (FeatureListRow row : peakList.getRows()) {
+        FeatureIdentity identity = row.getPreferredFeatureIdentity();
         if (identity == null)
           continue;
 
@@ -819,7 +809,7 @@ public class CameraSearchTask extends AbstractTask {
       if (groupRow == null || spectrum.size() <= 1)
         continue;
 
-      PeakIdentity identity = groupRow.getPreferredPeakIdentity();
+      FeatureIdentity identity = groupRow.getPreferredFeatureIdentity();
       if (identity == null)
         continue;
 
@@ -831,7 +821,7 @@ public class CameraSearchTask extends AbstractTask {
       IsotopePattern pattern =
           new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, "Spectrum");
 
-      groupRow.getBestPeak().setIsotopePattern(pattern);
+      groupRow.getBestFeature().setIsotopePattern(pattern);
 
       // combinedPeakList.addRow(groupRow);
       newPeakListRows.add(groupRow);
@@ -841,9 +831,9 @@ public class CameraSearchTask extends AbstractTask {
     // Sort new peak rows by retention time
     // ------------------------------------
 
-    Collections.sort(newPeakListRows, new Comparator<PeakListRow>() {
+    Collections.sort(newPeakListRows, new Comparator<FeatureListRow>() {
       @Override
-      public int compare(PeakListRow row1, PeakListRow row2) {
+      public int compare(FeatureListRow row1, FeatureListRow row2) {
         double retTime1 = row1.getAverageRT();
         double retTime2 = row2.getAverageRT();
 
@@ -851,7 +841,7 @@ public class CameraSearchTask extends AbstractTask {
       }
     });
 
-    for (PeakListRow row : newPeakListRows)
+    for (FeatureListRow row : newPeakListRows)
       combinedPeakList.addRow(row);
 
     return combinedPeakList;

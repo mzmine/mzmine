@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -37,11 +37,14 @@ import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.ValueAxisPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.Range;
 
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import org.jfree.data.RangeType;
 
 /**
  * Collection of methods for JFreeCharts <br>
@@ -197,7 +200,6 @@ public class ChartLogics {
     return new Point2D.Double(p2.getX() - p.getX(), p.getY() - p2.getY());
   }
 
-
   /**
    * Data width to pixel width on screen
    * 
@@ -217,13 +219,12 @@ public class ChartLogics {
     return width2D;
   }
 
-
   /**
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
    * 
-   * @param chart
-   * @param width
+   * @param myChart
+   * @param plotWidth
    * @return
    */
   public static Dimension calcSizeForPlotWidth(ChartPanel myChart, double plotWidth) {
@@ -234,7 +235,7 @@ public class ChartLogics {
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
    * 
-   * @param chart
+   * @param myChart
    * @param plotWidth
    * @return
    */
@@ -255,7 +256,7 @@ public class ChartLogics {
   /**
    * Calculates the size of a chart for a given fixed plot width and height
    * 
-   * @param chart
+   * @param myChart
    * @param plotWidth
    * @return
    */
@@ -267,7 +268,7 @@ public class ChartLogics {
   /**
    * Calculates the size of a chart for a given fixed plot width and height
    * 
-   * @param chart
+   * @param myChart
    * @param plotWidth
    * @return
    */
@@ -285,7 +286,8 @@ public class ChartLogics {
     // paint and get closer
     try {
       for (int i = 0; i < iterations; i++) {
-        // paint on ghost panel with estimated height (if copy panel==true)
+        // paint on ghost panel with estimated height (if copy
+        // panel==true)
         myChart.setSize((int) estimatedChartWidth, (int) estimatedChartHeight);
         myChart.paintImmediately(myChart.getBounds());
 
@@ -294,9 +296,11 @@ public class ChartLogics {
         Rectangle2D dataArea = info.getPlotInfo().getDataArea();
         Rectangle2D chartArea = info.getChartArea();
 
-        // // calc title space: will be added later to the right plot size
+        // // calc title space: will be added later to the right plot
+        // size
         // double titleWidth = chartArea.getWidth()-dataArea.getWidth();
-        // double titleHeight = chartArea.getHeight()-dataArea.getHeight();
+        // double titleHeight =
+        // chartArea.getHeight()-dataArea.getHeight();
 
         // calc width and height
         estimatedChartWidth = estimatedChartWidth - dataArea.getWidth() + plotWidth;
@@ -322,8 +326,7 @@ public class ChartLogics {
    * 
    * @param myChart
    * @param copyToNewPanel
-   * @param dataWidth width of data
-   * @param axis for width calculation
+   * @param chartWidth width of data
    * @return
    */
   public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
@@ -337,8 +340,7 @@ public class ChartLogics {
    * 
    * @param myChart
    * @param copyToNewPanel
-   * @param dataWidth width of data
-   * @param axis for width calculation
+   * @param chartWidth width of data
    * @return
    */
   public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
@@ -359,7 +361,8 @@ public class ChartLogics {
       p.add(myChart, BorderLayout.CENTER);
     try {
       for (int i = 0; i < iterations; i++) {
-        // paint on ghost panel with estimated height (if copy panel==true)
+        // paint on ghost panel with estimated height (if copy
+        // panel==true)
         myChart.setSize((int) chartWidth, (int) estimatedHeight);
         myChart.paintImmediately(myChart.getBounds());
 
@@ -444,7 +447,6 @@ public class ChartLogics {
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
     Rectangle2D chartArea = info.getChartArea();
 
-
     // calc title space: will be added later to the right plot size
     double titleWidth = chartArea.getWidth() - dataArea.getWidth();
     double titleHeight = chartArea.getHeight() - dataArea.getHeight();
@@ -490,7 +492,6 @@ public class ChartLogics {
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
     Rectangle2D chartArea = info.getChartArea();
 
-
     // calc title space: will be added later to the right plot size
     double titleWidth = chartArea.getWidth() - dataArea.getWidth();
     double titleHeight = chartArea.getHeight() - dataArea.getHeight();
@@ -511,7 +512,8 @@ public class ChartLogics {
     double realPW = realPH / y.getLength() * x.getLength();
 
     double width = realPW + titleWidth;
-    // if width is higher than given chartWidth then calc height for chartWidth
+    // if width is higher than given chartWidth then calc height for
+    // chartWidth
     if (width > chartWidth) {
       // calc right plot size with axis dim.
       // real plot width is given by factor;
@@ -528,8 +530,6 @@ public class ChartLogics {
       return new Dimension((int) width, (int) chartHeight);
     }
   }
-
-
 
   /**
    * 
@@ -563,21 +563,15 @@ public class ChartLogics {
   /**
    * Zoom into a chart panel
    * 
-   * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void setZoomAxis(ValueAxis axis, Range zoom) {
     axis.setRange(zoom);
   }
 
-
   /**
    * Auto range the range axis
    * 
    * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void autoRangeAxis(ChartPanel myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
@@ -592,8 +586,6 @@ public class ChartLogics {
    * Auto range the range axis
    * 
    * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void autoDomainAxis(ChartPanel myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
@@ -658,7 +650,6 @@ public class ChartLogics {
   /**
    * Apply an absolute offset to an axis and move it
    * 
-   * @param myChart
    * @param offset
    */
   public static void offsetAxisAbsolute(ValueAxis axis, double offset) {
@@ -670,27 +661,114 @@ public class ChartLogics {
    * Apply an relative offset to an axis and move it. LowerBound and UpperBound are defined by
    * {@link ValueAxis#getDefaultAutoRange()}
    * 
-   * @param myChart
+   * @param axis
    * @param offset percentage
    */
   public static void offsetAxis(ValueAxis axis, double offset) {
-    double distance = (axis.getUpperBound() - axis.getLowerBound()) * offset;
+    double distance = (axis.getRange().getLength()) * offset;
     Range range = new Range(axis.getLowerBound() + distance, axis.getUpperBound() + distance);
     setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
   }
 
   public static Range keepRangeWithinAutoBounds(ValueAxis axis, Range range) {
     // keep within auto range bounds
-    // Range auto = axis.getDefaultAutoRange();
-    // if(range.getLowerBound()<auto.getLowerBound()){
-    // double negative = range.getLowerBound()-auto.getLowerBound();
-    // range = new Range(auto.getLowerBound(), range.getUpperBound()-negative);
-    // }
-    // if(range.getUpperBound()>auto.getUpperBound()) {
-    // double positive = range.getUpperBound()-auto.getUpperBound();
-    // range = new Range(range.getLowerBound()-positive, auto.getUpperBound());
-    // }
-    return range;
+     Range auto = getAutoRange(axis);
+     if(auto==null)
+       return range;
+    return new Range(Math.max(auto.getLowerBound(), range.getLowerBound()), Math.min(auto.getUpperBound(), range.getUpperBound()));
+  }
+
+  /**
+   * The auto range - copied from {@link NumberAxis} autoAdjustRange
+   * @param axis
+   * @return
+   */
+  public static Range getAutoRange(ValueAxis axis) {
+
+    Plot plot = axis.getPlot();
+    if (plot == null) {
+      return null;  // no plot, no data
+    }
+
+    if (plot instanceof ValueAxisPlot) {
+      ValueAxisPlot vap = (ValueAxisPlot) plot;
+
+      Range r = vap.getDataRange(axis);
+      if (r == null) {
+        r = axis.getDefaultAutoRange();
+      }
+
+      double upper = r.getUpperBound();
+      double lower = r.getLowerBound();
+
+      if (axis instanceof NumberAxis) {
+        NumberAxis numberAxis = (NumberAxis) axis;
+        if (numberAxis.getRangeType() == RangeType.POSITIVE) {
+          lower = Math.max(0.0, lower);
+          upper = Math.max(0.0, upper);
+        } else if (numberAxis.getRangeType() == RangeType.NEGATIVE) {
+          lower = Math.min(0.0, lower);
+          upper = Math.min(0.0, upper);
+        }
+
+        if (numberAxis.getAutoRangeIncludesZero()) {
+          lower = Math.min(lower, 0.0);
+          upper = Math.max(upper, 0.0);
+        }
+      }
+      double range = upper - lower;
+
+      // if fixed auto range, then derive lower bound...
+      double fixedAutoRange = axis.getFixedAutoRange();
+      if (fixedAutoRange > 0.0) {
+        lower = upper - fixedAutoRange;
+      } else {
+        // ensure the autorange is at least <minRange> in size...
+        double minRange = axis.getAutoRangeMinimumSize();
+        if (range < minRange) {
+          double expand = (minRange - range) / 2;
+          upper = upper + expand;
+          lower = lower - expand;
+          if (lower == upper) { // see bug report 1549218
+            double adjust = Math.abs(lower) / 10.0;
+            lower = lower - adjust;
+            upper = upper + adjust;
+          }
+          if (axis instanceof NumberAxis) {
+            NumberAxis numberAxis = (NumberAxis) axis;
+            if (numberAxis.getRangeType() == RangeType.POSITIVE) {
+              if (lower < 0.0) {
+                upper = upper - lower;
+                lower = 0.0;
+              }
+            } else if (numberAxis.getRangeType() == RangeType.NEGATIVE) {
+              if (upper > 0.0) {
+                lower = lower - upper;
+                upper = 0.0;
+              }
+            }
+
+            if (numberAxis.getAutoRangeStickyZero()) {
+              if (upper <= 0.0) {
+                upper = Math.min(0.0, upper + axis.getUpperMargin() * range);
+              } else {
+                upper = upper + axis.getUpperMargin() * range;
+              }
+              if (lower >= 0.0) {
+                lower = Math.max(0.0, lower - axis.getLowerMargin() * range);
+              } else {
+                lower = lower - axis.getLowerMargin() * range;
+              }
+            }
+          }
+        } else {
+          upper = upper + axis.getUpperMargin() * range;
+          lower = lower - axis.getLowerMargin() * range;
+        }
+      }
+      return new Range(lower, upper);
+    }
+    else return null;
   }
 
   /**
@@ -707,7 +785,7 @@ public class ChartLogics {
   /**
    * Zoom in (negative zoom) or zoom out of axis.
    * 
-   * @param myChart
+   * @param axis
    * @param zoom percentage zoom factor
    * @param holdLowerBound if true only the upper bound will be zoomed
    */
@@ -735,7 +813,7 @@ public class ChartLogics {
   /**
    * Zoom in (negative zoom) or zoom out of axis.
    * 
-   * @param myChart
+   * @param axis
    * @param zoom percentage zoom factor
    * @param start point on this range (first click/pressed event), used as center
    */

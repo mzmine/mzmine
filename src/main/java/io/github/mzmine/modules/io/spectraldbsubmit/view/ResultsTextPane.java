@@ -44,8 +44,6 @@ public class ResultsTextPane extends JTextPane {
     });
   }
 
-
-
   private void createStyles() {
     error = this.addStyle("error", null);
     StyleConstants.setForeground(error, Color.red);

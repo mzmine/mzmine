@@ -1,30 +1,31 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 
 public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
 
   public final static int NOT_USED = -1;
-  private PeakListRow peaks[];
+  private FeatureListRow peaks[];
   private int indices[];
   private int nonGapCount;
   private double rtsum, mzsum;
@@ -32,7 +33,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
   private double score;
   private boolean isEmpty;
   private boolean identified;
-  private PeakListRow base;
+  private FeatureListRow base;
 
   @Override
   public AlignmentPath clone() {
@@ -53,7 +54,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
   private AlignmentPath() {}
 
   private AlignmentPath(int n) {
-    peaks = new PeakListRow[n];
+    peaks = new FeatureListRow[n];
     isEmpty = true;
   }
 
@@ -63,7 +64,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
    * @param startCol
    * @param params2
    */
-  public AlignmentPath(int len, PeakListRow base, int startCol) {
+  public AlignmentPath(int len, FeatureListRow base, int startCol) {
     this(len);
     this.base = base;
     this.add(startCol, this.base, 0);
@@ -76,7 +77,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
   public boolean containsSame(AlignmentPath anotherPath) {
     boolean same = false;
     for (int i = 0; i < peaks.length; i++) {
-      PeakListRow d = peaks[i];
+      FeatureListRow d = peaks[i];
       if (d != null) {
         same = d.equals(anotherPath.peaks[i]);
       }
@@ -98,7 +99,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
    * @param peak
    * @param matchScore
    */
-  public void add(int col, PeakListRow peak, double matchScore) {
+  public void add(int col, FeatureListRow peak, double matchScore) {
     if (peaks[col] != null) {
       // throw new RuntimeException("Peak " + col +
       // " is already filled.");
@@ -156,13 +157,14 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
     return peaks.length;
   }
 
-  public PeakListRow convertToAlignmentRow(int ID) {
-    PeakListRow newRow = new SimplePeakListRow(ID);
+  public FeatureListRow convertToAlignmentRow(int ID) {
+    FeatureListRow newRow = new ModularFeatureListRow(
+        (ModularFeatureList) this.getPeak(0).getFeatureList(), ID);
     try {
-      for (PeakListRow row : this.peaks) {
+      for (FeatureListRow row : this.peaks) {
         if (row != null) {
-          for (Feature peak : row.getPeaks()) {
-            newRow.addPeak(peak.getDataFile(), peak);
+          for (Feature peak : row.getFeatures()) {
+            newRow.addFeature(peak.getRawDataFile(), peak);
           }
         }
       }
@@ -172,13 +174,13 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
     return newRow;
   }
 
-  public PeakListRow getPeak(int index) {
+  public FeatureListRow getPeak(int index) {
     return peaks[index];
   }
 
   public String getName() {
     StringBuilder sb = new StringBuilder();
-    for (PeakListRow d : peaks) {
+    for (FeatureListRow d : peaks) {
       sb.append(d != null ? d.toString() : "GAP").append(' ');
     }
     return sb.toString();
@@ -205,7 +207,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
    */
   public double getArea() {
     double areaSum = 0.0;
-    for (PeakListRow d : peaks) {
+    for (FeatureListRow d : peaks) {
       if (d != null) {
         areaSum += d.getAverageArea();
       }
@@ -220,7 +222,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
    */
   public double getConcentration() {
     double concentrationSum = 0.0;
-    for (PeakListRow d : peaks) {
+    for (FeatureListRow d : peaks) {
       if (d != null) {
         concentrationSum += d.getAverageHeight();
       }

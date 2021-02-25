@@ -1,28 +1,30 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.io.spectraldbsubmit.view;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -31,12 +33,12 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -47,10 +49,8 @@ import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.Document;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.gui.framework.documentfilter.DocumentSizeFilter;
@@ -58,8 +58,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
-import io.github.mzmine.util.ColorPalettes;
-import io.github.mzmine.util.ColorPalettes.Vision;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
@@ -67,22 +65,22 @@ import net.miginfocom.swing.MigLayout;
 
 public class ScanSelectPanel extends JPanel implements ActionListener {
 
-
   public final Color colorRemovedData;
   public final Color colorUsedData;
 
   private static final int SIZE = 40;
   // icons
-  static final Icon iconTIC = createIcon("icons/btnTIC.png");
-  static final Icon iconTICFalse = createIcon("icons/btnTIC_grey.png");
-  static final Icon iconSignals = createIcon("icons/btnSignals.png");
-  static final Icon iconSignalsFalse = createIcon("icons/btnSignals_grey.png");
-  static final Icon iconAccept = createIcon("icons/btnAccept.png");
-  static final Icon iconCross = createIcon("icons/btnCross.png");
-  static final Icon iconNext = createIcon("icons/btnNext.png");
-  static final Icon iconPrev = createIcon("icons/btnPrev.png");
-  static final Icon iconNextGrey = createIcon("icons/btnNext_grey.png");
-  static final Icon iconPrevGrey = createIcon("icons/btnPrev_grey.png");
+  static final Image iconTIC = FxIconUtil.loadImageFromResources("icons/btnTIC.png");
+  static final Image iconTICFalse = FxIconUtil.loadImageFromResources("icons/btnTIC_grey.png");
+  static final Image iconSignals = FxIconUtil.loadImageFromResources("icons/btnSignals.png");
+  static final Image iconSignalsFalse =
+      FxIconUtil.loadImageFromResources("icons/btnSignals_grey.png");
+  static final Image iconAccept = FxIconUtil.loadImageFromResources("icons/btnAccept.png");
+  static final Image iconCross = FxIconUtil.loadImageFromResources("icons/btnCross.png");
+  static final Image iconNext = FxIconUtil.loadImageFromResources("icons/btnNext.png");
+  static final Image iconPrev = FxIconUtil.loadImageFromResources("icons/btnPrev.png");
+  static final Image iconNextGrey = FxIconUtil.loadImageFromResources("icons/btnNext_grey.png");
+  static final Image iconPrevGrey = FxIconUtil.loadImageFromResources("icons/btnPrev_grey.png");
 
   private Logger log = Logger.getLogger(this.getClass().getName());
   private final Color errorColor = Color.decode("#ffb3b3");
@@ -90,8 +88,6 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   private JToggleButton btnToggleUse;
   private JTextField txtAdduct;
   private ScanSortMode sort;
-  // null or empty to use first masslist
-  private @Nullable String massListName;
   // noise level to cut off signals
   private double noiseLevel;
   // minimum of 1
@@ -126,8 +122,8 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   private boolean isFragmentScan = true;
 
   // data either row or scans
-  private PeakListRow row;
-  private Scan[] scansEntry;
+  private FeatureListRow row;
+  private ObservableList<Scan> scansEntry;
   private JLabel lblAdduct;
   private JPanel pnData;
   private JButton btnPrev;
@@ -136,9 +132,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   /**
    * Create the panel.
    */
-  public ScanSelectPanel(PeakListRow row, ScanSortMode sort, double noiseLevel,
-      int minNumberOfSignals, String massListName) {
-    this(sort, noiseLevel, minNumberOfSignals, massListName);
+  public ScanSelectPanel(FeatureListRow row, ScanSortMode sort, double noiseLevel,
+      int minNumberOfSignals) {
+    this(sort, noiseLevel, minNumberOfSignals);
     this.row = row;
     // create chart with current sort mode
     setSortMode(sort);
@@ -146,9 +142,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     setMZandChargeFromScan();
   }
 
-  public ScanSelectPanel(Scan[] scansEntry, ScanSortMode sort, double noiseLevel,
-      int minNumberOfSignals, String massListName) {
-    this(sort, noiseLevel, minNumberOfSignals, massListName);
+  public ScanSelectPanel(ObservableList<Scan> scansEntry, ScanSortMode sort, double noiseLevel,
+      int minNumberOfSignals) {
+    this(sort, noiseLevel, minNumberOfSignals);
     this.scansEntry = scansEntry;
     // create chart with current sort mode
     setSortMode(sort);
@@ -156,15 +152,13 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     setMZandChargeFromScan();
   }
 
-  public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals,
-      String massListName) {
+  public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals) {
     // get colors for vision
-    Vision vision = MZmineCore.getConfiguration().getColorVision();
-    colorUsedData = ColorPalettes.getPositiveColor(vision);
-    colorRemovedData = ColorPalettes.getNegativeColor(vision);
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    colorUsedData = palette.getPositiveColorAWT();
+    colorRemovedData = palette.getNegativeColorAWT();
 
     setBorder(new LineBorder(UIManager.getColor("textHighlight")));
-    this.massListName = massListName;
     this.sort = sort;
     this.noiseLevel = noiseLevel;
     setMinNumberOfSignals(minNumberOfSignals);
@@ -182,8 +176,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     pnMenu.add(pnButtons, BorderLayout.WEST);
     pnButtons.setLayout(new MigLayout("", "[40px]", "[grow][40px][40px][40px][40px][40px][grow]"));
 
-    btnToggleUse = new JToggleButton(iconCross);
-    btnToggleUse.setSelectedIcon(iconAccept);
+    // TODO: uncomment all and change to JavaFX
+    btnToggleUse = new JToggleButton(/*iconCross*/);
+    //btnToggleUse.setSelectedIcon(iconAccept);
     btnToggleUse.setToolTipText(
         "Export this entry (checked) or exclude from export (X). Useful when multiple ions (adducts) of the same compound are exported at once.");
     btnToggleUse.setPreferredSize(new Dimension(SIZE, SIZE));
@@ -192,25 +187,25 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     btnToggleUse.setSelected(true);
     btnToggleUse.addItemListener(il -> applySelectionState());
 
-    btnNext = new JButton(iconNext);
-    btnNext.setDisabledIcon(iconNextGrey);
+    btnNext = new JButton(/*iconNext*/);
+    //btnNext.setDisabledIcon(iconNextGrey);
     btnNext.setToolTipText("Next spectrum (in respect to sorting)");
     btnNext.setPreferredSize(new Dimension(SIZE, SIZE));
     btnNext.setMaximumSize(new Dimension(SIZE, SIZE));
     btnNext.addActionListener(a -> nextScan());
     pnButtons.add(btnNext, "cell 0 2,grow");
 
-    btnPrev = new JButton(iconPrev);
-    btnPrev.setDisabledIcon(iconPrevGrey);
+    btnPrev = new JButton(/*iconPrev*/);
+    //btnPrev.setDisabledIcon(iconPrevGrey);
     btnPrev.setToolTipText("Previous spectrum (in respect to sorting)");
     btnPrev.setPreferredSize(new Dimension(SIZE, SIZE));
     btnPrev.setMaximumSize(new Dimension(SIZE, SIZE));
     btnPrev.addActionListener(a -> prevScan());
     pnButtons.add(btnPrev, "cell 0 3,grow");
 
-    btnMaxTic = new JToggleButton(iconTICFalse);
+    btnMaxTic = new JToggleButton(/*iconTICFalse*/);
     btnMaxTic.setToolTipText("Change sorting to max TIC");
-    btnMaxTic.setSelectedIcon(iconTIC);
+    //btnMaxTic.setSelectedIcon(iconTIC);
     btnMaxTic.setPreferredSize(new Dimension(SIZE, SIZE));
     btnMaxTic.setMaximumSize(new Dimension(SIZE, SIZE));
     btnMaxTic.addItemListener(a -> {
@@ -219,9 +214,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     });
     pnButtons.add(btnMaxTic, "cell 0 4,grow");
 
-    btnSignals = new JToggleButton(iconSignalsFalse);
+    btnSignals = new JToggleButton(/*iconSignalsFalse*/);
     btnSignals.setToolTipText("Change sorting to max number of signals");
-    btnSignals.setSelectedIcon(iconSignals);
+    //btnSignals.setSelectedIcon(iconSignals);
     btnSignals.setPreferredSize(new Dimension(SIZE, SIZE));
     btnSignals.setMaximumSize(new Dimension(SIZE, SIZE));
     btnSignals.addItemListener(a -> {
@@ -291,7 +286,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * Fragment scan with adduct, precursor mz and charge or MS1
-   * 
+   *
    * @param isFragmentScan
    */
   public void setFragmentScan(boolean isFragmentScan) {
@@ -313,9 +308,8 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     }
   }
 
-
   /**
-   * 
+   *
    */
   public void setMZandChargeFromScan() {
     // MS1
@@ -345,14 +339,14 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   /**
    * Show the exclude from export button (check button). This button is usually hidden when only one
    * ScanSelectPanel is shown in the {@link MSMSLibrarySubmissionWindow}
-   * 
+   *
    * @param state linked to the visibility of the exclude button
    */
   public void setShowExcludeButton(boolean state) {
     btnToggleUse.setVisible(state);
   }
 
-  public PeakListRow getRow() {
+  public FeatureListRow getRow() {
     return row;
   }
 
@@ -378,7 +372,6 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     }
   }
 
-
   public boolean checkParameterValues(List<String> messages) {
     // no parameters for MS1 scan
     if (!isFragmentScan)
@@ -402,7 +395,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * minimum is >=1
-   * 
+   *
    * @param minNumberOfSignals
    */
   public void setMinNumberOfSignals(int minNumberOfSignals) {
@@ -411,7 +404,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   private void applySelectionState() {
     boolean selected = btnToggleUse.isSelected();
-    EChartPanel chart = getChart();
+    SpectraPlot chart = getChart();
     if (chart != null) {
       chart.getChart().getXYPlot().setBackgroundPaint(selected ? Color.WHITE : errorColor);
     }
@@ -433,13 +426,11 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     createSortedScanList();
   }
 
-  public void setFilter(String massListName, double noiseLevel, int minNumberOfSignals) {
-    this.massListName = massListName;
+  public void setFilter(double noiseLevel, int minNumberOfSignals) {
     this.noiseLevel = noiseLevel;
     this.minNumberOfSignals = minNumberOfSignals;
     createSortedScanList();
   }
-
 
   /**
    * Creates a sorted list of all scans that match the minimum criteria
@@ -452,16 +443,16 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
       if (row != null) {
         if (isFragmentScan) {
           // first entry is the best fragmentation scan
-          scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals,
+          scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minNumberOfSignals,
               sort);
         } else {
           // get most representative MS 1 scans of all features
           scans =
-              ScanUtils.listAllMS1Scans(row, massListName, noiseLevel, minNumberOfSignals, sort);
+              ScanUtils.listAllMS1Scans(row, noiseLevel, minNumberOfSignals, sort);
         }
       } else if (scansEntry != null) {
         scans =
-            ScanUtils.listAllScans(scansEntry, massListName, noiseLevel, minNumberOfSignals, sort);
+            ScanUtils.listAllScans(scansEntry, noiseLevel, minNumberOfSignals, sort);
       }
       selectedScanI = 0;
 
@@ -518,10 +509,11 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
       // create dataset
 
       if (spectrumPlot == null) {
-        spectrumPlot = new SpectraPlot(this, false);
-        if (listener != null)
+        spectrumPlot = new SpectraPlot();
+        if (listener != null) {
           // chart has changed
-          listener.accept(spectrumPlot);
+          // listener.accept(spectrumPlot);
+        }
       }
       spectrumPlot.removeAllDataSets();
 
@@ -535,9 +527,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
         spectrumPlot.addDataSet(dataRemoved, colorRemovedData, false);
       }
       spectrumPlot.getChart().getLegend().setVisible(showLegend);
-      spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));
-      spectrumPlot.setPreferredSize(chartSize);
-      pnChart.add(spectrumPlot, BorderLayout.CENTER);
+      // spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));
+      // spectrumPlot.setPreferredSize(chartSize);
+      // pnChart.add(spectrumPlot, BorderLayout.CENTER);
 
       Scan scan = scans.get(selectedScanI);
       analyzeScan(scan);
@@ -549,7 +541,6 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
           .format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria", getTotalScans()));
       error.setFont(new Font("Tahoma", Font.BOLD, 13));
       error.setHorizontalAlignment(SwingConstants.CENTER);
-      error.setForeground(new Color(220, 20, 60));
       pnChart.add(error, BorderLayout.CENTER);
       //
     }
@@ -563,9 +554,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   private int getTotalScans() {
     if (row != null)
-      return row.getAllMS2Fragmentations().length;
+      return row.getAllMS2Fragmentations().size();
     if (scansEntry != null)
-      return scansEntry.length;
+      return scansEntry.size();
     return 0;
   }
 
@@ -574,7 +565,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   private void analyzeScan(Scan scan) {
-    MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
+    MassList massList = scan.getMassList();
     if (massList != null) {
       DataPoint[] dp = massList.getDataPoints();
       double tic = ScanUtils.getTIC(dp, noiseLevel);
@@ -588,14 +579,14 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * Remaining data points after filtering
-   * 
+   *
    * @return
    */
   @Nullable
   public DataPoint[] getFilteredDataPoints() {
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
-      MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
+      MassList massList = scan.getMassList();
       if (massList != null)
         return ScanUtils.getFiltered(massList.getDataPoints(), noiseLevel);
     }
@@ -604,14 +595,14 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * Removed data points
-   * 
+   *
    * @return
    */
   @Nullable
   public DataPoint[] getFilteredDataPointsRemoved() {
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
-      MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
+      MassList massList = scan.getMassList();
       if (massList != null)
         return ScanUtils.getBelowThreshold(massList.getDataPoints(), noiseLevel);
     }
@@ -623,7 +614,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   @Nullable
-  public EChartPanel getChart() {
+  public SpectraPlot getChart() {
     return spectrumPlot;
   }
 
@@ -641,7 +632,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * This will check adduct pattern and enforce it.
-   * 
+   *
    * @return The adduct or an empty String for wrong input
    */
   @Nonnull
@@ -661,12 +652,6 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     return formatted;
   }
 
-
-  private static Icon createIcon(String path) {
-    return new ImageIcon(new ImageIcon(ScanSelectPanel.class.getClassLoader().getResource(path))
-        .getImage().getScaledInstance(SIZE, SIZE, Image.SCALE_SMOOTH));
-  }
-
   public void setChartSize(Dimension dim) {
     chartSize = dim;
   }
@@ -677,7 +662,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * Valid spectrum and is selected? Still check for correct adduct
-   * 
+   *
    * @return
    */
   public boolean isValidAndSelected() {

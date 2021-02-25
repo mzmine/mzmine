@@ -1,54 +1,47 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
-import io.github.msdk.datamodel.IonAnnotation;
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.MassListComponent;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.PeakListRowSorter;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
-
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-
-import org.slf4j.LoggerFactory;
+import io.github.msdk.datamodel.IonAnnotation;
+import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
 
 public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
-  private static final org.slf4j.Logger logger =
-      LoggerFactory.getLogger(PeakListIdentificationTask.class);
+  private static final Logger logger = Logger.getLogger(PeakListIdentificationTask.class.getName());
 
   // Counters.
   private int numItems;
@@ -58,20 +51,20 @@ public class PeakListIdentificationTask extends AbstractTask {
   private final Semaphore semaphore;
 
   // Remote cancel variables
-  private final Object cancelLock; //lock
+  private final Object cancelLock; // lock
   private boolean cancelled;
 
   private final ParameterSet parameters;
-  private final PeakList peakList;
-  private PeakListRow currentRow;
+  private final FeatureList peakList;
+  private FeatureListRow currentRow;
 
   /**
    * Create the identification task.
-   * 
+   *
    * @param parameters task parameters.
    * @param list feature list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
+  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list) {
     peakList = list;
     numItems = 0;
     currentRow = null;
@@ -90,17 +83,8 @@ public class PeakListIdentificationTask extends AbstractTask {
     fingerCandidates =
         parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
 
-    String massListName = parameters.getParameter(PeakListIdentificationParameters.MASS_LIST).getValue();
-    List<String> massLists = MassListComponent.getMassListNames();
-
     if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0 || threadsAmount <= 0) {
-      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Sirius parameters can't be negative");
-      setStatus(TaskStatus.ERROR);
-    } else if (!massLists.contains(massListName)) {
-      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Mass List parameter",
-          String.format("Mass List parameter is set wrong [%s]", massListName));
+      MZmineCore.getDesktop().displayErrorMessage("Sirius parameters can't be negative");
       setStatus(TaskStatus.ERROR);
     }
   }
@@ -126,9 +110,11 @@ public class PeakListIdentificationTask extends AbstractTask {
       try {
         setStatus(TaskStatus.PROCESSING);
 
-        // Identify the feature list rows starting from the biggest peaks.
-        final PeakListRow[] rows = peakList.getRows();
-        Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+        // Identify the feature list rows starting from the biggest
+        // peaks.
+        FeatureListRow rows[] = peakList.getRows().toArray(FeatureListRow[]::new);
+        Arrays.sort(rows,
+            new FeatureListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 
         // Initialize counters.
         numItems = rows.length;
@@ -137,12 +123,12 @@ public class PeakListIdentificationTask extends AbstractTask {
         for (int index = 0; !isCanceled() && index < numItems;) {
           try {
             semaphore.acquire();
-            logger.debug("Semaphore ACQUIRED");
-            Thread th = new Thread(new SiriusThread(rows[index++], parameters, semaphore, latch, this));
+            Thread th =
+                new Thread(new SiriusThread(rows[index++], parameters, semaphore, latch, this));
             th.setDaemon(true);
             th.start();
           } catch (InterruptedException e) {
-            logger.error("The thread was interrupted");
+            logger.warning("The thread was interrupted");
           }
         }
 
@@ -156,7 +142,7 @@ public class PeakListIdentificationTask extends AbstractTask {
         }
       } catch (Throwable t) {
         final String msg = "Could not search ";
-        logger.warn(msg, t);
+        t.printStackTrace();
         setStatus(TaskStatus.ERROR);
         setErrorMessage(msg + ": " + ExceptionUtils.exceptionToString(t));
       }
@@ -165,32 +151,18 @@ public class PeakListIdentificationTask extends AbstractTask {
 
   /**
    * Adds peak identities to requested row
-   * 
+   *
    * @param annotations list of IonAnnotations
    * @param row to add identities
    * @param amount of identities to be added from list
    */
   public synchronized static void addSiriusCompounds(@Nonnull List<IonAnnotation> annotations,
-      @Nonnull PeakListRow row, int amount) {
+      @Nonnull FeatureListRow row, int amount) {
     for (int i = 0; i < amount; i++) {
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) annotations.get(i);
       SiriusCompound compound = new SiriusCompound(annotation);
-      row.addPeakIdentity(compound, false);
+      row.addFeatureIdentity(compound, false);
     }
-    notifyRow(row);
-  }
-
-  /**
-   * Method notifies object about content update
-   * 
-   * @param row to be notified
-   */
-  private static void notifyRow(PeakListRow row) {
-    MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
-
-    Desktop desktop = MZmineCore.getDesktop();
-    if (!(desktop instanceof HeadLessDesktop))
-      desktop.getMainWindow().repaint();
   }
 
   /**

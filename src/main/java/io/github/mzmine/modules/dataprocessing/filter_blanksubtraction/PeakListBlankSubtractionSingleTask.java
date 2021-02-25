@@ -1,24 +1,26 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
-
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -27,9 +29,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -55,15 +54,15 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
   private double foldChange;
   private int minBlankDetections;
 
-  private PeakList alignedFeatureList;
-  private PeakListRow[] alignedFeatureRows;
+  private FeatureList alignedFeatureList;
+  private FeatureListRow[] alignedFeatureRows;
   private RawDataFile[] blankRaws;
   private RawDataFile thisRaw;
 
   private int finishedRows, totalRows;
 
   public PeakListBlankSubtractionSingleTask(PeakListBlankSubtractionParameters parameters,
-      RawDataFile thisRaw, PeakListRow[] rows) {
+      RawDataFile thisRaw, FeatureListRow[] rows) {
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -79,7 +78,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
         .getValue().getMatchingRawDataFiles();
     this.alignedFeatureList =
         parameters.getParameter(PeakListBlankSubtractionParameters.alignedPeakList).getValue()
-            .getMatchingPeakLists()[0];
+            .getMatchingFeatureLists()[0];
     this.minBlankDetections =
         parameters.getParameter(PeakListBlankSubtractionParameters.minBlanks).getValue();
     this.thisRaw = thisRaw;
@@ -102,10 +101,10 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.FINISHED);
-    ArrayList<PeakListRow> rows = new ArrayList<>();
+    ArrayList<FeatureListRow> rows = new ArrayList<>();
 
     // get the rows that contain peaks from the current raw data file
-    for (PeakListRow row : alignedFeatureRows) {
+    for (FeatureListRow row : alignedFeatureRows) {
       for (RawDataFile raw : row.getRawDataFiles()) {
         if (raw.equals(thisRaw)) {
           rows.add(row);
@@ -128,7 +127,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
 
     List<RawDataFile> blankRawsList = Arrays.asList(blankRaws);
 
-    for (PeakListRow row : rows) {
+    for (FeatureListRow row : rows) {
 
       if (getStatus() == TaskStatus.CANCELED)
         return;
@@ -148,9 +147,10 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
       }
 
       if (blankNum >= minBlankDetections) {
-        // other threads are using the same array, so we have to do this synchronized.
+        // other threads are using the same array, so we have to do this
+        // synchronized.
         synchronized (row) {
-          row.removePeak(thisRaw);
+          row.removeFeature(thisRaw);
           featuresRemoved++;
         }
       }
@@ -171,13 +171,13 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
    * @param blankRaws The raw data file of blanks/control samples.
    * @return The intensity increase.
    */
-  private double getIntensityIncrease(PeakListRow row, RawDataFile thisRaw,
+  private double getIntensityIncrease(FeatureListRow row, RawDataFile thisRaw,
       RawDataFile[] blankRaws) {
-    Feature thisFeature = row.getPeak(thisRaw);
+    Feature thisFeature = row.getFeature(thisRaw);
     Feature[] blankFeatures = new Feature[blankRaws.length];
 
     for (int i = 0; i < blankFeatures.length; i++) {
-      blankFeatures[i] = row.getPeak(blankRaws[i]);
+      blankFeatures[i] = row.getFeature(blankRaws[i]);
     }
 
     double avgBlankIntensity = 0;
@@ -200,7 +200,6 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
     return (thisFeature.getHeight() / avgBlankIntensity);
   }
 
-  
   /**
    * Correlates the features by mz, rt and rt range.
    * 
@@ -209,22 +208,17 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
    * @param mp Matching parameters to look at.
    * @return A score between 1 and 0. 1 = best, 0 = worst
    */
-  /*private double getSimpleRowVsAlignedRowScores(PeakListRow peak, PeakListRow aligned,
-      MatchingParameter[] mp) {
-
-    double score = 1;
-    for (MatchingParameter p : mp) {
-      if (p == MatchingParameter.MZ) {
-        score *= compare(peak.getAverageMZ(), aligned.getAverageMZ());
-      } else if (p == MatchingParameter.RT) {
-        score *= compare(peak.getAverageRT(), aligned.getAverageRT());
-      } else if (p == MatchingParameter.RTRANGE) {
-        score *= scoreRtRange(peak.getBestPeak().getRawDataPointsRTRange(),
-            PeakUtils.getPeakListRowAvgRtRange(aligned));
-      }
-    }
-    return score;
-  }*/
+  /*
+   * private double getSimpleRowVsAlignedRowScores(PeakListRow peak, PeakListRow aligned,
+   * MatchingParameter[] mp) {
+   * 
+   * double score = 1; for (MatchingParameter p : mp) { if (p == MatchingParameter.MZ) { score *=
+   * compare(peak.getAverageMZ(), aligned.getAverageMZ()); } else if (p == MatchingParameter.RT) {
+   * score *= compare(peak.getAverageRT(), aligned.getAverageRT()); } else if (p ==
+   * MatchingParameter.RTRANGE) { score *=
+   * scoreRtRange(peak.getBestPeak().getRawDataPointsRTRange(),
+   * PeakUtils.getPeakListRowAvgRtRange(aligned)); } } return score; }
+   */
 
   /**
    * Returns a the deviation of mz1 from mz2.

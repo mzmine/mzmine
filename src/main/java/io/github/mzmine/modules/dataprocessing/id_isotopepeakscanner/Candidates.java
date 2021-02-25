@@ -1,23 +1,24 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
@@ -25,28 +26,25 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerTask.RatingType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import javafx.collections.ObservableList;
 
 /**
  * This class is used to manage objects of the Candidate class and to calculate an average rating if
  * specified, after all peaks have been assigned. This methods use an instance of a PeakListHandler
  * since its easier to handle row ids than row indexes.
- * 
  *
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
  */
 public class Candidates {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private IsotopePattern pattern;
   private MZTolerance mzTolerance;
-  private String massListName;
   private double minHeight;
   private double avgRating[];
   private double avgHeight[];
@@ -54,30 +52,31 @@ public class Candidates {
   RatingType ratingType;
   PeakListHandler plh;
 
-
   public Candidates(int size, double minHeight, MZTolerance mzTolerance, IsotopePattern pattern,
-      String massListName, PeakListHandler plh, RatingType ratingType) {
+      PeakListHandler plh, RatingType ratingType) {
     this.candidate = new Candidate[size];
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < size; i++) {
       candidate[i] = new Candidate();
+    }
     avgRating = new double[size];
     Arrays.fill(avgRating, -1.0);
     avgHeight = new double[size];
     this.minHeight = minHeight;
     this.mzTolerance = mzTolerance;
-    this.massListName = massListName;
     this.pattern = pattern;
     this.plh = plh;
     this.ratingType = ratingType;
-    
-    for(Candidate c : candidate)
-      if(c == null)
+
+    for (Candidate c : candidate) {
+      if (c == null) {
         logger.info("failed to initialize candidate");
+      }
+    }
   }
 
   /**
    * Contstructor for neutral loss scans, no need for pattern and mass last
-   * 
+   *
    * @param size
    * @param minHeight
    * @param mzTolerance
@@ -85,80 +84,86 @@ public class Candidates {
    */
   public Candidates(int size, double minHeight, MZTolerance mzTolerance, PeakListHandler plh) {
     this.candidate = new Candidate[size];
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < size; i++) {
       candidate[i] = new Candidate();
+    }
     avgRating = new double[size];
     Arrays.fill(avgRating, -1.0);
     avgHeight = new double[size];
     this.minHeight = minHeight;
     this.mzTolerance = mzTolerance;
-    this.massListName = "";
     this.pattern = null;
     this.plh = plh;
     this.ratingType = RatingType.HIGHEST;
   }
 
   /**
-   * 
    * @param index integer index
    * @return Candidate with specified index
    */
   public Candidate get(int index) {
-    if (index >= candidate.length)
+    if (index >= candidate.length) {
       throw new MSDKRuntimeException("Candidates.get(index): index > length");
+    }
     return candidate[index];
   }
 
   /**
-   * 
    * @param index
    * @return average rating of specified peak. -1 if not set
    */
   public double getAvgRating(int index) {
     if (pattern == null) // if we run a neutral loss scan this doesn't exist
+    {
       return -1.0;
+    }
 
-    if (index >= candidate.length)
+    if (index >= candidate.length) {
       throw new MSDKRuntimeException("Candidates.get(index): index > length");
+    }
     return avgRating[index];
   }
 
   /**
-   * 
    * @return total average rating of all data points in the detected pattern
    */
   public double getAvgAccAvgRating() {
     if (pattern == null) // if we run a neutral loss scan this doesn't exist
+    {
       return -1.0;
+    }
 
-    if (avgRating.length == 0)
+    if (avgRating.length == 0) {
       return 0.0;
+    }
 
     double buffer = 0.0;
-    for (double rating : avgRating)
+    for (double rating : avgRating) {
       buffer += rating;
+    }
 
     return buffer / avgRating.length;
   }
-  
+
   public double getSimpleAvgRating() {
     if (pattern == null) // if we run a neutral loss scan this doesn't exist
+    {
       return -1.0;
-    
-    double buffer = 0.0;
-    for(int i = 0; i < candidate.length; i++) 
-      buffer += candidate[i].getRating();
-    
-    return buffer/candidate.length;
-  }
+    }
 
+    double buffer = 0.0;
+    for (int i = 0; i < candidate.length; i++) {
+      buffer += candidate[i].getRating();
+    }
+
+    return buffer / candidate.length;
+  }
 
   public int size() {
     return candidate.length;
   }
 
   /**
-   * 
    * @return all candidate objects
    */
   public Candidate[] getCandidates() {
@@ -175,7 +180,7 @@ public class Candidates {
   /**
    * sets isotope pattern, should not be used when there is a different number of data points in the
    * new pattern.
-   * 
+   *
    * @param pattern
    */
   public void setPattern(IsotopePattern pattern) {
@@ -183,59 +188,65 @@ public class Candidates {
   }
 
   /**
-   * 
    * @param index
    * @return returns average intensity of a single peak. -1.0 if calculation failed.
    */
   public double getAvgHeight(int index) {
     if (pattern == null) // if we run a neutral loss scan this doesnt exist
+    {
       return -1.0;
+    }
 
-    if (index > candidate.length || avgHeight == null)
+    if (index > candidate.length || avgHeight == null) {
       return 0.0;
+    }
     return avgHeight[index];
   }
 
   /**
    * For isotope pattern searches
-   * 
+   *
    * @param index
-   * @param parent row of monoisotopic mass
-   * @param cand row of candidate peak
-   * @param minRating minimum rating
+   * @param parent         row of monoisotopic mass
+   * @param cand           row of candidate peak
+   * @param minRating      minimum rating
    * @param checkIntensity
    * @return true if better, false if worse
    */
-  public boolean checkForBetterRating(int index, PeakListRow parent, PeakListRow cand,
+  public boolean checkForBetterRating(int index, FeatureListRow parent, FeatureListRow cand,
       double minRating, boolean checkIntensity) {
-    if (ratingType == RatingType.HIGHEST)
+    if (ratingType == RatingType.HIGHEST) {
       return candidate[index].checkForBetterRating(parent, cand, pattern, index, minRating,
           checkIntensity);
-    else if (ratingType == RatingType.TEMPAVG) {
+    } else if (ratingType == RatingType.TEMPAVG) {
       DataPoint dpParent =
           new SimpleDataPoint(parent.getAverageMZ(), calcAvgPeakHeight(parent.getID()));
       double candidateIntensity = calcAvgPeakHeight(cand.getID());
 
-      if (candidateIntensity == -1.0)
+      if (candidateIntensity == -1.0) {
         return false;
+      }
 
       return candidate[index].checkForBetterRating(dpParent, candidateIntensity, cand, pattern,
           index, minRating, checkIntensity);
-    } else
+    } else {
       throw new MSDKRuntimeException("Error: Invalid RatingType.");
+    }
   }
 
   /**
-   * 
    * @param index index
    * @return average peak intensity over all mass lists it is contained in
    */
   public double calcTemporaryAvgRating(int index) {
     if (pattern == null) // if we run a neutral loss scan this doesn't exist
+    {
       return -1.0;
+    }
 
-    if (index > candidate.length)
+    if (index > candidate.length) {
       return 0.0;
+    }
 
     double parentHeight = calcAvgPeakHeight(candidate[0].getCandID());
     double childHeight = calcAvgPeakHeight(candidate[index].getCandID());
@@ -249,22 +260,25 @@ public class Candidates {
   }
 
   /**
-   * 
    * @return array of all avg ratings
    */
   public double[] calcAvgRatings() {
     if (pattern == null) // if we run a neutral loss scan this doesn't exist
+    {
       return new double[candidate.length];
+    }
 
     int[] ids = new int[candidate.length];
 
-    for (int i = 0; i < candidate.length; i++)
+    for (int i = 0; i < candidate.length; i++) {
       ids[i] = candidate[i].getCandID();
+    }
 
     avgHeight = getAvgPeakHeights(ids);
 
-    if (avgHeight == null || avgHeight[0] == 0.0)
+    if (avgHeight == null || avgHeight[0] == 0.0) {
       return avgRating;
+    }
 
     for (int i = 0; i < candidate.length; i++) {
       avgRating[i] =
@@ -275,40 +289,44 @@ public class Candidates {
 
   /**
    * needed by calcTemporaryAvgRating
-   * 
+   *
    * @param ID
    * @return avPeakHeight
    */
   private double calcAvgPeakHeight(int ID) {
-    PeakListRow row = plh.getRowByID(ID);
+    FeatureListRow row = plh.getRowByID(ID);
 
-    RawDataFile[] raws = row.getRawDataFiles();
+    RawDataFile[] raws = row.getRawDataFiles().toArray(new RawDataFile[0]);
 
-    if (raws.length < 1)
+    if (raws.length < 1) {
       return 0.0;
+    }
 
     double mz = row.getAverageMZ();
     double avgIntensity = 0.0;
     int pointsAdded = 0;
 
     for (RawDataFile raw : raws) {
-      if (!raw.getDataMZRange().contains(mz))
+      if (!raw.getDataMZRange().contains(mz)) {
         continue;
+      }
 
-      int[] scanNums = raw.getScanNumbers();
+      ObservableList<Scan> scanNums = raw.getScans();
 
-      for (int i = 0; i < scanNums.length; i++) {
-        Scan scan = raw.getScan(scanNums[i]);
+      for (int i = 0; i < scanNums.size(); i++) {
+        Scan scan = scanNums.get(i);
 
-        MassList list = scan.getMassList(massListName);
+        MassList list = scan.getMassList();
 
-        if (list == null)
+        if (list == null) {
           continue;
+        }
 
         DataPoint[] points = getMassListDataPointsByMass(list, mzTolerance.getToleranceRange(mz));
 
-        if (points.length == 0)
+        if (points.length == 0) {
           continue;
+        }
 
         DataPoint dp = getClosestDataPoint(points, mz, minHeight);
 
@@ -319,48 +337,52 @@ public class Candidates {
       }
     }
 
-    if (pointsAdded != 0)
+    if (pointsAdded != 0) {
       return avgIntensity / pointsAdded;
-    else
+    } else {
       return -1.0;
+    }
   }
 
   /**
-   * 
    * @param ID
    * @return avg heights of all with the ids, but only if they are contained in same scans and mass
-   *         lists
+   * lists
    */
   private double[] getAvgPeakHeights(int[] ID) {
-    PeakListRow[] rows = plh.getRowsByID(ID);
+    FeatureListRow[] rows = plh.getRowsByID(ID);
 
-    RawDataFile[] raws = rows[0].getRawDataFiles();
+    RawDataFile[] raws = rows[0].getRawDataFiles().toArray(new RawDataFile[0]);
 
-    if (raws.length < 1)
+    if (raws.length < 1) {
       return null;
+    }
 
     double[] mzs = new double[ID.length];
 
-    for (int i = 0; i < rows.length; i++)
+    for (int i = 0; i < rows.length; i++) {
       mzs[i] = rows[i].getAverageMZ();
+    }
 
     double[] avgHeights = new double[ID.length];
     int pointsAdded = 0;
 
     for (RawDataFile raw : raws) {
 
-      if (!raw.getDataMZRange().contains(rows[0].getAverageMZ()))
+      if (!raw.getDataMZRange().contains(rows[0].getAverageMZ())) {
         continue;
+      }
 
-      int[] scanNums = raw.getScanNumbers();
+      ObservableList<Scan> scanNums = raw.getScans();
 
-      for (int i = 0; i < scanNums.length; i++) {
-        Scan scan = raw.getScan(scanNums[i]);
+      for (int i = 0; i < scanNums.size(); i++) {
+        Scan scan = scanNums.get(i);
 
-        MassList list = scan.getMassList(massListName);
+        MassList list = scan.getMassList();
 
-        if (list == null || !massListContainsEveryMZ(list, mzs, minHeight))
+        if (list == null || !massListContainsEveryMZ(list, mzs, minHeight)) {
           continue;
+        }
 
         double[] avgBuffer = new double[mzs.length];
         boolean allFound = true;
@@ -369,14 +391,17 @@ public class Candidates {
           DataPoint[] points =
               getMassListDataPointsByMass(list, mzTolerance.getToleranceRange(mzs[j]));
 
-          if (points.length == 0)
+          if (points.length == 0) {
             continue;
+          }
 
           DataPoint dp = getClosestDataPoint(points, rows[j].getAverageMZ(), minHeight);
 
-          if (dp == null) // yes the list contained something close to every datapoint that was over
-                          // minHeight, BUT
-          { // the closest might not have been. Check is done inside getClosestDataPoint();
+          if (dp == null) // yes the list contained something close to
+          // every datapoint that was over
+          // minHeight, BUT
+          { // the closest might not have been. Check is done inside
+            // getClosestDataPoint();
             allFound = false;
             break;
           }
@@ -385,76 +410,85 @@ public class Candidates {
 
         if (allFound) {
           pointsAdded++;
-          for (int j = 0; j < mzs.length; j++)
+          for (int j = 0; j < mzs.length; j++) {
             avgHeights[j] += avgBuffer[j];
+          }
         }
       }
     }
 
-
     if (pointsAdded == 0) {
-      logger.warning("Error: Peaks with ids: " + Arrays.toString(ID) + " were not in same scans at all. Please update the parameters.");
+      logger.warning("Error: Peaks with ids: " + Arrays.toString(ID)
+          + " were not in same scans at all. Please update the parameters.");
       return null;
     }
-    for (int i = 0; i < avgHeights.length; i++)
+    for (int i = 0; i < avgHeights.length; i++) {
       avgHeights[i] /= (pointsAdded/* /mzs.length */);
+    }
 
     return avgHeights;
   }
 
   /**
-   * 
    * @param dp
    * @param mz
    * @param minHeight
    * @return closest data point to given mz above minimum intensity in a given set of data points;
-   *         null if no DataPoint over given intensity
+   * null if no DataPoint over given intensity
    */
   private DataPoint getClosestDataPoint(DataPoint[] dp, double mz, double minHeight) {
-    if (dp == null || dp[0] == null || dp.length == 0)
+    if (dp == null || dp[0] == null || dp.length == 0) {
       return null;
+    }
 
     DataPoint n = new SimpleDataPoint(0.0, 0.0);
 
-    for (DataPoint p : dp)
-      if (Math.abs(p.getMZ() - mz) < Math.abs(mz - n.getMZ()) && p.getIntensity() >= minHeight)
+    for (DataPoint p : dp) {
+      if (Math.abs(p.getMZ() - mz) < Math.abs(mz - n.getMZ()) && p.getIntensity() >= minHeight) {
         n = p;
+      }
+    }
 
     if (n.getIntensity() == 0.0) {
-      // System.out.println("Info: Closest data point not above min intensity. m/z: " + mz);
+      // System.out.println("Info: Closest data point not above min
+      // intensity. m/z: " + mz);
       return null;
     }
     return n;
   }
 
   /**
-   * 
-   * @param list MassList to check
-   * @param mz array of mzs that need to be contained
+   * @param list      MassList to check
+   * @param mz        array of mzs that need to be contained
    * @param minHeight minimum peak intensity
    * @return true or false
    */
   private boolean massListContainsEveryMZ(MassList list, double[] mz, double minHeight) {
     DataPoint[] dps = list.getDataPoints();
-    if (dps.length < 1)
+    if (dps.length < 1) {
       return false;
+    }
 
     for (int i = 0; i < mz.length; i++) {
       boolean aboveMinHeight = false;
 
       for (DataPoint p : dps) {
-        if (p.getMZ() < (mz[i] - mzTolerance.getMzTolerance()))
+        if (p.getMZ() < (mz[i] - mzTolerance.getMzTolerance())) {
           continue;
+        }
 
-        if (p.getMZ() > (mz[i] + mzTolerance.getMzTolerance()))
+        if (p.getMZ() > (mz[i] + mzTolerance.getMzTolerance())) {
           break;
+        }
 
-        if (p.getIntensity() >= minHeight && mzTolerance.checkWithinTolerance(p.getMZ(), mz[i]))
+        if (p.getIntensity() >= minHeight && mzTolerance.checkWithinTolerance(p.getMZ(), mz[i])) {
           aboveMinHeight = true;
+        }
       }
 
       if (!aboveMinHeight) {
-        // System.out.println("Info: Mass list " + list.getName() + " does not contain every mz: " +
+        // System.out.println("Info: Mass list " + list.getName() + "
+        // does not contain every mz: " +
         // mz.toString());
         return false;
       }
@@ -463,7 +497,6 @@ public class Candidates {
   }
 
   /**
-   * 
    * @param list
    * @param massRange
    * @return dataPoints within given massRange contained in mass list
@@ -472,13 +505,17 @@ public class Candidates {
     DataPoint[] dps = list.getDataPoints();
     int start = 0, end = 0;
 
-    for (start = 0; start < dps.length; start++)
-      if (massRange.lowerEndpoint() >= dps[start].getMZ())
+    for (start = 0; start < dps.length; start++) {
+      if (massRange.lowerEndpoint() >= dps[start].getMZ()) {
         break;
+      }
+    }
 
-    for (end = start; end < dps.length; end++)
-      if (massRange.upperEndpoint() < dps[end].getMZ())
+    for (end = start; end < dps.length; end++) {
+      if (massRange.upperEndpoint() < dps[end].getMZ()) {
         break;
+      }
+    }
 
     DataPoint[] dpReturn = new DataPoint[end - start];
 

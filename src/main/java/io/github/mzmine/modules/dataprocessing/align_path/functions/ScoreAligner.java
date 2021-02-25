@@ -1,22 +1,25 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,11 +32,7 @@ import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CyclicBarrier;
-
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_path.scorer.RTScore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -45,34 +44,35 @@ public class ScoreAligner implements Aligner {
   private int peaksDone;
   private volatile boolean aligningDone;
   private volatile Thread[] threads;
-  private volatile List<List<PeakListRow>> peakList;
-  private final List<PeakList> originalPeakList;
+  private volatile List<List<FeatureListRow>> peakList;
+  private final List<FeatureList> originalPeakList;
   private ScoreCalculator calc;
-  private PeakList alignment;
+  private FeatureList alignment;
   private ParameterSet params;
 
-  public ScoreAligner(PeakList[] dataToAlign, ParameterSet params) {
+  public ScoreAligner(FeatureList[] dataToAlign, ParameterSet params) {
     this.params = params;
     this.calc = new RTScore();
     originalPeakList = java.util.Collections.unmodifiableList(Arrays.asList(dataToAlign));
     copyAndSort(Arrays.asList(dataToAlign));
   }
 
-  private void copyAndSort(List<PeakList> dataToAlign) {
-    Comparator<PeakList> c = new Comparator<PeakList>() {
+  private void copyAndSort(List<FeatureList> dataToAlign) {
+    Comparator<FeatureList> c = new Comparator<FeatureList>() {
 
-      public int compare(PeakList o1, PeakList o2) {
+      @Override
+      public int compare(FeatureList o1, FeatureList o2) {
         return o2.getNumberOfRows() - o1.getNumberOfRows();
       }
     };
 
     if (dataToAlign != null) {
-      List<PeakList> copyOfData = new ArrayList<PeakList>(dataToAlign);
+      List<FeatureList> copyOfData = new ArrayList<FeatureList>(dataToAlign);
       java.util.Collections.sort(copyOfData, c);
-      peakList = new ArrayList<List<PeakListRow>>();
+      peakList = new ArrayList<List<FeatureListRow>>();
       for (int i = 0; i < copyOfData.size(); i++) {
-        PeakListRow[] peakData = copyOfData.get(i).getRows();
-        List<PeakListRow> peaksInOneFile = new LinkedList<PeakListRow>();
+        FeatureListRow[] peakData = copyOfData.get(i).getRows().toArray(FeatureListRow[]::new);
+        List<FeatureListRow> peaksInOneFile = new LinkedList<FeatureListRow>();
         peaksInOneFile.addAll(Arrays.asList(peakData));
         peakList.add(peaksInOneFile);
       }
@@ -82,7 +82,7 @@ public class ScoreAligner implements Aligner {
   }
 
   private List<AlignmentPath> generatePathsThreaded(final ScoreCalculator c,
-      final List<List<PeakListRow>> peaksToUse) throws CancellationException {
+      final List<List<FeatureListRow>> peaksToUse) throws CancellationException {
     final List<AlignmentPath> paths = Collections.synchronizedList(new LinkedList<AlignmentPath>());
     final List<AlignmentPath> completePaths = new ArrayList<AlignmentPath>();
     final int numThreads = Runtime.getRuntime().availableProcessors();
@@ -90,6 +90,7 @@ public class ScoreAligner implements Aligner {
 
     Runnable barrierTask = new Runnable() {
 
+      @Override
       public void run() {
         Collections.sort(paths);
         while (paths.size() > 0) {
@@ -159,15 +160,15 @@ public class ScoreAligner implements Aligner {
     return completePaths;
   }
 
-  private AlignmentPath generatePath(int col, ScoreCalculator c, PeakListRow base,
-      List<List<PeakListRow>> listOfPeaksInFiles) {
+  private AlignmentPath generatePath(int col, ScoreCalculator c, FeatureListRow base,
+      List<List<FeatureListRow>> listOfPeaksInFiles) {
     int len = listOfPeaksInFiles.size();
     AlignmentPath path = new AlignmentPath(len, base, col);
     for (int i = (col + 1) % len; i != col; i = (i + 1) % len) {
 
-      PeakListRow bestPeak = null;
+      FeatureListRow bestPeak = null;
       double bestPeakScore = c.getWorstScore();
-      for (PeakListRow curPeak : listOfPeaksInFiles.get(i)) {
+      for (FeatureListRow curPeak : listOfPeaksInFiles.get(i)) {
         if (curPeak == null || !c.matches(path, curPeak, params)) {
           // Either there isn't any peak left or it doesn't fill
           // requirements of current score calculator (for example,
@@ -195,9 +196,9 @@ public class ScoreAligner implements Aligner {
     return path;
   }
 
-  private void removePeaks(AlignmentPath p, List<List<PeakListRow>> listOfPeaks) {
+  private void removePeaks(AlignmentPath p, List<List<FeatureListRow>> listOfPeaks) {
     for (int i = 0; i < p.length(); i++) {
-      PeakListRow d = p.getPeak(i);
+      FeatureListRow d = p.getPeak(i);
       if (d != null) {
         listOfPeaks.get(i).remove(d);
       }
@@ -209,7 +210,7 @@ public class ScoreAligner implements Aligner {
   }
 
   private ThreadInfo[] calculateIntervals(int threads, int col,
-      List<List<PeakListRow>> listOfPeaks) {
+      List<List<FeatureListRow>> listOfPeaks) {
     int diff = listOfPeaks.get(col).size() / threads;
     ThreadInfo threadInfos[] = new ThreadInfo[threads];
     for (int i = 0; i < threads; i++) {
@@ -219,6 +220,7 @@ public class ScoreAligner implements Aligner {
     return threadInfos;
   }
 
+  @Override
   public double getProgress() {
     return ((double) this.peaksDone / (double) this.peaksTotal);
   }
@@ -231,17 +233,18 @@ public class ScoreAligner implements Aligner {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gcgcaligner.AbstractAligner#align()
    */
-  public PeakList align() {
+  @Override
+  public FeatureList align() {
 
     if (alignment == null) // Do the actual alignment if we already do not
     // have the result
     {
       Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-      for (PeakList list : this.originalPeakList) {
-        allDataFiles.addAll(Arrays.asList(list.getRawDataFiles()));
+      for (FeatureList list : this.originalPeakList) {
+        allDataFiles.addAll(list.getRawDataFiles());
       }
 
       peaksTotal = 0;
@@ -249,7 +252,7 @@ public class ScoreAligner implements Aligner {
         peaksTotal += peakList.get(i).size();
       }
       alignment =
-          new SimplePeakList(params.getParameter(PathAlignerParameters.peakListName).getValue(),
+          new ModularFeatureList(params.getParameter(PathAlignerParameters.peakListName).getValue(),
               allDataFiles.toArray(new RawDataFile[0]));
 
       List<AlignmentPath> addedPaths = getAlignmentPaths();
@@ -258,20 +261,22 @@ public class ScoreAligner implements Aligner {
         // Convert alignments to original order of files and add them to
         // final
         // Alignment data structure
-        PeakListRow row = (PeakListRow) p.convertToAlignmentRow(ID++);
+        FeatureListRow row = p.convertToAlignmentRow(ID++);
         alignment.addRow(row);
 
       }
     }
 
-    PeakList curAlignment = alignment;
+    FeatureList curAlignment = alignment;
     return curAlignment;
   }
 
+  @Override
   public String toString() {
     return getName();
   }
 
+  @Override
   public String getName() {
     return calc == null ? name : calc.name();
   }
@@ -286,14 +291,14 @@ public class ScoreAligner implements Aligner {
     private CyclicBarrier barrier;
     private List<AlignmentPath> readyPaths;
     private ScoreCalculator calc;
-    private List<List<PeakListRow>> listOfAllPeaks;
+    private List<List<FeatureListRow>> listOfAllPeaks;
 
     public void setThreadInfo(ThreadInfo ti) {
       this.ti = ti;
     }
 
     public AlignerThread(ThreadInfo ti, CyclicBarrier barrier, List<AlignmentPath> readyPaths,
-        ScoreCalculator c, List<List<PeakListRow>> peakList) {
+        ScoreCalculator c, List<List<FeatureListRow>> peakList) {
       this.ti = ti;
       this.barrier = barrier;
       this.readyPaths = readyPaths;
@@ -302,10 +307,10 @@ public class ScoreAligner implements Aligner {
     }
 
     private void align() {
-      List<PeakListRow> myList =
+      List<FeatureListRow> myList =
           listOfAllPeaks.get(ti.currentColumn()).subList(ti.startIx(), ti.endIx());
       Queue<AlignmentPath> myPaths = new LinkedList<AlignmentPath>();
-      for (PeakListRow cur : myList) {
+      for (FeatureListRow cur : myList) {
         if (cur != null) {
           AlignmentPath p = generatePath(ti.currentColumn(), calc, cur, listOfAllPeaks);
           if (p != null) {
@@ -316,6 +321,7 @@ public class ScoreAligner implements Aligner {
       readyPaths.addAll(myPaths);
     }
 
+    @Override
     public void run() {
       while (!aligningDone()) {
         align();

@@ -1,36 +1,35 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakListRow;
-
 /**
  * This class defines a search condition - searching either by peak name, m/z or retention time.
- * Such search can be defined by any module and then conforming feature list rows can be tested by the
- * conforms() method.
+ * Such search can be defined by any module and then conforming feature list rows can be tested by
+ * the conforms() method.
  * 
  */
 public class SearchDefinition {
@@ -83,10 +82,10 @@ public class SearchDefinition {
   /**
    * Checks whether given feature list row conforms to this search condition.
    */
-  public boolean conforms(PeakListRow row) {
+  public boolean conforms(FeatureListRow row) {
     switch (type) {
       case NAME:
-        PeakIdentity identity = row.getPreferredPeakIdentity();
+        FeatureIdentity identity = row.getPreferredFeatureIdentity();
         if (identity == null)
           return false;
         String name = identity.getName();
@@ -102,7 +101,7 @@ public class SearchDefinition {
         return range.contains(row.getAverageMZ());
 
       case RT:
-        return range.contains(row.getAverageRT());
+        return range.contains((double) row.getAverageRT());
 
     }
     return false;

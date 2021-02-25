@@ -1,28 +1,24 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
-import java.awt.Window;
 import java.util.Collection;
-import javax.swing.JComponent;
-
-import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -32,24 +28,26 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import javafx.scene.Node;
 
 public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter(
       "Spectral database file",
-      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
+      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification",
+      FileSelectionType.OPEN);
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
       new OptionalModuleParameter<>("13C deisotoping",
@@ -77,9 +75,6 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       new MZToleranceParameter("Precursor m/z tolerance",
           "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
 
-  public static final MassListParameter massList =
-      new MassListParameter("MassList", "MassList for either MS1 or MS/MS scans to match");
-
   public static final OptionalParameter<RTToleranceParameter> rtTolerance =
       new OptionalParameter<>(new RTToleranceParameter());
 
@@ -103,7 +98,7 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
 
   /**
    * for SelectedRowsParameters
-   * 
+   *
    * @param parameters
    */
   protected LocalSpectralDBSearchParameters(Parameter[] parameters) {
@@ -111,7 +106,7 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   }
 
   public LocalSpectralDBSearchParameters() {
-    super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, allMS2Spectra,
+    super(new Parameter[] {peakLists, dataBaseFile, msLevel, allMS2Spectra,
         mzTolerancePrecursor, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
         mzTolerance, rtTolerance, minMatch, similarityFunction});
   }
@@ -132,27 +127,27 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     if ((getParameters() == null) || (getParameters().length == 0))
       return ExitCode.OK;
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
 
     int level = getParameter(msLevel).getValue() == null ? 2 : getParameter(msLevel).getValue();
 
-    IntegerComponent msLevelComp = (IntegerComponent) dialog.getComponentForParameter(msLevel);
-    JComponent mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
-    mzTolPrecursor.setEnabled(level > 1);
-    msLevelComp.addDocumentListener(new DelayedDocumentListener(e -> {
+    IntegerComponent msLevelComp = dialog.getComponentForParameter(msLevel);
+    Node mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
+    mzTolPrecursor.setDisable(level < 2);
+    msLevelComp.getTextField().setOnKeyTyped(e -> {
       try {
         int level2 = Integer.parseInt(msLevelComp.getText());
-        mzTolPrecursor.setEnabled(level2 > 1);
+        mzTolPrecursor.setDisable(level2 < 2);
       } catch (Exception ex) {
         // do nothing user might be still typing
-        mzTolPrecursor.setEnabled(false);
+        mzTolPrecursor.setDisable(true);
       }
-    }));
+    });
 
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 

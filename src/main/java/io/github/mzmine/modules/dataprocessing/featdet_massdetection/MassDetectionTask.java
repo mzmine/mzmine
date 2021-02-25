@@ -1,40 +1,39 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
-import io.github.mzmine.gui.impl.projecttree.RawDataTreeModel;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
@@ -48,26 +47,24 @@ public class MassDetectionTask extends AbstractTask {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
-
+  private final ScanSelection scanSelection;
+  private final MemoryMapStorage storageMemoryMap;
   // scan counter
   private int processedScans = 0, totalScans = 0;
-  private final ScanSelection scanSelection;
-
-  // User parameters
-  private String name;
-
   // Mass detector
   private MZmineProcessingStep<MassDetector> massDetector;
-
   // for outputting file
   private File outFilename;
   private boolean saveToCDF;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storageMemoryMap
    */
-  public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters) {
+  public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storageMemoryMap) {
 
     this.dataFile = dataFile;
 
@@ -75,17 +72,18 @@ public class MassDetectionTask extends AbstractTask {
 
     this.scanSelection = parameters.getParameter(MassDetectionParameters.scanSelection).getValue();
 
-    this.name = parameters.getParameter(MassDetectionParameters.name).getValue();
-
     this.saveToCDF = parameters.getParameter(MassDetectionParameters.outFilenameOption).getValue();
+    this.storageMemoryMap = storageMemoryMap;
 
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
+    this.parameters = parameters;
   }
 
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Detecting masses in " + dataFile;
   }
@@ -93,11 +91,13 @@ public class MassDetectionTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return 0;
-    else
+    } else {
       return (double) processedScans / totalScans;
+    }
   }
 
   public RawDataFile getDataFile() {
@@ -107,8 +107,8 @@ public class MassDetectionTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
-
 
     // make arrays to contain everything you need
     ArrayList<Integer> pointsInScans = new ArrayList<>();
@@ -116,10 +116,9 @@ public class MassDetectionTask extends AbstractTask {
     ArrayList<Double> allIntensities = new ArrayList<>();
     // idecies of full mass list where scan starts?
     ArrayList<Integer> startIndex = new ArrayList<>();
-    ArrayList<Double> scanAcquisitionTime = new ArrayList<>();
+    ArrayList<Float> scanAcquisitionTime = new ArrayList<>();
     // XCMS needs this one
     ArrayList<Double> totalIntensity = new ArrayList<>();
-
 
     double curTotalIntensity;
     int lastPointCount = 0;
@@ -127,7 +126,6 @@ public class MassDetectionTask extends AbstractTask {
     startIndex.add(0);
 
     try {
-
 
       setStatus(TaskStatus.PROCESSING);
 
@@ -138,25 +136,35 @@ public class MassDetectionTask extends AbstractTask {
       // Process scans one by one
       for (Scan scan : scans) {
 
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         MassDetector detector = massDetector.getModule();
-        DataPoint mzPeaks[] = detector.getMassValues(scan, massDetector.getParameterSet());
+        // [mzs, intensities]
+        double[][] mzPeaks = detector.getMassValues(scan, massDetector.getParameterSet());
 
-        SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
-
-        // Add new mass list to the scan
-        scan.addMassList(newMassList);
+        if (scan instanceof Frame) {
+          // for ion mobility, detect subscans, too
+          FrameMassList frameMassList = new FrameMassList(storageMemoryMap, mzPeaks[0], mzPeaks[1]);
+          Frame frame = (Frame) scan;
+          frameMassList.generateAndAddMobilityScanMassLists(frame.getMobilityScans(),
+              storageMemoryMap, detector, massDetector.getParameterSet());
+          frame.addMassList(frameMassList);
+        } else {
+          SimpleMassList newMassList = new SimpleMassList(storageMemoryMap, mzPeaks[0], mzPeaks[1]);
+          scan.addMassList(newMassList);
+        }
 
         if (this.saveToCDF) {
-
           curTotalIntensity = 0;
-          for (int a = 0; a < mzPeaks.length; a++) {
-            DataPoint curMzPeak = mzPeaks[a];
-            allMZ.add(curMzPeak.getMZ());
-            allIntensities.add(curMzPeak.getIntensity());
-            curTotalIntensity += curMzPeak.getIntensity();
+          double[] mzs = mzPeaks[0];
+          double[] intensities = mzPeaks[1];
+          int size = mzs.length;
+          for (int a = 0; a < size; a++) {
+            allMZ.add(mzs[a]);
+            allIntensities.add(intensities[a]);
+            curTotalIntensity += intensities[a];
           }
 
           scanAcquisitionTime.add(scan.getRetentionTime());
@@ -170,14 +178,9 @@ public class MassDetectionTask extends AbstractTask {
         processedScans++;
       }
 
-      // Update the GUI with all new mass lists
-      MZmineProjectImpl project =
-          (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
-      final RawDataTreeModel treeModel = project.getRawDataTreeModel();
-      treeModel.updateGUIWithNewObjects();;
-
       if (this.saveToCDF) {
-        // ************** write mass list *******************************
+        // ************** write mass list
+        // *******************************
         final String outFileNamePath = outFilename.getPath();
         logger.info("Saving mass detector results to netCDF file " + outFileNamePath);
         NetcdfFileWriter writer =
@@ -267,8 +270,6 @@ public class MassDetectionTask extends AbstractTask {
         // arr_totalIntensity .set(1,300);
         // arr_pointsInScans .set(1,0);
 
-
-
         writer.write(var_massValues, arr_massValues);
         writer.write(var_intensityValues, arr_intensityValues);
         writer.write(var_scanIndex, arr_scanIndex);
@@ -277,7 +278,8 @@ public class MassDetectionTask extends AbstractTask {
         writer.write(var_pointsInScans, arr_pointsInScans);
         writer.close();
       }
-
+      dataFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(MassDetectionModule.class, parameters));
     } catch (Exception e) {
       e.printStackTrace();
       setErrorMessage(e.getMessage());
@@ -287,7 +289,6 @@ public class MassDetectionTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
 
     logger.info("Finished mass detector on " + dataFile);
-
 
   }
 }

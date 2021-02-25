@@ -1,22 +1,39 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
+import com.Ostermiller.util.CSVParser;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -24,33 +41,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.Ostermiller.util.CSVParser;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-
 class TargetedPeakDetectionModuleTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
   private final RawDataFile dataFile;
-  private PeakList processedPeakList;
+  private FeatureList processedPeakList;
   private String suffix;
   private MZTolerance mzTolerance;
   private int msLevel;
@@ -95,7 +92,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     totalScans = dataFile.getNumOfScans(1);
 
     // Create new feature list
-    processedPeakList = new SimplePeakList(dataFile.getName() + " " + suffix, dataFile);
+    processedPeakList = new ModularFeatureList(dataFile.getName() + " " + suffix, dataFile);
 
     List<PeakInformation> peaks = this.readFile();
 
@@ -106,7 +103,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
     // Fill new feature list with empty rows
     for (int row = 0; row < peaks.size(); row++) {
-      PeakListRow newRow = new SimplePeakListRow(ID++);
+      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) processedPeakList, ID++);
       processedPeakList.addRow(newRow);
     }
 
@@ -122,15 +119,14 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     // Fill each row of this raw data file column, create new empty
     // gaps if necessary
     for (int row = 0; row < peaks.size(); row++) {
-      PeakListRow newRow = processedPeakList.getRow(row);
+      FeatureListRow newRow = processedPeakList.getRow(row);
       // Create a new gap
 
       Range<Double> mzRange = mzTolerance.getToleranceRange(peaks.get(row).getMZ());
-      Range<Double> rtRange = rtTolerance.getToleranceRange(peaks.get(row).getRT());
-      newRow.addPeakIdentity(new SimplePeakIdentity(peaks.get(row).getName()), true);
+      Range<Float> rtRange = rtTolerance.getToleranceRange((float) peaks.get(row).getRT());
+      newRow.addFeatureIdentity(new SimpleFeatureIdentity(peaks.get(row).getName()), true);
 
       Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance, noiseLevel);
-
       gaps.add(newGap);
     }
 
@@ -140,7 +136,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
 
     // Get all scans of this data file
-    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+    Scan scanNumbers[] = dataFile.getScanNumbers(msLevel).toArray(Scan[]::new);
     if (scanNumbers == null) {
       logger.log(Level.WARNING, "Could not read file with the MS level of " + msLevel);
       setStatus(TaskStatus.ERROR);
@@ -148,15 +144,12 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
 
     // Process each scan
-    for (int scanNumber : scanNumbers) {
+    for (Scan scan : scanNumbers) {
 
       // Canceled?
       if (isCanceled()) {
         return;
       }
-
-      // Get the scan
-      Scan scan = dataFile.getScan(scanNumber);
 
       // Feed this scan to all gaps
       for (Gap gap : gaps) {
@@ -172,14 +165,16 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
 
     // Append processed feature list to the project
-    project.addPeakList(processedPeakList);
+    project.addFeatureList(processedPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(processedPeakList);
+    //QualityParameters.calculateQualityParameters(processedPeakList);
 
+    dataFile.getAppliedMethods().forEach(m -> processedPeakList.getAppliedMethods().add(m));
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Targeted feature detection ", parameters));
+        new SimpleFeatureListAppliedMethod("Targeted feature detection ",
+            TargetedFeatureDetectionModule.class, parameters));
 
     logger.log(Level.INFO, "Finished targeted feature detection on {0}", this.dataFile);
     setStatus(TaskStatus.FINISHED);
@@ -198,7 +193,8 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       }
       for (; finishedLines < peakListValues.length; finishedLines++) {
         try {
-          // Removing the FEFF character is important in case the CSV file contains
+          // Removing the FEFF character is important in case the CSV
+          // file contains
           // byte-order-mark
           String mzString = peakListValues[finishedLines][0].replace("\uFEFF", "").trim();
           String rtString = peakListValues[finishedLines][1].replace("\uFEFF", "").trim();

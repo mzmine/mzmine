@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -45,17 +45,12 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 
-public class AlignmentRansacPlot extends EChartPanel {
+public class AlignmentRansacPlot extends EChartViewer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
   // peak labels color
   private static final Color labelsColor = Color.darkGray;
   // grid color
@@ -80,14 +75,11 @@ public class AlignmentRansacPlot extends EChartPanel {
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
 
   public AlignmentRansacPlot() {
-    super(null, true);
+    super(ChartFactory.createXYLineChart("", null, null, new XYSeriesCollection(),
+        PlotOrientation.VERTICAL, true, true, false));
 
-    dataset = new XYSeriesCollection();
-    chart = ChartFactory.createXYLineChart("", null, null, dataset, PlotOrientation.VERTICAL, true,
-        true, false);
-
+    chart = this.getChart();
     chart.setBackgroundPaint(Color.white);
-    setChart(chart);
 
     // title
     chartTitle = chart.getTitle();
@@ -104,6 +96,7 @@ public class AlignmentRansacPlot extends EChartPanel {
     plot.setBackgroundPaint(Color.white);
     plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+    dataset = (XYSeriesCollection) plot.getDataset();
 
     // set grid properties
     plot.setDomainGridlinePaint(gridColor);
@@ -134,7 +127,6 @@ public class AlignmentRansacPlot extends EChartPanel {
 
     plot.setRenderer(renderer);
 
-
     // reset zoom history
     ZoomHistory history = getZoomHistory();
     if (history != null)
@@ -150,7 +142,7 @@ public class AlignmentRansacPlot extends EChartPanel {
 
   /**
    * Add new serie.
-   * 
+   *
    * @param v Vector with the alignments
    * @param Name Name of the type of lipids in this alignment
    */
@@ -166,13 +158,13 @@ public class AlignmentRansacPlot extends EChartPanel {
       for (AlignStructMol point : data) {
 
         if (point.Aligned) {
-          s1.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
+          s1.add(point.row1.getFeatures().get(0).getRT(), point.row2.getFeatures().get(0).getRT());
         } else {
-          s2.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
+          s2.add(point.row1.getFeatures().get(0).getRT(), point.row2.getFeatures().get(0).getRT());
         }
         try {
-          s3.add(function.value(point.row2.getPeaks()[0].getRT()),
-              point.row2.getPeaks()[0].getRT());
+          s3.add(function.value(point.row2.getFeatures().get(0).getRT()),
+              point.row2.getFeatures().get(0).getRT());
         } catch (Exception e) {
         }
       }

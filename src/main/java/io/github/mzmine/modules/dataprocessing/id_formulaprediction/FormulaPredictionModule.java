@@ -1,27 +1,27 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -34,7 +34,7 @@ public class FormulaPredictionModule implements MZmineModule {
 
   private static final String MODULE_NAME = "Formula prediction";
 
-  public static void showSingleRowIdentificationDialog(PeakListRow row) {
+  public static void showSingleRowIdentificationDialog(FeatureListRow row) {
 
     ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(FormulaPredictionModule.class);
@@ -42,10 +42,9 @@ public class FormulaPredictionModule implements MZmineModule {
     double mzValue = row.getAverageMZ();
     parameters.getParameter(FormulaPredictionParameters.neutralMass).setIonMass(mzValue);
 
-    int bestScanNum = row.getBestPeak().getRepresentativeScanNumber();
-    if (bestScanNum > 0) {
-      RawDataFile dataFile = row.getBestPeak().getDataFile();
-      Scan bestScan = dataFile.getScan(bestScanNum);
+    Scan bestScan = row.getBestFeature().getRepresentativeScan();
+    if (bestScan != null) {
+      RawDataFile dataFile = row.getBestFeature().getRawDataFile();
       PolarityType scanPolarity = bestScan.getPolarity();
       switch (scanPolarity) {
         case POSITIVE:
@@ -61,12 +60,12 @@ public class FormulaPredictionModule implements MZmineModule {
       }
     }
 
-    int charge = row.getBestPeak().getCharge();
+    int charge = row.getBestFeature().getCharge();
     if (charge > 0) {
       parameters.getParameter(FormulaPredictionParameters.neutralMass).setCharge(charge);
     }
 
-    ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
+    ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode != ExitCode.OK) {
       return;
     }

@@ -1,47 +1,45 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
-
 import org.jfree.data.xy.AbstractXYDataset;
-
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import io.github.mzmine.util.SearchDefinition;
 
 /**
- * 
+ *
  * This data set contains 2 series: first series (index 0) contains all feature list rows. Second
  * series (index 1) contains those feature list rows which conform to current search definition
  * (currentSearch).
- * 
+ *
  */
 public class ScatterPlotDataSet extends AbstractXYDataset {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
-  private PeakListRow displayedRows[], selectedRows[];
+  private FeatureListRow displayedRows[], selectedRows[];
 
   private ScatterPlotAxisSelection axisX, axisY;
   private SearchDefinition currentSearch;
@@ -50,8 +48,8 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   // the log-scale scatter plot
   private double defaultValue;
 
-  public ScatterPlotDataSet(PeakList peakList) {
-    this.displayedRows = peakList.getRows();
+  public ScatterPlotDataSet(FeatureList featureList) {
+    this.displayedRows = featureList.getRows().toArray(FeatureListRow[]::new);
   }
 
   void setDisplayedAxes(ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY) {
@@ -61,7 +59,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
     // Update the default value to minimum value divided by 2
     double minValue = Double.MAX_VALUE;
-    for (PeakListRow row : displayedRows) {
+    for (FeatureListRow row : displayedRows) {
       double valX = axisX.getValue(row);
       double valY = axisX.getValue(row);
       if ((valX > 0) && (valX < minValue))
@@ -75,7 +73,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
   }
 
-  public PeakListRow getRow(int series, int item) {
+  public FeatureListRow getRow(int series, int item) {
     if (series == 0)
       return displayedRows[item];
     else
@@ -97,8 +95,9 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   }
 
   /**
-   * 
+   *
    */
+  @Override
   public int getItemCount(int series) {
     if (series == 0)
       return displayedRows.length;
@@ -107,8 +106,9 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   }
 
   /**
-   * 
+   *
    */
+  @Override
   public Number getX(int series, int item) {
     double value;
     if (series == 0)
@@ -123,8 +123,9 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   }
 
   /**
-   * 
+   *
    */
+  @Override
   public Number getY(int series, int item) {
     double value;
     if (series == 0)
@@ -141,7 +142,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   /**
    * Returns the feature list row which exactly matches given X and Y values
    */
-  public PeakListRow getRow(double valueX, double valueY) {
+  public FeatureListRow getRow(double valueX, double valueY) {
 
     for (int i = 0; i < displayedRows.length; i++) {
       if ((Math.abs(valueX - getXValue(0, i)) < 0.0000001)
@@ -156,15 +157,15 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
     this.currentSearch = newSearch;
 
     if (newSearch == null) {
-      this.selectedRows = new PeakListRow[0];
+      this.selectedRows = new FeatureListRow[0];
     } else {
-      ArrayList<PeakListRow> selected = new ArrayList<PeakListRow>();
-      for (PeakListRow row : displayedRows) {
+      ArrayList<FeatureListRow> selected = new ArrayList<FeatureListRow>();
+      for (FeatureListRow row : displayedRows) {
         if (newSearch.conforms(row)) {
           selected.add(row);
         }
       }
-      this.selectedRows = selected.toArray(new PeakListRow[0]);
+      this.selectedRows = selected.toArray(new FeatureListRow[0]);
     }
 
     fireDatasetChanged();

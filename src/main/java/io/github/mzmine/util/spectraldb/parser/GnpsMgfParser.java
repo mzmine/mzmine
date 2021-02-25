@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -60,7 +60,8 @@ public class GnpsMgfParser extends SpectralDBParser {
 
     // BEGIN IONS
     // meta data
-    // SCANS=1 .... n (the scan ID; could be used to put all spectra of the same entry together)
+    // SCANS=1 .... n (the scan ID; could be used to put all spectra of the
+    // same entry together)
     // data
     // END IONS
 
@@ -97,7 +98,8 @@ public class GnpsMgfParser extends SpectralDBParser {
                 }
                 state = State.WAIT_FOR_META;
               } else if (l.toLowerCase().startsWith("scans")) {
-                // belongs to the previously created entry and is another spectrum
+                // belongs to the previously created entry and
+                // is another spectrum
 
                 // data starts
                 state = State.DATA;
@@ -127,7 +129,10 @@ public class GnpsMgfParser extends SpectralDBParser {
                               int lastSpace = name.lastIndexOf(' ');
                               if (lastSpace != -1 && lastSpace < name.length() - 2) {
                                 String adductCandidate = name.substring(lastSpace + 1);
-                                // check for valid adduct with the adduct parser from export
+                                // check for valid
+                                // adduct with the
+                                // adduct parser
+                                // from export
                                 // use as adduct
                                 String adduct = AdductParser.parse(adductCandidate);
                                 if (adduct != null && !adduct.isEmpty())

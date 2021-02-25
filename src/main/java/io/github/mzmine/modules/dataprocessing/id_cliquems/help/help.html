@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<p lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Identification - CliqueMS</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css"
+          href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+  </head>
+<p>
+<h1>CliqueMS</h1>
+
+<h2>Description</h2>
+
+<p> This module uses the CliqueMS algorithm [<a href="#ref1">1</a>] to group and annotate the
+  features.</p>
+
+<h2>Parameters Description</h2>
+<ul>
+  <li><b>PeakList</b> - Feature List on which cliqueMS algorithm is to be performed.</li>
+  <li><b>Filter</b> - Filter out similar features if they pass all MZ, RT and intensity tolerances.
+    Two features are considered similar if their relative change in m/z, rt and intensity are less
+    than the respective tolerances. If filter is set, following options are given -
+  </li>
+  <ul>
+    <li><b>MZ tolerance</b> - If Filter option is set, this value determines the similarity of two
+      features, if their relative difference of m/z values is less than this, they are considered
+      similar.
+    </li>
+    <li><b>RT tolerance</b> -If RT tolerance is set a relative value of 'x' (or absolute value 'y'),
+      then a feature with rt value of 't' will have all peaks with rt in the closed range [t - t*x,
+      t + t*x ] ( or [t-y, t+y]) similar to it (if m/z and intensity tolerance values are passed
+      too).
+
+    </li>
+    <li><b>Intensity tolerance</b> -If Intensity tolerance is set a value of x, then a feature with
+      intensity value 'i' will have all peaks with the intensity range [ i - i*x , i + i*x] similar
+      to it (Note - Tolerance is unitless)(if m/z and rt tolerance values are passed too).
+
+    </li>
+  </ul>
+  <li><b>Log - likelihood tolerance</b> - The Log likelihood function is maximised for clique
+    formation.
+    The iterations are stopped when the relative change in current log likelihood with respect to
+    the initial log likelihood is less than the log-likelihood tolerance value.
+  </li>
+  <li><b>Isotopes max. charge</b> - The maximum charge considered when two features are tested to
+    see they are isotope or not. No isotope will be annotated with a charge greater than this.
+  </li>
+  <li><b>Isotopes max. per cluster</b> - The maximum number of isotopes per cluster. Cluster will be
+    resized if size found greater than this.
+  </li>
+  <li><b>Isotopes mass tolerance </b> - Mass tolerance used when identifying isotopes, relative
+    error in ppm to consider that two features have the mass difference of an isotope, Two features
+    are considered isotopes if the difference of their absolute mass difference from the reference
+    mass difference is within this tolerance limit
+  </li>
+  <li><b>Isotope reference mass difference </b> - The reference mass difference between two features
+    to be considered isotopes
+  </li>
+  <li><b>Annotation max annotation </b> - All neutral masses in the group are ordered based on their
+    adduct log-frequencies and their number of adducts. From that list, a number of these many
+    masses are considered for the final annotation.
+  </li>
+  <li><b>Annotation feature max annotation </b> - In addition to 'topmasstotal', for each feature
+    the list of ordered neutral masses is subsetted to the masses with an adduct in that particular
+    feature. For each sublist, these number neutral masses are also selected for the final
+    annotation.
+  </li>
+  <li><b>Annotation max features per clique </b> - After neutral mass selection, if a clique group
+    has a number of monoisotopic features bigger than this parameter, the annotation group is
+    divided into non-overlapping annotation groups. Each subdivision is annotated independently.
+  </li>
+  <li><b>Adduct polarity </b> - Adduct polarity</li>
+  <li><b>Annotation mass tolerance </b> - Tolerance in mass according to which we consider two or
+    more features compatible with a neutral mass and two or more adducts from Adduct List
+  </li>
+  <li><b>Annotation duplicate filter </b> - This parameter removes redundant annotations. If two
+    neutral masses in the same annotation group have a relative mass difference smaller than this
+    parameter and the same features and adducts, drop the neutral mass with less adducts
+  </li>
+  <li><b>non-Annotation score </b> - Score given to non annotated features. The value should not be
+    larger than any adduct log frequency (therefore given default value of -6.0, see log10freq of
+    IonizationType)
+  </li>
+  <li><b>Annotation Normalize score </b> - If 'TRUE', the reported score is normalized and scaled.
+    Normalized score goes from 0, when it means that the raw score is close to the minimum score
+    (all features with empty annotations), up to 100, which is the score value of the theoretical
+    maximum annotation (all the adducts of the list with the minimum number of neutral masses).
+  </li>
+</ul>
+
+
+<h2>Steps to use CliqueMS module</h2>
+<p>
+  CliqueMS algorithm works on feature lists, so firstly feature lists must be generated for some
+  sample raw Data file. When they are generated, follow these steps to run CliqueMS algorithm on the
+  feature list -
+  Select the feature list(s) to run the cliqueMS algorithm.
+
+<ol>
+  <li>Select the feature list(s) to run the cliqueMS algorithm.<br><img src="i1.png"></li>
+  <li>Click on Feature list methods > Identification > Search related peaks > CliqueMS group<br><img
+      src="i2.png"></li>
+  <li>A parameter list will pop up similar to this. <br><img src="i3.png"></li>
+  <li>Click on help to find in detail what the parameters mean. <br><img src="i4.png"></li>
+  <li>Click on OK to run CliqueMS algorithm, check the task status in the window below. After a
+    while when task is completed, you can find the annotations for the features by hovering the
+    cursor over the identity column of any feature.<br><img src="i5.png"></li>
+</ol>
+<p>
+  The result includes -<br>
+<ul>
+  <li>Clique ID, features with same cliqueID belong to same group (as in metabolomics, single
+    metabolites can be detected as multiple ions of different mass).
+  </li>
+  <li>Identification method - CliqueMS Algorithm</li>
+  <li>Isotope Annotation - This is annotated in the form of Mx[y] where x = grade of the isotope and
+    y is cluster label for the isotope. In CliqueMS, all features in a clique are checked to form a
+    chain of isotopes called clusters. Within each cluster, the Isotopes are graded in increasing
+    order of mass, 0 for least mass and so on.
+  </li>
+  <li>Annotations for the feature from a list of adducts present in MZMine. There are maximum 5
+    annotations for any feature.
+  </li>
+</ul>
+
+<p>
+<h4>Demonstration for CliqueMS</h4>
+Running the CliqueMS algorithm on “26C sample 1 ADAP chromatograms smoothed deconvoluted” from the sample mzmine project gives following results -
+<ul>
+  <li>Number of features = 793</li>
+  <li>Number of cliques (groups) = 107</li>
+  <li>minimum no. of features in a cliques = 1</li>
+  <li>maximum no. of features in a cliques = 138</li>
+  <li>average no. of features in a cliques = 7</li>
+  <li>Isotopes adduction is correctly done, for instance peak#197 and peak#357 are isotopes, so have
+    same cluster ID, and grade of smaller mass is 0 and greater one is 1. Also, they are annotated
+    with same adduct.
+  </li>
+  <img src="i6.png">
+  <img src="i7.png">
+  <li>These are different nodes of a same clique, clique ID - 771.</li>
+  <li>[Note - On running CliqueMS algorithm again, the Clique ID is expected to change, but the
+    elements in the same clique should be same, but there might be little changes based on which
+    peak is taken first which happens randomly]
+  </li>
+
+</ul>
+</p>
+
+<p>
+  <a name="ref1"></a>
+  [1] Oriol Senan, Antoni Aguilar-Mogas, Miriam Navarro, Jordi Capellades, Luke Noon,
+  Deborah Burks, Oscar Yanes, Roger Guimerà, Marta Sales-Pardo, CliqueMS: a computational tool
+  for annotating in-source metabolite ions from LC-MS untargeted metabolomics data based on a
+  coelution similarity network, Bioinformatics, Volume 35, Issue 20, 15 October 2019,
+  Pages 4089–4097,<a href=https://doi.org/10.1093/bioinformatics/btz207">
+  https://doi.org/10.1093/bioinformatics/btz207 </a>
+</p>
+</body>
+</html>

@@ -1,45 +1,40 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import javax.swing.SwingUtilities;
-
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
@@ -54,10 +49,9 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import javafx.application.Platform;
 
 public class SingleRowPredictionTask extends AbstractTask {
-
-  private ResultWindow resultWindow;
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -69,18 +63,18 @@ public class SingleRowPredictionTask extends AbstractTask {
   private IonizationType ionType;
   private double searchedMass;
   private int charge;
-  private PeakListRow peakListRow;
+  private FeatureListRow peakListRow;
   private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
-  private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters;
+  private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters, parameters;
+  ResultWindowFX resultWindowFX;
+
 
   /**
-   * 
+   *
    * @param parameters
-   * @param peakList
-   * @param peakListRow
-   * @param peak
+   * @param peakListRow =
    */
-  SingleRowPredictionTask(ParameterSet parameters, PeakListRow peakListRow) {
+  SingleRowPredictionTask(ParameterSet parameters, FeatureListRow peakListRow) {
 
     searchedMass = parameters.getParameter(FormulaPredictionParameters.neutralMass).getValue();
     charge = parameters.getParameter(FormulaPredictionParameters.neutralMass).getCharge();
@@ -109,12 +103,13 @@ public class SingleRowPredictionTask extends AbstractTask {
     elementCounts = parameters.getParameter(FormulaPredictionParameters.elements).getValue();
 
     this.peakListRow = peakListRow;
-
+    this.parameters = parameters;
   }
 
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (generator == null)
       return 0;
@@ -124,6 +119,7 @@ public class SingleRowPredictionTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Formula prediction for "
         + MZmineCore.getConfiguration().getMZFormat().format(searchedMass);
@@ -132,14 +128,18 @@ public class SingleRowPredictionTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
 
-    resultWindow = new ResultWindow(
-        "Searching for " + MZmineCore.getConfiguration().getMZFormat().format(searchedMass),
-        peakListRow, searchedMass, charge, this);
-    resultWindow.setVisible(true);
+    Platform.runLater(() -> {
+      resultWindowFX = new ResultWindowFX(
+          "Searching for " + MZmineCore.getConfiguration().getMZFormat().format(searchedMass),
+          peakListRow, searchedMass, charge, this);
+      resultWindowFX.show();
+
+    });
 
     logger.finest("Starting search for formulas for " + massRange + " Da");
 
@@ -147,43 +147,54 @@ public class SingleRowPredictionTask extends AbstractTask {
     if ((checkIsotopes) && (detectedPattern == null)) {
       final String msg = "Cannot calculate isotope pattern scores, because selected"
           + " peak does not have any isotopes. Have you run the isotope peak grouper?";
-      MZmineCore.getDesktop().displayMessage(resultWindow, msg);
+      MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
-    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
-    generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
-        massRange.upperEndpoint(), elementCounts);
+    try {
 
-    IMolecularFormula cdkFormula;
-    while ((cdkFormula = generator.getNextFormula()) != null) {
+      IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+
+      generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
+          massRange.upperEndpoint(), elementCounts);
+
+      IMolecularFormula cdkFormula;
+      while ((cdkFormula = generator.getNextFormula()) != null) {
+
+        if (isCanceled())
+          return;
+
+        // Mass is ok, so test other constraints
+        checkConstraints(cdkFormula);
+
+
+      }
 
       if (isCanceled())
         return;
 
-      // Mass is ok, so test other constraints
-      checkConstraints(cdkFormula);
+      logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
+          + " formulas");
 
-    }
-
-    if (isCanceled())
-      return;
-
-    logger.finest(
-        "Finished formula search for " + massRange + " m/z, found " + foundFormulas + " formulas");
-
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        resultWindow.setTitle("Finished searching for "
+      Platform.runLater(() -> {
+        resultWindowFX.setTitle("Finished searching for "
             + MZmineCore.getConfiguration().getMZFormat().format(searchedMass) + " amu, "
             + foundFormulas + " formulas found");
+      });
+    } catch (Exception e) {
+      e.printStackTrace();
+      setStatus(TaskStatus.ERROR);
+    }
 
-      }
-    });
+    peakListRow.getFeatureList().getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        FormulaPredictionModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 
+
   }
+
+
 
   private void checkConstraints(IMolecularFormula cdkFormula) {
 
@@ -210,9 +221,6 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     final String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula, ionType, charge);
 
-    final double isotopeNoiseLevel =
-        isotopeParameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
-
     // Fixed min abundance
     final double minPredictedAbundance = 0.00001;
 
@@ -235,19 +243,17 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     // MS/MS evaluation is slowest, so let's do it last
     Double msmsScore = null;
-    Feature bestPeak = peakListRow.getBestPeak();
-    RawDataFile dataFile = bestPeak.getDataFile();
-    Map<DataPoint, String> msmsAnnotations = null;
-    int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+    Feature bestPeak = peakListRow.getBestFeature();
+    RawDataFile dataFile = bestPeak.getRawDataFile();
+    Map<Integer, String> msmsAnnotations = null;
+    Scan msmsScan = bestPeak.getMostIntenseFragmentScan();
 
-    if ((checkMSMS) && (msmsScanNumber > 0)) {
-      Scan msmsScan = dataFile.getScan(msmsScanNumber);
-      String massListName = msmsParameters.getParameter(MSMSScoreParameters.massList).getValue();
-      MassList ms2MassList = msmsScan.getMassList(massListName);
+    if ((checkMSMS) && (msmsScan != null)) {
+      MassList ms2MassList = msmsScan.getMassList();
       if (ms2MassList == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("The MS/MS scan #" + msmsScanNumber + " in file " + dataFile.getName()
-            + " does not have a mass list called '" + massListName + "'");
+        setErrorMessage("The MS/MS scan #" + msmsScan.getScanNumber() + " in file "
+            + dataFile.getName() + " does not have a mass list");
         return;
       }
 
@@ -272,7 +278,7 @@ public class SingleRowPredictionTask extends AbstractTask {
         rdbeValue, isotopeScore, msmsScore, msmsAnnotations);
 
     // Add the new formula entry
-    resultWindow.addNewListItem(resultEntry);
+    resultWindowFX.addNewListItem(resultEntry);
 
     foundFormulas++;
 

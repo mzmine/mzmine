@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -40,7 +40,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getName()
+   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -48,7 +48,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getDescription()
+   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {
@@ -89,13 +89,16 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    String typeAttr = xmlElement.getAttribute("type");
-    boolean isAbsolute = !typeAttr.equals("percent");
+    String unitAttr = xmlElement.getAttribute("unit");
+    if (unitAttr == null || unitAttr.isEmpty()) {
+      return;
+    }
+    RTTolerance.Unit toleranceUnit = RTTolerance.Unit.valueOf(unitAttr);
     String toleranceNum = xmlElement.getTextContent();
     if (toleranceNum.length() == 0)
       return;
-    double tolerance = Double.valueOf(toleranceNum);
-    this.value = new RTTolerance(isAbsolute, tolerance);
+    float tolerance = (float) Double.parseDouble(toleranceNum);
+    this.value = new RTTolerance(tolerance, toleranceUnit);
   }
 
   @Override
@@ -103,12 +106,8 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
     if (value == null) {
       return;
     }
-    if (value.isAbsolute()) {
-      xmlElement.setAttribute("type", "absolute");
-    } else {
-      xmlElement.setAttribute("type", "percent");
-    }
-    double tolerance = value.getTolerance();
+    xmlElement.setAttribute("unit", value.getUnit().name());
+    float tolerance = (float) value.getTolerance();
     String toleranceNum = String.valueOf(tolerance);
     xmlElement.setTextContent(toleranceNum);
   }
@@ -128,7 +127,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
       }
     } else {
       double relativeTolerance = value.getTolerance();
-      if ((relativeTolerance < 0) || (relativeTolerance > 1)) {
+      if ((relativeTolerance < 0) || (relativeTolerance > 100)) {
         errorMessages.add("Invalid retention time tolerance value.");
         return false;
 

@@ -1,22 +1,24 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
+import io.github.mzmine.util.MirrorChartFactory;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.Arrays;
@@ -31,23 +33,19 @@ import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleEdge;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
-import io.github.mzmine.util.ColorPalettes;
-import io.github.mzmine.util.ColorPalettes.Vision;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 
 /**
  * Creates a window with a mirror chart to compare to scans
- * 
+ *
  * @author Robin Schmid
  */
 public class MirrorScanWindow extends JFrame {
@@ -76,7 +74,7 @@ public class MirrorScanWindow extends JFrame {
   public void setScans(String labelA, double precursorMZA, double rtA, DataPoint[] dpsA,
       String labelB, double precursorMZB, double rtB, DataPoint[] dpsB) {
     contentPane.removeAll();
-    mirrorSpecrumPlot = SpectrumChartFactory.createMirrorChartPanel(labelA, precursorMZA, rtA, dpsA,
+    mirrorSpecrumPlot = MirrorChartFactory.createMirrorChartPanel(labelA, precursorMZA, rtA, dpsA,
         labelB, precursorMZB, rtB, dpsB, false, true);
     contentPane.add(mirrorSpecrumPlot, BorderLayout.CENTER);
     contentPane.revalidate();
@@ -85,13 +83,13 @@ public class MirrorScanWindow extends JFrame {
 
   /**
    * Set scan and mirror scan and create chart
-   * 
+   *
    * @param scan
    * @param mirror
    */
   public void setScans(Scan scan, Scan mirror) {
     contentPane.removeAll();
-    mirrorSpecrumPlot = SpectrumChartFactory.createMirrorChartPanel(scan, mirror,
+    mirrorSpecrumPlot = MirrorChartFactory.createMirrorChartPanel(scan, mirror,
         scan.getScanDefinition(), mirror.getScanDefinition(), false, true);
     contentPane.add(mirrorSpecrumPlot, BorderLayout.CENTER);
     contentPane.revalidate();
@@ -102,7 +100,7 @@ public class MirrorScanWindow extends JFrame {
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {
     contentPane.removeAll();
     mirrorSpecrumPlot =
-        SpectrumChartFactory.createMirrorChartPanel(scan, mirror, labelA, labelB, false, true);
+        MirrorChartFactory.createMirrorChartPanel(scan, mirror, labelA, labelB, false, true);
     contentPane.add(mirrorSpecrumPlot, BorderLayout.CENTER);
     contentPane.revalidate();
     contentPane.repaint();
@@ -110,11 +108,10 @@ public class MirrorScanWindow extends JFrame {
 
   /**
    * Based on a data base match to a spectral library
-   * 
-   * @param row
+   *
    * @param db
    */
-  public void setScans(SpectralDBPeakIdentity db) {
+  public void setScans(SpectralDBFeatureIdentity db) {
     Scan scan = db.getQueryScan();
     if (scan == null)
       return;
@@ -135,11 +132,11 @@ public class MirrorScanWindow extends JFrame {
       return;
 
     // get colors for vision
-    Vision vision = MZmineCore.getConfiguration().getColorVision();
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     // colors for the different DataPointsTags:
-    final Color[] colors = new Color[] {Color.black, // black = filtered
-        ColorPalettes.getNegativeColor(vision), // unaligned
-        ColorPalettes.getPositiveColor(vision) // aligned
+    final Color[] colors = new Color[]{Color.black, // black = filtered
+        palette.getNegativeColorAWT(), // unaligned
+        palette.getPositiveColorAWT()// aligned
     };
 
     // scan a
@@ -151,7 +148,7 @@ public class MirrorScanWindow extends JFrame {
 
     contentPane.removeAll();
     // create without data
-    mirrorSpecrumPlot = SpectrumChartFactory.createMirrorChartPanel(
+    mirrorSpecrumPlot = MirrorChartFactory.createMirrorChartPanel(
         "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null, "Library: " + db.getName(),
         precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
     mirrorSpecrumPlot.setMaximumDrawWidth(4200);
@@ -174,7 +171,8 @@ public class MirrorScanWindow extends JFrame {
     XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
     XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
 
-    // add all datapoints to a dataset that are not present in subsequent masslist
+    // add all datapoints to a dataset that are not present in subsequent
+    // masslist
     for (int i = 0; i < tags.length; i++) {
       DataPointsTag tag = tags[i];
       PseudoSpectrumDataSet qdata =
@@ -223,8 +221,6 @@ public class MirrorScanWindow extends JFrame {
     contentPane.revalidate();
     contentPane.repaint();
   }
-
-
 
   private boolean notInSubsequentMassList(DataPoint dp, DataPoint[][] query, int current) {
     for (int i = current + 1; i < query.length; i++) {

@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -25,6 +25,7 @@ import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.entity.ChartEntity;
@@ -33,7 +34,7 @@ import org.jfree.chart.entity.EntityCollection;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureEvent;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Button;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
@@ -47,10 +48,13 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
  * which are then handled by a list of {@link ChartGestureHandler}s.
  * <p>
  * Add this adapter to a ChartPanel as a mouse and mousewheel listener.
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMouseAdapter {
+
+  public static final Logger logger = Logger.getLogger(ChartGestureMouseAdapter.class.getName());
+
   private int lastEntityX = -1, lastEntityY = -1;
   private ChartEntity lastEntity = null;
   private ChartGestureEvent lastDragEvent = null;
@@ -88,7 +92,7 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
    * @param g
    * @param handler
    */
-  public void addDragGestureHandler(DragHandler[] handler, Key[] key, Entity entity, Button button,
+  public void addDragGestureHandler(DragHandler[] handler, Key[] key, Entity entity, GestureButton button,
       Orientation orient, Object[] param) {
     ChartGestureHandler h =
         ChartGestureHandler.createDragDiffHandler(handler, key, entity, button, orient, param);
@@ -101,7 +105,7 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
    * @param g
    * @param handler
    */
-  public void addGestureHandler(Handler handler, Entity entity, Event[] event, Button button,
+  public void addGestureHandler(Handler handler, Entity entity, Event[] event, GestureButton button,
       Key key, Object[] param) {
     ChartGestureHandler h = ChartGestureHandler.createHandler(handler,
         new ChartGesture(entity, event, button, key), param);
@@ -187,7 +191,7 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
       ChartPanel chartPanel = (ChartPanel) e.getComponent();
       ChartEntity entity = findChartEntity(chartPanel, e);
       ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
-      Button button = Button.getButton(e.getButton());
+      GestureButton button = GestureButton.getButton(e.getButton());
 
       if (!e.isConsumed()) {
         // double clicked
@@ -215,7 +219,7 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
       ChartPanel chartPanel = (ChartPanel) e.getComponent();
       ChartEntity entity = findChartEntity(chartPanel, e);
       ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
-      Button button = Button.getButton(e.getButton());
+      GestureButton button = GestureButton.getButton(e.getButton());
 
       // last gesture was dragged? keep the same chartEntity
       if (lastDragEvent != null) {
@@ -240,7 +244,7 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
       ChartPanel chartPanel = (ChartPanel) e.getComponent();
       ChartEntity entity = findChartEntity(chartPanel, e);
       ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
-      Button button = Button.getButton(e.getButton());
+      GestureButton button = GestureButton.getButton(e.getButton());
       // handle event
       lastDragEvent = new ChartGestureEvent(chartPanel, e, entity,
           new ChartGesture(gestureEntity, Event.PRESSED, button));
@@ -258,7 +262,7 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
       // keep the same chartEntity
       ChartEntity entity = lastDragEvent.getEntity();
       ChartGesture.Entity gestureEntity = lastDragEvent.getGesture().getEntity();
-      Button button = lastDragEvent.getGesture().getButton();
+      GestureButton button = lastDragEvent.getGesture().getButton();
 
       // handle event
       lastDragEvent = new ChartGestureEvent(chartPanel, e, entity,
@@ -276,14 +280,13 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
       ChartPanel chartPanel = (ChartPanel) e.getComponent();
       ChartEntity entity = findChartEntity(chartPanel, e);
       ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
-      Button button = Button.getButton(e.getButton());
+      GestureButton button = GestureButton.getButton(e.getButton());
 
       // handle event
       handleEvent(new ChartGestureEvent(chartPanel, e, entity,
           new ChartGesture(gestureEntity, Event.MOVED, button)));
     }
   }
-
 
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
@@ -294,7 +297,7 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
       ChartPanel chartPanel = (ChartPanel) e.getComponent();
       ChartEntity entity = findChartEntity(chartPanel, e);
       ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
-      Button button = Button.getButton(e.getButton());
+      GestureButton button = GestureButton.getButton(e.getButton());
 
       // handle event
       handleEvent(new ChartGestureEvent(chartPanel, e, entity,
@@ -311,7 +314,7 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
       ChartPanel chartPanel = (ChartPanel) e.getComponent();
       ChartEntity entity = findChartEntity(chartPanel, e);
       ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
-      Button button = Button.getButton(e.getButton());
+      GestureButton button = GestureButton.getButton(e.getButton());
 
       // handle event
       handleEvent(new ChartGestureEvent(chartPanel, e, entity,
@@ -328,7 +331,7 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
       ChartPanel chartPanel = (ChartPanel) e.getComponent();
       ChartEntity entity = findChartEntity(chartPanel, e);
       ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
-      Button button = Button.getButton(e.getButton());
+      GestureButton button = GestureButton.getButton(e.getButton());
 
       // handle event
       handleEvent(new ChartGestureEvent(chartPanel, e, entity,
@@ -336,12 +339,13 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
     }
   }
 
-
   /**
    * Example how to create a new handler handles all events and prints them
    */
   public void addDebugHandler() {
-    addGestureHandler(ChartGestureHandler.createHandler(Handler.DEBUG, // a preset handler
+    addGestureHandler(ChartGestureHandler.createHandler(Handler.DEBUG, // a
+                                                                       // preset
+                                                                       // handler
         ChartGesture.ALL, // no gesture filters
         null) // no parameters for this handler
     );

@@ -1,43 +1,40 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.event.ItemListener;
-import javax.swing.BorderFactory;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
 
 /**
  * Parameter for center measure: median, avg, weighted avg
- * 
+ *
  */
-public class CenterMeasureComponent extends JPanel {
+public class CenterMeasureComponent extends FlowPane {
 
-  private static final long serialVersionUID = 1L;
-
-  private final JComboBox<CenterMeasure> comboCenterMeasure;
-  private JComboBox<Weighting> comboTransform;
-  private JLabel labelTrans;
+  private final ComboBox<CenterMeasure> comboCenterMeasure;
+  private ComboBox<Weighting> comboTransform;
+  private Label labelTrans;
 
   public CenterMeasureComponent() {
     this(CenterMeasure.values(), Weighting.values());
@@ -56,7 +53,7 @@ public class CenterMeasureComponent extends JPanel {
   }
 
   /**
-   * 
+   *
    * @param choices
    * @param avgTransform
    * @param selected selected center measure
@@ -64,20 +61,21 @@ public class CenterMeasureComponent extends JPanel {
    */
   public CenterMeasureComponent(CenterMeasure choices[], Weighting[] avgTransform,
       CenterMeasure selected, Weighting selWeighting) {
-    setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
-    comboCenterMeasure = new JComboBox<>(choices);
-    comboCenterMeasure.setSelectedItem(selected);
-    add(comboCenterMeasure);
+    // setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
+
+    comboCenterMeasure = new ComboBox<>(FXCollections.observableArrayList(choices));
+    comboCenterMeasure.getSelectionModel().select(selected);
+    getChildren().add(comboCenterMeasure);
 
     if (avgTransform != null && avgTransform.length > 0) {
-      labelTrans = new JLabel("weighting: ");
-      add(labelTrans);
-      comboTransform = new JComboBox<>(avgTransform);
-      comboTransform.setSelectedItem(selWeighting);
-      add(comboTransform);
+      labelTrans = new Label("weighting: ");
+      getChildren().add(labelTrans);
+      comboTransform = new ComboBox<>(FXCollections.observableArrayList(avgTransform));
+      comboTransform.getSelectionModel().select(selWeighting);
+      getChildren().add(comboTransform);
 
       // do not show weighting for median
-      comboCenterMeasure.addItemListener(il -> {
+      comboCenterMeasure.setOnAction(il -> {
         checkWeightingComponentsVisibility();
       });
       //
@@ -86,45 +84,37 @@ public class CenterMeasureComponent extends JPanel {
   }
 
   private void checkWeightingComponentsVisibility() {
-    boolean visible = comboCenterMeasure.getSelectedItem().equals(CenterMeasure.AVG);
+    boolean visible =
+        comboCenterMeasure.getSelectionModel().getSelectedItem().equals(CenterMeasure.AVG);
     comboTransform.setVisible(visible);
     labelTrans.setVisible(visible);
-    revalidate();
-    repaint();
   }
 
-  @Override
   public void setToolTipText(String toolTip) {
-    comboCenterMeasure.setToolTipText(toolTip);
+    comboCenterMeasure.setTooltip(new Tooltip(toolTip));
   }
 
   public CenterFunction getSelectedFunction() {
-    CenterMeasure measure = (CenterMeasure) comboCenterMeasure.getSelectedItem();
+    CenterMeasure measure = comboCenterMeasure.getSelectionModel().getSelectedItem();
     Weighting trans = Weighting.NONE;
     if (comboTransform != null && comboTransform.isVisible())
-      trans = (Weighting) comboTransform.getSelectedItem();
+      trans = comboTransform.getSelectionModel().getSelectedItem();
     return new CenterFunction(measure, trans);
   }
 
   public void setSelectedItem(CenterMeasure newValue, Weighting transform) {
-    comboCenterMeasure.setSelectedItem(newValue);
-    comboTransform.setSelectedItem(transform);
+    comboCenterMeasure.getSelectionModel().select(newValue);
+    comboTransform.getSelectionModel().select(transform);
   }
 
-  @Override
-  public void setEnabled(boolean enabled) {
-    comboCenterMeasure.setEnabled(enabled);
-    comboTransform.setEnabled(enabled);
-  }
-
-  public void addItemListener(ItemListener il) {
-    comboCenterMeasure.addItemListener(il);
-    comboTransform.addItemListener(il);
-  }
+  /*
+   * public void addItemListener(ItemListener il) { comboCenterMeasure.addItemListener(il);
+   * comboTransform.addItemListener(il); }
+   */
 
   public void setSelectedItem(CenterFunction newValue) {
-    comboCenterMeasure.setSelectedItem(newValue.getMeasure());
+    comboCenterMeasure.getSelectionModel().select(newValue.getMeasure());
     if (comboTransform != null)
-      comboTransform.setSelectedItem(newValue.getWeightTransform());
+      comboTransform.getSelectionModel().select(newValue.getWeightTransform());
   }
 }

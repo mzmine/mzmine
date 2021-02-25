@@ -1,26 +1,25 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import java.util.ArrayList;
-
-import io.github.mzmine.datamodel.PeakIdentity;
 
 /**
  * This class contains methods to build fatty acids for MS/MS identification of lipids
@@ -32,13 +31,13 @@ public class FattyAcidTools {
   /**
    * This method calculates all possible fatty acids formulas for a selected annotated lipid
    */
-  public ArrayList<String> calculateFattyAcidFormulas(PeakIdentity peakIdentity) {
+  public ArrayList<String> calculateFattyAcidFormulas(FeatureIdentity featureIdentity) {
     ArrayList<String> fattyAcidFormulas = new ArrayList<String>();
     LipidTools lipidTools = new LipidTools();
     int minFattyAcidLength = 1;
-    int maxFattyAcidLength = lipidTools.getNumberOfCAtoms(peakIdentity.getName());
+    int maxFattyAcidLength = lipidTools.getNumberOfCAtoms(featureIdentity.getName());
     int minNumberOfDoubleBonds = 0;
-    int maxNumberOfDoubleBonds = lipidTools.getNumberOfDB(peakIdentity.getName());
+    int maxNumberOfDoubleBonds = lipidTools.getNumberOfDB(featureIdentity.getName());
 
     for (int fattyAcidLength =
         minFattyAcidLength; fattyAcidLength <= maxFattyAcidLength; fattyAcidLength++) {
@@ -57,14 +56,14 @@ public class FattyAcidTools {
   /**
    * This method creates all possible fatty acid names for a selected annotated lipid
    */
-  public ArrayList<String> getFattyAcidNames(PeakIdentity peakIdentity) {
+  public ArrayList<String> getFattyAcidNames(FeatureIdentity featureIdentity) {
 
     ArrayList<String> fattyAcidNames = new ArrayList<String>();
     LipidTools lipidTools = new LipidTools();
     int minFattyAcidLength = 1;
-    int maxFattyAcidLength = lipidTools.getNumberOfCAtoms(peakIdentity.getName());
+    int maxFattyAcidLength = lipidTools.getNumberOfCAtoms(featureIdentity.getName());
     int minNumberOfDoubleBonds = 0;
-    int maxNumberOfDoubleBonds = lipidTools.getNumberOfDB(peakIdentity.getName());
+    int maxNumberOfDoubleBonds = lipidTools.getNumberOfDB(featureIdentity.getName());
 
     for (int fattyAcidLength =
         minFattyAcidLength; fattyAcidLength <= maxFattyAcidLength; fattyAcidLength++) {

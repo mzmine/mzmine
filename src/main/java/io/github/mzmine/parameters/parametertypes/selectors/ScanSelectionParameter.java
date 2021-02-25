@@ -1,35 +1,32 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import java.util.Collection;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.XMLUtils;
+import java.util.Collection;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public class ScanSelectionParameter
     implements UserParameter<ScanSelection, ScanSelectionComponent> {
@@ -86,14 +83,16 @@ public class ScanSelectionParameter
 
     Range<Integer> scanNumberRange = null;
     Integer baseFilteringInteger = null;
-    Range<Double> scanRTRange = null;
+    Range<Double> scanMobilityRange = null;
+    Range<Float> scanRTRange = null;
     PolarityType polarity = null;
     MassSpectrumType spectrumType = null;
     Integer msLevel = null;
     String scanDefinition = null;
 
     scanNumberRange = XMLUtils.parseIntegerRange(xmlElement, "scan_numbers");
-    scanRTRange = XMLUtils.parseDoubleRange(xmlElement, "retention_time");
+    scanMobilityRange = XMLUtils.parseDoubleRange(xmlElement, "mobility");
+    scanRTRange = XMLUtils.parseFloatRange(xmlElement, "retention_time");
 
     NodeList items = xmlElement.getElementsByTagName("ms_level");
     for (int i = 0; i < items.getLength(); i++) {
@@ -119,8 +118,8 @@ public class ScanSelectionParameter
       scanDefinition = items.item(i).getTextContent();
     }
 
-    this.value = new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, polarity,
-        spectrumType, msLevel, scanDefinition);
+    this.value = new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange,
+        scanMobilityRange, polarity, spectrumType, msLevel, scanDefinition);
   }
 
   @Override
@@ -130,7 +129,8 @@ public class ScanSelectionParameter
     Document parentDocument = xmlElement.getOwnerDocument();
 
     final Range<Integer> scanNumberRange = value.getScanNumberRange();
-    final Range<Double> scanRetentionTimeRange = value.getScanRTRange();
+    final Range<Float> scanRetentionTimeRange = value.getScanRTRange();
+    final Range<Double> scanMobilityRange = value.getScanMobilityRange();
     final Integer baseFilteringInteger = value.getBaseFilteringInteger();
     final PolarityType polarity = value.getPolarity();
     final MassSpectrumType spectrumType = value.getSpectrumType();
@@ -139,6 +139,7 @@ public class ScanSelectionParameter
 
     XMLUtils.appendRange(xmlElement, "scan_numbers", scanNumberRange);
     XMLUtils.appendRange(xmlElement, "retention_time", scanRetentionTimeRange);
+    XMLUtils.appendRange(xmlElement, "mobility", scanMobilityRange);
 
     if (baseFilteringInteger != null) {
       Element newElement = parentDocument.createElement("baseFilteringInteger");

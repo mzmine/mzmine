@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,80 +19,68 @@
 package io.github.mzmine.project.impl;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.Vector;
-
-import javax.swing.SwingUtilities;
-
+import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MZmineProjectListener;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.impl.MainWindow;
-import io.github.mzmine.gui.impl.projecttree.PeakListTreeModel;
-import io.github.mzmine.gui.impl.projecttree.ProjectTree;
-import io.github.mzmine.gui.impl.projecttree.RawDataTreeModel;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.javafx.FxThreadUtil;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
- * This class represents a MZmine project. That includes raw data files, feature lists and parameters.
+ * This class represents a MZmine project. That includes raw data files, feature lists and
+ * parameters.
  */
 public class MZmineProjectImpl implements MZmineProject {
 
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
-  private PeakListTreeModel peakListTreeModel;
-  private RawDataTreeModel rawDataTreeModel;
+  private final SimpleListProperty<RawDataFile> rawDataFilesProperty = //
+      new SimpleListProperty<>(//
+          FXCollections.synchronizedObservableList(//
+              FXCollections.observableArrayList()//
+          ));
+
+
+  private final SimpleListProperty<FeatureList> featureListsProperty = //
+      new SimpleListProperty<>(//
+          FXCollections.synchronizedObservableList(//
+              FXCollections.observableArrayList()//
+          ));
+
+  @Override
+  public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues() {
+    return projectParametersAndValues;
+  }
+
+  @Override
+  public void setProjectParametersAndValues(
+      Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
+    this.projectParametersAndValues = projectParametersAndValues;
+  }
 
   private File projectFile;
 
-  private Collection<MZmineProjectListener> listeners =
-      Collections.synchronizedCollection(new LinkedList<MZmineProjectListener>());
-
+  /*
+   * private Collection<MZmineProjectListener> listeners = Collections.synchronizedCollection(new
+   * LinkedList<MZmineProjectListener>());
+   */
   public MZmineProjectImpl() {
-
-    this.peakListTreeModel = new PeakListTreeModel(this);
-    this.rawDataTreeModel = new RawDataTreeModel(this);
 
     projectParametersAndValues =
         new Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>>();
 
   }
 
-  public void activateProject() {
-
-    // If running without GUI, just return
-    if (!(MZmineCore.getDesktop() instanceof MainWindow))
-      return;
-
-    Runnable swingThreadCode = new Runnable() {
-      public void run() {
-        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-
-        // Update the name of the project in the window title
-        mainWindow.updateTitle();
-
-        ProjectTree peakListTree = mainWindow.getMainPanel().getPeakListTree();
-        peakListTree.setModel(peakListTreeModel);
-        ProjectTree rawDataTree = mainWindow.getMainPanel().getRawDataTree();
-        rawDataTree.setModel(rawDataTreeModel);
-
-      }
-    };
-    try {
-      if (SwingUtilities.isEventDispatchThread())
-        swingThreadCode.run();
-      else
-        SwingUtilities.invokeAndWait(swingThreadCode);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
+  @Override
   public void addParameter(UserParameter<?, ?> parameter) {
     if (projectParametersAndValues.containsKey(parameter))
       return;
@@ -102,18 +90,37 @@ public class MZmineProjectImpl implements MZmineProject {
 
   }
 
+  @Override
   public void removeParameter(UserParameter<?, ?> parameter) {
     projectParametersAndValues.remove(parameter);
   }
 
-  public boolean hasParameter(UserParameter<?, ?> parameter) {
-    return projectParametersAndValues.containsKey(parameter);
+  @Override
+  public UserParameter<?, ?> getParameterByName(String name) {
+    for (UserParameter<?, ?> parameter : getParameters()) {
+      if (parameter.getName().equals(name)) {
+        return parameter;
+      }
+    }
+    return null;
   }
 
+  @Override
+  public boolean hasParameter(UserParameter<?, ?> parameter) {
+    // matching by name
+    UserParameter<?, ?> param = getParameterByName(parameter.getName());
+    if (param == null) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
   public UserParameter<?, ?>[] getParameters() {
     return projectParametersAndValues.keySet().toArray(new UserParameter[0]);
   }
 
+  @Override
   public void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile,
       Object value) {
     if (!(hasParameter(parameter)))
@@ -125,6 +132,7 @@ public class MZmineProjectImpl implements MZmineProject {
       parameterValues.put(rawDataFile, value);
   }
 
+  @Override
   public Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile) {
     if (!(hasParameter(parameter)))
       return null;
@@ -133,116 +141,70 @@ public class MZmineProjectImpl implements MZmineProject {
     return value;
   }
 
+  @Override
   public void addFile(final RawDataFile newFile) {
 
     assert newFile != null;
+    logger.finest("Adding a new file to the project: " + newFile.getName());
 
-    Runnable swingCode = new Runnable() {
-      public void run() {
-        rawDataTreeModel.addObject(newFile);
-      }
-    };
-    try {
-      if (SwingUtilities.isEventDispatchThread())
-        swingCode.run();
-      else
-        SwingUtilities.invokeAndWait(swingCode);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    // Notify listeners
-    for (MZmineProjectListener listener : listeners) {
-      listener.dataFileAdded(newFile);
-    }
+    FxThreadUtil.runOnFxThreadAndWait(() -> {
+      rawDataFilesProperty.get().add(newFile);
+    });
 
   }
 
+  @Override
   public void removeFile(final RawDataFile file) {
 
     assert file != null;
 
-    Runnable swingCode = new Runnable() {
-      public void run() {
-        rawDataTreeModel.removeObject(file);
-      }
-    };
-    try {
-      if (SwingUtilities.isEventDispatchThread())
-        swingCode.run();
-      else
-        SwingUtilities.invokeAndWait(swingCode);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    FxThreadUtil.runOnFxThreadAndWait(() -> {
+      rawDataFilesProperty.get().remove(file);
+    });
 
     // Close the data file, which also removed the temporary data
     file.close();
 
   }
 
+  @Override
   public RawDataFile[] getDataFiles() {
-    return rawDataTreeModel.getDataFiles();
+    return rawDataFilesProperty.get().toArray(new RawDataFile[0]);
   }
 
-  public PeakList[] getPeakLists() {
-    return peakListTreeModel.getPeakLists();
+  @Override
+  public void addFeatureList(final FeatureList featureList) {
+
+    assert featureList != null;
+    FxThreadUtil.runOnFxThreadAndWait(() -> {
+      featureListsProperty.get().add(featureList);
+    });
+
   }
 
-  public void addPeakList(final PeakList peakList) {
+  @Override
+  public void removeFeatureList(final FeatureList featureList) {
 
-    assert peakList != null;
+    assert featureList != null;
 
-    Runnable swingCode = new Runnable() {
-      public void run() {
-        peakListTreeModel.addObject(peakList);
-      }
-    };
-    try {
-      if (SwingUtilities.isEventDispatchThread())
-        swingCode.run();
-      else
-        SwingUtilities.invokeAndWait(swingCode);
-    } catch (Exception e) {
-      e.printStackTrace();
+    FxThreadUtil.runOnFxThreadAndWait(() -> {
+      featureListsProperty.get().remove(featureList);
+    });
+  }
+
+  @Override
+  public ModularFeatureList[] getFeatureLists(RawDataFile file) {
+    FeatureList[] currentFeatureLists = getFeatureLists().toArray(FeatureList[]::new);
+    Vector<ModularFeatureList> result = new Vector<ModularFeatureList>();
+    for (FeatureList featureList : currentFeatureLists) {
+      if (featureList.hasRawDataFile(file))
+        result.add((ModularFeatureList) featureList);
     }
-
-    // Notify listeners
-    for (MZmineProjectListener listener : listeners) {
-      listener.peakListAdded(peakList);
-    }
-  }
-
-  public void removePeakList(final PeakList peakList) {
-
-    assert peakList != null;
-
-    Runnable swingCode = new Runnable() {
-      public void run() {
-        peakListTreeModel.removeObject(peakList);
-      }
-    };
-    try {
-      if (SwingUtilities.isEventDispatchThread())
-        swingCode.run();
-      else
-        SwingUtilities.invokeAndWait(swingCode);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  public PeakList[] getPeakLists(RawDataFile file) {
-    PeakList[] currentPeakLists = getPeakLists();
-    Vector<PeakList> result = new Vector<PeakList>();
-    for (PeakList peakList : currentPeakLists) {
-      if (peakList.hasRawDataFile(file))
-        result.add(peakList);
-    }
-    return result.toArray(new PeakList[0]);
+    return result.toArray(new ModularFeatureList[0]);
 
   }
 
+  @Override
   public File getProjectFile() {
     return projectFile;
   }
@@ -257,6 +219,7 @@ public class MZmineProjectImpl implements MZmineProject {
     projectFile.delete();
   }
 
+  @Override
   public String toString() {
     if (projectFile == null)
       return "New project";
@@ -267,28 +230,32 @@ public class MZmineProjectImpl implements MZmineProject {
     return projectName;
   }
 
-  @Override
-  public void notifyObjectChanged(Object object, boolean structureChanged) {
-    peakListTreeModel.notifyObjectChanged(object, structureChanged);
-    rawDataTreeModel.notifyObjectChanged(object, structureChanged);
-  }
-
-  public PeakListTreeModel getPeakListTreeModel() {
-    return peakListTreeModel;
-  }
-
-  public RawDataTreeModel getRawDataTreeModel() {
-    return rawDataTreeModel;
-  }
+  /*
+   * @Override public void addProjectListener(MZmineProjectListener newListener) {
+   * listeners.add(newListener); }
+   *
+   * @Override public void removeProjectListener(MZmineProjectListener newListener) {
+   * listeners.remove(newListener); }
+   */
 
   @Override
-  public void addProjectListener(MZmineProjectListener newListener) {
-    listeners.add(newListener);
+  public ObservableList<RawDataFile> getRawDataFiles() {
+    return rawDataFilesProperty.get();
   }
 
   @Override
-  public void removeProjectListener(MZmineProjectListener newListener) {
-    listeners.remove(newListener);
+  public ListProperty<RawDataFile> rawDataFilesProperty() {
+    return rawDataFilesProperty;
+  }
+
+  @Override
+  public ObservableList<FeatureList> getFeatureLists() {
+    return featureListsProperty.get();
+  }
+
+  @Override
+  public ListProperty<FeatureList> featureListsProperty() {
+    return featureListsProperty;
   }
 
 }

@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,19 +19,10 @@
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
 import java.awt.BasicStroke;
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFormattedTextField;
-import javax.swing.text.NumberFormatter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -40,24 +31,30 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.gui.chartbasics.chartthemes.EIsotopePatternChartTheme;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.autocarbon.AutoCarbonParameters;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ExtendedIsotopePatternDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraToolTipGenerator;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithEmptyPreview;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.FormulaUtils;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.util.converter.NumberStringConverter;
 
 /**
  *
@@ -67,12 +64,7 @@ import io.github.mzmine.util.FormulaUtils;
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmptyPreview {
-
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+public class IsotopePeakScannerSetupDialog extends ParameterSetupDialog {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -84,22 +76,22 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
   private String element;
   private boolean autoCarbon;
 
-  private EChartPanel pnlChart;
+  private EChartViewer pnlChart;
   private JFreeChart chart;
   private XYPlot plot;
   private EIsotopePatternChartTheme theme;
 
-
   // components created by this class
-  private JButton btnPrevPattern, btnNextPattern;
-  private JFormattedTextField txtCurrentPatternIndex;
+  private final BorderPane pnlPreview;
+  private final FlowPane pnlPreviewButtons;
+  private final Button btnPrevPattern, btnNextPattern;
+  private final TextField txtCurrentPatternIndex;
 
-  private NumberFormatter form;
+  // private NumberFormatter form;
 
   // components created by parameters
   private OptionalModuleComponent cmpAutoCarbon;
-  private JCheckBox cmpAutoCarbonCbx, cmpPreview;
-
+  private CheckBox cmpAutoCarbonCbx, cmpPreview;
 
   // relevant parameters
   private IntegerParameter pMinC, pMaxC, pMinSize, pCharge;
@@ -114,37 +106,40 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
 
   ParameterSet autoCarbonParameters;
 
-  public IsotopePeakScannerSetupDialog(Window parent, boolean valueCheckRequired,
-      ParameterSet parameters) {
-    super(parent, valueCheckRequired, parameters);
+  public IsotopePeakScannerSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
+    super(valueCheckRequired, parameters);
 
     aboveMin = new Color(30, 180, 30);
     belowMin = new Color(200, 30, 30);
     theme = new EIsotopePatternChartTheme();
     theme.initialize();
     ttGen = new SpectraToolTipGenerator();
-  }
 
-  @Override
-  protected void addDialogComponents() {
-    super.addDialogComponents();
-
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-    pnlChart = new EChartPanel(chart);
-    pnlChart.setPreferredSize(
-        new Dimension((int) (screenSize.getWidth() / 3), (int) (screenSize.getHeight() / 3)));
-    pnlPreview.add(pnlChart, BorderLayout.CENTER);
-
+    pnlChart = new EChartViewer(chart);
+    // pnlChart.setPreferredSize(
+    // new Dimension((int) (screenSize.getWidth() / 3), (int) (screenSize.getHeight() / 3)));
+    pnlPreview = new BorderPane();
+    pnlPreview.setCenter(pnlChart);
 
     // get components
     cmpAutoCarbon = (OptionalModuleComponent) this
         .getComponentForParameter(IsotopePeakScannerParameters.autoCarbonOpt);
-    cmpAutoCarbonCbx = (JCheckBox) cmpAutoCarbon.getComponent(0);
-    cmpPreview =
-        (JCheckBox) this.getComponentForParameter(IsotopePeakScannerParameters.showPreview);
-    cmpPreview.setSelected(false); // i want to have the checkbox below the pattern settings
+    cmpAutoCarbonCbx = cmpAutoCarbon.getCheckbox();
+    cmpPreview = this.getComponentForParameter(IsotopePeakScannerParameters.showPreview);
+    cmpPreview.setSelected(false); // i want to have the checkbox below the
+                                   // pattern settings
     // but it should be disabled by default. Thats why it's hardcoded here.
+    cmpPreview.setOnAction(e -> {
+      if (cmpPreview.isSelected()) {
+        mainPane.setTop(pnlPreview);
+        pnlPreview.setVisible(true);
+        updatePreview();
+      } else {
+        mainPane.getChildren().remove(pnlPreview);
+        pnlPreview.setVisible(false);
+
+      }
+    });
 
     // get parameters
     pElement = parameterSet.getParameter(IsotopePeakScannerParameters.element);
@@ -158,62 +153,32 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
     pMinSize = autoCarbonParameters.getParameter(AutoCarbonParameters.minPatternSize);
 
     // set up gui
-    form = new NumberFormatter(NumberFormat.getInstance());
-    form.setValueClass(Integer.class);
-    form.setFormat(new DecimalFormat("0"));
-    form.setAllowsInvalid(true);
-    form.setMinimum(minC);
-    form.setMaximum(maxC);
+    /*
+     * form = new NumberFormatter(NumberFormat.getInstance()); form.setValueClass(Integer.class);
+     * form.setFormat(new DecimalFormat("0")); form.setAllowsInvalid(true); form.setMinimum(minC);
+     * form.setMaximum(maxC);
+     */
+    btnPrevPattern = new Button("Previous");
 
-    btnPrevPattern = new JButton("Previous");
-    btnPrevPattern.addActionListener(this);
-    btnPrevPattern.setMinimumSize(btnPrevPattern.getPreferredSize());
-    btnPrevPattern.setEnabled(cmpAutoCarbonCbx.isSelected());
+    // btnPrevPattern.setMinimumSize(btnPrevPattern.getPreferredSize());
+    btnPrevPattern.disableProperty().bind(cmpAutoCarbonCbx.selectedProperty().not());
 
-    txtCurrentPatternIndex = new JFormattedTextField(form);
-    txtCurrentPatternIndex.addActionListener(this);
+    txtCurrentPatternIndex = new TextField();
+    txtCurrentPatternIndex.setTextFormatter(
+        new TextFormatter<Number>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
+    txtCurrentPatternIndex.setOnAction(e -> updatePreview());
     txtCurrentPatternIndex.setText(String.valueOf((minC + maxC) / 2));
-    txtCurrentPatternIndex.setPreferredSize(new Dimension(50, 25));
-    txtCurrentPatternIndex.setEditable(true);
-    txtCurrentPatternIndex.setEnabled(cmpAutoCarbonCbx.isSelected());
+    // txtCurrentPatternIndex.setPreferredSize(new Dimension(50, 25));
+    // txtCurrentPatternIndex.setEditable(true);
+    txtCurrentPatternIndex.disableProperty().bind(cmpAutoCarbonCbx.selectedProperty().not());
 
-    btnNextPattern = new JButton("Next");
-    btnNextPattern.addActionListener(this);
-    btnNextPattern.setPreferredSize(btnNextPattern.getMinimumSize());
-    btnNextPattern.setEnabled(cmpAutoCarbonCbx.isSelected());
+    btnNextPattern = new Button("Next");
 
-    chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
-        new XYSeriesCollection(new XYSeries("")));
-    chart.getPlot().setBackgroundPaint(Color.WHITE);
-    chart.getXYPlot().setDomainGridlinePaint(Color.GRAY);
-    chart.getXYPlot().setRangeGridlinePaint(Color.GRAY);
+    // btnNextPattern.setPreferredSize(btnNextPattern.getMinimumSize());
+    btnNextPattern.disableProperty().bind(cmpAutoCarbonCbx.selectedProperty().not());
 
-    pnlPreviewButtons.add(btnPrevPattern);
-    pnlPreviewButtons.add(txtCurrentPatternIndex);
-    pnlPreviewButtons.add(btnNextPattern);
-
-    pack();
-  }
-
-
-  @Override
-  public void actionPerformed(ActionEvent ae) {
-    super.actionPerformed(ae);
-    updateParameterSetFromComponents();
-
-    if (ae.getSource() == btnNextPattern) {
-      logger.info(ae.getSource().toString());
-      int current = Integer.parseInt(txtCurrentPatternIndex.getText());
-      if (current < (maxC)) {
-        current++;
-      }
-      txtCurrentPatternIndex.setText(String.valueOf(current));
-      if (cmpPreview.isSelected())
-        updatePreview();
-    }
-
-    else if (ae.getSource() == btnPrevPattern) {
-      logger.info(ae.getSource().toString());
+    btnPrevPattern.setOnAction(e -> {
+      logger.info(e.getSource().toString());
       int current = Integer.parseInt(txtCurrentPatternIndex.getText());
       if (current > (minC)) {
         current--;
@@ -221,36 +186,33 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
       txtCurrentPatternIndex.setText(String.valueOf(current));
       if (cmpPreview.isSelected())
         updatePreview();
-    }
+    });
 
-    else if (ae.getSource() == cmpPreview) {
-      logger.info(ae.getSource().toString());
 
-      if (cmpPreview.isSelected()) {
-        newMainPanel.add(pnlPreview, BorderLayout.CENTER);
-        pnlPreview.setVisible(true);
-        updatePreview();
-        updateMinimumSize();
-        pack();
-      } else {
-        newMainPanel.remove(pnlPreview);
-        pnlPreview.setVisible(false);
-        updateMinimumSize();
-        pack();
+    btnNextPattern.setOnAction(e -> {
+      logger.info(e.getSource().toString());
+      int current = Integer.parseInt(txtCurrentPatternIndex.getText());
+      if (current < (maxC)) {
+        current++;
       }
-    }
+      txtCurrentPatternIndex.setText(String.valueOf(current));
+      if (cmpPreview.isSelected())
+        updatePreview();
+    });
 
-    else if (ae.getSource() == txtCurrentPatternIndex) {
-      // logger.info(ae.getSource().toString());
-      updatePreview();
-    }
 
-    else if (ae.getSource() == cmpAutoCarbonCbx) {
-      btnNextPattern.setEnabled(cmpAutoCarbonCbx.isSelected());
-      btnPrevPattern.setEnabled(cmpAutoCarbonCbx.isSelected());
-      txtCurrentPatternIndex.setEnabled(cmpAutoCarbonCbx.isSelected());
-    }
+    chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
+        new XYSeriesCollection(new XYSeries("")));
+    chart.getPlot().setBackgroundPaint(Color.WHITE);
+    chart.getXYPlot().setDomainGridlinePaint(Color.GRAY);
+    chart.getXYPlot().setRangeGridlinePaint(Color.GRAY);
+
+    pnlPreviewButtons = new FlowPane();
+    pnlPreviewButtons.getChildren().addAll(btnPrevPattern, txtCurrentPatternIndex, btnNextPattern);
+
   }
+
+
 
   @Override
   protected void parametersChanged() {
@@ -267,7 +229,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
       return;
     }
 
-    ExtendedIsotopePattern pattern = calculateIsotopePattern();
+    SimpleIsotopePattern pattern = calculateIsotopePattern();
     if (pattern == null) {
       logger.warning("Could not calculate isotope pattern. Please check the parameters.");
       return;
@@ -276,7 +238,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
     updateChart(pattern);
   }
 
-  private void updateChart(ExtendedIsotopePattern pattern) {
+  private void updateChart(SimpleIsotopePattern pattern) {
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
     chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
         dataset);
@@ -308,10 +270,11 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
     maxC = pMaxC.getValue();
     minSize = pMinSize.getValue();
 
-    form.setMaximum(maxC);
-    form.setMinimum(minC);
+    // form.setMaximum(maxC);
+    // form.setMinimum(minC);
 
-    if (txtCurrentPatternIndex.getText().equals("")) // if the user did stuff we dont allow
+    if (txtCurrentPatternIndex.getText().equals("")) // if the user did
+                                                     // stuff we dont allow
       txtCurrentPatternIndex.setText(String.valueOf((minC + maxC) / 2));
     if (Integer.parseInt(txtCurrentPatternIndex.getText()) > maxC)
       txtCurrentPatternIndex.setText(String.valueOf(maxC));
@@ -344,7 +307,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
     return true;
   }
 
-  private ExtendedIsotopePattern calculateIsotopePattern() {
+  private SimpleIsotopePattern calculateIsotopePattern() {
     if (!checkParameters())
       return null;
 
@@ -360,12 +323,12 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
       return null;
     logger.info("Calculating isotope pattern: " + strPattern);
 
-    ExtendedIsotopePattern pattern;
+    SimpleIsotopePattern pattern;
     PolarityType pol = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
     charge = (charge > 0) ? charge : charge * -1;
     try {
       // *0.2 so the user can see the peaks below the threshold
-      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator
+      pattern = (SimpleIsotopePattern) IsotopePatternCalculator
           .calculateIsotopePattern(strPattern, minIntensity * 0.1, mergeWidth, charge, pol, true);
     } catch (Exception e) {
       logger.warning("The entered Sum formula is invalid.");

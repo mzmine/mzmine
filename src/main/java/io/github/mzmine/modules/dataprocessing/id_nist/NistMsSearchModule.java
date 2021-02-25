@@ -1,36 +1,28 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
-
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
-
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -45,7 +37,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "NIST MS Search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches for spectra in the NIST library.";
+      "This method searches spectra against the NIST library.";
 
   @Override
   public @Nonnull String getName() {
@@ -75,8 +67,8 @@ public class NistMsSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    for (final PeakList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
-        .getValue().getMatchingPeakLists()) {
+    for (final FeatureList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
+        .getValue().getMatchingFeatureLists()) {
 
       tasks.add(new NistMsSearchTask(peakList, parameters));
     }
@@ -90,11 +82,11 @@ public class NistMsSearchModule implements MZmineProcessingModule {
    * @param peakList the peak-list.
    * @param row the peak-list row.
    */
-  public static void singleRowSearch(final PeakList peakList, final PeakListRow row) {
+  public static void singleRowSearch(final FeatureList peakList, final FeatureListRow row) {
 
     final ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(NistMsSearchModule.class);
-    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+    if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters));
     }

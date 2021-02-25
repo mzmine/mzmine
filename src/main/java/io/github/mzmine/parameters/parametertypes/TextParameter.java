@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,12 +19,11 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import java.util.Collection;
-
 import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import javafx.scene.control.TextArea;
 
-public class TextParameter implements UserParameter<String, TextComponent> {
+public class TextParameter implements UserParameter<String, TextArea> {
 
   private String name, description, value;
 
@@ -39,7 +38,7 @@ public class TextParameter implements UserParameter<String, TextComponent> {
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getName()
+   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -47,7 +46,7 @@ public class TextParameter implements UserParameter<String, TextComponent> {
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getDescription()
+   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {
@@ -55,10 +54,11 @@ public class TextParameter implements UserParameter<String, TextComponent> {
   }
 
   @Override
-  public TextComponent createEditingComponent() {
-    return new TextComponent();
+  public TextArea createEditingComponent() {
+    return new TextArea();
   }
 
+  @Override
   public String getValue() {
     return value;
   }
@@ -81,12 +81,12 @@ public class TextParameter implements UserParameter<String, TextComponent> {
   }
 
   @Override
-  public void setValueFromComponent(TextComponent component) {
+  public void setValueFromComponent(TextArea component) {
     value = component.getText();
   }
 
   @Override
-  public void setValueToComponent(TextComponent component, String newValue) {
+  public void setValueToComponent(TextArea component, String newValue) {
     component.setText(newValue);
   }
 

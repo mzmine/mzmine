@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -24,8 +24,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.text.NumberFormat;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -34,9 +34,9 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.R.REngineType;
+import javafx.collections.FXCollections;
 
 /**
  * Parameters for a <code>CameraSearchTask</code>.
@@ -44,8 +44,7 @@ import io.github.mzmine.util.R.REngineType;
  */
 public class CameraSearchParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
-
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   // Sigma.
   public static final DoubleParameter FWHM_SIGMA = new DoubleParameter("FWHM sigma",
@@ -84,7 +83,7 @@ public class CameraSearchParameters extends SimpleParameterSet {
 
   // Ionization Polarity
   public static final ComboParameter POLARITY = new ComboParameter("Ionization Polarity",
-      "Ionization Polarity", new Object[] {"positive", "negative"}, "positive");
+      "Ionization Polarity", FXCollections.observableArrayList("positive", "negative"), "positive");
 
   public static final BooleanParameter DONT_SPLIT_ISOTOPES =
       new BooleanParameter("Do not split isotopes",
@@ -96,7 +95,8 @@ public class CameraSearchParameters extends SimpleParameterSet {
 
   public static final ComboParameter<String> ORDER =
       new ComboParameter<>("Order", "Order of Isotope search and Shape correlation steps",
-          new String[] {FIND_ISOTOPES_FIRST, GROUP_CORR_FIRST}, FIND_ISOTOPES_FIRST);
+          FXCollections.observableArrayList(FIND_ISOTOPES_FIRST, GROUP_CORR_FIRST),
+          FIND_ISOTOPES_FIRST);
 
   public static final BooleanParameter CREATE_NEW_LIST =
       new BooleanParameter("Create new list", "If checked, a new list will be created", true);
@@ -106,22 +106,21 @@ public class CameraSearchParameters extends SimpleParameterSet {
 
   public static final ComboParameter<String> GROUP_BY =
       new ComboParameter<>("Group peaks by", "Order of Isotope search and Shape correlation steps",
-          new String[] {GROUP_BY_ISOTOPE, GROUP_BY_PCGROUP}, GROUP_BY_ISOTOPE);
+          FXCollections.observableArrayList(GROUP_BY_ISOTOPE, GROUP_BY_PCGROUP), GROUP_BY_ISOTOPE);
 
   public static final BooleanParameter INCLUDE_SINGLETONS =
       new BooleanParameter("Include singletons",
           "If checked, features with no found isotope pattern will be included", false);
 
-  public static final StringParameter SUFFIX =
-      new StringParameter("Suffix", "This string is added to feature list name as suffix", "CAMERA");
+  public static final StringParameter SUFFIX = new StringParameter("Suffix",
+      "This string is added to feature list name as suffix", "CAMERA");
 
   /**
    * R engine type.
    */
   public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
-      "R engine", "The R engine to be used for communicating with R.", REngineType.values(),
-      REngineType.RCALLER);
-
+      "R engine", "The R engine to be used for communicating with R.",
+      FXCollections.observableArrayList(REngineType.values()), REngineType.RCALLER);
 
   public CameraSearchParameters() {
 

@@ -1,52 +1,45 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import java.awt.Window;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.text.DecimalFormat;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.autocarbon.AutoCarbonParameters;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * 
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
  */
 public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
@@ -97,12 +90,13 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   public static final IntegerParameter charge =
       new IntegerParameter("Charge", "Amount and polarity (e.g.: [M]+=+1 / [M]-=-1", 1, true);
 
-  public static final OptionalParameter<MassListParameter> massList =
-      new OptionalParameter<MassListParameter>(new MassListParameter("Calculate accurate average",
-          "Please select a mass list.\nThis method will use averaged intensitys over all mass lists in "
+  public static final BooleanParameter calculate_accurate_average =
+      new BooleanParameter("Calculate accurate average",
+          "This method will use averaged intensitys over all mass lists in "
               + "which ALL relevant masses were detected in.\nThis will only be done for peaks that match the "
               + "defined rating-calculation with the given rating.\nMake sure the mass list is contained in the"
-              + " feature list.\nIf there are no Scans that match all criteria avg rating will be -1.0."));
+              + " feature list.\nIf there are no Scans that match all criteria avg rating will be -1.0.",
+          false);
 
   public static final OptionalModuleParameter autoCarbonOpt = new OptionalModuleParameter(
       "Auto carbon",
@@ -115,19 +109,20 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
       "If selected this will add a preview chart of the calculated isotope pattern with the current settings.");
 
   public IsotopePeakScannerParameters() {
-    super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, autoCarbonOpt,
+    super(new Parameter[]{PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, autoCarbonOpt,
         charge, minPatternIntensity, mergeWidth, showPreview, minHeight, checkIntensity, minRating,
-        ratingChoices, massList, suffix});
+        ratingChoices, calculate_accurate_average, suffix});
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0))
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
+    }
 
-    ParameterSetupDialog dialog =
-        new IsotopePeakScannerSetupDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
+    IsotopePeakScannerSetupDialog dialog =
+        new IsotopePeakScannerSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 

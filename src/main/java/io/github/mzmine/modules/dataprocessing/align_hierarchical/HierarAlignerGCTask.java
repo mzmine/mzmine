@@ -1,23 +1,32 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -36,25 +45,14 @@ import org.gnf.clustering.DataSource;
 import org.gnf.clustering.DistanceMatrix;
 import org.gnf.clustering.FloatSource1D;
 import org.gnf.clustering.LinkageMode;
-
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.align_hierarchical.ClustererType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SortingDirection;
 
 public class HierarAlignerGCTask extends AbstractTask {
@@ -64,8 +62,8 @@ public class HierarAlignerGCTask extends AbstractTask {
   public static String TASK_NAME = "Hierarchical aligner (GC)";
 
   private final MZmineProject project;
-  private PeakList peakLists[];
-  private PeakList alignedPeakList;
+  private FeatureList peakLists[];
+  private FeatureList alignedPeakList;
 
   // Processed rows counter
   private int processedRows, totalRows;
@@ -112,7 +110,7 @@ public class HierarAlignerGCTask extends AbstractTask {
 
   private static final boolean DEBUG = false;
   private static final boolean DEBUG_2 = false;
-  List<PeakListRow> full_rows_list;
+  List<FeatureListRow> full_rows_list;
 
   private ClustererType CLUSTERER_TYPE;
 
@@ -133,7 +131,7 @@ public class HierarAlignerGCTask extends AbstractTask {
     this.parameters = parameters;
 
     peakLists = parameters.getParameter(HierarAlignerGCParameters.peakLists).getValue()
-        .getMatchingPeakLists();
+        .getMatchingFeatureLists();
 
     peakListName = parameters.getParameter(HierarAlignerGCParameters.peakListName).getValue();
 
@@ -173,9 +171,9 @@ public class HierarAlignerGCTask extends AbstractTask {
     /**
      * GLG HACK: temporarily removed for clarity sameChargeRequired = parameters.getParameter(
      * JoinAlignerParameters.SameChargeRequired).getValue();
-     * 
+     *
      * sameIDRequired = parameters.getParameter( JoinAlignerParameters.SameIDRequired).getValue();
-     * 
+     *
      * compareIsotopePattern = parameters.getParameter(
      * JoinAlignerParameters.compareIsotopePattern).getValue();
      **/
@@ -217,6 +215,7 @@ public class HierarAlignerGCTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Join aligner GC, " + peakListName + " (" + peakLists.length + " feature lists)";
   }
@@ -224,13 +223,13 @@ public class HierarAlignerGCTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0f;
     // return (double) processedRows / (double) totalRows;
     double progress =
-        (double) (processedRows + (clustProgress.getProgress() * (double) totalRows / 3.0d))
-            / (double) totalRows;
+        (processedRows + (clustProgress.getProgress() * totalRows / 3.0d)) / totalRows;
     // logger.info(">> THE progress: " + progress);
     // logger.info("Caught progress: " +
     // clustProgress.getProgress());
@@ -240,6 +239,7 @@ public class HierarAlignerGCTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     // Check options validity
@@ -277,11 +277,12 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     // Collect all data files
     Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-    for (PeakList peakList : peakLists) {
+    for (FeatureList peakList : peakLists) {
 
       for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
-        // Each data file can only have one column in aligned feature list
+        // Each data file can only have one column in aligned feature
+        // list
         if (allDataFiles.contains(dataFile)) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Cannot run alignment, because file " + dataFile
@@ -294,15 +295,15 @@ public class HierarAlignerGCTask extends AbstractTask {
     }
 
     // Create a new aligned feature list
-    alignedPeakList = new SimplePeakList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
+    alignedPeakList = new ModularFeatureList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
 
     if (DEBUG)
       printMemoryUsage(logger, run_time, prevTotal, prevFree, "COMPOUND DETECTED");
 
     /** Alignment mapping **/
     // Iterate source feature lists
-    Hashtable<SimpleFeature, Double> rtPeaksBackup = new Hashtable<SimpleFeature, Double>();
-    Hashtable<PeakListRow, Object[]> infoRowsBackup = new Hashtable<PeakListRow, Object[]>();
+    Hashtable<ModularFeature, Double> rtPeaksBackup = new Hashtable<ModularFeature, Double>();
+    Hashtable<ModularFeatureListRow, Object[]> infoRowsBackup = new Hashtable<ModularFeatureListRow, Object[]>();
 
     // Since clustering is now order independent, option removed!
     // Build comparison order
@@ -319,7 +320,7 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     int nbPeaks = 0;
     for (int i = 0; i < newIds.length; ++i) {
-      PeakList peakList = peakLists[newIds[i]];
+      FeatureList peakList = peakLists[newIds[i]];
       nbPeaks += peakList.getNumberOfRows();
     }
 
@@ -335,12 +336,12 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     for (int i = 0; i < newIds.length; ++i) {
 
-      PeakList peakList = peakLists[newIds[i]];
+      FeatureList peakList = peakLists[newIds[i]];
 
-      PeakListRow allRows[] = peakList.getRows();
+      FeatureListRow allRows[] = peakList.getRows().toArray(FeatureListRow[]::new);
       for (int j = 0; j < allRows.length; ++j) {
 
-        PeakListRow row = allRows[j];
+        FeatureListRow row = allRows[j];
         full_rows_list.add(row);
       }
     }
@@ -407,10 +408,10 @@ public class HierarAlignerGCTask extends AbstractTask {
       for (int i = 0; i < nRowCount; i++) {
         // rowNames[i] = "ID_" + i + "_" +
         // full_rows_list.get(i).getID();
-        Feature peak = full_rows_list.get(i).getBestPeak();
+        Feature peak = full_rows_list.get(i).getBestFeature();
         double rt = peak.getRT();
-        int end = peak.getDataFile().getName().indexOf(" ");
-        String short_fname = peak.getDataFile().getName().substring(0, end);
+        int end = peak.getRawDataFile().getName().indexOf(" ");
+        String short_fname = peak.getRawDataFile().getName().substring(0, end);
         rowNames[i] = "@" + rtFormat.format(rt) + "^[" + short_fname + "]";
       }
     }
@@ -541,13 +542,13 @@ public class HierarAlignerGCTask extends AbstractTask {
     }
 
     ////// Arrange row clustered list with method 0,1,2
-    List<List<PeakListRow>> clustersList = new ArrayList<>();
+    List<List<FeatureListRow>> clustersList = new ArrayList<>();
 
     // TODO: ...!
     // Build feature list row clusters
     for (List<Integer> cl : gnfClusters) {
 
-      List<PeakListRow> rows_cluster = new ArrayList<>();
+      List<FeatureListRow> rows_cluster = new ArrayList<>();
       for (int i = 0; i < cl.size(); i++) {
         rows_cluster.add(full_rows_list.get(cl.get(i)));
       }
@@ -563,24 +564,24 @@ public class HierarAlignerGCTask extends AbstractTask {
     /** printAlignedPeakList(clustersList); */
 
     // Fill alignment table: One row per cluster
-    for (List<PeakListRow> cluster : clustersList) {
+    for (List<FeatureListRow> cluster : clustersList) {
 
       if (isCanceled())
         return;
 
-      PeakListRow targetRow = new SimplePeakListRow(newRowID);
+      FeatureListRow targetRow = new ModularFeatureListRow((ModularFeatureList) alignedPeakList, newRowID);
       newRowID++;
       alignedPeakList.addRow(targetRow);
       //
-      infoRowsBackup.put(targetRow, new Object[] {new HashMap<RawDataFile, Double[]>(),
-          new HashMap<RawDataFile, PeakIdentity>(), new HashMap<RawDataFile, Double>()});
+      infoRowsBackup.put((ModularFeatureListRow) targetRow, new Object[] {new HashMap<RawDataFile, Double[]>(),
+          new HashMap<RawDataFile, FeatureIdentity>(), new HashMap<RawDataFile, Double>()});
 
-      for (PeakListRow row : cluster) {
+      for (FeatureListRow row : cluster) {
 
         // Add all non-existing identities from the original row to the
         // aligned row
         // Set the preferred identity
-        targetRow.setPreferredPeakIdentity(row.getPreferredPeakIdentity());
+        targetRow.setPreferredFeatureIdentity(row.getPreferredFeatureIdentity());
 
         // Add all peaks from the original row to the aligned row
         // for (RawDataFile file : row.getRawDataFiles()) {
@@ -588,10 +589,10 @@ public class HierarAlignerGCTask extends AbstractTask {
 
           if (Arrays.asList(row.getRawDataFiles()).contains(file)) {
 
-            Feature originalPeak = row.getPeak(file);
+            Feature originalPeak = row.getFeature(file);
             if (originalPeak != null) {
 
-              targetRow.addPeak(file, originalPeak);
+              targetRow.addFeature(file, originalPeak);
 
             } else {
               setStatus(TaskStatus.ERROR);
@@ -605,10 +606,10 @@ public class HierarAlignerGCTask extends AbstractTask {
 
         // Copy all possible peak identities, if these are not already
         // present
-        for (PeakIdentity identity : row.getPeakIdentities()) {
-          PeakIdentity clonedIdentity = (PeakIdentity) identity.clone();
-          if (!PeakUtils.containsIdentity(targetRow, clonedIdentity))
-            targetRow.addPeakIdentity(clonedIdentity, false);
+        for (FeatureIdentity identity : row.getPeakIdentities()) {
+          FeatureIdentity clonedIdentity = (FeatureIdentity) identity.clone();
+          if (!FeatureUtils.containsIdentity(targetRow, clonedIdentity))
+            targetRow.addFeatureIdentity(clonedIdentity, false);
         }
 
         // processedRows++;
@@ -623,25 +624,26 @@ public class HierarAlignerGCTask extends AbstractTask {
     // (the adjusted one was only useful during alignment process)
     // WARN: Must be done before "Post processing" part to take advantage
     // of the "targetRow.update()" used down there
-    for (SimpleFeature peak : rtPeaksBackup.keySet()) {
-      peak.setRT((double) rtPeaksBackup.get(peak));
+    for (ModularFeature peak : rtPeaksBackup.keySet()) {
+      peak.setRT(rtPeaksBackup.get(peak).floatValue());
     }
 
     /** Post-processing... **/
     // Build reference RDFs index: We need an ordered reference here, to be
     // able to parse
     // correctly while reading back stored info
-    RawDataFile[] rdf_sorted = alignedPeakList.getRawDataFiles().clone();
+    RawDataFile[] rdf_sorted = alignedPeakList.getRawDataFiles().toArray(RawDataFile[]::new);
     Arrays.sort(rdf_sorted, new RawDataFileSorter(SortingDirection.Ascending));
 
     // Process
-    for (PeakListRow targetRow : infoRowsBackup.keySet()) {
+    for (FeatureListRow targetRow : infoRowsBackup.keySet()) {
 
       if (isCanceled())
         return;
 
       // Refresh averaged RTs...
-      ((SimplePeakListRow) targetRow).update();
+      // TODO: .update()
+      //((ModularFeatureListRow) targetRow).update();
 
     }
 
@@ -655,7 +657,7 @@ public class HierarAlignerGCTask extends AbstractTask {
     // ----------------------------------------------------------------------
 
     // Add new aligned feature list to the project
-    this.project.addPeakList(alignedPeakList);
+    this.project.addFeatureList(alignedPeakList);
 
     if (DEBUG) {
       for (RawDataFile rdf : alignedPeakList.getRawDataFiles())
@@ -664,7 +666,8 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     // Add task description to peakList
     alignedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod(HierarAlignerGCTask.TASK_NAME, parameters));
+        new SimpleFeatureListAppliedMethod(HierarAlignerGCTask.TASK_NAME,
+            HierarAlignerGcModule.class, parameters));
 
     logger.info("Finished join aligner GC");
     setStatus(TaskStatus.FINISHED);
@@ -767,7 +770,9 @@ public class HierarAlignerGCTask extends AbstractTask {
 
   // -
   List<List<Integer>> recursive_validate_clusters_3(org.gnf.clustering.Node[] arNodes, int nNode,
-      int level, /* float minCorrValue, */
+      int level, /*
+                  * float minCorrValue,
+                  */
       double max_dist, DistanceMatrix distMtx, RowVsRowDistanceProvider distProvider) {
 
     List<List<Integer>> validatedClusters = new ArrayList<>();

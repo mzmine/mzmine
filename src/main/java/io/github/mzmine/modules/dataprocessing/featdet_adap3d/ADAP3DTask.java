@@ -1,44 +1,44 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_adap3d;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureConvertors;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
-
 import io.github.msdk.datamodel.Feature;
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.featuredetection.adap3d.ADAP3DFeatureDetectionMethod;
 import io.github.msdk.featuredetection.adap3d.ADAP3DFeatureDetectionParameters;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -53,7 +53,7 @@ public class ADAP3DTask extends AbstractTask {
   private final ScanSelection scanSelection;
   private final String suffix;
   private ADAP3DFeatureDetectionMethod msdkADAP3DMethod;
-
+  private final ParameterSet parameters;
 
   /**
    * @param dataFile
@@ -65,12 +65,13 @@ public class ADAP3DTask extends AbstractTask {
     this.dataFile = dataFile;
     this.scanSelection = parameters.getParameter(ADAP3DParameters.scanSelection).getValue();
     this.suffix = parameters.getParameter(ADAP3DParameters.suffix).getValue();
-
+    this.parameters = parameters;
   }
 
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Running ADAP3D on file " + dataFile;
   }
@@ -78,6 +79,7 @@ public class ADAP3DTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (msdkADAP3DMethod == null)
       return 0.0;
@@ -94,6 +96,7 @@ public class ADAP3DTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -148,26 +151,29 @@ public class ADAP3DTask extends AbstractTask {
     logger.info("ADAP3D detected " + features.size() + " features in " + dataFile
         + ", converting to MZmine peaklist");
 
-    // Create new MZmine 2 feature list
-    SimplePeakList newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
+    // Create new MZmine feature list
+    ModularFeatureList newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
 
     int rowId = 1;
     for (Feature msdkFeature : features) {
       if (isCanceled())
         return;
-      SimpleFeature mzmineFeature =
-          new SimpleFeature(dataFile, FeatureStatus.DETECTED, msdkFeature);
-      PeakListRow row = new SimplePeakListRow(rowId);
-      row.addPeak(dataFile, mzmineFeature);
+      // TODO: implement FeatureConvertors.MSDKFeatureToModularFeature(...)
+      ModularFeature mzmineFeature =
+          FeatureConvertors.MSDKFeatureToModularFeature(msdkFeature, dataFile, FeatureStatus.DETECTED);
+      FeatureListRow row = new ModularFeatureListRow(newPeakList, rowId);
+      row.addFeature(dataFile, mzmineFeature);
       newPeakList.addRow(row);
       rowId++;
     }
 
+    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        ADAP3DModule.class, parameters));
     // Add new peaklist to the project
-    project.addPeakList(newPeakList);
+    project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(newPeakList);
+    //QualityParameters.calculateQualityParameters(newPeakList);
 
     setStatus(TaskStatus.FINISHED);
 

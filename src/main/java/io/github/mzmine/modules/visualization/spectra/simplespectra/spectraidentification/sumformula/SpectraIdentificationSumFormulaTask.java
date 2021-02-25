@@ -1,23 +1,24 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula;
 
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -35,7 +36,6 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -59,7 +59,7 @@ import io.github.mzmine.util.FormulaUtils;
 
 /**
  * Task for sum formula prediction in spectra.
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectraIdentificationSumFormulaTask extends AbstractTask {
@@ -86,10 +86,9 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
   private MolecularFormulaRange elementCounts;
   private MolecularFormulaGenerator generator;
 
-
   /**
    * Create the task.
-   * 
+   *
    * @param parameters task parameters.
    */
   public SpectraIdentificationSumFormulaTask(ParameterSet parameters, Scan currentScan,
@@ -153,22 +152,23 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     logger.finest("Starting search for formulas for " + massRange + " Da");
 
     // create mass list for scan
-    DataPoint[] massList = null;
+    double[][] massList = null;
     ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
     MassDetector massDetector = null;
     ArrayList<String> allCompoundIDs = new ArrayList<>();
 
-    // Create a new mass list for MS/MS scan. Check if sprectrum is profile or centroid mode
+    // Create a new mass list for MS/MS scan. Check if spectrum is profile
+    // or centroid mode
     if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
       massDetector = new CentroidMassDetector();
       CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
       CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
+      massList = massDetector.getMassValues(currentScan, parameters);
     } else {
       massDetector = new ExactMassDetector();
       ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
       ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
+      massList = massDetector.getMassValues(currentScan, parameters);
     }
     numItems = massList.length;
     // loop through every peak in mass list
@@ -180,13 +180,14 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
     for (int i = 0; i < massList.length; i++) {
       massRange =
-          mzTolerance.getToleranceRange((massList[i].getMZ() - ionType.getAddedMass()) / charge);
+          mzTolerance.getToleranceRange((massList[0][i] - ionType.getAddedMass()) / charge);
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
           massRange.upperEndpoint(), elementCounts);
 
       IMolecularFormula cdkFormula;
       String annotation = "";
-      // create a map to store ResultFormula and relative mass deviation for sorting
+      // create a map to store ResultFormula and relative mass deviation
+      // for sorting
       Map<Double, String> possibleFormulas = new TreeMap<>();
       while ((cdkFormula = generator.getNextFormula()) != null) {
         if (isCanceled())
@@ -197,11 +198,11 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
           String formula = MolecularFormulaManipulator.getString(cdkFormula);
 
           // calc rel mass deviation
-          Double relMassDev = ((((massList[i].getMZ() - //
+          Double relMassDev = ((((massList[0][i] - //
               ionType.getAddedMass()) / charge)//
               - (FormulaUtils.calculateExactMass(//
                   MolecularFormulaManipulator.getString(cdkFormula))) / charge)
-              / ((massList[i].getMZ() //
+              / ((massList[0][i] //
                   - ionType.getAddedMass()) / charge))
               * 1000000;
 
@@ -228,7 +229,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
       }
       if (annotation != "") {
         allCompoundIDs.add(annotation);
-        massListAnnotated.add(massList[i]);
+        massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
       }
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
           + " formulas");

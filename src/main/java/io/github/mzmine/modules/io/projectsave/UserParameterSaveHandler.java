@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -22,17 +22,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Hashtable;
 import java.util.logging.Logger;
-
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
-
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -117,7 +114,7 @@ class UserParameterSaveHandler {
 
   /**
    * Create the part of the XML document related to the scans
-   * 
+   *
    * @param scan
    * @param element
    */
@@ -129,7 +126,7 @@ class UserParameterSaveHandler {
     RawDataFile dataFiles[] = project.getDataFiles();
 
     if (parameter instanceof ComboParameter) {
-      Object choices[] = ((ComboParameter<?>) parameter).getChoices();
+      Object choices[] = ((ComboParameter<?>) parameter).getChoices().toArray();
 
       for (Object choice : choices) {
         hd.startElement("", "", UserParameterElementName.OPTION.getElementName(), atts);
@@ -165,7 +162,7 @@ class UserParameterSaveHandler {
   }
 
   /**
-   * 
+   *
    * @return the progress of these functions saving the raw data information to the zip file.
    */
   double getProgress() {

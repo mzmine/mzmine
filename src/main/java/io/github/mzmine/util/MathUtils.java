@@ -1,28 +1,27 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.util;
 
-import java.util.Arrays;
-import java.util.stream.DoubleStream;
-
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
+import java.util.Arrays;
+import java.util.stream.DoubleStream;
 
 /**
  * Mathematical calculation-related helper class
@@ -31,7 +30,7 @@ public class MathUtils {
 
   /**
    * median or non-weighted average
-   * 
+   *
    * @param center
    * @param values
    * @return
@@ -49,11 +48,11 @@ public class MathUtils {
 
   /**
    * median or weighted average
-   * 
-   * @param center
+   *
+   * @param measure
    * @param values
    * @param weights
-   * @param transform only used for center measure AVG (can also be Weighting.NONE)
+   * @param weightTransform only used for center measure AVG (can also be Weighting.NONE)
    * @return
    */
   public static double calcCenter(CenterMeasure measure, double[] values, double[] weights,
@@ -75,7 +74,7 @@ public class MathUtils {
 
   /**
    * Median
-   * 
+   *
    * @param values
    * @return
    */
@@ -83,23 +82,58 @@ public class MathUtils {
     return calcQuantile(values, 0.5);
   }
 
+
+  public static double calcQuantile(double[] values, double q, int totalScans) {
+    assert totalScans >= values.length;
+    if (values.length == 0) {
+      return 0;
+    }
+    if (values.length == 1) {
+      return values[0];
+    }
+
+    // 0-1
+    q = Math.max(0d, Math.min(q, 1d));
+
+    int zeroValues = totalScans - values.length;
+    int ind1 = (int) Math.floor((totalScans - 1) * q) - zeroValues;
+    int ind2 = (int) Math.ceil((totalScans - 1) * q) - zeroValues;
+
+    if (ind2 < 0) {
+      return 0d;
+    }
+
+    // sort values
+    double[] vals = values.clone();
+    Arrays.sort(vals);
+
+    if (ind1 < 0) {
+      return vals[ind2];
+    } else {
+      return (vals[ind1] + vals[ind2]) / 2;
+    }
+  }
+
   /**
    * Calculates q-quantile value of values. q=0.5 => median
-   * 
    */
   public static double calcQuantile(double[] values, double q) {
 
-    if (values.length == 0)
+    if (values.length == 0) {
       return 0;
+    }
 
-    if (values.length == 1)
+    if (values.length == 1) {
       return values[0];
+    }
 
-    if (q > 1)
+    if (q > 1) {
       q = 1;
+    }
 
-    if (q < 0)
+    if (q < 0) {
       q = 0;
+    }
 
     double[] vals = values.clone();
 
@@ -180,8 +214,9 @@ public class MathUtils {
     }
     avg = sum / values.length;
 
-    if (avg == 0)
+    if (avg == 0) {
       return Double.NaN;
+    }
 
     sum = 0;
     for (double d : values) {
@@ -194,8 +229,9 @@ public class MathUtils {
   }
 
   public static double calcAvg(double[] values) {
-    if (values.length == 0)
+    if (values.length == 0) {
       return Double.NaN;
+    }
 
     double sum = 0;
     for (double d : values) {
@@ -206,7 +242,7 @@ public class MathUtils {
 
   /**
    * Weighted average with linear weights
-   * 
+   *
    * @param values
    * @param weights
    * @return
@@ -218,20 +254,18 @@ public class MathUtils {
 
   /**
    * Weighted average with weight transformation
-   * 
+   *
    * @param values
    * @param weights
    * @param transform function to transform the weights
    * @return the weighted average (or Double.NaN if no values supplied or the lengths of the arrays
-   *         was different)
+   * was different)
    */
   public static double calcWeightedAvg(double[] values, double[] weights, Weighting transform) {
     return calcWeightedAvg(values, weights, transform, null, null);
   }
 
-
   /**
-   * 
    * @param values
    * @param weights
    * @param weightTransform
@@ -241,21 +275,24 @@ public class MathUtils {
    */
   public static double calcWeightedAvg(double[] values, double[] weights, Weighting weightTransform,
       Double noiseLevel, Double maxWeight) {
-    if (values == null || weights == null || values.length != weights.length)
+    if (values == null || weights == null || values.length != weights.length) {
       return Double.NaN;
+    }
 
     // transform
     double[] realWeights = weights;
 
-    if (weightTransform != null)
+    if (weightTransform != null) {
       realWeights = weightTransform.transform(weights, noiseLevel, maxWeight);
+    }
 
     // sum of weights
     double weightSum = DoubleStream.of(realWeights).sum();
 
     // should never be 0, unless noiseLevel was too high
-    if (weightSum == 0)
+    if (weightSum == 0) {
       return calcAvg(values);
+    }
 
     double avg = 0;
     for (int i = 0; i < realWeights.length; i++) {

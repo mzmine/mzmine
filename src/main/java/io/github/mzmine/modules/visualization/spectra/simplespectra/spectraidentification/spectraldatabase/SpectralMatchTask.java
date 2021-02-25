@@ -1,45 +1,33 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
-import java.awt.Color;
-import java.io.File;
-import java.text.DecimalFormat;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
-import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -51,18 +39,27 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.awt.Color;
+import java.io.File;
+import java.text.DecimalFormat;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.application.Platform;
 
 /**
  * Spectral match task to compare single spectra with spectral databases
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectralMatchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public final static double[] DELTA_ISOTOPES = new double[] {1.0034, 1.0078, 2.0157, 1.9970};
+  public final static double[] DELTA_ISOTOPES = new double[]{1.0034, 1.0078, 2.0157, 1.9970};
 
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
@@ -73,24 +70,25 @@ public class SpectralMatchTask extends AbstractTask {
   private Scan currentScan;
   private SpectraPlot spectraPlot;
   private List<DataPoint[]> alignedSignals;
-  private String massListName;
 
   private final double noiseLevel;
   private final int minMatch;
   private List<SpectralDBEntry> list;
   private int totalSteps;
 
-  private List<SpectralDBPeakIdentity> matches;
-  private SpectraIdentificationResultsWindow resultWindow;
+  private List<SpectralDBFeatureIdentity> matches;
+  private SpectraIdentificationResultsWindowFX resultWindow;
 
   private int count = 0;
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
 
-  // as this module is started in a series the start entry is saved to track progress
+  // as this module is started in a series the start entry is saved to track
+  // progress
   private int startEntry;
   private int listsize;
 
-  // precursor mz as user parameter (extracted from scan and then checked by user)
+  // precursor mz as user parameter (extracted from scan and then checked by
+  // user)
   private double precursorMZ;
   private boolean usePrecursorMZ;
 
@@ -108,7 +106,8 @@ public class SpectralMatchTask extends AbstractTask {
   private int minMatchedIsoSignals;
 
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
-      SpectraPlot spectraPlot, Scan currentScan, SpectraIdentificationResultsWindow resultWindow) {
+      SpectraPlot spectraPlot, Scan currentScan,
+      SpectraIdentificationResultsWindowFX resultWindow) {
     this.startEntry = startEntry;
     this.list = list;
     this.currentScan = currentScan;
@@ -118,8 +117,6 @@ public class SpectralMatchTask extends AbstractTask {
     listsize = list.size();
     dataBaseFile = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.dataBaseFile).getValue();
-    massListName = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.massList)
-        .getValue();
     mzToleranceSpectra = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
     mzTolerancePrecursor = parameters
@@ -160,8 +157,9 @@ public class SpectralMatchTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalSteps == 0)
+    if (totalSteps == 0) {
       return 0;
+    }
     return ((double) finishedSteps) / totalSteps;
   }
 
@@ -187,14 +185,15 @@ public class SpectralMatchTask extends AbstractTask {
     } catch (MissingMassListException e) {
       // no mass list
       setStatus(TaskStatus.ERROR);
-      setErrorMessage(MessageFormat.format("No masslist for name: {0} in scan {1} of raw file {2}",
-          massListName, currentScan.getScanNumber(), currentScan.getDataFile().getName()));
+      setErrorMessage(MessageFormat.format("No masslist in scan {0} of raw file {1}",
+          currentScan.getScanNumber(), currentScan.getDataFile().getName()));
       return;
     }
 
     // remove 13C isotopes
-    if (removeIsotopes)
+    if (removeIsotopes) {
       spectraMassList = removeIsotopes(spectraMassList);
+    }
 
     setStatus(TaskStatus.PROCESSING);
     try {
@@ -203,7 +202,6 @@ public class SpectralMatchTask extends AbstractTask {
       for (SpectralDBEntry ident : list) {
         if (isCanceled()) {
           logger.info("Added " + count + " spectral library matches (before being cancelled)");
-          repaintWindow();
           return;
         }
 
@@ -211,8 +209,9 @@ public class SpectralMatchTask extends AbstractTask {
         if (sim != null && (!needsIsotopePattern
             || checkForIsotopePattern(sim, mzToleranceSpectra, minMatchedIsoSignals))) {
           count++;
-          // use SpectralDBPeakIdentity to store all results similar to peaklist method
-          matches.add(new SpectralDBPeakIdentity(currentScan, massListName, ident, sim,
+          // use SpectralDBFeatureIdentity to store all results similar
+          // to peaklist method
+          matches.add(new SpectralDBFeatureIdentity(currentScan, ident, sim,
               SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
         }
         // next row
@@ -235,17 +234,13 @@ public class SpectralMatchTask extends AbstractTask {
       return;
     }
 
-    // Repaint the window to reflect the change in the feature list
-    repaintWindow();
-
     list = null;
     setStatus(TaskStatus.FINISHED);
   }
 
-
   /**
    * Checks for isotope pattern in matched signals within mzToleranceSpectra
-   * 
+   *
    * @param sim
    * @return
    */
@@ -275,8 +270,9 @@ public class SpectralMatchTask extends AbstractTask {
           if (mzToleranceSpectra.checkWithinTolerance(dIso, dmz)) {
             matchedIso = true;
             matches++;
-            if (matches >= minMatchedIsoSignals)
+            if (matches >= minMatchedIsoSignals) {
               return true;
+            }
           }
         }
       }
@@ -285,15 +281,8 @@ public class SpectralMatchTask extends AbstractTask {
   }
 
 
-  private void repaintWindow() {
-    Desktop desktop = MZmineCore.getDesktop();
-    if (!(desktop instanceof HeadLessDesktop))
-      desktop.getMainWindow().repaint();
-  }
-
   /**
-   * 
-   * @param currentScan
+   * @param spectraMassList
    * @param ident
    * @return spectral similarity or null if no match
    */
@@ -301,8 +290,9 @@ public class SpectralMatchTask extends AbstractTask {
     // do not check precursorMZ or precursorMZ within tolerances
     if (!usePrecursorMZ || (checkPrecursorMZ(precursorMZ, ident))) {
       DataPoint[] library = ident.getDataPoints();
-      if (removeIsotopes)
+      if (removeIsotopes) {
         library = removeIsotopes(library);
+      }
 
       DataPoint[] query = spectraMassList;
       if (cropSpectraToOverlap) {
@@ -317,10 +307,9 @@ public class SpectralMatchTask extends AbstractTask {
     return null;
   }
 
-
   /**
    * Remove 13C isotopes from masslist
-   * 
+   *
    * @param a
    * @return
    */
@@ -330,7 +319,7 @@ public class SpectralMatchTask extends AbstractTask {
 
   /**
    * Uses the similarity function and filter to create similarity.
-   * 
+   *
    * @param library
    * @param query
    * @return positive match with similarity or null if criteria was not met
@@ -345,29 +334,27 @@ public class SpectralMatchTask extends AbstractTask {
         && mzTolerancePrecursor.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ);
   }
 
-
-
   /**
    * Get data points of mass list
-   * 
+   *
    * @param scan
    * @return
    * @throws MissingMassListException
    */
   private DataPoint[] getDataPoints(Scan scan) throws MissingMassListException {
-    MassList massList = scan.getMassList(massListName);
-    if (massList == null)
-      throw new MissingMassListException(massListName);
-    else {
+    MassList massList = scan.getMassList();
+    if (massList == null) {
+      throw new MissingMassListException(scan);
+    } else {
       // thresholded list
       DataPoint[] dps = massList.getDataPoints();
       return ScanUtils.getFiltered(dps, noiseLevel);
     }
   }
 
-  private void addIdentities(List<SpectralDBPeakIdentity> matches) {
+  private void addIdentities(List<SpectralDBFeatureIdentity> matches) {
 
-    for (SpectralDBPeakIdentity match : matches) {
+    for (SpectralDBFeatureIdentity match : matches) {
       try {
         // TODO put into separate method and add comments
         // get data points of matching scans
@@ -387,8 +374,9 @@ public class SpectralMatchTask extends AbstractTask {
         int start = compoundName.indexOf("[");
         int end = compoundName.indexOf("]");
         if (start != -1 && start + 1 < compoundName.length() && end != -1
-            && end < compoundName.length())
+            && end < compoundName.length()) {
           shortName = compoundName.substring(start + 1, end);
+        }
 
         DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
             shortName + " " + "Score: " + COS_FORM.format(match.getSimilarity().getScore()),
@@ -396,15 +384,14 @@ public class SpectralMatchTask extends AbstractTask {
         spectraPlot.addDataSet(detectedCompoundsDataset,
             new Color((int) (Math.random() * 0x1000000)), true);
 
-
       } catch (MissingMassListException e) {
         logger.log(Level.WARNING, "No mass list for the selected spectrum", e);
         errorCounter++;
       }
     }
-    resultWindow.addMatches(matches);
-    resultWindow.revalidate();
-    resultWindow.repaint();
+    Platform.runLater(() -> resultWindow.addMatches(matches));
+//    resultWindow.revalidate();
+//    resultWindow.repaint();
     setStatus(TaskStatus.FINISHED);
   }
 

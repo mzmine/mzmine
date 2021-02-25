@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -24,21 +24,33 @@
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.util.maths.ArithmeticUtils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
 
 public class RangeUtils {
 
   /**
+   * [-inf, +inf] range.
+   */
+  public static final Range<Double> DOUBLE_INFINITE_RANGE
+      = Range.closed(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+
+  /**
+   * [NaN, NaN] range.
+   */
+  public static final Range<Double> DOUBLE_NAN_RANGE
+      = Range.singleton(Double.NaN);
+
+  /**
    * Parses a range from String where upper and lower bounds are delimited by a dash, e.g.
    * "100.0-200.5". Note: we are dealing with doubles, so in an unfortunate case the range might
-   * look like this "3.402439E-36-1.310424E-2"
-   * 
+   * look like this "3.402439E-36-1.310424E-2".
    */
-  public static Range<Double> parseRange(String text) {
+  public static Range<Double> parseDoubleRange(String text) {
     Pattern p = Pattern.compile("([\\d\\.]+(?:E\\-?\\d+)?)\\-([\\d\\.]+(?:E\\-?\\d+)?)");
 
     Matcher m = p.matcher(text);
@@ -47,57 +59,130 @@ public class RangeUtils {
     }
     double low = Double.parseDouble(m.group(1));
     double high = Double.parseDouble(m.group(2));
-    Range<Double> result = Range.closed(low, high);
-    return result;
+    return Range.closed(low, high);
   }
+
+  /**
+   * Converts given range to Float range.
+   *
+   * @param range Input range
+   * @return Converted Float range
+   */
+  public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(Range<N> range) {
+    return Range.closed(range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue());
+  }
+
+  /**
+   * Converts given range to Double range.
+   *
+   * @param range Input range
+   * @return Converted Double range
+   */
+  public static <N extends Number & Comparable<N>> Range<Double> toDoubleRange(Range<N> range) {
+    return Range.closed(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue());
+  }
+
 
   /**
    * Splits the range in numOfBins bins and then returns the index of the bin which contains given
    * value. Indexes are from 0 to (numOfBins - 1).
+   *
+   * @param range     Input range
+   * @param numOfBins Number of bins
+   * @param value     Value inside the range
+   * @return Index of the bin containing given value
    */
-  public static int binNumber(Range<Double> range, int numOfBins, double value) {
-    double rangeLength = range.upperEndpoint() - range.lowerEndpoint();
-    double valueDistanceFromStart = value - range.lowerEndpoint();
-    int index = (int) Math.round((valueDistanceFromStart / rangeLength) * (numOfBins - 1));
-    return index;
+  public static <N extends Number & Comparable<N>> int binNumber(Range<N> range, int numOfBins,
+      N value) {
+    N rangeLength = rangeLength(range);
+    N valueDistanceFromStart = ArithmeticUtils.subtract(value, range.lowerEndpoint());
+    return (int) Math.round(ArithmeticUtils.multiply(ArithmeticUtils
+        .divide(valueDistanceFromStart, rangeLength), (numOfBins - 1)).doubleValue());
   }
 
-  public static double rangeLength(Range<Double> range) {
-    return range.upperEndpoint() - range.lowerEndpoint();
+  /**
+   * Returns length of the given range. i.e. [a..b] -> b - a
+   *
+   * @param range Range
+   * @return Range length
+   */
+  public static <N extends Number & Comparable<N>> N rangeLength(Range<N> range) {
+    return ArithmeticUtils.subtract(range.upperEndpoint(), range.lowerEndpoint());
   }
 
-  public static double rangeCenter(Range<Double> range) {
-    return (range.upperEndpoint() + range.lowerEndpoint()) / 2.0;
+  /**
+   * Returns central value of the given range. i.e. [a..b] -> [a + b] / 2
+   *
+   * @param range Range
+   * @return Range center
+   */
+  public static <N extends Number & Comparable<N>> N rangeCenter(Range<N> range) {
+    return ArithmeticUtils.divide(
+        ArithmeticUtils.add(range.upperEndpoint(), range.lowerEndpoint()), (N) (Number) 2.0f);
   }
 
-  public static Range<Double> fromArray(double array[]) {
-    if ((array == null) || (array.length == 0))
-      return Range.open(0.0, 0.0);
-    double min = array[0], max = array[0];
-    for (double d : array) {
-      if (d > max)
+  /**
+   * Constructs a range from the given array.
+   *
+   * @param array Input array
+   * @return Output range
+   */
+  public static <N extends Number & Comparable<N>> Range<N> fromArray(N[] array) {
+    if ((array == null) || (array.length == 0)) {
+      return Range.open((N) (Number) 0.0f, (N) (Number) 0.0f);
+    }
+
+    N min = array[0], max = array[0];
+    for (N d : array) {
+      if (d.compareTo(max) > 0) {
         max = d;
-      if (d < min)
+      }
+      if (d.compareTo(min) < 0) {
         min = d;
+      }
     }
     return Range.closed(min, max);
   }
-  
+
   /**
    * Returns a range that is contained in between the both ranges.
-   * 
-   * @param r1
-   * @param r2
+   *
+   * @param r1 First range
+   * @param r2 Second range
    * @return The connected range. Null if there is no connected range.
    */
-  public static @Nullable Range<Double> getConnected(@Nonnull Range<Double> r1, @Nonnull Range<Double> r2){
-    
-    if(!r1.isConnected(r2))
+  public static @Nullable
+  <N extends Number & Comparable<N>> Range<N> getConnected(@Nonnull Range<N> r1,
+      @Nonnull Range<N> r2) {
+
+    if (!r1.isConnected(r2)) {
       return null;
-    
-    double lower = (r1.lowerEndpoint() > r2.lowerEndpoint()) ? r1.lowerEndpoint() : r2.lowerEndpoint();
-    double upper = (r1.upperEndpoint() > r2.upperEndpoint()) ? r2.upperEndpoint() : r1.upperEndpoint();
-    
+    }
+
+    N lower = (r1.lowerEndpoint().compareTo(r2.lowerEndpoint()) > 0)
+        ? r1.lowerEndpoint()
+        : r2.lowerEndpoint();
+    N upper = (r1.upperEndpoint().compareTo(r2.upperEndpoint()) > 0)
+        ? r2.upperEndpoint()
+        : r1.upperEndpoint();
+
     return Range.closed(lower, upper);
+  }
+
+  /**
+   * Checks if the given range equals to [NaN, NaN].
+   *
+   * @param range Range
+   * @return True if the range equals to [NaN, NaN], false otherwise
+   */
+  public static <N extends Number & Comparable<N>> boolean isNaNRange(@Nonnull Range<N> range) {
+    return Double.isNaN(range.lowerEndpoint().doubleValue())
+        && Double.isNaN(range.upperEndpoint().doubleValue());
+  }
+
+  public static boolean isJFreeRangeConnectedToGoogleRange(org.jfree.data.Range jfreeRange,
+      Range<? extends Number> googleRange) {
+    return jfreeRange.contains(googleRange.lowerEndpoint().doubleValue()) || jfreeRange
+        .contains(googleRange.upperEndpoint().doubleValue());
   }
 }

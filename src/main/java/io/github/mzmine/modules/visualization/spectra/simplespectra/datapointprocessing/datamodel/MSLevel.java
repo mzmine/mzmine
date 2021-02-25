@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -26,9 +26,9 @@ import java.util.Arrays;
  * 
  * CAUTION: The method croppedValues() is used to dynamically create and load different processing
  * queues and everything regarding them on the interface. When adding new Types to this enum, make
- * sure MSANY stays the last one. MSANY is used by methods, that are applicable on any MS-level,
- * but it does not get it's own processing queue. This is why croppedValues() exists and cuts off
- * the last value of the values() method.
+ * sure MSANY stays the last one. MSANY is used by methods, that are applicable on any MS-level, but
+ * it does not get it's own processing queue. This is why croppedValues() exists and cuts off the
+ * last value of the values() method.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
@@ -49,6 +49,6 @@ public enum MSLevel {
 
   public static MSLevel[] cropValues() {
     MSLevel[] values = MSLevel.values();
-    return Arrays.copyOf(values, values.length-1);
+    return Arrays.copyOf(values, values.length - 1);
   }
 };

@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -21,10 +21,10 @@ package io.github.mzmine.gui.framework.listener;
 import java.io.Serializable;
 import java.util.EventListener;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 /**
  * Use a consumer or override documentCHanged method
@@ -33,7 +33,8 @@ import org.slf4j.LoggerFactory;
 public class DelayedDocumentListener
     implements DocumentListener, Runnable, EventListener, Serializable {
   private static final long serialVersionUID = 1L;
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   private long lastAutoUpdateTime = -1;
   private boolean isAutoUpdateStarted = false;
@@ -70,12 +71,12 @@ public class DelayedDocumentListener
     lastEvent = e;
     isStopped = false;
     if (!isAutoUpdateStarted) {
-      logger.debug("Auto update started");
+      logger.finest("Auto update started");
       isAutoUpdateStarted = true;
       Thread t = new Thread(this);
       t.start();
     } else
-      logger.debug("no auto update this time");
+      logger.finest("no auto update this time");
   }
 
   @Override
@@ -90,7 +91,7 @@ public class DelayedDocumentListener
       try {
         Thread.currentThread().sleep(80);
       } catch (InterruptedException e) {
-        logger.error("", e);
+        e.printStackTrace();
       }
     }
     isAutoUpdateStarted = false;
@@ -99,7 +100,7 @@ public class DelayedDocumentListener
 
   /**
    * the document was changed
-   * 
+   *
    * @param e last document event (only)
    */
   public void documentChanged(DocumentEvent e) {

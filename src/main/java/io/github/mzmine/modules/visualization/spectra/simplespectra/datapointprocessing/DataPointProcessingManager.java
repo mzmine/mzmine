@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -63,7 +63,6 @@ public class DataPointProcessingManager implements MZmineModule {
     // parameters =
     // MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
 
-
     // [0] if no differentiation between ms levels
     // [1] for ms1 if differentiation is enabled
     // [2] for ms^n if differentiation is enabled
@@ -83,9 +82,10 @@ public class DataPointProcessingManager implements MZmineModule {
     }
     return parameters;
   }
-  
+
   public void updateParameters() {
-    processingParameters = parameters.getParameter(DataPointProcessingParameters.processingParameters).getValue();
+    processingParameters =
+        parameters.getParameter(DataPointProcessingParameters.processingParameters).getValue();
   }
 
   public MSLevel decideMSLevel(Scan scan) {
@@ -110,8 +110,10 @@ public class DataPointProcessingManager implements MZmineModule {
   public void addController(@Nonnull DataPointProcessingController controller) {
     synchronized (waiting) {
       if (waiting.contains(controller)) {
-        // logger.fine("Warning: Controller was already added to waiting list at index "
-        // + waiting.indexOf(controller) + "/" + waiting.size() + ". Skipping.");
+        // logger.fine("Warning: Controller was already added to waiting
+        // list at index "
+        // + waiting.indexOf(controller) + "/" + waiting.size() + ".
+        // Skipping.");
         return;
       }
       waiting.add(controller);
@@ -132,7 +134,8 @@ public class DataPointProcessingManager implements MZmineModule {
     synchronized (waiting) {
       return waiting.remove(controller);
     }
-    // logger.finest("Controller removed from wating list. (size = " + waiting.size() + ")");
+    // logger.finest("Controller removed from wating list. (size = " +
+    // waiting.size() + ")");
   }
 
   /**
@@ -144,13 +147,16 @@ public class DataPointProcessingManager implements MZmineModule {
   private void addRunningController(@Nonnull DataPointProcessingController controller) {
     synchronized (running) {
       if (running.contains(controller)) {
-        // logger.fine("Warning: Controller was already added to waiting list at index "
-        // + running.indexOf(controller) + "/" + running.size() + ". Skipping.");
+        // logger.fine("Warning: Controller was already added to waiting
+        // list at index "
+        // + running.indexOf(controller) + "/" + running.size() + ".
+        // Skipping.");
         return;
       }
       running.add(controller);
     }
-    // logger.finest("Controller added to running list. (size = " + running.size() + ")");
+    // logger.finest("Controller added to running list. (size = " +
+    // running.size() + ")");
   }
 
   /**
@@ -167,7 +173,8 @@ public class DataPointProcessingManager implements MZmineModule {
     synchronized (running) {
       return running.remove(controller);
     }
-    // logger.finest("Controller removed from running list. (size = " + running.size() + ")");
+    // logger.finest("Controller removed from running list. (size = " +
+    // running.size() + ")");
   }
 
   /**
@@ -205,11 +212,13 @@ public class DataPointProcessingManager implements MZmineModule {
 
     synchronized (waiting) {
       if (running.size() >= MAX_RUNNING) {
-        // logger.info("Too much controllers running, cannot start the next one.");
+        // logger.info("Too much controllers running, cannot start the
+        // next one.");
         return;
       }
       if (waiting.isEmpty()) {
-        // logger.info("No more waiting controllers, cannot start the next one.");
+        // logger.info("No more waiting controllers, cannot start the
+        // next one.");
         return;
       }
 
@@ -224,29 +233,38 @@ public class DataPointProcessingManager implements MZmineModule {
       public void statusChanged(DataPointProcessingController controller,
           ControllerStatus newStatus, ControllerStatus oldStatus) {
         if (newStatus == ControllerStatus.FINISHED) {
-          // One controller finished, now we can remove it and start the next one.
+          // One controller finished, now we can remove it and start
+          // the next one.
           removeController(controller);
           startNextController();
-          // logger.finest("Controller finished, trying to start the next one. (size = "
+          // logger.finest("Controller finished, trying to start the
+          // next one. (size = "
           // + running.size() + ")");
         } else if (newStatus == ControllerStatus.CANCELED) {
-          // this will be called, when the controller is forcefully canceled. The current task will
-          // be completed, then the status will be changed and this method is called.
+          // this will be called, when the controller is forcefully
+          // canceled. The current task will
+          // be completed, then the status will be changed and this
+          // method is called.
           removeController(controller);
           startNextController();
         } else if (newStatus == ControllerStatus.ERROR) {
-          // if a controller's task errors out, we should cancel the whole controller here
-          // the controller status is set to ERROR automatically, if a task error's out.
+          // if a controller's task errors out, we should cancel the
+          // whole controller here
+          // the controller status is set to ERROR automatically, if a
+          // task error's out.
 
-          // since the next controller wont be started, just using cancelTasks() here is not
+          // since the next controller wont be started, just using
+          // cancelTasks() here is not
           // sufficient, we have to remove it manually
           removeController(controller);
         }
       }
     });
 
-    next.execute(); // this will start the actual task via the controller method.
-    // logger.finest("Started controller from running list. (size = " + running.size() + ")");
+    next.execute(); // this will start the actual task via the controller
+                    // method.
+    // logger.finest("Started controller from running list. (size = " +
+    // running.size() + ")");
   }
 
   /**
@@ -258,8 +276,10 @@ public class DataPointProcessingManager implements MZmineModule {
     synchronized (waiting) {
       if (waiting.contains(controller)) {
         controller.cancelTasks();
-        // removing the controller will be executed by the statusListener in startNextController()
-        // since the forcedStatus of the controller has been set. Controller.execute checks before
+        // removing the controller will be executed by the
+        // statusListener in startNextController()
+        // since the forcedStatus of the controller has been set.
+        // Controller.execute checks before
         // every task launch if the controller was canceled.
         // removeWaitingController(controller);
       }
@@ -267,7 +287,8 @@ public class DataPointProcessingManager implements MZmineModule {
     synchronized (running) {
       if (running.contains(controller)) {
         controller.cancelTasks();
-        // removing the controller will be executed by the statusListener in startNextController()
+        // removing the controller will be executed by the
+        // statusListener in startNextController()
         // removeRunningController(controller);
       }
     }
@@ -368,9 +389,10 @@ public class DataPointProcessingManager implements MZmineModule {
           "The processing list for " + mslevel.toString() + " was about to be set to null.");
   }
 
-//  public void setProcessingParameters(@Nonnull DPPParameterValueWrapper value) {
-//    this.processingParameters = value;
-//  }
+  // public void setProcessingParameters(@Nonnull DPPParameterValueWrapper
+  // value) {
+  // this.processingParameters = value;
+  // }
 
   public DPPParameterValueWrapper getProcessingParameters() {
     return processingParameters;

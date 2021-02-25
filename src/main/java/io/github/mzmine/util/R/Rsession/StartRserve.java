@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -55,7 +55,8 @@ class RegistryHog extends Thread {
       br = new BufferedReader(new InputStreamReader(is));
       String line = null;
       while ((line = br.readLine()) != null) {
-        if (capture) { // we are supposed to capture the output from REG command
+        if (capture) { // we are supposed to capture the output from REG
+                       // command
 
           int i = line.indexOf("InstallPath");
           if (i >= 0) {
@@ -163,7 +164,8 @@ public class StartRserve {
     if (!done) {
       return false;
     }
-    // System.err.println("output=\n===========\n" + result.toString() + "\n===========\n");
+    // System.err.println("output=\n===========\n" + result.toString() +
+    // "\n===========\n");
     if (result.toString().contains("TRUE")) {
       return true;
     } else {
@@ -237,7 +239,8 @@ public class StartRserve {
         p = Runtime.getRuntime().exec(new String[] {"/bin/sh", "-c", command});
       }
       System.err.println("  executing " + command);
-      // we need to fetch the output - some platforms will die if you don't ...
+      // we need to fetch the output - some platforms will die if you
+      // don't ...
       StreamHog error = new StreamHog(p.getErrorStream(), (err != null));
       StreamHog output = new StreamHog(p.getInputStream(), (out != null));
       if (err != null) {
@@ -246,7 +249,9 @@ public class StartRserve {
       if (out != null) {
         output.join();
       }
-      if (!isWindows) /* on Windows the process will never return, so we cannot wait */ {
+      if (!isWindows) /*
+                       * on Windows the process will never return, so we cannot wait
+                       */ {
         p.waitFor();
       }
       if (out != null) {
@@ -261,12 +266,14 @@ public class StartRserve {
     return true;
   }
 
-  /** shortcut to <code>launchRserve(cmd, "--no-save --slave", "--no-save --slave", false)</code> */
+  /**
+   * shortcut to <code>launchRserve(cmd, "--no-save --slave", "--no-save --slave", false)</code>
+   */
   public static boolean launchRserve(String cmd) {
     StringBuffer RserveArgs = new StringBuffer("--no-save --slave ");
     if (!System.getProperty("os.name").contains("Win"))
       RserveArgs.append(
-          " --RS-pidfile \\'" /* + System.getProperty("user.dir") */ + "/tmp" + "/rs_pid.pid\\'");
+          " --RS-pidfile \\'"/* + System.getProperty("user.dir") */ + "/tmp" + "/rs_pid.pid\\'");
     return launchRserve(cmd, /* null, */ "--no-save --slave", RserveArgs.toString(), false);
   }
 
@@ -283,8 +290,10 @@ public class StartRserve {
   public static boolean launchRserve(String cmd, /* String libloc, */ String rargs, String rsrvargs,
       boolean debug) {
     System.err.println("Waiting for Rserve to start ...");
-    // boolean startRserve = doInR("library(" + /*(libloc != null ? "lib.loc='" + libloc + "'," :
-    // "") +*/ "Rserve);Rserve(" + (debug ? "TRUE" : "FALSE") + ",args='" + rsrvargs + "')", cmd,
+    // boolean startRserve = doInR("library(" + /*(libloc != null ?
+    // "lib.loc='" + libloc + "'," :
+    // "") +*/ "Rserve);Rserve(" + (debug ? "TRUE" : "FALSE") + ",args='" +
+    // rsrvargs + "')", cmd,
     // rargs, null, null);
     boolean startRserve =
         doInR("library(Rserve);Rserve(" + (debug ? "TRUE" : "FALSE") + ",args='" + rsrvargs + "')",
@@ -318,7 +327,9 @@ public class StartRserve {
       } catch (Exception e2) {
         System.err.println("Try failed with: " + e2.getMessage());
       }
-      /* a safety sleep just in case the start up is delayed or asynchronous */
+      /*
+       * a safety sleep just in case the start up is delayed or asynchronous
+       */
       try {
         Thread.sleep(500);
       } catch (InterruptedException ix) {

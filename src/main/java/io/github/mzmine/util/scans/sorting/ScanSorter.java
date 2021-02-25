@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -35,30 +35,28 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class ScanSorter implements Comparator<Scan> {
 
-  private final String massListName;
   private final MassListSorter comp;
 
   /**
-   * Scans need at least one MassList (define name or use empty/null massListName for first
-   * MassList)
-   * 
-   * @param massListName any name or null/empty to use the first MassList of each scan
+   * Scans need a MassList
+   *
    * @param noiseLevel
-   * @param sort sorting mode
+   * @param sortMode sorting mode
    */
-  public ScanSorter(String massListName, double noiseLevel, ScanSortMode sortMode) {
-    this.massListName = massListName;
+  public ScanSorter(double noiseLevel, ScanSortMode sortMode) {
     comp = new MassListSorter(noiseLevel, sortMode);
   }
 
   @Override
   public int compare(Scan a, Scan b) {
-    MassList ma = ScanUtils.getMassListOrFirst(a, massListName);
-    MassList mb = ScanUtils.getMassListOrFirst(b, massListName);
-    if (ma == null || mb == null)
-      throw new RuntimeException(new MissingMassListException(massListName));
-    return comp.compare(ma.getDataPoints(), mb.getDataPoints());
+    MassList ma = a.getMassList();
+    MassList mb = b.getMassList();
+    if (ma == null)
+      throw new RuntimeException(new MissingMassListException(a));
+    else if (mb == null)
+      throw new RuntimeException(new MissingMassListException(b));
+    else
+      return comp.compare(ma, mb);
   }
-
 
 }

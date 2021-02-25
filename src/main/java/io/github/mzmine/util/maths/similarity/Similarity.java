@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -47,11 +47,11 @@ public abstract class Similarity {
    * 
    * 
    */
-  public static final Similarity LOG_VAR_PROPORTIONALITY = new Similarity() {
+  public static final Similarity logger_VAR_PROPORTIONALITY = new Similarity() {
     @Override
     public double calc(double[][] data) {
-      double[] logratioXY = transform(ratio(data, 0, 1), Transform.LOG);
-      double[] logx = transform(col(data, 0), Transform.LOG);
+      double[] logratioXY = transform(ratio(data, 0, 1), Transform.logger);
+      double[] logx = transform(col(data, 0), Transform.logger);
       return var(logratioXY) / var(logx);
     }
   };
@@ -62,11 +62,11 @@ public abstract class Similarity {
    * 
    * 
    */
-  public static final Similarity LOG_VAR_CONCORDANCE = new Similarity() {
+  public static final Similarity logger_VAR_CONCORDANCE = new Similarity() {
     @Override
     public double calc(double[][] data) {
-      double[] logx = transform(col(data, 0), Transform.LOG);
-      double[] logy = transform(col(data, 1), Transform.LOG);
+      double[] logx = transform(col(data, 0), Transform.logger);
+      double[] logy = transform(col(data, 1), Transform.logger);
       return 2 * covar(logx, logy) / (var(logx) + var(logy));
     }
   };
@@ -130,8 +130,6 @@ public abstract class Similarity {
 
   };
 
-
-
   /**
    * Maximum fold-change
    * 
@@ -184,7 +182,6 @@ public abstract class Similarity {
     }
     return v;
   }
-
 
   // ############################################
   // COMMON METHODS
@@ -260,7 +257,6 @@ public abstract class Similarity {
     }
     return var / (data.length);
   }
-
 
   public double stdev(double[][] data, int i) {
     return Math.sqrt(var(data, i));

@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -44,9 +44,9 @@ public class DPPParameterValueWrapper {
   DataPointProcessingQueue[] queues;
   Boolean differentiateMSn;
 
-//  private static final String MSANY_QUEUE_ELEMENT = "ms-any";
-//  private static final String MSONE_QUEUE_ELEMENT = "ms-one";
-//  private static final String MSMS_QUEUE_ELEMENT = "ms-ms";
+  // private static final String MSANY_QUEUE_ELEMENT = "ms-any";
+  // private static final String MSONE_QUEUE_ELEMENT = "ms-one";
+  // private static final String MSMS_QUEUE_ELEMENT = "ms-ms";
   private final String[] MSLEVEL_VALUE_ELEMENT = new String[MSLevel.cropValues().length];
   private static final String WRAPPER_ELEMENT = "queuewrapper";
   private static final String MSLEVEL_ELEMENT = "mslevel";
@@ -54,9 +54,9 @@ public class DPPParameterValueWrapper {
   private static final String MAINFILE_ELEMENT = "DPPParameters";
 
   public DPPParameterValueWrapper() {
-    for(MSLevel mslevel : MSLevel.cropValues())
+    for (MSLevel mslevel : MSLevel.cropValues())
       MSLEVEL_VALUE_ELEMENT[mslevel.ordinal()] = mslevel.toString();
-    
+
     differentiateMSn = false;
     queues = new DataPointProcessingQueue[MSLevel.cropValues().length];
     for (int i = 0; i < queues.length; i++) {
@@ -71,7 +71,6 @@ public class DPPParameterValueWrapper {
   public boolean isDifferentiateMSn() {
     return differentiateMSn;
   }
-
 
   public void setQueues(DataPointProcessingQueue[] queues) {
     this.queues = queues;
@@ -104,12 +103,13 @@ public class DPPParameterValueWrapper {
     final Document document = xmlElement.getOwnerDocument();
 
     final Element[] msLevelElements = new Element[MSLevel.cropValues().length];
-    
+
     xmlElement.setAttribute(DIFFMSN_ELEMENT, differentiateMSn.toString());
-    
-    for(MSLevel mslevel : MSLevel.cropValues()) {
+
+    for (MSLevel mslevel : MSLevel.cropValues()) {
       msLevelElements[mslevel.ordinal()] = document.createElement(WRAPPER_ELEMENT);
-      msLevelElements[mslevel.ordinal()].setAttribute(MSLEVEL_ELEMENT, MSLEVEL_VALUE_ELEMENT[mslevel.ordinal()]);
+      msLevelElements[mslevel.ordinal()].setAttribute(MSLEVEL_ELEMENT,
+          MSLEVEL_VALUE_ELEMENT[mslevel.ordinal()]);
       xmlElement.appendChild(msLevelElements[mslevel.ordinal()]);
       queues[mslevel.ordinal()].saveToXML(msLevelElements[mslevel.ordinal()]);
     }
@@ -126,8 +126,8 @@ public class DPPParameterValueWrapper {
       final Element queueElement = (Element) nodes.item(i);
       final String levelName = queueElement.getAttribute(MSLEVEL_ELEMENT);
 
-      for(MSLevel mslevel : MSLevel.cropValues()) {
-        if(levelName.equals(MSLEVEL_VALUE_ELEMENT[mslevel.ordinal()])) {
+      for (MSLevel mslevel : MSLevel.cropValues()) {
+        if (levelName.equals(MSLEVEL_VALUE_ELEMENT[mslevel.ordinal()])) {
           queues[mslevel.ordinal()] = DataPointProcessingQueue.loadfromXML(queueElement);
         }
       }

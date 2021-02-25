@@ -1,23 +1,24 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
 
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
@@ -30,7 +31,6 @@ import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.ui.TextAnchor;
 import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
@@ -50,7 +50,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
  * Task to search spectra with a custom database
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
 public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
@@ -76,9 +76,8 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
 
   /**
    * Create the task.
-   * 
+   *
    * @param parameters task parameters.
-   * @param peakListRow peak-list row to identify.
    */
   public SpectraIdentificationCustomDatabaseTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
@@ -132,22 +131,23 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // create mass list for scan
-    DataPoint[] massList = null;
+    double[][] massList = null;
     ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
     MassDetector massDetector = null;
     ArrayList<String> allCompoundIDs = new ArrayList<>();
 
-    // Create a new mass list for MS/MS scan. Check if sprectrum is profile or centroid mode
+    // Create a new mass list for MS/MS scan. Check if sprectrum is profile
+    // or centroid mode
     if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
       massDetector = new CentroidMassDetector();
       CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
       CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
+      massList = massDetector.getMassValues(currentScan, parameters);
     } else {
       massDetector = new ExactMassDetector();
       ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
       ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
+      massList = massDetector.getMassValues(currentScan, parameters);
     }
     numItems = massList.length;
 
@@ -180,7 +180,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
           if (getStatus() != TaskStatus.PROCESSING) {
             return;
           }
-          double searchedMass = massList[i].getMZ();
+          double searchedMass = massList[0][i];
 
           Range<Double> mzRange = mzTolerance.getToleranceRange(searchedMass);
 
@@ -197,7 +197,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
           }
           if (annotation != "") {
             allCompoundIDs.add(annotation);
-            massListAnnotated.add(massList[i]);
+            massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
           }
         }
         finishedLines++;

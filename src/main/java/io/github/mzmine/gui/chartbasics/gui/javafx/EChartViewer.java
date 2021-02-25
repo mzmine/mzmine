@@ -1,27 +1,30 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -35,10 +38,10 @@ import org.jfree.data.Range;
 import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
-import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportDialog;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.chartbasics.gui.javafx.menu.MenuExportToClipboard;
 import io.github.mzmine.gui.chartbasics.gui.javafx.menu.MenuExportToExcel;
 import io.github.mzmine.gui.chartbasics.gui.swing.ChartGestureMouseAdapter;
@@ -46,22 +49,36 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxesRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.SaveImage;
+import io.github.mzmine.util.SaveImage.FileType;
+/*
+import io.github.mzmine.util.dialogs.AxesSetupDialog;
+ */
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.print.PrinterJob;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Stage;
 
 /**
  * This is an extended version of the ChartViewer (JFreeChartFX). it Adds: ChartGestures (with a set
  * of standard chart gestures), ZoomHistory, AxesRangeChangeListener, data export, graphics export,
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class EChartViewer extends ChartViewer {
-  private static final long serialVersionUID = 1L;
+
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   // one history for each plot/subplot
@@ -73,13 +90,23 @@ public class EChartViewer extends ChartViewer {
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
   private ChartGestureMouseAdapterFX mouseAdapter;
-
+  private Menu exportMenu;
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
    * stickyZeroForRangeAxis = false <br>
    * Graphics and data export menu are added
-   * 
+   *
+   */
+  public EChartViewer() {
+    this(null, true, true, true, true, false);
+  }
+
+  /**
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
+   * stickyZeroForRangeAxis = false <br>
+   * Graphics and data export menu are added
+   *
    * @param chart
    */
   public EChartViewer(JFreeChart chart) {
@@ -89,7 +116,7 @@ public class EChartViewer extends ChartViewer {
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
    * stickyZeroForRangeAxis = false
-   * 
+   *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
    * @param standardGestures adds the standard ChartGestureHandlers
@@ -102,7 +129,7 @@ public class EChartViewer extends ChartViewer {
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
-   * 
+   *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
    * @param dataExportMenu adds data export menu
@@ -116,7 +143,7 @@ public class EChartViewer extends ChartViewer {
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
-   * 
+   *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
    * @param dataExportMenu adds data export menu
@@ -129,11 +156,85 @@ public class EChartViewer extends ChartViewer {
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
     this.standardGestures = standardGestures;
     this.addZoomHistory = addZoomHistory;
-    setChart(chart);
+
+    // Add chart and configure
+    if (chart != null)
+      setChart(chart);
+
+    exportMenu = (Menu) getContextMenu().getItems().get(0);
 
     // Add Export to Excel and graphics export menu
-    if (graphicsExportMenu || dataExportMenu)
+    if (graphicsExportMenu || dataExportMenu) {
       addExportMenu(graphicsExportMenu, dataExportMenu);
+    }
+
+    addMenuItem(getContextMenu(), "Reset Zoom", event -> {
+      ValueAxis xAxis = getChart().getXYPlot().getDomainAxis();
+      ValueAxis yAxis = getChart().getXYPlot().getDomainAxis();
+      xAxis.setAutoRange(true);
+      yAxis.setAutoRange(true);
+    });
+
+    // TODO:
+    /*
+    addMenuItem(getContextMenu(), "Set Range on Axis", event -> {
+      AxesSetupDialog dialog =
+          new AxesSetupDialog((Stage) this.getScene().getWindow(), chart.getXYPlot());
+      dialog.show();
+    });
+     */
+
+    addMenuItem(exportMenu, "EPS..", event -> handleSave("EMF Image", "EMF", ".emf", FileType.EMF));
+
+    addMenuItem(exportMenu, "EMF..", event -> handleSave("EPS Image", "EPS", ".eps", FileType.EPS));
+
+    addMenuItem(getContextMenu(), "Copy chart to clipboard", event -> {
+      BufferedImage bufferedImage =
+          getChart().createBufferedImage((int) this.getWidth(), (int) this.getHeight());
+      Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+      ClipboardContent content = new ClipboardContent();
+      content.putImage(image);
+      Clipboard.getSystemClipboard().setContent(content);
+    });
+
+    addMenuItem(getContextMenu(), "Print", event -> {
+      BufferedImage bufferedImage =
+          getChart().createBufferedImage((int) this.getWidth(), (int) this.getHeight());
+      Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+      ImageView imageView = new ImageView(image);
+      PrinterJob job = PrinterJob.createPrinterJob();
+      if (job != null) {
+        boolean doPrint = job.showPrintDialog(this.getScene().getWindow());
+        if (doPrint) {
+          job.printPage(imageView);
+          job.endJob();
+        }
+      } else {
+        MZmineCore.getDesktop().displayErrorMessage("No Printing Service Found");
+      }
+    });
+
+  }
+
+  private void handleSave(String description, String extensions, String extension,
+      FileType filetype) {
+    FileChooser chooser = new FileChooser();
+    chooser.getExtensionFilters().add(new ExtensionFilter(description, extensions));
+    File file = chooser.showSaveDialog(null);
+
+    if (file != null) {
+      String filepath = file.getPath();
+      if (!filepath.toLowerCase().endsWith(extension)) {
+        filepath += extension;
+      }
+
+      int width = (int) this.getWidth();
+      int height = (int) this.getHeight();
+
+      // Save image
+      SaveImage SI = new SaveImage(getChart(), filepath, width, height, filetype);
+      new Thread(SI).start();
+    }
   }
 
   protected void addMenuItem(Menu parent, String title, EventHandler<ActionEvent> al) {
@@ -148,24 +249,19 @@ public class EChartViewer extends ChartViewer {
     parent.getItems().add(pngItem);
   }
 
-  protected void addMenu(ContextMenu menu, Menu m) {
-    menu.getItems().add(m);
-  }
 
   @Override
   public void setChart(JFreeChart chart) {
     super.setChart(chart);
-    if (chart != null) {
-      initChartPanel();
-    }
-  }
 
-  /**
-   * Init ChartPanel Mouse Listener For MouseDraggedOverAxis event For scrolling X-Axis und zooming
-   * Y-Axis0
-   */
-  private void initChartPanel() {
+    // If no chart, end here
+    if (chart == null)
+      return;
+
     final EChartViewer chartPanel = this;
+
+    // apply the theme here, let's see how that works
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(chart);
 
     // remove old init
     if (mouseAdapter != null) {
@@ -200,9 +296,11 @@ public class EChartViewer extends ChartViewer {
             public void axisRangeChanged(ChartViewWrapper chart, ValueAxis axis, Range lastR,
                 Range newR) {
               // notify listeners of changed range
-              if (axesRangeListener != null)
-                for (AxesRangeChangedListener l : axesRangeListener)
+              if (axesRangeListener != null) {
+                for (AxesRangeChangedListener l : axesRangeListener) {
                   l.axesRangeChanged(chart, axis, lastR, newR);
+                }
+              }
             }
           });
         }
@@ -212,9 +310,11 @@ public class EChartViewer extends ChartViewer {
             public void axisRangeChanged(ChartViewWrapper chart, ValueAxis axis, Range lastR,
                 Range newR) {
               // notify listeners of changed range
-              if (axesRangeListener != null)
-                for (AxesRangeChangedListener l : axesRangeListener)
+              if (axesRangeListener != null) {
+                for (AxesRangeChangedListener l : axesRangeListener) {
                   l.axesRangeChanged(chart, axis, lastR, newR);
+                }
+              }
             }
           });
         }
@@ -228,9 +328,10 @@ public class EChartViewer extends ChartViewer {
       if (standardGestures) {
         addStandardGestures();
       }
-      // mouseAdapter.addDebugHandler();
+//      mouseAdapter.addDebugHandler();
     }
   }
+
 
 
   public void addMouseHandler(MouseHandlerFX handler) {
@@ -245,8 +346,9 @@ public class EChartViewer extends ChartViewer {
     ChartGestureMouseAdapterFX m = getGestureAdapter();
     if (m != null) {
       m.clearHandlers();
-      for (GestureHandlerFactory f : ChartGestureHandler.getStandardGestures())
+      for (GestureHandlerFactory f : ChartGestureHandler.getStandardGestures()) {
         m.addGestureHandler(f.createHandler());
+      }
 
       logger.log(Level.FINEST, "Added standard gestures: " + m.getGestureHandlers().size());
     }
@@ -258,8 +360,13 @@ public class EChartViewer extends ChartViewer {
   protected void addExportMenu(boolean graphics, boolean data) {
     if (graphics) {
       // Graphics Export
-      addMenuItem(getContextMenu(), "Export graphics...",
-          e -> GraphicsExportDialog.openDialog(getChart()));
+      addMenuItem(getContextMenu(), "Export graphics...", e -> {
+
+        GraphicsExportParameters parameters = (GraphicsExportParameters) MZmineCore
+            .getConfiguration().getModuleParameters(GraphicsExportModule.class);
+
+        MZmineCore.getModuleInstance(GraphicsExportModule.class).openDialog(getChart(), parameters);
+      });
     }
     if (data) {
       // General data export
@@ -272,7 +379,7 @@ public class EChartViewer extends ChartViewer {
       MenuExportToClipboard exportXYClipboard = new MenuExportToClipboard("to Clipboard", this);
       export.getItems().add(exportXYClipboard);
       // add to panel
-      addMenu(getContextMenu(), export);
+      getContextMenu().getItems().add(export);
     }
   }
 
@@ -280,12 +387,13 @@ public class EChartViewer extends ChartViewer {
    * Default tries to extract all series from an XYDataset or XYZDataset<br>
    * series 1 | Series 2 <br>
    * x y x y x y z x y z
-   * 
+   *
    * @return Data array[columns][rows]
    */
   public Object[][] getDataArrayForExport() {
     if (getChart().getPlot() instanceof XYPlot && getChart().getXYPlot() != null
-        && getChart().getXYPlot().getDataset() != null) {
+      /*&& getChart().getXYPlot().getDataset() != null*/) { // getDataset() may be null if the
+      // first dataset was removed, but the plot may still hold other datasets
       try {
         List<Object[]> modelList = new ArrayList<>();
 
@@ -320,9 +428,10 @@ public class EChartViewer extends ChartViewer {
               model[s * 3 + 2] = z;
             }
 
-            for (Object[] o : model)
+            for (Object[] o : model) {
               modelList.add(o);
-          } else {
+            }
+          } else if (data != null) {
             int series = data.getSeriesCount();
             Object[][] model = new Object[series * 2][];
             for (int s = 0; s < series; s++) {
@@ -345,8 +454,9 @@ public class EChartViewer extends ChartViewer {
               model[s * 2 + 1] = y;
             }
 
-            for (Object[] o : model)
+            for (Object[] o : model) {
               modelList.add(o);
+            }
           }
         }
 
@@ -360,27 +470,32 @@ public class EChartViewer extends ChartViewer {
   }
 
   public void addAxesRangeChangedListener(AxesRangeChangedListener l) {
-    if (axesRangeListener == null)
+    if (axesRangeListener == null) {
       axesRangeListener = new ArrayList<AxesRangeChangedListener>(1);
+    }
     axesRangeListener.add(l);
   }
 
   public void removeAxesRangeChangedListener(AxesRangeChangedListener l) {
-    if (axesRangeListener != null)
+    if (axesRangeListener != null) {
       axesRangeListener.remove(l);
+    }
   }
 
   public void clearAxesRangeChangedListeners() {
-    if (axesRangeListener != null)
+    if (axesRangeListener != null) {
       axesRangeListener.clear();
+    }
   }
 
   public void setMouseZoomable(boolean flag) {
     setDomainZoomable(flag);
     setRangeZoomable(flag);
     isMouseZoomable = flag;
+    // TODO find better solution
+    // clear handler to stop zoom rectangle (hacky solution)
+    getCanvas().clearLiveHandler();
   }
-
 
   public void setRangeZoomable(boolean flag) {
     getCanvas().setRangeZoomable(flag);
@@ -412,11 +527,11 @@ public class EChartViewer extends ChartViewer {
 
   /**
    * Returns the {@link ChartGestureMouseAdapter} alternatively for other ChartPanel classes use:
-   * 
+   *
    * <pre>
    * this.getCanvas().addAuxiliaryMouseHandler(handler);
    * </pre>
-   * 
+   *
    * @return
    */
   public ChartGestureMouseAdapterFX getGestureAdapter() {

@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -31,26 +31,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import com.google.common.io.CountingInputStream;
-
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.projectload.version_2_0.PeakListOpenHandler_2_0;
-import io.github.mzmine.modules.io.projectload.version_2_0.RawDataFileOpenHandler_2_0;
-import io.github.mzmine.modules.io.projectload.version_2_3.PeakListOpenHandler_2_3;
-import io.github.mzmine.modules.io.projectload.version_2_3.RawDataFileOpenHandler_2_3;
-import io.github.mzmine.modules.io.projectload.version_2_3.UserParameterOpenHandler_2_3;
 import io.github.mzmine.modules.io.projectload.version_2_5.PeakListOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.RawDataFileOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.UserParameterOpenHandler_2_5;
+import io.github.mzmine.modules.io.projectload.version_3_0.PeakListOpenHandler_3_0;
+import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
+import io.github.mzmine.modules.io.projectload.version_3_0.UserParameterOpenHandler_3_0;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -58,6 +55,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.StreamCopy;
+import javafx.scene.control.ButtonType;
 
 public class ProjectOpeningTask extends AbstractTask {
 
@@ -92,8 +90,9 @@ public class ProjectOpeningTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    if (currentLoadedObjectName == null)
+    if (currentLoadedObjectName == null) {
       return "Opening project " + openFile;
+    }
     return "Opening project " + openFile + " (" + currentLoadedObjectName + ")";
   }
 
@@ -103,15 +102,17 @@ public class ProjectOpeningTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
 
-    if (totalBytes == 0)
+    if (totalBytes == 0) {
       return 0;
+    }
 
     long totalReadBytes = this.finishedBytes;
 
     // Add the current ZIP entry progress to totalReadBytes
     synchronized (this) {
-      if (cis != null)
+      if (cis != null) {
         totalReadBytes += cis.getCount();
+      }
     }
 
     return (double) totalReadBytes / totalBytes;
@@ -127,14 +128,16 @@ public class ProjectOpeningTask extends AbstractTask {
       // Check if existing raw data files are present
       ProjectManager projectManager = MZmineCore.getProjectManager();
       if (projectManager.getCurrentProject().getDataFiles().length > 0) {
-        int dialogResult = JOptionPane.showConfirmDialog(null,
-            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",
-            "Warning", JOptionPane.YES_NO_OPTION);
 
-        if (dialogResult != JOptionPane.YES_OPTION) {
+        ButtonType confirm = MZmineCore.getDesktop().displayConfirmation(
+            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",
+            ButtonType.YES, ButtonType.NO);
+
+        if (confirm != ButtonType.YES) {
           cancel();
           return;
         }
+
       }
 
       logger.info("Started opening project " + openFile);
@@ -160,8 +163,22 @@ public class ProjectOpeningTask extends AbstractTask {
         totalBytes += entry.getSize();
       }
 
-      final Pattern rawFilePattern = Pattern.compile("Raw data file #([\\d]+) (.*)\\.xml$");
-      final Pattern scansFilePattern = Pattern.compile("Raw data file #([\\d]+) (.*)\\.scans$");
+      final Pattern rawFilePattern =
+          Pattern.compile(RawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.xml$");
+      final Pattern imsRawFilePattern =
+          Pattern.compile(IMSRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.xml$");
+      final Pattern imagingRawFilePattern =
+          Pattern.compile(ImagingRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.xml$");
+
+      // We have two patterns, since the data points file is named in accordance to the
+      // raw file name. However, we load it in exactly the same way.
+      final Pattern scansFilePattern =
+          Pattern.compile(RawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.scans$");
+      final Pattern imsScansFilePattern =
+          Pattern.compile(IMSRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.scans$");
+      final Pattern imagingScansFilePattern =
+          Pattern.compile(ImagingRawDataFileImpl.SAVE_IDENTIFIER + " #([\\d]+) (.*)\\.scans$");
+
       final Pattern peakListPattern = Pattern.compile("Peak list #([\\d]+) (.*)\\.xml$");
 
       boolean versionInformationLoaded = false;
@@ -186,20 +203,38 @@ public class ProjectOpeningTask extends AbstractTask {
         }
 
         // Load configuration
-        if (entryName.equals(ProjectSavingTask.CONFIG_FILENAME))
+        if (entryName.equals(ProjectSavingTask.CONFIG_FILENAME)) {
           loadConfiguration(cis);
+        }
 
         // Load user parameters
         if (entryName.equals(ProjectSavingTask.PARAMETERS_FILENAME)) {
           loadUserParameters(cis);
         }
 
+        final Matcher imsRawFileMatcher = imsRawFilePattern.matcher(entryName);
+        if (imsRawFileMatcher.matches()) {
+          logger.info("loading ims raw from " + entryName);
+          final String fileID = imsRawFileMatcher.group(1);
+          final String fileName = imsRawFileMatcher.group(2);
+          loadRawDataFile(cis, fileID, fileName, true, false);
+        }
+
+        final Matcher imagingRawFileMatcher = imagingRawFilePattern.matcher(entryName);
+        if (imagingRawFileMatcher.matches()) {
+          logger.info("loading imaging raw from " + entryName);
+          final String fileID = imagingRawFileMatcher.group(1);
+          final String fileName = imagingRawFileMatcher.group(2);
+          loadRawDataFile(cis, fileID, fileName, false, true);
+        }
+
         // Load a raw data file
         final Matcher rawFileMatcher = rawFilePattern.matcher(entryName);
         if (rawFileMatcher.matches()) {
+          logger.info("loading normal raw from " + entryName);
           final String fileID = rawFileMatcher.group(1);
           final String fileName = rawFileMatcher.group(2);
-          loadRawDataFile(cis, fileID, fileName);
+          loadRawDataFile(cis, fileID, fileName, false, false);
         }
 
         // Load the scan data of a raw data file
@@ -207,14 +242,26 @@ public class ProjectOpeningTask extends AbstractTask {
         if (scansFileMatcher.matches()) {
           final String fileID = scansFileMatcher.group(1);
           final String fileName = scansFileMatcher.group(2);
-          loadScansFile(cis, fileID, fileName);
+          // loadScansFile(cis, fileID, fileName);
+        }
+        final Matcher imsScansFileMatcher = imsScansFilePattern.matcher(entryName);
+        if (imsScansFileMatcher.matches()) {
+          final String fileID = imsScansFileMatcher.group(1);
+          final String fileName = imsScansFileMatcher.group(2);
+          // loadScansFile(cis, fileID, fileName);
+        }
+        final Matcher imagingScansFileMatcher = imagingScansFilePattern.matcher(entryName);
+        if (imagingScansFileMatcher.matches()) {
+          final String fileID = imagingScansFileMatcher.group(1);
+          final String fileName = imagingScansFileMatcher.group(2);
+          // loadScansFile(cis, fileID, fileName);
         }
 
         // Load a feature list
         final Matcher peakListMatcher = peakListPattern.matcher(entryName);
         if (peakListMatcher.matches()) {
           final String peakListName = peakListMatcher.group(2);
-          loadPeakList(cis, peakListName);
+          loadFeatureList(cis, peakListName);
         }
 
         // Close the ZIP entry
@@ -233,12 +280,13 @@ public class ProjectOpeningTask extends AbstractTask {
 
       if (!versionInformationLoaded) {
         throw new IOException(
-            "This file is not valid MZmine 2 project. It does not contain version information.");
+            "This file is not valid MZmine project. It does not contain version information.");
       }
 
       // Final check for cancel
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       logger.info("Finished opening project " + openFile);
       setStatus(TaskStatus.FINISHED);
@@ -250,8 +298,9 @@ public class ProjectOpeningTask extends AbstractTask {
 
       // If project opening was canceled, parser was stopped by a
       // SAXException which can be safely ignored
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       setStatus(TaskStatus.ERROR);
       e.printStackTrace();
@@ -270,17 +319,21 @@ public class ProjectOpeningTask extends AbstractTask {
 
     setStatus(TaskStatus.CANCELED);
 
-    if (rawDataFileOpenHandler != null)
+    if (rawDataFileOpenHandler != null) {
       rawDataFileOpenHandler.cancel();
+    }
 
-    if (peakListOpenHandler != null)
+    if (peakListOpenHandler != null) {
       peakListOpenHandler.cancel();
+    }
 
-    if (userParameterOpenHandler != null)
+    if (userParameterOpenHandler != null) {
       userParameterOpenHandler.cancel();
+    }
 
-    if (copyMachine != null)
+    if (copyMachine != null) {
       copyMachine.cancel();
+    }
 
   }
 
@@ -315,39 +368,35 @@ public class ProjectOpeningTask extends AbstractTask {
     int projectMinorVersion = Integer.valueOf(m.group(2));
 
     // Check if project was saved with an old version
-    if (projectMajorVersion == 1) {
+    if ((projectMajorVersion == 1) || ((projectMajorVersion == 2) && (projectMinorVersion <= 4))) {
       throw new IOException("This project was saved with an old version (MZmine "
           + projectVersionString + ") and it cannot be opened in MZmine " + mzmineVersionString);
     }
 
-    // Check if the project version is 2.0 to 2.2
-    if ((projectMajorVersion == 2) && (projectMinorVersion <= 2)) {
-      rawDataFileOpenHandler = new RawDataFileOpenHandler_2_0();
-      peakListOpenHandler = new PeakListOpenHandler_2_0(dataFilesIDMap);
-      return;
-    }
-
-    // Check if the project version is 2.3 to 2.4
-    if ((projectMajorVersion == 2) && (projectMinorVersion <= 4)) {
-      rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
-      peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
-      userParameterOpenHandler = new UserParameterOpenHandler_2_3(newProject, dataFilesIDMap);
+    // Check if the project version is > 2.5
+    if ((projectMajorVersion == 2) && (projectMinorVersion > 4)) {
+      // Default opening handler for MZmine.5 and higher
+      rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
+      peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
+      userParameterOpenHandler = new UserParameterOpenHandler_2_5(newProject, dataFilesIDMap);
       return;
     }
 
     // Check if project was saved with a newer version
-    if ((projectMajorVersion > mzmineMajorVersion) || ((projectMajorVersion == mzmineMajorVersion)
-        && (projectMinorVersion > mzmineMinorVersion))) {
-      String warning = "Warning: this project was saved with a newer version of MZmine ("
-          + projectVersionString + "). Opening this project in MZmine " + mzmineVersionString
-          + " may result in errors or loss of information.";
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(), warning);
+    if (mzmineMajorVersion > 0) {
+      if ((projectMajorVersion > mzmineMajorVersion) || ((projectMajorVersion == mzmineMajorVersion)
+          && (projectMinorVersion > mzmineMinorVersion))) {
+        String warning = "Warning: this project was saved with a newer version of MZmine ("
+            + projectVersionString + "). Opening this project in MZmine " + mzmineVersionString
+            + " may result in errors or loss of information.";
+        MZmineCore.getDesktop().displayMessage(warning);
+      }
     }
 
-    // Default opening handler for MZmine 2.5 and higher
-    rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
-    peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
-    userParameterOpenHandler = new UserParameterOpenHandler_2_5(newProject, dataFilesIDMap);
+    // Default opening handler for MZmine 3 and higher
+    rawDataFileOpenHandler = new RawDataFileOpenHandler_3_0();
+    peakListOpenHandler = new PeakListOpenHandler_3_0(dataFilesIDMap);
+    userParameterOpenHandler = new UserParameterOpenHandler_3_0(newProject, dataFilesIDMap);
 
   }
 
@@ -376,7 +425,8 @@ public class ProjectOpeningTask extends AbstractTask {
     tempConfigFile.delete();
   }
 
-  private void loadRawDataFile(InputStream is, String fileID, String fileName) throws IOException,
+  private void loadRawDataFile(InputStream is, String fileID, String fileName,
+      boolean isIMSRawDataFile, boolean isImagingFile) throws IOException,
       ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
 
     logger.info("Loading raw data file #" + fileID + ": " + fileName);
@@ -388,50 +438,52 @@ public class ProjectOpeningTask extends AbstractTask {
       throw new IOException("Missing scans data for file ID " + fileID);
     }
 
-    RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(is, scansFile);
+    RawDataFile newFile =
+        rawDataFileOpenHandler.readRawDataFile(is, scansFile, isIMSRawDataFile, isImagingFile);
     newProject.addFile(newFile);
     dataFilesIDMap.put(fileID, newFile);
 
   }
 
-  private void loadScansFile(InputStream is, String fileID, String fileName) throws IOException {
+  /*
+   * private void loadScansFile(InputStream is, String fileID, String fileName) throws IOException {
+   * 
+   * logger.info("Loading scans data #" + fileID + ": " + fileName);
+   * 
+   * currentLoadedObjectName = fileName + " scan data";
+   * 
+   * final File tempFile = null;// RawDataFileImpl.createNewDataPointsFile();
+   * logger.info("Saving scans data of #" + fileID + " to " + tempFile);
+   * 
+   * final FileOutputStream os = new FileOutputStream(tempFile);
+   * 
+   * // If the project was saved with 2.5 version < 3.0 copyMachine = (rawDataFileOpenHandler
+   * instanceof RawDataFileOpenHandler_2_5) ? new StreamCopy32to64() : new StreamCopy();
+   * copyMachine.copy(is, os); os.close();
+   * 
+   * scanFilesIDMap.put(fileID, tempFile);
+   * 
+   * }
+   */
 
-    logger.info("Loading scans data #" + fileID + ": " + fileName);
-
-    currentLoadedObjectName = fileName + " scan data";
-
-    final File tempFile = RawDataFileImpl.createNewDataPointsFile();
-    final FileOutputStream os = new FileOutputStream(tempFile);
-
-    copyMachine = new StreamCopy();
-    copyMachine.copy(is, os);
-    os.close();
-
-    scanFilesIDMap.put(fileID, tempFile);
-
-  }
-
-  private void loadPeakList(InputStream is, String peakListName) throws IOException,
+  private void loadFeatureList(InputStream is, String featureListName) throws IOException,
       ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
+    logger.info("Loading feature list " + featureListName);
 
-    logger.info("Loading feature list " + peakListName);
+    currentLoadedObjectName = featureListName;
 
-    currentLoadedObjectName = peakListName;
+    FeatureList newFeatureList = peakListOpenHandler.readPeakList(is);
 
-    PeakList newPeakList = peakListOpenHandler.readPeakList(is);
-
-    newProject.addPeakList(newPeakList);
-
-    // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(newPeakList);
+    newProject.addFeatureList(newFeatureList);
   }
 
   private void loadUserParameters(InputStream is) throws IOException, ParserConfigurationException,
       SAXException, InstantiationException, IllegalAccessException {
 
     // Older versions of MZmine had no parameter saving
-    if (userParameterOpenHandler == null)
+    if (userParameterOpenHandler == null) {
       return;
+    }
 
     logger.info("Loading user parameters");
 

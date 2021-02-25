@@ -1,68 +1,66 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.logging.Logger;
-
-import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
-import org.apache.commons.math.optimization.fitting.PolynomialFitter;
-import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
-import org.apache.commons.math.stat.regression.SimpleRegression;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakUtils;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.logging.Logger;
+import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
+import org.apache.commons.math.optimization.fitting.PolynomialFitter;
+import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
+import org.apache.commons.math.stat.regression.SimpleRegression;
 
 class RansacAlignerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private PeakList peakLists[], alignedPeakList;
+  private ModularFeatureList[] featureLists;
+  private ModularFeatureList alignedFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
   // Parameters
-  private String peakListName;
+  private String featureListName;
   private MZTolerance mzTolerance;
   private RTTolerance rtToleranceBefore, rtToleranceAfter;
   private ParameterSet parameters;
@@ -70,14 +68,14 @@ class RansacAlignerTask extends AbstractTask {
   // ID counter for the new peaklist
   private int newRowID = 1;
 
-  public RansacAlignerTask(MZmineProject project, PeakList[] peakLists, ParameterSet parameters) {
+  public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists, ParameterSet parameters) {
 
     this.project = project;
-    this.peakLists = peakLists;
+    this.featureLists = (ModularFeatureList[]) featureLists;
     this.parameters = parameters;
 
     // Get parameter values for easier use
-    peakListName = parameters.getParameter(RansacAlignerParameters.peakListName).getValue();
+    featureListName = parameters.getParameter(RansacAlignerParameters.peakListName).getValue();
 
     mzTolerance = parameters.getParameter(RansacAlignerParameters.MZTolerance).getValue();
 
@@ -94,13 +92,15 @@ class RansacAlignerTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
-    return "Ransac aligner, " + peakListName + " (" + peakLists.length + " feature lists)";
+    return "Ransac aligner, " + featureListName + " (" + featureLists.length + " feature lists)";
   }
 
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0) {
       return 0f;
@@ -108,6 +108,7 @@ class RansacAlignerTask extends AbstractTask {
     return (double) processedRows / (double) totalRows;
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -115,18 +116,19 @@ class RansacAlignerTask extends AbstractTask {
 
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
-    for (int i = 0; i < peakLists.length; i++) {
-      totalRows += peakLists[i].getNumberOfRows() * 2;
+    for (int i = 0; i < featureLists.length; i++) {
+      totalRows += featureLists[i].getNumberOfRows() * 2;
     }
 
     // Collect all data files
     List<RawDataFile> allDataFiles = new ArrayList<RawDataFile>();
 
-    for (PeakList peakList : peakLists) {
+    for (ModularFeatureList featureList : featureLists) {
 
-      for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+      for (RawDataFile dataFile : featureList.getRawDataFiles()) {
 
-        // Each data file can only have one column in aligned feature list
+        // Each data file can only have one column in aligned feature
+        // list
         if (allDataFiles.contains(dataFile)) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Cannot run alignment, because file " + dataFile
@@ -135,61 +137,61 @@ class RansacAlignerTask extends AbstractTask {
         }
 
         allDataFiles.add(dataFile);
+
+        featureList.getRawDataFiles().forEach(
+            file -> alignedFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
       }
     }
 
     // Create a new aligned feature list
-    alignedPeakList = new SimplePeakList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
+    alignedFeatureList = new ModularFeatureList(featureListName, allDataFiles.toArray(new RawDataFile[0]));
 
     // Iterate source feature lists
-    for (PeakList peakList : peakLists) {
+    for (FeatureList featureList : featureLists) {
 
-      HashMap<PeakListRow, PeakListRow> alignmentMapping = this.getAlignmentMap(peakList);
+      HashMap<FeatureListRow, FeatureListRow> alignmentMapping = this.getAlignmentMap(featureList);
 
-      PeakListRow allRows[] = peakList.getRows();
+      List<FeatureListRow> allRows = featureList.getRows();
 
       // Align all rows using mapping
-      for (PeakListRow row : allRows) {
-        PeakListRow targetRow = alignmentMapping.get(row);
+      for (FeatureListRow row : allRows) {
+        FeatureListRow targetRow = alignmentMapping.get(row);
 
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
-          targetRow = new SimplePeakListRow(newRowID);
+          targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
+          //(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
+          //    ModularFeature p)
           newRowID++;
-          alignedPeakList.addRow(targetRow);
+          alignedFeatureList.addRow(targetRow);
         }
 
         // Add all peaks from the original row to the aligned row
         for (RawDataFile file : row.getRawDataFiles()) {
-          targetRow.addPeak(file, row.getPeak(file));
+          targetRow.addFeature(file, new ModularFeature(alignedFeatureList, row.getFeature(file)));
         }
 
-        // Add all non-existing identities from the original row to the
-        // aligned row
-        PeakUtils.copyPeakListRowProperties(row, targetRow);
-
         processedRows++;
-
       }
 
     } // Next feature list
 
     // Add new aligned feature list to the project
-    project.addPeakList(alignedPeakList);
+    project.addFeatureList(alignedFeatureList);
 
     // Edit by Aleksandr Smirnov
-    PeakListRow row = alignedPeakList.getRow(1);
+    FeatureListRow row = alignedFeatureList.getRow(1);
     double alignedRetTime = row.getAverageRT();
 
-    for (Feature peak : row.getPeaks()) {
-      double retTimeDelta = alignedRetTime - peak.getRT();
-      RawDataFile dataFile = peak.getDataFile();
+    for (Feature feature : row.getFeatures()) {
+      double retTimeDelta = alignedRetTime - feature.getRT();
+      RawDataFile dataFile = feature.getRawDataFile();
 
       SortedMap<Double, Double> chromatogram = new TreeMap<>();
 
-      for (int scan : peak.getScanNumbers()) {
-        DataPoint dataPoint = peak.getDataPoint(scan);
-        double retTime = dataFile.getScan(scan).getRetentionTime() + retTimeDelta;
+      for (int i=0; i < feature.getNumberOfDataPoints(); i++) {
+        DataPoint dataPoint = feature.getDataPointAtIndex(i);
+        double retTime = feature.getRetentionTimeAtIndex(i) + retTimeDelta;
         if (dataPoint != null)
           chromatogram.put(retTime, dataPoint.getIntensity());
       }
@@ -198,8 +200,9 @@ class RansacAlignerTask extends AbstractTask {
     // End of Edit
 
     // Add task description to peakList
-    alignedPeakList
-        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Ransac aligner", parameters));
+    alignedFeatureList
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Ransac aligner",
+            RansacAlignerModule.class, parameters));
 
     logger.info("Finished RANSAC aligner");
     setStatus(TaskStatus.FINISHED);
@@ -207,16 +210,16 @@ class RansacAlignerTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @param peakList
    * @return
    */
-  private HashMap<PeakListRow, PeakListRow> getAlignmentMap(PeakList peakList) {
+  private HashMap<FeatureListRow, FeatureListRow> getAlignmentMap(FeatureList peakList) {
 
     // Create a table of mappings for best scores
-    HashMap<PeakListRow, PeakListRow> alignmentMapping = new HashMap<PeakListRow, PeakListRow>();
+    HashMap<FeatureListRow, FeatureListRow> alignmentMapping = new HashMap<>();
 
-    if (alignedPeakList.getNumberOfRows() < 1) {
+    if (alignedFeatureList.getNumberOfRows() < 1) {
       return alignmentMapping;
     }
 
@@ -224,18 +227,18 @@ class RansacAlignerTask extends AbstractTask {
     TreeSet<RowVsRowScore> scoreSet = new TreeSet<RowVsRowScore>();
 
     // RANSAC algorithm
-    List<AlignStructMol> list = ransacPeakLists(alignedPeakList, peakList);
+    List<AlignStructMol> list = ransacPeakLists(alignedFeatureList, peakList);
     PolynomialFunction function = this.getPolynomialFunction(list);
 
-    PeakListRow allRows[] = peakList.getRows();
+    List<FeatureListRow> allRows = peakList.getRows();
 
-    for (PeakListRow row : allRows) {
+    for (FeatureListRow row : allRows) {
       // Calculate limits for a row with which the row can be aligned
       Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
 
-      double rt;
+      float rt;
       try {
-        rt = function.value(row.getAverageRT());
+        rt = (float) function.value(row.getAverageRT());
       } catch (NullPointerException e) {
         rt = row.getAverageRT();
       }
@@ -243,14 +246,15 @@ class RansacAlignerTask extends AbstractTask {
         rt = row.getAverageRT();
       }
 
-      Range<Double> rtRange = rtToleranceAfter.getToleranceRange(rt);
+      Range<Float> rtRange = rtToleranceAfter.getToleranceRange(rt);
 
       // Get all rows of the aligned peaklist within parameter limits
-      PeakListRow candidateRows[] = alignedPeakList.getRowsInsideScanAndMZRange(rtRange, mzRange);
+      List<FeatureListRow> candidateRows = alignedFeatureList
+          .getRowsInsideScanAndMZRange(rtRange, mzRange);
 
-      for (PeakListRow candidate : candidateRows) {
+      for (FeatureListRow candidate : candidateRows) {
         RowVsRowScore score;
-        if (sameChargeRequired && (!PeakUtils.compareChargeState(row, candidate))) {
+        if (sameChargeRequired && (!FeatureUtils.compareChargeState(row, candidate))) {
           continue;
         }
 
@@ -295,12 +299,12 @@ class RansacAlignerTask extends AbstractTask {
 
   /**
    * RANSAC
-   * 
+   *
    * @param alignedPeakList
    * @param peakList
    * @return
    */
-  private List<AlignStructMol> ransacPeakLists(PeakList alignedPeakList, PeakList peakList) {
+  private List<AlignStructMol> ransacPeakLists(FeatureList alignedPeakList, FeatureList peakList) {
     List<AlignStructMol> list = this.getVectorAlignment(alignedPeakList, peakList);
     RANSAC ransac = new RANSAC(parameters);
     ransac.alignment(list);
@@ -309,8 +313,7 @@ class RansacAlignerTask extends AbstractTask {
 
   /**
    * Return the corrected RT of the row
-   * 
-   * @param row
+   *
    * @param list
    * @return
    */
@@ -373,27 +376,27 @@ class RansacAlignerTask extends AbstractTask {
 
   /**
    * Create the vector which contains all the possible aligned peaks.
-   * 
+   *
    * @param peakListX
    * @param peakListY
    * @return vector which contains all the possible aligned peaks.
    */
-  private List<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY) {
+  private List<AlignStructMol> getVectorAlignment(FeatureList peakListX, FeatureList peakListY) {
 
     List<AlignStructMol> alignMol = new ArrayList<AlignStructMol>();
-    for (PeakListRow row : peakListX.getRows()) {
+    for (FeatureListRow row : peakListX.getRows()) {
 
       if (isCanceled()) {
         return null;
       }
       // Calculate limits for a row with which the row can be aligned
       Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
-      Range<Double> rtRange = rtToleranceBefore.getToleranceRange(row.getAverageRT());
+      Range<Float> rtRange = rtToleranceBefore.getToleranceRange(row.getAverageRT());
 
       // Get all rows of the aligned peaklist within parameter limits
-      PeakListRow candidateRows[] = peakListY.getRowsInsideScanAndMZRange(rtRange, mzRange);
+      List<FeatureListRow> candidateRows = peakListY.getRowsInsideScanAndMZRange(rtRange, mzRange);
 
-      for (PeakListRow candidateRow : candidateRows) {
+      for (FeatureListRow candidateRow : candidateRows) {
         alignMol.add(new AlignStructMol(row, candidateRow));
       }
     }

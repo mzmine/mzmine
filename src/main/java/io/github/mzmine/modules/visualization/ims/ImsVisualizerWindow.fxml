@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+  prefHeight="890.0"
+  prefWidth="628.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.modules.visualization.ims.ImsVisualizerWindowController">
+  <children>
+    <Label fx:id="mobilityRTLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="500"
+      minWidth="300"
+      prefHeight="51.0" prefWidth="500.0" textAlignment="CENTER" VBox.vgrow="ALWAYS">
+      <font>
+        <Font name="System Bold" size="18.0"/>
+      </font>
+    </Label>
+    <VBox prefHeight="487.0" prefWidth="628.0" VBox.vgrow="ALWAYS">
+      <children>
+        <BorderPane fx:id="topLeftPane" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS"/>
+        <BorderPane fx:id="topRightPane" prefHeight="291.0" prefWidth="628.0" VBox.vgrow="ALWAYS"/>
+      </children>
+    </VBox>
+    <Label fx:id="rtLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="500" minWidth="300"
+      prefHeight="49.0" prefWidth="628.0" textAlignment="CENTER" VBox.vgrow="ALWAYS">
+      <font>
+        <Font name="System Bold" size="18.0"/>
+      </font>
+    </Label>
+    <HBox prefHeight="352.0" prefWidth="628.0" VBox.vgrow="ALWAYS">
+      <children>
+        <BorderPane maxWidth="500" fx:id="bottomLeftPane" prefHeight="200.0" prefWidth="200.0"
+          HBox.hgrow="ALWAYS"/>
+        <BorderPane fx:id="bottomRightPane" prefHeight="344.0" prefWidth="433.0"
+          HBox.hgrow="ALWAYS"/>
+      </children>
+    </HBox>
+  </children>
+</VBox>

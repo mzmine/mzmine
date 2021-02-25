@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,9 +19,8 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import org.jfree.data.xy.AbstractXYZDataset;
-
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
 
@@ -34,7 +33,7 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   private static final long serialVersionUID = 1L;
 
-  private PeakListRow selectedRows[];
+  private FeatureListRow selectedRows[];
   private String xAxisKMBase;
   private String zAxisKMBase;
   private String customYAxisKMBase;
@@ -47,13 +46,13 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   public KendrickMassPlotXYZDataset(ParameterSet parameters) {
 
-    PeakList peakList = parameters.getParameter(KendrickMassPlotParameters.peakList).getValue()
-        .getMatchingPeakLists()[0];
+    FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList)
+        .getValue().getMatchingFeatureLists()[0];
 
     this.parameters = parameters;
 
-    this.selectedRows =
-        parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(peakList);
+    this.selectedRows = parameters.getParameter(KendrickMassPlotParameters.selectedRows)
+        .getMatchingRows(featureList);
 
     this.customYAxisKMBase =
         parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue();
@@ -127,13 +126,13 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
         } else if (zAxisKMBase.equals("Area")) {
           zValues[i] = selectedRows[i].getAverageArea();
         } else if (zAxisKMBase.equals("Tailing factor")) {
-          zValues[i] = selectedRows[i].getBestPeak().getTailingFactor();
+          zValues[i] = selectedRows[i].getBestFeature().getTailingFactor();
         } else if (zAxisKMBase.equals("Asymmetry factor")) {
-          zValues[i] = selectedRows[i].getBestPeak().getAsymmetryFactor();
+          zValues[i] = selectedRows[i].getBestFeature().getAsymmetryFactor();
         } else if (zAxisKMBase.equals("FWHM")) {
-          zValues[i] = selectedRows[i].getBestPeak().getFWHM();
+          zValues[i] = selectedRows[i].getBestFeature().getFWHM();
         } else if (zAxisKMBase.equals("m/z")) {
-          zValues[i] = selectedRows[i].getBestPeak().getMZ();
+          zValues[i] = selectedRows[i].getBestFeature().getMZ();
         }
       }
   }
@@ -166,7 +165,6 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     return zValues[item];
   }
 
-
   public void setxValues(double[] values) {
     xValues = values;
   }
@@ -178,7 +176,6 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
   public void setzValues(double[] values) {
     zValues = values;
   }
-
 
   @Override
   public int getSeriesCount() {

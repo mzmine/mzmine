@@ -1,23 +1,25 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -30,10 +32,8 @@ import org.jfree.data.xy.IntervalXYDataset;
 
 import com.google.common.primitives.Doubles;
 
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -57,13 +57,13 @@ class IntensityPlotDataset extends AbstractDataset
   private YAxisValueSource yAxisValueSource;
   private Comparable<?> xValues[];
   private RawDataFile selectedFiles[];
-  private PeakListRow selectedRows[];
+  private FeatureListRow selectedRows[];
 
   @SuppressWarnings("rawtypes")
   IntensityPlotDataset(ParameterSet parameters) {
 
-    PeakList peakList = parameters.getParameter(IntensityPlotParameters.peakList).getValue()
-        .getMatchingPeakLists()[0];
+    FeatureList featureList = parameters.getParameter(IntensityPlotParameters.featureList).getValue()
+        .getMatchingFeatureLists()[0];
     this.xAxisValueSource =
         parameters.getParameter(IntensityPlotParameters.xAxisValueSource).getValue();
     this.yAxisValueSource =
@@ -71,7 +71,7 @@ class IntensityPlotDataset extends AbstractDataset
     this.selectedFiles = parameters.getParameter(IntensityPlotParameters.dataFiles).getValue();
 
     this.selectedRows =
-        parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(peakList);
+        parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(featureList);
 
     if (xAxisValueSource instanceof ParameterWrapper) {
       MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
@@ -97,17 +97,17 @@ class IntensityPlotDataset extends AbstractDataset
     }
   }
 
-  Feature[] getPeaks(int row, int column) {
-    return getPeaks(xValues[column], selectedRows[row]);
+  Feature[] getFeatures(int row, int column) {
+    return getFeatures(xValues[column], selectedRows[row]);
   }
 
-  Feature[] getPeaks(Comparable<?> xValue, PeakListRow row) {
+  Feature[] getFeatures(Comparable<?> xValue, FeatureListRow row) {
     RawDataFile files[] = getFiles(xValue);
-    Feature[] peaks = new Feature[files.length];
+    Feature[] features = new Feature[files.length];
     for (int i = 0; i < files.length; i++) {
-      peaks[i] = row.getPeak(files[i]);
+      features[i] = row.getFeature(files[i]);
     }
-    return peaks;
+    return features;
   }
 
   RawDataFile[] getFiles(int column) {
@@ -136,17 +136,17 @@ class IntensityPlotDataset extends AbstractDataset
   }
 
   public Number getMeanValue(int row, int column) {
-    Feature[] peaks = getPeaks(xValues[column], selectedRows[row]);
+    Feature[] features = getFeatures(xValues[column], selectedRows[row]);
     HashSet<Double> values = new HashSet<Double>();
-    for (int i = 0; i < peaks.length; i++) {
-      if (peaks[i] == null)
+    for (int i = 0; i < features.length; i++) {
+      if (features[i] == null)
         continue;
       if (yAxisValueSource == YAxisValueSource.HEIGHT)
-        values.add(peaks[i].getHeight());
+        values.add((double) features[i].getHeight());
       if (yAxisValueSource == YAxisValueSource.AREA)
-        values.add(peaks[i].getArea());
+        values.add((double) features[i].getArea());
       if (yAxisValueSource == YAxisValueSource.RT)
-        values.add(peaks[i].getRT());
+        values.add((double) features[i].getRT());
     }
     double doubleValues[] = Doubles.toArray(values);
     if (doubleValues.length == 0)
@@ -161,22 +161,22 @@ class IntensityPlotDataset extends AbstractDataset
   }
 
   public Number getStdDevValue(int row, int column) {
-    Feature[] peaks = getPeaks(xValues[column], selectedRows[row]);
+    Feature[] features = getFeatures(xValues[column], selectedRows[row]);
 
     // if we have only 1 peak, there is no standard deviation
-    if (peaks.length == 1)
+    if (features.length == 1)
       return 0;
 
     HashSet<Double> values = new HashSet<Double>();
-    for (int i = 0; i < peaks.length; i++) {
-      if (peaks[i] == null)
+    for (int i = 0; i < features.length; i++) {
+      if (features[i] == null)
         continue;
       if (yAxisValueSource == YAxisValueSource.HEIGHT)
-        values.add(peaks[i].getHeight());
+        values.add((double) features[i].getHeight());
       if (yAxisValueSource == YAxisValueSource.AREA)
-        values.add(peaks[i].getArea());
+        values.add((double) features[i].getArea());
       if (yAxisValueSource == YAxisValueSource.RT)
-        values.add(peaks[i].getRT());
+        values.add((double) features[i].getRT());
     }
     double doubleValues[] = Doubles.toArray(values);
     double std = MathUtils.calcStd(doubleValues);

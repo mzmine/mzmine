@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -25,9 +25,9 @@ public enum Weighting {
   NONE("NONE", v -> 1),
   // linear -> no transform
   LINEAR("LINEAR", v -> v),
-  // LOG: put to zero weight if it was zero
-  LOG10("LOG10", v -> v == 0 ? 0 : Math.log10(v)), //
-  LOG2("LOG2", v -> v == 0 ? 0 : Math.log(v) / Math.log(2)),
+  // logger: put to zero weight if it was zero
+  logger10("logger10", v -> v == 0 ? 0 : Math.log10(v)), //
+  logger2("logger2", v -> v == 0 ? 0 : Math.log(v) / Math.log(2)),
   /**
    * Sqare-root
    */
@@ -63,7 +63,7 @@ public enum Weighting {
   }
 
   /**
-   * e.g., lOG(weight)-LOG(noise)
+   * e.g., lOG(weight)-logger(noise)
    * 
    * @param weight
    * @param noiseLevel
@@ -71,7 +71,7 @@ public enum Weighting {
    * @return
    */
   public double transform(double weight, Double noiseLevel, Double maxWeight) {
-    // e.g., lOG(weight)-LOG(noise)
+    // e.g., lOG(weight)-logger(noise)
     double real = 0;
     if (noiseLevel != null)
       real = f.transform(weight) - f.transform(noiseLevel);

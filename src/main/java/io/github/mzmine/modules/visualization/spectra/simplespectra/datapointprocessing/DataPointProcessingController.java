@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -22,8 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-
-import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -36,7 +35,7 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 /**
  * This class will control the tasks to process the DataPoints in a SpectraWindow. Every SpectraPlot
  * is meant to have an instance of this class associated with it.
- * 
+ *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
@@ -44,7 +43,7 @@ public class DataPointProcessingController {
 
   private Logger logger = Logger.getLogger(DataPointProcessingController.class.getName());
 
-  private DataPoint[] dataPoints;
+  private MassSpectrum spectrum;
   private ProcessedDataPoint[] results;
   private List<DPPControllerStatusListener> listener;
   private DataPointProcessingTask currentTask;
@@ -68,11 +67,11 @@ public class DataPointProcessingController {
   ForcedControllerStatus forcedStatus;
 
   public DataPointProcessingController(DataPointProcessingQueue steps, SpectraPlot plot,
-      DataPoint[] dataPoints) {
+      MassSpectrum spectrum) {
 
     setQueue(steps);
     setPlot(plot);
-    setdataPoints(dataPoints);
+    setdataPoints(spectrum);
     setStatus(ControllerStatus.WAITING);
     setForcedStatus(ForcedControllerStatus.NORMAL);
   }
@@ -94,19 +93,19 @@ public class DataPointProcessingController {
   }
 
   /**
-   * 
+   *
    * @return The original data points this controller started execution with.
    */
-  public DataPoint[] getDataPoints() {
-    return dataPoints;
+  public MassSpectrum getDataPoints() {
+    return spectrum;
   }
 
-  private void setdataPoints(DataPoint[] dataPoints) {
-    this.dataPoints = dataPoints;
+  private void setdataPoints(MassSpectrum spectrum) {
+    this.spectrum = spectrum;
   }
 
   /**
-   * 
+   *
    * @return Results of this task. Might be null, make sure to check the status first!
    */
   public ProcessedDataPoint[] getResults() {
@@ -157,12 +156,12 @@ public class DataPointProcessingController {
    * execute the following ones afterwards automatically. This method is called by the public method
    * execute(). The status listener in this method starts the next task recursively after the
    * previous one has finished.
-   * 
+   *
    * @param dp
    * @param module
    * @param plot
    */
-  private void execute(DataPoint[] dp, MZmineProcessingStep<DataPointProcessingModule> step,
+  private void execute(MassSpectrum spectrum, MZmineProcessingStep<DataPointProcessingModule> step,
       SpectraPlot plot) {
     if (queue == null || queue.isEmpty() || plot == null) {
       logger.warning("execute called, without queue or plot being set.");
@@ -170,19 +169,21 @@ public class DataPointProcessingController {
       return;
     }
 
-    if (getForcedStatus() == ForcedControllerStatus.CANCEL || getStatus() == ControllerStatus.CANCELED) {
-      setResults(ProcessedDataPoint.convert(dp));
+    if (getForcedStatus() == ForcedControllerStatus.CANCEL
+        || getStatus() == ControllerStatus.CANCELED) {
+      setResults(ProcessedDataPoint.convert(null)); // dp ));
       logger
           .finest("Canceled controller, not starting new tasks. Results are set to latest array.");
       setStatus(ControllerStatus.CANCELED);
       return;
     }
-    
+
     List<String> err = new ArrayList<>();
-    if(!step.getParameterSet().checkParameterValues(err)) {
-      setResults(ProcessedDataPoint.convert(dp));
+    if (!step.getParameterSet().checkParameterValues(err)) {
+      setResults(ProcessedDataPoint.convert(null)); // dp));
       setStatus(ControllerStatus.CANCELED);
-      logger.warning(step.getModule().getName() + " - Not all parameters set." + Arrays.toString(err.toArray(new String[0])));
+      logger.warning(step.getModule().getName() + " - Not all parameters set."
+          + Arrays.toString(err.toArray(new String[0])));
       return;
     }
 
@@ -191,62 +192,62 @@ public class DataPointProcessingController {
       DataPointProcessingModule inst = step.getModule();
       ParameterSet parameters = step.getParameterSet();
 
-      Task t = ((DataPointProcessingModule) inst).createTask(dp, parameters, plot, this,
-          new TaskStatusListener() {
-            @Override
-            public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
-              if (!(task instanceof DataPointProcessingTask)) {
-                // TODO: Throw exception?
-                logger.warning("This should have been a DataPointProcessingTask.");
-                return;
-              }
-              // logger.finest("Task status changed to " + newStatus.toString());
-              switch (newStatus) {
-                case FINISHED:
-                  if (queue.hasNextStep(step)) {
-                    if (DataPointProcessingManager.getInst()
-                        .isRunning(((DataPointProcessingTask) task).getController())) {
+      Task t = inst.createTask(spectrum, parameters, plot, this, new TaskStatusListener() {
+        @Override
+        public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
+          if (!(task instanceof DataPointProcessingTask)) {
+            // TODO: Throw exception?
+            logger.warning("This should have been a DataPointProcessingTask.");
+            return;
+          }
+          // logger.finest("Task status changed to " +
+          // newStatus.toString());
+          switch (newStatus) {
+            case FINISHED:
+              if (queue.hasNextStep(step)) {
+                if (DataPointProcessingManager.getInst()
+                    .isRunning(((DataPointProcessingTask) task).getController())) {
 
-                      MZmineProcessingStep<DataPointProcessingModule> next =
-                          queue.getNextStep(step);
+                  MZmineProcessingStep<DataPointProcessingModule> next = queue.getNextStep(step);
 
-                      // pass results to next task and start recursively
-                      ProcessedDataPoint[] result = ((DataPointProcessingTask) task).getResults();
-                      ((DataPointProcessingTask) task).displayResults();
-                      
-                      execute(result, next, plot);
-                    } else {
-                      logger.warning(
-                          "This controller was already removed from the running list, although it "
+                  // pass results to next task and start
+                  // recursively
+                  MassSpectrum result = null; // ((DataPointProcessingTask) task).getResults();
+                  ((DataPointProcessingTask) task).displayResults();
+
+                  execute(result, next, plot);
+                } else {
+                  logger.warning(
+                      "This controller was already removed from the running list, although it "
                           + "had not finished processing. Exiting");
-                      break;
-                    }
-                  } else {
-                    setResults(((DataPointProcessingTask) task).getResults());
-                    ((DataPointProcessingTask) task).displayResults();
-                    setStatus(ControllerStatus.FINISHED);
-                  }
                   break;
-                case PROCESSING:
-                  setStatus(ControllerStatus.PROCESSING);
-                  break;
-                case WAITING:
-                  // should we even set to WAITING here?
-                  break;
-                case ERROR:
-                  setStatus(ControllerStatus.ERROR);
-                  break;
-                case CANCELED:
-                  setStatus(ControllerStatus.CANCELED);
-                  break;
+                }
+              } else {
+                setResults(((DataPointProcessingTask) task).getResults());
+                ((DataPointProcessingTask) task).displayResults();
+                setStatus(ControllerStatus.FINISHED);
               }
-            }
-          });
-
+              break;
+            case PROCESSING:
+              setStatus(ControllerStatus.PROCESSING);
+              break;
+            case WAITING:
+              // should we even set to WAITING here?
+              break;
+            case ERROR:
+              setStatus(ControllerStatus.ERROR);
+              break;
+            case CANCELED:
+              setStatus(ControllerStatus.CANCELED);
+              break;
+          }
+        }
+      });
 
       logger.finest("Start processing of " + t.getClass().getName());
       MZmineCore.getTaskController().addTask(t);
-      setCurrentTask((DataPointProcessingTask) t); // maybe we need this some time
+      setCurrentTask((DataPointProcessingTask) t); // maybe we need this
+                                                   // some time
       setCurrentStep(step);
     }
   }
@@ -268,7 +269,7 @@ public class DataPointProcessingController {
       setStatus(ControllerStatus.ERROR);
       return;
     }
-    
+
     setStatus(ControllerStatus.PROCESSING);
     logger.finest("Executing DataPointProcessingTasks.");
     execute(getDataPoints(), first, getPlot());
@@ -292,7 +293,7 @@ public class DataPointProcessingController {
   }
 
   /**
-   * 
+   *
    * @return True if the current task is the last one, false otherwise.
    */
   public boolean isLastTaskRunning() {
@@ -302,7 +303,7 @@ public class DataPointProcessingController {
   }
 
   /**
-   * 
+   *
    * @return The current ControllerStatus.
    */
   public ControllerStatus getStatus() {
@@ -311,7 +312,7 @@ public class DataPointProcessingController {
 
   /**
    * Changes the status of this controller and notifies listeners.
-   * 
+   *
    * @param status New ControllerStatus.
    */
   public void setStatus(ControllerStatus status) {

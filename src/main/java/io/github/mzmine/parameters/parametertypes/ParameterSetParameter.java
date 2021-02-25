@@ -33,8 +33,9 @@ import io.github.mzmine.parameters.UserParameter;
  *
  * @author aleksandrsmirnov
  */
-public class ParameterSetParameter implements UserParameter<ParameterSet, ParameterSetComponent>, ParameterContainer {
-  private static Logger LOG = Logger.getLogger(MZmineCore.class.getName());
+public class ParameterSetParameter
+    implements UserParameter<ParameterSet, ParameterSetComponent>, ParameterContainer {
+  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private String name;
   private String description;
@@ -119,7 +120,7 @@ public class ParameterSetParameter implements UserParameter<ParameterSet, Parame
           try {
             p.loadValueFromXML(nextElement);
           } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error while loading parameter values for " + p.getName(), e);
+            logger.log(Level.WARNING, "Error while loading parameter values for " + p.getName(), e);
           }
         }
       }
@@ -138,7 +139,7 @@ public class ParameterSetParameter implements UserParameter<ParameterSet, Parame
 
   @Override
   public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
-    //delegate skipSensitiveParameters embedded ParameterContainers
+    // delegate skipSensitiveParameters embedded ParameterContainers
     value.setSkipSensitiveParameters(skipSensitiveParameters);
   }
 }

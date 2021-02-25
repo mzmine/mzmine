@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -36,6 +36,7 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
   private final boolean nonEmptyRequired;
   private NumberFormat format;
   private Range<Double> value;
+  private Range<Double> maxAllowedRange;
 
   public DoubleRangeParameter(String name, String description, NumberFormat format) {
     this(name, description, format, true, false, null);
@@ -47,22 +48,28 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
   }
 
   public DoubleRangeParameter(String name, String description, NumberFormat format,
-                              boolean valueRequired, Range<Double> defaultValue) {
+      boolean valueRequired, Range<Double> defaultValue) {
     this(name, description, format, valueRequired, false, defaultValue);
   }
 
   public DoubleRangeParameter(String name, String description, NumberFormat format,
       boolean valueRequired, boolean nonEmptyRequired, Range<Double> defaultValue) {
+    this(name, description, format, valueRequired, nonEmptyRequired, defaultValue, null);
+  }
+
+  public DoubleRangeParameter(String name, String description, NumberFormat format,
+      boolean valueRequired, boolean nonEmptyRequired, Range<Double> defaultValue, Range<Double> maxAllowedRange) {
     this.name = name;
     this.description = description;
     this.format = format;
     this.valueRequired = valueRequired;
     this.nonEmptyRequired = nonEmptyRequired;
     this.value = defaultValue;
+    this.maxAllowedRange = maxAllowedRange;
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getName()
+   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -70,7 +77,7 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getDescription()
+   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {
@@ -153,6 +160,13 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
       }
       if (nonEmptyRequired && value.lowerEndpoint() >= value.upperEndpoint()) {
         errorMessages.add(name + " range maximum must be higher than minimum");
+        return false;
+      }
+    }
+
+    if (value != null && maxAllowedRange != null) {
+      if (maxAllowedRange.intersection(value) != value) {
+        errorMessages.add(name + " must be within " + maxAllowedRange.toString());
         return false;
       }
     }

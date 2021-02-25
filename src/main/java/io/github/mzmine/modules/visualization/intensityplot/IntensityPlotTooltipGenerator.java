@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -25,7 +25,7 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.xy.XYDataset;
 
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 
@@ -40,17 +40,17 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator, XYToolT
    */
   public String generateToolTip(CategoryDataset dataset, int row, int column) {
     Format intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    Feature peaks[] = ((IntensityPlotDataset) dataset).getPeaks(row, column);
+    Feature features[] = ((IntensityPlotDataset) dataset).getFeatures(row, column);
     RawDataFile files[] = ((IntensityPlotDataset) dataset).getFiles(column);
 
     StringBuffer sb = new StringBuffer();
     for (int i = 0; i < files.length; i++) {
       sb.append(files[i].getName());
       sb.append(": ");
-      if (peaks[i] != null) {
-        sb.append(peaks[i].toString());
+      if (features[i] != null) {
+        sb.append(features[i].toString());
         sb.append(", height: ");
-        sb.append(intensityFormat.format(peaks[i].getHeight()));
+        sb.append(intensityFormat.format(features[i].getHeight()));
       } else {
         sb.append("N/A");
       }

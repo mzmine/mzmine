@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -31,7 +31,7 @@ import org.jfree.chart.util.PublicCloneable;
 public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneable, Serializable {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -63,8 +63,8 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
   private class CompatibleTreeMap extends TreeMap<Double, Color> {
 
     /**
-         * 
-         */
+     *
+     */
     private static final long serialVersionUID = 1L;
 
     public Entry<Double, Color> floorEntry(Double value) {
@@ -135,7 +135,7 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
     float[] rgb = new float[3];
     for (int i = 0; i < 3; i++)
       rgb[i] = (float) (floorRGB[i]
-          + (ceilRGB[i] - floorRGB[i]) * (value - floorValue) / (ceilValue - floorValue));
+              + (ceilRGB[i] - floorRGB[i]) * (value - floorValue) / (ceilValue - floorValue));
 
     return new Color(rgb[0], rgb[1], rgb[2]);
 

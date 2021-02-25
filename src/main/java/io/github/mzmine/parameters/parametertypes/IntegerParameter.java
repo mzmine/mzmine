@@ -1,29 +1,26 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.parameters.parametertypes;
 
-import org.w3c.dom.Element;
-
-import io.github.mzmine.parameters.UserParameter;
-
-import javax.swing.*;
 import java.util.Collection;
+import org.w3c.dom.Element;
+import io.github.mzmine.parameters.UserParameter;
 
 /**
  * Integer parameter. Note that we prefer to use JTextField rather than JFormattedTextField, because
@@ -66,12 +63,12 @@ public class IntegerParameter implements UserParameter<Integer, IntegerComponent
   }
 
   public IntegerParameter(final String aName, final String aDescription, final Integer defaultValue,
-                          final boolean valueRequired, final Integer min, final Integer max) {
+      final boolean valueRequired, final Integer min, final Integer max) {
     this(aName, aDescription, defaultValue, valueRequired, min, max, false);
   }
 
   public IntegerParameter(final String aName, final String aDescription, final Integer defaultValue,
-                          final boolean valueRequired, final Integer min, final Integer max, boolean isSensitive) {
+      final boolean valueRequired, final Integer min, final Integer max, boolean isSensitive) {
     this.name = aName;
     this.description = aDescription;
     this.value = defaultValue;
@@ -96,8 +93,8 @@ public class IntegerParameter implements UserParameter<Integer, IntegerComponent
   @Override
   public IntegerComponent createEditingComponent() {
     IntegerComponent integerComponent = new IntegerComponent(WIDTH, minimum, maximum);
-    integerComponent.setBorder(BorderFactory.createCompoundBorder(integerComponent.getBorder(),
-        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+    // integerComponent.setBorder(BorderFactory.createCompoundBorder(integerComponent.getBorder(),
+    // BorderFactory.createEmptyBorder(0, 4, 0, 0)));
     return integerComponent;
   }
 

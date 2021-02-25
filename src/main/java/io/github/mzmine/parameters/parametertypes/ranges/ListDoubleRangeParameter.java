@@ -29,7 +29,6 @@ import org.w3c.dom.Element;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-
 public class ListDoubleRangeParameter
     implements UserParameter<List<Range<Double>>, ListDoubleRangeComponent> {
   private final String name, description;

@@ -1,37 +1,33 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
-import java.awt.Window;
 import java.io.IOException;
-
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
-
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements.ElementsParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 
@@ -48,12 +44,11 @@ public abstract class SiriusParameters extends SimpleParameterSet {
   public static final ElementsParameter ELEMENTS =
       new ElementsParameter("Elements", "Elements and ranges");
 
-  public static final MassListParameter MASS_LIST = new MassListParameter();
-
   /**
    * Disclaimer message about boecker-labs
    */
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html>SIRIUS Module Disclaimer:"
         + "<br>    - Identification task consists of two parts:"
         + "<br>      1) Sirius Identification job, the timer you specify above controls the execution of this job. "
@@ -63,9 +58,8 @@ public abstract class SiriusParameters extends SimpleParameterSet {
         + "and <a href=\"https://jcheminf.springeropen.com/articles/10.1186/s13321-016-0116-8\">Boecker et al., Journal of Cheminformatics (2016) 8:5</a>"
         + "<br>    - Sirius can be downloaded at the following address: <a href=\"https://bio.informatik.uni-jena.de/software/sirius/\">https://bio.informatik.uni-jena.de/software/sirius/</a>"
         + "<br>    - Sirius results can be mapped into <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular networks. <a href=\"https://bix-lab.ucsd.edu/display/Public/Mass+spectrometry+data+pre-processing+for+GNPS\">See the documentation</a>.";
-    ParameterSetupDialog dialog =
-        new ParameterSetupDialog(parent, valueCheckRequired, this, message);
-    dialog.setVisible(true);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 
@@ -79,7 +73,7 @@ public abstract class SiriusParameters extends SimpleParameterSet {
 
   /**
    * Create default table of elements The table is used later to calculate FormulaConstraints
-   * 
+   *
    * @return
    */
   private static MolecularFormulaRange createDefaultElements() {

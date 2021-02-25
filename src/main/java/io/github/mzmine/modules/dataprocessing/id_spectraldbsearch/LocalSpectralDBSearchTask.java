@@ -1,23 +1,26 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,12 +28,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -44,8 +41,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final PeakList peakList;
-  private final @Nonnull String massListName;
+  private final FeatureList featureList;
   private final File dataBaseFile;
 
   private ParameterSet parameters;
@@ -53,14 +49,13 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   private List<RowsSpectralMatchTask> tasks;
 
   private int totalTasks;
-  private PeakListRow[] rows;
+  private FeatureListRow[] rows;
 
-  public LocalSpectralDBSearchTask(PeakList peakList, ParameterSet parameters) {
-    this.peakList = peakList;
-    this.rows = peakList.getRows();
+  public LocalSpectralDBSearchTask(FeatureList featureList, ParameterSet parameters) {
+    this.featureList = featureList;
+    this.rows = featureList.getRows().toArray(FeatureListRow[]::new);
     this.parameters = parameters;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
-    massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
   }
 
   /**
@@ -78,7 +73,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Spectral database identification of " + peakList + " using database " + dataBaseFile;
+    return "Spectral database identification of " + featureList + " using database " + dataBaseFile;
   }
 
   /**
@@ -124,13 +119,9 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     logger.info("Added " + count + " spectral library matches");
 
     // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-        "Peak identification using MS/MS spectral database " + dataBaseFile, parameters));
-
-    // Repaint the window to reflect the change in the feature list
-    Desktop desktop = MZmineCore.getDesktop();
-    if (!(desktop instanceof HeadLessDesktop))
-      desktop.getMainWindow().repaint();
+    featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
+        "Peak identification using MS/MS spectral database " + dataBaseFile,
+        LocalSpectralDBSearchModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -138,7 +129,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   /**
    * Load all library entries from data base file
-   * 
+   *
    * @param dataBaseFile
    * @return
    */
@@ -150,8 +141,8 @@ class LocalSpectralDBSearchTask extends AbstractTask {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
-        RowsSpectralMatchTask task =
-            new RowsSpectralMatchTask(peakList.getName(), rows, parameters, alreadyProcessed + 1, list);
+        RowsSpectralMatchTask task = new RowsSpectralMatchTask(featureList.getName(), rows, parameters,
+            alreadyProcessed + 1, list);
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }

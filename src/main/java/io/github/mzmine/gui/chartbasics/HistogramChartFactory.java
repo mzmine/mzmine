@@ -1,21 +1,20 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
 
 package io.github.mzmine.gui.chartbasics;
 
@@ -26,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleFunction;
+import java.util.logging.Logger;
 import org.apache.commons.math3.analysis.function.Gaussian;
 import org.apache.commons.math3.fitting.GaussianCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
@@ -43,22 +43,20 @@ import org.jfree.data.xy.XYBarDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.maths.Precision;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 
 public class HistogramChartFactory {
-  private static final Logger logger = LoggerFactory.getLogger(HistogramChartFactory.class);
+
+  private static final Logger logger = Logger.getLogger(HistogramChartFactory.class.getName());
 
   private static GaussianCurveFitter fitter = GaussianCurveFitter.create().withMaxIterations(10000);
 
   /**
    * Performs Gaussian fit on XYSeries
-   * 
+   *
    * @param data the data
    * @param gMin lower bound of Gaussian fit
    * @param gMax upper bound of Gaussian fit
@@ -79,14 +77,14 @@ public class HistogramChartFactory {
       return fitter.fit(obs.toList());
     } catch (Exception e) {
       e.printStackTrace();
-      logger.error("Cannot fit Gaussian from {} to {}", gMin, gMax, e);
+      logger.severe("Cannot fit Gaussian from " + gMin + " to " + gMax);
       return null;
     }
   }
 
   /**
    * Performs Gaussian fit on XYSeries
-   * 
+   *
    * @param series the data
    * @param gMin lower bound of Gaussian fit
    * @param gMax upper bound of Gaussian fit
@@ -109,7 +107,7 @@ public class HistogramChartFactory {
 
   /**
    * Performs Gaussian fit on XYSeries
-   * 
+   *
    * @param data the data
    * @param series the series index
    * @param gMin lower bound of Gaussian fit
@@ -132,7 +130,7 @@ public class HistogramChartFactory {
 
   /**
    * Adds a Gaussian curve to the plot
-   * 
+   *
    * @param plot
    * @param series the data
    * @param gMin lower bound of Gaussian fit
@@ -150,7 +148,7 @@ public class HistogramChartFactory {
 
   /**
    * Adds a Gaussian curve to the plot
-   * 
+   *
    * @param plot
    * @param data the data
    * @param series the series index
@@ -169,7 +167,7 @@ public class HistogramChartFactory {
 
   /**
    * Adds a Gaussian curve to the plot
-   * 
+   *
    * @param plot
    * @param fit double[] {normFactor, mean, sigma}
    * @param drawStart start of curve
@@ -185,7 +183,7 @@ public class HistogramChartFactory {
 
   /**
    * Adds a Gaussian curve to the plot
-   * 
+   *
    * @param plot
    * @param fit double[] {normFactor, mean, sigma}
    * @param drawStart start of curve
@@ -244,10 +242,9 @@ public class HistogramChartFactory {
     return fit;
   }
 
-
   /**
    * Adds annotations to the Gaussian fit parameters
-   * 
+   *
    * @param plot
    * @param fit Gaussian fit {normalisation factor, mean, sigma}
    */
@@ -260,7 +257,6 @@ public class HistogramChartFactory {
     plot.addDomainMarker(new ValueMarker(fit[1] - fit[2], c, s));
     plot.addDomainMarker(new ValueMarker(fit[1] + fit[2], c, s));
   }
-
 
   public static JFreeChart createHistogram(double[] data, double binwidth) {
     return createHistogram(data, binwidth, null);
@@ -301,7 +297,6 @@ public class HistogramChartFactory {
       return null;
   }
 
-
   public static JFreeChart createHistogram(XYSeries series, double barwidth, String yAxisLabel) {
     XYSeriesCollection xydata = new XYSeriesCollection(series);
     XYBarDataset dataset = new XYBarDataset(xydata, barwidth);
@@ -324,10 +319,9 @@ public class HistogramChartFactory {
     return chart;
   }
 
-
   /**
    * Converts from double array to histogram array
-   * 
+   *
    * @param data
    * @param binwidth
    * @return A histogram array with length = datawidth/binwidth +1 (datawidth = max-min)
@@ -339,7 +333,7 @@ public class HistogramChartFactory {
 
   /**
    * Converts from double array to histogram array
-   * 
+   *
    * @param data
    * @param binwidth
    * @param min real minimum of data
@@ -389,7 +383,7 @@ public class HistogramChartFactory {
 
   /**
    * Converts from double array to histogram array
-   * 
+   *
    * @param data
    * @param binwidth
    * @param min real minimum of data
@@ -448,7 +442,7 @@ public class HistogramChartFactory {
 
   /**
    * Converts from double array to histogram array
-   * 
+   *
    * @param data
    * @param binwidth
    * @param min real minimum of data
@@ -505,11 +499,10 @@ public class HistogramChartFactory {
     list.add(new SimpleDataPoint(x, bins[i]));
   }
 
-
   /**
    * Adds a value to a Histogram array. bins array should have length = datawidth/binwidth +1
    * (datawidth = max-min)
-   * 
+   *
    * @param bins
    * @param value
    * @param binwidth
@@ -523,8 +516,6 @@ public class HistogramChartFactory {
       i = bins.length - 1;
     bins[i]++;
   }
-
-
 
   public static JFreeChart createHistogramOld(double[] data, int bin, String yAxisLabel, double min,
       double max) {
@@ -577,7 +568,7 @@ public class HistogramChartFactory {
   }
 
   /**
-   * 
+   *
    * @param data
    * @param yAxisLabel
    * @param width automatic width if parameter is <=0
@@ -589,7 +580,7 @@ public class HistogramChartFactory {
   }
 
   /**
-   * 
+   *
    * @param data
    * @param yAxisLabel
    * @param width automatic width if parameter is <=0
@@ -605,7 +596,7 @@ public class HistogramChartFactory {
   }
 
   /**
-   * 
+   *
    * @param data
    * @param yAxisLabel
    * @param width automatic width if parameter is <=0

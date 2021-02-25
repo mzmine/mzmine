@@ -1,45 +1,50 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport;
 
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.text.MessageFormat;
 import java.util.HashMap;
-
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 
 /**
  * Identity of GNPS library matching results import.
  */
-public class GNPSResultsIdentity extends SimplePeakIdentity {
+public class GNPSResultsIdentity extends SimpleFeatureIdentity {
   public enum ATT {
-    CLUSTER_INDEX("cluster index", Integer.class), // GNPS cluster - similarity
+    CLUSTER_INDEX("cluster index", Integer.class), // GNPS cluster -
+                                                   // similarity
     COMPOUND_NAME("Compound_Name", String.class), // library match
     ADDUCT("Adduct", String.class), // from GNPS library match
     MASS_DIFF("MassDiff", Double.class), // absolute diff from gnps
-    LIBRARY_MATCH_SCORE("MQScore", Double.class), // cosine score to library spec
-    SHARED_SIGNALS("SharedPeaks", String.class), // shared signals library <-> query
+    LIBRARY_MATCH_SCORE("MQScore", Double.class), // cosine score to library
+                                                  // spec
+    SHARED_SIGNALS("SharedPeaks", String.class), // shared signals library
+                                                 // <-> query
     INCHI("INCHI", String.class), SMILES("Smiles", String.class), // structures
     IONSOURCE("Ion_Source", String.class), IONMODE("IonMode",
         String.class), INSTRUMENT("Instrument", String.class), // instrument
-    GNPS_LIBRARY_URL("GNPSLibraryURL", String.class), // link to library entry
-    GNPS_NETWORK_URL("GNPSLinkout_Network", String.class), // link to network
-    GNPS_CLUSTER_URL("GNPSLinkout_Cluster", String.class); // link to cluster
+    GNPS_LIBRARY_URL("GNPSLibraryURL", String.class), // link to library
+                                                      // entry
+    GNPS_NETWORK_URL("GNPSLinkout_Network", String.class), // link to
+                                                           // network
+    GNPS_CLUSTER_URL("GNPSLinkout_Cluster", String.class); // link to
+                                                           // cluster
 
     private String key;
     private Class c;

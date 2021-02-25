@@ -1,33 +1,34 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -35,20 +36,22 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.util.scans.ScanUtils;
 
 /**
- * 
+ *
  * This is basically copy-pasted from
- * net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperTask
- * 
+ * io.github.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperTask
+ *
  */
 public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
@@ -64,53 +67,56 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private String element = "C";
   private boolean autoRemove;
 
-  public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
+  public DPPIsotopeGrouperTask(MassSpectrum spectrum, SpectraPlot plot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
-    super(dataPoints, plot, parameterSet, controller, listener);
+    super(spectrum, plot, parameterSet, controller, listener);
 
     // Get parameter values for easier use
     mzTolerance = parameterSet.getParameter(DPPIsotopeGrouperParameters.mzTolerance).getValue();
     monotonicShape =
         parameterSet.getParameter(DPPIsotopeGrouperParameters.monotonicShape).getValue();
     maximumCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
-    // element = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
+    // element =
+    // parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
     autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();
     setDisplayResults(
         parameterSet.getParameter(DPPIsotopeGrouperParameters.displayResults).getValue());
-    setColor(parameterSet.getParameter(DPPIsotopeGrouperParameters.datasetColor).getValue());
-  }
 
+    Color c = FxColorUtil.fxColorToAWT(
+        parameterSet.getParameter(DPPIsotopeGrouperParameters.datasetColor).getValue());
+    setColor(c);
+
+  }
 
   @Override
   public void run() {
-    if(!checkParameterSet() || !checkValues()) {
+    if (!checkParameterSet() || !checkValues()) {
       setStatus(TaskStatus.ERROR);
       return;
     }
 
     if (!FormulaUtils.checkMolecularFormula(element)) {
       setStatus(TaskStatus.ERROR);
-      logger.warning("Data point/Spectra processing: Invalid element parameter in " + getTaskDescription());
-    }
-
-    if (getDataPoints().length == 0) {
-      logger.info("Data point/Spectra processing: 0 data points were passed to " + getTaskDescription()
-          + " Please check the parameters.");
-      setStatus(TaskStatus.CANCELED);
-      return;
-    }
-
-    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       logger.warning(
-          "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
-              + " Make sure to run mass detection first.");
+          "Data point/Spectra processing: Invalid element parameter in " + getTaskDescription());
+    }
+
+    if (getDataPoints().getNumberOfDataPoints() == 0) {
+      logger.info("Data point/Spectra processing: 0 data points were passed to "
+          + getTaskDescription() + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
     }
-    
+
+    /*
+     * if (!(getDataPoints() instanceof ProcessedDataPoint[])) { logger.warning(
+     * "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
+     * + " Make sure to run mass detection first."); setStatus(TaskStatus.CANCELED); return; }
+     */
+
     setStatus(TaskStatus.PROCESSING);
 
-    ProcessedDataPoint[] dataPoints = (ProcessedDataPoint[]) getDataPoints();
+    ProcessedDataPoint[] dataPoints = {}; // (ProcessedDataPoint[]) getDataPoints();
 
     int charges[] = new int[maximumCharge];
     for (int i = 0; i < maximumCharge; i++)
@@ -118,12 +124,14 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
     IsotopePattern pattern =
         IsotopePatternCalculator.calculateIsotopePattern(element, 0.01, 1, PolarityType.POSITIVE);
-    double isotopeDistance =
-        pattern.getDataPoints()[1].getMZ() - pattern.getDataPoints()[0].getMZ();
+    double isotopeDistance = pattern.getMzValue(1) - pattern.getMzValue(0);
 
     ProcessedDataPoint[] sortedDataPoints = dataPoints.clone();
     Arrays.sort(sortedDataPoints, (d1, d2) -> {
-      return -1 * Double.compare(d1.getIntensity(), d2.getIntensity()); // *-1 to sort descending
+      return -1 * Double.compare(d1.getIntensity(), d2.getIntensity()); // *-1
+                                                                        // to
+                                                                        // sort
+                                                                        // descending
     });
 
     List<ProcessedDataPoint> deisotopedDataPoints = new ArrayList<>();
@@ -175,7 +183,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       sortedDataPoints[i].addResult(new DPPIsotopePatternResult(newPattern, bestFitCharge));
       deisotopedDataPoints.add(sortedDataPoints[i]);
 
-      // logger.info("Found isotope pattern for m/z " + dataPoints[i].getMZ() + " size: "
+      // logger.info("Found isotope pattern for m/z " +
+      // dataPoints[i].getMZ() + " size: "
       // + newPattern.getNumberOfDataPoints());
 
       for (int j = 0; j < sortedDataPoints.length; j++) {
@@ -197,7 +206,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   /**
    * Fits isotope pattern around one peak.
-   * 
+   *
    * @param p Pattern is fitted around this peak
    * @param charge Charge state of the fitted pattern
    */
@@ -220,7 +229,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   /**
    * Helper method for fitPattern. Fits only one half of the pattern.
-   * 
+   *
    * @param p Pattern is fitted around this peak
    * @param charge Charge state of the fitted pattern
    * @param direction Defines which half to fit: -1=fit to peaks before start M/Z, +1=fit to peaks
@@ -262,10 +271,11 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
         // - within tolerances from the expected location (M/Z and RT)
         // - not already a fitted peak (only necessary to avoid
         // conflicts when parameters are set too wide)
-        double isotopeMZ = candidatePeakMZ - isotopeDistance * direction * n / (double) charge;
+        double isotopeMZ = candidatePeakMZ - isotopeDistance * direction * n / charge;
 
         if (mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ)
-            // && rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)
+            // && rtTolerance.checkWithinTolerance(candidatePeakRT,
+            // mainRT)
             && (!fittedPeaks.contains(candidatePeak))) {
           goodCandidates.add(candidatePeak);
 
@@ -288,7 +298,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   }
 
-
   /*
    * @Override public String getTaskDescription() { return "Deisotoping of Scan #" +
    * getTargetPlot().getMainScanDataSet().getScan().getScanNumber(); }
@@ -296,9 +305,9 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (getDataPoints().length == 0)
+    if (getDataPoints().getNumberOfDataPoints() == 0)
       return 0.0f;
-    return (double) processedPeaks / (double) getDataPoints().length;
+    return processedPeaks / (double) getDataPoints().getNumberOfDataPoints();
   }
 
   @Override
@@ -313,7 +322,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   /**
    * This method generates a single IsotopesDataSet from all detected isotope patterns in the
    * results.
-   * 
+   *
    * @param dataPoints
    * @return
    */
@@ -332,7 +341,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     List<DataPoint> dpList = new ArrayList<>();
 
     for (IsotopePattern pattern : list) {
-      for (DataPoint dp : pattern.getDataPoints())
+      for (DataPoint dp : ScanUtils.extractDataPoints(pattern))
         dpList.add(dp);
     }
     if (dpList.isEmpty())

@@ -1,21 +1,30 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
- */package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
+ */
+package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
@@ -28,17 +37,9 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYSeries;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.main.MZmineCore;
-
 public class PseudoSpectrum {
 
-  public static PseudoSpectrumDataSet createDataSet(PeakListRow[] group, RawDataFile raw,
+  public static PseudoSpectrumDataSet createDataSet(FeatureListRow[] group, RawDataFile raw,
       boolean sum) {
     // data
     PseudoSpectrumDataSet series = new PseudoSpectrumDataSet(true, "pseudo");
@@ -47,20 +48,20 @@ public class PseudoSpectrum {
     // raw isotopes in a different color
     XYSeries rawIsoSeries = new XYSeries("Raw isotope pattern", true);
     // for each row
-    for (PeakListRow row : group) {
+    for (FeatureListRow row : group) {
       String annotation = null;
       // sum -> heighest peak
       if (sum)
-        series.addDP(row.getAverageMZ(), row.getBestPeak().getHeight(), annotation);
+        series.addDP(row.getAverageMZ(), row.getBestFeature().getHeight(), annotation);
       else {
-        Feature f = raw == null ? row.getBestPeak() : row.getPeak(raw);
+        Feature f = raw == null ? row.getBestFeature() : row.getFeature(raw);
         if (f != null)
           series.addDP(f.getMZ(), f.getHeight(), null);
       }
       // add isotopes
       IsotopePattern pattern = row.getBestIsotopePattern();
       if (pattern != null) {
-        for (DataPoint dp : pattern.getDataPoints())
+        for (DataPoint dp : ScanUtils.extractDataPoints(pattern))
           isoSeries.add(dp.getMZ(), dp.getIntensity());
       }
     }
@@ -69,14 +70,14 @@ public class PseudoSpectrum {
     return series;
   }
 
-  public static EChartPanel createChartPanel(PeakListRow[] group, RawDataFile raw, boolean sum,
+  public static EChartViewer createChartViewer(FeatureListRow[] group, RawDataFile raw, boolean sum,
       String title) {
     PseudoSpectrumDataSet data = createDataSet(group, raw, sum);
     if (data == null)
       return null;
     JFreeChart chart = createChart(data, raw, sum, title);
     if (chart != null) {
-      EChartPanel pn = new EChartPanel(chart);
+      EChartViewer pn = new EChartViewer(chart);
       XYItemRenderer renderer = chart.getXYPlot().getRenderer();
       PseudoSpectraItemLabelGenerator labelGenerator = new PseudoSpectraItemLabelGenerator(pn);
       renderer.setDefaultItemLabelsVisible(true);

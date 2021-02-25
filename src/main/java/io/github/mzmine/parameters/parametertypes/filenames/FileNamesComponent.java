@@ -1,62 +1,78 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
-import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import com.google.common.collect.ImmutableList;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.text.Font;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.filechooser.FileFilter;
+public class FileNamesComponent extends FlowPane {
 
-public class FileNamesComponent extends JPanel implements ActionListener {
+  public static final Font smallFont = new Font("SansSerif", 10);
 
-  private static final long serialVersionUID = 1L;
-  public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+  private TextArea txtFilename;
 
-  private JTextArea txtFilename;
+  private final List<ExtensionFilter> filters;
 
-  private FileFilter[] filters;
+  public FileNamesComponent(List<ExtensionFilter> filters) {
 
-  public FileNamesComponent(FileFilter[] filters) {
+    this.filters = ImmutableList.copyOf(filters);
 
-    this.filters = filters;
+    // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
-    setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
-
-    txtFilename = new JTextArea();
-    txtFilename.setColumns(40);
-    txtFilename.setRows(6);
+    txtFilename = new TextArea();
+    txtFilename.setPrefColumnCount(40);
+    txtFilename.setPrefRowCount(6);
     txtFilename.setFont(smallFont);
-    add(new JScrollPane(txtFilename));
 
-    JButton btnFileBrowser = new JButton("...");
-    btnFileBrowser.addActionListener(this);
-    add(btnFileBrowser);
+    Button btnFileBrowser = new Button("...");
+    btnFileBrowser.setOnAction(e -> {
+      // Create chooser.
+      FileChooser fileChooser = new FileChooser();
+      fileChooser.setTitle("Select files");
+
+      fileChooser.getExtensionFilters().addAll(this.filters);
+
+      String currentPaths[] = txtFilename.getText().split("\n");
+      if (currentPaths.length > 0) {
+        File currentFile = new File(currentPaths[0].trim());
+        File currentDir = currentFile.getParentFile();
+        if (currentDir != null && currentDir.exists())
+          fileChooser.setInitialDirectory(currentDir);
+      }
+
+      // Open chooser.
+      List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
+      if (selectedFiles == null)
+        return;
+      setValue(selectedFiles.toArray(new File[0]));
+    });
+    getChildren().addAll(txtFilename, btnFileBrowser);
 
   }
 
@@ -82,35 +98,14 @@ public class FileNamesComponent extends JPanel implements ActionListener {
     txtFilename.setText(b.toString());
   }
 
-  public void actionPerformed(ActionEvent e) {
+  public void actionPerformed(ActionEvent event) {
 
-    JFileChooser fileChooser = new JFileChooser();
-    fileChooser.setMultiSelectionEnabled(true);
-    if ((filters != null) && (filters.length > 0)) {
-      for (FileFilter f : filters)
-        fileChooser.addChoosableFileFilter(f);
-      fileChooser.setFileFilter(filters[0]);
 
-    }
-    String currentPaths[] = txtFilename.getText().split("\n");
-    if (currentPaths.length > 0) {
-      File currentFile = new File(currentPaths[0].trim());
-      File currentDir = currentFile.getParentFile();
-      if (currentDir != null && currentDir.exists())
-        fileChooser.setCurrentDirectory(currentDir);
-    }
 
-    int returnVal = fileChooser.showDialog(null, "Select files");
-
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File selectedFiles[] = fileChooser.getSelectedFiles();
-      setValue(selectedFiles);
-    }
   }
 
-  @Override
   public void setToolTipText(String toolTip) {
-    txtFilename.setToolTipText(toolTip);
+    txtFilename.setTooltip(new Tooltip(toolTip));
   }
 
 }

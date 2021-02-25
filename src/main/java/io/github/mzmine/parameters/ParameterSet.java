@@ -1,37 +1,35 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.parameters;
 
-import org.w3c.dom.Element;
-
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.util.ExitCode;
-
-import java.awt.*;
 import java.util.Collection;
+import org.w3c.dom.Element;
 
 /**
  * This class represents a general parameter set of a module. Typical module will use a
  * SimpleParameterSet instance.
- * 
+ *
  * @param <T>
  */
-public interface ParameterSet extends ParameterContainer{
+public interface ParameterSet extends ParameterContainer {
 
   public Parameter<?>[] getParameters();
 
@@ -46,10 +44,24 @@ public interface ParameterSet extends ParameterContainer{
   public ParameterSet cloneParameterSet();
 
   /**
+   * This method specifies the fitness of a module to process data acquired on a ion mobility
+   * spectrometry (IMS)-mass spectrometer. The default implementation returns {@link
+   * IonMobilitySupport#UNTESTED}. However, overriding this method is encouraged to clarify it's
+   * fitness for ion mobility data, even if it will still return {@link
+   * IonMobilitySupport#UNTESTED}.
+   *
+   * @return
+   */
+  default IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.UNTESTED;
+  }
+
+  /**
    * Represent method's parameters and their values in human-readable format
    */
+  @Override
   public String toString();
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired);
+  public ExitCode showSetupDialog(boolean valueCheckRequired);
 
 }

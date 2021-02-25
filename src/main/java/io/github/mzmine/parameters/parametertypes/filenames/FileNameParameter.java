@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -26,7 +26,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 import io.github.mzmine.parameters.UserParameter;
 
 /**
@@ -42,29 +41,95 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   private List<File> lastFiles;
   private String extension;
   private int textfield_columns = 15;
+  private FileSelectionType type;
+  private boolean allowEmptyString = true;
 
-  public FileNameParameter(String name, String description) {
-    this(name, description, null);
+//  /**
+//   * Creates a parameter for opening a file. To save a file specify FileSelectionType.SAVE in
+//   * another constructor.
+//   * 
+//   * @param name
+//   * @param description
+//   */
+//  public FileNameParameter(String name, String description) {
+//    this(name, description, FileSelectionType.OPEN);
+//  }
+
+  /**
+   * 
+   * @param name
+   * @param description
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   */
+  public FileNameParameter(String name, String description, FileSelectionType type) {
+    this(name, description, null, type);
   }
 
-  public FileNameParameter(String name, String description, String extension) {
+  /**
+   *
+   * @param name
+   * @param description
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   * @param allowEmptyString
+   */
+  public FileNameParameter(String name, String description, FileSelectionType type, boolean allowEmptyString) {
+    this(name, description, null, type, allowEmptyString);
+  }
+
+  /**
+   * 
+   * @param name
+   * @param description
+   * @param extension
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   */
+  public FileNameParameter(String name, String description, String extension,
+      FileSelectionType type) {
     this.name = name;
     this.description = description;
     this.extension = extension;
     lastFiles = new ArrayList<>();
+    this.type = type;
   }
 
+  /**
+   *
+   * @param name
+   * @param description
+   * @param extension
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   * @param allowEmptyString
+   */
   public FileNameParameter(String name, String description, String extension,
-      int textfield_columns) {
+      FileSelectionType type, boolean allowEmptyString) {
+    this.name = name;
+    this.description = description;
+    this.extension = extension;
+    lastFiles = new ArrayList<>();
+    this.type = type;
+    this.allowEmptyString = allowEmptyString;
+  }
+
+  /**
+   * 
+   * @param name
+   * @param description
+   * @param extension
+   * @param textfield_columns
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   */
+  public FileNameParameter(String name, String description, String extension, int textfield_columns,
+      FileSelectionType type) {
     this.name = name;
     this.description = description;
     this.extension = extension;
     this.textfield_columns = textfield_columns;
     lastFiles = new ArrayList<>();
+    this.type = type;
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getName()
+   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -72,7 +137,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getDescription()
+   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {
@@ -81,7 +146,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public FileNameComponent createEditingComponent() {
-    return new FileNameComponent(textfield_columns, lastFiles);
+    return new FileNameComponent(textfield_columns, lastFiles, type);
   }
 
   @Override
@@ -104,7 +169,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public FileNameParameter cloneParameter() {
-    FileNameParameter copy = new FileNameParameter(name, description);
+    FileNameParameter copy = new FileNameParameter(name, description, type, allowEmptyString);
     copy.setValue(this.getValue());
     copy.setLastFiles(new ArrayList<>(lastFiles));
     return copy;
@@ -112,17 +177,20 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public void setValueFromComponent(FileNameComponent component) {
-    File compValue = component.getValue();
+    File compValue = component.getValue(allowEmptyString);
+    if (compValue == null) {
+      this.value = compValue;
+      return;
+    }
+
     if (extension != null) {
       if (!compValue.getName().toLowerCase().endsWith(extension.toLowerCase()))
         compValue = new File(compValue.getPath() + "." + extension);
     }
-    if (compValue != null) {
-      // add to last files if not already inserted
-      lastFiles.remove(compValue);
-      lastFiles.add(0, compValue);
-      setLastFiles(lastFiles);
-    }
+    // add to last files if not already inserted
+    lastFiles.remove(compValue);
+    lastFiles.add(0, compValue);
+    setLastFiles(lastFiles);
 
     this.value = compValue;
   }

@@ -1,37 +1,36 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Color;
+import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
-import javax.swing.BorderFactory;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.paint.Color;
 import org.w3c.dom.Element;
 
-import io.github.mzmine.parameters.UserParameter;
-
-public class ColorParameter implements UserParameter<Color, ColorComponent> {
+public class ColorParameter implements UserParameter<Color, ColorPicker> {
 
   private String name, description;
   private Color value = Color.BLACK;
 
   public ColorParameter(String name, String description) {
-    this(name, description, Color.black);
+    this(name, description, Color.BLACK);
   }
 
   public ColorParameter(String name, String description, Color defaultValue) {
@@ -41,7 +40,7 @@ public class ColorParameter implements UserParameter<Color, ColorComponent> {
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getName()
+   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -49,7 +48,7 @@ public class ColorParameter implements UserParameter<Color, ColorComponent> {
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getDescription()
+   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {
@@ -57,10 +56,10 @@ public class ColorParameter implements UserParameter<Color, ColorComponent> {
   }
 
   @Override
-  public ColorComponent createEditingComponent() {
-    ColorComponent colorComponent = new ColorComponent(value);
-    colorComponent.setBorder(BorderFactory.createCompoundBorder(colorComponent.getBorder(),
-        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+  public ColorPicker createEditingComponent() {
+    ColorPicker colorComponent = new ColorPicker(value);
+    // colorComponent.setBorder(BorderFactory.createCompoundBorder(colorComponent.getBorder(),
+    // BorderFactory.createEmptyBorder(0, 4, 0, 0)));
     return colorComponent;
   }
 
@@ -86,13 +85,13 @@ public class ColorParameter implements UserParameter<Color, ColorComponent> {
   }
 
   @Override
-  public void setValueFromComponent(ColorComponent component) {
-    value = component.getColor();
+  public void setValueFromComponent(ColorPicker component) {
+    value = component.getValue();
   }
 
   @Override
-  public void setValueToComponent(ColorComponent component, Color newValue) {
-    component.setColor(newValue);
+  public void setValueToComponent(ColorPicker component, Color newValue) {
+    component.setValue(newValue);
   }
 
   @Override
@@ -101,10 +100,10 @@ public class ColorParameter implements UserParameter<Color, ColorComponent> {
     if (t != null) {
       try {
         String[] s = t.split(",");
-        int r = Integer.valueOf(s[0]);
-        int g = Integer.valueOf(s[1]);
-        int b = Integer.valueOf(s[2]);
-        int a = Integer.valueOf(s[3]);
+        double r = Double.valueOf(s[0]);
+        double g = Double.valueOf(s[1]);
+        double b = Double.valueOf(s[2]);
+        double a = Double.valueOf(s[3]);
         value = new Color(r, g, b, a);
       } catch (Exception e) {
       }
@@ -122,7 +121,7 @@ public class ColorParameter implements UserParameter<Color, ColorComponent> {
     s.append(",");
     s.append(value.getBlue());
     s.append(",");
-    s.append(value.getAlpha());
+    s.append(value.getOpacity());
     xmlElement.setTextContent(s.toString());
   }
 

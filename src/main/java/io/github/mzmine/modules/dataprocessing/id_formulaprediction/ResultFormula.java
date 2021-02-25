@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,11 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import java.util.Map;
-
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 
 public class ResultFormula {
@@ -31,11 +28,11 @@ public class ResultFormula {
   private final IMolecularFormula cdkFormula;
   private Double rdbeValue, isotopeScore, msmsScore;
   private IsotopePattern predictedIsotopePattern;
-  private Map<DataPoint, String> msmsAnnotation;
+  private Map<Integer, String> msmsAnnotation;
 
   public ResultFormula(IMolecularFormula cdkFormula, IsotopePattern predictedIsotopePattern,
       Double rdbeValue, Double isotopeScore, Double msmsScore,
-      Map<DataPoint, String> msmsAnnotation) {
+      Map<Integer, String> msmsAnnotation) {
 
     this.cdkFormula = cdkFormula;
     this.predictedIsotopePattern = predictedIsotopePattern;
@@ -50,7 +47,7 @@ public class ResultFormula {
     return rdbeValue;
   }
 
-  public Map<DataPoint, String> getMSMSannotation() {
+  public Map<Integer, String> getMSMSannotation() {
     return msmsAnnotation;
   }
 
@@ -79,7 +76,7 @@ public class ResultFormula {
   }
 
   public double getExactMass() {
-    return MolecularFormulaManipulator.getTotalExactMass(cdkFormula);
+    return MolecularFormulaManipulator.getMass(cdkFormula);
   }
 
 }

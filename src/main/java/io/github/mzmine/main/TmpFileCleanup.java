@@ -1,17 +1,17 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -26,11 +26,12 @@ import java.nio.channels.FileLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class TmpFileCleanup {
+class TmpFileCleanup implements Runnable {
 
-  private static Logger logger = Logger.getLogger(TmpFileCleanup.class.getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  static void removeOldTemporaryFiles() {
+  @Override
+  public void run() {
 
     logger.fine("Checking for old temporary files...");
     try {
@@ -38,17 +39,22 @@ class TmpFileCleanup {
       // Find all temporary files with the mask mzmine*.scans
       File tempDir = new File(System.getProperty("java.io.tmpdir"));
       File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
+        @Override
         public boolean accept(File dir, String name) {
-          return name.matches("mzmine.*\\.scans");
+          if (name.matches("mzmine.*\\.tmp")) {
+            return true;
+          }
+          return false;
         }
       });
 
-      if (remainingTmpFiles != null)
+      if (remainingTmpFiles != null) {
         for (File remainingTmpFile : remainingTmpFiles) {
 
           // Skip files created by someone else
-          if (!remainingTmpFile.canWrite())
+          if (!remainingTmpFile.canWrite()) {
             continue;
+          }
 
           // Try to obtain a lock on the file
           RandomAccessFile rac = new RandomAccessFile(remainingTmpFile, "rw");
@@ -64,6 +70,7 @@ class TmpFileCleanup {
           }
 
         }
+      }
     } catch (IOException e) {
       logger.log(Level.WARNING, "Error while checking for old temporary files", e);
     }
