@@ -18,12 +18,11 @@
 
 package tdfimportest;
 
-import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.Map.Entry;
+import io.github.mzmine.util.scans.SpectraMerging;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Test;
 
@@ -32,64 +31,6 @@ public class RangeMapTest {
   public static final double EPSILON = 1E-15;
 
   private static Logger logger = Logger.getLogger(RangeMapTest.class.getName());
-
-  /**
-   * Creates a new non overlapping range for this range map. Ranges are created seamless, therefore
-   * no gaps are introduced during this process.
-   *
-   * @param rangeMap
-   * @param proposedRange The proposed range must not enclose a range in this map without
-   *                      overlapping, otherwise the enclosed range will be deleted.
-   * @return
-   */
-  private static Range<Double> createNewNonOverlappingRange(RangeMap<Double, ?> rangeMap,
-      final Range<Double> proposedRange) {
-
-    Entry<Range<Double>, ?> lowerEntry = rangeMap.getEntry(
-        proposedRange.lowerBoundType() == BoundType.CLOSED ? proposedRange.lowerEndpoint()
-            : proposedRange.lowerEndpoint() + EPSILON);
-
-    Entry<Range<Double>, ?> upperEntry = rangeMap.getEntry(
-        proposedRange.upperBoundType() == BoundType.CLOSED ? proposedRange.upperEndpoint()
-            : proposedRange.upperEndpoint() - EPSILON);
-
-    if (lowerEntry == null && upperEntry == null) {
-      return proposedRange;
-    }
-
-    if (lowerEntry != null && proposedRange.intersection(lowerEntry.getKey()).isEmpty()
-        && upperEntry == null) {
-      return proposedRange;
-    }
-
-    if (upperEntry != null && proposedRange.intersection(upperEntry.getKey()).isEmpty()
-        && lowerEntry == null) {
-      return proposedRange;
-    }
-
-    if (upperEntry != null && lowerEntry != null && proposedRange.intersection(lowerEntry.getKey())
-        .isEmpty() && proposedRange.intersection(upperEntry.getKey()).isEmpty()) {
-      return proposedRange;
-    }
-
-    BoundType lowerBoundType = proposedRange.lowerBoundType();
-    BoundType upperBoundType = proposedRange.upperBoundType();
-    double lowerBound = proposedRange.lowerEndpoint();
-    double upperBound = proposedRange.upperEndpoint();
-
-    // check if the ranges actually overlap or if they are closed and open
-    if (lowerEntry != null && !proposedRange.intersection(lowerEntry.getKey()).isEmpty()) {
-      lowerBound = lowerEntry.getKey().upperEndpoint();
-      lowerBoundType = BoundType.OPEN;
-    }
-    if (upperEntry != null && !proposedRange.intersection(upperEntry.getKey()).isEmpty()) {
-      upperBound = upperEntry.getKey().lowerEndpoint();
-      upperBoundType = BoundType.OPEN;
-    }
-
-    return createNewNonOverlappingRange(rangeMap,
-        Range.range(lowerBound, lowerBoundType, upperBound, upperBoundType));
-  }
 
   @Test
   public void testOverlappingRanges() {
@@ -106,12 +47,16 @@ public class RangeMapTest {
     Range<Double> range2 = mzTolerance.getToleranceRange(mz2);
     Range<Double> range3 = mzTolerance.getToleranceRange(mz3);
 
-    map.put(createNewNonOverlappingRange(map, range1), mz1);
-    map.put(createNewNonOverlappingRange(map, range2), mz2);
-    map.put(createNewNonOverlappingRange(map, range3), mz3);
+    map.put(SpectraMerging.createNewNonOverlappingRange(map, range1), mz1);
+    map.put(SpectraMerging.createNewNonOverlappingRange(map, range2), mz2);
+    map.put(SpectraMerging.createNewNonOverlappingRange(map, range3), mz3);
 
     logger.info("actual " + map.getEntry(mz1).getKey().toString() + " proposed " + range1);
     logger.info("actual " + map.getEntry(mz2).getKey().toString() + " proposed " + range2);
     logger.info("actual " + map.getEntry(mz3).getKey().toString() + " proposed " + range3);
+  }
+
+  @Test
+  public void testTreeSet() {
   }
 }

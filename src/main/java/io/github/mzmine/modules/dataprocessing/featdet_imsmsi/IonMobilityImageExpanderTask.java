@@ -3,14 +3,13 @@ package io.github.mzmine.modules.dataprocessing.featdet_imsmsi;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
@@ -187,10 +186,10 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
   private SortedSet<RetentionTimeMobilityDataPoint> extractDataPoints(List<? extends Frame> frames,
       Range<Double> mzRange) {
 //    int bufferSize = getMaxNumberOfDataPoints(frames);
-//    double[][] dataBuffer = new double[2][];
-//    dataBuffer[0] = new double[bufferSize];
-//    dataBuffer[1] = new double[bufferSize];
-//    resetBuffer(dataBuffer);
+    double[][] dataBuffer = new double[2][];
+    dataBuffer[0] = new double[0];
+    dataBuffer[1] = new double[0];
+    resetBuffer(dataBuffer);
 
     SortedSet<RetentionTimeMobilityDataPoint> dps = new TreeSet<>(
         /*new Comparator<RetentionTimeMobilityDataPoint>() {
@@ -208,21 +207,21 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
       description = "Extracting data points for frame " + processed.get() + "/" + total;
       List<MobilityScan> mobilityScans = frame.getMobilityScans();
       for (MobilityScan mobScan : mobilityScans) {
-        MassList ml = mobScan.getMassLists().stream().findFirst().get();
-        DataPoint[] points = ml
-            .getDataPoints(); //ScanUtils.getDataPointsByMass(ml.getDataPoints(), mzRange);
-        for (DataPoint d : points) {
-          dps.add(new RetentionTimeMobilityDataPoint(mobScan, d.getMZ(), d.getIntensity()));
-        }
+//        MassList ml = mobScan.getMassLists().stream().findFirst().get();
+//        DataPoint[] points = ml
+//            .getDataPoints(); //ScanUtils.getDataPointsByMass(ml.getDataPoints(), mzRange);
+//        for (DataPoint d : points) {
+//          dps.add(new RetentionTimeMobilityDataPoint(mobScan, d.getMZ(), d.getIntensity()));
+//        }
 
-//        mobScan.getMzValues(dataBuffer[0]);
-//        mobScan.getIntensityValues(dataBuffer[1]);
+        dataBuffer[0] = mobScan.getMzValues(dataBuffer[0]);
+        dataBuffer[1] = mobScan.getIntensityValues(dataBuffer[1]);
 //        double[][] filtered = DataPointUtils
 //            .getDataPointsInMzRange(dataBuffer[0], dataBuffer[1], mzRange);
-//        for (int i = 0; i < filtered[0].length; i++) {
-//          dps.add(new RetentionTimeMobilityDataPoint(mobScan, filtered[0][i], filtered[1][i]));
-//        }
-//        resetBuffer(dataBuffer);
+        for (int i = 0; i < mobScan.getNumberOfDataPoints(); i++) {
+          dps.add(new RetentionTimeMobilityDataPoint(mobScan, dataBuffer[0][i], dataBuffer[1][i]));
+        }
+        resetBuffer(dataBuffer);
       }
       processed.getAndIncrement();
     }
@@ -235,7 +234,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
     SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> sortedMap = FeatureConvertorIonMobility
         .groupDataPointsByFrameId(image.getDataPoints());
 
-    List<SimpleIonMobilitySeries> mobilograms = new ArrayList<>();
+    List<IonMobilitySeries> mobilograms = new ArrayList<>();
     for (SortedSet<RetentionTimeMobilityDataPoint> dps : sortedMap.values()) {
       double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
       List<MobilityScan> scans = dps.stream().map(RetentionTimeMobilityDataPoint::getMobilityScan)
@@ -243,7 +242,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
       if (scans.size() == 0) {
         ;
       }
-      mobilograms.add(new SimpleIonMobilitySeries(newflist.getMemoryMapStorage(), data[0], data[1],
+      mobilograms.add(new SimpleIonMobilitySeries(null, data[0], data[1],
           scans));
     }
     IonMobilogramTimeSeries ionMobilogramTimeSeries = new SimpleIonMobilogramTimeSeries(
