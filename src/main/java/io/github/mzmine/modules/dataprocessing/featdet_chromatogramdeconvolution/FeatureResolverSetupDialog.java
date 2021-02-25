@@ -112,8 +112,14 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
     previewChart.removeAllDatasets();
 
-    ResolvingDimension dimension = parameterSet.getParameter(GeneralResolverParameters.dimension)
-        .getValue();
+    ResolvingDimension dimension = ResolvingDimension.RETENTION_TIME;
+    try {
+      // not all resolvers are capable of resolving rt and mobility dimension. In that case, the
+      // parameter has not been added to the parameter set.
+      dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
+    } catch (IllegalArgumentException e) {
+      // this one can go silent
+    }
     // add preview depending on which dimension is selected.
     if (dimension == ResolvingDimension.RETENTION_TIME) {
       Platform.runLater(() -> {
@@ -147,27 +153,29 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     if (((GeneralResolverParameters) parameterSet).getXYResolver(parameterSet) != null) {
       XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameterSet)
           .getXYResolver(parameterSet);
-      List<IonTimeSeries<? extends Scan>> resolved = ResolvingUtil
-          .resolve(resolver, newValue.getFeatureData(), null, dimension);
-      if (resolved.isEmpty()) {
-        return;
-      }
+      if(newValue.getFeatureList() instanceof ModularFeatureList flist) {
+        List<? extends Scan> selectedScans = flist.getSeletedScans(newValue.getRawDataFile());
+        List<IonTimeSeries<? extends Scan>> resolved = ResolvingUtil
+            .resolve(resolver, newValue.getFeatureData(), null, dimension, selectedScans);
+        if (resolved.isEmpty()) {
+          return;
+        }
 
-      for (IonTimeSeries<? extends Scan> series : resolved) {
-        if (dimension == ResolvingDimension.RETENTION_TIME) {
-          FastColoredXYDataset ds = new FastColoredXYDataset(
-              new IonTimeSeriesToXYProvider(series, "",
-                  new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
-          Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
-        } else {
-          FastColoredXYDataset ds = new FastColoredXYDataset(
-              new SummedMobilogramXYProvider(
-                  ((IonMobilogramTimeSeries) series).getSummedMobilogram(),
-                  new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
-          Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+        for (IonTimeSeries<? extends Scan> series : resolved) {
+          if (dimension == ResolvingDimension.RETENTION_TIME) {
+            FastColoredXYDataset ds = new FastColoredXYDataset(
+                new IonTimeSeriesToXYProvider(series, "",
+                    new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
+            Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+          } else {
+            FastColoredXYDataset ds = new FastColoredXYDataset(
+                new SummedMobilogramXYProvider(
+                    ((IonMobilogramTimeSeries) series).getSummedMobilogram(),
+                    new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
+            Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+          }
         }
       }
-
     } else {
       ResolvedPeak[] resolved = resolveFeature(newValue);
       if (resolved.length == 0) {

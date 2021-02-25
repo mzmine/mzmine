@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.visualization.imsfeaturevisualizer.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -44,6 +45,7 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
   private final ParameterSet parameterSet;
   private final ModularFeatureList originalFeatureList;
   private final MZmineProject project;
+  private final PlotType ccsOrMobility;
   private double progress;
 
   public MobilityMzRegionExtractionTask(ParameterSet parameterSet,
@@ -53,6 +55,8 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
     pointsLists = parameterSet.getParameter(MobilityMzRegionExtractionParameters.regions)
         .getValue();
     this.project = project;
+    ccsOrMobility = parameterSet.getParameter(MobilityMzRegionExtractionParameters.ccsOrMobility)
+        .getValue();
     suffix = parameterSet.getParameter(MobilityMzRegionExtractionParameters.suffix).getValue();
   }
 
@@ -99,7 +103,9 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
       for (RawDataFile file : rawDataFiles) {
 
         ModularFeature feature = (ModularFeature) row.getFeature(file);
-        boolean contained = IonMobilityUtils.isFeatureWithinMzMobilityRegion(feature, regions);
+        boolean contained = (ccsOrMobility == PlotType.MOBILITY) ? IonMobilityUtils
+            .isFeatureWithinMzMobilityRegion(feature, regions)
+            : IonMobilityUtils.isFeatureWithinMzCCSRegion(feature, regions);
         if (!contained) {
           // it's okay to remove the feature from the row, but not the row. otherwise we would get
           // concurrent modification exceptions

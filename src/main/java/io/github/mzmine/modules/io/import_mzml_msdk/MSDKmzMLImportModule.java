@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.import_mzml_msdk;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -84,6 +85,9 @@ public class MSDKmzMLImportModule implements MZmineProcessingModule {
     // Find common prefix in raw file names if in GUI mode
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
+    // one storage for all files imported in the same task as they are typically analyzed together
+    MemoryMapStorage storage = new MemoryMapStorage();
+
     for (int i = 0; i < fileNames.length; i++) {
 
       if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
@@ -107,9 +111,9 @@ public class MSDKmzMLImportModule implements MZmineProcessingModule {
 
         RawDataFile newMZmineFile;
         if (fileType == RawDataFileType.MZML_IMS) {
-          newMZmineFile = MZmineCore.createNewIMSFile(newName);
+          newMZmineFile = MZmineCore.createNewIMSFile(newName, storage);
         } else {
-          newMZmineFile = MZmineCore.createNewFile(newName);
+          newMZmineFile = MZmineCore.createNewFile(newName, storage);
         }
         Task newTask = new MSDKmzMLImportTask(project, fileNames[i], newMZmineFile);
         tasks.add(newTask);

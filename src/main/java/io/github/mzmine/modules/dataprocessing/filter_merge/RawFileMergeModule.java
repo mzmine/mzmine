@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_merge;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -56,12 +57,14 @@ public class RawFileMergeModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
+    // one storage for all files in the same module call
+    MemoryMapStorage storage = new MemoryMapStorage();
     // merge all selected
     if (parameters.getParameter(RawFileMergeParameters.mode).getValue()
         .equals(MODE.MERGE_SELECTED)) {
       RawDataFile[] raw = parameters.getParameter(RawFileMergeParameters.dataFiles).getValue()
           .getMatchingRawDataFiles();
-      RawFileMergeTask task = new RawFileMergeTask(project, parameters, raw);
+      RawFileMergeTask task = new RawFileMergeTask(project, parameters, raw, storage);
       tasks.add(task);
     } else {
       // sort files into merge groups
@@ -91,7 +94,7 @@ public class RawFileMergeModule implements MZmineProcessingModule {
         // run task
         if (current.size() > 1) {
           RawFileMergeTask task = new RawFileMergeTask(project, parameters,
-              current.toArray(new RawDataFile[current.size()]));
+              current.toArray(new RawDataFile[current.size()]), storage);
           tasks.add(task);
         }
       } while (!current.isEmpty());

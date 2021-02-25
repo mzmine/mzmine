@@ -18,6 +18,7 @@
 
 package io.github.mzmine.project.impl;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +42,8 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
   private Scan[][][] xyzScanNumbers;
 
 
-  public ImagingRawDataFileImpl(String dataFileName) throws IOException {
-    super(dataFileName);
+  public ImagingRawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
+    super(dataFileName, storage);
   }
 
   @Override

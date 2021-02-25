@@ -31,6 +31,8 @@ import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.Baselin
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.List;
@@ -55,13 +57,16 @@ public class ScanSmoothingTask extends AbstractTask {
   private double mzTol;
   private boolean removeOriginal;
   private ParameterSet parameters;
+  private final MemoryMapStorage storage;
   RawDataFile newRDF = null;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storage
    */
-  public ScanSmoothingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  public ScanSmoothingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storage) {
 
     this.project = project;
     this.dataFile = dataFile;
@@ -75,6 +80,7 @@ public class ScanSmoothingTask extends AbstractTask {
     this.removeOriginal = parameters.getParameter(ScanSmoothingParameters.removeOld).getValue();
 
     this.parameters = parameters;
+    this.storage = storage;
   }
 
   /**
@@ -117,7 +123,7 @@ public class ScanSmoothingTask extends AbstractTask {
     int timepassed = 0;
     int mzpassed = 0;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix);
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, storage);
 
       DataPoint mzValues[][] = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, ssi, ssj;
@@ -130,7 +136,6 @@ public class ScanSmoothingTask extends AbstractTask {
         Scan scan = scanNumbers.get(i);
         if (scan != null) {
           double rt = scan.getRetentionTime();
-          final SimpleScan newScan = new SimpleScan(newRDFW, scan);
           DataPoint[] newDP = null;
           sj = si = i;
           ssi = ssj = i;
@@ -239,7 +244,8 @@ public class ScanSmoothingTask extends AbstractTask {
 
           // Register new smoothing data
           if (scan != null && newDP != null) {
-            newScan.setDataPoints(newDP);
+            double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDP);
+            final SimpleScan newScan = new SimpleScan(newRDFW, scan, dp[0], dp[1]);
             newRDFW.addScan(newScan);
           }
         }

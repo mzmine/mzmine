@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -28,11 +28,10 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
-import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -72,7 +71,7 @@ public class GroupMS2Task extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list feature list to process.
+   * @param list         feature list to process.
    * @param parameterSet task parameters.
    */
   public GroupMS2Task(final MZmineProject project, final FeatureList list,
@@ -138,23 +137,25 @@ public class GroupMS2Task extends AbstractTask {
    */
   public void processRow(FeatureListRow row) {
     for (Feature f : row.getFeatures()) {
-      if (f instanceof ModularFeature && ((ModularFeature) f).get(MobilityUnitType.class).getValue()
+      if (f instanceof ModularFeature && ((ModularFeature) f).getMobilityUnit()
           == io.github.mzmine.datamodel.MobilityType.TIMS) {
         processTimsFeature((ModularFeature) f);
-        continue;
       }
-      RawDataFile raw = f.getRawDataFile();
-      float frt = f.getRT();
-      double fmz = f.getMZ();
-      Range<Float> rtRange = f.getRawDataPointsRTRange();
+      else {
+        RawDataFile raw = f.getRawDataFile();
+        float frt = f.getRT();
+        double fmz = f.getMZ();
+        Range<Float> rtRange = f.getRawDataPointsRTRange();
 
-      List<Scan> scans = ScanUtils.streamScans(raw, 2)
-          .filter(scan -> filterScan(scan, frt, fmz, rtRange)).collect(
-              Collectors.toList());
+        List<Scan> scans = ScanUtils.streamScans(raw, 2)
+            .filter(scan -> filterScan(scan, frt, fmz, rtRange)).collect(
+                Collectors.toList());
 
-      // set list to feature
-      f.setAllMS2FragmentScans(FXCollections.observableArrayList(scans));
-      f.setFragmentScan(scans.stream().max(Comparator.comparingDouble(Scan::getTIC)).orElse(null));
+        // set list to feature
+        f.setAllMS2FragmentScans(FXCollections.observableArrayList(scans));
+        f.setFragmentScan(
+            scans.stream().max(Comparator.comparingDouble(Scan::getTIC)).orElse(null));
+      }
     }
   }
 
@@ -205,10 +206,11 @@ public class GroupMS2Task extends AbstractTask {
     }
     feature.set(ImsMsMsInfoType.class, eligibleMsMsInfos);
 
+    MZTolerance mergeTol = new MZTolerance(0.008, 25);
     ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();
     for (ImsMsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging
-          .getMergedMsMsSpectrumForPASEF(info, 1E1, mzTol, MergingType.SUMMED,
+          .getMergedMsMsSpectrumForPASEF(info, 1E1, mergeTol, MergingType.SUMMED,
               ((ModularFeatureList) list).getMemoryMapStorage());
       if (spectrum != null) {
         msmsSpectra.add(spectrum);

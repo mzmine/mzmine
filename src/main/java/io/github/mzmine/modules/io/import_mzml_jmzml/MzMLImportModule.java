@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.import_mzml_jmzml;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -84,6 +85,9 @@ public class MzMLImportModule implements MZmineProcessingModule {
     // Find common prefix in raw file names if in GUI mode
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
+    // one storage for all files imported in the same task as they are typically analyzed together
+    MemoryMapStorage storage = new MemoryMapStorage();
+
     for (int i = 0; i < fileNames.length; i++) {
       if (fileNames[i] == null) {
         return ExitCode.OK;
@@ -109,9 +113,9 @@ public class MzMLImportModule implements MZmineProcessingModule {
         logger.finest("File " + fileNames[i] + " type detected as " + fileType);
         RawDataFile newMZmineFile;
         if (fileType == RawDataFileType.MZML_IMS) {
-          newMZmineFile = MZmineCore.createNewIMSFile(newName);
+          newMZmineFile = MZmineCore.createNewIMSFile(newName, storage);
         } else {
-          newMZmineFile = MZmineCore.createNewFile(newName);
+          newMZmineFile = MZmineCore.createNewFile(newName, storage);
         }
         Task newTask = new MzMLImportTask(project, fileNames[i], newMZmineFile);
         tasks.add(newTask);

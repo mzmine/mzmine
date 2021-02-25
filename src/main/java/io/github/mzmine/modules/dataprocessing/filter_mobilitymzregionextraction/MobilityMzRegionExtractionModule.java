@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.visualization.imsfeaturevisualizer.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -56,12 +57,14 @@ public class MobilityMzRegionExtractionModule implements MZmineRunnableModule {
   }*/
 
   public static void runExtractionForFeatureList(ModularFeatureList featureList,
-      List<List<Point2D>> region, String suffix) {
+      List<List<Point2D>> region, String suffix, PlotType ccsOrMobility) {
     ParameterSet parameterSet = MZmineCore.getConfiguration()
         .getModuleParameters(MobilityMzRegionExtractionModule.class).cloneParameterSet();
 
     parameterSet.getParameter(MobilityMzRegionExtractionParameters.regions).setValue(region);
     parameterSet.getParameter(MobilityMzRegionExtractionParameters.suffix).setValue(suffix);
+    parameterSet.getParameter(MobilityMzRegionExtractionParameters.ccsOrMobility)
+        .setValue(ccsOrMobility);
 
     Task task = new MobilityMzRegionExtractionTask(parameterSet, featureList,
         MZmineCore.getProjectManager().getCurrentProject());

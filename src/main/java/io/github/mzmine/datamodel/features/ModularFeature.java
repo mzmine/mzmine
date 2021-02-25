@@ -143,7 +143,15 @@ public class ModularFeature implements Feature, ModularDataModel {
     assert intensities != null;
     assert featureStatus != null;
 
-    if (mzs.length == intensities.length && mzs.length == scans.size()) {
+    if (mzs.length != intensities.length) {
+      throw new IllegalArgumentException(
+          "Cannot create a ModularFeature instance with different number of mz and intensity values");
+    }
+    if (mzs.length != scans.size()) {
+      throw new IllegalArgumentException(
+          "Cannot create a ModularFeature instance with different number of data points and scans");
+    }
+    if (mzs.length == 0) {
       throw new IllegalArgumentException(
           "Cannot create a ModularFeature instance with no data points");
     }
@@ -497,14 +505,9 @@ public class ModularFeature implements Feature, ModularDataModel {
    *
    * @return
    */
-  @Deprecated
   @Nonnull
   @Override
   public List<Scan> getScanNumbers() {
-    /*ListProperty<Scan> v = get(ScanNumbersType.class);
-    return v == null || v.getValue() == null ?
-        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-        : v.getValue();*/
     IonTimeSeries<? extends Scan> data = getFeatureData();
     return data == null ? Collections.emptyList() : (List<Scan>) data.getSpectra();
   }

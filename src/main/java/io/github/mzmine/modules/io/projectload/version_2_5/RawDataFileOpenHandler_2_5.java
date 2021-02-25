@@ -18,6 +18,16 @@
 
 package io.github.mzmine.modules.io.projectload.version_2_5;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
+import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,17 +40,6 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
-import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.util.RangeUtils;
 
 public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDataFileOpenHandler {
 
@@ -96,7 +95,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     charBuffer = new StringBuffer();
     massLists = new ArrayList<>();
 
-    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null);
     // newRawDataFile.openDataPointsFile(scansFile);
 
     // dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
@@ -158,8 +157,9 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       String name = attrs.getValue(RawDataElementName_2_5.NAME.getElementName());
       int storageID =
           Integer.parseInt(attrs.getValue(RawDataElementName_2_5.STORAGE_ID.getElementName()));
-      MassList newML = new SimpleMassList(null, null, null);
-      massLists.add(newML);
+      // todo: what was this supposed to do?
+//      MassList newML = new SimpleMassList(null, null, null, null);
+//      massLists.add(newML);
     }
   }
 

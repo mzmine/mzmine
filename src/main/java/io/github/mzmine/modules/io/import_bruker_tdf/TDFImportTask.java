@@ -152,7 +152,8 @@ public class TDFImportTask extends AbstractTask {
     readMetadata();
     if (isMaldi) {
       try {
-        newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName());
+        newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
+            newMZmineFile.getMemoryMapStorage());
         ((IMSImagingRawDataFile) newMZmineFile)
             .setImagingParam(new ImagingParameters(maldiFrameInfoTable));
       } catch (IOException e) {
@@ -169,7 +170,8 @@ public class TDFImportTask extends AbstractTask {
       return;
     }
 
-    long handle = TDFUtils.openFile(tdfBin);
+    logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
+    final long handle = TDFUtils.openFile(tdfBin);
     newMZmineFile.setName(rawDataFileName);
 
     loadedFrames = 0;
@@ -180,11 +182,13 @@ public class TDFImportTask extends AbstractTask {
       return;
     }
 
-    int numFrames = frameTable.getFrameIdColumn().size();
+    final int numFrames = frameTable.getFrameIdColumn().size();
 
     Date start = new Date();
 
     identifySegments((IMSRawDataFileImpl) newMZmineFile);
+
+    logger.finest("Starting frame import.");
 
     loadedFrames = 0;
     // collect average spectra for each frame
@@ -211,9 +215,6 @@ public class TDFImportTask extends AbstractTask {
     }
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
-
-    logger.info("num dp (import): " + TDFUtils.numDP);
-    logger.info("num dp (stored): " + SimpleFrame.numDp);
 
     // } else {
     // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
@@ -301,6 +302,8 @@ public class TDFImportTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.toString());
     }
+
+    logger.info("Metadata read successfully for " + rawDataFileName);
   }
 
   private void setDescription(String desc) {
@@ -428,7 +431,9 @@ public class TDFImportTask extends AbstractTask {
         Frame parentFrame = optionalFrame.orElseGet(() -> null);
 
         ImsMsMsInfo info = new ImsMsMsInfoImpl(building.getLargestPeakMz(),
-            building.getSpectrumNumberRange(), building.getCollisionEnergy(),
+            Range.closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
+                building.getSpectrumNumberRange().upperEndpoint() - 1),
+            building.getCollisionEnergy(),
             building.getPrecursorCharge(), parentFrame, frame);
 
         frame.getImsMsMsInfos().add(info);

@@ -61,13 +61,22 @@ public class ModularFeatureList implements FeatureList {
     this(name, List.of(dataFiles));
   }
 
+  public ModularFeatureList(String name, MemoryMapStorage storage, @Nonnull RawDataFile... dataFiles) {
+    this(name, storage, List.of(dataFiles));
+  }
+
   public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
+    this(name,null, dataFiles);
+  }
+
+  public ModularFeatureList(String name, MemoryMapStorage storage, @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
     selectedScans = FXCollections.observableMap(new HashMap<>());
+    this.memoryMapStorage = storage;
 
     // only a few standard types
     addRowType(new IDType());
@@ -89,12 +98,19 @@ public class ModularFeatureList implements FeatureList {
     return name;
   }
 
+  /**
+   * The selected scans to build this feature/chromatogram
+   *
+   * @param file  the data file of the scans
+   * @param scans all filtered scans that were used to build the chromatogram in the first place.
+   *              For ion mobility data, the Frames are returned
+   */
   public void setSelectedScans(@Nonnull RawDataFile file, @Nullable List<? extends Scan> scans) {
     selectedScans.put(file, scans);
   }
 
   /**
-   * @param file
+   * @param file the data file
    * @return The scans used to build this feature list. For ion mobility data, the frames are
    * returned.
    */

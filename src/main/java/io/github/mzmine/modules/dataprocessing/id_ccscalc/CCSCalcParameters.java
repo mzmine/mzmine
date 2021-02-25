@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -43,5 +44,10 @@ public class CCSCalcParameters extends SimpleParameterSet {
 
   public CCSCalcParameters() {
     super(new UserParameter[]{featureLists, assumeChargeStage, createNewFeatureList});
+  }
+
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.ONLY;
   }
 }

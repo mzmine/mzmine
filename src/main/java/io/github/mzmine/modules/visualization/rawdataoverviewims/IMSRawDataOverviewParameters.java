@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.rawdataoverviewims;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -52,5 +53,10 @@ public class IMSRawDataOverviewParameters extends SimpleParameterSet {
   public IMSRawDataOverviewParameters() {
     super(new Parameter[]{rawDataFiles, summedFrameNoiseLevel, mobilityScanNoiseLevel,
         mzTolerance, scanSelection, rtWidth});
+  }
+
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.ONLY;
   }
 }

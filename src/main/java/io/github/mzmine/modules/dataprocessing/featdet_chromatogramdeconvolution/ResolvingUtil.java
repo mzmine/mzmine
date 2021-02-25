@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
@@ -44,18 +45,21 @@ public class ResolvingUtil {
    *
    * @param resolver
    * @param data
-   * @param storage   May be null, if the values shall be stored in ram (e.g. previews)
+   * @param storage      May be null, if the values shall be stored in ram (e.g. previews)
    * @param dimension
+   * @param selectedScans
    * @return
    */
   public static List<IonTimeSeries<? extends Scan>> resolve(@Nonnull final XYResolver resolver,
       @Nonnull final IonTimeSeries<? extends Scan> data, @Nullable final MemoryMapStorage storage,
-      @Nonnull final ResolvingDimension dimension) {
+      @Nonnull final ResolvingDimension dimension,
+      List<? extends Scan> selectedScans) {
     final double[][] extractedData = extractData(data, dimension);
+    final int totalScans = getTotalNumberOfScansInDimension(data, dimension, selectedScans);
 
     final List<IonTimeSeries<? extends Scan>> resolvedSeries = new ArrayList<>();
     final Collection<List<ResolvedValue<Double, Double>>> resolvedData = resolver
-        .resolve(extractedData[0], extractedData[1]);
+        .resolve(extractedData[0], extractedData[1], totalScans);
     for (List<ResolvedValue<Double, Double>> resolvedValues : resolvedData) {
       // 3 points to a triangle
       if (resolvedValues.size() < 3) {
@@ -86,8 +90,8 @@ public class ResolvingUtil {
 
       } else if (dimension == ResolvingDimension.MOBILITY
           && data instanceof IonMobilogramTimeSeries) {
-        List<SimpleIonMobilitySeries> resolvedMobilograms = new ArrayList<>();
-        for (SimpleIonMobilitySeries mobilogram : ((IonMobilogramTimeSeries) data)
+        List<IonMobilitySeries> resolvedMobilograms = new ArrayList<>();
+        for (IonMobilitySeries mobilogram : ((IonMobilogramTimeSeries) data)
             .getMobilograms()) {
           // make a sub list of the original scans
           List<MobilityScan> subset = mobilogram.getSpectra().stream()
@@ -97,8 +101,9 @@ public class ResolvingUtil {
           if (subset.size() < 3) {
             continue;
           }
+          // IonMobilitySeries are stored in ram until they are added to an IonMobilogramTimeSeries
           SimpleIonMobilitySeries resolvedMobilogram = (SimpleIonMobilitySeries) mobilogram
-              .subSeries(storage, subset);
+              .subSeries(null, subset);
           resolvedMobilograms.add(resolvedMobilogram);
         }
         if(resolvedMobilograms.isEmpty()) {
@@ -144,10 +149,10 @@ public class ResolvingUtil {
 
         // tims 1/k0 decreases with scan number, drift time increases
         MobilityType mt = mobData.getSpectra().get(0).getMobilityType();
-        int operation = mt == MobilityType.TIMS ? -1 : +1;
+        int direction = mt == MobilityType.TIMS ? -1 : +1;
         int dataIndex = 0;
         for (int j = (mt == MobilityType.TIMS ? summedMobilogram.getNumberOfValues() - 1 : 0);
-            j < summedMobilogram.getNumberOfValues() && j >= 0; j += operation) {
+            j < summedMobilogram.getNumberOfValues() && j >= 0; j += direction) {
           xdata[dataIndex] = summedMobilogram.getMobility(j);
           ydata[dataIndex] = summedMobilogram.getIntensity(j);
           dataIndex++;
@@ -161,4 +166,27 @@ public class ResolvingUtil {
     return new double[][]{xdata, ydata};
   }
 
+  /**
+   * All scans that were used to build a chromatogram or the maximum number of mobility scans in all
+   * Frames used to construct the mobilogram
+   *
+   * @param data
+   * @param dimension
+   * @param selectedScans
+   * @return
+   */
+  public static int getTotalNumberOfScansInDimension(@Nonnull IonTimeSeries<? extends Scan> data,
+      @Nonnull ResolvingDimension dimension, List<? extends Scan> selectedScans) {
+    if (dimension == ResolvingDimension.RETENTION_TIME) {
+      return selectedScans.size();
+    } else {
+      if (data instanceof IonMobilogramTimeSeries mobData) {
+        return mobData.getSpectra().stream().mapToInt(f -> f.getMobilityScans().size()).max()
+            .orElseThrow();
+      }
+      throw new IllegalArgumentException(
+          "Cannot resolve ion mobility data for " + data.getClass().getName()
+              + ". No mobility dimension.");
+    }
+  }
 }

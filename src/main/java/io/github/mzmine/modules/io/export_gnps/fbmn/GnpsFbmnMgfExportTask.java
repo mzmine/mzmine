@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
@@ -70,7 +69,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   private final File fileName;
   private final String plNamePattern = "{}";
   private int currentIndex = 0;
-  private final String massListName;
   private final MsMsSpectraMergeParameters mergeParameters;
 
   // by robin
@@ -81,15 +79,13 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   // correlation
   private NumberFormat corrForm = new DecimalFormat("0.0000");
 
-  private RowFilter filter;
+  private FeatureListRowsFilter filter;
 
   GnpsFbmnMgfExportTask(ParameterSet parameters) {
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
 
     this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    this.massListName =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MASS_LIST).getValue();
     this.filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
     if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
       mergeParameters = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
@@ -177,7 +173,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
 
     // count exported
     int count = 0;
-    int countMissingMassList = 0;
     for (FeatureListRow row : featureList.getRows()) {
       // do not export if no MSMS
       if (!filter.filter(row)) {
@@ -196,7 +191,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
       if (msmsScan != null) {
         // MS/MS scan must exist, because msmsScanNumber was > 0
 
-        MassList massList = msmsScan.getMassList(massListName);
+        MassList massList = msmsScan.getMassList();
 
         if (massList == null) {
           setErrorMessage("MS2 scan has no mass list. Run Mass detection on all scans");
@@ -235,7 +230,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
           MsMsSpectraMergeModule merger =
               MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
           MergedSpectrum spectrum =
-              merger.getBestMergedSpectrum(mergeParameters, row, massListName);
+              merger.getBestMergedSpectrum(mergeParameters, row);
           if (spectrum != null) {
             dataPoints = spectrum.data;
             writer.write("MERGED_STATS=");
@@ -260,16 +255,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
           MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
               count, featureList.getName()));
 
-    if (countMissingMassList > 0)
-      logger.warning(MessageFormat.format(
-          "WARNING: Total of {0} feature rows have an MS/MS scan but NO mass list (this shouldn't be a problem if a scan filter was applied in the mass detection step) ({1})",
-          countMissingMassList, featureList.getName()));
-
     return count;
-  }
-
-  public Scan getScan(Feature f, int msmsscan) {
-    return f.getRawDataFile().getScan(msmsscan);
   }
 
   @Override

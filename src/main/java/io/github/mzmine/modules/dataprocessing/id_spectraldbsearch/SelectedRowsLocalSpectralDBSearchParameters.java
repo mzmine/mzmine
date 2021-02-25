@@ -23,7 +23,7 @@ import io.github.mzmine.parameters.Parameter;
 public class SelectedRowsLocalSpectralDBSearchParameters extends LocalSpectralDBSearchParameters {
 
   public SelectedRowsLocalSpectralDBSearchParameters() {
-    super(new Parameter[] {massList, dataBaseFile, msLevel, allMS2Spectra, mzTolerancePrecursor,
+    super(new Parameter[] {dataBaseFile, msLevel, allMS2Spectra, mzTolerancePrecursor,
         noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance,
         rtTolerance, minMatch, similarityFunction});
   }

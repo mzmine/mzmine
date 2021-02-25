@@ -18,25 +18,12 @@
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.TreeMap;
-import java.util.logging.Logger;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
@@ -44,7 +31,18 @@ import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.RangeUtils;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.TreeMap;
+import java.util.logging.Logger;
 import javafx.scene.paint.Color;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDataFileOpenHandler {
 
@@ -67,7 +65,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   private int storedDataNumDP;
   private TreeMap<Integer, Long> dataPointsOffsets;
   private TreeMap<Integer, Integer> dataPointsLengths;
-  private ArrayList<MassList> massLists;
+  private MassList massList;
   private PolarityType polarity = PolarityType.UNKNOWN;
   private String scanDescription = "";
   private Range<Double> scanMZRange = null;
@@ -98,15 +96,15 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       boolean isImagingRawDataFile) throws IOException, ParserConfigurationException, SAXException {
 
     charBuffer = new StringBuffer();
-    massLists = new ArrayList<MassList>();
+    massList = null;
 
     if (isIMSRawDataFile) {
-      newRawDataFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(null);
+      newRawDataFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(null, null);
     }
     if (isImagingRawDataFile) {
-      newRawDataFile = (ImagingRawDataFileImpl) MZmineCore.createNewImagingFile(null);
+      newRawDataFile = (ImagingRawDataFileImpl) MZmineCore.createNewImagingFile(null, null);
     } else {
-      newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+      newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null);
     }
     // newRawDataFile.openDataPointsFile(scansFile);
 
@@ -166,8 +164,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       String name = attrs.getValue(RawDataElementName_3_0.NAME.getElementName());
       int storageID =
           Integer.parseInt(attrs.getValue(RawDataElementName_3_0.STORAGE_ID.getElementName()));
-      MassList newML = new SimpleMassList(null, null, null);
-      massLists.add(newML);
+//      massList = new SimpleMassList(null, null, null, null);
     }
 
     if (qName.equals(RawDataElementName_3_0.FRAME.getElementName())) {
@@ -313,10 +310,9 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
         throw new SAXException(e);
       }
 
-      for (MassList newML : massLists) {
+      // TODO where do we read the massList?
         // newML.setScan(storableScan);
-        storableScan.addMassList(newML);
-      }
+        storableScan.addMassList(massList);
 
       // Cleanup
       resetReadValues();
@@ -368,7 +364,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   }
 
   private void resetReadValues() {
-    massLists.clear();
+    massList = null;
     currentStorageID = -1;
     dataPointsNumber = -1;
     scanNumber = -1;

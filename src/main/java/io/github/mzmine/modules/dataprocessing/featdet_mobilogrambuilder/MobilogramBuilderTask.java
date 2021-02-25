@@ -50,7 +50,6 @@ public class MobilogramBuilderTask extends AbstractTask {
 
   private final Set<Frame> frames;
   private final MZTolerance mzTolerance;
-  private final String massList;
   private final int totalFrames;
   private final int minPeaks;
   private final boolean addDpFromRaw;
@@ -59,7 +58,6 @@ public class MobilogramBuilderTask extends AbstractTask {
 
   public MobilogramBuilderTask(List<Frame> frames, ParameterSet parameters) {
     this.mzTolerance = parameters.getParameter(MobilogramBuilderParameters.mzTolerance).getValue();
-    this.massList = parameters.getParameter(MobilogramBuilderParameters.massList).getValue();
     this.minPeaks = parameters.getParameter(MobilogramBuilderParameters.minPeaks).getValue();
     this.addDpFromRaw = parameters.getParameter(MobilogramBuilderParameters.addRawDp).getValue();
     this.scanSelection =
@@ -117,7 +115,7 @@ public class MobilogramBuilderTask extends AbstractTask {
   }
 
   protected List<Mobilogram> calculateMobilogramsForScans(List<MobilityScan> scans) {
-    if (scans.size() == 0 || scans.get(0).getMassList(massList) == null) {
+    if (scans.size() == 0 || scans.get(0).getMassList() == null) {
       return Collections.emptyList();
     }
 
@@ -125,12 +123,12 @@ public class MobilogramBuilderTask extends AbstractTask {
     int numDp = 0;
 
     for (MobilityScan scan : scans) {
-      numDp += scan.getMassList(massList).getDataPoints().length;
+      numDp += scan.getMassList().getDataPoints().length;
     }
     final List<MobilityDataPoint> allDps = new ArrayList<>(numDp);
 
     for (MobilityScan scan : scans) {
-      Arrays.stream(scan.getMassList(massList).getDataPoints())
+      Arrays.stream(scan.getMassList().getDataPoints())
           .forEach(dp -> allDps.add(new MobilityDataPoint(dp.getMZ(), dp.getIntensity(),
               scan.getMobility(), scan.getMobilityScanNumber())));
     }

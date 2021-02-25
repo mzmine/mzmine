@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Logger;
@@ -30,10 +31,11 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
@@ -101,7 +103,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   public final RawDataFile correctDatafile(final RSessionWrapper rSession,
       final RawDataFile dataFile, final ParameterSet parameters,
-      final ParameterSet commonParameters) throws IOException, RSessionWrapperException {
+      final ParameterSet commonParameters, MemoryMapStorage storage) throws IOException, RSessionWrapperException {
 
     if (isAborted(dataFile) || !rSession.isSessionRunning())
       return null;
@@ -118,7 +120,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       progressMap.put(origDataFile, new int[] {0, 0, 0});
 
     // Create a new temporary file to write in.
-    RawDataFile newFile = MZmineCore.createNewFile(origDataFile.getName() + ' ' + suffix);
+    RawDataFile newFile = MZmineCore.createNewFile(origDataFile.getName() + ' ' + suffix, storage);
 
     // Determine number of bins.
     final double mzLen = origDataFile.getDataMZRange().upperEndpoint()
@@ -207,8 +209,8 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       }
 
       // Create new copied scan.
-      final SimpleScan newScan = new SimpleScan(writer, origScan);
-      newScan.setDataPoints(newDataPoints);
+      double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDataPoints);
+      final SimpleScan newScan = new SimpleScan(writer, origScan, dp[0], dp[1]);
       writer.addScan(newScan);
       progressMap.get(origDataFile)[0]++;
     }
@@ -258,9 +260,9 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final DataPoint[] origDataPoints = ScanUtils.extractDataPoints(origScan);
 
       // Create and write new corrected scan.
-      final SimpleScan newScan = new SimpleScan(writer, origScan);
-      newScan.setDataPoints(
+      double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(
           subtractBasePeakBaselines(origDataFile, origDataPoints, baseChrom, numBins, scanIndex));
+      final SimpleScan newScan = new SimpleScan(writer, origScan, dp[0], dp[1]);
       writer.addScan(newScan);
       progressMap.get(origDataFile)[0]++;
     }
@@ -320,9 +322,9 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       final DataPoint[] origDataPoints = ScanUtils.extractDataPoints(origScan);
 
       // Create and write new corrected scan.
-      final SimpleScan newScan = new SimpleScan(writer, origScan);
-      newScan.setDataPoints(
+      double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(
           subtractTICBaselines(origDataFile, origDataPoints, baseChrom, numBins, scanIndex));
+      final SimpleScan newScan = new SimpleScan(writer, origScan, dp[0], dp[1]);
       writer.addScan(newScan);
       progressMap.get(origDataFile)[0]++;
     }

@@ -18,18 +18,20 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
+import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,17 +49,12 @@ public class MassDetectionTask extends AbstractTask {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
-
+  private final ScanSelection scanSelection;
+  private final MemoryMapStorage storageMemoryMap;
   // scan counter
   private int processedScans = 0, totalScans = 0;
-  private final ScanSelection scanSelection;
-
-  // User parameters
-  private String name;
-
   // Mass detector
   private MZmineProcessingStep<MassDetector> massDetector;
-
   // for outputting file
   private File outFilename;
   private boolean saveToCDF;
@@ -66,8 +63,10 @@ public class MassDetectionTask extends AbstractTask {
   /**
    * @param dataFile
    * @param parameters
+   * @param storageMemoryMap
    */
-  public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters) {
+  public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storageMemoryMap) {
 
     this.dataFile = dataFile;
 
@@ -75,9 +74,8 @@ public class MassDetectionTask extends AbstractTask {
 
     this.scanSelection = parameters.getParameter(MassDetectionParameters.scanSelection).getValue();
 
-    this.name = parameters.getParameter(MassDetectionParameters.name).getValue();
-
     this.saveToCDF = parameters.getParameter(MassDetectionParameters.outFilenameOption).getValue();
+    this.storageMemoryMap = storageMemoryMap;
 
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
@@ -135,42 +133,45 @@ public class MassDetectionTask extends AbstractTask {
 
       logger.info("Started mass detector on " + dataFile);
 
-      final Scan scans[] = scanSelection.getMatchingScans(dataFile);
-      totalScans = scans.length;
-      // Process scans one by one
-      for (Scan scan : scans) {
+      // uses only a single array for each (mz and intensity) to loop over all scans
+      ScanDataAccess data = EfficientDataAccess.of(dataFile,
+          EfficientDataAccess.ScanDataType.RAW, scanSelection);
+      totalScans = data.getNumberOfScans();
 
+      // all scans
+      while(data.hasNextScan()) {
         if (isCanceled()) {
           return;
         }
 
+        Scan scan = data.nextScan();
+
         MassDetector detector = massDetector.getModule();
-        DataPoint mzPeaks[] = detector.getMassValues(scan, massDetector.getParameterSet());
+        // run mass detection on data object
+        // [mzs, intensities]
+        double[][] mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
 
-        SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
-
-        // Add new mass list to the scan
-        scan.addMassList(newMassList);
-
-        // for ion mobility, detect subscans, too
         if (scan instanceof Frame) {
+          // for ion mobility, detect subscans, too
+          FrameMassList frameMassList = new FrameMassList(storageMemoryMap, mzPeaks[0], mzPeaks[1]);
           Frame frame = (Frame) scan;
-          for (MobilityScan mobilityScan : frame.getMobilityScans()) {
-            DataPoint[] peaks =
-                detector.getMassValues(mobilityScan, massDetector.getParameterSet());
-            SimpleMassList simpleMassList = new SimpleMassList(name, null, peaks);
-            mobilityScan.addMassList(simpleMassList);
-          }
+          frameMassList.generateAndAddMobilityScanMassLists(frame.getMobilityScans(),
+              storageMemoryMap, detector, massDetector.getParameterSet());
+          frame.addMassList(frameMassList);
+        } else {
+          SimpleMassList newMassList = new SimpleMassList(storageMemoryMap, mzPeaks[0], mzPeaks[1]);
+          scan.addMassList(newMassList);
         }
 
         if (this.saveToCDF) {
-
           curTotalIntensity = 0;
-          for (int a = 0; a < mzPeaks.length; a++) {
-            DataPoint curMzPeak = mzPeaks[a];
-            allMZ.add(curMzPeak.getMZ());
-            allIntensities.add(curMzPeak.getIntensity());
-            curTotalIntensity += curMzPeak.getIntensity();
+          double[] mzs = mzPeaks[0];
+          double[] intensities = mzPeaks[1];
+          int size = mzs.length;
+          for (int a = 0; a < size; a++) {
+            allMZ.add(mzs[a]);
+            allIntensities.add(intensities[a]);
+            curTotalIntensity += intensities[a];
           }
 
           scanAcquisitionTime.add(scan.getRetentionTime());

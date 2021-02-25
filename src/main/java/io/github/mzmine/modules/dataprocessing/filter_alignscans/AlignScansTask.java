@@ -30,6 +30,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -52,12 +54,15 @@ public class AlignScansTask extends AbstractTask {
   private boolean logScale = false;
   private boolean removeOriginal;
   private ParameterSet parameters;
+  private final MemoryMapStorage storage;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storage
    */
-  public AlignScansTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  public AlignScansTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      MemoryMapStorage storage) {
 
     this.project = project;
     this.dataFile = dataFile;
@@ -69,6 +74,7 @@ public class AlignScansTask extends AbstractTask {
     this.removeOriginal = parameters.getParameter(AlignScansParameters.removeOld).getValue();
     this.logScale = parameters.getParameter(AlignScansParameters.logTransform).getValue();
     this.parameters = parameters;
+    this.storage = storage;
   }
 
   /**
@@ -109,9 +115,9 @@ public class AlignScansTask extends AbstractTask {
 
     RawDataFile newRDFW = null;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix);
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, storage);
 
-      DataPoint mzValues[][] = null; // [relative scan][j value]
+      DataPoint[][] mzValues = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, shift, ks;
       int shiftedScans[] = new int[mzSpan * 2 + 1];
       for (i = 0; i < totalScans; i++) {
@@ -137,7 +143,6 @@ public class AlignScansTask extends AbstractTask {
           }
           // Estimate Correlations
           ii = i - si;
-          final SimpleScan newScan = new SimpleScan(newRDFW, scan);
           DataPoint[] newDP = new DataPoint[mzValues[ii].length];
           int maxShift = 0;
           double maxCorrelation = 0;
@@ -197,7 +202,8 @@ public class AlignScansTask extends AbstractTask {
               newDP[k] = new SimpleDataPoint(mzValues[ii][k].getMZ(), 0);
             }
           }
-          newScan.setDataPoints(newDP);
+          double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDP);
+          final SimpleScan newScan = new SimpleScan(newRDFW, scan, dp[0], dp[1]);
           newRDFW.addScan(newScan);
         }
 

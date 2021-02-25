@@ -34,6 +34,7 @@ import java.util.Random;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.Assert;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class MobilityScanTest {
@@ -87,13 +88,14 @@ public class MobilityScanTest {
     return scans;
   }
 
+  @Disabled("Needs test file?")
   @Test
   public void testStorage() {
 
     logger.info("Creating raw data file.");
     RawDataFile rawDataFile = null;
     try {
-      rawDataFile = new IMSRawDataFileImpl("mobility scan test file", Color.WHITE);
+      rawDataFile = new IMSRawDataFileImpl("mobility scan test file", null, Color.WHITE);
     } catch (IOException e) {
       e.printStackTrace();
       Assert.fail();

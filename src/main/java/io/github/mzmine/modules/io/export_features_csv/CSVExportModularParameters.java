@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.io.export_features_csv;
 
-import io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
+import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -44,9 +44,9 @@ public class CSVExportModularParameters extends SimpleParameterSet {
   public static final StringParameter idSeparator = new StringParameter("Identification separator",
       "Character(s) used to separate multi object columns in the exported file", ";");
 
-  public static final ComboParameter<RowFilter> filter = new ComboParameter<RowFilter>(
+  public static final ComboParameter<FeatureListRowsFilter> filter = new ComboParameter<>(
       "Filter rows", "Limit the exported rows to those with MS/MS data (or annotated rows)",
-      RowFilter.values(), RowFilter.ALL);
+      FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
 
   public CSVExportModularParameters() {
     super(new Parameter[] {featureLists, filename, fieldSeparator, idSeparator, filter});

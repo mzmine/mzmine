@@ -29,6 +29,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -61,10 +62,6 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new ModuleComboParameter<MassDetector>("Mass detector",
           "Algorithm to use for mass detection and its parameters", massDetectors);
 
-  public static final StringParameter name = new StringParameter("Mass list name",
-      "Name of the new mass list. If the processed scans already have a mass list of that name, it will be replaced.",
-      "masses");
-
   public static final FileNameParameter outFilename =
       new FileNameParameter("Output netCDF filename (optional)",
           "If selected, centroided spectra will be written to this file netCDF file. "
@@ -75,7 +72,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new OptionalParameter<>(outFilename);
 
   public MassDetectionParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, massDetector, name, outFilenameOption});
+    super(new Parameter[]{dataFiles, scanSelection, massDetector, outFilenameOption});
   }
 
   @Override
@@ -144,7 +141,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
           + "data file. Only the centroid mass detector officially supports mobility scan peak "
           + "detection due to the size of ion mobility raw data files."
           + " Do you want to continue anyway?";
-      if(MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO) == ButtonType.NO) {
+      if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
+          == ButtonType.NO) {
         return ExitCode.CANCEL;
       }
     }
@@ -153,4 +151,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   }
 
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

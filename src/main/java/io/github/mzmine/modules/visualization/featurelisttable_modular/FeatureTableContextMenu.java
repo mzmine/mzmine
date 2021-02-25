@@ -267,7 +267,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     // TODO this should display selected features instead of rows. MultiMSMSWindow does not support that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
-        () -> allRowsHaveFragmentScans(selectedRows) && selectedRows.size() > 1);
+        () -> allRowsHaveFragmentScans(selectedRows) /*&& selectedRows.size() > 1*/);
     showMSMSItem.setOnAction(e -> {
       if (selectedRows.size() > 1) {
         MultiMsMsTab multi = new MultiMsMsTab(selectedRows,
@@ -284,6 +284,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       MirrorScanWindowFX mirrorScanTab = new MirrorScanWindowFX();
       mirrorScanTab.setScans(selectedRows.get(0).getBestFragmentation(),
           selectedRows.get(1).getBestFragmentation());
+      mirrorScanTab.show();
     });
 
     // TODO this is still a Swing window :(
@@ -299,7 +300,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             selectedFeature.getRepresentativeScan(), selectedFeature.getIsotopePattern()));
 
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
-        () -> selectedFeature != null && rowHasSpectralDBMatchResults(selectedRows.get(0)));
+        () -> !selectedRows.isEmpty() && rowHasSpectralDBMatchResults(selectedRows.get(0)));
     showSpectralDBResults
         .setOnAction(e -> SpectraIdentificationResultsModule.showNewTab(selectedRows.get(0)));
 

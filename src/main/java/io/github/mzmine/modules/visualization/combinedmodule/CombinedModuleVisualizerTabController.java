@@ -54,7 +54,6 @@ public class CombinedModuleVisualizerTabController {
   private Range<Double> mzRange;
   private AxisType xAxisType;
   private AxisType yAxisType;
-  private String massList;
   private Double noiseLevel;
   private ColorScale colorScale;
   private CombinedModuleDataset dataset;
@@ -74,13 +73,12 @@ public class CombinedModuleVisualizerTabController {
     yAxisType = parameters.getParameter(CombinedModuleParameters.yAxisType).getValue();
     dataFile = parameters.getParameter(CombinedModuleParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
-    massList = parameters.getParameter(CombinedModuleParameters.massList).getValue();
     noiseLevel = parameters.getParameter(CombinedModuleParameters.noiseLevel).getValue();
     colorScale = parameters.getParameter(CombinedModuleParameters.colorScale).getValue();
     dataset = new CombinedModuleDataset(dataFile, rtRange, mzRange, this, xAxisType, yAxisType,
-        noiseLevel, colorScale,massList);
-    plot.setPlot(dataFile, this, rtRange, mzRange, xAxisType, yAxisType, massList,
         noiseLevel, colorScale);
+    plot.setPlot(dataFile, this, rtRange, mzRange, xAxisType, yAxisType, noiseLevel,
+        colorScale);
     plot.addDataset(dataset);
 
   }
@@ -110,7 +108,7 @@ public class CombinedModuleVisualizerTabController {
 
     // add new dataset
     CombinedModuleDataset newDataset = new CombinedModuleDataset(dataFile, rtRange, mzRange,
-        this, xAxisType, yAxisType, noiseLevel, colorScale, massList);
+        this, xAxisType, yAxisType, noiseLevel, colorScale);
     plot.addDataset(newDataset);
 
     dataFile = newFile;

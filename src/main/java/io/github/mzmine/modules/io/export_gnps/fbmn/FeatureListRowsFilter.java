@@ -12,27 +12,36 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.util.deconvolution;
+package io.github.mzmine.modules.io.export_gnps.fbmn;
 
-import java.util.Collection;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 
 /**
+ * Define which rows to export
  *
- * @param <X> X-value type
- * @param <Y> Y-value type
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
  */
-public interface IndexBasedXYResolver<X, Y> {
+public enum FeatureListRowsFilter {
+  ALL, ONLY_WITH_MS2;
+
+  @Override
+  public String toString() {
+    return super.toString().replaceAll("_", " ");
+  }
 
   /**
-   * See implementing classes for more detailed information on possible restrictions on x and y data
-   * such as ordering.
+   * Filter a row
    *
-   * @param x domain values of the data to be resolved.
-   * @param y range values of the data to be resolved.
+   * @return true if row conforms to the filter
    */
-  public Collection<? extends Collection<Integer>> resolveToIndices(X x, Y y, int[] indices);
+  public boolean filter(FeatureListRow row) {
+    return switch (this) {
+      case ALL -> true;
+      case ONLY_WITH_MS2 -> row.getBestFragmentation() != null;
+    };
+  }
 }

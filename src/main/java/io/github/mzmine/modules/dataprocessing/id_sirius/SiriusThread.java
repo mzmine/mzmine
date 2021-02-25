@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import static io.github.mzmine.modules.dataprocessing.id_sirius.PeakListIdentificationTask.addSiriusCompounds;
-import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MASS_LIST;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -67,7 +66,6 @@ public class SiriusThread implements Runnable {
 
   // Identification params
   private final FeatureListRow peakListRow;
-  private final String massListName;
   private final IonizationType ionType;
   private final MolecularFormulaRange range;
   private final Double deviationPpm;
@@ -87,7 +85,6 @@ public class SiriusThread implements Runnable {
   /**
    * Constructor for SiriusThread - initializes params
    *
-   * @param row
    * @param semaphore
    * @param parameters
    * @param latch
@@ -102,7 +99,6 @@ public class SiriusThread implements Runnable {
         parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
     siriusTimer =
         parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
-    massListName = parameters.getParameter(MASS_LIST).getValue();
     this.task = task;
 
     this.semaphore = semaphore;
@@ -123,7 +119,7 @@ public class SiriusThread implements Runnable {
     try {
 
       Scan ms1Scan = peakListRow.getBestFeature().getRepresentativeScan();
-      Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
+      Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, 10);
 
       // Convert to MSDK data model
       ms1list.add(new MZmineToMSDKMsScan(ms1Scan));
@@ -133,7 +129,7 @@ public class SiriusThread implements Runnable {
 
     } catch (MissingMassListException f) {
       releaseResources();
-      task.remoteCancel("Scan does not have requested Mass List name [" + massListName + "]");
+      task.remoteCancel("Scan does not have a mass list");
       return;
     }
 

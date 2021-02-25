@@ -18,8 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction;
 
+import io.github.mzmine.modules.visualization.imsfeaturevisualizer.PlotType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -36,11 +38,15 @@ public class MobilityMzRegionExtractionParameters extends SimpleParameterSet {
   public static final RegionsParameter regions = new RegionsParameter("Region",
       "Regions to extract.");
 
+  public static final ComboParameter<PlotType> ccsOrMobility = new ComboParameter<>("Mobility/CCS",
+      "Defines if mobility or mz shall be used for extraction.", PlotType.values(),
+      PlotType.MOBILITY);
+
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix of newly created feature lists", " extracted");
 
   public MobilityMzRegionExtractionParameters() {
-    super(new Parameter[]{featureLists, regions, suffix});
+    super(new Parameter[]{featureLists, regions, ccsOrMobility, suffix});
   }
 
   @Override

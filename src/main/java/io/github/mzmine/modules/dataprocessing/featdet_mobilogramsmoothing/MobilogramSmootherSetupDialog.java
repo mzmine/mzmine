@@ -23,17 +23,14 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Mobilogram;
 import io.github.mzmine.datamodel.impl.MobilityDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleMobilogram;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SavitzkyGolayFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithMobilogramPreview;
 import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.deconvolution.impl.LocalMinimumResolver;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -124,35 +121,36 @@ public class MobilogramSmootherSetupDialog extends ParameterSetupDialogWithMobil
     double maximumIntensity = Arrays.stream(intensities).max().getAsDouble();
     final double minHeight = Math.max(minAbsHeight, minRelHeight * maximumIntensity);
 
-    LocalMinimumResolver resolver = new LocalMinimumResolver(peakDuration, searchRTRange, minRatio,
-        minHeight, chromatographicThresholdLevel);
-
-    Collection<? extends Collection<Integer>> resolved = resolver
-        .resolveToIndices(mobilities, intensities, indices);
-
-    Set<Mobilogram> resolvedMobilogram = new HashSet<>();
-    List<MobilityDataPoint> originalDataPoints =
-        originalMobilogram.getDataPoints().stream()
-            .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility)).collect(
-            Collectors.toList());
-    for (Collection<Integer> indicesSet : resolved) {
-      if (indicesSet.isEmpty()) {
-        continue;
-      }
-
-      Set<MobilityDataPoint> newDps = new HashSet<>();
-      indicesSet.forEach(index -> newDps.add(originalDataPoints.get(index)));
-
-      List<MobilityDataPoint> sortedDps = newDps.stream().sorted(Comparator.comparingInt(
-          MobilityDataPoint::getScanNum)).collect(Collectors.toList());
-
-      SimpleMobilogram newMobilogram = new SimpleMobilogram(originalMobilogram.getMobilityType(),
-          originalMobilogram.getRawDataFile());
-      sortedDps.forEach(dp -> newMobilogram.addDataPoint(dp));
-      newMobilogram.calc();
-      resolvedMobilogram.add(newMobilogram);
-    }
-
-    return resolvedMobilogram;
+    return null;
+//    LocalMinimumResolver resolver = new LocalMinimumResolver(peakDuration, searchRTRange, minRatio,
+//        minHeight, chromatographicThresholdLevel);
+//
+//    Collection<? extends Collection<Integer>> resolved = resolver
+//        .resolveToIndices(mobilities, intensities, indices);
+//
+//    Set<Mobilogram> resolvedMobilogram = new HashSet<>();
+//    List<MobilityDataPoint> originalDataPoints =
+//        originalMobilogram.getDataPoints().stream()
+//            .sorted(Comparator.comparingDouble(MobilityDataPoint::getMobility)).collect(
+//            Collectors.toList());
+//    for (Collection<Integer> indicesSet : resolved) {
+//      if (indicesSet.isEmpty()) {
+//        continue;
+//      }
+//
+//      Set<MobilityDataPoint> newDps = new HashSet<>();
+//      indicesSet.forEach(index -> newDps.add(originalDataPoints.get(index)));
+//
+//      List<MobilityDataPoint> sortedDps = newDps.stream().sorted(Comparator.comparingInt(
+//          MobilityDataPoint::getScanNum)).collect(Collectors.toList());
+//
+//      SimpleMobilogram newMobilogram = new SimpleMobilogram(originalMobilogram.getMobilityType(),
+//          originalMobilogram.getRawDataFile());
+//      sortedDps.forEach(dp -> newMobilogram.addDataPoint(dp));
+//      newMobilogram.calc();
+//      resolvedMobilogram.add(newMobilogram);
+//    }
+//
+//    return resolvedMobilogram;
   }
 }

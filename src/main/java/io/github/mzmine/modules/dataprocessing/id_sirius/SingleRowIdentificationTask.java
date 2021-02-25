@@ -23,7 +23,6 @@ import static io.github.mzmine.modules.dataprocessing.id_sirius.SingleRowIdentif
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SingleRowIdentificationParameters.SIRIUS_CANDIDATES;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SingleRowIdentificationParameters.SIRIUS_TIMEOUT;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.ELEMENTS;
-import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MASS_LIST;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.ionizationType;
 import java.text.NumberFormat;
@@ -75,7 +74,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   private final FeatureListRow peakListRow;
-  private final String massListName;
 
   // Parameters for Sirius & FingerId methods
   private final IonizationType ionType;
@@ -112,7 +110,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     parentMass = parameters.getParameter(ION_MASS).getValue();
     range = parameters.getParameter(ELEMENTS).getValue();
     timer = parameters.getParameter(SIRIUS_TIMEOUT).getValue();
-    massListName = parameters.getParameter(MASS_LIST).getValue();
 
     MZTolerance mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
     double mz = peakListRow.getAverageMZ();
@@ -177,21 +174,21 @@ public class SingleRowIdentificationTask extends AbstractTask {
     try {
 
       Scan ms1Scan = peakListRow.getBestFeature().getRepresentativeScan();
-      Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
+      Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, 10);
       logger.finest("Adding MS1 scan " + ScanUtils.scanToString(ms1Scan, true)
           + " for SIRIUS identification");
 
       // Convert to MSDK data model
-      ms1list.add(buildMSDKSpectrum(ms1Scan, massListName));
+      ms1list.add(buildMSDKSpectrum(ms1Scan));
       for (Scan ms2Scan : top10ms2Scans) {
         logger.finest("Adding MS/MS scan " + ScanUtils.scanToString(ms2Scan, true)
             + " for SIRIUS identification");
-        ms2list.add(buildMSDKSpectrum(ms2Scan, massListName));
+        ms2list.add(buildMSDKSpectrum(ms2Scan));
       }
 
     } catch (MissingMassListException f) {
       showError(resultWindowFX,
-          "Scan does not contain Mass List with requested name. [" + massListName + "]");
+          "Scan does not contain Mass List.");
       return;
     }
 
@@ -280,13 +277,12 @@ public class SingleRowIdentificationTask extends AbstractTask {
    *
    * @return new MsSpectrum
    */
-  private MsSpectrum buildMSDKSpectrum(Scan scan, String massListName)
+  private MsSpectrum buildMSDKSpectrum(Scan scan)
       throws MissingMassListException {
 
-    MassList ml = scan.getMassList(massListName);
+    MassList ml = scan.getMassList();
     if (ml == null)
-      throw new MissingMassListException(
-          "Scan #" + scan.getScanNumber() + " does not have mass list", massListName);
+      throw new MissingMassListException(scan);
 
     DataPoint[] points = ml.getDataPoints();
 

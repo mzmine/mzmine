@@ -50,7 +50,6 @@ public abstract class AbstractTask implements Task {
 
 
   /**
-   * @see io.github.mzmine.taskcontrol.Task#setStatus()
    */
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;

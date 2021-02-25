@@ -24,6 +24,7 @@ import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -54,7 +55,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    * @param mz
    */
   public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage,
-      List<SimpleIonMobilitySeries> mobilograms,
+      List<IonMobilitySeries> mobilograms,
       double mz) {
 
     this.mz = mz;
@@ -67,7 +68,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     RangeMap<Double, Double> mobilityIntensityValues = TreeRangeMap.create();
 
     for (int i = 0; i < mobilograms.size(); i++) {
-      SimpleIonMobilitySeries mobilogram = mobilograms.get(i);
+      IonMobilitySeries mobilogram = mobilograms.get(i);
       for (int j = 0; j < mobilogram.getNumberOfValues(); j++) {
         double intensity = mobilogram.getIntensity(j);
         double mobility = mobilogram.getMobility(j);

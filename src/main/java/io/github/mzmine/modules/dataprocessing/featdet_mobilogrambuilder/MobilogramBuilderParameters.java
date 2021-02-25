@@ -22,7 +22,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
@@ -31,8 +30,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 public class MobilogramBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
-
-  public static final MassListParameter massList = new MassListParameter("Mass list", "", false);
 
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter("Scan "
       + "selection", "Filter scans based on their properties. Different noise levels ( -> mass "
@@ -51,6 +48,6 @@ public class MobilogramBuilderParameters extends SimpleParameterSet {
           + " previously filtered by e.g. mass detection will be added to the mobilogram.", true);
 
   public MobilogramBuilderParameters() {
-    super(new Parameter[]{rawDataFiles, massList, scanSelection, mzTolerance, minPeaks, addRawDp});
+    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minPeaks, addRawDp});
   }
 }

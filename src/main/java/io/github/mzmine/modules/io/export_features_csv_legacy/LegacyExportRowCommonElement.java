@@ -12,13 +12,12 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.modules.io.export_features_csv;
+package io.github.mzmine.modules.io.export_features_csv_legacy;
 
-public enum ExportRowCommonElement {
+public enum LegacyExportRowCommonElement {
 
   ROW_ID("Export row ID"), //
   ROW_MZ("Export row m/z"), //
@@ -31,11 +30,10 @@ public enum ExportRowCommonElement {
 
   private final String name;
 
-  ExportRowCommonElement(String name) {
+  LegacyExportRowCommonElement(String name) {
     this.name = name;
   }
 
-  @Override
   public String toString() {
     return this.name;
   }

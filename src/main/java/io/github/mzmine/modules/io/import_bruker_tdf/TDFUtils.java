@@ -51,6 +51,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -78,6 +79,7 @@ public class TDFUtils {
    * @return true on success, false on failure.
    */
   private static boolean loadLibrary() {
+    logger.finest("Initialising tdf library.");
     File timsdataLib = null;
     String libraryFileName;
     try {
@@ -99,7 +101,7 @@ public class TDFUtils {
           TDFUtils.class.getClassLoader());
     } catch (IOException e) {
       e.printStackTrace();
-      logger.warning("Failed to load/extract timsdata library");
+      logger.log(Level.SEVERE,"Failed to load/extract timsdata library", e);
       return false;
     }
 
@@ -129,15 +131,19 @@ public class TDFUtils {
    */
   public static long openFile(final File path, final long useRecalibratedState) {
     if (!loadLibrary() || tdfLib == null) {
+      logger.warning(() -> "File + " + path.getAbsolutePath() + " cannot be loaded because tdf "
+          + "library could not be initialised.");
       return 0L;
     }
     if (path.isFile()) {
+      logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
       final long handle =
           tdfLib.tims_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     } else {
+      logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
       final long handle = tdfLib.tims_open(path.getAbsolutePath(), useRecalibratedState);
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
@@ -499,7 +505,7 @@ public class TDFUtils {
     return array;
   }
 
-  public static Double calculateCCS(double ook0, int charge, double mz) {
+  public static Double calculateCCS(double ook0, long charge, double mz) {
     if (tdfLib == null) {
       boolean loaded = TDFUtils.loadLibrary();
       if (!loaded) {
