@@ -42,8 +42,7 @@ public class TmpFileCleanup implements Runnable {
   @Override
   public void run() {
 
-//    closeTabs();
-    closeProject();
+//    closeProject();
 
     logger.fine("Checking for old temporary files...");
     try {
