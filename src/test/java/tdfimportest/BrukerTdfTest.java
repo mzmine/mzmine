@@ -30,6 +30,7 @@ import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -51,7 +52,8 @@ public class BrukerTdfTest {
     String str = BrukerTdfTest.class.getClassLoader()
         .getResource("rawdatafiles/200ngHeLaPASEF_2min_compressed.d").getFile();
     File file = new File(str);
-    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(), null, Color.BLACK);
+    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(),
+        MemoryMapStorage.forRawDataFile(), Color.BLACK);
 
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
