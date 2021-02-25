@@ -21,12 +21,14 @@ package tdfimportest;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.io.import_bruker_tdf.TDFUtils;
 import java.util.logging.Logger;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class CCSTest {
 
   private static Logger logger = Logger.getLogger(CCSTest.class.getName());
 
+  @Disabled("Needs test file?")
   @Test
   void testTims() {
 
