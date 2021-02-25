@@ -65,7 +65,7 @@ public class BaselineCorrectionModule implements MZmineProcessingModule {
         .getValue().getMatchingRawDataFiles();
 
     // one storage for all files in the same module call
-    MemoryMapStorage storage = new MemoryMapStorage();
+    MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     for (final RawDataFile dataFile : dataFiles) {
 

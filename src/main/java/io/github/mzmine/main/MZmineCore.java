@@ -46,6 +46,7 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
@@ -56,10 +57,6 @@ import java.util.logging.Logger;
 import javafx.application.Application;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-/*
- * import io.github.mzmine.modules.batchmode.BatchModeModule;
- */
 
 /**
  * MZmine main class
@@ -72,6 +69,7 @@ public final class MZmineCore {
   private static MZmineConfiguration configuration;
   private static Desktop desktop;
   private static ProjectManagerImpl projectManager;
+  private static final List<MemoryMapStorage> storageList = Collections.synchronizedList(new ArrayList<>());
 
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
@@ -319,5 +317,12 @@ public final class MZmineCore {
       cleanupThread2.setPriority(Thread.MIN_PRIORITY);
       cleanupThread2.start();
     }
+  }
+  public static void registerStorage(MemoryMapStorage storage) {
+    storageList.add(storage);
+  }
+
+  public static List<MemoryMapStorage> getStorageList() {
+    return storageList;
   }
 }

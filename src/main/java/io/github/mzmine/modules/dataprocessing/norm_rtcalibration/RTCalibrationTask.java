@@ -34,9 +34,11 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Vector;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 class RTCalibrationTask extends AbstractTask {
 
@@ -55,7 +57,9 @@ class RTCalibrationTask extends AbstractTask {
   private boolean removeOriginal;
   private ParameterSet parameters;
 
-  public RTCalibrationTask(MZmineProject project, ParameterSet parameters) {
+  public RTCalibrationTask(MZmineProject project, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.originalFeatureLists = (ModularFeatureList[]) parameters.getParameter(RTCalibrationParameters.featureLists).getValue()
@@ -96,7 +100,7 @@ class RTCalibrationTask extends AbstractTask {
     normalizedFeatureLists = new ModularFeatureList[originalFeatureLists.length];
     for (int i = 0; i < originalFeatureLists.length; i++) {
       normalizedFeatureLists[i] = new ModularFeatureList(originalFeatureLists[i] + " " + suffix,
-          originalFeatureLists[i].getRawDataFiles());
+          getMemoryMapStorage(), originalFeatureLists[i].getRawDataFiles());
 
       // Remember how many rows we need to normalize
       totalRows += originalFeatureLists[i].getNumberOfRows();

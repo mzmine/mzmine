@@ -84,9 +84,6 @@ public class TDFImportModule implements MZmineProcessingModule {
     // Find common prefix in raw file names if in GUI mode
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
-    // one storage for all files in the same module call
-    MemoryMapStorage storage = new MemoryMapStorage();
-
     for (int i = 0; i < fileNames.length; i++) {
 
       if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
@@ -105,6 +102,8 @@ public class TDFImportModule implements MZmineProcessingModule {
       }
 
       try {
+        // IMS files are big, reserve a single storage for each file
+        final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
         IMSRawDataFile newMZmineFile = MZmineCore.createNewIMSFile(newName, storage);
         Task newTask = new TDFImportTask(project, fileNames[i], newMZmineFile);
         tasks.add(newTask);

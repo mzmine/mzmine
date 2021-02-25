@@ -86,7 +86,7 @@ public class ImzMLImportModule implements MZmineProcessingModule {
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
     // one storage for all files in the same module call
-    MemoryMapStorage storage = new MemoryMapStorage();
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     for (int i = 0; i < fileNames.length; i++) {
 

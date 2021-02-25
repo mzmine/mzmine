@@ -85,6 +85,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private ParameterSet parameters;
 
   public VanKrevelenDiagramTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.parameters = parameters;
     featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];

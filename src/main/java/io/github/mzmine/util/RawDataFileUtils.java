@@ -64,7 +64,7 @@ public class RawDataFileUtils {
       File... fileNames) throws IOException {
 
     // one storage for all files imported in the same task as they are typically analyzed together
-    MemoryMapStorage storage = new MemoryMapStorage();
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
     for (File fileName : fileNames) {
 
       if ((!fileName.exists()) || (fileName.canRead())) {
@@ -113,11 +113,11 @@ public class RawDataFileUtils {
           newTask = new ZipImportTask(project, fileName, fileType);
           break;
         case BRUKER_TDF:
-          newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(), storage);
+          newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(), MemoryMapStorage.forRawDataFile());
           newTask = new TDFImportTask(project, fileName, (IMSRawDataFile) newMZmineFile);
           break;
         case MZML_IMS:
-          newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(), storage);
+          newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(), MemoryMapStorage.forRawDataFile());
           newTask = new MSDKmzMLImportTask(project, fileName, newMZmineFile);
           break;
         default:

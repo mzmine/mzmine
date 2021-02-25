@@ -41,6 +41,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertorIonMobility;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -80,6 +81,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   @SuppressWarnings("unchecked")
   public IonMobilityTraceBuilderTask(MZmineProject project, RawDataFile rawDataFile,
       List<Frame> frames, ParameterSet parameters) {
+    super(MemoryMapStorage.forFeatureList()); // Ims files are usually big, so we create our own
     this.project = project;
     this.rawDataFile = rawDataFile;
     this.mzTolerance =
@@ -572,7 +574,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private void buildModularFeatureList(SortedSet<IIonMobilityTrace> ionMobilityTraces) {
     taskDescription = "Build feature list";
     ModularFeatureList featureList =
-        new ModularFeatureList(rawDataFile + " " + suffix, rawDataFile);
+        new ModularFeatureList(rawDataFile + " " + suffix, getMemoryMapStorage(), rawDataFile);
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(featureList);
     DataTypeUtils.addDefaultIonMobilityTypeColumns(featureList);

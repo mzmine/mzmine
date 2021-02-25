@@ -18,24 +18,26 @@
 
 package io.github.mzmine.modules.example;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureListRowSorter;
-import java.util.Arrays;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 class MultiRawDataLearnerTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -62,7 +64,8 @@ class MultiRawDataLearnerTask extends AbstractTask {
    * @param parameters
    */
   public MultiRawDataLearnerTask(MZmineProject project, FeatureList featureList,
-      ParameterSet parameters) {
+      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.featureList = featureList;
     this.parameters = parameters;
@@ -100,7 +103,8 @@ class MultiRawDataLearnerTask extends AbstractTask {
     logger.info("Running learner task on " + featureList);
 
     // Create a new results feature list which is added at the end
-    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, featureList.getRawDataFiles());
+    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, getMemoryMapStorage(),
+        featureList.getRawDataFiles());
 
     /**
      * - A FeatureList is a list of Features (feature in retention time dimension with accurate m/z)<br>

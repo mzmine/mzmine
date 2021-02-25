@@ -72,6 +72,7 @@ class Fx3DSamplingTask extends AbstractTask {
    */
   Fx3DSamplingTask(RawDataFile dataFile, ScanSelection scanSel, Range<Double> mzRange,
       int rtResolution, int mzResolution, Fx3DBorderPaneController controller) {
+    super(null); // no new data stored -> null
 
     this.dataFile = dataFile;
     this.scans = scanSel.getMatchingScans(dataFile);

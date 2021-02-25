@@ -96,6 +96,7 @@ public class GNPSResultsImportTask extends AbstractTask {
    * @param peakList
    */
   public GNPSResultsImportTask(ParameterSet parameters, FeatureList peakList) {
+    super(null); // no new data stored -> null
     this.parameters = parameters;
     this.peakList = peakList;
     file = parameters.getParameter(GNPSResultsImportParameters.FILE).getValue();

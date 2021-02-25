@@ -93,6 +93,7 @@ public class MzDataImportTask extends AbstractTask {
   private LinkedList<SimpleScan> parentStack;
 
   public MzDataImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
+    super(null); // storage in raw data file
     // 256 kilo-chars buffer
     charBuffer = new StringBuilder(1 << 18);
     parentStack = new LinkedList<SimpleScan>();

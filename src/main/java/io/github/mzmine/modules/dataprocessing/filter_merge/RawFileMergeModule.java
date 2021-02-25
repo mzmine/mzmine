@@ -58,7 +58,8 @@ public class RawFileMergeModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
     // one storage for all files in the same module call
-    MemoryMapStorage storage = new MemoryMapStorage();
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
+
     // merge all selected
     if (parameters.getParameter(RawFileMergeParameters.mode).getValue()
         .equals(MODE.MERGE_SELECTED)) {

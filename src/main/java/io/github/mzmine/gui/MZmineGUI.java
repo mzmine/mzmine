@@ -32,6 +32,7 @@ import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -387,6 +388,7 @@ public class MZmineGUI extends Application implements Desktop {
     // save configuration on exit if we only run a batch
     ShutDownHook shutDownHook = new ShutDownHook();
     Runtime.getRuntime().addShutdownHook(shutDownHook);
+    Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
 
   }
 

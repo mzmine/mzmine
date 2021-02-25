@@ -86,6 +86,7 @@ public class MzMLImportTask extends AbstractTask {
   private Map<Integer, Double> buildingMobilities;
 
   public MzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
+    super(null); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;

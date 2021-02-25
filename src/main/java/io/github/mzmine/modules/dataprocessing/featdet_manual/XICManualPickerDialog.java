@@ -276,7 +276,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
       return;
     }
 
-    Task integration = new AbstractTask() {
+    Task integration = new AbstractTask(null) {
 
       @Override
       public void run() {

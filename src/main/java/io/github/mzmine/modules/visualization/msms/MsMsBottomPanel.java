@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.awt.Font;
@@ -56,6 +57,8 @@ class MsMsBottomPanel extends HBox {
 
   private MsMsVisualizerTab masterFrame;
   private RawDataFile dataFile;
+
+  private final MemoryMapStorage flistStorage = MemoryMapStorage.forFeatureList();
 
   MsMsBottomPanel(MsMsVisualizerTab masterFrame, RawDataFile dataFile, ParameterSet parameters) {
 
@@ -163,7 +166,7 @@ class MsMsBottomPanel extends HBox {
       return null;
     }
     ModularFeatureList newList =
-        new ModularFeatureList(selectedFeatureList.getName(), selectedFeatureList.getRawDataFiles());
+        new ModularFeatureList(selectedFeatureList.getName(), flistStorage, selectedFeatureList.getRawDataFiles());
 
     for (FeatureListRow featureListRow : selectedFeatureList.getRows()) {
       Feature feature = featureListRow.getFeature(dataFile);
@@ -187,7 +190,7 @@ class MsMsBottomPanel extends HBox {
       return null;
     }
     ModularFeatureList newList =
-        new ModularFeatureList(selectedFeatureList.getName(), selectedFeatureList.getRawDataFiles());
+        new ModularFeatureList(selectedFeatureList.getName(), flistStorage, selectedFeatureList.getRawDataFiles());
 
     Vector<FeatureListRow> featureListRows = new Vector<FeatureListRow>();
 

@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -59,12 +60,11 @@ public class PeakComparisonRowFilterModule implements MZmineProcessingModule {
     final FeatureList[] peakLists =
         parameters.getParameter(PeakComparisonRowFilterParameters.PEAK_LISTS).getValue()
             .getMatchingFeatureLists();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList peakList : peakLists) {
-
-      Task newTask = new PeakComparisonRowFilterTask(project, peakList, parameters);
+      Task newTask = new PeakComparisonRowFilterTask(project, peakList, parameters, storage);
       tasks.add(newTask);
-
     }
 
     return ExitCode.OK;
