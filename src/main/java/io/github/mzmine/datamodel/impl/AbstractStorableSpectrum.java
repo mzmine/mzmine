@@ -18,10 +18,9 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
 import java.nio.DoubleBuffer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -74,17 +73,8 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
       }
     }
 
-    try {
-      this.mzValues = storage.storeData(mzValues);
-      this.intensityValues = storage.storeData(intensityValues);
-    } catch (IOException e) {
-      e.printStackTrace();
-      logger.log(Level.SEVERE,
-          "Error while storing data points on disk, keeping them in memory instead", e);
-      this.mzValues = DoubleBuffer.wrap(mzValues);
-      this.intensityValues = DoubleBuffer.wrap(intensityValues);
-    }
-
+    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
+    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
     updateMzRangeAndTICValues();
   }
 

@@ -89,7 +89,8 @@ public class FeatureDataSetCalc extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // TODO: new ModularFeatureList name
-    ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode(), storage, new ArrayList<>(rawDataFiles));
+    ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode(),
+        null, new ArrayList<>(rawDataFiles));
 
     for (RawDataFile rawDataFile : rawDataFiles) {
       if (getStatus() == TaskStatus.CANCELED) {
