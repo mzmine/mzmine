@@ -79,7 +79,6 @@ public final class MZmineCore {
    * Main method
    */
   public static void main(final String args[]) {
-
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
     // be . or , depending on the locale)
