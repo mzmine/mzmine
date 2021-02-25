@@ -23,12 +23,13 @@
  */
 package io.github.mzmine.parameters.parametertypes.filenames;
 
-import java.io.File;
-import java.util.Collection;
-
-import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import org.w3c.dom.Element;
 
 /**
  * A parameter that represents a file system directory.
@@ -43,6 +44,15 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
 
     name = aName;
     description = aDescription;
+  }
+
+  public DirectoryParameter(final String aName, final String aDescription, String defaultPath) {
+    name = aName;
+    description = aDescription;
+    Path path = Paths.get(defaultPath);
+    if(Files.exists(path)) {
+      value = path.toFile();
+    }
   }
 
   @Override
