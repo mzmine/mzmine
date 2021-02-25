@@ -100,6 +100,11 @@ public class MemoryMapStorage {
     return storeMassListsInRam ? null : new MemoryMapStorage();
   }
 
+  @Nonnull
+  public static MemoryMapStorage create() {
+    return new MemoryMapStorage();
+  }
+
   private MemoryMapStorage() {
     // register this storage to MZmineCore, so we can delete all temp files later.
     MZmineCore.registerStorage(this);

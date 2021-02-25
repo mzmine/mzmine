@@ -76,6 +76,7 @@ public class GroupMS2Task extends AbstractTask {
    */
   public GroupMS2Task(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
+    super(null); // no new data stored -> null
 
     // Initialize.
     this.project = project;

@@ -157,6 +157,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
     public PreviewTask(BaselineCorrectorSetupDialog dialog, TICPlot ticPlot, RawDataFile dataFile,
         Range<Float> rtRange, Range<Double> mzRange) {
+      super(null); // no new data stored -> null
 
       this.dialog = dialog;
       this.ticPlot = ticPlot;

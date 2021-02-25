@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.example;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
@@ -50,10 +51,11 @@ public class LearnerModule implements MZmineProcessingModule {
     // get parameters
     FeatureList featureLists[] =
         parameters.getParameter(LearnerParameters.featureLists).getValue().getMatchingFeatureLists();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     // create and start one task for each feature list
     for (final FeatureList featureList : featureLists) {
-      Task newTask = new FeatureListRowLearnerTask(project, featureList, parameters);
+      Task newTask = new FeatureListRowLearnerTask(project, featureList, parameters, storage);
       tasks.add(newTask);
     }
 

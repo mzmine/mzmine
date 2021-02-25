@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -64,9 +65,10 @@ public class CameraSearchModule implements MZmineProcessingModule {
 
     FeatureList peakLists[] = parameters.getParameter(CameraSearchParameters.PEAK_LISTS).getValue()
         .getMatchingFeatureLists();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList peakList : peakLists) {
-      Task newTask = new CameraSearchTask(project, parameters, peakList);
+      Task newTask = new CameraSearchTask(project, parameters, peakList, storage);
       tasks.add(newTask);
     }
 

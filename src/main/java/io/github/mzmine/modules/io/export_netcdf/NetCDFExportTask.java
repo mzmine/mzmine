@@ -45,6 +45,7 @@ public class NetCDFExportTask extends AbstractTask {
    * @param parameters
    */
   public NetCDFExportTask(RawDataFile dataFile, File outFilename) {
+    super(null); // no new data stored -> null
     this.dataFile = dataFile;
     this.outFilename = outFilename;
   }

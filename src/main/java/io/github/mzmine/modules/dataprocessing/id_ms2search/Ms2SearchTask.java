@@ -53,6 +53,7 @@ class Ms2SearchTask extends AbstractTask {
    * @param parameters
    */
   public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2) {
+    super(null); // no new data stored -> null
 
     this.peakList1 = peakList1;
     this.peakList2 = peakList2;

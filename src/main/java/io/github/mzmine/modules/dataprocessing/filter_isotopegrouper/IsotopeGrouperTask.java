@@ -39,11 +39,13 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureSorter;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -82,7 +84,9 @@ class IsotopeGrouperTask extends AbstractTask {
    * @param featureList
    * @param parameters
    */
-  IsotopeGrouperTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
+  IsotopeGrouperTask(MZmineProject project, FeatureList featureList, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.featureList = featureList;
@@ -135,7 +139,8 @@ class IsotopeGrouperTask extends AbstractTask {
     RawDataFile dataFile = featureList.getRawDataFile(0);
 
     // Create a new deisotoped peakList
-    deisotopedFeatureList = new ModularFeatureList(featureList + " " + suffix, featureList.getRawDataFiles());
+    deisotopedFeatureList = new ModularFeatureList(featureList + " " + suffix,
+        getMemoryMapStorage(), featureList.getRawDataFiles());
 
     // Collect all selected charge states
     int charges[] = new int[maximumCharge];

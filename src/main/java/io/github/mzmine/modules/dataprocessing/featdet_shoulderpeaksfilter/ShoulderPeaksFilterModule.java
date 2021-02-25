@@ -52,7 +52,7 @@ public class ShoulderPeaksFilterModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
     // storage for masslists
-    MemoryMapStorage storage = new MemoryMapStorage();
+    MemoryMapStorage storage = MemoryMapStorage.forMassList();
     RawDataFile[] dataFiles = parameters.getParameter(ShoulderPeaksFilterParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
     for (RawDataFile dataFile : dataFiles) {

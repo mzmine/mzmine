@@ -46,6 +46,7 @@ public class FormulaSortTask extends AbstractTask {
    * @param parameters
    */
   public FormulaSortTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     weightIsotopeScore =
         parameters.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue();
     ppmMaxWeight = parameters.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue();

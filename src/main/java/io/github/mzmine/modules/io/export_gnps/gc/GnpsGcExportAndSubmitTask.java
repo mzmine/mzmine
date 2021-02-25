@@ -29,27 +29,18 @@
 
 package io.github.mzmine.modules.io.export_gnps.gc;
 
+import com.google.common.util.concurrent.AtomicDouble;
+import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowCommonElement;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowDataFileElement;
+import io.github.mzmine.modules.io.export_gnps.GNPSUtils;
 import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitParameters;
-import java.awt.Desktop;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.RowFilter;
-import org.apache.commons.io.FilenameUtils;
-import com.google.common.util.concurrent.AtomicDouble;
-import io.github.msdk.MSDKRuntimeException;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.export_gnps.GNPSUtils;
 import io.github.mzmine.modules.io.export_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_mgf.AdapMgfExportParameters;
 import io.github.mzmine.modules.io.export_mgf.AdapMgfExportParameters.MzMode;
@@ -62,6 +53,14 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.awt.Desktop;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * Exports all files needed for GNPS GC-MS workflow
@@ -85,6 +84,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
   private boolean openFolder;
 
   GnpsGcExportAndSubmitTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.parameters = parameters;
 
     this.featureList = parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_LISTS)

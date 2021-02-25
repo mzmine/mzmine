@@ -66,6 +66,7 @@ public class ImageVisualizerTask extends AbstractTask {
 
 
   public ImageVisualizerTask(RawDataFile rawDataFile, ParameterSet parameters) {
+    super(null);
     this.parameters = parameters;
     this.rawDataFile = (ImagingRawDataFile) rawDataFile;
     this.imagingParameters = ((ImagingRawDataFile) rawDataFile).getImagingParam();

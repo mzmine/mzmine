@@ -73,6 +73,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param peakListRow peak-list row to identify.
    */
   public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow) {
+    super(null); // no new data stored -> null
 
     this.peakListRow = peakListRow;
 

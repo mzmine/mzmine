@@ -59,6 +59,7 @@ public class ExportScansTask extends AbstractTask {
   private boolean useMassList;
 
   public ExportScansTask(Scan[] scans, ParameterSet parameters) {
+    super(null); // no new data stored -> null
     progress = 0;
     progressMax = 0;
     this.scans = scans;

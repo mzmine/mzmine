@@ -42,9 +42,11 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParame
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * Performs chromatographic smoothing of a peak-list.
@@ -75,7 +77,8 @@ public class SmoothingTask extends AbstractTask {
    * @param smoothingParameters smoothing parameters.
    */
   public SmoothingTask(final MZmineProject project, final FeatureList peakList,
-      final ParameterSet smoothingParameters) {
+      final ParameterSet smoothingParameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     // Initialize.
     this.project = project;
@@ -111,7 +114,7 @@ public class SmoothingTask extends AbstractTask {
     try {
       // Create a copy of the old feature list
       // this way we can directly process the rows and don't need to create new ones
-      newFeatureList = origPeakList.createCopy(origPeakList + " " + suffix);
+      newFeatureList = origPeakList.createCopy(origPeakList + " " + suffix, getMemoryMapStorage());
 
       // Get filter weights.
       final double[] rtFilterWeights = SavitzkyGolayFilter.getNormalizedWeights(rtFilterWidth);

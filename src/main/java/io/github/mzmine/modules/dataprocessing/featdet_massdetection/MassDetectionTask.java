@@ -48,7 +48,6 @@ public class MassDetectionTask extends AbstractTask {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
-  private final MemoryMapStorage storageMemoryMap;
   // scan counter
   private int processedScans = 0, totalScans = 0;
   // Mass detector
@@ -65,6 +64,7 @@ public class MassDetectionTask extends AbstractTask {
    */
   public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters,
       MemoryMapStorage storageMemoryMap) {
+    super(storageMemoryMap);
 
     this.dataFile = dataFile;
 
@@ -73,7 +73,6 @@ public class MassDetectionTask extends AbstractTask {
     this.scanSelection = parameters.getParameter(MassDetectionParameters.scanSelection).getValue();
 
     this.saveToCDF = parameters.getParameter(MassDetectionParameters.outFilenameOption).getValue();
-    this.storageMemoryMap = storageMemoryMap;
 
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
@@ -146,13 +145,13 @@ public class MassDetectionTask extends AbstractTask {
 
         if (scan instanceof Frame) {
           // for ion mobility, detect subscans, too
-          FrameMassList frameMassList = new FrameMassList(storageMemoryMap, mzPeaks[0], mzPeaks[1]);
+          FrameMassList frameMassList = new FrameMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]);
           Frame frame = (Frame) scan;
           frameMassList.generateAndAddMobilityScanMassLists(frame.getMobilityScans(),
-              storageMemoryMap, detector, massDetector.getParameterSet());
+              getMemoryMapStorage(), detector, massDetector.getParameterSet());
           frame.addMassList(frameMassList);
         } else {
-          SimpleMassList newMassList = new SimpleMassList(storageMemoryMap, mzPeaks[0], mzPeaks[1]);
+          SimpleMassList newMassList = new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]);
           scan.addMassList(newMassList);
         }
 

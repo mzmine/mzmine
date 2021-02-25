@@ -80,6 +80,7 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   SiriusExportTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.featureLists = parameters.getParameter(SiriusExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();
     this.fileName = parameters.getParameter(SiriusExportParameters.FILENAME).getValue();

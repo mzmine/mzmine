@@ -35,6 +35,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class AlignScansTask extends AbstractTask {
 
@@ -54,7 +55,6 @@ public class AlignScansTask extends AbstractTask {
   private boolean logScale = false;
   private boolean removeOriginal;
   private ParameterSet parameters;
-  private final MemoryMapStorage storage;
 
   /**
    * @param dataFile
@@ -62,7 +62,8 @@ public class AlignScansTask extends AbstractTask {
    * @param storage
    */
   public AlignScansTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storage) {
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -74,7 +75,6 @@ public class AlignScansTask extends AbstractTask {
     this.removeOriginal = parameters.getParameter(AlignScansParameters.removeOld).getValue();
     this.logScale = parameters.getParameter(AlignScansParameters.logTransform).getValue();
     this.parameters = parameters;
-    this.storage = storage;
   }
 
   /**
@@ -115,7 +115,7 @@ public class AlignScansTask extends AbstractTask {
 
     RawDataFile newRDFW = null;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, storage);
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, getMemoryMapStorage());
 
       DataPoint[][] mzValues = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, shift, ks;

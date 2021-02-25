@@ -45,7 +45,7 @@ public class MobilityScanTest {
     Random rnd = new Random(System.currentTimeMillis());
     double[] numbers = rnd.doubles().limit(10).toArray();
 
-    MemoryMapStorage storage = new MemoryMapStorage();
+    MemoryMapStorage storage = MemoryMapStorage.create();
 
     DoubleBuffer stored = null;
     try {

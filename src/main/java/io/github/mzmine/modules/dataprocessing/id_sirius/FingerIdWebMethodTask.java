@@ -69,6 +69,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
    */
   private FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
       Integer candidatesAmount, ResultWindowFX windowFX, FeatureListRow row) {
+    super(null); // no new data stored -> null
     if (windowFX == null && row == null)
       throw new RuntimeException("Only one result container can be null at a time");
 
