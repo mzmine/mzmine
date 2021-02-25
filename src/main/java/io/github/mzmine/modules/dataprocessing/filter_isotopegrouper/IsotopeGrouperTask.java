@@ -232,7 +232,7 @@ class IsotopeGrouperTask extends AbstractTask {
           (ModularFeatureListRow) originalRows[0], true);
       deisotopedFeatureList.addRow(newRow);
       // set isotope pattern
-      Feature feature = originalRows[0].getBestFeature();
+      Feature feature = newRow.getBestFeature();
       feature.setIsotopePattern(newPattern);
       feature.setCharge(bestFitCharge);
 
