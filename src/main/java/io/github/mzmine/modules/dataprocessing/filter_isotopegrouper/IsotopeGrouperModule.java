@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
@@ -57,11 +58,11 @@ public class IsotopeGrouperModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    FeatureList[] featureLists= parameters.getParameter(IsotopeGrouperParameters.peakLists).getValue()
+    ModularFeatureList[] featureLists= parameters.getParameter(IsotopeGrouperParameters.peakLists).getValue()
         .getMatchingFeatureLists();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
-    for (final FeatureList featureList : featureLists) {
+    for (final ModularFeatureList featureList : featureLists) {
       Task newTask = new IsotopeGrouperTask(project, featureList, parameters, storage);
       tasks.add(newTask);
     }
