@@ -54,10 +54,10 @@ jobs:
         path: build/jpackage/MZmine
         retention-days: 30  # store for 30 days
 
-# clean cache
-#    - name: Cleanup Gradle Cache
+# clean cache important but DOES NOT WORK on windows - -f not allowed 
+    - name: Cleanup Gradle Cache
       # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
       # Restoring these files from a GitHub Actions cache might cause problems for future builds.
-#      run: |
-#        rm -f ~/.gradle/caches/modules-2/modules-2.lock
-#        rm -f ~/.gradle/caches/modules-2/gc.properties
+      run: |
+        rm --force ~/.gradle/caches/modules-2/modules-2.lock
+        rm --force ~/.gradle/caches/modules-2/gc.properties
