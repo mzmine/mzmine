@@ -18,6 +18,7 @@
 
 package io.github.mzmine.main;
 
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
@@ -101,10 +102,10 @@ public final class MZmineCore {
      */
     final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
     logger.finest("Working directory is " + cwd);
-    logger.finest("Temporary directory is " + System.getProperty("java.io.tmpdir"));
+    logger.finest("Default temporary directory is " + System.getProperty("java.io.tmpdir"));
 
     // Remove old temporary files on a new thread
-    Thread cleanupThread = new Thread(new TmpFileCleanup());
+    Thread cleanupThread = new Thread(new TmpFileCleanup()); // check regular temp dir
     cleanupThread.setPriority(Thread.MIN_PRIORITY);
     cleanupThread.start();
 
@@ -126,6 +127,15 @@ public final class MZmineCore {
     if (MZmineConfiguration.CONFIG_FILE.exists() && MZmineConfiguration.CONFIG_FILE.canRead()) {
       try {
         configuration.loadConfiguration(MZmineConfiguration.CONFIG_FILE);
+        File tempDir = getConfiguration().getPreferences().getParameter(MZminePreferences.tempDirectory).getValue();
+        if(tempDir.exists() && tempDir.isDirectory()) {
+          System.setProperty("java.io.tmpdir", tempDir.getAbsolutePath());
+          logger.finest("Working temporary directory is " + System.getProperty("java.io.tmpdir"));
+          // check the new temp dir for old files.
+          Thread cleanupThread2 = new Thread(new TmpFileCleanup());
+          cleanupThread2.setPriority(Thread.MIN_PRIORITY);
+          cleanupThread2.start();
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }
