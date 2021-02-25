@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.Assert;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class BrukerTdfTest {
@@ -78,6 +79,7 @@ public class BrukerTdfTest {
     return rawDataFile;
   }
 
+  @Disabled("Needs test file?")
   @Test
   public void testFile() {
     IMSRawDataFile file = null;
