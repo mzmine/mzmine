@@ -19,7 +19,6 @@
 package io.github.mzmine.main;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
@@ -113,25 +112,14 @@ public class TmpFileCleanup implements Runnable {
       }
     }
 
-    project.getRawDataFiles().forEach(raw -> {
+    for(final MemoryMapStorage storage : MZmineCore.getStorageList()) {
       try {
-        MemoryMapStorage memoryMapStorage = raw.getMemoryMapStorage();
-        memoryMapStorage.discard(theUnsafe);
+        storage.discard(theUnsafe);
       } catch (IOException e) {
         e.printStackTrace();
-        logger.log(Level.SEVERE, "Cannot delete temp file for raw data file.", e);
       }
-    });
+    }
 
-    project.getFeatureLists().forEach(flist -> {
-      try {
-        MemoryMapStorage memoryMapStorage = ((ModularFeatureList) flist).getMemoryMapStorage();
-        memoryMapStorage.discard(theUnsafe);
-      } catch (IOException e) {
-        e.printStackTrace();
-        logger.log(Level.SEVERE, "Cannot delete temp file for feature list.", e);
-      }
-    });
   }
 
   /**
