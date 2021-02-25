@@ -48,10 +48,19 @@ jobs:
       run: ./gradlew
       
     - name: Upload builds
+      if: matrix.os != 'macos-latest'
       uses: actions/upload-artifact@v2
       with:
         name: MZmine_package_${{matrix.os}}
         path: build/jpackage/MZmine
+        retention-days: 30  # store for 30 days
+        
+    - name: Upload builds macos
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v2
+      with:
+        name: MZmine_package_${{matrix.os}}
+        path: build/jpackage/MZmine.app
         retention-days: 30  # store for 30 days
 
 # clean cache important but DOES NOT WORK on windows - -f not allowed 
