@@ -55,9 +55,14 @@ jobs:
         retention-days: 30  # store for 30 days
 
 # clean cache important but DOES NOT WORK on windows - -f not allowed 
+
+# Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
+# Restoring these files from a GitHub Actions cache might cause problems for future builds.
     - name: Cleanup Gradle Cache
-      # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
-      # Restoring these files from a GitHub Actions cache might cause problems for future builds.
-      run: |
-        rm --force ~/.gradle/caches/modules-2/modules-2.lock
-        rm --force ~/.gradle/caches/modules-2/gc.properties
+      uses: JesseTG/rm@v1.0.2 # should work on all OS but only one file at a time
+      with:
+        path: ~/.gradle/caches/modules-2/modules-2.lock
+    - name: Cleanup Gradle Cache second file
+      uses: JesseTG/rm@v1.0.2
+      with:
+        path: ~/.gradle/caches/modules-2/gc.properties
