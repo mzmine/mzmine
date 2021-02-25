@@ -21,12 +21,9 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -38,12 +35,14 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureSorter;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Vector;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
@@ -52,7 +51,7 @@ import javax.annotation.Nullable;
  */
 class IsotopeGrouperTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   /**
    * The isotopeDistance constant defines expected distance between isotopes. Actual weight of 1
@@ -64,27 +63,27 @@ class IsotopeGrouperTask extends AbstractTask {
   private static final double isotopeDistance = 1.0033;
 
   private final MZmineProject project;
-  private FeatureList featureList, deisotopedFeatureList;
+  private final ModularFeatureList featureList;
 
   // peaks counter
-  private int processedPeaks, totalPeaks;
+  private int processedRows, totalRows;
 
   // parameter values
-  private String suffix;
-  private MZTolerance mzTolerance;
-  private RTTolerance rtTolerance;
-  private boolean useMobilityTolerance;
-  private MobilityTolerance mobilityTolerance;
-  private boolean monotonicShape, removeOriginal, chooseMostIntense;
-  private int maximumCharge;
-  private ParameterSet parameters;
+  private final String suffix;
+  private final MZTolerance mzTolerance;
+  private final RTTolerance rtTolerance;
+  private final boolean useMobilityTolerance;
+  private final MobilityTolerance mobilityTolerance;
+  private final boolean monotonicShape;
+  private final boolean removeOriginal;
+  private final boolean chooseMostIntense;
+  private final int maximumCharge;
+  private final ParameterSet parameters;
 
   /**
-   * @param project
-   * @param featureList
-   * @param parameters
+   *
    */
-  IsotopeGrouperTask(MZmineProject project, FeatureList featureList, ParameterSet parameters,
+  IsotopeGrouperTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
       @Nullable MemoryMapStorage storage) {
     super(storage);
 
@@ -98,8 +97,9 @@ class IsotopeGrouperTask extends AbstractTask {
     rtTolerance = parameters.getParameter(IsotopeGrouperParameters.rtTolerance).getValue();
     monotonicShape = parameters.getParameter(IsotopeGrouperParameters.monotonicShape).getValue();
     maximumCharge = parameters.getParameter(IsotopeGrouperParameters.maximumCharge).getValue();
-    chooseMostIntense = (parameters.getParameter(IsotopeGrouperParameters.representativeIsotope)
-        .getValue() == IsotopeGrouperParameters.ChooseTopIntensity);
+    chooseMostIntense = (Objects
+        .equals(parameters.getParameter(IsotopeGrouperParameters.representativeIsotope)
+            .getValue(), IsotopeGrouperParameters.ChooseTopIntensity));
     removeOriginal = parameters.getParameter(IsotopeGrouperParameters.autoRemove).getValue();
     useMobilityTolerance = parameters.getParameter(IsotopeGrouperParameters.mobilityTolerace)
         .getValue();
@@ -121,9 +121,10 @@ class IsotopeGrouperTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalPeaks == 0)
+    if (totalRows == 0) {
       return 0.0f;
-    return (double) processedPeaks / (double) totalPeaks;
+    }
+    return (double) processedRows / (double) totalRows;
   }
 
   /**
@@ -136,115 +137,112 @@ class IsotopeGrouperTask extends AbstractTask {
     logger.info("Running isotopic peak grouper on " + featureList);
 
     // We assume source peakList contains one datafile
-    RawDataFile dataFile = featureList.getRawDataFile(0);
+    if (featureList.getRawDataFiles().size() > 1) {
+      setErrorMessage("Cannot perform deisotoping on aligned feature list.");
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
 
     // Create a new deisotoped peakList
-    deisotopedFeatureList = new ModularFeatureList(featureList + " " + suffix,
+    ModularFeatureList deisotopedFeatureList = new ModularFeatureList(featureList + " " + suffix,
         getMemoryMapStorage(), featureList.getRawDataFiles());
 
     // Collect all selected charge states
-    int charges[] = new int[maximumCharge];
-    for (int i = 0; i < maximumCharge; i++)
+    int[] charges = new int[maximumCharge];
+    for (int i = 0; i < maximumCharge; i++) {
       charges[i] = i + 1;
+    }
 
     // Sort peaks by descending height
-    Feature[] sortedPeaks = featureList.getFeatures(dataFile).toArray(Feature[]::new);
-    Arrays.sort(sortedPeaks, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
+    List<FeatureListRow> sortedRows = new ArrayList<>(featureList.getRows());
+    sortedRows.sort(new FeatureListRowSorter(SortingProperty.Height, SortingDirection.Descending));
 
     // Loop through all peaks
-    totalPeaks = sortedPeaks.length;
+    totalRows = sortedRows.size();
 
-    for (int ind = 0; ind < totalPeaks; ind++) {
+    while (!sortedRows.isEmpty()) {
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
-      Feature aPeak = sortedPeaks[ind];
+      ModularFeatureListRow row = (ModularFeatureListRow) sortedRows.get(0);
 
       // Check if peak was already deleted
-      if (aPeak == null) {
-        processedPeaks++;
+      if (row == null) {
+        processedRows++;
         continue;
       }
 
       // Check which charge state fits best around this peak
       int bestFitCharge = 0;
       int bestFitScore = -1;
-      Vector<Feature> bestFitPeaks = null;
+      List<FeatureListRow> bestFitRows = null;
       for (int charge : charges) {
 
-        Vector<Feature> fittedPeaks = new Vector<Feature>();
-        fittedPeaks.add(aPeak);
-        fitPattern(fittedPeaks, aPeak, charge, sortedPeaks);
+        List<FeatureListRow> fittedRows = new ArrayList<>();
+        fittedRows.add(row);
+        fitPattern(fittedRows, row, charge, sortedRows);
 
-        int score = fittedPeaks.size();
+        int score = fittedRows.size();
         if ((score > bestFitScore) || ((score == bestFitScore) && (bestFitCharge > charge))) {
           bestFitScore = score;
           bestFitCharge = charge;
-          bestFitPeaks = fittedPeaks;
+          bestFitRows = fittedRows;
         }
 
       }
 
-      FeatureListRow oldRow = featureList.getFeatureRow(aPeak);
-
-      assert bestFitPeaks != null;
+      assert bestFitRows != null;
 
       // Verify the number of detected isotopes. If there is only one
       // isotope, we skip this left the original peak in the feature list.
-      if (bestFitPeaks.size() == 1) {
-        deisotopedFeatureList.addRow(oldRow);
-        processedPeaks++;
+      if (bestFitRows.size() == 1) {
+        deisotopedFeatureList.addRow(new ModularFeatureListRow(deisotopedFeatureList, row, true));
+        sortedRows.remove(bestFitRows.get(0));
+        processedRows++;
         continue;
       }
 
       // Convert the peak pattern to array
-      Feature[] originalPeaks = bestFitPeaks.toArray(new Feature[0]);
+      FeatureListRow[] originalRows = bestFitRows.toArray(new FeatureListRow[0]);
 
       // Create a new SimpleIsotopePattern
-      DataPoint[] isotopes = new DataPoint[bestFitPeaks.size()];
+      DataPoint[] isotopes = new DataPoint[bestFitRows.size()];
       for (int i = 0; i < isotopes.length; i++) {
-        Feature p = originalPeaks[i];
-        isotopes[i] = new SimpleDataPoint(p.getMZ(), p.getHeight());
-
+        FeatureListRow p = originalRows[i];
+        isotopes[i] = new SimpleDataPoint(p.getAverageMZ(), p.getAverageHeight());
       }
       SimpleIsotopePattern newPattern =
-          new SimpleIsotopePattern(isotopes, IsotopePatternStatus.DETECTED, aPeak.toString());
+          new SimpleIsotopePattern(isotopes, IsotopePatternStatus.DETECTED, row.toString());
 
-      // Depending on user's choice, we leave either the most intenst, or
+      // Depending on user's choice, we leave either the most intense, or
       // the lowest m/z peak
       if (chooseMostIntense) {
-        Arrays.sort(originalPeaks,
-            new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
+        Arrays.sort(originalRows,
+            new FeatureListRowSorter(SortingProperty.Height, SortingDirection.Descending));
       } else {
         Arrays
-            .sort(originalPeaks, new FeatureSorter(SortingProperty.MZ, SortingDirection.Ascending));
+            .sort(originalRows,
+                new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
       }
 
-      Feature newPeak = new ModularFeature((ModularFeatureList) deisotopedFeatureList,
-          originalPeaks[0]);
-      newPeak.setIsotopePattern(newPattern);
-      newPeak.setCharge(bestFitCharge);
-
-      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) deisotopedFeatureList,
-          oldRow.getID(), newPeak);
-      newRow.addFeature(dataFile, newPeak);
-      ((ModularFeatureListRow) oldRow).getMap().forEach((k, v) -> {
-        if (((ModularFeatureListRow) newRow).get(k) == null) {
-          ((ModularFeatureListRow) newRow).set(k, v);
-        }
-      });
+      // copy row
+      FeatureListRow newRow = new ModularFeatureListRow(deisotopedFeatureList,
+          (ModularFeatureListRow) originalRows[0], true);
       deisotopedFeatureList.addRow(newRow);
+      // set isotope pattern
+      Feature feature = originalRows[0].getBestFeature();
+      feature.setIsotopePattern(newPattern);
+      feature.setCharge(bestFitCharge);
 
       // Remove all peaks already assigned to isotope pattern
-      for (int i = 0; i < sortedPeaks.length; i++) {
-        if (bestFitPeaks.contains(sortedPeaks[i])) {
-          sortedPeaks[i] = null;
-        }
+      for (FeatureListRow fit : bestFitRows) {
+        sortedRows.remove(fit);
       }
 
       // Update completion rate
-      processedPeaks++;
+      processedRows += bestFitRows.size();
     }
 
     // Add new feature list to the project
@@ -260,24 +258,23 @@ class IsotopeGrouperTask extends AbstractTask {
         new SimpleFeatureListAppliedMethod("Isotopic peaks grouper",
             IsotopeGrouperModule.class, parameters));
 
-    // TODO: !
     // Remove the original peakList if requested
-    //if (removeOriginal)
-    //  project.removePeakList(featureList);
+    if (removeOriginal) {
+      project.removeFeatureList(featureList);
+    }
 
     logger.info("Finished isotopic peak grouper on " + featureList);
     setStatus(TaskStatus.FINISHED);
-
   }
 
   /**
    * Fits isotope pattern around one peak.
    *
-   * @param p Pattern is fitted around this peak
+   * @param row    Pattern is fitted around this peak
    * @param charge Charge state of the fitted pattern
    */
-  private void fitPattern(Vector<Feature> fittedPeaks, Feature p, int charge,
-      Feature[] sortedPeaks) {
+  private void fitPattern(List<FeatureListRow> fittedRows, ModularFeatureListRow row, int charge,
+      List<FeatureListRow> sortedRows) {
 
     if (charge == 0) {
       return;
@@ -285,31 +282,30 @@ class IsotopeGrouperTask extends AbstractTask {
 
     // Search for peaks before the start peak
     if (!monotonicShape) {
-      fitHalfPattern((ModularFeature) p, charge, -1, fittedPeaks, sortedPeaks);
+      fitHalfPattern(row, charge, -1, fittedRows, sortedRows);
     }
 
     // Search for peaks after the start peak
-    fitHalfPattern((ModularFeature) p, charge, 1, fittedPeaks, sortedPeaks);
-
+    fitHalfPattern(row, charge, 1, fittedRows, sortedRows);
   }
 
   /**
    * Helper method for fitPattern. Fits only one half of the pattern.
    *
-   * @param p           Pattern is fitted around this peak
-   * @param charge      Charge state of the fitted pattern
-   * @param direction   Defines which half to fit: -1=fit to peaks before start M/Z, +1=fit to peaks
-   *                    after start M/Z
-   * @param fittedPeaks All matching peaks will be added to this set
+   * @param row        Pattern is fitted around this peak
+   * @param charge     Charge state of the fitted pattern
+   * @param direction  Defines which half to fit: -1=fit to peaks before start M/Z, +1=fit to peaks
+   *                   after start M/Z
+   * @param fittedRows All matching peaks will be added to this set
    */
-  private void fitHalfPattern(ModularFeature p, int charge, int direction,
-      Vector<Feature> fittedPeaks,
-      Feature[] sortedPeaks) {
+  private void fitHalfPattern(ModularFeatureListRow row, int charge, int direction,
+      List<FeatureListRow> fittedRows,
+      List<FeatureListRow> sortedRows) {
 
-    // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
-    double mainMZ = p.getMZ();
-    float mainRT = p.getRT();
-    Float mainMobility = p.getMobility();
+    // Use M/Z and RT of the strongest peak of the pattern (row)
+    double mainMZ = row.getAverageMZ();
+    float mainRT = row.getAverageRT();
+    Float mainMobility = row.getBestFeature().getMobility();
 
     // Variable n is the number of peak we are currently searching. 1=first
     // peak before/after start peak, 2=peak before/after previous, 3=...
@@ -323,18 +319,19 @@ class IsotopeGrouperTask extends AbstractTask {
 
       // Loop through all peaks, and collect candidates for the n:th peak
       // in the pattern
-      Vector<ModularFeature> goodCandidates = new Vector<>();
-      for (int ind = 0; ind < sortedPeaks.length; ind++) {
+      List<FeatureListRow> goodCandidates = new ArrayList<>();
+      for (int ind = 0; ind < sortedRows.size(); ind++) {
 
-        ModularFeature candidatePeak = (ModularFeature) sortedPeaks[ind];
+        ModularFeatureListRow candidatePeak = (ModularFeatureListRow) sortedRows.get(ind);
 
-        if (candidatePeak == null)
+        if (candidatePeak == null) {
           continue;
+        }
 
         // Get properties of the candidate peak
-        double candidatePeakMZ = candidatePeak.getMZ();
-        float candidatePeakRT = candidatePeak.getRT();
-        Float candidateMobility = candidatePeak.getMobility();
+        double candidatePeakMZ = candidatePeak.getAverageMZ();
+        float candidatePeakRT = candidatePeak.getAverageRT();
+        Float candidateMobility = candidatePeak.getBestFeature().getMobility();
 
         // Does this peak fill all requirements of a candidate?
         // - within tolerances from the expected location (M/Z and RT)
@@ -343,8 +340,7 @@ class IsotopeGrouperTask extends AbstractTask {
         double isotopeMZ = candidatePeakMZ - isotopeDistance * direction * n / charge;
 
         if (mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ)
-            && rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)
-            && (!fittedPeaks.contains(candidatePeak))) {
+            && rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)) {
 
           if (useMobilityTolerance && mainMobility != null && candidateMobility != null) {
             if (mobilityTolerance.checkWithinTolerance(mainMobility, candidateMobility)) {
@@ -362,7 +358,7 @@ class IsotopeGrouperTask extends AbstractTask {
       // 2.3 and older, only the highest candidate was added)
       if (!goodCandidates.isEmpty()) {
 
-        fittedPeaks.addAll(goodCandidates);
+        fittedRows.addAll(goodCandidates);
 
         // n:th peak was found, so let's move on to n+1
         n++;
@@ -370,7 +366,6 @@ class IsotopeGrouperTask extends AbstractTask {
       }
 
     } while (followingPeakFound);
-
   }
 
 }
