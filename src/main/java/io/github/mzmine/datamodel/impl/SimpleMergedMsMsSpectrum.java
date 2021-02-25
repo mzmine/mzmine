@@ -30,11 +30,10 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -74,12 +73,12 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
     float tempRt = 0f;
     for (MassSpectrum spectrum : sourceSpectra) {
       if (file == null) {
-        if(spectrum instanceof Scan) {
+        if (spectrum instanceof Scan) {
           file = ((Scan) spectrum).getDataFile();
           tempPolarity = ((Scan) spectrum).getPolarity();
           tempScanningMzRange = ((Scan) spectrum).getScanningMZRange();
           tempRt = ((Scan) spectrum).getRetentionTime();
-        } else if(spectrum instanceof MobilityScan) {
+        } else if (spectrum instanceof MobilityScan) {
           file = ((MobilityScan) spectrum).getDataFile();
           tempPolarity = ((MobilityScan) spectrum).getFrame().getPolarity();
           tempScanningMzRange = ((MobilityScan) spectrum).getFrame()
@@ -87,12 +86,12 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
           tempRt = ((MobilityScan) spectrum).getRetentionTime();
         }
       }
-      if(spectrum instanceof Scan) {
-        if(file != ((Scan) spectrum).getDataFile()) {
+      if (spectrum instanceof Scan) {
+        if (file != ((Scan) spectrum).getDataFile()) {
           logger.warning("Merging spectra with different raw data files");
         }
-      } else if(spectrum instanceof MobilityScan) {
-        if(file != ((MobilityScan) spectrum).getDataFile()) {
+      } else if (spectrum instanceof MobilityScan) {
+        if (file != ((MobilityScan) spectrum).getDataFile()) {
           logger.warning("Merging spectra with different raw data files");
         }
       }
@@ -187,9 +186,20 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
     return massList;
   }
 
+
   @Override
-  public void addMassList(@Nonnull MassList massList) {
+  public synchronized void addMassList(final @Nonnull MassList massList) {
+    // we are not going into any details if this.massList equals massList
+    // do not call listeners if the same object is passed multiple times
+    if (this.massList == massList) {
+      return;
+    }
+    MassList old = this.massList;
     this.massList = massList;
+
+    if (rawDataFile != null) {
+      rawDataFile.applyMassListChanged(this, old, massList);
+    }
   }
 
 }

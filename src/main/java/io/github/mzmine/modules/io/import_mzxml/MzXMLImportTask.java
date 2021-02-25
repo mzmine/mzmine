@@ -63,6 +63,15 @@ public class MzXMLImportTask extends AbstractTask {
   private DefaultHandler handler = new MzXMLHandler();
   private String precision;
 
+  // extracted values
+  private float retentionTime = 0;
+  private int scanNumber = 0;
+  private int msLevel = 1;
+  private PolarityType polarity = PolarityType.UNKNOWN;
+  private String scanId = "";
+  private double precursorMz = 0d;
+  private int precursorCharge = 0;
+
   // Retention time parser
   private DatatypeFactory dataTypeFactory;
 
@@ -156,6 +165,7 @@ public class MzXMLImportTask extends AbstractTask {
 
   private class MzXMLHandler extends DefaultHandler {
 
+
     @Override
     public void startElement(String namespaceURI, String lName, // local
         // name
@@ -186,23 +196,22 @@ public class MzXMLImportTask extends AbstractTask {
          * Only num, msLevel & peaksCount values are required according with mzxml standard, the
          * others are optional
          */
-        int scanNumber = Integer.parseInt(attrs.getValue("num"));
+        scanNumber = Integer.parseInt(attrs.getValue("num"));
 
         // mzXML files with empty msLevel attribute do exist, so we use
         // 1 as default
-        int msLevel = 1;
+        msLevel = 1;
         if (!Strings.isNullOrEmpty(attrs.getValue("msLevel"))) {
           msLevel = Integer.parseInt(attrs.getValue("msLevel"));
         }
 
         String scanType = attrs.getValue("scanType");
         String filterLine = attrs.getValue("filterLine");
-        String scanId = filterLine;
+        scanId = filterLine;
         if (Strings.isNullOrEmpty(scanId)) {
           scanId = scanType;
         }
 
-        PolarityType polarity;
         String polarityAttr = attrs.getValue("polarity");
         if ((polarityAttr != null) && (polarityAttr.length() == 1)) {
           polarity = PolarityType.fromSingleChar(polarityAttr);
@@ -212,7 +221,6 @@ public class MzXMLImportTask extends AbstractTask {
         peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
 
         // Parse retention time
-        float retentionTime = 0;
         String retentionTimeStr = attrs.getValue("retentionTime");
         if (retentionTimeStr != null) {
           Date currentDate = new Date();
@@ -241,10 +249,6 @@ public class MzXMLImportTask extends AbstractTask {
         // Setting the level of fragment of scan and parent scan number
         msLevelTree++;
         parentTreeValue[msLevel] = scanNumber;
-
-        buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, 0, 0,
-            new double[0], new double[0], null, polarity, scanId, null);
-
       }
 
       // <peaks>
@@ -266,9 +270,12 @@ public class MzXMLImportTask extends AbstractTask {
       if (qName.equalsIgnoreCase("precursorMz")) {
         // clean the current char buffer for the new element
         charBuffer.setLength(0);
-        String precursorCharge = attrs.getValue("precursorCharge");
-        if (precursorCharge != null) {
-          buildingScan.setPrecursorCharge(Integer.parseInt(precursorCharge));
+        String precursorChargeStr = attrs.getValue("precursorCharge");
+        if (precursorChargeStr != null) {
+          precursorCharge = Integer.parseInt(precursorChargeStr);
+          if (buildingScan != null) {
+            buildingScan.setPrecursorCharge(precursorCharge);
+          }
         }
       }
 
@@ -295,6 +302,7 @@ public class MzXMLImportTask extends AbstractTask {
 
         if (msLevelTree == 0) {
           parentStack.addFirst(buildingScan);
+          reset();
           buildingScan = null;
           while (!parentStack.isEmpty()) {
             SimpleScan currentScan = parentStack.removeLast();
@@ -323,11 +331,14 @@ public class MzXMLImportTask extends AbstractTask {
       // <precursorMz>
       if (qName.equalsIgnoreCase("precursorMz")) {
         final String textContent = charBuffer.toString();
-        double precursorMz = 0d;
+        precursorMz = 0d;
         if (!textContent.isEmpty()) {
           precursorMz = Double.parseDouble(textContent);
         }
-        buildingScan.setPrecursorMZ(precursorMz);
+
+        if (buildingScan != null) {
+          buildingScan.setPrecursorMZ(precursorMz);
+        }
         return;
       }
 
@@ -380,15 +391,25 @@ public class MzXMLImportTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
-        // Set the centroided tag
-        buildingScan.setSpectrumType(spectrumType);
-
         // Set the final data points to the scan
-        // This line awaits you, Robin: ~SteffenHeu :)
-//        buildingScan.setDataPoints(mzValues, intensityValues);
+        buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
+            precursorMz,
+            precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanId,
+            null);
 
         return;
       }
+    }
+
+    private void reset() {
+      buildingScan = null;
+      retentionTime = 0;
+      scanNumber = 0;
+      msLevel = 1;
+      polarity = PolarityType.UNKNOWN;
+      scanId = "";
+      precursorMz = 0d;
+      precursorCharge = 0;
     }
 
     /**

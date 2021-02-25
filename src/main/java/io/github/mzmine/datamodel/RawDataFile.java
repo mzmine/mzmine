@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -44,6 +45,22 @@ public interface RawDataFile {
   int getNumOfScans();
 
   int getNumOfScans(int msLevel);
+
+
+  /**
+   * The maximum number of centroid data points in all scans (after mass detection and optional
+   * processing)
+   *
+   * @return
+   */
+  int getMaxCentroidDataPoints();
+
+  /**
+   * The maximum number of raw data points in all scans
+   *
+   * @return
+   */
+  int getMaxRawDataPoints();
 
   /**
    * Returns sorted array of all MS levels in this file
@@ -133,6 +150,16 @@ public interface RawDataFile {
 
 
   ObservableList<Scan> getScans();
+
+
+  /**
+   * Mass list has changed. reset all precomputed values
+   *
+   * @param scan   the scan that was changed
+   * @param old    old mass list
+   * @param masses new mass list
+   */
+  void applyMassListChanged(Scan scan, MassList old, MassList masses);
 
   /**
    * The scan at the specified scan number or null

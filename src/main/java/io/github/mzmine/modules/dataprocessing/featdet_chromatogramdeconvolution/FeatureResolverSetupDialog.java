@@ -112,8 +112,14 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
     previewChart.removeAllDatasets();
 
-    ResolvingDimension dimension = parameterSet.getParameter(GeneralResolverParameters.dimension)
-        .getValue();
+    ResolvingDimension dimension = ResolvingDimension.RETENTION_TIME;
+    try {
+      // not all resolvers are capable of resolving rt and mobility dimension. In that case, the
+      // parameter has not been added to the parameter set.
+      dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
+    } catch (IllegalArgumentException e) {
+      // this one can go silent
+    }
     // add preview depending on which dimension is selected.
     if (dimension == ResolvingDimension.RETENTION_TIME) {
       Platform.runLater(() -> {
