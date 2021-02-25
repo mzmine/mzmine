@@ -99,12 +99,12 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
     massList = null;
 
     if (isIMSRawDataFile) {
-      newRawDataFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(null);
+      newRawDataFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(null, null);
     }
     if (isImagingRawDataFile) {
-      newRawDataFile = (ImagingRawDataFileImpl) MZmineCore.createNewImagingFile(null);
+      newRawDataFile = (ImagingRawDataFileImpl) MZmineCore.createNewImagingFile(null, null);
     } else {
-      newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+      newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null);
     }
     // newRawDataFile.openDataPointsFile(scansFile);
 

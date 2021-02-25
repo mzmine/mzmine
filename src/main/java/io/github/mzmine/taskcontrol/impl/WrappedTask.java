@@ -46,7 +46,7 @@ public class WrappedTask {
   private TaskPriority priority;
   private WorkerThread assignedTo;
 
-  WrappedTask(Task task, TaskPriority priority) {
+  public WrappedTask(Task task, TaskPriority priority) {
     this.task = task;
     this.priority = priority;
   }

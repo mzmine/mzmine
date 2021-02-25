@@ -28,6 +28,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.imsfeaturevisualizer.CalculateDatasetsTask;
+import io.github.mzmine.modules.visualization.imsfeaturevisualizer.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -56,7 +57,9 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
   private final NumberFormat mzFormat;
   private final NumberFormat mobilityFormat;
   private final NumberFormat intensityFormat;
+  private final NumberFormat ccsFormat;
   private final UnitFormat unitFormat;
+  ComboBox<ModularFeatureList> comboBox;
 
   public MobilityMzRegionExtractionSetupDialog(boolean valueCheckRequired,
       ParameterSet parameters) {
@@ -71,6 +74,7 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
+    ccsFormat = MZmineCore.getConfiguration().getCCSFormat();
 
     heatmap = new MultiDatasetXYZScatterPlot<>();
     heatmap.setDomainAxisLabel("m/z");
@@ -90,27 +94,11 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     FlowPane fp = new FlowPane(new Label("Feature list "));
     fp.setHgap(5);
 
-    ComboBox<ModularFeatureList> comboBox = new ComboBox<>();
+    comboBox = new ComboBox<>();
     ObservableList<? extends FeatureList> featureLists = MZmineCore.getProjectManager()
         .getCurrentProject().getFeatureLists();
     comboBox.setItems((ObservableList<ModularFeatureList>) featureLists);
-    comboBox.valueProperty().addListener(((observable, oldValue, newValue) -> {
-      List<? extends Feature> features = newValue.streamFeatures().collect(Collectors.toList());
-
-      heatmap.removeAllDatasets();
-      CalculateDatasetsTask calc = new CalculateDatasetsTask((Collection<ModularFeature>) features,
-          false);
-      MZmineCore.getTaskController().addTask(calc);
-      calc.addTaskStatusListener((task, newStatus, oldStatus) -> {
-        if (newStatus == TaskStatus.FINISHED) {
-          Platform.runLater(() -> {
-            var datasetsRenderers = calc.getDatasetsRenderers();
-            heatmap.addDatasetsAndRenderers(datasetsRenderers);
-            heatmap.setLegendPaintScale(calc.getPaintScale());
-          });
-        }
-      });
-    }));
+    comboBox.valueProperty().addListener(((observable, oldValue, newValue) -> parametersChanged()));
 
     wrapper.getFinishedRegionListeners().addListener(
         (ListChangeListener<RegionSelectionListener>) c -> {
@@ -123,4 +111,34 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     previewWrapperPane.setBottom(fp);
   }
 
+  @Override
+  protected void parametersChanged() {
+    updateParameterSetFromComponents();
+
+    List<? extends Feature> features = comboBox.getValue().streamFeatures()
+        .collect(Collectors.toList());
+    PlotType pt = parameterSet.getParameter(MobilityMzRegionExtractionParameters.ccsOrMobility)
+        .getValue();
+    if (pt == PlotType.MOBILITY) {
+      heatmap.setRangeAxisLabel("Mobility");
+      heatmap.setRangeAxisNumberFormatOverride(mobilityFormat);
+    } else {
+      heatmap.setRangeAxisLabel(unitFormat.format("CCS", "A^2"));
+      heatmap.setRangeAxisNumberFormatOverride(ccsFormat);
+    }
+
+    heatmap.removeAllDatasets();
+    CalculateDatasetsTask calc = new CalculateDatasetsTask((Collection<ModularFeature>) features,
+        false, pt);
+    MZmineCore.getTaskController().addTask(calc);
+    calc.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (newStatus == TaskStatus.FINISHED) {
+        Platform.runLater(() -> {
+          var datasetsRenderers = calc.getDatasetsRenderers();
+          heatmap.addDatasetsAndRenderers(datasetsRenderers);
+          heatmap.setLegendPaintScale(calc.getPaintScale());
+        });
+      }
+    });
+  }
 }

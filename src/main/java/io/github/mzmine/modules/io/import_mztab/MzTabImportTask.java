@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.import_mztab;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -183,6 +184,9 @@ class MzTabImportTask extends AbstractTask {
 
     // If we are importing files, let's run RawDataImportModule
     if (importRawFiles) {
+      // one storage for all files imported in the same task as they are typically analyzed together
+      MemoryMapStorage storage = new MemoryMapStorage();
+
       List<File> filesToImport = new ArrayList<>();
       for (Entry<Integer, MsRun> entry : msrun.entrySet()) {
         File fileToImport = new File(entry.getValue().getLocation().getPath());
@@ -259,6 +263,8 @@ class MzTabImportTask extends AbstractTask {
     } else {
       finishedPercentage = 0.5;
     }
+    // one storage for all files in the same module call
+    MemoryMapStorage storage = new MemoryMapStorage();
 
     // Find a matching RawDataFile for each MsRun entry
     for (Entry<Integer, MsRun> entry : msrun.entrySet()) {
@@ -276,7 +282,7 @@ class MzTabImportTask extends AbstractTask {
 
       // If no data file of that name exists, create a dummy one
       if (rawDataFile == null) {
-        RawDataFile writer = MZmineCore.createNewFile(rawFileName);
+        RawDataFile writer = MZmineCore.createNewFile(rawFileName, storage);
         project.addFile(writer);
       }
 

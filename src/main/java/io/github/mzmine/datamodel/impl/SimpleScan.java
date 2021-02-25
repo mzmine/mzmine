@@ -25,7 +25,6 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 /**
@@ -33,8 +32,7 @@ import javax.annotation.Nonnull;
  */
 public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
+  @Nonnull
   private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
@@ -50,12 +48,12 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   /**
    * Clone constructor
    */
-
   public SimpleScan(@Nonnull RawDataFile dataFile, Scan sc, double[] newMzValues,
       double[] newIntensityValues) {
 
     this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getPrecursorMZ(),
-        sc.getPrecursorCharge(), newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
+        sc.getPrecursorCharge(), newMzValues, newIntensityValues, sc.getSpectrumType(),
+        sc.getPolarity(),
         sc.getScanDefinition(), sc.getScanningMZRange());
   }
 
@@ -64,7 +62,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
    * Constructor for creating scan with given data
    */
   public SimpleScan(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, double mzValues[], double intensityValues[],
+      double precursorMZ, int precursorCharge, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
 
@@ -144,7 +142,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Scan#
+   *
    */
   @Override
   public float getRetentionTime() {
@@ -166,7 +164,17 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
+    // we are not going into any details if this.massList equals massList
+    // do not call listeners if the same object is passed multiple times
+    if (this.massList == massList) {
+      return;
+    }
+    MassList old = this.massList;
     this.massList = massList;
+
+    if (dataFile != null) {
+      dataFile.applyMassListChanged(this, old, massList);
+    }
   }
 
   @Override
@@ -189,6 +197,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return polarity;
   }
 
+  @Nonnull
   @Override
   public String getScanDefinition() {
     if (scanDefinition == null) {
