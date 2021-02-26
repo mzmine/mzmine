@@ -53,6 +53,10 @@ public class SGIntensitySmoothing {
         smoothed[i] += access.getIntensity(k + j) * normWeights[j];
       }
 
+      if(smoothed[i] < 0d) {
+        smoothed[i] = 0d;
+      }
+
       // if values that were previously 0 shall remain 0, we process that here.
       if(zht == ZeroHandlingType.KEEP && Double.compare(access.getIntensity(i), 0d) == 0) {
         smoothed[i] = 0;

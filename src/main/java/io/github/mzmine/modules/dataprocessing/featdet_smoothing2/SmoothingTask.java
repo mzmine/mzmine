@@ -13,7 +13,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing2.SGIntensitySmo
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,23 +85,61 @@ public class SmoothingTask extends AbstractTask {
     }
   }
 
-  private IonTimeSeries<? extends Scan> constructNewSeries(
+  /**
+   * Handles {@link ZeroHandlingType#KEEP}
+   *
+   * @param dataAccess
+   * @param feature
+   * @param smoothedIntensities
+   * @return
+   */
+  private IonTimeSeries<? extends Scan> replaceOldIntensities(
       @Nonnull final IntensitySeries dataAccess, @Nonnull final ModularFeature feature,
-      @Nonnull final double[] smoothedIntensities, @Nonnull final ZeroHandlingType zht) {
+      @Nonnull final double[] smoothedIntensities) {
 
-    final List<Scan> eligbleScans = new ArrayList<>();
     final IonTimeSeries<? extends Scan> originalSeries = feature.getFeatureData();
     double[] newIntensities = new double[originalSeries.getNumberOfValues()];
-
     double[] originalIntensities = new double[originalSeries.getNumberOfValues()];
-
+    originalSeries.getIntensityValues(originalIntensities);
 
     int newIntensitiesIndex = 0;
     for (int i = 0; i < smoothedIntensities.length; i++) {
-      // check if we originally did have an intensity.
-      if (Double.compare(dataAccess.getIntensity(i), 0d) != 0) {
-        newIntensities[newIntensitiesIndex] = sm
+      // check if we originally did have an intensity at the current index. I know that the data
+      // access contains more zeros and the zeros of different indices will be matched, but the
+      // newIntensitiesIndex will "catch" up, once real intensities are reached.
+      if (Double.compare(dataAccess.getIntensity(i), originalIntensities[newIntensitiesIndex])
+          == 0) {
+        newIntensities[newIntensitiesIndex] = smoothedIntensities[i];
+        newIntensitiesIndex++;
       }
     }
+
+    double[] originalMzs = new double[originalSeries.getNumberOfValues()];
+    return (IonTimeSeries<? extends Scan>) originalSeries
+        .copyAndReplace(getMemoryMapStorage(), originalMzs, newIntensities);
+  }
+
+  private IonTimeSeries<? extends Scan> createNewSeries(@Nonnull final IntensitySeries dataAccess,
+      @Nonnull final ModularFeature feature,
+      @Nonnull final double[] smoothedIntensities, List<Scan> allScans) {
+
+    final IonTimeSeries<? extends Scan> originalSeries = feature.getFeatureData();
+    double[] originalIntensities = new double[originalSeries.getNumberOfValues()];
+    originalSeries.getIntensityValues(originalIntensities);
+
+    List<Double> newIntensities = new ArrayList<>();
+    List<Scan> newScans = new ArrayList<>();
+
+    double prevIntensity = 0d;
+    for (int i = 0; i < smoothedIntensities.length; i++) {
+      if(Double.compare(smoothedIntensities[i], 0) != 0) {
+        newIntensities.add(smoothedIntensities[i]);
+        newScans.add(allScans.get(i));
+      }
+    }
+
+    double[] originalMzs = new double[originalSeries.getNumberOfValues()];
+    return (IonTimeSeries<? extends Scan>) originalSeries
+        .copyAndReplace(getMemoryMapStorage(), originalMzs, newIntensities);
   }
 }
