@@ -37,7 +37,9 @@ import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.renderer.xy.XYShapeRenderer;
+import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.util.ShapeUtils;
+import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 
 public class ColoredXYZDotRenderer extends XYShapeRenderer {
@@ -70,13 +72,16 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
   public XYItemRendererState initialise(Graphics2D var1, Rectangle2D var2, XYPlot var3, XYDataset var4, PlotRenderingInfo var5) {
     XYItemRendererState state = super.initialise(var1, var2, var3, var4, var5);
 
-    // All points are supposed to be visualized, do not do extra computations in render method of XYPlot
-    state.setProcessVisibleItemsOnly(false);
+    // Do not call drawItem, if item is not visible(e.g. after zoom)
+    state.setProcessVisibleItemsOnly(true);
 
     // Clear saved coordinated, when the renderer is initialized
     pointsCoordinates.clear();
 
-    Platform.runLater(() -> System.out.println("[DEBUG] Number of visualized data points: " + pointsCoordinates.size()));
+    if (pointsReduction) {
+      Platform.runLater(() -> System.out
+          .println("[DEBUG] Number of \"unique\" data points: " + pointsCoordinates.size()));
+    }
 
     return state;
   }
@@ -132,8 +137,10 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
       shape = ShapeUtils.createTranslatedShape(dataPointsShape, transX, transY);
     }
 
-    g2.setPaint(getPaint(dataset, series, item));
-    g2.fill(shape);
+    if (shape.intersects(dataArea)) {
+      g2.setPaint(getPaint(dataset, series, item));
+      g2.fill(shape);
+    }
 
     int datasetIndex = plot.indexOf(dataset);
     updateCrosshairValues(crosshairState, x, y, datasetIndex, transX, transY, orientation);
