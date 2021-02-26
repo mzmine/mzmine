@@ -232,7 +232,7 @@ class IsotopeGrouperTask extends AbstractTask {
           (ModularFeatureListRow) originalRows[0], true);
       deisotopedFeatureList.addRow(newRow);
       // set isotope pattern
-      Feature feature = newRow.getBestFeature();
+      Feature feature = newRow.getFeatures().get(0);
       feature.setIsotopePattern(newPattern);
       feature.setCharge(bestFitCharge);
 
@@ -305,7 +305,7 @@ class IsotopeGrouperTask extends AbstractTask {
     // Use M/Z and RT of the strongest peak of the pattern (row)
     double mainMZ = row.getAverageMZ();
     float mainRT = row.getAverageRT();
-    Float mainMobility = row.getBestFeature().getMobility();
+    Float mainMobility = row.getAverageMobility();
 
     // Variable n is the number of peak we are currently searching. 1=first
     // peak before/after start peak, 2=peak before/after previous, 3=...
@@ -331,7 +331,7 @@ class IsotopeGrouperTask extends AbstractTask {
         // Get properties of the candidate peak
         double candidatePeakMZ = candidatePeak.getAverageMZ();
         float candidatePeakRT = candidatePeak.getAverageRT();
-        Float candidateMobility = candidatePeak.getBestFeature().getMobility();
+        Float candidateMobility = candidatePeak.getAverageMobility();
 
         // Does this peak fill all requirements of a candidate?
         // - within tolerances from the expected location (M/Z and RT)
