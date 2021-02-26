@@ -18,6 +18,7 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Arrays;
@@ -65,16 +66,16 @@ public class TaskQueue {
     if (task.getActualTask() instanceof AbstractTask) {
       ((AbstractTask) task.getActualTask()).addTaskStatusListener((t, oldStatus, newStatus) -> {
         if (t.getStatus() == TaskStatus.FINISHED) {
-          Platform.runLater(() -> queue.remove(task));
+          MZmineCore.runLater(() -> queue.remove(task));
         }
       });
     }
 
-    Platform.runLater(() -> queue.add(task));
+    MZmineCore.runLater(() -> queue.add(task));
   }
 
   void clear() {
-    Platform.runLater(() -> queue.clear());
+    MZmineCore.runLater(() -> queue.clear());
   }
 
   boolean isEmpty() {

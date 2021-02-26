@@ -57,6 +57,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -76,6 +77,7 @@ public final class MZmineCore {
 
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
+  private static boolean headLessMode = false;
 
   /**
    * Main method
@@ -146,7 +148,7 @@ public final class MZmineCore {
     // batch mode defined by command line argument
     File batchFile = argsParser.getBatchFile();
 
-
+    headLessMode = false;
     // If we have no arguments, run in GUI mode, otherwise run in batch mode
     if (batchFile == null) {
       try {
@@ -159,6 +161,7 @@ public final class MZmineCore {
       }
 
     } else {
+      headLessMode = true;
       desktop = new HeadLessDesktop();
 
       // Tracker
@@ -334,6 +337,27 @@ public final class MZmineCore {
       Thread cleanupThread2 = new Thread(new TmpFileCleanup());
       cleanupThread2.setPriority(Thread.MIN_PRIORITY);
       cleanupThread2.start();
+    }
+  }
+
+  /**
+   *
+   * @return headless mode or JavaFX GUI
+   */
+  public static boolean isHeadLessMode() {
+    return headLessMode;
+  }
+
+  /**
+   *
+   * @param r runnable to either run directly or on the JavaFX thread
+   */
+  public static void runLater(Runnable r) {
+    if(isHeadLessMode()) {
+      r.run();
+    }
+    else {
+      Platform.runLater(r);
     }
   }
 
