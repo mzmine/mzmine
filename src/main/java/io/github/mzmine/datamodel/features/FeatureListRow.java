@@ -96,7 +96,7 @@ public interface FeatureListRow {
   /**
    * Returns average height for features on this row
    */
-  public Float getAverageHeight();
+  public Double getAverageHeight();
 
   /**
    * Returns the charge for feature on this row. If more charges are found 0 is returned
@@ -106,7 +106,7 @@ public interface FeatureListRow {
   /**
    * Returns average area for features on this row
    */
-  public Float getAverageArea();
+  public Double getAverageArea();
 
   /**
    * Returns comment for this row

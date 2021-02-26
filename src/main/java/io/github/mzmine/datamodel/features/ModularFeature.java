@@ -464,30 +464,6 @@ public class ModularFeature implements Feature, ModularDataModel {
     return raw == null ? null : raw.getValue();
   }
 
-  public Property<Float> getRTProperty() {
-    return get(RTType.class);
-  }
-
-  public Property<Double> getMZProperty() {
-    return get(MZType.class);
-  }
-
-  public Property<Float> getHeightProperty() {
-    return get(HeightType.class);
-  }
-
-//  public ListProperty<Scan> getScanNumbersProperty() {
-//    return get(ScanNumbersType.class);
-//  }
-
-//  public ListProperty<DataPoint> getDataPointsProperty() {
-//    return get(DataPointsType.class);
-//  }
-
-  public Property<Float> getAreaProperty() {
-    return get(AreaType.class);
-  }
-
   /**
    * See {@link ModularFeature#getFeatureData()}
    *
@@ -519,10 +495,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   @Deprecated
   public ObservableList<DataPoint> getDataPoints() {
-//    ListProperty<DataPoint> v = get(DataPointsType.class);
-//    return v == null || v.getValue() == null ?
-//        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-//        : v.getValue();
     IonTimeSeries<? extends Scan> data = getFeatureData();
     return data == null ? null
         : FXCollections.observableArrayList(data.stream().collect(Collectors.toList()));
@@ -533,6 +505,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     return v == null? null : v.getValue();
   }
 
+  @Override
   public Float getRT() {
     Property<Float> v = get(RTType.class);
     return v == null? null : v.getValue();
@@ -550,6 +523,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     return v == null || v.getValue() == null ? FeatureStatus.UNKNOWN : v.getValue();
   }
 
+  @Override
   public Double getMZ() {
     Property<Double> mz = get(MZType.class);
     return mz == null || mz.getValue() == null ? null : mz.getValue();
@@ -560,23 +534,25 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(MZType.class, mz);
   }
 
-  public Float getHeight() {
-    Property<Float> v = get(HeightType.class);
+  @Override
+  public Double getHeight() {
+    Property<Double> v = get(HeightType.class);
     return v == null? null : v.getValue();
   }
 
   @Override
-  public void setHeight(Float height) {
+  public void setHeight(Double height) {
     set(HeightType.class, height);
   }
 
-  public Float getArea() {
-    Property<Float> v = get(AreaType.class);
+  @Override
+  public Double getArea() {
+    Property<Double> v = get(AreaType.class);
     return v == null? null : v.getValue();
   }
 
   @Override
-  public void setArea(Float area) {
+  public void setArea(Double area) {
     set(AreaType.class, area);
   }
 

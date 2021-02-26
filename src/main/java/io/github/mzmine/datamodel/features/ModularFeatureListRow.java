@@ -239,16 +239,6 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return v == null || v.getValue() == null ? Range.singleton(0d) : v.getValue();
   }
 
-  public Float getHeight() {
-    Property<Float> v = get(HeightType.class);
-    return v == null? null : v.getValue();
-  }
-
-  public Float getArea() {
-    Property<Float> v = get(AreaType.class);
-    return v == null? null : v.getValue();
-  }
-
   public ObservableMap<RawDataFile, ModularFeature> getFilesFeatures() {
     MapProperty<RawDataFile, ModularFeature> v = get(FeaturesType.class);
     return v == null? null : v.getValue();
@@ -343,8 +333,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public Float getAverageHeight() {
-    Property<Float> v = get(HeightType.class);
+  public Double getAverageHeight() {
+    Property<Double> v = get(HeightType.class);
     return v == null? null : v.getValue();
   }
 
@@ -355,8 +345,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public Float getAverageArea() {
-    Property<Float> v = get(AreaType.class);
+  public Double getAverageArea() {
+    Property<Double> v = get(AreaType.class);
     return v == null? null : v.getValue();
   }
 
@@ -588,7 +578,6 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   public ObservableList<Scan> getAllMS2Fragmentations() {
     ObservableList<Scan> allMS2ScansList = FXCollections.observableArrayList();
     for (Feature feature : getFeatures()) {
-      RawDataFile rawData = feature.getRawDataFile();
       ObservableList<Scan> scans = feature.getAllMS2FragmentScans();
       if (scans != null) {
         allMS2ScansList.addAll(scans);

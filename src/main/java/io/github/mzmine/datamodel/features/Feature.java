@@ -65,22 +65,22 @@ public interface Feature {
   /**
    * This method returns the raw height of the feature
    */
-  Float getHeight();
+  Double getHeight();
 
   /**
    * Sets height of the feature
    */
-  void setHeight(Float height);
+  void setHeight(Double height);
 
   /**
    * This method returns the raw area of the feature
    */
-  Float getArea();
+  Double getArea();
 
   /**
    * Sets area of the feature
    */
-  void setArea(Float area);
+  void setArea(Double area);
 
   /**
    * Returns raw data file where this feature is present
@@ -97,8 +97,8 @@ public interface Feature {
   /**
    * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
    *
-   * @param i
-   * @return
+   * @param i index
+   * @return scan at index or null
    */
   @Nullable
   default Scan getScanAtIndex(int i) {
@@ -110,8 +110,8 @@ public interface Feature {
    * Used to loop over retention time, scans, and data points in combination with ({@link
    * #getDataPointAtIndex(int)}
    *
-   * @param i
-   * @return
+   * @param i index
+   * @return retention time at index or null
    */
   @Nullable
   default Float getRetentionTimeAtIndex(int i) {
@@ -122,8 +122,8 @@ public interface Feature {
   /**
    * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
    *
-   * @param i
-   * @return
+   * @param i index
+   * @return data point at index
    */
   @Deprecated
   @Nullable
@@ -141,7 +141,7 @@ public interface Feature {
   /**
    * The representative scan of this feature
    *
-   * @param scan
+   * @param scan MS1 scan at highest intensity
    */
   void setRepresentativeScan(Scan scan);
 
@@ -221,7 +221,7 @@ public interface Feature {
   /**
    * Sets the {@link MobilityType} of this feature.
    *
-   * @param mobilityUnit
+   * @param mobilityUnit define mobility unit
    */
   void setMobilityUnit(MobilityType mobilityUnit);
 
@@ -252,7 +252,7 @@ public interface Feature {
   /**
    * Set best fragment scan
    *
-   * @param fragmentScan
+   * @param fragmentScan set best fragmentation scan
    */
   void setFragmentScan(Scan fragmentScan);
 
