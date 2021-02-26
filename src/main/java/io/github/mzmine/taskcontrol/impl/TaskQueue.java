@@ -71,7 +71,6 @@ public class TaskQueue {
     }
 
     Platform.runLater(() -> queue.add(task));
-
   }
 
   void clear() {
