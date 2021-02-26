@@ -81,22 +81,22 @@ public interface FeatureListRow {
   /**
    * Returns average M/Z for features on this row
    */
-  public double getAverageMZ();
+  public Double getAverageMZ();
 
   /**
    * Returns average RT for features on this row
    */
-  public float getAverageRT();
+  public Float getAverageRT();
 
   /**
    * Returns average mobility for features on this row
    */
-  float getAverageMobility();
+  Float getAverageMobility();
 
   /**
    * Returns average height for features on this row
    */
-  public double getAverageHeight();
+  public Float getAverageHeight();
 
   /**
    * Returns the charge for feature on this row. If more charges are found 0 is returned
@@ -106,7 +106,7 @@ public interface FeatureListRow {
   /**
    * Returns average area for features on this row
    */
-  public double getAverageArea();
+  public Float getAverageArea();
 
   /**
    * Returns comment for this row
@@ -121,12 +121,12 @@ public interface FeatureListRow {
   /**
    * Sets average mz for this row
    */
-  public void setAverageMZ(double averageMZ);
+  public void setAverageMZ(Double averageMZ);
 
   /**
    * Sets average rt for this row
    */
-  public void setAverageRT(float averageRT);
+  public void setAverageRT(Float averageRT);
 
   /**
    * Add a new identity candidate (result of identification method)
@@ -188,7 +188,7 @@ public interface FeatureListRow {
    *
    * @return Maximum intensity
    */
-  public double getMaxDataPointIntensity();
+  public Float getMaxDataPointIntensity();
 
   /**
    * Returns the most intense feature in this row

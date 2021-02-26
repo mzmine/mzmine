@@ -116,8 +116,8 @@ public class ModularFeature implements Feature, ModularDataModel {
    * Initializes a new feature using given values
    */
   @Deprecated
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
-      float height, float area,
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, Double mz, Float rt,
+      Float height, Float area,
       Scan[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
       Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers,
       @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
@@ -129,8 +129,8 @@ public class ModularFeature implements Feature, ModularDataModel {
         intensityRange);
   }
 
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
-      float height, float area,
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, Double mz, Float rt,
+      Float height, Float area,
       List<Scan> scans, double[] mzs, double[] intensities, FeatureStatus featureStatus,
       Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers,
       @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
@@ -181,21 +181,21 @@ public class ModularFeature implements Feature, ModularDataModel {
 
     set(FragmentScanNumbersType.class, List.of(allMS2FragmentScanNumbers));
 
-    float fwhm = QualityParameters.calculateFWHM(this);
+    Float fwhm = QualityParameters.calculateFWHM(this);
     if (!Float.isNaN(fwhm)) {
       set(FwhmType.class, fwhm);
     }
-    float tf = QualityParameters.calculateTailingFactor(this);
+    Float tf = QualityParameters.calculateTailingFactor(this);
     if (!Float.isNaN(tf)) {
       set(TailingFactorType.class, tf);
     }
-    float af = QualityParameters.calculateAsymmetryFactor(this);
+    Float af = QualityParameters.calculateAsymmetryFactor(this);
     if (!Float.isNaN(af)) {
       set(AsymmetryFactorType.class, af);
     }
   }
 
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, Double mz, Float rt,
       IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus,
       Scan representativeScan,
       Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers) {
@@ -212,25 +212,19 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(MZType.class, mz);
     set(FeatureDataType.class, featureData);
 
-    float fwhm = QualityParameters.calculateFWHM(this);
+    Float fwhm = QualityParameters.calculateFWHM(this);
     if (!Float.isNaN(fwhm)) {
       set(FwhmType.class, fwhm);
     }
-    float tf = QualityParameters.calculateTailingFactor(this);
+    Float tf = QualityParameters.calculateTailingFactor(this);
     if (!Float.isNaN(tf)) {
       set(TailingFactorType.class, tf);
     }
-    float af = QualityParameters.calculateAsymmetryFactor(this);
+    Float af = QualityParameters.calculateAsymmetryFactor(this);
     if (!Float.isNaN(af)) {
       set(AsymmetryFactorType.class, af);
     }
   }
-  /**
-   * Copy constructor
-   */
-//  public ModularFeature(@Nonnull Feature f) {
-//    this((ModularFeatureList) Objects.requireNonNull(f.getFeatureList()), f);
-//  }
 
   /**
    * Copy constructor with custom feature list
@@ -241,7 +235,6 @@ public class ModularFeature implements Feature, ModularDataModel {
       ((ModularFeature) f).stream().forEach(entry -> this.set(entry.getKey(), entry.getValue()));
     } else {
       // add values to feature
-//      set(ScanNumbersType.class, f.getScanNumbers());
       set(RawFileType.class, (f.getRawDataFile()));
       set(DetectionType.class, (f.getFeatureStatus()));
       set(MZType.class, (f.getMZ()));
@@ -253,15 +246,10 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(FragmentScanNumbersType.class, (f.getAllMS2FragmentScans()));
 
       // datapoints of feature
-//      set(DataPointsType.class, f.getDataPoints());
-//      if(f instanceof ModularFeature) {
-//        set(FeatureDataType.class, ((ModularFeature)f).getFeatureData());
-//      } else {
       double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(f.getDataPoints());
       SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(flist.getMemoryMapStorage(), dp[0],
           dp[1], f.getScanNumbers());
       set(FeatureDataType.class, featureData);
-//      }
 
       // ranges
       set(MZRangeType.class, f.getRawDataPointsMZRange());
@@ -269,15 +257,15 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(IntensityRangeType.class, f.getRawDataPointsIntensityRange());
 
       // quality parameters
-      float fwhm = f.getFWHM();
+      Float fwhm = f.getFWHM();
       if (!Float.isNaN(fwhm)) {
         set(FwhmType.class, fwhm);
       }
-      float tf = f.getTailingFactor();
+      Float tf = f.getTailingFactor();
       if (!Float.isNaN(tf)) {
         set(TailingFactorType.class, tf);
       }
-      float af = f.getAsymmetryFactor();
+      Float af = f.getAsymmetryFactor();
       if (!Float.isNaN(af)) {
         set(AsymmetryFactorType.class, af);
       }
@@ -365,7 +353,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public Scan getMostIntenseFragmentScan() {
     Property<Scan> v = get(BestFragmentScanNumberType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
@@ -410,35 +398,35 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public float getFWHM() {
+  public Float getFWHM() {
     Property<Float> v = get(FwhmType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
-  public void setFWHM(double fwhm) {
+  public void setFWHM(Float fwhm) {
     set(FwhmType.class, fwhm);
   }
 
   @Override
-  public float getTailingFactor() {
+  public Float getTailingFactor() {
     Property<Float> v = get(TailingFactorType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
-  public void setTailingFactor(double tf) {
+  public void setTailingFactor(Float tf) {
     set(TailingFactorType.class, tf);
   }
 
   @Override
-  public float getAsymmetryFactor() {
+  public Float getAsymmetryFactor() {
     Property<Float> v = get(AsymmetryFactorType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
-  public void setAsymmetryFactor(double af) {
+  public void setAsymmetryFactor(Float af) {
     set(AsymmetryFactorType.class, af);
   }
 
@@ -515,7 +503,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public Scan getRepresentativeScan() {
     Property<Scan> v = get(BestScanNumberType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
@@ -542,16 +530,16 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   public IonTimeSeries<? extends Scan> getFeatureData() {
     ObjectProperty<IonTimeSeries<? extends Scan>> v = get(FeatureDataType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return v == null? null : v.getValue();
   }
 
-  public float getRT() {
+  public Float getRT() {
     Property<Float> v = get(RTType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
-  public void setRT(float rt) {
+  public void setRT(Float rt) {
     set(RTType.class, rt);
   }
 
@@ -562,33 +550,33 @@ public class ModularFeature implements Feature, ModularDataModel {
     return v == null || v.getValue() == null ? FeatureStatus.UNKNOWN : v.getValue();
   }
 
-  public double getMZ() {
+  public Double getMZ() {
     Property<Double> mz = get(MZType.class);
-    return mz == null || mz.getValue() == null ? Double.NaN : mz.getValue();
+    return mz == null || mz.getValue() == null ? null : mz.getValue();
   }
 
   @Override
-  public void setMZ(double mz) {
+  public void setMZ(Double mz) {
     set(MZType.class, mz);
   }
 
-  public float getHeight() {
+  public Float getHeight() {
     Property<Float> v = get(HeightType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
-  public void setHeight(float height) {
+  public void setHeight(Float height) {
     set(HeightType.class, height);
   }
 
-  public float getArea() {
+  public Float getArea() {
     Property<Float> v = get(AreaType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
-  public void setArea(float area) {
+  public void setArea(Float area) {
     set(AreaType.class, area);
   }
 
@@ -596,7 +584,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public Float getMobility() {
     Property<Float> v = get(io.github.mzmine.datamodel.features.types.numbers.MobilityType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
@@ -608,7 +596,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public MobilityType getMobilityUnit() {
     Property<MobilityType> v = get(MobilityUnitType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
@@ -619,7 +607,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public Float getCCS() {
     Property<Float> v = get(CCSType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
@@ -631,7 +619,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public Range<Float> getMobilityRange() {
     ObjectProperty<Range<Float>> v = get(MobilityRangeType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override

@@ -239,19 +239,19 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return v == null || v.getValue() == null ? Range.singleton(0d) : v.getValue();
   }
 
-  public float getHeight() {
+  public Float getHeight() {
     Property<Float> v = get(HeightType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
-  public float getArea() {
+  public Float getArea() {
     Property<Float> v = get(AreaType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   public ObservableMap<RawDataFile, ModularFeature> getFilesFeatures() {
     MapProperty<RawDataFile, ModularFeature> v = get(FeaturesType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
@@ -325,27 +325,27 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public double getAverageMZ() {
+  public Double getAverageMZ() {
     Property<Double> v = get(MZType.class);
-    return v == null || v.getValue() == null ? Double.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
-  public float getAverageRT() {
+  public Float getAverageRT() {
     Property<Float> v = get(RTType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
-  public float getAverageMobility() {
+  public Float getAverageMobility() {
     Property<Float> v = get(MobilityType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
-  public double getAverageHeight() {
+  public Float getAverageHeight() {
     Property<Float> v = get(HeightType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
@@ -355,9 +355,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public double getAverageArea() {
+  public Float getAverageArea() {
     Property<Float> v = get(AreaType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null? null : v.getValue();
   }
 
   @Override
@@ -448,12 +448,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void setAverageMZ(double averageMZ) {
+  public void setAverageMZ(Double averageMZ) {
     // binding
   }
 
   @Override
-  public void setAverageRT(float averageRT) {
+  public void setAverageRT(Float averageRT) {
     // binding
   }
 
@@ -540,10 +540,10 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public double getMaxDataPointIntensity() {
+  public Float getMaxDataPointIntensity() {
     ObjectProperty<Range<Float>> rangeObjectProperty = get(IntensityRangeType.class);
     return rangeObjectProperty != null && rangeObjectProperty.getValue() != null ?
-        rangeObjectProperty.getValue().upperEndpoint() : Double.NaN;
+        rangeObjectProperty.getValue().upperEndpoint() : null;
   }
 
   @Nullable
@@ -555,7 +555,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
     return features.stream().map(ModularFeature.class::cast).filter(Objects::nonNull)
         .filter(f -> !f.get(DetectionType.class).equals(FeatureStatus.UNKNOWN))
-        .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
+        .max(new FeatureSorter(SortingProperty.Height, SortingDirection.Ascending))
         .orElse(null);
   }
 
@@ -591,9 +591,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       RawDataFile rawData = feature.getRawDataFile();
       ObservableList<Scan> scans = feature.getAllMS2FragmentScans();
       if (scans != null) {
-        for (Scan scan : scans) {
-          allMS2ScansList.add(scan);
-        }
+        allMS2ScansList.addAll(scans);
       }
     }
 
