@@ -27,6 +27,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
 import java.util.Set;
+import javafx.application.Platform;
 import javafx.util.Pair;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
@@ -74,6 +75,8 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
 
     // Clear saved coordinated, when the renderer is initialized
     pointsCoordinates.clear();
+
+    Platform.runLater(() -> System.out.println("[DEBUG] Number of visualized data points: " + pointsCoordinates.size()));
 
     return state;
   }
