@@ -59,7 +59,7 @@ public class FeatureDataUtils {
     return Range.closed(min, max);
   }
 
-  public static Range<Float> getIntensityRange(IntensitySeries series) {
+  public static Range<Double> getIntensityRange(IntensitySeries series) {
     double min = Double.MAX_VALUE;
     double max = Double.MIN_VALUE;
 
@@ -73,7 +73,7 @@ public class FeatureDataUtils {
         max = intensity;
       }
     }
-    return Range.closed((float) min, (float) max);
+    return Range.closed(min, max);
   }
 
   public static Range<Float> getMobilityRange(MobilitySeries series) {
@@ -145,7 +145,7 @@ public class FeatureDataUtils {
 
   public static void recalculateIonSeriesDependingTypes(ModularFeature feature, CenterMeasure cm) {
     IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
-    Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
+    Range<Double> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
     Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
     Range<Float> rtRange = FeatureDataUtils.getRtRange(featureData);
     Scan mostIntenseSpectrum = FeatureDataUtils.getMostIntenseScan(featureData);

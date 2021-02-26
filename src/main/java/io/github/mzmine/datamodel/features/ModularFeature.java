@@ -345,9 +345,9 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Nonnull
   @Override
-  public Range<Float> getRawDataPointsIntensityRange() {
-    ObjectProperty<Range<Float>> v = get(IntensityRangeType.class);
-    return v == null || v.getValue() == null ? Range.singleton(0f) : v.getValue();
+  public Range<Double> getRawDataPointsIntensityRange() {
+    ObjectProperty<Range<Double>> v = get(IntensityRangeType.class);
+    return v == null || v.getValue() == null ? Range.singleton(0d) : v.getValue();
   }
 
   @Override

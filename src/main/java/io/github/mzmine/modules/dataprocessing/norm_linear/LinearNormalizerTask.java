@@ -99,7 +99,7 @@ class LinearNormalizerTask extends AbstractTask {
 
     // Loop through all raw data files, and find the feature with biggest
     // height
-    float maxOriginalHeight = 0f;
+    Double maxOriginalHeight = 0d;
     for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
       for (FeatureListRow originalFeatureListRow : originalFeatureList.getRows()) {
         Feature p = originalFeatureListRow.getFeature(file);
@@ -119,7 +119,7 @@ class LinearNormalizerTask extends AbstractTask {
       }
 
       // Determine normalization type and calculate normalization factor
-      float normalizationFactor = 1.0f;
+      double normalizationFactor = 1.0d;
 
       // - normalization by average feature intensity
       if (normalizationType == NormalizationType.AverageIntensity) {
@@ -136,7 +136,7 @@ class LinearNormalizerTask extends AbstractTask {
             intensityCount++;
           }
         }
-        normalizationFactor = intensitySum / (float) intensityCount;
+        normalizationFactor = intensitySum / (double) intensityCount;
       }
 
       // - normalization by average squared feature intensity
@@ -154,12 +154,12 @@ class LinearNormalizerTask extends AbstractTask {
             intensityCount++;
           }
         }
-        normalizationFactor = intensitySum / (float) intensityCount;
+        normalizationFactor = intensitySum / (double) intensityCount;
       }
 
       // - normalization by maximum feature intensity
       if (normalizationType == NormalizationType.MaximumFeatureHeight) {
-        float maximumIntensity = 0;
+        Double maximumIntensity = 0d;
         for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
           Feature p = featureListRow.getFeature(file);
           if (p != null) {
@@ -178,7 +178,7 @@ class LinearNormalizerTask extends AbstractTask {
 
       // - normalization by total raw signal
       if (normalizationType == NormalizationType.TotalRawSignal) {
-        normalizationFactor = 0;
+        normalizationFactor = 0d;
         for (Scan scan : file.getScanNumbers(1)) {
           normalizationFactor += scan.getTIC();
         }
@@ -187,7 +187,7 @@ class LinearNormalizerTask extends AbstractTask {
       // Readjust normalization factor so that maximum height will be
       // equal to maximumOverallFeatureHeightAfterNormalization after
       // normalization
-      float maxNormalizedHeight = maxOriginalHeight / normalizationFactor;
+      double maxNormalizedHeight = maxOriginalHeight / normalizationFactor;
       normalizationFactor =
           normalizationFactor * maxNormalizedHeight / maximumOverallFeatureHeightAfterNormalization;
 
@@ -206,8 +206,8 @@ class LinearNormalizerTask extends AbstractTask {
 
           ModularFeature normalizedFeature = new ModularFeature(normalizedFeatureList, originalFeature);
 
-          float normalizedHeight = originalFeature.getHeight() / normalizationFactor;
-          float normalizedArea = originalFeature.getArea() / normalizationFactor;
+          double normalizedHeight = originalFeature.getHeight() / normalizationFactor;
+          double normalizedArea = originalFeature.getArea() / normalizationFactor;
           normalizedFeature.setHeight(normalizedHeight);
           normalizedFeature.setArea(normalizedArea);
 

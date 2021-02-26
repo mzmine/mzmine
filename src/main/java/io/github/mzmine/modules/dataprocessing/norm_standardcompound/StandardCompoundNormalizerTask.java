@@ -230,8 +230,8 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
         // Normalize feature
         Feature originalFeature = row.getFeature(file);
         if (originalFeature != null) {
-          float normalizedHeight = (float) (originalFeature.getHeight() / normalizationFactor);
-          float normalizedArea = (float) (originalFeature.getArea() / normalizationFactor);
+          Double normalizedHeight =  (originalFeature.getHeight() / normalizationFactor);
+          Double normalizedArea =  (originalFeature.getArea() / normalizationFactor);
           originalFeature.setHeight(normalizedHeight);
           originalFeature.setArea(normalizedArea);
         }

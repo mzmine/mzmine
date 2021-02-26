@@ -45,29 +45,29 @@ public class QualityParameters {
     flist.addFeatureType(new FwhmType(), new AsymmetryFactorType(), new TailingFactorType());
 
     flist.modularStreamFeatures().forEach(peak -> {
-      Property<Float> height = peak.getHeightProperty();
-      Property<Float> rt = peak.getRTProperty();
+      Double height = peak.getHeight();
+      Float rt = peak.getRT();
 
       List<Scan> scanNumbers = peak.getScanNumbers();
       RawDataFile dataFile = peak.getRawDataFile();
       IonTimeSeries<? extends Scan> dps = peak.getFeatureData();
-      if (height.getValue() == null || rt.getValue() == null || dataFile == null
+      if (height == null || rt == null || dataFile == null
           || scanNumbers.isEmpty() || dps.getNumberOfValues() < 3) {
         return;
       }
 
       Range<Float> rtRange = peak.get(RTRangeType.class).getValue();
       if (rtRange == null) {
-        rtRange = Range.singleton(rt.getValue());
+        rtRange = Range.singleton(rt);
       }
 
-      height = peak.getHeightProperty();
-      rt = peak.getRTProperty();
+      height = peak.getHeight();
+      rt = peak.getRT();
       double[] intensities = DataPointUtils.getDoubleBufferAsArray(dps.getIntensityValues());
 
       // FWHM
       double rtValues[] =
-          peakFindRTs(height.getValue() / 2.0, rt.getValue(), scanNumbers, intensities, dataFile,
+          peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile,
               rtRange);
       Double fwhm = rtValues[1] - rtValues[0];
       if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
@@ -79,9 +79,9 @@ public class QualityParameters {
 
       // Tailing Factor - TF
       double rtValues2[] =
-          peakFindRTs(height.getValue() * 0.05, rt.getValue(), scanNumbers, intensities,
+          peakFindRTs(height * 0.05, rt, scanNumbers, intensities,
               dataFile, rtRange);
-      Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt.getValue() - rtValues2[0]));
+      Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt - rtValues2[0]));
       if (tf <= 0 || Double.isNaN(tf) || Double.isInfinite(tf)) {
         tf = null;
       }
@@ -91,9 +91,9 @@ public class QualityParameters {
 
       // Asymmetry factor - AF
       double rtValues3[] =
-          peakFindRTs(height.getValue() * 0.1, rt.getValue(), scanNumbers, intensities, dataFile,
+          peakFindRTs(height * 0.1, rt, scanNumbers, intensities, dataFile,
               rtRange);
-      Double af = (rtValues3[1] - rt.getValue()) / (rt.getValue() - rtValues3[0]);
+      Double af = (rtValues3[1] - rt) / (rt - rtValues3[0]);
       if (af <= 0 || Double.isNaN(af) || Double.isInfinite(af)) {
         af = null;
       }
@@ -107,7 +107,7 @@ public class QualityParameters {
     if (feature == null) {
       return Float.NaN;
     }
-    Float height = feature.getHeight();
+    Double height = feature.getHeight();
     Float rt = feature.getRT();
 
     List<Scan> scanNumbers = feature.getScanNumbers();
@@ -142,7 +142,7 @@ public class QualityParameters {
     if (feature == null) {
       return Float.NaN;
     }
-    Float height = feature.getHeight();
+    Double height = feature.getHeight();
     Float rt = feature.getRT();
 
     List<Scan> scanNumbers = feature.getScanNumbers();
@@ -177,7 +177,7 @@ public class QualityParameters {
     if (feature == null) {
       return Float.NaN;
     }
-    Float height = feature.getHeight();
+    Double height = feature.getHeight();
     Float rt = feature.getRT();
 
     List<Scan> scanNumbers = feature.getScanNumbers();

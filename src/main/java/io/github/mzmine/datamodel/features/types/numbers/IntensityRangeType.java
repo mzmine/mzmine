@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.features.types.numbers;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatRangeType;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
@@ -28,7 +29,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import javax.annotation.Nonnull;
 
-public class IntensityRangeType extends FloatRangeType {
+public class IntensityRangeType extends DoubleRangeType {
 
   public IntensityRangeType() {
     super(new DecimalFormat("0.0E00"));

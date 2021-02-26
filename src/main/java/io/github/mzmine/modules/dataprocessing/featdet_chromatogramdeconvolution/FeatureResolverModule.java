@@ -65,7 +65,7 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
       double noise =
           Arrays.stream(peakLists).flatMap(pkl -> pkl.getRows().stream()).map(r -> r.getFeatures().get(0))
               .mapToDouble(peak -> peak.getRawDataPointsIntensityRange().lowerEndpoint())
-              .filter(v -> v != 0).min().orElse(0);
+              .filter(v -> Double.compare(v, 0d) != 0).min().orElse(0);
 
       // maxWeight 4 corresponds to a linear range of 4 orders of
       // magnitude

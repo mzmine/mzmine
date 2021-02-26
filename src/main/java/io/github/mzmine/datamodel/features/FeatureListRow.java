@@ -188,7 +188,7 @@ public interface FeatureListRow {
    *
    * @return Maximum intensity
    */
-  public Float getMaxDataPointIntensity();
+  public Double getMaxDataPointIntensity();
 
   /**
    * Returns the most intense feature in this row

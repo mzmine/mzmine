@@ -85,7 +85,7 @@ public class CalculateDatasetsTask extends AbstractTask {
         datasets.add(dataset);
       }
       for (ModularFeature f : features) {
-        float height = f.getHeight();
+        Double height = f.getHeight();
         if (height < minZ) {
           minZ = height;
         }
@@ -105,7 +105,7 @@ public class CalculateDatasetsTask extends AbstractTask {
 
           SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) feature
               .getFeatureData()).getSummedMobilogram();
-          Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(mobilogram);
+          Range<Double> intensityRange = FeatureDataUtils.getIntensityRange(mobilogram);
 
           if (intensityRange.lowerEndpoint().doubleValue() < minZ) {
             minZ = intensityRange.lowerEndpoint().doubleValue();
@@ -132,7 +132,7 @@ public class CalculateDatasetsTask extends AbstractTask {
           datasets.add(dataset);
         }
         for (ModularFeature f : features) {
-          float height = f.getHeight();
+          Double height = f.getHeight();
           if (height < minZ) {
             minZ = height;
           }

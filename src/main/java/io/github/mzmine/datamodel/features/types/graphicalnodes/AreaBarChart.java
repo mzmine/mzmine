@@ -44,10 +44,10 @@ public class AreaBarChart extends StackPane {
     int i = 1;
     int size = row.getFilesFeatures().size();
     for (Entry<RawDataFile, ModularFeature> entry : row.getFilesFeatures().entrySet()) {
-      Property<Float> areaProperty = entry.getValue().get(AreaType.class);
+      Double area = entry.getValue().getArea();
       // set bar color according to the raw data file
       Data newData =
-          new XYChart.Data("" + i, areaProperty.getValue() == null ? 0f : areaProperty.getValue());
+          new XYChart.Data("" + i, area == null ? 0f : area);
       newData.nodeProperty().addListener((ChangeListener<Node>) (ov, oldNode, newNode) -> {
         if (newNode != null) {
           Node node = newData.getNode();
@@ -66,7 +66,7 @@ public class AreaBarChart extends StackPane {
 
     final CategoryAxis xAxis = new CategoryAxis();
     final NumberAxis yAxis = new NumberAxis();
-    final BarChart<String, Number> bc = new BarChart<String, Number>(xAxis, yAxis);
+    final BarChart<String, Number> bc = new BarChart<>(xAxis, yAxis);
     bc.setLegendVisible(false);
     bc.setMinHeight(100);
     bc.setPrefHeight(100);

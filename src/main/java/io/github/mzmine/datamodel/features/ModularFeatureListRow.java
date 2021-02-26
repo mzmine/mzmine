@@ -530,8 +530,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public Float getMaxDataPointIntensity() {
-    ObjectProperty<Range<Float>> rangeObjectProperty = get(IntensityRangeType.class);
+  public Double getMaxDataPointIntensity() {
+    ObjectProperty<Range<Double>> rangeObjectProperty = get(IntensityRangeType.class);
     return rangeObjectProperty != null && rangeObjectProperty.getValue() != null ?
         rangeObjectProperty.getValue().upperEndpoint() : null;
   }

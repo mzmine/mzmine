@@ -88,7 +88,7 @@ public class ComputeCliqueModule {
       float rt;
       float rtmin;
       float rtmax;
-      float intensity;
+      Double intensity;
       int peakListRowID;
       if (peak.hasFeature(dataFile)) {
         mz = peak.getFeature(dataFile).getMZ();
@@ -126,7 +126,7 @@ public class ComputeCliqueModule {
     for (Scan scan : file.getScans()) {
       rts.add(scan.getRetentionTime() * 60.0); // conversion for minutes to seconds
       List<DataPoint> dps =
-          new ArrayList<DataPoint>(Arrays.asList(ScanUtils.extractDataPoints(scan)));
+          new ArrayList<>(Arrays.asList(ScanUtils.extractDataPoints(scan)));
 
       dataPoints.add(dps);
     }
