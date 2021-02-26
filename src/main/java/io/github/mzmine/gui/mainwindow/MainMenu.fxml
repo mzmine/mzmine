@@ -285,6 +285,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule"/>
       <MenuItem onAction="#runModule" text="mobility-m/z region filter"
         userData="io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule"/>
+      <MenuItem onAction="#runModule" text="mobility-m/z region filter"
+        userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
     </Menu>
 
     <Menu text="Alignment">
@@ -400,16 +402,21 @@
   <Menu text="Visualization">
     <MenuItem text="MS spectrum" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule"/>
-    <MenuItem text="IMS data viewer" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
     <MenuItem text="Chromatogram plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule"/>
-    <MenuItem text="Image viewer" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
+    <MenuItem text="Raw data overview" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
     <MenuItem text="2D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
     <MenuItem text="3D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
+    <SeparatorMenuItem/>
+    <MenuItem text="Ion mobility raw data overview" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
+    <SeparatorMenuItem/>
+    <MenuItem text="Image viewer" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
+    <SeparatorMenuItem/>
     <MenuItem text="MS/MS plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
     <MenuItem text="Neutral loss plot" onAction="#runModule"
@@ -421,9 +428,6 @@
     <MenuItem text="Diagnostic fragmentation filtering"
       onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule"/>
-    <MenuItem text="Raw data overview" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
-
     <SeparatorMenuItem/>
     <MenuItem text="Scatter plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule"/>
