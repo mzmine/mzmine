@@ -21,19 +21,20 @@ package io.github.mzmine.modules.visualization.msms;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZDotRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
 
 public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
-  private MsMsDataProvider dataset;
+  private MsMsDataProvider dataProvider;
+  private ColoredXYZDataset dataset;
   private ColoredXYZDotRenderer renderer;
 
   public MsMsChart(ParameterSet parameters) {
@@ -50,10 +51,11 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getMZFormat());
 
     renderer = new ColoredXYZDotRenderer();
-    setDefaultRenderer(renderer);
+    renderer.pointsReduction = parameters.getParameter(MsMsParameters.pointsReduction).getValue();
 
-    dataset = new MsMsDataProvider(parameters);
-    Platform.runLater(() -> addDataset(dataset));
+    dataProvider = new MsMsDataProvider(parameters);
+    dataset = new ColoredXYZDataset(dataProvider);
+    addDataset(dataset, renderer);
 
     getXYPlot().getDomainAxis().setUpperMargin(0);
     getXYPlot().getDomainAxis().setLowerMargin(0);
@@ -67,7 +69,7 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
         return;
       }
 
-      MsMsDataPoint clickedDataPoint = dataset.getDataPoint(getCursorPosition().getValueIndex());
+      MsMsDataPoint clickedDataPoint = dataProvider.getDataPoint(getCursorPosition().getValueIndex());
 
       // Run spectrum module
       ParameterSet spectrumParameters =
@@ -84,27 +86,32 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
   }
 
   public void setXAxisType(MsMsXYAxisType xAxisType) {
-    dataset.setXAxisType(xAxisType);
-    setDataset(dataset);
+    dataProvider.setXAxisType(xAxisType);
+    //setDataset(dataProvider);
+    dataset.fireDatasetChangedTMPNAME();
   }
 
   public void setYAxisType(MsMsXYAxisType yAxisType) {
-    dataset.setYAxisType(yAxisType);
-    setDataset(dataset);
+    dataProvider.setYAxisType(yAxisType);
+    //setDataset(dataProvider);
+    dataset.fireDatasetChangedTMPNAME();
   }
 
   public void setZAxisType(MsMsZAxisType zAxisType) {
-    dataset.setZAxisType(zAxisType);
-    setDataset(dataset);
+    dataProvider.setZAxisType(zAxisType);
+    //setDataset(dataProvider);
+    dataset.fireDatasetChangedTMPNAME();
   }
 
   public void highlightPrecursorMz(Range<Double> closed) {
-    dataset.highlightPrecursorMz(closed);
-    setDataset(dataset);
+    dataProvider.highlightPrecursorMz(closed);
+    //setDataset(dataProvider);
+    dataset.fireDatasetChangedTMPNAME();
   }
 
   public void setDataFile(RawDataFile dataFile) {
-    dataset.setDataFile(dataFile);
-    setDataset(dataset);
+    dataProvider.setDataFile(dataFile);
+    //setDataset(dataProvider);
+    dataset.fireDatasetChangedTMPNAME();
   }
 }

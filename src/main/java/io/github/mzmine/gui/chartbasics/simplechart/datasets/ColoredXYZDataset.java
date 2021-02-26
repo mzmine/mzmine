@@ -38,6 +38,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
+import org.jfree.data.DomainOrder;
 import org.jfree.data.xy.XYZDataset;
 
 /**
@@ -290,4 +291,20 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     }
 //    }
   }
+
+  // Some test methods
+
+  public void fireDatasetChangedTMPNAME() {
+    fireDatasetChanged();
+  }
+
+  // - the dataset has DomainOrder.ASCENDING as DomainOrder. This makes it easier to find the data items
+  // that are within the value range of the axes. In this example, this is onmly of minor importance
+  // since all data points are visible.
+  /*
+  public DomainOrder getDomainOrder() {
+    return DomainOrder.ASCENDING;
+  }
+  */
+
 }
