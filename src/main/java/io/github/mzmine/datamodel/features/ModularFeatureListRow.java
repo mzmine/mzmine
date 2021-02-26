@@ -75,10 +75,10 @@ import javax.annotation.Nullable;
  * Map of all feature related data.
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *         <p>
- *         TODO: I think the RawFileType should also be in the map and not just accessible via the
- *         key set of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list
- *         creation in the chromatogram builder ~SteffenHeu
+ * <p>
+ * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
+ * of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list creation in the
+ * chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
@@ -549,7 +549,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Nullable
   @Override
   public ModularFeature getBestFeature() {
-    return streamFeatures().filter(f -> !f.get(DetectionType.class).equals(FeatureStatus.UNKNOWN))
+    ObservableList<Feature> features = getFeatures();
+    if (features.size() == 1) {
+      return (ModularFeature) features.get(0);
+    }
+    return features.stream().map(ModularFeature.class::cast).filter(Objects::nonNull)
+        .filter(f -> !f.get(DetectionType.class).equals(FeatureStatus.UNKNOWN))
         .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
         .orElse(null);
   }
