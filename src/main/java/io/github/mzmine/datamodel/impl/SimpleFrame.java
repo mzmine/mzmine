@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import java.io.IOException;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -152,11 +152,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
       }
     }
 
-    try {
-      mobilityScanIntensityBuffer = getDataFile().getMemoryMapStorage().storeData(data);
-    } catch (IOException e) {
-      e.printStackTrace();
-      mobilityScanIntensityBuffer = DoubleBuffer.wrap(data);
+    mobilityScanIntensityBuffer = StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(), data);
+    if(getDataFile().getMemoryMapStorage() == null) {
       data = new double[numDatapoints]; // cannot reuse the same array then
     }
     // same for mzs
@@ -170,12 +167,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
       }
     }
 
-    try {
-      mobilityScanMzBuffer = getDataFile().getMemoryMapStorage().storeData(data);
-    } catch (IOException e) {
-      e.printStackTrace();
-      mobilityScanMzBuffer = DoubleBuffer.wrap(data);
-    }
+    mobilityScanMzBuffer =
+        StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(), data);
 
     // now create the scans
     for (int i = 0; i < originalMobilityScans.size(); i++) {
@@ -230,17 +223,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public DoubleBuffer setMobilities(double[] mobilities) {
-    try {
-      mobilityBuffer = getDataFile().getMemoryMapStorage().storeData(mobilities);
-    } catch (IOException e) {
-      e.printStackTrace();
-      mobilityBuffer = DoubleBuffer.wrap(mobilities);
-    }
-    if (mobilities.length != mobilitySubScans.size() && !mobilitySubScans.isEmpty()) {
-      throw new IllegalArgumentException(
-          "Mobility length does not match number of mobility scans.");
-    }
-
+    mobilityBuffer = StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(),
+        mobilities);
     mobilityRange = Range.singleton(mobilities[0]);
     mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
     return mobilityBuffer;

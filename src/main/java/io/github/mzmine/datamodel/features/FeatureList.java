@@ -18,13 +18,16 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.List;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import javax.annotation.Nullable;
 
 /**
  * Interface for feature list
@@ -139,6 +142,24 @@ public interface FeatureList {
    * @return
    */
   public Stream<Feature> parallelStreamFeatures();
+
+
+  /**
+   * The selected scans to build this feature/chromatogram
+   *
+   * @param file  the data file of the scans
+   * @param scans all filtered scans that were used to build the chromatogram in the first place.
+   *              For ion mobility data, the Frames are returned
+   */
+  void setSelectedScans(@Nonnull RawDataFile file, @Nullable List<? extends Scan> scans);
+
+  /**
+   * @param file the data file
+   * @return The scans used to build this feature list. For ion mobility data, the frames are
+   * returned.
+   */
+  @Nullable
+  List<? extends Scan> getSeletedScans(@Nonnull RawDataFile file);
 
   /**
    * Returns all rows with average retention time within given range

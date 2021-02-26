@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javax.annotation.Nullable;
 
 /**
  * 
@@ -62,7 +64,8 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
   private int finishedRows, totalRows;
 
   public PeakListBlankSubtractionSingleTask(PeakListBlankSubtractionParameters parameters,
-      RawDataFile thisRaw, FeatureListRow[] rows) {
+      RawDataFile thisRaw, FeatureListRow[] rows, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();

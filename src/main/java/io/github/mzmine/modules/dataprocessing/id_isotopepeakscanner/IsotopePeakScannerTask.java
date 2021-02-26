@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -125,7 +126,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * @param parameters
    * @param peakList
    */
-  IsotopePeakScannerTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
+  IsotopePeakScannerTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.parameters = parameters;
     this.project = project;
     this.peakList = peakList;
@@ -244,7 +247,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
     plh.setUp(peakList);
 
     resultPeakList =
-        new ModularFeatureList(peakList.getName() + suffix, peakList.getRawDataFiles());
+        new ModularFeatureList(peakList.getName() + suffix, getMemoryMapStorage(),
+            peakList.getRawDataFiles());
     PeakListHandler resultMap = new PeakListHandler();
 
     for (int i = 0; i < totalRows; i++) {

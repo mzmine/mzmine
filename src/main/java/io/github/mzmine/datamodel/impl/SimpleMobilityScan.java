@@ -50,12 +50,12 @@ public class SimpleMobilityScan implements MobilityScan {
   private final int basePeakIndex;
 
   public SimpleMobilityScan(int mobilityScanNumber, SimpleFrame frame, int storageOffset,
-      int numDataPoints, int basePeakIndex) {
+      int numDataPoints, @Nullable Integer basePeakIndex) {
     this.frame = frame;
     this.mobilityScanNumber = mobilityScanNumber;
     this.storageOffset = storageOffset;
     this.numDataPoints = numDataPoints;
-    this.basePeakIndex = basePeakIndex;
+    this.basePeakIndex = (basePeakIndex != null) ? basePeakIndex : -1;
   }
 
   @Override

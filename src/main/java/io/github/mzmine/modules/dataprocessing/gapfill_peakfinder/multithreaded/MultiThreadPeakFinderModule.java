@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
@@ -52,10 +53,11 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
 
     FeatureList[] peakLists = parameters.getParameter(MultiThreadPeakFinderParameters.peakLists)
         .getValue().getMatchingFeatureLists();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList peakList : peakLists) {
       // start tasks
-      Task newTask = new MultiThreadPeakFinderMainTask(project, peakList, parameters, tasks);
+      Task newTask = new MultiThreadPeakFinderMainTask(project, peakList, parameters, tasks, storage);
       tasks.add(newTask);
     }
     return ExitCode.OK;

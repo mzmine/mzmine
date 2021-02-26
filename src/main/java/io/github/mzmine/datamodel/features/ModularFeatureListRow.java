@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.util.FeatureSorter;
@@ -332,6 +333,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public float getAverageRT() {
     Property<Float> v = get(RTType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+  }
+
+  @Override
+  public float getAverageMobility() {
+    Property<Float> v = get(MobilityType.class);
     return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 

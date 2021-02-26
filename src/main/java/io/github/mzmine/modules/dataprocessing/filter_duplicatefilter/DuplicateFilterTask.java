@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,6 +43,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import javax.annotation.Nullable;
 
 /**
  * A task to filter out duplicate feature list rows.
@@ -64,7 +66,8 @@ public class DuplicateFilterTask extends AbstractTask {
   private final ParameterSet parameters;
 
   public DuplicateFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet params) {
+      final ParameterSet params, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     // Initialize.
     this.project = project;
@@ -147,7 +150,8 @@ public class DuplicateFilterTask extends AbstractTask {
 
     // Create the new feature list.
     final ModularFeatureList newPeakList =
-        new ModularFeatureList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
+        new ModularFeatureList(origPeakList + " " + suffix, getMemoryMapStorage(),
+            origPeakList.getRawDataFiles());
 
     // sort rows
     if (mode.equals(FilterMode.OLD_AVERAGE))

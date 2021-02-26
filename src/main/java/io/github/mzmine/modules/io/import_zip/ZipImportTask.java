@@ -18,6 +18,15 @@
 
 package io.github.mzmine.modules.io.import_zip;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileTypeDetector;
+import io.github.mzmine.util.RawDataFileUtils;
+import io.github.mzmine.util.StreamCopy;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -32,17 +41,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.annotation.Nonnull;
 import org.apache.commons.io.FilenameUtils;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.RawDataFileType;
-import io.github.mzmine.util.RawDataFileTypeDetector;
-import io.github.mzmine.util.RawDataFileUtils;
-import io.github.mzmine.util.StreamCopy;
 
 public class ZipImportTask extends AbstractTask {
 
@@ -57,6 +55,7 @@ public class ZipImportTask extends AbstractTask {
   private Task decompressedOpeningTask = null;
 
   public ZipImportTask(@Nonnull MZmineProject project, File fileToOpen, RawDataFileType fileType) {
+    super(null); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;
     this.fileType = fileType;

@@ -81,6 +81,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
    */
   public SpectraIdentificationOnlineDatabaseTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
+    super(null);
 
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;

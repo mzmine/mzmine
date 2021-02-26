@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_linear;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -53,9 +54,10 @@ public class LinearNormalizerModule implements MZmineProcessingModule {
 
     FeatureList featureLists[] = parameters.getParameter(LinearNormalizerParameters.featureLists).getValue()
         .getMatchingFeatureLists();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {
-      Task newTask = new LinearNormalizerTask(project, featureList, parameters);
+      Task newTask = new LinearNormalizerTask(project, featureList, parameters, storage);
       tasks.add(newTask);
     }
 

@@ -82,6 +82,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
    * @param featureList
    */
   FormulaPredictionFeatureListTask(FeatureList featureList, ParameterSet parameters) {
+    super(null); // no new data stored -> null
 
     /*
      * searchedMass = parameters.getParameter(

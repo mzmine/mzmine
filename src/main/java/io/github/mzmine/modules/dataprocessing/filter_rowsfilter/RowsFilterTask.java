@@ -35,12 +35,14 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * Filters out feature list rows.
@@ -65,7 +67,8 @@ public class RowsFilterTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public RowsFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     // Initialize.
     this.project = project;
@@ -135,7 +138,7 @@ public class RowsFilterTask extends AbstractTask {
 
     final ModularFeatureList newFeatureList = new ModularFeatureList(
         featureList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
-        featureList.getRawDataFiles());
+        getMemoryMapStorage(), featureList.getRawDataFiles());
 
     // Copy previous applied methods.
     for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {

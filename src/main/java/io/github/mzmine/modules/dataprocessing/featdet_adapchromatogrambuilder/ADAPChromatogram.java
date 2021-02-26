@@ -75,7 +75,7 @@ public class ADAPChromatogram {
   private Scan fragmentScan = null;
 
   // All MS2 fragment scan numbers
-  private Scan[] allMS2FragmentScanNumbers = new Scan[] {};
+  private Scan[] allMS2FragmentScanNumbers = new Scan[]{};
 
   // Ranges of raw data points
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange;
@@ -225,8 +225,9 @@ public class ADAPChromatogram {
       tmp_see_same_scan_count += 1;
       return;
     }
-    if(mzValue==null)
+    if (mzValue == null) {
       return;
+    }
 
     dataPointsMap.put(scanNumber, mzValue);
     lastMzFeature = mzValue;
@@ -297,7 +298,8 @@ public class ADAPChromatogram {
     return allMS2FragmentScanNumbers;
   }
 
-  public @Nonnull FeatureStatus getFeatureStatus() {
+  public @Nonnull
+  FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
@@ -305,15 +307,18 @@ public class ADAPChromatogram {
     return rt;
   }
 
-  public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
+  public @Nonnull
+  Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull Range<Double> getRawDataPointsMZRange() {
+  public @Nonnull
+  Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsRTRange() {
+  public @Nonnull
+  Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
@@ -321,11 +326,13 @@ public class ADAPChromatogram {
     return representativeScan;
   }
 
-  public @Nonnull Scan[] getScanNumbers() {
+  public @Nonnull
+  Scan[] getScanNumbers() {
     return dataPointsMap.keySet().toArray(Scan[]::new);
   }
 
-  public @Nonnull RawDataFile getDataFile() {
+  public @Nonnull
+  RawDataFile getDataFile() {
     return dataFile;
   }
 
@@ -379,8 +386,7 @@ public class ADAPChromatogram {
         fileWriter.println(curRtStr + spacer + curIntStr + spacer + curMzStr);
       }
       fileWriter.close();
-    }
-    catch (FileNotFoundException ex) {
+    } catch (FileNotFoundException ex) {
       ex.printStackTrace();
     }
   }
@@ -440,8 +446,9 @@ public class ADAPChromatogram {
 
     if (fragmentScan != null) {
       int precursorCharge = fragmentScan.getPrecursorCharge();
-      if (precursorCharge > 0)
+      if (precursorCharge > 0) {
         this.charge = precursorCharge;
+      }
     }
 
     rawDataPointsRTRange = null;
@@ -450,13 +457,15 @@ public class ADAPChromatogram {
       float scanRt = scanNum.getRetentionTime();
       DataPoint dp = getDataPoint(scanNum);
 
-      if ((dp == null) || (dp.getIntensity() == 0.0))
+      if ((dp == null) || (dp.getIntensity() == 0.0)) {
         continue;
+      }
 
-      if (rawDataPointsRTRange == null)
+      if (rawDataPointsRTRange == null) {
         rawDataPointsRTRange = Range.singleton(scanRt);
-      else
+      } else {
         rawDataPointsRTRange = rawDataPointsRTRange.span(Range.singleton(scanRt));
+      }
     }
 
     // Discard the fields we don't need anymore
@@ -465,8 +474,9 @@ public class ADAPChromatogram {
   }
 
   public double getBuildingSegmentLength() {
-    if (buildingSegment.size() < 2)
+    if (buildingSegment.size() < 2) {
       return 0;
+    }
     Scan firstScan = buildingSegment.firstElement();
     Scan lastScan = buildingSegment.lastElement();
     double firstRT = firstScan.getRetentionTime();
@@ -479,8 +489,9 @@ public class ADAPChromatogram {
   }
 
   public void removeBuildingSegment() {
-    for (Scan scanNumber : buildingSegment)
+    for (Scan scanNumber : buildingSegment) {
       dataPointsMap.remove(scanNumber);
+    }
     buildingSegment.clear();
   }
 
@@ -607,7 +618,6 @@ public class ADAPChromatogram {
     }
 
     dataPointsMap.putAll(dataPointsToAdd);
-    logger.info(
-        () -> String.format("mz: %f\t Added %d data points", getMZ(), dataPointsToAdd.size()));
+    // logger.info(() -> String.format("mz: %f\t Added %d data points", getMZ(), dataPointsToAdd.size()));
   }
 }

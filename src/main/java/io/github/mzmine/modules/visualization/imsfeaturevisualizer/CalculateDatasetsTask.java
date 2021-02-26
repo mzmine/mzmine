@@ -42,6 +42,7 @@ public class CalculateDatasetsTask extends AbstractTask {
 
   public CalculateDatasetsTask(Collection<ModularFeature> features, boolean useMobilograms,
       PlotType plotType) {
+    super(null); // no new data stored -> null
     this.features = features;
     this.useMobilograms = useMobilograms;
     this.plotType = plotType;

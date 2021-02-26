@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
@@ -45,6 +46,7 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class JoinAlignerTask extends AbstractTask {
 
@@ -72,7 +74,9 @@ public class JoinAlignerTask extends AbstractTask {
   private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
   private int msLevel;
 
-  public JoinAlignerTask(MZmineProject project, ParameterSet parameters) {
+  public JoinAlignerTask(MZmineProject project, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.parameters = parameters;
@@ -172,7 +176,7 @@ public class JoinAlignerTask extends AbstractTask {
     }
 
     // Create a new aligned feature list
-    alignedFeatureList = new ModularFeatureList(featureListName,
+    alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
         allDataFiles.toArray(new RawDataFile[0]));
 
     // Iterate source feature lists

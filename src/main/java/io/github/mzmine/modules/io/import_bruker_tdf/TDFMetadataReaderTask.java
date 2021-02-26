@@ -40,6 +40,7 @@ public class TDFMetadataReaderTask extends AbstractTask {
   private TDFFrameTable frameTable;
 
   public TDFMetadataReaderTask(final File tdf) {
+    super(null); // no new data stored -> null
     this.tdf = tdf;
     description = null;
     finishedPercentage = 0;

@@ -42,7 +42,7 @@ public class FeatureGraphicalNodeTask extends AbstractTask {
   public FeatureGraphicalNodeTask(Class<? extends Node> nodeClass, StackPane pane,
       ModularFeature feature,
       String collHeader) {
-    super();
+    super(null); // no new data stored -> null
     this.nodeClass = nodeClass;
     this.pane = pane;
     this.feature = feature;

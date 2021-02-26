@@ -45,6 +45,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
   private ParameterSet parameters;
 
   SortSpectralDBIdentitiesTask(FeatureList featureList, ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.featureList = featureList;
     this.parameters = parameters;
     filterByMinScore =

@@ -78,10 +78,12 @@ public class ProjectOpeningTask extends AbstractTask {
   private final Hashtable<String, File> scanFilesIDMap = new Hashtable<>();
 
   public ProjectOpeningTask(ParameterSet parameters) {
+    super(null);
     this.openFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
   }
 
   public ProjectOpeningTask(File openFile) {
+    super(null);
     this.openFile = openFile;
   }
 

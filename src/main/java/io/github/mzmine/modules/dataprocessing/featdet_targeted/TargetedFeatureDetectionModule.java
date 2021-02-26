@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -51,8 +52,9 @@ public class TargetedFeatureDetectionModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
     RawDataFile[] dataFiles = parameters.getParameter(TargetedPeakDetectionParameters.rawDataFile)
         .getValue().getMatchingRawDataFiles();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new TargetedPeakDetectionModuleTask(project, parameters, dataFile);
+      Task newTask = new TargetedPeakDetectionModuleTask(project, parameters, dataFile, storage);
       tasks.add(newTask);
     }
     return ExitCode.OK;

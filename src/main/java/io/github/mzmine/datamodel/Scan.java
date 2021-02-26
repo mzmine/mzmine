@@ -17,9 +17,9 @@
 
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.Range;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
 
 /**
  * This class represent one spectrum of a raw data file.
@@ -27,46 +27,39 @@ import com.google.common.collect.Range;
 public interface Scan extends MassSpectrum, Comparable<Scan> {
 
   /**
-   *
    * @return RawDataFile containing this Scan
    */
   @Nonnull
   RawDataFile getDataFile();
 
   /**
-   *
    * @return Scan number
    */
   int getScanNumber();
 
   /**
-   *
    * @return Instrument-specific scan definition as String
    */
   @Nonnull
   String getScanDefinition();
 
   /**
-   *
    * @return MS level
    */
   int getMSLevel();
 
   /**
-   *
    * @return Retention time of this scan in minutes
    */
   float getRetentionTime();
 
   /**
-   *
    * @return The actual scanning range of the instrument
    */
   @Nonnull
   Range<Double> getScanningMZRange();
 
   /**
-   *
    * @return Precursor m/z or 0 if this is not MSn scan
    */
   double getPrecursorMZ();
@@ -75,7 +68,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   PolarityType getPolarity();
 
   /**
-   *
    * @return Precursor charge or 0 if this is not MSn scan or charge is unknown
    */
   int getPrecursorCharge();
@@ -85,28 +77,21 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
 
   void addMassList(@Nonnull MassList massList);
 
-//  @Nullable
-//  MassList getMassList(@Nonnull String name);
-//
-//  void addMassList(@Nonnull MassList massList);
-//
-//  void removeMassList(@Nonnull MassList massList);
-
-
   /**
-   * Standard method to sort scans
+   * Standard method to sort scans based on scan number (or if not available retention time)
    *
-   * @param s
+   * @param s other scan
    * @return
    */
   @Override
   default int compareTo(@Nonnull Scan s) {
     assert s != null;
     int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
-    if (result != 0)
+    if (result != 0) {
       return result;
-    else
+    } else {
       return Float.compare(this.getRetentionTime(), s.getRetentionTime());
+    }
   }
 }
 

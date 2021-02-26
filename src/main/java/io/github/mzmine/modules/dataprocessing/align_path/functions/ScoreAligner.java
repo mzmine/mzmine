@@ -17,9 +17,14 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerParameters;
+import io.github.mzmine.modules.dataprocessing.align_path.scorer.RTScore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,10 +37,7 @@ import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CyclicBarrier;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerParameters;
-import io.github.mzmine.modules.dataprocessing.align_path.scorer.RTScore;
-import io.github.mzmine.parameters.ParameterSet;
+import javax.annotation.Nullable;
 
 public class ScoreAligner implements Aligner {
 
@@ -49,8 +51,10 @@ public class ScoreAligner implements Aligner {
   private ScoreCalculator calc;
   private FeatureList alignment;
   private ParameterSet params;
+  private final MemoryMapStorage storage;
 
-  public ScoreAligner(FeatureList[] dataToAlign, ParameterSet params) {
+  public ScoreAligner(FeatureList[] dataToAlign, ParameterSet params, @Nullable MemoryMapStorage storage) {
+    this.storage = storage;
     this.params = params;
     this.calc = new RTScore();
     originalPeakList = java.util.Collections.unmodifiableList(Arrays.asList(dataToAlign));
@@ -252,7 +256,7 @@ public class ScoreAligner implements Aligner {
         peaksTotal += peakList.get(i).size();
       }
       alignment =
-          new ModularFeatureList(params.getParameter(PathAlignerParameters.peakListName).getValue(),
+          new ModularFeatureList(params.getParameter(PathAlignerParameters.peakListName).getValue(), storage,
               allDataFiles.toArray(new RawDataFile[0]));
 
       List<AlignmentPath> addedPaths = getAlignmentPaths();

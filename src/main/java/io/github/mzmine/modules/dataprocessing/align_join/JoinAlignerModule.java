@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -49,7 +50,7 @@ public class JoinAlignerModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    Task newTask = new JoinAlignerTask(project, parameters);
+    Task newTask = new JoinAlignerTask(project, parameters, MemoryMapStorage.forFeatureList());
     tasks.add(newTask);
     return ExitCode.OK;
 

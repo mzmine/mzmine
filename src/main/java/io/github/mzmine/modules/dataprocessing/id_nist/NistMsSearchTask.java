@@ -154,6 +154,7 @@ public class NistMsSearchTask extends AbstractTask {
    */
   public NistMsSearchTask(final FeatureListRow row, final FeatureList list,
       final ParameterSet params) {
+    super(null); // no new data stored -> null
 
     // Initialize.
     peakList = list;

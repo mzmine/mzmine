@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.io.projectload.PeakListOpenHandler;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -96,6 +97,10 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
   private int parsedRows, totalRows;
 
   private boolean canceled = false;
+
+  private final MemoryMapStorage flistStorage = MemoryMapStorage.forFeatureList();
+  private final MemoryMapStorage rawStorage = MemoryMapStorage.forRawDataFile();
+  private final MemoryMapStorage massListStorage = MemoryMapStorage.forMassList();
 
   public PeakListOpenHandler_3_0(Hashtable<String, RawDataFile> dataFilesIDMap) {
     this.dataFilesIDMap = dataFilesIDMap;
@@ -509,7 +514,7 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
 
     RawDataFile[] dataFiles = currentPeakListDataFiles.toArray(new RawDataFile[0]);
 
-    buildingPeakList = new ModularFeatureList(peakListName, dataFiles);
+    buildingPeakList = new ModularFeatureList(peakListName, flistStorage, dataFiles);
 
     // just add all columns that we used in MZmine 2
     // TODO create new method to save and load projects with modular data model

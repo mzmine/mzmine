@@ -18,23 +18,6 @@
 
 package io.github.mzmine.main;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.management.ManagementFactory;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -42,12 +25,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
-/*
- * import io.github.mzmine.modules.batchmode.BatchModeModule;
- */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -57,7 +38,25 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * MZmine main class
@@ -70,6 +69,7 @@ public final class MZmineCore {
   private static MZmineConfiguration configuration;
   private static Desktop desktop;
   private static ProjectManagerImpl projectManager;
+  private static final List<MemoryMapStorage> storageList = Collections.synchronizedList(new ArrayList<>());
 
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
@@ -78,7 +78,6 @@ public final class MZmineCore {
    * Main method
    */
   public static void main(final String args[]) {
-
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
     // be . or , depending on the locale)
@@ -101,10 +100,10 @@ public final class MZmineCore {
      */
     final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
     logger.finest("Working directory is " + cwd);
-    logger.finest("Temporary directory is " + System.getProperty("java.io.tmpdir"));
+    logger.finest("Default temporary directory is " + System.getProperty("java.io.tmpdir"));
 
     // Remove old temporary files on a new thread
-    Thread cleanupThread = new Thread(new TmpFileCleanup());
+    Thread cleanupThread = new Thread(new TmpFileCleanup()); // check regular temp dir
     cleanupThread.setPriority(Thread.MIN_PRIORITY);
     cleanupThread.start();
 
@@ -126,6 +125,7 @@ public final class MZmineCore {
     if (MZmineConfiguration.CONFIG_FILE.exists() && MZmineConfiguration.CONFIG_FILE.canRead()) {
       try {
         configuration.loadConfiguration(MZmineConfiguration.CONFIG_FILE);
+        setTempDirToPreference();
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -233,15 +233,18 @@ public final class MZmineCore {
     return initializedModules.values();
   }
 
-  public static RawDataFile createNewFile(String name, MemoryMapStorage storage) throws IOException {
+  public static RawDataFile createNewFile(String name, MemoryMapStorage storage)
+      throws IOException {
     return new RawDataFileImpl(name, storage);
   }
 
-  public static IMSRawDataFile createNewIMSFile(String name, MemoryMapStorage storage) throws IOException {
+  public static IMSRawDataFile createNewIMSFile(String name, MemoryMapStorage storage)
+      throws IOException {
     return new IMSRawDataFileImpl(name, storage);
   }
 
-  public static ImagingRawDataFile createNewImagingFile(String name, MemoryMapStorage storage) throws IOException {
+  public static ImagingRawDataFile createNewImagingFile(String name, MemoryMapStorage storage)
+      throws IOException {
     return new ImagingRawDataFileImpl(name, storage);
   }
 
@@ -250,13 +253,15 @@ public final class MZmineCore {
     try {
       ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
       InputStream inStream = myClassLoader.getResourceAsStream("mzmineversion.properties");
-      if (inStream == null)
+      if (inStream == null) {
         return "0.0";
+      }
       Properties properties = new Properties();
       properties.load(inStream);
       String version = properties.getProperty("mzmine.version");
-      if ((version == null) || (version.startsWith("$")))
+      if ((version == null) || (version.startsWith("$"))) {
         return "0.0";
+      }
       return version;
     } catch (Exception e) {
       e.printStackTrace();
@@ -289,4 +294,35 @@ public final class MZmineCore {
 
   }
 
+  private static void setTempDirToPreference() {
+    final File tempDir = getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.tempDirectory).getValue();
+    if(tempDir == null) {
+      logger.warning(() -> "Invalid temporary directory.");
+      return;
+    }
+
+    if(!tempDir.exists()) {
+      if(!tempDir.mkdirs()) {
+        logger.warning(() -> "Could not create temporary directory " + tempDir.getAbsolutePath());
+        return;
+      }
+    }
+
+    if (tempDir.isDirectory()) {
+      System.setProperty("java.io.tmpdir", tempDir.getAbsolutePath());
+      logger.finest(() -> "Working temporary directory is " + System.getProperty("java.io.tmpdir"));
+      // check the new temp dir for old files.
+      Thread cleanupThread2 = new Thread(new TmpFileCleanup());
+      cleanupThread2.setPriority(Thread.MIN_PRIORITY);
+      cleanupThread2.start();
+    }
+  }
+  public static void registerStorage(MemoryMapStorage storage) {
+    storageList.add(storage);
+  }
+
+  public static List<MemoryMapStorage> getStorageList() {
+    return storageList;
+  }
 }

@@ -54,7 +54,7 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
    */
   public FeatureListClearAnnotationsTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
-
+    super(null); // no new data stored -> null
     // Initialize.
     this.project = project;
     parameters = parameterSet;
