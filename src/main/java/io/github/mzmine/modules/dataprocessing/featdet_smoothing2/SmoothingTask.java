@@ -5,7 +5,10 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.FeatureDataType;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SavitzkyGolayFilter;
@@ -15,6 +18,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -23,12 +27,7 @@ import javax.annotation.Nullable;
 
 public class SmoothingTask extends AbstractTask {
 
-  public enum SmoothingDimension {
-    RETENTION_TIME, MOBILITY
-  }
-
   private static final Logger logger = Logger.getLogger(SmoothingTask.class.getName());
-
   private final ModularFeatureList flist;
   private final ParameterSet parameters;
   private final AtomicInteger processedFeatures = new AtomicInteger(0);
@@ -127,19 +126,43 @@ public class SmoothingTask extends AbstractTask {
     double[] originalIntensities = new double[originalSeries.getNumberOfValues()];
     originalSeries.getIntensityValues(originalIntensities);
 
-    List<Double> newIntensities = new ArrayList<>();
-    List<Scan> newScans = new ArrayList<>();
+    final List<Double> newIntensities = new ArrayList<>();
+    final List<Scan> newScans = new ArrayList<>();
+    final List<IonMobilitySeries> mobilograms;
+    if (originalSeries instanceof IonMobilogramTimeSeries) {
+      mobilograms = new ArrayList<>();
+    } else {
+      mobilograms = null;
+    }
 
+    int oldSeriesIndex = 0;
     double prevIntensity = 0d;
     for (int i = 0; i < smoothedIntensities.length; i++) {
-      if(Double.compare(smoothedIntensities[i], 0) != 0) {
-        newIntensities.add(smoothedIntensities[i]);
-        newScans.add(allScans.get(i));
+      // if the intensity is != 0, keep it
+      if (Double.compare(smoothedIntensities[i], 0) == 0) {
+        continue;
+      }
+
+      newIntensities.add(smoothedIntensities[i]);
+      newScans.add(allScans.get(i));
+
+      // if this is an IonMobilogramTimeSeries, we also have to create an empty mobilogram
+      if (originalSeries instanceof IonMobilogramTimeSeries && allScans.get(i) == originalSeries
+          .getSpectrum(oldSeriesIndex)) {
+        IonMobilitySeries dummyMobilogram = new SimpleIonMobilitySeries(null, new double[0],
+            new double[0],
+            Collections.emptyList());
+
       }
     }
 
     double[] originalMzs = new double[originalSeries.getNumberOfValues()];
-    return (IonTimeSeries<? extends Scan>) originalSeries
-        .copyAndReplace(getMemoryMapStorage(), originalMzs, newIntensities);
+//    return (IonTimeSeries<? extends Scan>) originalSeries
+//        .copyAndReplace(getMemoryMapStorage(), originalMzs, newIntensities);
+    return null;
+  }
+
+  public enum SmoothingDimension {
+    RETENTION_TIME, MOBILITY
   }
 }
