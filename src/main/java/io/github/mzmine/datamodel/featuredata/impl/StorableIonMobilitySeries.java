@@ -37,12 +37,12 @@ import javax.annotation.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public class StorableIonMobilitySeries implements IonMobilitySeries, ModifiableSpectra<MobilityScan> {
+public class StorableIonMobilitySeries implements IonMobilitySeries,
+    ModifiableSpectra<MobilityScan> {
 
   private static final Logger logger = Logger.getLogger(StorableIonMobilitySeries.class.getName());
 
   protected final List<MobilityScan> scans;
-
   protected final int storageOffset;
   protected final int numValues;
   protected final SimpleIonMobilogramTimeSeries ionTrace;
