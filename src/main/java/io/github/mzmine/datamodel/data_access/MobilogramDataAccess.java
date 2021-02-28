@@ -119,7 +119,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
       }
     }
 
-    return this;
+    return currentMobilogram;
   }
 
   @Override
@@ -196,13 +196,14 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   @Override
   public IonSpectrumSeries<MobilityScan> subSeries(@Nullable MemoryMapStorage storage,
       @Nonnull List<MobilityScan> subset) {
-    throw new IllegalArgumentException(
-        "MobilogramDataAccess shall be used to iterate over the mzs and intensities.");
+    return currentMobilogram.subSeries(storage, subset);
   }
 
   @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues) {
+    // depending on the type of data access, we can have more scans in currentSpectra than data points. (if 0s are included)
+    // hence, this method is unsupported. A new SimpleIonMobilitySeries should be created with the respective spectra instead.
     throw new IllegalArgumentException(
         "MobilogramDataAccess shall be used to iterate over the mzs and intensities.");
   }
