@@ -29,6 +29,7 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -38,6 +39,7 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +57,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -69,10 +72,12 @@ public final class MZmineCore {
   private static MZmineConfiguration configuration;
   private static Desktop desktop;
   private static ProjectManagerImpl projectManager;
-  private static final List<MemoryMapStorage> storageList = Collections.synchronizedList(new ArrayList<>());
+  private static final List<MemoryMapStorage> storageList = Collections
+      .synchronizedList(new ArrayList<>());
 
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
+  private static boolean headLessMode = false;
 
   /**
    * Main method
@@ -121,18 +126,31 @@ public final class MZmineCore {
     projectManager.initModule();
     taskController.initModule();
 
+    MZmineArgumentParser argsParser = new MZmineArgumentParser();
+    argsParser.parse(args);
+
+    // override preferences file by command line argument pref
+    File prefFile = argsParser.getPreferencesFile();
+    if(prefFile == null) {
+      prefFile = MZmineConfiguration.CONFIG_FILE;
+    }
+
     // Load configuration
-    if (MZmineConfiguration.CONFIG_FILE.exists() && MZmineConfiguration.CONFIG_FILE.canRead()) {
+    if (prefFile.exists() && prefFile.canRead()) {
       try {
-        configuration.loadConfiguration(MZmineConfiguration.CONFIG_FILE);
+        configuration.loadConfiguration(prefFile);
         setTempDirToPreference();
       } catch (Exception e) {
         e.printStackTrace();
       }
     }
 
+    // batch mode defined by command line argument
+    File batchFile = argsParser.getBatchFile();
+
+    headLessMode = false;
     // If we have no arguments, run in GUI mode, otherwise run in batch mode
-    if (args.length == 0) {
+    if (batchFile == null) {
       try {
         logger.info("Starting MZmine GUI");
         Application.launch(MZmineGUI.class, args);
@@ -143,6 +161,7 @@ public final class MZmineCore {
       }
 
     } else {
+      headLessMode = true;
       desktop = new HeadLessDesktop();
 
       // Tracker
@@ -152,19 +171,21 @@ public final class MZmineCore {
       gatThread.setPriority(Thread.MIN_PRIORITY);
       gatThread.start();
 
-      File batchFile = new File(args[0]);
+      // load batch
       if ((!batchFile.exists()) || (!batchFile.canRead())) {
         logger.severe("Cannot read batch file " + batchFile);
         System.exit(1);
       }
-      // TODO:
-      /*
-       * ExitCode exitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
-       * batchFile); if (exitCode == ExitCode.OK) System.exit(0); else System.exit(1);
-       */
 
+      // run batch file
+      ExitCode exitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
+          batchFile);
+      if (exitCode == ExitCode.OK) {
+        System.exit(0);
+      } else {
+        System.exit(1);
+      }
     }
-
   }
 
   @Nonnull
@@ -297,13 +318,13 @@ public final class MZmineCore {
   private static void setTempDirToPreference() {
     final File tempDir = getConfiguration().getPreferences()
         .getParameter(MZminePreferences.tempDirectory).getValue();
-    if(tempDir == null) {
+    if (tempDir == null) {
       logger.warning(() -> "Invalid temporary directory.");
       return;
     }
 
-    if(!tempDir.exists()) {
-      if(!tempDir.mkdirs()) {
+    if (!tempDir.exists()) {
+      if (!tempDir.mkdirs()) {
         logger.warning(() -> "Could not create temporary directory " + tempDir.getAbsolutePath());
         return;
       }
@@ -318,6 +339,28 @@ public final class MZmineCore {
       cleanupThread2.start();
     }
   }
+
+  /**
+   *
+   * @return headless mode or JavaFX GUI
+   */
+  public static boolean isHeadLessMode() {
+    return headLessMode;
+  }
+
+  /**
+   *
+   * @param r runnable to either run directly or on the JavaFX thread
+   */
+  public static void runLater(Runnable r) {
+    if(isHeadLessMode() || Platform.isFxApplicationThread()) {
+      r.run();
+    }
+    else {
+      Platform.runLater(r);
+    }
+  }
+
   public static void registerStorage(MemoryMapStorage storage) {
     storageList.add(storage);
   }
