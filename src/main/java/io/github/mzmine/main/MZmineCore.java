@@ -353,7 +353,7 @@ public final class MZmineCore {
    * @param r runnable to either run directly or on the JavaFX thread
    */
   public static void runLater(Runnable r) {
-    if(isHeadLessMode()) {
+    if(isHeadLessMode() || Platform.isFxApplicationThread()) {
       r.run();
     }
     else {
