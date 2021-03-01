@@ -39,7 +39,6 @@ public class AllSpectralDataImportTask extends AbstractTask {
 
   private final RawDataFile newMZmineFile;
   private final AbstractTask importTask;
-  private final AdvancedSpectraImportParameters advancedParam;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
   private Logger logger = Logger.getLogger(
@@ -65,7 +64,6 @@ public class AllSpectralDataImportTask extends AbstractTask {
     super(storageMassLists);
     this.newMZmineFile = newMZmineFile;
     this.importTask = importTask;
-    this.advancedParam = advancedParam;
 
     if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
       this.ms1Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)

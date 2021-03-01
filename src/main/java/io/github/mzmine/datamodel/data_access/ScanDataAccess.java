@@ -42,6 +42,7 @@ public class ScanDataAccess implements MassSpectrum {
 
   protected final RawDataFile dataFile;
   protected final ScanDataType type;
+  private final ScanSelection selection;
   protected final int scans;
 
   // current data
@@ -62,15 +63,15 @@ public class ScanDataAccess implements MassSpectrum {
       ScanDataType type, ScanSelection selection) {
     this.dataFile = dataFile;
     this.type = type;
+    this.selection = selection;
     // count matching scans
-    if(selection==null) {
-          scans = dataFile.getScans().size();
-    }
-    else {
+    if (selection == null) {
+      scans = dataFile.getScans().size();
+    } else {
       int size = 0;
-      for(Scan s : dataFile.getScans()) {
-        if(selection.matches(s)) {
-          size ++;
+      for (Scan s : dataFile.getScans()) {
+        if (selection.matches(s)) {
+          size++;
         }
       }
       scans = size;
@@ -139,8 +140,15 @@ public class ScanDataAccess implements MassSpectrum {
   @Nullable
   public Scan nextScan() throws MissingMassListException {
     if (hasNextScan()) {
-      currentScan++;
-      Scan scan = dataFile.getScan(currentScan);
+      Scan scan = null;
+      do {
+        currentScan++;
+        scan = dataFile.getScan(currentScan);
+
+        assert scan != null;
+        // find next scan
+      } while (selection != null && !selection.matches(scan));
+
       switch (type) {
         case RAW -> {
           scan.getMzValues(mzs);
