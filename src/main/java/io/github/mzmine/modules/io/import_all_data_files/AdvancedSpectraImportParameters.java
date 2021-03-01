@@ -18,21 +18,32 @@
 package io.github.mzmine.modules.io.import_all_data_files;
 
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima.LocalMaxMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 
 public class AdvancedSpectraImportParameters extends SimpleParameterSet {
 
-  public static final OptionalModuleParameter<MassDetectionSubParameters> msMassDetection = new OptionalModuleParameter<>(
-      "MS1 mass detection (ADVANCED)",
-      "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help). Positive: Lower memory consumption; Caution: All processing steps will directly change the underlying data, with no way of retrieving raw data or inial results apart from the current state.",
-      new MassDetectionSubParameters(), true);
 
-  public static final OptionalModuleParameter<MassDetectionSubParameters> ms2MassDetection = new OptionalModuleParameter<>(
-      "MS2 mass detection (ADVANCED)",
-      "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help). Positive: Lower memory consumption; Caution: All processing steps will directly change the underlying data, with no way of retrieving raw data or inial results apart from the current state.",
-      new MassDetectionSubParameters(), true);
+  public static final MassDetector massDetectors[] =
+      {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
+          new RecursiveMassDetector(), new WaveletMassDetector()};
+
+  public static final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection =
+      new OptionalParameter<>(new ModuleComboParameter<MassDetector>("MS1 detector",
+          "Algorithm to use on MS1 scans for mass detection and its parameters", massDetectors));
+
+  public static final OptionalParameter<ModuleComboParameter<MassDetector>> ms2MassDetection =
+      new OptionalParameter<>(new ModuleComboParameter<MassDetector>("MS2 detector",
+          "Algorithm to use on MS2 scans for mass detection and its parameters", massDetectors));
 
   public AdvancedSpectraImportParameters() {
     super(new Parameter[]{msMassDetection, ms2MassDetection});

@@ -100,14 +100,8 @@ public class MzXMLImportTask extends AbstractTask {
 
   // advanced processing will apply mass detection directly to the scans
   private final boolean applyMassDetection;
-  @Nullable
-  private MassDetectionSubParameters ms1MassDetection = null;
-  @Nullable
-  private MassDetectionSubParameters ms2MassDetection = null;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
-  private ScanSelection scan1Selection = null;
-  private ScanSelection scan2Selection = null;
 
   /*
    * This variable hold the present scan or fragment, it is send to the stack when another
@@ -131,23 +125,15 @@ public class MzXMLImportTask extends AbstractTask {
     this.newMZmineFile = newMZmineFile;
 
     if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-      ms1MassDetection = advancedParam
-          .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameters();
-      this.ms1Detector = ms1MassDetection.getParameter(MassDetectionParameters.massDetector)
-          .getValue();
-      this.scan1Selection = ms1MassDetection.getParameter(MassDetectionParameters.scanSelection)
-          .getValue();
+      this.ms1Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
+          .getEmbeddedParameter().getValue();
     }
     if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-      ms2MassDetection = advancedParam
-          .getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameters();
-      this.ms2Detector = ms2MassDetection.getParameter(MassDetectionParameters.massDetector)
-          .getValue();
-      this.scan2Selection = ms2MassDetection.getParameter(MassDetectionParameters.scanSelection)
-          .getValue();
+      this.ms2Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
+          .getEmbeddedParameter().getValue();
     }
 
-    this.applyMassDetection = ms1MassDetection != null || ms2MassDetection != null;
+    this.applyMassDetection = ms1Detector != null || ms2Detector != null;
   }
 
   /**

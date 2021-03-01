@@ -55,15 +55,12 @@ public class MassDetectionSubParameters extends SimpleParameterSet {
       {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
           new RecursiveMassDetector(), new WaveletMassDetector()};
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection());
-
   public static final ModuleComboParameter<MassDetector> massDetector =
       new ModuleComboParameter<MassDetector>("Mass detector",
           "Algorithm to use for mass detection and its parameters", massDetectors);
 
   public MassDetectionSubParameters() {
-    super(new Parameter[]{scanSelection, massDetector});
+    super(new Parameter[]{massDetector});
   }
 
   @Override

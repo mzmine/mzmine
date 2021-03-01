@@ -67,14 +67,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   // advanced processing will apply mass detection directly to the scans
   private final boolean applyMassDetection;
-  @Nullable
-  private MassDetectionSubParameters ms1MassDetection = null;
-  @Nullable
-  private MassDetectionSubParameters ms2MassDetection = null;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
-  private ScanSelection scan1Selection = null;
-  private ScanSelection scan2Selection = null;
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     this(project, fileToOpen, newMZmineFile, null);
@@ -89,23 +83,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
     description = "Importing raw data file: " + fileToOpen.getName();
 
     if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-      ms1MassDetection = advancedParam
-          .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameters();
-      this.ms1Detector = ms1MassDetection.getParameter(MassDetectionParameters.massDetector)
-          .getValue();
-      this.scan1Selection = ms1MassDetection.getParameter(MassDetectionParameters.scanSelection)
-          .getValue();
+      this.ms1Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
+          .getEmbeddedParameter().getValue();
     }
     if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-      ms2MassDetection = advancedParam
-          .getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameters();
-      this.ms2Detector = ms2MassDetection.getParameter(MassDetectionParameters.massDetector)
-          .getValue();
-      this.scan2Selection = ms2MassDetection.getParameter(MassDetectionParameters.scanSelection)
-          .getValue();
+      this.ms2Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
+          .getEmbeddedParameter().getValue();
     }
 
-    this.applyMassDetection = ms1MassDetection != null || ms2MassDetection != null;
+    this.applyMassDetection = ms1Detector != null || ms2Detector != null;
   }
 
 
@@ -183,9 +169,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
         double[][] mzIntensities = null;
 
         // apply mass detection
-        if (ms1Detector != null && scan1Selection.matches(wrapper)) {
+        if (ms1Detector != null && wrapper.getMSLevel() == 1) {
           mzIntensities = applyMassDetection(ms1Detector, wrapper);
-        } else if (ms2Detector != null && scan2Selection.matches(wrapper)) {
+        } else if (ms2Detector != null && wrapper.getMSLevel() == 2) {
           mzIntensities = applyMassDetection(ms2Detector, wrapper);
         }
 
