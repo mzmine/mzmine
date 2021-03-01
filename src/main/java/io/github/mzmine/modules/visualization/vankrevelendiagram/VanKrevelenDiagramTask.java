@@ -167,21 +167,23 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       });
 
       // Create Van Krevelen Diagram tab
-      Platform.runLater(() -> {
-        VanKrevelenDiagramTab newTab = new VanKrevelenDiagramTab(parameters, chartViewer);
-        MZmineCore.getDesktop().addTab(newTab);
+      if(!MZmineCore.isHeadLessMode()) {
+        Platform.runLater(() -> {
+          VanKrevelenDiagramTab newTab = new VanKrevelenDiagramTab(parameters, chartViewer);
+          MZmineCore.getDesktop().addTab(newTab);
 
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("Results summary");
-        alert.setHeaderText(null);
-        alert.setContentText(displayedFeatures
-            + " feature list rows are displayed in the Van Krevelen diagram.\n"
-            + featuresWithFormulasWithoutCHO
-            + " feature list rows are not displayed, because the annotated molecular formula does not contain the elements C, H, and O.\n"
-            + featuresWithoutFormula
-            + " feature list rows are not displayed, because no molecular formula was assigned.");
-        alert.show();
-      });
+          Alert alert = new Alert(AlertType.INFORMATION);
+          alert.setTitle("Results summary");
+          alert.setHeaderText(null);
+          alert.setContentText(displayedFeatures
+              + " feature list rows are displayed in the Van Krevelen diagram.\n"
+              + featuresWithFormulasWithoutCHO
+              + " feature list rows are not displayed, because the annotated molecular formula does not contain the elements C, H, and O.\n"
+              + featuresWithoutFormula
+              + " feature list rows are not displayed, because no molecular formula was assigned.");
+          alert.show();
+        });
+      }
       logger.info("Finished creating van Krevelen diagram of " + featureList);
       setStatus(TaskStatus.FINISHED);
     } catch (

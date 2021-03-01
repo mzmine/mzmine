@@ -130,7 +130,7 @@ public interface Desktop extends MZmineModule {
 
   /**
    * Adds a tab to the main window. Does not have to be called in a {@link
-   * javafx.application.Platform#runLater(Runnable)} environment.
+   * io.github.mzmine.main.MZmineCore#runLater(Runnable)} environment.
    *
    * @param tab The tab {@link MZmineTab}
    */
