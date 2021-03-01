@@ -77,7 +77,7 @@ public class SmoothingParameters extends SimpleParameterSet {
         MOBILITY_SMOOTHING_TYPE, REMOVE_ORIGINAL});
   }
 
-  enum MobilitySmoothingType {
+  public enum MobilitySmoothingType {
     SUMMED("Summed"), INDIVIDUAL("Individual");
 
     private final String str;

@@ -111,7 +111,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[], List,
    * double[])
    */
-  private SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
+  public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
       @Nonnull double[] intensities, List<IonMobilitySeries> mobilograms,
       List<Frame> frames) {
     if (mzs.length != intensities.length || mobilograms.size() != intensities.length
@@ -150,7 +150,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[], List,
    * double[])
    */
-  private SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
+  public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
       @Nonnull double[] intensities, @Nonnull List<IonMobilitySeries> mobilograms,
       @Nonnull List<Frame> frames, @Nullable double[] summedMobilogramMobilitities,
       @Nullable double[] smoothedSummedMobilogramIntensities) {
