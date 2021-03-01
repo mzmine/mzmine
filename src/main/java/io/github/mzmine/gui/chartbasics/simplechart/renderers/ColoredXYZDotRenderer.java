@@ -28,7 +28,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
 import java.util.Set;
 import javafx.application.Platform;
-import javafx.util.Pair;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CrosshairState;
@@ -37,9 +36,7 @@ import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.renderer.xy.XYShapeRenderer;
-import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.util.ShapeUtils;
-import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 
 public class ColoredXYZDotRenderer extends XYShapeRenderer {
@@ -47,7 +44,7 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
   private static final Shape dataPointsShape = new Ellipse2D.Double(0, 0, 7, 7);
 
   public boolean pointsReduction = false;
-  private final Set<Pair<Integer, Integer>> pointsCoordinates = new HashSet<>();
+  private final Set<Integer> uniqueCoordinates = new HashSet<>();
 
   public ColoredXYZDotRenderer() {
     super();
@@ -76,11 +73,11 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
     state.setProcessVisibleItemsOnly(true);
 
     // Clear saved coordinated, when the renderer is initialized
-    pointsCoordinates.clear();
+    uniqueCoordinates.clear();
 
     if (pointsReduction) {
       Platform.runLater(() -> System.out
-          .println("[DEBUG] Number of \"unique\" data points: " + pointsCoordinates.size()));
+          .println("[DEBUG] Number of \"unique\" data points: " + uniqueCoordinates.size()));
     }
 
     return state;
@@ -119,13 +116,15 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
       if (roundY % 2 == 0) {
         roundY++;
       }
-      Pair<Integer, Integer> pair = new Pair<>(roundX, roundY);
 
-      if (pointsCoordinates.contains(pair)) {
+      // Cantor pairing function (to store one int instead of pair)
+      int coordinate = ((roundX + roundY) * (roundX + roundY + 1) + roundY) / 2;
+
+      if (uniqueCoordinates.contains(coordinate)) {
         return;
       }
 
-      pointsCoordinates.add(pair);
+      uniqueCoordinates.add(coordinate);
     }
 
     PlotOrientation orientation = plot.getOrientation();
