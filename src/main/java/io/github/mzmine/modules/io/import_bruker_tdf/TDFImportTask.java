@@ -93,9 +93,10 @@ public class TDFImportTask extends AbstractTask {
    * @param project
    * @param file
    * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via {@link
-   *                      MZmineCore#createNewIMSFile(String)}.
+   *                      MZmineCore#createNewIMSFile}.
    */
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile) {
+    super(newMZmineFile.getMemoryMapStorage());
     this.fileNameToOpen = file;
     this.project = project;
     this.newMZmineFile = newMZmineFile;

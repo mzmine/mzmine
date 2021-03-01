@@ -119,7 +119,9 @@ public class StorageUtils {
    *
    * @param storage The storage to be used. If null, the values will be wrapped using {@link
    *                DoubleBuffer#wrap(double[])}.
-   * @param values  The values to be stored.
+   * @param values  The values to be stored. If storage is null, a double buffer will be wrapped
+   *                around this array. Changes in the array will therefore be reflected in the
+   *                DoubleBuffer.
    * @return The double buffer the values were stored in.
    */
   @Nonnull

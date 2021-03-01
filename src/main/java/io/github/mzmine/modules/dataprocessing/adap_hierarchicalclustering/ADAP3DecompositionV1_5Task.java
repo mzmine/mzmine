@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +52,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author aleksandrsmirnov
@@ -70,7 +72,8 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
   private final ParameterSet parameters;
 
   ADAP3DecompositionV1_5Task(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
+    super(storage);
     // Initialize.
     this.project = project;
     parameters = parameterSet;
@@ -157,7 +160,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     final ModularFeatureList resolvedPeakList = new ModularFeatureList(
         peakList + " "
             + parameters.getParameter(ADAP3DecompositionV1_5Parameters.SUFFIX).getValue(),
-        dataFile);
+        getMemoryMapStorage(), dataFile);
 
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {

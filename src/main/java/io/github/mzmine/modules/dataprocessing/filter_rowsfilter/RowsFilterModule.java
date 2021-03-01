@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -57,10 +58,11 @@ public class RowsFilterModule implements MZmineProcessingModule {
 
     final FeatureList[] featureLists =
         parameters.getParameter(RowsFilterParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {
 
-      Task newTask = new RowsFilterTask(project, featureList, parameters);
+      Task newTask = new RowsFilterTask(project, featureList, parameters, storage);
       tasks.add(newTask);
 
     }

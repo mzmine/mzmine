@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -76,6 +75,7 @@ public class GroupMS2Task extends AbstractTask {
    */
   public GroupMS2Task(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
+    super(null); // no new data stored -> null
 
     // Initialize.
     this.project = project;
@@ -172,7 +172,7 @@ public class GroupMS2Task extends AbstractTask {
     float frt = feature.getRT();
     double fmz = feature.getMZ();
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
-    Float mobility = feature.get(MobilityType.class).getValue();
+    Float mobility = feature.getMobility();
 
     List<? extends Scan> scans = feature.getRawDataFile().getScans().stream()
         .filter(scan -> rtTol.checkWithinTolerance(frt, scan.getRetentionTime())

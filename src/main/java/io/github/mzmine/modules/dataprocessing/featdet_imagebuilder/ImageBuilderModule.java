@@ -23,11 +23,13 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
@@ -58,12 +60,14 @@ public class ImageBuilderModule implements MZmineProcessingModule {
     RawDataFile[] files = parameters.getParameter(ImageBuilderParameters.rawDataFiles).getValue()
         .getMatchingRawDataFiles();
 
+    MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+
     for (RawDataFile file : files) {
       if (!(file instanceof ImagingRawDataFile)) {
         continue;
       }
-      ImageBuilderTask task = new ImageBuilderTask(project, file, parameters);
-      tasks.add(task);
+      ImageBuilderTask task = new ImageBuilderTask(project, file, parameters, storage);
+      MZmineCore.getTaskController().addTask(task);
     }
 
     return ExitCode.OK;

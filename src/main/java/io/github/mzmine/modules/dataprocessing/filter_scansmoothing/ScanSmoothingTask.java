@@ -37,6 +37,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class ScanSmoothingTask extends AbstractTask {
 
@@ -66,7 +67,8 @@ public class ScanSmoothingTask extends AbstractTask {
    * @param storage
    */
   public ScanSmoothingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storage) {
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;

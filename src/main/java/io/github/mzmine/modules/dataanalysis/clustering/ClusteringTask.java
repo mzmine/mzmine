@@ -253,14 +253,16 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         TextField data = new TextField(c);
         visualizationPane.setBottom(data);
 
-        Platform.runLater(() -> {
-          Stage visualizationWindow = new Stage();
-          visualizationWindow.setTitle(clusterNumber);
-          visualizationWindow.setScene(visualizationWindowScene);
-          visualizationWindow.setMinWidth(600.0);
-          visualizationWindow.setMinHeight(500.0);
-          visualizationWindow.show();
-        });
+        if(!MZmineCore.isHeadLessMode()) {
+          Platform.runLater(() -> {
+            Stage visualizationWindow = new Stage();
+            visualizationWindow.setTitle(clusterNumber);
+            visualizationWindow.setScene(visualizationWindowScene);
+            visualizationWindow.setMinWidth(600.0);
+            visualizationWindow.setMinHeight(500.0);
+            visualizationWindow.show();
+          });
+        }
 
       }
       progress = 100;
@@ -351,11 +353,13 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         component2Coords = sammonsResult[yAxisDimension - 1];
       }
 
-      Platform.runLater(() -> {
-        ProjectionPlotWindow newFrame =
-            new ProjectionPlotWindow(desktop.getSelectedPeakLists()[0], this, parameters);
-        newFrame.show();
-      });
+      if(!MZmineCore.isHeadLessMode()) {
+        Platform.runLater(() -> {
+          ProjectionPlotWindow newFrame =
+              new ProjectionPlotWindow(desktop.getSelectedPeakLists()[0], this, parameters);
+          newFrame.show();
+        });
+      }
     }
     status = TaskStatus.FINISHED;
     logger.info("Finished computing Clustering visualization.");

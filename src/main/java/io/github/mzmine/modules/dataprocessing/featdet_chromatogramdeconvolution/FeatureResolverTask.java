@@ -61,7 +61,6 @@ public class FeatureResolverTask extends AbstractTask {
   // Feature lists.
   private final MZmineProject project;
   private final FeatureList originalPeakList;
-  private final MemoryMapStorage storage;
   // User parameters
   private final ParameterSet parameters;
   // function to find center mz of all feature data points
@@ -86,10 +85,10 @@ public class FeatureResolverTask extends AbstractTask {
   public FeatureResolverTask(final MZmineProject project,
       MemoryMapStorage storage, final FeatureList list,
       final ParameterSet parameterSet, CenterFunction mzCenterFunction) {
+    super(storage);
 
     // Initialize.
     this.project = project;
-    this.storage = storage;
     parameters = parameterSet;
     originalPeakList = list;
     newPeakList = null;

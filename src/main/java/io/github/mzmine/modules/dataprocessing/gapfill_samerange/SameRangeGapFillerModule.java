@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -53,9 +54,10 @@ public class SameRangeGapFillerModule implements MZmineProcessingModule {
 
     FeatureList[] peakLists = parameters.getParameter(SameRangeGapFillerParameters.peakLists)
         .getValue().getMatchingFeatureLists();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList peakList : peakLists) {
-      Task newTask = new SameRangeTask(project, peakList, parameters);
+      Task newTask = new SameRangeTask(project, peakList, parameters, storage);
       tasks.add(newTask);
     }
 

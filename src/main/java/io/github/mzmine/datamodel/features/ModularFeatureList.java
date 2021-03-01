@@ -6,7 +6,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -29,23 +28,30 @@ import javax.annotation.Nullable;
 
 public class ModularFeatureList implements FeatureList {
 
-  public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-  // bindings for values
-  private final List<RowBinding> rowBindings = new ArrayList<>();
-  // unmodifiable list
-  private final ObservableList<RawDataFile> dataFiles;
-  private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
-  // storage of data points in case features are edited
-  private MemoryMapStorage memoryMapStorage = null;
-  private boolean forceFeatureDataIntoRam = false;
+  /**
+   * The storage of this feature list. May be null if data points of features shall be stored in ram.
+   */
+  @Nullable
+  private final MemoryMapStorage memoryMapStorage;
+
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
   private ObservableMap<Class<? extends DataType>, DataType> rowTypes =
       FXCollections.observableMap(new LinkedHashMap<>());
+
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
   private ObservableMap<Class<? extends DataType>, DataType> featureTypes =
       FXCollections.observableMap(new LinkedHashMap<>());
+
+  // bindings for values
+  private final List<RowBinding> rowBindings = new ArrayList<>();
+
+  public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+
+  // unmodifiable list
+  private final ObservableList<RawDataFile> dataFiles;
+  private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
   private ObservableList<FeatureListRow> featureListRows;
   private String name;
   private ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
@@ -53,23 +59,23 @@ public class ModularFeatureList implements FeatureList {
   private Range<Double> mzRange;
   private Range<Float> rtRange;
 
-  public ModularFeatureList(String name) {
+  /*public ModularFeatureList(String name) {
     this(name, List.of());
-  }
+  }*/
 
-  public ModularFeatureList(String name, @Nonnull RawDataFile... dataFiles) {
+  /*public ModularFeatureList(String name, @Nonnull RawDataFile... dataFiles) {
     this(name, List.of(dataFiles));
-  }
+  }*/
 
-  public ModularFeatureList(String name, MemoryMapStorage storage, @Nonnull RawDataFile... dataFiles) {
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, @Nonnull RawDataFile... dataFiles) {
     this(name, storage, List.of(dataFiles));
   }
 
-  public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
+  /*public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
     this(name,null, dataFiles);
-  }
+  }*/
 
-  public ModularFeatureList(String name, MemoryMapStorage storage, @Nonnull List<RawDataFile> dataFiles) {
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
@@ -86,11 +92,6 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public String getName() {
     return name;
-  }
-
-  @Override
-  public void setName(String name) {
-    this.name = name;
   }
 
   @Override
@@ -313,6 +314,7 @@ public class ModularFeatureList implements FeatureList {
     // ranges
   }
 
+
   /**
    * Returns all features overlapping with a retention time range
    *
@@ -446,6 +448,11 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
   public void addDescriptionOfAppliedTask(FeatureListAppliedMethod appliedMethod) {
     descriptionOfAppliedTasks.add(appliedMethod);
   }
@@ -505,8 +512,8 @@ public class ModularFeatureList implements FeatureList {
    * @param title
    * @return
    */
-  public ModularFeatureList createCopy(String title) {
-    ModularFeatureList flist = new ModularFeatureList(title, this.getRawDataFiles());
+  public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage) {
+    ModularFeatureList flist = new ModularFeatureList(title, storage, this.getRawDataFiles());
     // copy all rows and features
     this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true))
         .forEach(newRow -> flist.addRow(newRow));
@@ -524,32 +531,8 @@ public class ModularFeatureList implements FeatureList {
     return rowBindings;
   }
 
-  public boolean getForceFeatureDataIntoRam() {
-    return forceFeatureDataIntoRam;
-  }
-
-  /**
-   * <b>Note</b> Currently unsafe fore feature lists that are added to the project. Causes merging
-   * of mobility scans to crash until either {@link AbstractStorableSpectrum} can handle a null
-   * storage or we create a central storage for that case.
-   * <p></p>
-   *
-   * @param forceFeatureDataIntoRam Forces that feature data of new features will be stored into ram
-   *                                for usage on servers.
-   */
-  public void setForceFeatureDataIntoRam(boolean forceFeatureDataIntoRam) {
-    this.forceFeatureDataIntoRam = forceFeatureDataIntoRam;
-  }
-
-  /**
-   * @return The {@link MemoryMapStorage}. May be null if {@link  ModularFeatureList#setForceFeatureDataIntoRam(boolean)}
-   * is set to true. Downstream modules have to handle this case.
-   */
   @Nullable
   public MemoryMapStorage getMemoryMapStorage() {
-    if (memoryMapStorage == null && !forceFeatureDataIntoRam) {
-      memoryMapStorage = new MemoryMapStorage();
-    }
     return memoryMapStorage;
   }
 

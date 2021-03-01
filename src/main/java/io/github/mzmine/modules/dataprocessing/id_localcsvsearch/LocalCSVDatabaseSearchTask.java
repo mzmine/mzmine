@@ -52,6 +52,7 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
   private ParameterSet parameters;
 
   LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters) {
+    super(null); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;

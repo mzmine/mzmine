@@ -18,16 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_neutralloss;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.Collection;
-import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 public class NeutralLossFilterModule implements MZmineProcessingModule {
 
@@ -59,8 +59,9 @@ public class NeutralLossFilterModule implements MZmineProcessingModule {
     FeatureList peakLists[] = parameters.getParameter(NeutralLossFilterParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
 
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (FeatureList peakList : peakLists) {
-      Task newTask = new NeutralLossFilterTask(project, peakList, parameters);
+      Task newTask = new NeutralLossFilterTask(project, peakList, parameters, storage);
       tasks.add(newTask);
     }
     return ExitCode.OK;

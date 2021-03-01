@@ -54,6 +54,7 @@ public class AdapMspExportTask extends AbstractTask {
   private final IntegerMode roundMode;
 
   AdapMspExportTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.featureLists = parameters.getParameter(AdapMspExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();
 

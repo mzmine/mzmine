@@ -55,6 +55,7 @@ public class LegacyCSVExportTask extends AbstractTask {
   private final FeatureListRowsFilter filter;
 
   public LegacyCSVExportTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.featureLists =
         parameters.getParameter(LegacyCSVExportParameters.featureLists).getValue()
             .getMatchingFeatureLists();
@@ -84,7 +85,7 @@ public class LegacyCSVExportTask extends AbstractTask {
       LegacyExportRowCommonElement[] commonElements,
       LegacyExportRowDataFileElement[] dataFileElements,
       Boolean exportAllFeatureInfo, String idSeparator, FeatureListRowsFilter filter) {
-    super();
+    super(null); // no new data stored -> null
     this.featureLists = featureLists;
     this.fileName = fileName;
     this.fieldSeparator = fieldSeparator;

@@ -57,6 +57,10 @@ public class MobilogramBuilderTask extends AbstractTask {
   private int processedFrames;
 
   public MobilogramBuilderTask(List<Frame> frames, ParameterSet parameters) {
+    super(null); // this module is phased out atm
+    // todo "Implement memory map storage into this module"
+    logger.warning("Implement memory map storage into this module");
+
     this.mzTolerance = parameters.getParameter(MobilogramBuilderParameters.mzTolerance).getValue();
     this.minPeaks = parameters.getParameter(MobilogramBuilderParameters.minPeaks).getValue();
     this.addDpFromRaw = parameters.getParameter(MobilogramBuilderParameters.addRawDp).getValue();

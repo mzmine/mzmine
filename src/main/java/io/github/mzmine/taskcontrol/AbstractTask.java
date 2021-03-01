@@ -18,16 +18,23 @@
 
 package io.github.mzmine.taskcontrol;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javax.annotation.Nullable;
 
 /**
  * An abstract implementation of task which defines common methods to make Task implementation
  * easier. Added task status listener
  */
 public abstract class AbstractTask implements Task {
+
+  protected final MemoryMapStorage storage;
 
   private TaskStatus status = TaskStatus.WAITING;
   private String errorMessage = null;
@@ -48,6 +55,26 @@ public abstract class AbstractTask implements Task {
     return name;
   }
 
+  /**
+   *
+   * @param storage The {@link MemoryMapStorage} used to store results of this task (e.g.
+   *                RawDataFiles, MassLists, FeatureLists). May be null if results shall be stored
+   *                in ram. For now, one storage should be created per module call in {@link
+   *                io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject, ParameterSet, Collection)}.
+   */
+  protected AbstractTask(@Nullable MemoryMapStorage storage) {
+    this.storage = storage;
+  }
+
+  /**
+   *
+   * @return The {@link MemoryMapStorage} used to store results of this task (e.g. RawDataFiles,
+   * MassLists, FeatureLists). May be null if results shall be stored in ram.
+   */
+  @Nullable
+  public MemoryMapStorage getMemoryMapStorage() {
+    return storage;
+  }
 
   /**
    */

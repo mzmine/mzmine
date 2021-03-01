@@ -45,6 +45,8 @@ public class MoblityScanMergerTask extends AbstractTask {
   private int processedFrames;
 
   public MoblityScanMergerTask(final IMSRawDataFile file, ParameterSet parameters) {
+    super(null); // for now, the merged data points are added to the frame on the raw data
+    // level. In the future, we will generate a mass list.
     processedFrames = 0;
     totalFrames = 1;
     this.parameters = parameters;

@@ -41,16 +41,17 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
-import java.util.ArrayList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -76,7 +77,11 @@ public class ImageBuilderTask extends AbstractTask {
   private String taskDescription = "";
   private final ParameterSet parameterSet;
 
-  public ImageBuilderTask(MZmineProject project, RawDataFile rawDataFile, ParameterSet parameters) {
+  public ImageBuilderTask(MZmineProject project, RawDataFile rawDataFile, ParameterSet parameters,
+      @Nullable
+          MemoryMapStorage storage) {
+    super(storage);
+
     this.project = project;
     this.rawDataFile = (ImagingRawDataFile) rawDataFile;
     this.imagingParameters = ((ImagingRawDataFile) rawDataFile).getImagingParam();
@@ -169,7 +174,6 @@ public class ImageBuilderTask extends AbstractTask {
       }
       Range<Double> containsDataPointRange = rangeSet.rangeContaining(imageDataPoint.getMZ());
       Range<Double> toleranceRange = mzTolerance.getToleranceRange(imageDataPoint.getMZ());
-
       if (containsDataPointRange == null) {
         // look +- mz tolerance to see if ther is a range near by.
         // If there is use the proper boundry of that range for the
@@ -207,7 +211,7 @@ public class ImageBuilderTask extends AbstractTask {
           Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
           IImage newImage = new Image(imageDataPoint.getMZ(), imagingParameters,
               paintScaleParameter, imageDataPoint.getIntensity(), newRange);
-          List<ImageDataPoint> dataPointsSetForImage = new ArrayList<ImageDataPoint>();
+          LinkedHashSet<ImageDataPoint> dataPointsSetForImage = new LinkedHashSet<ImageDataPoint>();
           dataPointsSetForImage.add(imageDataPoint);
           newImage.setDataPoints(dataPointsSetForImage);
           rangeToImageMap.put(newRange, newImage);
@@ -215,10 +219,9 @@ public class ImageBuilderTask extends AbstractTask {
         } else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
           IImage currentImage = rangeToImageMap.get(plusRange);
           currentImage.getDataPoints().add(imageDataPoint);
-        } else {
+        } else
           throw new IllegalStateException(String.format("Incorrect range [%f, %f] for m/z %f",
               toBeLowerBound, toBeUpperBound, imageDataPoint.getMZ()));
-        }
 
       } else {
         // In this case we do not need to update the rangeSet
@@ -267,7 +270,7 @@ public class ImageBuilderTask extends AbstractTask {
   private IImage finishImage(IImage image) {
     Range<Double> rawDataPointsIntensityRange = null;
     Range<Double> rawDataPointsMZRange = null;
-    List<Scan> scanNumbers = new ArrayList<>();
+    LinkedHashSet<Scan> scanNumbers = new LinkedHashSet<>();
     SortedSet<ImageDataPoint> sortedRetentionTimeMobilityDataPoints =
         new TreeSet<>(new Comparator<ImageDataPoint>() {
           @Override
@@ -302,8 +305,6 @@ public class ImageBuilderTask extends AbstractTask {
 
     }
 
-    image.setDataPoints(new ArrayList<>(sortedRetentionTimeMobilityDataPoints));
-
     // TODO think about representative scan
     image.setScanNumbers(scanNumbers);
     image.setMzRange(rawDataPointsMZRange);
@@ -336,7 +337,7 @@ public class ImageBuilderTask extends AbstractTask {
     // ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
     // allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile,
-    // dataFile.getDataR66TRange(1), rawDataPointsMZRange);
+    // dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
     // if (fragmentScan > 0) {
     // Scan fragmentScanObject = dataFile.getScan(fragmentScan);
@@ -352,7 +353,7 @@ public class ImageBuilderTask extends AbstractTask {
   private void buildModularFeatureList(SortedSet<IImage> images) {
     taskDescription = "Build feature list";
     ModularFeatureList featureList =
-        new ModularFeatureList(rawDataFile + " " + suffix, rawDataFile);
+        new ModularFeatureList(rawDataFile + " " + suffix, getMemoryMapStorage(), rawDataFile);
     // featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
     // featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
     // featureList.addRowType(new FeatureShapeMobilogramType());
@@ -362,10 +363,9 @@ public class ImageBuilderTask extends AbstractTask {
     for (IImage image : images) {
       image.setFeatureList(featureList);
       ModularFeature modular = FeatureConvertors.ImageToModularFeature(image, rawDataFile);
-      modular.set(ImageType.class, false);
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
-//      newRow.set(ImageType.class, newRow.getFeaturesProperty());
+      newRow.set(ImageType.class, newRow.getFeaturesProperty());
       // newRow.set(MobilityType.class, image.getMobility());
       // newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
       // newRow.set(FeatureShapeMobilogramType.class, newRow.getFeaturesProperty());

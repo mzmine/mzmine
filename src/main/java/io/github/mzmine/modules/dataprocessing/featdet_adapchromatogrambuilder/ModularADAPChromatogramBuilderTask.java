@@ -53,6 +53,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 
 public class ModularADAPChromatogramBuilderTask extends AbstractTask {
@@ -85,15 +86,13 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
   private ModularFeatureList newFeatureList;
   private ParameterSet parameters;
-  private final MemoryMapStorage storage;
-
   /**
    * @param dataFile
    * @param parameters
    */
   public ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters, MemoryMapStorage storage) {
-
+      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.dataFile = dataFile;
     this.scanSelection =
@@ -115,7 +114,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     this.minIntensityForStartChrom =
         parameters.getParameter(ADAPChromatogramBuilderParameters.startIntensity).getValue();
     this.parameters = parameters;
-    this.storage = storage;
   }
 
   /**
@@ -388,7 +386,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     Arrays.sort(chromatograms, new ADAPChromatogramSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     // Create new feature list
-    newFeatureList = new ModularFeatureList(dataFile + " " + suffix, storage, dataFile);
+    newFeatureList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(), dataFile);
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(newFeatureList);
 

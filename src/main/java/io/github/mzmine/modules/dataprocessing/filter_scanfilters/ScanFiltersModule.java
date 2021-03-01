@@ -52,7 +52,7 @@ public class ScanFiltersModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
     // one storage for all files in the same module call
-    MemoryMapStorage storage = new MemoryMapStorage();
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     RawDataFile[] dataFiles = parameters.getParameter(ScanFiltersParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();

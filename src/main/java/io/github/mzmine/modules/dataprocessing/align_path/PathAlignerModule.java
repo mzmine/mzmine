@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_path;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -48,7 +49,7 @@ public class PathAlignerModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    Task newTask = new PathAlignerTask(project, parameters);
+    Task newTask = new PathAlignerTask(project, parameters, MemoryMapStorage.forFeatureList());
     tasks.add(newTask);
     return ExitCode.OK;
   }

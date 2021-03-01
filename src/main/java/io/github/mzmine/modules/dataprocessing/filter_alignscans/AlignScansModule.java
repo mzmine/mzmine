@@ -59,7 +59,7 @@ public class AlignScansModule implements MZmineProcessingModule {
         parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
 
     // one storage for all files in the same module call
-    MemoryMapStorage storage = new MemoryMapStorage();
+    MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     for (int i = 0; i < dataFiles.length; i++) {
       Task newTask = new AlignScansTask(project, dataFiles[i], parameters.cloneParameterSet(),

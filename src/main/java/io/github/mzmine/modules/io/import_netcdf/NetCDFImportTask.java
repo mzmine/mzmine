@@ -18,11 +18,6 @@
 
 package io.github.mzmine.modules.io.import_netcdf;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -33,6 +28,11 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
 import ucar.ma2.IndexIterator;
@@ -66,6 +66,7 @@ public class NetCDFImportTask extends AbstractTask {
   private double intensityValueScaleFactor = 1;
 
   public NetCDFImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
+    super(null); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;

@@ -34,12 +34,14 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 class TargetedPeakDetectionModuleTask extends AbstractTask {
 
@@ -63,7 +65,8 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
   private double noiseLevel;
 
   TargetedPeakDetectionModuleTask(MZmineProject project, ParameterSet parameters,
-      RawDataFile dataFile) {
+      RawDataFile dataFile, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.parameters = parameters;
@@ -92,7 +95,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     totalScans = dataFile.getNumOfScans(1);
 
     // Create new feature list
-    processedPeakList = new ModularFeatureList(dataFile.getName() + " " + suffix, dataFile);
+    processedPeakList = new ModularFeatureList(dataFile.getName() + " " + suffix, getMemoryMapStorage(), dataFile);
 
     List<PeakInformation> peaks = this.readFile();
 

@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -57,7 +58,8 @@ class PeakFinderTask extends AbstractTask {
   private int masterSample = 0;
   private boolean useParallelStream = false;
 
-  PeakFinderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
+  PeakFinderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters, MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;
@@ -84,7 +86,7 @@ class PeakFinderTask extends AbstractTask {
     processedScans = new AtomicInteger();
 
     // Create new feature list
-    processedPeakList = peakList.createCopy(peakList + " " + suffix);
+    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage());
 //            new ModularFeatureList(peakList + " " + suffix, peakList.getRawDataFiles());
 
     if (rtCorrection) {

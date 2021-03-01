@@ -53,7 +53,7 @@ public class ScanSmoothingModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
     // one storage for all files in the same module call
-    MemoryMapStorage storage = new MemoryMapStorage();
+    MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     RawDataFile[] dataFiles =
         parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();

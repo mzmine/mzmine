@@ -67,6 +67,7 @@ public class ProjectSavingTask extends AbstractTask {
   private Hashtable<RawDataFile, String> dataFilesIDMap;
 
   public ProjectSavingTask(MZmineProject project, ParameterSet parameters) {
+    super(null);
     this.savedProject = (MZmineProjectImpl) project;
     this.saveFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
     dataFilesIDMap = new Hashtable<RawDataFile, String>();

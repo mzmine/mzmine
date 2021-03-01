@@ -55,6 +55,7 @@ public class FragmentSearchTask extends AbstractTask {
    * @param peakList
    */
   public FragmentSearchTask(ParameterSet parameters, FeatureList peakList) {
+    super(null); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;

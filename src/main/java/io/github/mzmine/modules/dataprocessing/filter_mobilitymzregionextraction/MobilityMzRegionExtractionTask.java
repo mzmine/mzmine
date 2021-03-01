@@ -30,10 +30,12 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -49,7 +51,9 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
   private double progress;
 
   public MobilityMzRegionExtractionTask(ParameterSet parameterSet,
-      ModularFeatureList originalFeatureList, MZmineProject project) {
+      ModularFeatureList originalFeatureList, MZmineProject project,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.originalFeatureList = originalFeatureList;
     this.parameterSet = parameterSet;
     pointsLists = parameterSet.getParameter(MobilityMzRegionExtractionParameters.regions)
@@ -92,7 +96,7 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
     pointsLists.forEach(list -> regions.add(getShape(list)));
 
     ModularFeatureList newFeatureList = originalFeatureList
-        .createCopy(originalFeatureList.getName() + suffix);
+        .createCopy(originalFeatureList.getName() + suffix, getMemoryMapStorage());
 
     final double numberOfRows = (double) newFeatureList.getNumberOfRows();
     int processedFeatures = 0;

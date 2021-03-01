@@ -34,6 +34,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 class ScanFilteringTask extends AbstractTask {
 
@@ -55,7 +56,6 @@ class ScanFilteringTask extends AbstractTask {
 
   private ScanSelection select;
   private ParameterSet parameters;
-  private final MemoryMapStorage storage;
 
   /**
    * @param dataFile
@@ -63,7 +63,8 @@ class ScanFilteringTask extends AbstractTask {
    * @param storage
    */
   ScanFilteringTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storage) {
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -74,7 +75,6 @@ class ScanFilteringTask extends AbstractTask {
     select = parameters.getParameter(ScanFiltersParameters.scanSelect).getValue();
 
     this.parameters = parameters;
-    this.storage = storage;
   }
 
   /**
@@ -119,7 +119,7 @@ class ScanFilteringTask extends AbstractTask {
       // Create new raw data file
 
       String newName = dataFile.getName() + " " + suffix;
-      newFile = MZmineCore.createNewFile(newName, storage);
+      newFile = MZmineCore.createNewFile(newName, getMemoryMapStorage());
 
       for (int i = 0; i < totalScans; i++) {
 

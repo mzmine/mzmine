@@ -49,6 +49,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   private UserParameter<?, ?> groupParameter;
 
   MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters) {
+    super(null); // no new data stored -> null
 
     this.project = project;
     this.featureLists = parameters.getParameter(MetaboAnalystExportParameters.featureLists).getValue()

@@ -62,6 +62,7 @@ public class AdductSearchTask extends AbstractTask {
    * @param list feature list.
    */
   public AdductSearchTask(final ParameterSet parameterSet, final FeatureList list) {
+    super(null); // no new data stored -> null
 
     peakList = list;
     parameters = parameterSet;
