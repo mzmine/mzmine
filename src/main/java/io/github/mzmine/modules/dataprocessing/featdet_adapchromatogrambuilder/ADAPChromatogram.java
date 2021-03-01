@@ -60,11 +60,11 @@ public class ADAPChromatogram {
   private SimpleFeatureInformation featureInfo;
 
   // Data file of this chromatogram
-  private RawDataFile dataFile;
+  private final RawDataFile dataFile;
 
   // Data points of the chromatogram (map of scan number -> m/z feature)
   // private Hashtable<Integer, DataPoint> dataPointsMap;
-  private TreeMap<Scan, DataPoint> dataPointsMap;
+  private final TreeMap<Scan, DataPoint> dataPointsMap;
 
   // Chromatogram m/z, RT, height, area. The mz value will be the highest points mz value
   private double mz, rt, height, area, weightedMz;
@@ -108,7 +108,7 @@ public class ADAPChromatogram {
   private double highPointMZ = 0;
 
   // full stack of scans
-  private final Scan scanNumbers[];
+  private final Scan[] scanNumbers;
 
   public int tmp_see_same_scan_count = 0;
 
@@ -124,9 +124,9 @@ public class ADAPChromatogram {
 
     rawDataPointsRTRange = dataFile.getDataRTRange(1);
 
-    dataPointsMap = new TreeMap<Scan, DataPoint>();
-    buildingSegment = new Vector<Scan>();
-    chromScanList = new ArrayList<Scan>();
+    dataPointsMap = new TreeMap<>();
+    buildingSegment = new Vector<>();
+    chromScanList = new ArrayList<>();
   }
 
   public double getHighPointMZ() {
@@ -137,21 +137,19 @@ public class ADAPChromatogram {
     highPointMZ = toSet;
   }
 
-  public List getIntensitiesForCDFOut() {
+  public List<Double> getIntensitiesForCDFOut() {
     // Need all scans with no intensity to be set to zero
-
-    List intensityList = new ArrayList();
+    List<Double> intensityList = new ArrayList<>();
 
     for (int curScanNum = 0; curScanNum < scanNumbers.length; curScanNum++) {
-      if (dataPointsMap.get(curScanNum) == null) {
+      DataPoint dp = dataPointsMap.get(scanNumbers[curScanNum]);
+      if (dp == null) {
         intensityList.add(0.0);
       } else {
-        intensityList.add(dataPointsMap.get(curScanNum).getIntensity());
+        intensityList.add(dp.getIntensity());
       }
     }
-
     return intensityList;
-
   }
 
   public Collection<DataPoint> getDataPoints() {
@@ -169,7 +167,7 @@ public class ADAPChromatogram {
 
     int bestCount = 0;
     int curCount = 0;
-    Scan lastScanNum = null;
+    Scan lastScanNum;
     int scanListLength = chromScanList.size();
 
     Scan curScanNum;
@@ -209,7 +207,6 @@ public class ADAPChromatogram {
    * This method adds a MzFeature to this Chromatogram. All values of this Chromatogram (rt, m/z,
    * intensity and ranges) are updated on request
    *
-   * @param mzValue
    */
   public void addMzFeature(Scan scanNumber, DataPoint mzValue) {
     double curIntensity;
@@ -437,7 +434,7 @@ public class ADAPChromatogram {
       // retention time
       float scanRt = allScanNumbers[i].getRetentionTime();
 
-      if ((mzFeature != null) || (mzFeature.getIntensity() != 0.0)) {
+      if (mzFeature.getIntensity() != 0.0) {
         if (rawDataPointsRTRange == null) {
           rawDataPointsRTRange = Range.singleton(scanRt);
         } else {
@@ -582,7 +579,6 @@ public class ADAPChromatogram {
     assert minGap >= zeros;
 
     int allScansIndex = 0; // contains the index of the next dp after a gap
-    int lastScanIndex = 0; // contains the index of the last dp before a gap
     Map<Scan, DataPoint> dataPointsToAdd = new HashMap<>();
 
     Scan[] detectedScans = dataPointsMap.keySet().toArray(Scan[]::new);
@@ -591,7 +587,7 @@ public class ADAPChromatogram {
     int nextDetectedScanInAllIndex = -1;
     int nextDetectedScanIndex = 0;
     int currentGap = 0;
-    int added = 0;
+    int added;
     for(allScansIndex=0; allScansIndex<scanNumbers.length; allScansIndex++) {
       added = 0;
       // was a DP detected in this scan?
@@ -670,6 +666,6 @@ public class ADAPChromatogram {
 //    }
 //
 //    dataPointsMap.putAll(dataPointsToAdd);
-     logger.info(() -> String.format("mz: %f\t Added %d data points", getMZ(), dataPointsToAdd.size()));
+//     logger.info(() -> String.format("mz: %f\t Added %d data points", getMZ(), dataPointsToAdd.size()));
   }
 }
