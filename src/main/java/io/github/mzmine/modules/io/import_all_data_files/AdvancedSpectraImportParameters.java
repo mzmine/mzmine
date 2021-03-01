@@ -38,11 +38,11 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
           new RecursiveMassDetector(), new WaveletMassDetector()};
 
   public static final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection =
-      new OptionalParameter<>(new ModuleComboParameter<MassDetector>("MS1 detector",
+      new OptionalParameter<>(new ModuleComboParameter<MassDetector>("MS1 detector (Advanced)",
           "Algorithm to use on MS1 scans for mass detection and its parameters", massDetectors));
 
   public static final OptionalParameter<ModuleComboParameter<MassDetector>> ms2MassDetection =
-      new OptionalParameter<>(new ModuleComboParameter<MassDetector>("MS2 detector",
+      new OptionalParameter<>(new ModuleComboParameter<MassDetector>("MS2 detector (Advanced)",
           "Algorithm to use on MS2 scans for mass detection and its parameters", massDetectors));
 
   public AdvancedSpectraImportParameters() {
