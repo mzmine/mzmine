@@ -165,6 +165,7 @@ public class ScanDataAccess implements MassSpectrum {
           currentNumberOfDataPoints = masses.getNumberOfDataPoints();
         }
       }
+      assert currentNumberOfDataPoints <= mzs.length;
       return scan;
     }
     return null;
