@@ -72,7 +72,6 @@ public class ModuleComboParameter<ModuleType extends MZmineModule>
   }
 
   /**
-   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -80,7 +79,6 @@ public class ModuleComboParameter<ModuleType extends MZmineModule>
   }
 
   /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {
@@ -165,7 +163,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule>
         }
       }
     }
-    String selectedAttr = xmlElement.getAttribute("selected");
+    String selectedAttr = xmlElement.getAttribute("selected_item");
     for (int j = 0; j < modulesWithParams.length; j++) {
       if (modulesWithParams[j].getModule().getName().equals(selectedAttr)) {
         value = modulesWithParams[j];
@@ -176,7 +174,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule>
   @Override
   public void saveValueToXML(Element xmlElement) {
     if (value != null)
-      xmlElement.setAttribute("selected", value.toString());
+      xmlElement.setAttribute("selected_item", value.toString());
     Document parentDocument = xmlElement.getOwnerDocument();
     for (MZmineProcessingStep<?> item : modulesWithParams) {
       Element newElement = parentDocument.createElement("module");
