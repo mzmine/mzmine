@@ -82,7 +82,8 @@
         </accelerator>
         
       <SeparatorMenuItem/>
-        
+
+      <MenuItem text="MS data (advanced)" onAction="#runModule" userData="io.github.mzmine.modules.io.import_all_data_files.AllSpectralDataImportModule" />
       <MenuItem text="mzML" onAction="#runModule" userData="io.github.mzmine.modules.io.import_mzml_msdk.MSDKmzMLImportModule" />
       <MenuItem text="mzML via jmzml" onAction="#runModule" userData="io.github.mzmine.modules.io.import_mzml_jmzml.MzMLImportModule" />
       <MenuItem text="imzML" onAction="#runModule" userData="io.github.mzmine.modules.io.import_imzml.ImzMLImportModule" />   
