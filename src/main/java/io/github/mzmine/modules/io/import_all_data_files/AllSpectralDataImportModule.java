@@ -114,11 +114,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // one storage for all files imported in the same task as they are typically analyzed together
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
-    for (int i = 0; i < fileNames.length; i++) {
+    for (File fileName : fileNames) {
 
-      if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
-        MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + fileNames[i]);
-        logger.warning("Cannot read file " + fileNames[i]);
+      if ((!fileName.exists()) || (!fileName.canRead())) {
+        MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + fileName);
+        logger.warning("Cannot read file " + fileName);
         return ExitCode.ERROR;
       }
 
@@ -126,20 +126,20 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       String newName;
       if (!Strings.isNullOrEmpty(commonPrefix)) {
         final String regex = "^" + Pattern.quote(commonPrefix);
-        newName = fileNames[i].getName().replaceFirst(regex, "");
+        newName = fileName.getName().replaceFirst(regex, "");
       } else {
-        newName = fileNames[i].getName();
+        newName = fileName.getName();
       }
 
-      RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
-      logger.finest("File " + fileNames[i] + " type detected as " + fileType);
+      RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileName);
+      logger.finest("File " + fileName + " type detected as " + fileType);
 
       try {
         RawDataFile newMZmineFile = createDataFile(fileType, newName, storage);
 
         final Task newTask = useAdvancedOptions && advancedParam != null ?
-            createAdvancedTask(fileType, project, fileNames[i], newMZmineFile, advancedParam) :
-            createTask(fileType, project, fileNames[i], newMZmineFile);
+            createAdvancedTask(fileType, project, fileName, newMZmineFile, advancedParam) :
+            createTask(fileType, project, fileName, newMZmineFile);
 
         // add task to list
         if (newTask != null) {
@@ -202,7 +202,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
         + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
-    return new AllSpectralDataImportTask(
+    return new MsDataImportAndMassDetectWrapperTask(
         getMassListStorage(), newMZmineFile, createTask(fileType, project, file, newMZmineFile),
         advancedParam);
   }

@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -35,14 +34,14 @@ import javax.annotation.Nonnull;
  * This import task wraps other data import tasks that do not support application of mass detection
  * during data import. This task calls the data import and applies mass detection afterwards.
  */
-public class AllSpectralDataImportTask extends AbstractTask {
+public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
 
   private final RawDataFile newMZmineFile;
   private final AbstractTask importTask;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
   private Logger logger = Logger.getLogger(
-      AllSpectralDataImportTask.class.getName());
+      MsDataImportAndMassDetectWrapperTask.class.getName());
 
   private int totalScans = 1;
   private int parsedScans = 0;
@@ -59,7 +58,7 @@ public class AllSpectralDataImportTask extends AbstractTask {
    *                         to directly centroid/threshold)
    * @param advancedParam    advanced parameters to apply mass detection
    */
-  public AllSpectralDataImportTask(MemoryMapStorage storageMassLists, RawDataFile newMZmineFile,
+  public MsDataImportAndMassDetectWrapperTask(MemoryMapStorage storageMassLists, RawDataFile newMZmineFile,
       AbstractTask importTask, @Nonnull AdvancedSpectraImportParameters advancedParam) {
     super(storageMassLists);
     this.newMZmineFile = newMZmineFile;
@@ -84,7 +83,7 @@ public class AllSpectralDataImportTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return totalScans > 0 ? (importTask.getFinishedPercentage() + parsedScans / totalScans) / 2d
+    return totalScans > 0 ? (importTask.getFinishedPercentage() + parsedScans / (double)totalScans) / 2d
         : importTask.getFinishedPercentage() / 2d;
   }
 
@@ -113,7 +112,7 @@ public class AllSpectralDataImportTask extends AbstractTask {
           Scan scan = data.nextScan();
 
           double[][] mzIntensities = null;
-          if (ms1Detector != null && scan.getMSLevel() == 1) {
+          if (ms1Detector != null && scan.getMSLevel() <= 1) {
             mzIntensities = ms1Detector.getModule()
                 .getMassValues(data, ms1Detector.getParameterSet());
           } else if (ms2Detector != null && scan.getMSLevel() >= 2) {
