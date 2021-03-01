@@ -441,7 +441,7 @@ public class MzXMLImportTask extends AbstractTask {
           // apply mass detection
           if (ms1Detector != null && msLevel == 1) {
             mzIntensities = applyMassDetection(ms1Detector, mzValues, intensityValues);
-          } else if (ms2Detector != null && msLevel > 2) {
+          } else if (ms2Detector != null && msLevel >= 2) {
             mzIntensities = applyMassDetection(ms2Detector, mzValues, intensityValues);
           }
 
