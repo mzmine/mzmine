@@ -28,13 +28,14 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.io.import_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_imzml.ImzMLImportTask;
+import io.github.mzmine.modules.io.import_mzdata.MzDataImportTask;
 import io.github.mzmine.modules.io.import_mzml_msdk.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.import_waters_raw.WatersRawImportTask;
-import io.github.mzmine.modules.io.import_zip.ZipImportTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -60,6 +61,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Import MS data";
   private static final String MODULE_DESCRIPTION = "This module combines the import of different MS data formats and provides advanced options";
+
+  // needs a storage for mass lists if advanced import with mass detection was selected but not supported for a MS file type
+  private MemoryMapStorage storageMassLists = null;
 
   @Override
   public @Nonnull
@@ -133,7 +137,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       try {
         RawDataFile newMZmineFile = createDataFile(fileType, newName, storage);
 
-        final Task newTask = useAdvancedOptions && advancedParam!=null?
+        final Task newTask = useAdvancedOptions && advancedParam != null ?
             createAdvancedTask(fileType, project, fileNames[i], newMZmineFile, advancedParam) :
             createTask(fileType, project, fileNames[i], newMZmineFile);
 
@@ -152,18 +156,18 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  private Task createTask(RawDataFileType fileType, MZmineProject project, File file,
+  private AbstractTask createTask(RawDataFileType fileType, MZmineProject project, File file,
       RawDataFile newMZmineFile) {
     return switch (fileType) {
       // imaging
       case IMZML -> new ImzMLImportTask(project, file, (ImagingRawDataFile) newMZmineFile);
-      case MZML_IMS -> new ImzMLImportTask(project, file, (ImagingRawDataFile) newMZmineFile);
       // IMS
+      case MZML_IMS -> new MSDKmzMLImportTask(project, file, (IMSRawDataFile) newMZmineFile);
       case BRUKER_TDF -> new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile);
       // MS
       case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile);
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile);
-      case MZDATA -> new MzXMLImportTask(project, file, newMZmineFile);
+      case MZDATA -> new MzDataImportTask(project, file, newMZmineFile);
       case NETCDF -> new NetCDFImportTask(project, file, newMZmineFile);
       case WATERS_RAW -> new WatersRawImportTask(project, file, newMZmineFile);
       case THERMO_RAW -> new ThermoRawImportTask(project, file, newMZmineFile);
@@ -171,14 +175,36 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       default -> throw new IllegalStateException("Unexpected value: " + fileType);
     };
   }
+
+  /**
+   * Create a task that imports an directly applies mass detection. Not supported by all imports
+   * yet
+   *
+   * @param advancedParam the advanced parameters
+   * @return the task or null if the data format is not supported for direct mass detection
+   */
   private Task createAdvancedTask(RawDataFileType fileType, MZmineProject project, File file,
-      RawDataFile newMZmineFile, AdvancedSpectraImportParameters advancedParam) {
+      RawDataFile newMZmineFile, @Nonnull AdvancedSpectraImportParameters advancedParam) {
     return switch (fileType) {
       // MS
       case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile, advancedParam);
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile, advancedParam);
-      default -> throw new IllegalStateException("Advanced task not supported for data type: " + fileType);
+      // all unsupported tasks are wrapped to apply import and mass detection separately
+      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV, IMZML, BRUKER_TDF, MZML_IMS -> createWrappedAdvancedTask(
+          fileType, project, file, newMZmineFile, advancedParam);
+      default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };
+  }
+
+  private Task createWrappedAdvancedTask(RawDataFileType fileType, MZmineProject project, File file,
+      RawDataFile newMZmineFile, @Nonnull AdvancedSpectraImportParameters advancedParam) {
+    // log
+    logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
+        + " and file " + file.getAbsolutePath());
+    // create wrapped task to apply import and mass detection
+    return new AllSpectralDataImportTask(
+        getMassListStorage(), newMZmineFile, createTask(fileType, project, file, newMZmineFile),
+        advancedParam);
   }
 
   private RawDataFile createDataFile(RawDataFileType fileType, String newName,
@@ -186,10 +212,17 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     return switch (fileType) {
       case MZML, MZXML, MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV -> MZmineCore
           .createNewFile(newName, storage);
-      case IMZML, MZML_IMS -> MZmineCore.createNewImagingFile(newName, storage);
-      case BRUKER_TDF -> MZmineCore.createNewIMSFile(newName, storage);
+      case IMZML -> MZmineCore.createNewImagingFile(newName, storage);
+      case BRUKER_TDF, MZML_IMS -> MZmineCore.createNewIMSFile(newName, storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };
+  }
+
+  public MemoryMapStorage getMassListStorage() {
+    if (storageMassLists == null) {
+      this.storageMassLists = MemoryMapStorage.forRawDataFile();
+    }
+    return storageMassLists;
   }
 
 }

@@ -17,180 +17,128 @@
 
 package io.github.mzmine.modules.io.import_all_data_files;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
-import java.util.logging.Level;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
+/**
+ * This import task wraps other data import tasks that do not support application of mass detection
+ * during data import. This task calls the data import and applies mass detection afterwards.
+ */
 public class AllSpectralDataImportTask extends AbstractTask {
 
+  private final RawDataFile newMZmineFile;
+  private final AbstractTask importTask;
+  private final AdvancedSpectraImportParameters advancedParam;
+  private MZmineProcessingStep<MassDetector> ms1Detector = null;
+  private MZmineProcessingStep<MassDetector> ms2Detector = null;
   private Logger logger = Logger.getLogger(
       AllSpectralDataImportTask.class.getName());
 
-  protected String dataSource;
-  private File file;
-  private MZmineProject project;
-  private RawDataFile newMZmineFile;
-  private RawDataFile finalRawDataFile;
+  private int totalScans = 1;
+  private int parsedScans = 0;
 
-  private int totalScans, parsedScans;
-
-  public AllSpectralDataImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
-    super(null); // storage in raw data file
-    this.project = project;
-    this.file = fileToOpen;
+  /**
+   * This import task wraps other data import tasks that do not support application of mass
+   * detection during data import. This task calls the data import and applies mass detection
+   * afterwards.
+   *
+   * @param storageMassLists data storage for mass lists (usually different to that of the data
+   *                         file
+   * @param newMZmineFile    the resulting data file
+   * @param importTask       the data import task (that does not support the advanced import option
+   *                         to directly centroid/threshold)
+   * @param advancedParam    advanced parameters to apply mass detection
+   */
+  public AllSpectralDataImportTask(MemoryMapStorage storageMassLists, RawDataFile newMZmineFile,
+      AbstractTask importTask, @Nonnull AdvancedSpectraImportParameters advancedParam) {
+    super(storageMassLists);
     this.newMZmineFile = newMZmineFile;
+    this.importTask = importTask;
+    this.advancedParam = advancedParam;
+
+    if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
+      this.ms1Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
+          .getEmbeddedParameter().getValue();
+    }
+    if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
+      this.ms2Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
+          .getEmbeddedParameter().getValue();
+    }
   }
 
   @Override
   public String getTaskDescription() {
-    return null;
+    return importTask.isFinished() || importTask.isCanceled() ? "Applying mass detection on "
+        + newMZmineFile.getName()
+        : importTask.getTaskDescription();
   }
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return totalScans > 0 ? (importTask.getFinishedPercentage() + parsedScans / totalScans) / 2d
+        : importTask.getFinishedPercentage() / 2d;
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    Scanner scanner;
-
-    logger.setLevel(Level.ALL);
-
     try {
-      scanner = new Scanner(file);
+      // import data
+      importTask.run();
 
-      dataSource = getFileName(scanner);
-      if (dataSource == null) {
-        setErrorMessage("Could not open data file " + file.getAbsolutePath());
-        setStatus(TaskStatus.ERROR);
-        return;
-      }
-      logger.info("opening raw file " + dataSource);
+      // should be in the new data file
+      if (importTask.isFinished()) {
+        totalScans = newMZmineFile.getNumOfScans();
 
-      String acquisitionDate = getAcqusitionDate(scanner);
-      if (acquisitionDate == null) {
-        setErrorMessage("Could not find acquisition date in file " + file.getAbsolutePath());
-        setStatus(TaskStatus.ERROR);
-        return;
-      }
+        // uses only a single array for each (mz and intensity) to loop over all scans
+        ScanDataAccess data = EfficientDataAccess.of(newMZmineFile,
+            EfficientDataAccess.ScanDataType.RAW);
+        totalScans = data.getNumberOfScans();
 
-      logger.info("Date of acquisition " + acquisitionDate);
-
-      // scanner.useDelimiter(",");
-
-      List<String> mzsList = new ArrayList<String>();
-      String mstype = "";
-      String ions = "";
-      while (scanner.hasNextLine()) {
-        String line = scanner.nextLine();
-        logger.fine("checking line: " + line + " for 'Time'...");
-        if (line.startsWith("Time")) {
-          String[] axes = line.split(",");
-          logger.fine("Found axes" + Arrays.toString(axes));
-          for (int i = 1; i < axes.length; i++) {
-            String axis = axes[i];
-            ions += axis + ", ";
-            if (axis.contains("->")) {
-              mstype = "MS/MS";
-              logger.fine("axis " + axis + " is an ms^2 scan");
-              String mz = axis.substring(axis.indexOf("-> ") + 3);
-              mz.trim();
-              logger.fine("Axis " + axis + " was scanned at m/z = '" + mz + "'");
-              mzsList.add(mz);
-            } else {
-              String mz = axis.replaceAll("[^0-9]", "");
-              logger.fine("axis " + axis + " was scanned at " + mz);
-              mzsList.add(mz);
-            }
+        // all scans
+        while(data.hasNextScan()) {
+          if (isCanceled()) {
+            return;
           }
-          break;
+
+          Scan scan = data.nextScan();
+
+          double[][] mzIntensities = null;
+          if (ms1Detector != null && scan.getMSLevel() == 1) {
+            mzIntensities = ms1Detector.getModule()
+                .getMassValues(data, ms1Detector.getParameterSet());
+          } else if (ms2Detector != null && scan.getMSLevel() >= 2) {
+            mzIntensities = ms2Detector.getModule()
+                .getMassValues(data, ms2Detector.getParameterSet());
+          }
+
+          if (mzIntensities != null) {
+            // uses a different storage for mass lists then the one defined for the MS data import
+            SimpleMassList newMassList = new SimpleMassList(storage, mzIntensities[0],
+                mzIntensities[1]);
+            scan.addMassList(newMassList);
+          }
         }
       }
-
-      double[] mzValues = new double[mzsList.size()];
-      for (int i = 0; i < mzsList.size(); i++)
-        mzValues[i] = Integer.valueOf(mzsList.get(i));
-
-      Range<Double> mzRange = Range.closed(mzValues[0] - 10, mzValues[1] + 10);
-
-      int scanNumber = 1;
-
-      while (scanner.hasNextLine()) {
-        String line = scanner.nextLine();
-        if (line == null || line.trim().equals(""))
-          continue;
-        String[] columns = line.split(",");
-        if (columns == null || columns.length != mzValues.length + 1)
-          continue;
-
-        float rt = (float) (Double.valueOf(columns[0]) / 60);
-
-        double intensityValues[] = new double[mzValues.length];
-        for (int i = 0; i < intensityValues.length; i++) {
-          String intensity = columns[i + 1];
-          intensityValues[i] = Double.valueOf(intensity);
-        }
-
-        Scan scan = new SimpleScan(newMZmineFile, scanNumber, 1, rt, 0.0, 1, mzValues,
-            intensityValues, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE,
-            "ICP-" + mstype + " " + ions.substring(0, ions.length() - 2), mzRange);
-
-        newMZmineFile.addScan(scan);
-        scanNumber++;
-      }
-
-      project.addFile(newMZmineFile);
 
     } catch (Exception e) {
       setErrorMessage(e.getMessage());
       setStatus(TaskStatus.ERROR);
+      e.printStackTrace();
       return;
     }
 
     this.setStatus(TaskStatus.FINISHED);
   }
-
-  private @Nullable String getFileName(@Nonnull Scanner scanner) {
-    String path = null;
-    while (scanner.hasNextLine()) {
-      String line = scanner.nextLine();
-      if (line.contains(":") && line.contains("\\")) {
-        path = line;
-        return path;
-      }
-    }
-    return path;
-  }
-
-  private @Nullable String getAcqusitionDate(@Nonnull Scanner scanner) {
-    String acquisitionDate = null;
-
-    while (scanner.hasNextLine()) {
-      String line = scanner.nextLine();
-      if (line.startsWith("Acquired")) {
-        int begin = line.indexOf(":") + 2;
-        line.subSequence(begin, begin + (new String("00/00/0000 00:00:00")).length());
-        return line;
-      }
-    }
-    return acquisitionDate;
-  }
-
 }

@@ -124,13 +124,17 @@ public class MzXMLImportTask extends AbstractTask {
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
 
-    if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-      this.ms1Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
-          .getEmbeddedParameter().getValue();
-    }
-    if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-      this.ms2Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
-          .getEmbeddedParameter().getValue();
+    if(advancedParam != null) {
+      if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
+        this.ms1Detector = advancedParam
+            .getParameter(AdvancedSpectraImportParameters.msMassDetection)
+            .getEmbeddedParameter().getValue();
+      }
+      if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
+        this.ms2Detector = advancedParam
+            .getParameter(AdvancedSpectraImportParameters.msMassDetection)
+            .getEmbeddedParameter().getValue();
+      }
     }
 
     this.applyMassDetection = ms1Detector != null || ms2Detector != null;
