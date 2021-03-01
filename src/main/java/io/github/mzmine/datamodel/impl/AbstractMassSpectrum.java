@@ -97,7 +97,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
    * @see io.github.mzmine.datamodel.Scan#
    */
   @Override
-  @Nonnull
+  @Nullable
   public Range<Double> getDataPointMZRange() {
     return mzRange;
   }
