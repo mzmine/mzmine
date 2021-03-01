@@ -29,6 +29,9 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -46,6 +49,7 @@ import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -198,29 +202,27 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     // make a list of all the data points
     List<ExpandedDataPoint> allMzValues = new ArrayList<ExpandedDataPoint>();
 
-    for (Scan scan : scans) {
+
+    ScanDataAccess scanData = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID, scanSelection);
+
+    while(scanData.hasNextScan()) {
       if (isCanceled())
         return;
 
-      MassList massList = scan.getMassList();
-      if (massList == null) {
+      Scan scan = null;
+      try {
+        scan = scanData.nextScan();
+      } catch (MissingMassListException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-            + " does not have a mass list. Run mass detection");
+            + " does not have a mass list");
+        e.printStackTrace();
         return;
       }
 
-      DataPoint mzValues[] = massList.getDataPoints();
-
-      if (mzValues == null) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Mass list does not contain m/z values for scan #"
-            + scan.getScanNumber() + " of file " + dataFile);
-        return;
-      }
-
-      for (DataPoint mzFeature : mzValues) {
-        ExpandedDataPoint curDatP = new ExpandedDataPoint(mzFeature, scan);
+      int dps = scanData.getNumberOfDataPoints();
+      for (int i=0; i<dps; i++) {
+        ExpandedDataPoint curDatP = new ExpandedDataPoint(scanData.getMzValue(i), scanData.getIntensityValue(i), scan);
         allMzValues.add(curDatP);
         // corespondingScanNum.add(scan.getScanNumber());
       }
