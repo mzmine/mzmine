@@ -231,17 +231,13 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     // Integer[] simpleCorespondingScanNums = new Integer[corespondingScanNum.size()];
     // corespondingScanNum.toArray(simpleCorespondingScanNums );
 
-    ExpandedDataPoint[] simpleAllMzVals = new ExpandedDataPoint[allMzValues.size()];
-    allMzValues.toArray(simpleAllMzVals);
-
     // sort data points by intensity
-    Arrays.sort(simpleAllMzVals,
-        new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+    allMzValues.sort(new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
 
     // Set<Chromatogram> buildingChromatograms;
     // buildingChromatograms = new LinkedHashSet<Chromatogram>();
 
-    double maxIntensity = simpleAllMzVals[0].getIntensity();
+    double maxIntensity = allMzValues.get(0).getIntensity();
 
     // count starts at 1 since we already have added one with a single point.
 
@@ -251,9 +247,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
 
     progress = 0.0;
-    double progressStep = (simpleAllMzVals.length > 0) ? 0.5 / simpleAllMzVals.length : 0.0;
+    double progressStep = (allMzValues.size() > 0) ? 0.5 / allMzValues.size() : 0.0;
 
-    for (ExpandedDataPoint mzFeature : simpleAllMzVals) {
+    for (ExpandedDataPoint mzFeature : allMzValues) {
 
       progress += progressStep;
 
@@ -380,12 +376,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     }
 
-    buildingChromatograms.forEach(c -> c.addNZeros(scans, 2, 1));
-
-    ADAPChromatogram[] chromatograms = buildingChromatograms.toArray(new ADAPChromatogram[0]);
-
+    buildingChromatograms.forEach(c -> c.addNZeros(1, 1));
     // Sort the final chromatograms by m/z
-    Arrays.sort(chromatograms, new ADAPChromatogramSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    buildingChromatograms.sort(new ADAPChromatogramSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     // Create new feature list
     newFeatureList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(), dataFile);
@@ -393,7 +386,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     DataTypeUtils.addDefaultChromatographicTypeColumns(newFeatureList);
 
     // Add the chromatograms to the new feature list
-    for (ADAPChromatogram finishedFeature : chromatograms) {
+    for (ADAPChromatogram finishedFeature : buildingChromatograms) {
       finishedFeature.setFeatureList(newFeatureList);
       ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(finishedFeature);
       ModularFeatureListRow newRow =
