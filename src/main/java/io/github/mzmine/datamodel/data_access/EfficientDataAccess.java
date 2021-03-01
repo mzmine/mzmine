@@ -57,7 +57,18 @@ public class EfficientDataAccess {
    *
    * @param dataFile  target data file to loop over all scans or mass lists
    * @param type      processed or raw data
-   * @param selection processed or raw data
+   */
+  public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type) {
+    return of(dataFile, type, null);
+  }
+  /**
+   * The intended use of this memory access is to loop over all selected scans in a {@link RawDataFile} and
+   * access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
+   * ScanDataAccess#getIntensityValue(int)}
+   *
+   * @param dataFile  target data file to loop over all scans or mass lists
+   * @param type      processed or raw data
+   * @param selection scan selection (null for all scans)
    */
   public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type,
       ScanSelection selection) {
