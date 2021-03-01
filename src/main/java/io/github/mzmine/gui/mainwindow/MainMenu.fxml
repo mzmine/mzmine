@@ -286,7 +286,7 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule"/>
       <MenuItem onAction="#runModule" text="mobility-m/z region filter"
         userData="io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule"/>
-      <MenuItem onAction="#runModule" text="mobility-m/z region filter"
+      <MenuItem onAction="#runModule" text="Assign MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
     </Menu>
 
