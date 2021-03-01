@@ -20,7 +20,7 @@ package io.github.mzmine.datamodel.data_access;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.FeatureDataType;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilogramAccessType;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
@@ -38,7 +38,7 @@ import javax.annotation.Nullable;
 public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobilitySeries> {
 
   protected final IonMobilogramTimeSeries imts;
-  protected final FeatureDataType accessType;
+  protected final MobilogramAccessType accessType;
   protected final List<MobilityScan> currentSpectra;
   protected final int numMobilograms;
   protected final int maxMobilogramDataPoints;
@@ -51,12 +51,12 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   protected IonMobilitySeries currentMobilogram;
 
   protected MobilogramDataAccess(@Nonnull final IonMobilogramTimeSeries imts, @Nonnull
-      FeatureDataType accessType) {
+      MobilogramAccessType accessType) {
     assert imts.getNumberOfValues() > 0;
 
     this.imts = imts;
     this.accessType = accessType;
-    if (accessType == FeatureDataType.INCLUDE_ZEROS) {
+    if (accessType == MobilogramAccessType.INCLUDE_ZEROS) {
       maxMobilogramDataPoints = imts.getSpectra().stream().mapToInt(Frame::getNumberOfMobilityScans)
           .max().getAsInt();
 
@@ -94,7 +94,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
     currentSpectra.clear();
 
     final Frame currentFrame = imts.getSpectrum(currentMobilogramIndex);
-    if (accessType == FeatureDataType.ONLY_DETECTED) {
+    if (accessType == MobilogramAccessType.ONLY_DETECTED) {
       currentSpectra.addAll(currentMobilogram.getSpectra());
       currentMobilogram.getIntensityValues(currentIntensities);
       currentMobilogram.getMzValues(currentMzs);
