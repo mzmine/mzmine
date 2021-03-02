@@ -173,18 +173,6 @@ public class SmoothingTask extends AbstractTask {
       }
     }
 
-    boolean allNotNull = false;
-    for (double newIntensity : newIntensities) {
-      if(Double.compare(newIntensity, 0d) == 1) {
-        allNotNull = true;
-        break;
-      }
-    }
-
-    if(!allNotNull) {
-      logger.info("All intensities 0");
-    }
-
     double[] originalMzs = new double[originalSeries.getNumberOfValues()];
     originalSeries.getMzValues(originalMzs);
     if (smoothMobility && originalSeries instanceof IonMobilogramTimeSeries) {

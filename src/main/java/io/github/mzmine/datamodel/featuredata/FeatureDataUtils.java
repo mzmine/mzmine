@@ -76,13 +76,6 @@ public class FeatureDataUtils {
         max = intensity;
       }
     }
-    if(max < min) {
-      for (int i = 0; i < series.getNumberOfValues(); i++) {
-        final double intensity = series.getIntensity(i);
-        logger.info(i + " " + intensity
-        );
-      }
-    }
     return Range.closed((float) min, (float) max);
   }
 
