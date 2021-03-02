@@ -21,6 +21,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -156,6 +157,12 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
               intensities[i] = detectedIntensities[detectedIndex];
               mzs[i] = detectedMzs[detectedIndex];
               detectedIndex++;
+            } else {
+              intensities[i] = 0d;
+            }
+            if(detectedIndex == detectedScans.size() && i < intensities.length - 1) {
+              Arrays.fill(intensities, i+1, intensities.length, 0d);
+              break;
             }
           }
           currentNumberOfDataPoints = allScans.size();
