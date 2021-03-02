@@ -48,11 +48,19 @@ jobs:
       run: ./gradlew
       
     - name: Upload builds
-      if: matrix.os != 'macos-latest'
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v2
       with:
         name: MZmine_package_${{matrix.os}}
         path: build/jpackage/
+        retention-days: 7  # store for 7 days
+    
+    - name: Upload builds ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v2
+      with:
+        name: MZmine_package_${{matrix.os}}
+        path: build/jpackage/*.deb
         retention-days: 7  # store for 7 days
         
     - name: Upload builds macos
