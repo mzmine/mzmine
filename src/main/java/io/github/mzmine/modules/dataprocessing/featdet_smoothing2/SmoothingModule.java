@@ -1,6 +1,5 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing2;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -40,33 +39,12 @@ public class SmoothingModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    ModularFeatureList[] flists = parameters.getParameter(SmoothingParameters.featureLists)
+    final ModularFeatureList[] flists = parameters.getParameter(SmoothingParameters.featureLists)
         .getValue().getMatchingFeatureLists();
 
-    boolean[] isIms = new boolean[flists.length];
-    boolean onlyIMS = true;
-    for (int i = 0; i < flists.length; i++) {
-      if (flists[i].getRawDataFile(0) instanceof IMSRawDataFile) {
-        isIms[i] = true;
-      } else {
-        onlyIMS = false;
-      }
-    }
-
-    if (onlyIMS) {
-      for (var flist : flists) {
-        tasks.add(new SmoothingTask(project, flist, MemoryMapStorage.forFeatureList(), parameters));
-      }
-    } else {
-      final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
-      for (int i = 0; i < flists.length; i++) {
-        if (isIms[i] == false) {
-          tasks.add(new SmoothingTask(project, flists[i], storage, parameters));
-        } else {
-          tasks.add(
-              new SmoothingTask(project, flists[i], MemoryMapStorage.forFeatureList(), parameters));
-        }
-      }
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+    for (ModularFeatureList flist : flists) {
+      tasks.add(new SmoothingTask(project, flist, storage, parameters));
     }
 
     return ExitCode.OK;
