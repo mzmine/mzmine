@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -103,10 +104,12 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
       currentSpectra.addAll(currentFrame.getMobilityScans());
       currentMobilogram.getMzValues(detectedMzs);
       currentMobilogram.getIntensityValues(detectedIntensities);
+      final int numValues = currentMobilogram.getNumberOfValues();
 
       int currentSpectrumIndex = 0;
       int dpIndex = 0;
-      for (MobilityScan mobilityScan : currentSpectra) {
+      for (int i = 0, numSpectra = currentSpectra.size(); i < numSpectra; i++) {
+        MobilityScan mobilityScan = currentSpectra.get(i);
         if (mobilityScan == currentMobilogram.getSpectrum(currentSpectrumIndex)) {
           currentIntensities[dpIndex] = detectedIntensities[currentSpectrumIndex];
           currentMzs[dpIndex] = detectedMzs[currentSpectrumIndex];
@@ -114,6 +117,10 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
         } else {
           currentIntensities[dpIndex] = 0d;
           currentMzs[dpIndex] = 0d;
+        }
+        if(currentSpectrumIndex == numValues && i < numSpectra - 1) {
+          Arrays.fill(currentIntensities, i + 1, currentIntensities.length, 0d);
+          break;
         }
         dpIndex++;
       }
