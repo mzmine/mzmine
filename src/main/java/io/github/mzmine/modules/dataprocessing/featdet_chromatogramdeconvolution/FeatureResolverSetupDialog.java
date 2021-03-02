@@ -35,6 +35,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
@@ -54,6 +55,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.util.StringConverter;
 
 public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview {
 
@@ -92,6 +94,21 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
             fBox.setItems(FXCollections.emptyObservableList());
           }
         }));
+
+    fBox.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(ModularFeature object) {
+        if (object == null) {
+          return null;
+        }
+        return FeatureUtils.featureToString(object);
+      }
+
+      @Override
+      public ModularFeature fromString(String string) {
+        return null;
+      }
+    });
     fBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
 

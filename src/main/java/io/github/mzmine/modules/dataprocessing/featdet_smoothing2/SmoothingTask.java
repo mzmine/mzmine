@@ -71,7 +71,6 @@ public class SmoothingTask extends AbstractTask {
     smoothRt = parameters.getParameter(SmoothingParameters.rtSmoothing).getValue();
     rtFilterWidth = parameters.getParameter(SmoothingParameters.rtSmoothing).getEmbeddedParameter()
         .getValue();
-
     smoothMobility = parameters.getParameter(SmoothingParameters.mobilitySmoothing).getValue();
     mobilityFilterWidth = parameters.getParameter(SmoothingParameters.mobilitySmoothing)
         .getEmbeddedParameter().getValue();
@@ -120,8 +119,9 @@ public class SmoothingTask extends AbstractTask {
         feature.getFeatureData().getIntensityValues(smoothedIntensities);
       }
 
-      final IonTimeSeries<? extends Scan> smoothedSeries = replaceOldIntensities(dataAccess,
-          feature, smoothedIntensities);
+      final IonTimeSeries<? extends Scan> smoothedSeries = replaceOldIntensities(
+          getMemoryMapStorage(), dataAccess,
+          feature, smoothedIntensities, zht, smoothMobility, mobilityWeights);
       feature.set(io.github.mzmine.datamodel.features.types.FeatureDataType.class, smoothedSeries);
       FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
 
@@ -147,9 +147,11 @@ public class SmoothingTask extends AbstractTask {
    * @param smoothedIntensities
    * @return
    */
-  private IonTimeSeries<? extends Scan> replaceOldIntensities(
+  public static IonTimeSeries<? extends Scan> replaceOldIntensities(
+      @Nullable final MemoryMapStorage storage,
       @Nonnull final IntensitySeries dataAccess, @Nonnull final ModularFeature feature,
-      @Nonnull final double[] smoothedIntensities) {
+      @Nonnull final double[] smoothedIntensities, ZeroHandlingType zht, boolean smoothMobility,
+      double[] mobilityWeights) {
 
     final IonTimeSeries<? extends Scan> originalSeries = feature.getFeatureData();
     double[] newIntensities = new double[originalSeries.getNumberOfValues()];
@@ -166,7 +168,7 @@ public class SmoothingTask extends AbstractTask {
         newIntensities[newIntensitiesIndex] = smoothedIntensities[i];
         newIntensitiesIndex++;
       }
-      if(newIntensitiesIndex == originalIntensities.length) {
+      if (newIntensitiesIndex == originalIntensities.length) {
         break;
       }
     }
@@ -174,18 +176,19 @@ public class SmoothingTask extends AbstractTask {
     double[] originalMzs = new double[originalSeries.getNumberOfValues()];
     originalSeries.getMzValues(originalMzs);
     if (smoothMobility && originalSeries instanceof IonMobilogramTimeSeries) {
-      SummedIntensityMobilitySeries smoothedMobilogram = smoothSummedMobilogram(
+      SummedIntensityMobilitySeries smoothedMobilogram = smoothSummedMobilogram(storage,
           (IonMobilogramTimeSeries) originalSeries, zht, mobilityWeights, feature.getMZ());
-      return new SimpleIonMobilogramTimeSeries(getMemoryMapStorage(), originalMzs, newIntensities,
+      return new SimpleIonMobilogramTimeSeries(storage, originalMzs, newIntensities,
           ((SimpleIonMobilogramTimeSeries) originalSeries).getMobilogramsModifiable(),
           ((ModifiableSpectra) originalSeries).getSpectraModifiable(), smoothedMobilogram);
     }
 
     return (IonTimeSeries<? extends Scan>) originalSeries
-        .copyAndReplace(getMemoryMapStorage(), originalMzs, newIntensities);
+        .copyAndReplace(storage, originalMzs, newIntensities);
   }
 
-  private SummedIntensityMobilitySeries smoothSummedMobilogram(
+  public static SummedIntensityMobilitySeries smoothSummedMobilogram(
+      @Nullable MemoryMapStorage storage,
       @Nonnull final IonMobilogramTimeSeries originalSeries,
       @Nonnull final ZeroHandlingType zht, @Nonnull final double[] weights, double mz) {
 
@@ -195,7 +198,7 @@ public class SmoothingTask extends AbstractTask {
         weights);
 
     return new SummedIntensityMobilitySeries(
-        getMemoryMapStorage(), mobilities,
+        storage, mobilities,
         smoothedSummed.smooth(originalSeries.getSummedMobilogram()), mz);
   }
 

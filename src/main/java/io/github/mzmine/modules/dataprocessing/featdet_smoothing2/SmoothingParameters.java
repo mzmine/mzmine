@@ -1,12 +1,14 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing2;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 
 public class SmoothingParameters extends SimpleParameterSet {
@@ -47,5 +49,12 @@ public class SmoothingParameters extends SimpleParameterSet {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    ParameterSetupDialog dialog = new SmoothingSetupDialog(true, this);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 }
