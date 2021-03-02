@@ -164,6 +164,9 @@ dependencies {
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     implementation "com.alanmrace:jimzmlparser:1.0.5"
+    // https://mvnrepository.com/artifact/commons-cli/commons-cli
+    implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
+
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitversion"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitversion"
