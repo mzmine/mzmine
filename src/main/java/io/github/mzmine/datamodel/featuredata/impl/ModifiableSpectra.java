@@ -30,7 +30,7 @@ import java.util.List;
  * @param <T>
  * @author https://github.com/SteffenHeu
  */
-interface ModifiableSpectra<T extends MassSpectrum> {
+public interface ModifiableSpectra<T extends MassSpectrum> {
 
   List<T> getSpectraModifiable();
 }

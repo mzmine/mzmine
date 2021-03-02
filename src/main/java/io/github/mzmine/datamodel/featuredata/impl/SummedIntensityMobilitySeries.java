@@ -120,7 +120,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    * @param intensities
    * @param mz
    */
-  SummedIntensityMobilitySeries(MemoryMapStorage storage, double[] mobilities,
+  public SummedIntensityMobilitySeries(MemoryMapStorage storage, double[] mobilities,
       double[] intensities, double mz) {
     this.mz = mz;
     DoubleBuffer tempMobility;

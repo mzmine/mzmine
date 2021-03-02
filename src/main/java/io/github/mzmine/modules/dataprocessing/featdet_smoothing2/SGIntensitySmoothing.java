@@ -6,7 +6,8 @@ import javax.annotation.Nonnull;
 public class SGIntensitySmoothing {
 
   /**
-   * Defines how values that were previously zero shall be handled when returning the smoothed values.
+   * Defines how values that were previously zero shall be handled when returning the smoothed
+   * values.
    */
   enum ZeroHandlingType {
     /**
@@ -20,27 +21,28 @@ public class SGIntensitySmoothing {
     OVERRIDE
   }
 
-  private final IntensitySeries access;
   private final ZeroHandlingType zht;
   private final double[] normWeights;
 
   /**
-   * @param dataAccess         The intensity series to be smoothed. Ideally an instance of {@link
-   *                           io.github.mzmine.datamodel.data_access.EfficientDataAccess} for best
-   *                           performance.
-   * @param zeroHandlingType defines how zero values shall be handled when comparing the old and
-   *                           new intensities {@link ZeroHandlingType#KEEP}, {@link
-   *                           ZeroHandlingType#OVERRIDE}.
-   * @param normWeights        The normalized weights for smoothing.
+   * @param zeroHandlingType defines how zero values shall be handled when comparing the old and new
+   *                         intensities {@link ZeroHandlingType#KEEP}, {@link
+   *                         ZeroHandlingType#OVERRIDE}.
+   * @param normWeights      The normalized weights for smoothing.
    */
-  public SGIntensitySmoothing(@Nonnull final IntensitySeries dataAccess,
-      @Nonnull final ZeroHandlingType zeroHandlingType, @Nonnull final double[] normWeights) {
-    this.access = dataAccess;
+  public SGIntensitySmoothing(@Nonnull final ZeroHandlingType zeroHandlingType,
+      @Nonnull final double[] normWeights) {
     this.zht = zeroHandlingType;
     this.normWeights = normWeights;
   }
 
-  public double[] smooth() {
+  /**
+   * @param access The intensity series to be smoothed. Ideally an instance of {@link
+   *                   io.github.mzmine.datamodel.data_access.EfficientDataAccess} for best
+   *                   performance.
+   * @return
+   */
+  public double[] smooth(@Nonnull final IntensitySeries access) {
     // Initialise.
     final int numPoints = access.getNumberOfValues();
     final int fullWidth = normWeights.length;
@@ -53,12 +55,12 @@ public class SGIntensitySmoothing {
         smoothed[i] += access.getIntensity(k + j) * normWeights[j];
       }
 
-      if(smoothed[i] < 0d) {
+      if (smoothed[i] < 0d) {
         smoothed[i] = 0d;
       }
 
       // if values that were previously 0 shall remain 0, we process that here.
-      if(zht == ZeroHandlingType.KEEP && Double.compare(access.getIntensity(i), 0d) == 0) {
+      if (zht == ZeroHandlingType.KEEP && Double.compare(access.getIntensity(i), 0d) == 0) {
         smoothed[i] = 0;
       }
     }
