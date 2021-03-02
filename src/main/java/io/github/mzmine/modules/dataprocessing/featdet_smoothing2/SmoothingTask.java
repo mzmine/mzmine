@@ -159,7 +159,7 @@ public class SmoothingTask extends AbstractTask {
     originalSeries.getIntensityValues(originalIntensities);
 
     int newIntensitiesIndex = 0;
-    for (int i = 0; i < smoothedIntensities.length; i++) {
+    for (int i = 0; i < dataAccess.getNumberOfValues(); i++) {
       // check if we originally did have an intensity at the current index. I know that the data
       // access contains more zeros and the zeros of different indices will be matched, but the
       // newIntensitiesIndex will "catch" up, once real intensities are reached.
@@ -168,9 +168,21 @@ public class SmoothingTask extends AbstractTask {
         newIntensities[newIntensitiesIndex] = smoothedIntensities[i];
         newIntensitiesIndex++;
       }
-      if (newIntensitiesIndex == originalIntensities.length) {
+      if (newIntensitiesIndex == originalIntensities.length - 1) {
         break;
       }
+    }
+
+    boolean allNotNull = false;
+    for (double newIntensity : newIntensities) {
+      if(Double.compare(newIntensity, 0d) == 1) {
+        allNotNull = true;
+        break;
+      }
+    }
+
+    if(!allNotNull) {
+      logger.info("All intensities 0");
     }
 
     double[] originalMzs = new double[originalSeries.getNumberOfValues()];

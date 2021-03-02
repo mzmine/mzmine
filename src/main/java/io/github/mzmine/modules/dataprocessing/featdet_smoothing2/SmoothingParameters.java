@@ -14,7 +14,7 @@ import java.util.Collection;
 
 public class SmoothingParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final OptionalParameter<ComboParameter<Integer>> rtSmoothing = new OptionalParameter<>(
       new ComboParameter<Integer>("Retention time smoothing",
@@ -54,7 +54,7 @@ public class SmoothingParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    ParameterSetupDialog dialog = new SmoothingSetupDialog(true, this);
+    ParameterSetupDialog dialog = new SmoothingSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
