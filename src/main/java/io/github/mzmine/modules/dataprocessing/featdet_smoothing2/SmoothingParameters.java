@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_smoothing2;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -56,5 +57,10 @@ public class SmoothingParameters extends SimpleParameterSet {
     ParameterSetupDialog dialog = new SmoothingSetupDialog(true, this);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

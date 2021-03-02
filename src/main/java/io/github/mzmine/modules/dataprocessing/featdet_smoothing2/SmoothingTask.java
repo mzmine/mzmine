@@ -204,7 +204,11 @@ public class SmoothingTask extends AbstractTask {
 
 
   // -----------------------------
-  // todo
+  // todo: these are not used yet due to questions regarding the actual implementation
+  //  1. if new intensities are added on the peak edges - what do we do on the mobilogram level? We
+  //   need the same number of mobilograms as for rt data points
+  //  2. Which m/z do we put for newly created intensities? they will influence the overall m/z of
+  //   the feature
   private List<IonMobilitySeries> smoothMobilograms(@Nonnull final ModularFeature feature,
       @Nonnull final double[] smoothedRtIntensities,
       @Nonnull final MobilogramAccessType dataAccessType,
@@ -294,13 +298,21 @@ public class SmoothingTask extends AbstractTask {
       if (smoothMobility) {
 
       }
-
-//      return ((IonMobilogramTimeSeries) originalSeries).copyAndReplace(getMemoryMapStorage(), mzs.toArray(), newIntensities.toArray(), mobilograms, );
     }
     return null;
   }
 
   public enum SmoothingDimension {
-    RETENTION_TIME, MOBILITY
+    RETENTION_TIME("Retention time"), MOBILITY("Mobility");
+    private final String name;
+
+    SmoothingDimension(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
   }
 }
