@@ -88,6 +88,60 @@ public class SmoothingTask extends AbstractTask {
     return processedFeatures.get() / (double) numFeatures;
   }
 
+  /**
+   * Handles {@link ZeroHandlingType#KEEP}
+   *
+   * @param dataAccess
+   * @param feature
+   * @param smoothedIntensities
+   * @return
+   */
+  public static IonTimeSeries<? extends Scan> replaceOldIntensities(
+      @Nullable final MemoryMapStorage storage,
+      @Nonnull final IntensitySeries dataAccess, @Nonnull final ModularFeature feature,
+      @Nullable final double[] smoothedIntensities, ZeroHandlingType zht, boolean smoothMobility,
+      double[] mobilityWeights) {
+
+    final IonTimeSeries<? extends Scan> originalSeries = feature.getFeatureData();
+    final double[] originalIntensities = new double[originalSeries.getNumberOfValues()];
+    final double[] newIntensities;
+    originalSeries.getIntensityValues(originalIntensities);
+
+    if (smoothedIntensities == null) {
+      // rt should not be smoothed, so just copy the old values.
+      newIntensities = originalIntensities;
+    } else {
+      newIntensities = new double[originalSeries.getNumberOfValues()];
+      int newIntensitiesIndex = 0;
+      for (int i = 0; i < dataAccess.getNumberOfValues(); i++) {
+        // check if we originally did have an intensity at the current index. I know that the data
+        // access contains more zeros and the zeros of different indices will be matched, but the
+        // newIntensitiesIndex will "catch" up, once real intensities are reached.
+        if (Double.compare(dataAccess.getIntensity(i), originalIntensities[newIntensitiesIndex])
+            == 0) {
+          newIntensities[newIntensitiesIndex] = smoothedIntensities[i];
+          newIntensitiesIndex++;
+        }
+        if (newIntensitiesIndex == originalIntensities.length - 1) {
+          break;
+        }
+      }
+    }
+
+    double[] originalMzs = new double[originalSeries.getNumberOfValues()];
+    originalSeries.getMzValues(originalMzs);
+    if (smoothMobility && originalSeries instanceof IonMobilogramTimeSeries) {
+      SummedIntensityMobilitySeries smoothedMobilogram = smoothSummedMobilogram(storage,
+          (IonMobilogramTimeSeries) originalSeries, zht, mobilityWeights, feature.getMZ());
+      return new SimpleIonMobilogramTimeSeries(storage, originalMzs, newIntensities,
+          ((SimpleIonMobilogramTimeSeries) originalSeries).getMobilogramsModifiable(),
+          ((ModifiableSpectra) originalSeries).getSpectraModifiable(), smoothedMobilogram);
+    }
+
+    return (IonTimeSeries<? extends Scan>) originalSeries
+        .copyAndReplace(storage, originalMzs, newIntensities);
+  }
+
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
@@ -111,12 +165,9 @@ public class SmoothingTask extends AbstractTask {
 
     while (dataAccess.hasNextFeature()) {
       final ModularFeature feature = (ModularFeature) dataAccess.nextFeature();
-      final double[] smoothedIntensities;
+      double[] smoothedIntensities = null;
       if (smoothRt) {
         smoothedIntensities = smoother.smooth(dataAccess);
-      } else {
-        smoothedIntensities = new double[feature.getFeatureData().getNumberOfValues()];
-        feature.getFeatureData().getIntensityValues(smoothedIntensities);
       }
 
       final IonTimeSeries<? extends Scan> smoothedSeries = replaceOldIntensities(
@@ -137,54 +188,6 @@ public class SmoothingTask extends AbstractTask {
     project.addFeatureList(smoothedList);
 
     setStatus(TaskStatus.FINISHED);
-  }
-
-  /**
-   * Handles {@link ZeroHandlingType#KEEP}
-   *
-   * @param dataAccess
-   * @param feature
-   * @param smoothedIntensities
-   * @return
-   */
-  public static IonTimeSeries<? extends Scan> replaceOldIntensities(
-      @Nullable final MemoryMapStorage storage,
-      @Nonnull final IntensitySeries dataAccess, @Nonnull final ModularFeature feature,
-      @Nonnull final double[] smoothedIntensities, ZeroHandlingType zht, boolean smoothMobility,
-      double[] mobilityWeights) {
-
-    final IonTimeSeries<? extends Scan> originalSeries = feature.getFeatureData();
-    double[] newIntensities = new double[originalSeries.getNumberOfValues()];
-    double[] originalIntensities = new double[originalSeries.getNumberOfValues()];
-    originalSeries.getIntensityValues(originalIntensities);
-
-    int newIntensitiesIndex = 0;
-    for (int i = 0; i < dataAccess.getNumberOfValues(); i++) {
-      // check if we originally did have an intensity at the current index. I know that the data
-      // access contains more zeros and the zeros of different indices will be matched, but the
-      // newIntensitiesIndex will "catch" up, once real intensities are reached.
-      if (Double.compare(dataAccess.getIntensity(i), originalIntensities[newIntensitiesIndex])
-          == 0) {
-        newIntensities[newIntensitiesIndex] = smoothedIntensities[i];
-        newIntensitiesIndex++;
-      }
-      if (newIntensitiesIndex == originalIntensities.length - 1) {
-        break;
-      }
-    }
-
-    double[] originalMzs = new double[originalSeries.getNumberOfValues()];
-    originalSeries.getMzValues(originalMzs);
-    if (smoothMobility && originalSeries instanceof IonMobilogramTimeSeries) {
-      SummedIntensityMobilitySeries smoothedMobilogram = smoothSummedMobilogram(storage,
-          (IonMobilogramTimeSeries) originalSeries, zht, mobilityWeights, feature.getMZ());
-      return new SimpleIonMobilogramTimeSeries(storage, originalMzs, newIntensities,
-          ((SimpleIonMobilogramTimeSeries) originalSeries).getMobilogramsModifiable(),
-          ((ModifiableSpectra) originalSeries).getSpectraModifiable(), smoothedMobilogram);
-    }
-
-    return (IonTimeSeries<? extends Scan>) originalSeries
-        .copyAndReplace(storage, originalMzs, newIntensities);
   }
 
   public static SummedIntensityMobilitySeries smoothSummedMobilogram(
