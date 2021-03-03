@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,11 +23,14 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import java.text.DecimalFormat;
 
 public class JoinAlignerParameters extends SimpleParameterSet {
 
@@ -46,6 +49,14 @@ public class JoinAlignerParameters extends SimpleParameterSet {
   public static final DoubleParameter RTWeight =
       new DoubleParameter("Weight for RT", "Score for perfectly matching RT values");
 
+  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance =
+      new OptionalParameter<>(new MobilityToleranceParameter("Mobility tolerance",
+          "If checked, mobility of features will be compared for alignment. This parameter then specifies the tolerance range for matching mobility values"));
+
+  public static final DoubleParameter mobilityWeight = new DoubleParameter("Mobility weight",
+      "Score for perfectly matching mobility values. Only taken into account if \"Mobility tolerance\" is activated.",
+      new DecimalFormat("0.000"), 1d);
+
   public static final BooleanParameter SameChargeRequired = new BooleanParameter(
       "Require same charge state", "If checked, only rows having same charge state can be aligned");
 
@@ -63,8 +74,10 @@ public class JoinAlignerParameters extends SimpleParameterSet {
           new JoinAlignerSpectraSimilarityScoreParameters());
 
   public JoinAlignerParameters() {
-    super(new Parameter[] {peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
-        SameChargeRequired, SameIDRequired, compareIsotopePattern, compareSpectraSimilarity});
+    super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
+        mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
+        compareIsotopePattern,
+        compareSpectraSimilarity});
   }
 
 }
