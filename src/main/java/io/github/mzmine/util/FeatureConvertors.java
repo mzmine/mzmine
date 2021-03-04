@@ -129,7 +129,7 @@ public class FeatureConvertors {
     modularFeature.set(FeatureDataType.class, timeSeries);
 
     // recalculate data dependet types
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature, CenterMeasure.AUTO);
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 
     ObservableList<Scan> allMS2 = Arrays
         .stream(ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(),
