@@ -64,6 +64,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.R
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangePeak;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
+import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,7 +129,7 @@ public class FeatureConvertors {
     modularFeature.set(FeatureDataType.class, timeSeries);
 
     // recalculate data dependet types
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature, CenterMeasure.AUTO);
 
     ObservableList<Scan> allMS2 = Arrays
         .stream(ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(),
