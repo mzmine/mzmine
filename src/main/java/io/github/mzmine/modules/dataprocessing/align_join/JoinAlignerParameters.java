@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.align_join;
 
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -80,4 +81,8 @@ public class JoinAlignerParameters extends SimpleParameterSet {
         compareSpectraSimilarity});
   }
 
+  @Override
+  public IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }
