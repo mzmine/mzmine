@@ -87,7 +87,7 @@ public class MobilityToleranceParameter implements UserParameter<MobilityToleran
     String toleranceNum = xmlElement.getTextContent();
     if (toleranceNum.length() == 0)
       return;
-    double tolerance = Double.parseDouble(toleranceNum);
+    float tolerance = Float.parseFloat(toleranceNum);
     this.value = new MobilityTolerance(tolerance);
   }
 
@@ -96,7 +96,7 @@ public class MobilityToleranceParameter implements UserParameter<MobilityToleran
     if (value == null) {
       return;
     }
-    double tolerance = value.getTolerance();
+    float tolerance = value.getTolerance();
     String toleranceNum = String.valueOf(tolerance);
     xmlElement.setTextContent(toleranceNum);
   }

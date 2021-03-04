@@ -34,6 +34,7 @@ import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCal
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
@@ -50,9 +51,8 @@ import javax.annotation.Nullable;
 
 public class JoinAlignerTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private final MZmineProject project;
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private ModularFeatureList[] featureLists;
   private ModularFeatureList alignedFeatureList;
 
@@ -62,7 +62,8 @@ public class JoinAlignerTask extends AbstractTask {
   private String featureListName;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
-  private double mzWeight, rtWeight;
+  private MobilityTolerance mobilityTolerance;
+  private double mzWeight, rtWeight, mobilityWeight;
   private boolean sameIDRequired, sameChargeRequired, compareIsotopePattern,
       compareSpectraSimilarity;
   private ParameterSet parameters;
@@ -73,6 +74,7 @@ public class JoinAlignerTask extends AbstractTask {
   // fields for spectra similarity
   private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
   private int msLevel;
+  private boolean compareMobility;
 
   public JoinAlignerTask(MZmineProject project, ParameterSet parameters,
       @Nullable MemoryMapStorage storage) {
@@ -89,9 +91,14 @@ public class JoinAlignerTask extends AbstractTask {
     mzTolerance = parameters.getParameter(JoinAlignerParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(JoinAlignerParameters.RTTolerance).getValue();
 
-    mzWeight = parameters.getParameter(JoinAlignerParameters.MZWeight).getValue();
+    compareMobility = parameters.getParameter(JoinAlignerParameters.mobilityTolerance).getValue();
+    mobilityTolerance = parameters.getParameter(JoinAlignerParameters.mobilityTolerance)
+        .getEmbeddedParameter()
+        .getValue();
 
+    mzWeight = parameters.getParameter(JoinAlignerParameters.MZWeight).getValue();
     rtWeight = parameters.getParameter(JoinAlignerParameters.RTWeight).getValue();
+    mobilityWeight = parameters.getParameter(JoinAlignerParameters.mobilityWeight).getValue();
 
     sameChargeRequired =
         parameters.getParameter(JoinAlignerParameters.SameChargeRequired).getValue();
@@ -173,11 +180,16 @@ public class JoinAlignerTask extends AbstractTask {
 
         allDataFiles.add(dataFile);
       }
+
     }
 
     // Create a new aligned feature list
     alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
         allDataFiles.toArray(new RawDataFile[0]));
+    for(ModularFeatureList flist : featureLists) {
+      flist.getRowTypes().values().forEach(type -> alignedFeatureList.addRowType(type));
+    }
+
 
     // Iterate source feature lists
     for (ModularFeatureList featureList : featureLists) {
@@ -201,12 +213,20 @@ public class JoinAlignerTask extends AbstractTask {
         Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
         Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
+        Range<Float> mobilityRange = compareMobility && !Float.isNaN(row.getAverageMobility()) ?
+            mobilityTolerance.getToleranceRange(row.getAverageMobility()) : Range.singleton(0f);
+
         // Get all rows of the aligned peaklist within parameter limits
         List<FeatureListRow> candidateRows = alignedFeatureList
             .getRowsInsideScanAndMZRange(rtRange, mzRange);
 
         // Calculate scores and store them
         for (FeatureListRow candidate : candidateRows) {
+
+          if (compareMobility && !Float.isNaN(candidate.getAverageMobility()) &&
+              !mobilityRange.contains(candidate.getAverageMobility())) {
+            continue;
+          }
 
           if (sameChargeRequired) {
             if (!FeatureUtils.compareChargeState(row, candidate)) {
@@ -280,9 +300,17 @@ public class JoinAlignerTask extends AbstractTask {
             }
           }
 
-          RowVsRowScore score =
-              new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
-                  RangeUtils.rangeLength(rtRange) / 2.0, rtWeight);
+          RowVsRowScore score = null;
+          if (!compareMobility) {
+            score = new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0,
+                mzWeight,
+                RangeUtils.rangeLength(rtRange) / 2.0, rtWeight);
+          } else {
+            score = new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0,
+                mzWeight,
+                RangeUtils.rangeLength(rtRange) / 2.0, rtWeight,
+                RangeUtils.rangeLength(mobilityRange), mobilityWeight);
+          }
           scoreSet.add(score);
         }
         processedRows++;

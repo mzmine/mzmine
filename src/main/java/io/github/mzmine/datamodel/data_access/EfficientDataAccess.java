@@ -108,6 +108,12 @@ public class EfficientDataAccess {
     RAW, CENTROID
   }
 
+  /**
+   * {@link #ONLY_DETECTED} will only access data points stored in the mobilograms, which may or may
+   * not contain leading and trailing zeros depending on the state of processing. {@link
+   * #INCLUDE_ZEROS}: fill all missing data points in frame's mobility scans with 0 for the
+   * respective mobilogram.
+   */
   public enum MobilogramAccessType {
     ONLY_DETECTED, INCLUDE_ZEROS
   }

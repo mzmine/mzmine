@@ -29,6 +29,7 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -36,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -48,7 +50,8 @@ import javax.annotation.Nullable;
 
 public class FeatureListSummaryController {
 
-  private static final Logger logger = Logger.getLogger(FeatureListSummaryController.class.getName());
+  private static final Logger logger = Logger
+      .getLogger(FeatureListSummaryController.class.getName());
 
   @FXML
   public TextField tfNumRows;
@@ -110,12 +113,20 @@ public class FeatureListSummaryController {
     StringBuilder sb = new StringBuilder(name);
     sb.append(":\t");
     sb.append(value.toString());
-    if (parameter instanceof ParameterSetParameter) {
-      for (Parameter<?> parameter1 : ((ParameterSetParameter) parameter).getValue()
-          .getParameters()) {
+    if (parameter instanceof ParameterSetParameter
+        || parameter instanceof OptionalModuleParameter) {
+      ParameterSet parameterSet =
+          parameter instanceof ParameterSetParameter ? ((ParameterSetParameter) parameter)
+              .getValue() : ((OptionalModuleParameter<?>) parameter).getEmbeddedParameters();
+      for (Parameter<?> parameter1 : parameterSet.getParameters()) {
         sb.append("\n\t");
         sb.append(parameterToString(parameter1));
       }
+    }
+    if(parameter instanceof OptionalParameter) {
+      sb.append("\t(");
+      sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
+      sb.append(")");
     }
     return sb.toString();
   }
@@ -127,14 +138,14 @@ public class FeatureListSummaryController {
         "Warning: This will overwrite the current batch queue.\nDo you wish to continue?",
         ButtonType.YES, ButtonType.NO);
 
-    if(btn != ButtonType.YES) {
+    if (btn != ButtonType.YES) {
       return;
     }
 
     BatchQueue queue = new BatchQueue();
 
     for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
-      if(item.getModule() instanceof MZmineProcessingModule) {
+      if (item.getModule() instanceof MZmineProcessingModule) {
         ParameterSet parameterSet = item.getParameters().cloneParameterSet();
         setSelectionToLastBatchStep(parameterSet);
         MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl(
@@ -155,14 +166,14 @@ public class FeatureListSummaryController {
 
   private void setSelectionToLastBatchStep(ParameterSet parameters) {
     for (Parameter<?> parameter : parameters.getParameters()) {
-      if(parameter instanceof FeatureListsParameter) {
+      if (parameter instanceof FeatureListsParameter) {
         final FeatureListsSelection featureListsSelection = new FeatureListsSelection();
         featureListsSelection.setSelectionType(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS);
-        ((FeatureListsParameter)parameter).setValue(featureListsSelection);
-      } else if(parameter instanceof RawDataFilesParameter) {
+        ((FeatureListsParameter) parameter).setValue(featureListsSelection);
+      } else if (parameter instanceof RawDataFilesParameter) {
         final RawDataFilesSelection rawDataFilesSelection = new RawDataFilesSelection(
             RawDataFilesSelectionType.BATCH_LAST_FILES);
-        ((RawDataFilesParameter)parameter).setValue(rawDataFilesSelection);
+        ((RawDataFilesParameter) parameter).setValue(rawDataFilesSelection);
       }
     }
   }
