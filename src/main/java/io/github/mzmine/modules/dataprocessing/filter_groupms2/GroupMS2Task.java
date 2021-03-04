@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -30,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -141,7 +143,7 @@ public class GroupMS2Task extends AbstractTask {
           == io.github.mzmine.datamodel.MobilityType.TIMS) {
         processTimsFeature((ModularFeature) f);
       }
-      else {
+      else if(!f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
         RawDataFile raw = f.getRawDataFile();
         float frt = f.getRT();
         double fmz = f.getMZ();
