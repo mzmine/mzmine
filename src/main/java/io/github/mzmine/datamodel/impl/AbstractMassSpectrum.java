@@ -97,13 +97,12 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
    * @see io.github.mzmine.datamodel.Scan#
    */
   @Override
-  @Nonnull
+  @Nullable
   public Range<Double> getDataPointMZRange() {
     return mzRange;
   }
 
   /**
-   * @see Scan#getHighestDataPoint()
    */
   @Override
   public @Nullable Integer getBasePeakIndex() {
@@ -170,7 +169,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
     return Streams.stream(this);
   }
 
-  private class DataPointIterator implements Iterator<DataPoint>, DataPoint {
+  public static class DataPointIterator implements Iterator<DataPoint>, DataPoint {
 
     // We start at -1 so the first call to next() moves us to index 0
     private int cursor = -1;
