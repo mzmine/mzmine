@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -26,6 +27,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -84,9 +86,30 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
 
+    final List<Scan> spectra = getSpectra();
+    int sindex = 0;
     for (int i = 0; i < subset.size(); i++) {
-      mzs[i] = getMzForSpectrum(subset.get(i));
-      intensities[i] = getIntensityForSpectrum(subset.get(i));
+      Scan sub = subset.get(i);
+      // find next spectrum
+      while (spectra.get(sindex) != sub) {
+        sindex++;
+        if (sindex >= spectra.size()) {
+          // exceptional case: no scan in spectra that matches sub from the subset, throw
+          if (!Comparators.isInOrder(subset, Comparator.comparingInt(Scan::getScanNumber))) {
+            throw new IllegalArgumentException(
+                "Subset of scans was not sorted by scan number (which should reflect retention time / mobility)");
+          }
+          if (!Comparators.isInOrder(spectra, Comparator.comparingInt(Scan::getScanNumber))) {
+            throw new IllegalArgumentException(
+                "Original IonTimeSeries scans were not sorted by scan number (which should reflect retention time / mobility)");
+          }
+          throw new IllegalArgumentException(
+              "Not all scans of subset were present in this IonTimeSeries");
+        }
+      }
+      // set mz
+      mzs[i] = getMZ(sindex);
+      intensities[i] = getIntensity(sindex);
     }
 
     return new SimpleIonTimeSeries(storage, mzs, intensities, subset);
