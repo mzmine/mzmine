@@ -43,13 +43,15 @@ public class ScanDataAccess implements MassSpectrum {
   protected final RawDataFile dataFile;
   protected final ScanDataType type;
   private final ScanSelection selection;
-  protected final int scans;
+  protected final int totalScans;
 
   // current data
   protected final double[] mzs;
   protected final double[] intensities;
-  protected int currentScan = -1;
   protected int currentNumberOfDataPoints = -1;
+
+  protected int scanIndex = -1;
+  protected int currentScanInDataFile = -1;
 
   /**
    * The intended use of this memory access is to loop over all scans and access data points via
@@ -66,7 +68,7 @@ public class ScanDataAccess implements MassSpectrum {
     this.selection = selection;
     // count matching scans
     if (selection == null) {
-      scans = dataFile.getScans().size();
+      totalScans = dataFile.getScans().size();
     } else {
       int size = 0;
       for (Scan s : dataFile.getScans()) {
@@ -74,7 +76,7 @@ public class ScanDataAccess implements MassSpectrum {
           size++;
         }
       }
-      scans = size;
+      totalScans = size;
     }
     // might even use the maximum number of data points in the selected scans
     // but seems unnecessary
@@ -93,8 +95,8 @@ public class ScanDataAccess implements MassSpectrum {
   }
 
   public Scan getCurrentScan() {
-    assert currentScan >= 0 && hasNextScan();
-    return dataFile.getScan(currentScan);
+    assert scanIndex >= 0 && hasNextScan();
+    return dataFile.getScan(currentScanInDataFile);
   }
 
   /**
@@ -142,13 +144,16 @@ public class ScanDataAccess implements MassSpectrum {
     if (hasNextScan()) {
       Scan scan = null;
       do {
-        currentScan++;
-        scan = dataFile.getScan(currentScan);
+        // next scan in data file
+        currentScanInDataFile++;
+        scan = dataFile.getScan(currentScanInDataFile);
 
         assert scan != null;
         // find next scan
       } while (selection != null && !selection.matches(scan));
 
+      // next scan found
+      scanIndex++;
       switch (type) {
         case RAW -> {
           scan.getMzValues(mzs);
@@ -177,7 +182,7 @@ public class ScanDataAccess implements MassSpectrum {
    * @return
    */
   public boolean hasNextScan() {
-    return currentScan + 1 < getNumberOfScans();
+    return scanIndex + 1 < getNumberOfScans();
   }
 
   /**
@@ -186,7 +191,7 @@ public class ScanDataAccess implements MassSpectrum {
    * @return
    */
   public int getNumberOfScans() {
-    return scans;
+    return totalScans;
   }
 
   /**
@@ -206,7 +211,7 @@ public class ScanDataAccess implements MassSpectrum {
   @Override
   public MassSpectrumType getSpectrumType() {
     return switch (type) {
-      case RAW -> dataFile.getScan(currentScan).getSpectrumType();
+      case RAW -> dataFile.getScan(currentScanInDataFile).getSpectrumType();
       case CENTROID -> MassSpectrumType.CENTROIDED;
     };
   }
