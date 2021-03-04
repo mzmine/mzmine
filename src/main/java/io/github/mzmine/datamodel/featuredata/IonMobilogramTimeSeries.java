@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
@@ -31,7 +32,7 @@ import javax.annotation.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame> {
+public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, ModifiableSpectra<Frame> {
 
   @Override
   default float getRetentionTime(int index) {
