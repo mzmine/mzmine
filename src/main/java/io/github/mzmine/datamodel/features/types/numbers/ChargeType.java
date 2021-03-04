@@ -64,7 +64,7 @@ public class ChargeType extends IntegerType {
               count.put(charge, n==null? 1 : n+1);
             }
           }
-          return count.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue)).map(Map.Entry::getValue)
+          return count.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue)).map(Map.Entry::getKey)
                   .orElse(0);
         }, prop);
     }

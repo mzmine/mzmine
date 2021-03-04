@@ -20,14 +20,13 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT;
+import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.MIN_RATIO;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.PEAK_DURATION;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
@@ -55,6 +54,10 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
 
   private final ParameterSet parameters;
   private final double chromThreshold;
+  private final int minDataPoints;
+  final Range<Double> xRange;
+  final double searchXWidth;
+  final double minRatio;
 
   @Override
   public Class<? extends MZmineProcessingModule> getModuleClass() {
@@ -64,6 +67,10 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
   public MinimumSearchFeatureResolver(ParameterSet parameterSet) {
     this.parameters = parameterSet;
     chromThreshold = parameters.getParameter(CHROMATOGRAPHIC_THRESHOLD_LEVEL).getValue();
+    minDataPoints = parameters.getParameter(MIN_NUMBER_OF_DATAPOINTS).getValue();
+    xRange = parameters.getParameter(PEAK_DURATION).getValue();
+    searchXWidth = parameters.getParameter(SEARCH_RT_RANGE).getValue();
+    minRatio = parameters.getParameter(MIN_RATIO).getValue();
   }
 
   @Override
@@ -76,7 +83,8 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
   public ResolvedPeak[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) {
-    throw new UnsupportedOperationException("Legacy resolvePeaks not supported in minimum resolver. use resolve");
+    throw new UnsupportedOperationException(
+        "Legacy resolvePeaks not supported in minimum resolver. use resolve");
   }
 
   @Override
@@ -127,7 +135,8 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
     assert valueCount > 0;
 
     // First, remove all data points below chromatographic threshold.
-    final double chromatographicThresholdLevel = MathUtils.calcQuantile(y, chromThreshold, totalScans);
+    final double chromatographicThresholdLevel = MathUtils
+        .calcQuantile(y, chromThreshold, totalScans);
     double maxY = 0;
     for (int i = 0; i < y.length; i++) {
       if (y[i] < chromatographicThresholdLevel) {
@@ -137,11 +146,6 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
         maxY = y[i];
       }
     }
-
-    final Range<Double> xRange = parameters.getParameter(PEAK_DURATION).getValue();
-    final double searchXWidth = parameters.getParameter(SEARCH_RT_RANGE).getValue();
-
-    final double minRatio = parameters.getParameter(MIN_RATIO).getValue();
     final double minHeight = Math.max(parameters.getParameter(MIN_ABSOLUTE_HEIGHT).getValue(),
         parameters.getParameter(MIN_RELATIVE_HEIGHT).getValue() * maxY);
 
@@ -173,8 +177,11 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
           final double peakMinLeft = y[currentRegionStart];
           final double peakMinRight = y[currentRegionEnd];
 
+          // inclusive start and end values
+          final int numberOfDataPoints = currentRegionEnd - currentRegionStart + 1;
           // Check the shape of the peak.
-          if (currentRegionHeight >= minHeight && currentRegionHeight >= peakMinLeft * minRatio
+          if (numberOfDataPoints >= minDataPoints &&
+              currentRegionHeight >= minHeight && currentRegionHeight >= peakMinLeft * minRatio
               && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
               x[currentRegionEnd] - x[currentRegionStart])) {
 
@@ -237,9 +244,11 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
           // the peak shape would not fulfill the
           // ratio condition, continue searching for next minimum.
           if (currentRegionHeight >= peakMinRight * minRatio) {
-
+            // inclusive start and end values
+            final int numberOfDataPoints = currentRegionEnd - currentRegionStart + 1;
             // Check the shape of the peak.
-            if (currentRegionHeight >= minHeight && currentRegionHeight >= peakMinLeft * minRatio
+            if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
+                && currentRegionHeight >= peakMinLeft * minRatio
                 && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
                 x[currentRegionEnd] - x[currentRegionStart])) {
 

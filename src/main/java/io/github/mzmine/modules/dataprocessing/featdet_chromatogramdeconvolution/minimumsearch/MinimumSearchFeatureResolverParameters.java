@@ -28,6 +28,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
@@ -61,10 +62,14 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
       new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
+  public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter("Min # of data points",
+      "Minimum number of data points on a feature", 3, true);
+
+
   public MinimumSearchFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
         dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
-        MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION});
+        MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS});
   }
 
   @Override
