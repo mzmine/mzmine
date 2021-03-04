@@ -42,12 +42,12 @@ import javafx.scene.layout.VBox;
 public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetupDialogWithPreview {
 
   // Dialog components
-  private final FlowPane pnlDataFile, pnlScanArrows, pnlScanNumber;
-  private final VBox pnlControls;
-  private final ComboBox<RawDataFile> comboDataFileName;
-  private final ComboBox<Scan> comboScanNumber;
+  private FlowPane pnlDataFile, pnlScanArrows, pnlScanNumber;
+  private VBox pnlControls;
+  private ComboBox<RawDataFile> comboDataFileName;
+  private ComboBox<Scan> comboScanNumber;
   // XYPlot
-  private final SpectraPlot spectrumPlot;
+  private SpectraPlot spectrumPlot;
   private RawDataFile[] dataFiles;
   private RawDataFile previewDataFile;
 
@@ -61,15 +61,16 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
-    // TODO: if (dataFiles.length == 0)
-    // return;
+    // if no data files, return the dialog without preview functions
     if (dataFiles.length == 0) {
-      this.hide();
-      MZmineCore.getDesktop()
-          .displayMessage("Please load a raw data file before selecting a " + "mass detector.");
-      throw new UnsupportedOperationException(
-          "Please load a raw data file before selecting a mass detector.");
+      return;
     }
+//      this.hide();
+//      MZmineCore.getDesktop()
+//          .displayMessage("Please load a raw data file before selecting a " + "mass detector.");
+//      throw new UnsupportedOperationException(
+//          "Please load a raw data file before selecting a mass detector.");
+//    }
 
     RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
 

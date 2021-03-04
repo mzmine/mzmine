@@ -75,7 +75,6 @@ public class RawDataFileImpl implements RawDataFile {
   protected final ObservableList<Scan> scans;
   // maximum number of data points and centroid data points in all scans
   protected int maxRawDataPoints = -1;
-  protected int maxCentroidDataPoints = -1;
 
   protected final ObservableList<FeatureListAppliedMethod> appliedMethods
       = FXCollections.observableArrayList();
@@ -113,11 +112,8 @@ public class RawDataFileImpl implements RawDataFile {
    */
   @Override
   public int getMaxCentroidDataPoints() {
-    if (maxCentroidDataPoints == -1) {
-      maxCentroidDataPoints = scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
+      return scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
           .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
-    }
-    return maxCentroidDataPoints;
   }
 
   /**
@@ -300,11 +296,6 @@ public class RawDataFileImpl implements RawDataFile {
       // Scan will be unmodifiable - Frame is the average spectrum calculated from all MobilityScans
       // so data changes
       maxRawDataPoints = newScan.getNumberOfDataPoints();
-    }
-    MassList masses = newScan.getMassList();
-    if (masses != null && masses.getNumberOfDataPoints() > maxCentroidDataPoints) {
-      // mass list changes set this var to -1
-      maxCentroidDataPoints = masses.getNumberOfDataPoints();
     }
 
     // Remove cached values
@@ -489,7 +480,5 @@ public class RawDataFileImpl implements RawDataFile {
    * @param masses new mass list
    */
   public void applyMassListChanged(Scan scan, MassList old, MassList masses) {
-    // set to -1 to indicate change
-    maxCentroidDataPoints = -1;
   }
 }

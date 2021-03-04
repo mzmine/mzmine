@@ -18,9 +18,11 @@
 
 package io.github.mzmine.datamodel.featuredata.impl;
 
+import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.util.DataPointUtils;
@@ -32,6 +34,7 @@ import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -87,7 +90,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     double[] summedIntensities = sumIntensities(mobilograms);
     double[] weightedMzs = weightMzs(mobilograms, summedIntensities);
     final double mz = Arrays.stream(weightedMzs).filter(val -> Double.compare(val, 0d) != 0)
-        .average().getAsDouble();
+        .average().orElse(Double.NaN);
 
     summedMobilogram = new SummedIntensityMobilitySeries(storage,
         mobilograms, mz);
@@ -114,8 +117,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   private SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
       @Nonnull double[] intensities, List<IonMobilitySeries> mobilograms,
       List<Frame> frames) {
-    if (mzs.length != intensities.length || mobilograms.size() != intensities.length
-        || mzs.length != mobilograms.size()) {
+    if (mzs.length != intensities.length || mobilograms.size() != intensities.length) {
       throw new IllegalArgumentException(
           "Length of mz, intensity, frames and/or mobilograms does not match.");
     }
@@ -127,7 +129,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     this.frames = frames;
 
     summedMobilogram = new SummedIntensityMobilitySeries(storage,
-        mobilograms, mzs[((int) mzs.length / 2)]);
+        mobilograms, mzs[(mzs.length / 2)]);
 
     mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
@@ -155,8 +157,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
       @Nonnull List<Frame> frames, @Nullable double[] summedMobilogramMobilitities,
       @Nullable double[] smoothedSummedMobilogramIntensities) {
 
-    if (mzs.length != intensities.length || mobilograms.size() != intensities.length
-        || mzs.length != mobilograms.size()) {
+    if (mzs.length != intensities.length || mobilograms.size() != intensities.length) {
       throw new IllegalArgumentException(
           "Length of mz, intensity, frames and/or mobilograms does not match.");
     }
@@ -168,7 +169,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     this.frames = frames;
 
     final double mz = Arrays.stream(mzs).filter(val -> Double.compare(val, 0d) != 0).average()
-        .getAsDouble();
+        .orElse(Double.NaN);
 
     if (smoothedSummedMobilogramIntensities != null && summedMobilogramMobilitities != null) {
       summedMobilogram = new SummedIntensityMobilitySeries(storage, summedMobilogramMobilitities,
@@ -201,7 +202,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
 
     final double mz = Arrays.stream(data[0]).filter(val -> Double.compare(val, 0d) != 0).average()
-        .getAsDouble();
+        .orElse(Double.NaN);
 
     summedMobilogram = new SummedIntensityMobilitySeries(storage,
         mobilograms, mz);
@@ -216,9 +217,30 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
 
+    final List<Frame> spectra = getSpectra();
+    int sindex = 0;
     for (int i = 0; i < subset.size(); i++) {
-      mzs[i] = getMzForSpectrum(subset.get(i));
-      intensities[i] = getIntensityForSpectrum(subset.get(i));
+      Frame sub = subset.get(i);
+      // find next spectrum
+      while (spectra.get(sindex) != sub) {
+        sindex++;
+        if (sindex >= spectra.size()) {
+          // exceptional case: no scan in spectra that matches sub from the subset, throw
+          if (!Comparators.isInOrder(subset, Comparator.comparingInt(Scan::getScanNumber))) {
+            throw new IllegalArgumentException(
+                "Subset of scans was not sorted by scan number (which should reflect retention time / mobility)");
+          }
+          if (!Comparators.isInOrder(spectra, Comparator.comparingInt(Scan::getScanNumber))) {
+            throw new IllegalArgumentException(
+                "Original IonTimeSeries scans were not sorted by scan number (which should reflect retention time / mobility)");
+          }
+          throw new IllegalArgumentException(
+              "Not all scans of subset were present in this IonTimeSeries");
+        }
+      }
+      // set mz
+      mzs[i] = getMZ(sindex);
+      intensities[i] = getIntensity(sindex);
     }
 
     List<IonMobilitySeries> subMobilograms = new ArrayList<>(subset.size());
@@ -358,7 +380,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     return summedIntensities;
   }
 
-  private boolean checkRawFileIntegrity(List<IonMobilitySeries> mobilograms) {
+  private boolean checkRawFileIntegrity(@Nonnull List<IonMobilitySeries> mobilograms) {
     RawDataFile file = null;
     for (IonMobilitySeries mobilogram : mobilograms) {
       if (file == null) {

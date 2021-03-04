@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -24,20 +24,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-
+import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.io.FilenameUtils;
 
 /**
  * Simple file operations
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class FileAndPathUtil {
 
   /**
    * Returns the real file path as path/filename.fileformat
-   * 
-   * @param file
+   *
    * @param name
    * @param format a format starting with a dot for example: .pdf ; or without a dot: pdf
    * @return
@@ -48,9 +47,7 @@ public class FileAndPathUtil {
 
   /**
    * Returns the real file path as path/filename.fileformat
-   * 
-   * @param file
-   * @param name
+   *
    * @param format a format starting with a dot for example: .pdf ; or without a dot: pdf
    * @return
    * @throws Exception if there is no filname (selected path = folder)
@@ -61,7 +58,7 @@ public class FileAndPathUtil {
 
   /**
    * Returns the real file name as filename.fileformat
-   * 
+   *
    * @param name
    * @param format a format starting with a dot for example .pdf
    * @return
@@ -74,7 +71,7 @@ public class FileAndPathUtil {
 
   /**
    * Returns the real file name as filename.fileformat
-   * 
+   *
    * @param name
    * @param format a format starting with a dot for example .pdf
    * @return
@@ -86,22 +83,22 @@ public class FileAndPathUtil {
   /**
    * erases the format. "image.png" will be returned as "image" this method is used by
    * getRealFilePath and getRealFileName
-   * 
-   * @param name
+   *
    * @return
    */
   public static File eraseFormat(File f) {
     int lastDot = f.getName().lastIndexOf(".");
-    if (lastDot != -1)
+    if (lastDot != -1) {
       return new File(f.getParent(), f.getName().substring(0, lastDot));
-    else
+    } else {
       return f;
+    }
   }
 
   /**
    * Adds the format. "image" will be returned as "image.format" Maybe use erase format first. this
    * method is used by getRealFilePath and getRealFileName
-   * 
+   *
    * @param name
    * @param format
    * @return
@@ -109,39 +106,42 @@ public class FileAndPathUtil {
   public static String addFormat(String name, String format) {
     if (format.startsWith(".")) {
       return name + format;
-    } else
+    } else {
       return name + "." + format;
+    }
   }
 
   /**
    * Returns the file if it is already a folder. Or the parent folder if the file is a data file
-   * 
+   *
    * @param file
    * @return
    */
   public static File getFolderOfFile(File file) {
     if (!isOnlyAFolder(file)) {
       return file.getParentFile();
-    } else
+    } else {
       return file;
+    }
   }
 
   /**
    * Returns the file name from a given file. If file is a folder an empty String is returned
-   * 
+   *
    * @param file
    * @return
    */
   public static String getFileNameFromPath(File file) {
     if (!isOnlyAFolder(file)) {
       return file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf("\\") + 1);
-    } else
+    } else {
       return "";
+    }
   }
 
   /**
    * Returns the file name from a given file. If the file is a folder an empty String is returned
-   * 
+   *
    * @param file
    * @return
    */
@@ -158,7 +158,7 @@ public class FileAndPathUtil {
 
   /**
    * Creates a new directory.
-   * 
+   *
    * @param theDir
    * @return false if directory was not created
    */
@@ -173,13 +173,14 @@ public class FileAndPathUtil {
         // handle it
       }
       return result;
-    } else
+    } else {
       return true;
+    }
   }
 
   /**
    * Sort an array of files These files have to start or end with a number
-   * 
+   *
    * @param files
    * @return
    */
@@ -190,8 +191,9 @@ public class FileAndPathUtil {
       @Override
       public int compare(File o1, File o2) {
         try {
-          if (endsWithNumber == null)
+          if (endsWithNumber == null) {
             checkEndsWithNumber(o1.getName());
+          }
           int n1 = extractNumber(o1.getName());
           int n2 = extractNumber(o2.getName());
           return n1 - n2;
@@ -215,8 +217,9 @@ public class FileAndPathUtil {
               }
             }
             //
-            if (f < 0)
+            if (f < 0) {
               f = 0;
+            }
             String number = name.substring(f, e);
             i = Integer.parseInt(number);
           } else {
@@ -252,7 +255,7 @@ public class FileAndPathUtil {
 
   /**
    * Lists all directories in directory f
-   * 
+   *
    * @param f
    * @return
    */
@@ -267,8 +270,23 @@ public class FileAndPathUtil {
 
   // ###############################################################################################
   // search for files
+
+  public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter) {
+    String ext = fileFilter.getExtensions().get(0);
+    if(ext.startsWith("*."))
+      ext = ext.substring(2);
+    return findFilesInDir(dir, new FileNameExtFilter("", ext), true, false);
+  }
+
+  public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter,
+      boolean searchSubdir) {
+    String ext = fileFilter.getExtensions().get(0);
+    if(ext.startsWith("*."))
+      ext = ext.substring(2);
+    return findFilesInDir(dir, new FileNameExtFilter("", ext), searchSubdir, false);
+  }
+
   /**
-   * 
    * @param dir
    * @param fileFilter
    * @return
@@ -291,8 +309,9 @@ public class FileAndPathUtil {
     // sort all files and return them
     File[] files = dir.listFiles(fileFilter);
     files = FileAndPathUtil.sortFilesByNumber(files);
-    if (files != null && files.length > 0)
+    if (files != null && files.length > 0) {
       list.add(files);
+    }
 
     if (subDir == null || subDir.length <= 0 || !searchSubdir) {
       // no subdir end directly
@@ -314,8 +333,8 @@ public class FileAndPathUtil {
   /**
    * go into all subfolders and find all files and go in further subfolders files stored in separate
    * folders. one line in one folder
-   * 
-   * @param dir musst be sorted!
+   *
+   * @param dirs musst be sorted!
    * @param list
    * @return
    */
@@ -331,8 +350,9 @@ public class FileAndPathUtil {
       // create image of these
       // dirs
       if (subFiles.length > 0) {
-        if (img == null)
+        if (img == null) {
           img = new ArrayList<File>();
+        }
         // put them into the list
         for (int f = 0; f < subFiles.length; f++) {
           img.add(subFiles[f]);
@@ -354,8 +374,8 @@ public class FileAndPathUtil {
 
   /**
    * Go into all sub-folders and find all files files stored one image in one folder!
-   * 
-   * @param dir musst be sorted!
+   *
+   * @param dirs musst be sorted!
    * @param list
    * @return
    */
@@ -366,8 +386,9 @@ public class FileAndPathUtil {
       // find all suiting files
       File[] subFiles = FileAndPathUtil.sortFilesByNumber(dirs[i].listFiles(fileFilter));
       // put them into the list
-      if (subFiles != null && subFiles.length > 0)
+      if (subFiles != null && subFiles.length > 0) {
         list.add(subFiles);
+      }
       // find all subfolders, sort them and do the same iterative
       File[] subDir = FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dirs[i]));
       // call this method
@@ -377,7 +398,7 @@ public class FileAndPathUtil {
 
   /**
    * The Path of the Jar.
-   * 
+   *
    * @return
    */
   public static File getPathOfJar() {

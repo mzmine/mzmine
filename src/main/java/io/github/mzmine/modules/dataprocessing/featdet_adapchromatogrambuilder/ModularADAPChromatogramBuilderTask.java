@@ -29,6 +29,9 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -46,6 +49,7 @@ import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -198,29 +202,27 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     // make a list of all the data points
     List<ExpandedDataPoint> allMzValues = new ArrayList<ExpandedDataPoint>();
 
-    for (Scan scan : scans) {
+
+    ScanDataAccess scanData = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID, scanSelection);
+
+    while(scanData.hasNextScan()) {
       if (isCanceled())
         return;
 
-      MassList massList = scan.getMassList();
-      if (massList == null) {
+      Scan scan = null;
+      try {
+        scan = scanData.nextScan();
+      } catch (MissingMassListException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-            + " does not have a mass list. Run mass detection");
+            + " does not have a mass list");
+        e.printStackTrace();
         return;
       }
 
-      DataPoint mzValues[] = massList.getDataPoints();
-
-      if (mzValues == null) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Mass list does not contain m/z values for scan #"
-            + scan.getScanNumber() + " of file " + dataFile);
-        return;
-      }
-
-      for (DataPoint mzFeature : mzValues) {
-        ExpandedDataPoint curDatP = new ExpandedDataPoint(mzFeature, scan);
+      int dps = scanData.getNumberOfDataPoints();
+      for (int i=0; i<dps; i++) {
+        ExpandedDataPoint curDatP = new ExpandedDataPoint(scanData.getMzValue(i), scanData.getIntensityValue(i), scan);
         allMzValues.add(curDatP);
         // corespondingScanNum.add(scan.getScanNumber());
       }
@@ -229,17 +231,13 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     // Integer[] simpleCorespondingScanNums = new Integer[corespondingScanNum.size()];
     // corespondingScanNum.toArray(simpleCorespondingScanNums );
 
-    ExpandedDataPoint[] simpleAllMzVals = new ExpandedDataPoint[allMzValues.size()];
-    allMzValues.toArray(simpleAllMzVals);
-
     // sort data points by intensity
-    Arrays.sort(simpleAllMzVals,
-        new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+    allMzValues.sort(new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
 
     // Set<Chromatogram> buildingChromatograms;
     // buildingChromatograms = new LinkedHashSet<Chromatogram>();
 
-    double maxIntensity = simpleAllMzVals[0].getIntensity();
+    double maxIntensity = allMzValues.get(0).getIntensity();
 
     // count starts at 1 since we already have added one with a single point.
 
@@ -249,9 +247,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
 
     progress = 0.0;
-    double progressStep = (simpleAllMzVals.length > 0) ? 0.5 / simpleAllMzVals.length : 0.0;
+    double progressStep = (allMzValues.size() > 0) ? 0.5 / allMzValues.size() : 0.0;
 
-    for (ExpandedDataPoint mzFeature : simpleAllMzVals) {
+    for (ExpandedDataPoint mzFeature : allMzValues) {
 
       progress += progressStep;
 
@@ -378,12 +376,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     }
 
-    buildingChromatograms.forEach(c -> c.addNZeros(scans, 2, 1));
-
-    ADAPChromatogram[] chromatograms = buildingChromatograms.toArray(new ADAPChromatogram[0]);
-
+    buildingChromatograms.forEach(c -> c.addNZeros(1, 1));
     // Sort the final chromatograms by m/z
-    Arrays.sort(chromatograms, new ADAPChromatogramSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    buildingChromatograms.sort(new ADAPChromatogramSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     // Create new feature list
     newFeatureList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(), dataFile);
@@ -391,7 +386,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     DataTypeUtils.addDefaultChromatographicTypeColumns(newFeatureList);
 
     // Add the chromatograms to the new feature list
-    for (ADAPChromatogram finishedFeature : chromatograms) {
+    for (ADAPChromatogram finishedFeature : buildingChromatograms) {
       finishedFeature.setFeatureList(newFeatureList);
       ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(finishedFeature);
       ModularFeatureListRow newRow =
