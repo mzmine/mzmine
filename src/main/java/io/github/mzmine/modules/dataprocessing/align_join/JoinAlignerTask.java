@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -181,11 +180,16 @@ public class JoinAlignerTask extends AbstractTask {
 
         allDataFiles.add(dataFile);
       }
+
     }
 
     // Create a new aligned feature list
     alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
         allDataFiles.toArray(new RawDataFile[0]));
+    for(ModularFeatureList flist : featureLists) {
+      flist.getRowTypes().values().forEach(type -> alignedFeatureList.addRowType(type));
+    }
+
 
     // Iterate source feature lists
     for (ModularFeatureList featureList : featureLists) {
@@ -343,12 +347,6 @@ public class JoinAlignerTask extends AbstractTask {
           targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
           newRowID++;
           alignedFeatureList.addRow(targetRow);
-        }
-
-        // add type property columns to maps
-        for (DataType type : ((ModularFeatureListRow) row).getTypes().values()) {
-          ((ModularFeatureListRow)targetRow).getMap().computeIfAbsent(type,
-              DataType::createProperty);
         }
 
         // Add all peaks from the original row to the aligned row
