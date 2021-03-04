@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -112,11 +113,6 @@ public class FeatureConvertors {
 
     modularFeature.set(RawFileType.class, chromatogram.getDataFile());
     modularFeature.set(DetectionType.class, chromatogram.getFeatureStatus());
-    modularFeature.set(MZType.class, chromatogram.getMZ());
-    modularFeature.set(RTType.class, (float) chromatogram.getRT());
-    modularFeature.set(HeightType.class, (float) chromatogram.getHeight());
-    modularFeature.set(AreaType.class, (float) chromatogram.getArea());
-    modularFeature.set(BestScanNumberType.class, chromatogram.getRepresentativeScanNumber());
 
     // Data points of feature
 //    modularFeature.set(DataPointsType.class, new ArrayList<>(chromatogram.getDataPoints()));
@@ -131,20 +127,12 @@ public class FeatureConvertors {
         Arrays.asList(chromatogram.getScanNumbers()));
     modularFeature.set(FeatureDataType.class, timeSeries);
 
-    // Ranges
-    Range<Float> rtRange = Range.closed(chromatogram.getRawDataPointsRTRange().lowerEndpoint(),
-        chromatogram.getRawDataPointsRTRange().upperEndpoint());
-    Range<Double> mzRange = Range.closed(chromatogram.getRawDataPointsMZRange().lowerEndpoint(),
-        chromatogram.getRawDataPointsMZRange().upperEndpoint());
-    Range<Float> intensityRange =
-        Range.closed(chromatogram.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
-            chromatogram.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
-    modularFeature.set(MZRangeType.class, mzRange);
-    modularFeature.set(RTRangeType.class, rtRange);
-    modularFeature.set(IntensityRangeType.class, intensityRange);
+    // recalculate data dependet types
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 
     ObservableList<Scan> allMS2 = Arrays
-        .stream(ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange))
+        .stream(ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(),
+            modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
     modularFeature.setAllMS2FragmentScans(allMS2);
 

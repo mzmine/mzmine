@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
@@ -66,8 +67,8 @@ public class ADAPChromatogram {
   // private Hashtable<Integer, DataPoint> dataPointsMap;
   private final TreeMap<Scan, DataPoint> dataPointsMap;
 
-  // Chromatogram m/z, RT, height, area. The mz value will be the highest points mz value
-  private double mz, rt, height, area, weightedMz;
+  // Chromatogram m/z, RT, height. The mz value will be the highest points mz value
+  private double mz, rt, height, weightedMz;
   private Double fwhm = null, tf = null, af = null;
 
   // Top intensity scan, fragment scan
@@ -279,10 +280,6 @@ public class ADAPChromatogram {
     return "Chromatogram " + MZmineCore.getConfiguration().getMZFormat().format(mz) + " m/z";
   }
 
-  public double getArea() {
-    return area;
-  }
-
   public double getHeight() {
     return height;
   }
@@ -397,10 +394,8 @@ public class ADAPChromatogram {
 
     // Update raw data point ranges, height, rt and representative scan
     height = Double.MIN_VALUE;
-    area = 0;
     rawDataPointsRTRange = null;
 
-    DataPoint last = null;
     for (int i = 0; i < allScanNumbers.length; i++) {
 
       DataPoint mzFeature = dataPointsMap.get(allScanNumbers[i]);
@@ -419,17 +414,6 @@ public class ADAPChromatogram {
         rt = allScanNumbers[i].getRetentionTime();
         representativeScan = allScanNumbers[i];
       }
-
-      // update area
-      if(last!=null) {
-        // For area calculation, we use retention time in seconds
-        double previousRT = allScanNumbers[i - 1].getRetentionTime() * 60d;
-        double currentRT = allScanNumbers[i].getRetentionTime() * 60d;
-        double previousHeight = last.getIntensity();
-        double currentHeight = mzFeature.getIntensity();
-        area += (currentRT - previousRT) * (currentHeight + previousHeight) / 2;
-      }
-      last = mzFeature;
 
       // retention time
       float scanRt = allScanNumbers[i].getRetentionTime();
@@ -640,32 +624,5 @@ public class ADAPChromatogram {
       }
     }
     dataPointsMap.putAll(dataPointsToAdd);
-
-
-
-//    for (Entry<Scan, DataPoint> entry : dataPointsMap.entrySet()) {
-//      Scan nextScan = entry.getKey();
-//      while (allScansIndex < numScans && scans[allScansIndex] != nextScan) { // find the next scan
-//        allScansIndex++;
-//      }
-//      if (allScansIndex - lastScanIndex >= minGap) { // check if gap was big enough
-//        for (int i = 1; i <= zeros; i++) {
-//          if (lastScanIndex + i < numScans && lastScanIndex != 0) {
-//            dataPointsToAdd.put(scans[lastScanIndex + i], new SimpleDataPoint(getMZ(), 0d));
-//          }
-//          if (allScansIndex - i >= 0) {
-//            dataPointsToAdd.put(scans[allScansIndex - 1], new SimpleDataPoint(getMZ(), 0d));
-//          }
-//        }
-//      }
-//      lastScanIndex = allScansIndex;
-//    }
-//
-//    if (lastScanIndex + 1 < numScans) {
-//      dataPointsToAdd.put(scans[lastScanIndex + 1], new SimpleDataPoint(getMZ(), 0d));
-//    }
-//
-//    dataPointsMap.putAll(dataPointsToAdd);
-//     logger.info(() -> String.format("mz: %f\t Added %d data points", getMZ(), dataPointsToAdd.size()));
   }
 }
