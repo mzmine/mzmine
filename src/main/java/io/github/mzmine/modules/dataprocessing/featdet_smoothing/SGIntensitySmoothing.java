@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.featdet_smoothing2;
+package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import javax.annotation.Nonnull;

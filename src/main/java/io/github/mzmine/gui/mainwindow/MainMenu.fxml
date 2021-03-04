@@ -193,14 +193,11 @@
 
     <SeparatorMenuItem/>
 
-    <MenuItem text="Chromatogram smoothing"
+    <MenuItem text="Smoothing"
       onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule"/>
-    <MenuItem text="Chromatogram smoothing 2"
-      onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing2.SmoothingModule"/>
 
-    <Menu text="Chromatogram deconvolution">
+    <Menu text="Chromatogram resolving">
       <MenuItem text="ADAP resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>
       <MenuItem text="Baseline resolver" onAction="#runModule"
