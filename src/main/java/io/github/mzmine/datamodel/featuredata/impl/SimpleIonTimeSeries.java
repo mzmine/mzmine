@@ -94,7 +94,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       while (spectra.get(sindex) != sub) {
         sindex++;
         if (sindex >= spectra.size()) {
-          // test sorting
+          // exceptional case: no scan in spectra that matches sub from the subset, throw
           if (!Comparators.isInOrder(subset, Comparator.comparingInt(Scan::getScanNumber))) {
             throw new IllegalArgumentException(
                 "Subset of scans was not sorted by scan number (which should reflect retention time / mobility)");
