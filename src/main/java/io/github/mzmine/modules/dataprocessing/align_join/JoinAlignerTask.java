@@ -213,7 +213,7 @@ public class JoinAlignerTask extends AbstractTask {
         Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
         Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
-        Range<Float> mobilityRange = compareMobility && row.getAverageMobility() != Float.NaN ?
+        Range<Float> mobilityRange = compareMobility && !Float.isNaN(row.getAverageMobility()) ?
             mobilityTolerance.getToleranceRange(row.getAverageMobility()) : Range.singleton(0f);
 
         // Get all rows of the aligned peaklist within parameter limits
@@ -223,7 +223,7 @@ public class JoinAlignerTask extends AbstractTask {
         // Calculate scores and store them
         for (FeatureListRow candidate : candidateRows) {
 
-          if (compareMobility && Float.compare(candidate.getAverageMobility(), Float.NaN) != 0 &&
+          if (compareMobility && !Float.isNaN(candidate.getAverageMobility()) &&
               !mobilityRange.contains(candidate.getAverageMobility())) {
             continue;
           }

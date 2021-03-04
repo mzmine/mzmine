@@ -41,6 +41,7 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -392,14 +393,9 @@ public class ParameterSetupDialog extends Stage {
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
     if (node instanceof Region) {
-      Region panelComp = (Region)
-          node;
+      Region panelComp = (Region) node;
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
-        Node child =
-            panelComp.getChildrenUnmodifiable().get(i);
-        /*if (!(child instanceof Control)) {
-          continue;
-        }*/
+        Node child = panelComp.getChildrenUnmodifiable().get(i);
         addListenersToNode(child);
       }
     }
@@ -410,29 +406,14 @@ public class ParameterSetupDialog extends Stage {
   }
 
   protected void addToolTipToControls(Node node, String toolTipText) {
-    if (node instanceof TextField) {
-      TextField textField = (TextField) node;
-      textField.setTooltip(new Tooltip(toolTipText));
-    }
-    if (node instanceof ComboBox) {
-      ComboBox<?> comboComp = (ComboBox<?>) node;
-      comboComp.setTooltip(new Tooltip(toolTipText));
-    }
-    if (node instanceof ChoiceBox) {
-      ChoiceBox<?> choiceBox = (ChoiceBox) node;
-      choiceBox.setTooltip(new Tooltip(toolTipText));
-    }
-    if (node instanceof CheckBox) {
-      CheckBox checkBox = (CheckBox) node;
-      checkBox.setTooltip(new Tooltip(toolTipText));
+    if (node instanceof Control) {
+      ((Control) node).setTooltip(new Tooltip(toolTipText));
     }
     if (node instanceof Region) {
-      Region panelComp = (Region)
-          node;
+      Region panelComp = (Region) node;
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
-        Node child =
-            panelComp.getChildrenUnmodifiable().get(i);
-        addListenersToNode(child);
+        Node child = panelComp.getChildrenUnmodifiable().get(i);
+        addToolTipToControls(child, toolTipText);
       }
     }
   }
