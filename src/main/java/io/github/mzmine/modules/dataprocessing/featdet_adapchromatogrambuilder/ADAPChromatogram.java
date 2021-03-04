@@ -27,7 +27,6 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
@@ -207,7 +206,6 @@ public class ADAPChromatogram {
   /**
    * This method adds a MzFeature to this Chromatogram. All values of this Chromatogram (rt, m/z,
    * intensity and ranges) are updated on request
-   *
    */
   public void addMzFeature(Scan scanNumber, DataPoint mzValue) {
     double curIntensity;
@@ -572,23 +570,25 @@ public class ADAPChromatogram {
     int nextDetectedScanIndex = 0;
     int currentGap = 0;
     int added;
-    for(allScansIndex=0; allScansIndex<scanNumbers.length; allScansIndex++) {
+    for (allScansIndex = 0; allScansIndex < scanNumbers.length; allScansIndex++) {
       added = 0;
       // was a DP detected in this scan?
-      if(scanNumbers[allScansIndex] == detectedScans[nextDetectedScanIndex]) {
-        if(currentGap >= minGap) {
+      if (scanNumbers[allScansIndex] == detectedScans[nextDetectedScanIndex]) {
+        if (currentGap >= minGap) {
           // add leading zeros before allScansIndex
           for (int i = 1; i <= zeros && i <= currentGap && (allScansIndex - i) >= 0; i++) {
             // add zero data points
-            dataPointsToAdd.put(scanNumbers[allScansIndex-i], new SimpleDataPoint(getMZ(), 0d));
+            dataPointsToAdd.put(scanNumbers[allScansIndex - i], new SimpleDataPoint(getMZ(), 0d));
             added++;
           }
           currentGap -= added;
           // add trailing zeros after last detected
-          if(currentGap>0 && nextDetectedScanInAllIndex>=0) {
-            for (int i = 1; i <= zeros && i <= currentGap && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
+          if (currentGap > 0 && nextDetectedScanInAllIndex >= 0) {
+            for (int i = 1; i <= zeros && i <= currentGap
+                && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
               // add zero data points after
-              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i], new SimpleDataPoint(getMZ(), 0d));
+              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i],
+                  new SimpleDataPoint(getMZ(), 0d));
             }
           }
         }
@@ -597,27 +597,30 @@ public class ADAPChromatogram {
         nextDetectedScanInAllIndex = allScansIndex;
 
         // no more detected scans
-        if(nextDetectedScanIndex==detectedScans.length) {
+        if (nextDetectedScanIndex == detectedScans.length) {
           // add trailing zeros after last detected
-            for (int i = 1; i <= zeros && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
-              // add zero data points after
-              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i], new SimpleDataPoint(getMZ(), 0d));
-            }
+          for (int i = 1; i <= zeros && (nextDetectedScanInAllIndex + i) < scanNumbers.length;
+              i++) {
+            // add zero data points after
+            dataPointsToAdd
+                .put(scanNumbers[nextDetectedScanInAllIndex + i], new SimpleDataPoint(getMZ(), 0d));
+          }
           break;
         }
-      }
-      else {
-        currentGap ++;
+      } else {
+        currentGap++;
       }
 
       // last datapoint
-      if(allScansIndex==scanNumbers.length-1) {
-        if(currentGap >= minGap) {
+      if (allScansIndex == scanNumbers.length - 1) {
+        if (currentGap >= minGap) {
           // add trailing zeros after last detected
-          if(currentGap>0 && nextDetectedScanInAllIndex>=0) {
-            for (int i = 1; i <= zeros && i <= currentGap && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
+          if (currentGap > 0 && nextDetectedScanInAllIndex >= 0) {
+            for (int i = 1; i <= zeros && i <= currentGap
+                && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
               // add zero data points after
-              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i], new SimpleDataPoint(getMZ(), 0d));
+              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i],
+                  new SimpleDataPoint(getMZ(), 0d));
             }
           }
         }
