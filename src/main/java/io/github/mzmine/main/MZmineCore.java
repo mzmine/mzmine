@@ -78,6 +78,8 @@ public final class MZmineCore {
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
   private static boolean headLessMode = false;
+  // batch exit code is only set if run in headless mode with batch file
+  private static ExitCode batchExitCode = null;
 
   /**
    * Main method
@@ -131,7 +133,7 @@ public final class MZmineCore {
 
     // override preferences file by command line argument pref
     File prefFile = argsParser.getPreferencesFile();
-    if(prefFile == null) {
+    if (prefFile == null) {
       prefFile = MZmineConfiguration.CONFIG_FILE;
     }
 
@@ -147,10 +149,11 @@ public final class MZmineCore {
 
     // batch mode defined by command line argument
     File batchFile = argsParser.getBatchFile();
+    boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
     headLessMode = false;
     // If we have no arguments, run in GUI mode, otherwise run in batch mode
-    if (batchFile == null) {
+    if (batchFile == null && !keepRunningInHeadless) {
       try {
         logger.info("Starting MZmine GUI");
         Application.launch(MZmineGUI.class, args);
@@ -178,15 +181,28 @@ public final class MZmineCore {
       }
 
       // run batch file
-      ExitCode exitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
+      batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
           batchFile);
-      if (exitCode == ExitCode.OK) {
-        System.exit(0);
-      } else {
-        System.exit(1);
+
+      // option to keep MZmine running after the batch is finished
+      // currently used to test - maybe useful to provide an API to access more data or to run other modules on demand
+      if (!keepRunningInHeadless) {
+        exit();
       }
     }
   }
+
+  /**
+   * Exit MZmine (usually used in headless mode)
+   */
+  public static void exit() {
+    if (batchExitCode == ExitCode.OK) {
+      System.exit(0);
+    } else {
+      System.exit(1);
+    }
+  }
+
 
   @Nonnull
   public static TaskController getTaskController() {
@@ -341,7 +357,6 @@ public final class MZmineCore {
   }
 
   /**
-   *
    * @return headless mode or JavaFX GUI
    */
   public static boolean isHeadLessMode() {
@@ -349,14 +364,12 @@ public final class MZmineCore {
   }
 
   /**
-   *
    * @param r runnable to either run directly or on the JavaFX thread
    */
   public static void runLater(Runnable r) {
-    if(isHeadLessMode() || Platform.isFxApplicationThread()) {
+    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
       r.run();
-    }
-    else {
+    } else {
       Platform.runLater(r);
     }
   }

@@ -40,17 +40,22 @@ public class MZmineArgumentParser {
 
   private File batchFile;
   private File preferencesFile;
+  private boolean isKeepRunningAfterBatch = false;
 
   public void parse(String[] args) {
     Options options = new Options();
 
-    Option batch = new Option("b", "batch", true, "input file path");
+    Option batch = new Option("b", "batch", true, "batch mode file");
     batch.setRequired(false);
     options.addOption(batch);
 
-    Option pref = new Option("p", "pref", true, "output file");
+    Option pref = new Option("p", "pref", true, "preferences file");
     pref.setRequired(false);
     options.addOption(pref);
+
+    Option keepRunning = new Option("r", "running", false, "keep MZmine running in headless mode");
+    keepRunning.setRequired(false);
+    options.addOption(keepRunning);
 
     CommandLineParser parser = new BasicParser();
     HelpFormatter formatter = new HelpFormatter();
@@ -70,6 +75,13 @@ public class MZmineArgumentParser {
         preferencesFile = new File(spref);
       }
 
+      String srunning = cmd.getOptionValue(keepRunning.getLongOpt());
+      if (srunning != null) {
+        logger.info(
+            () -> "the -r / --running argument was set to keep MZmine alive after batch is finished");
+        isKeepRunningAfterBatch = true;
+      }
+
     } catch (ParseException e) {
       logger.log(Level.SEVERE, "Wrong command line arguments. " + e.getMessage(), e);
       formatter.printHelp("utility-name", options);
@@ -85,6 +97,15 @@ public class MZmineArgumentParser {
   @Nullable
   public File getBatchFile() {
     return batchFile;
+  }
+
+  /**
+   * After batch is finished, keep mzmine running
+   *
+   * @return true if -r or --running was set as argument
+   */
+  public boolean isKeepRunningAfterBatch() {
+    return isKeepRunningAfterBatch;
   }
 }
 
