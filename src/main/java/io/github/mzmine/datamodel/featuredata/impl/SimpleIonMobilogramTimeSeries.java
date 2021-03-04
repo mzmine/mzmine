@@ -381,9 +381,11 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   }
 
   private boolean checkRawFileIntegrity(@Nonnull List<IonMobilitySeries> mobilograms) {
-    final RawDataFile file = mobilograms.get(0).getSpectrum(0).getDataFile();
+    RawDataFile file = null;
     for (IonMobilitySeries mobilogram : mobilograms) {
-      if (mobilogram.getSpectrum(0).getDataFile() != file) {
+      if (file == null) {
+        file = mobilogram.getSpectrum(0).getDataFile();
+      } else if (mobilogram.getSpectrum(0).getDataFile() != file) {
         return false;
       }
     }
