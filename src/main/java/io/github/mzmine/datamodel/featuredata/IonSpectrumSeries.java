@@ -62,7 +62,7 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    * Used during deconvolution, when a feature is cut into several individual features.
    *
    * @param storage The new storage, may be null if data shall be stored in ram.
-   * @param subset  The subset of spectra.
+   * @param subset  The subset of spectra. sorted by their scan number (retention time or mobility)
    * @return The subset series.
    */
   IonSpectrumSeries<T> subSeries(@Nullable MemoryMapStorage storage, @Nonnull List<T> subset);

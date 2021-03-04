@@ -58,13 +58,12 @@ public class ResolvingUtil {
     final int totalScans = getTotalNumberOfScansInDimension(data, dimension, selectedScans);
 
     final List<IonTimeSeries<? extends Scan>> resolvedSeries = new ArrayList<>();
+    // resolve features in chromatogram
     final Collection<List<ResolvedValue<Double, Double>>> resolvedData = resolver
         .resolve(extractedData[0], extractedData[1], totalScans);
+
+    //
     for (List<ResolvedValue<Double, Double>> resolvedValues : resolvedData) {
-      // 3 points to a triangle
-      if (resolvedValues.size() < 3) {
-        continue;
-      }
       // find start and end of the cut
       ResolvedValue<Double, Double> firstPair = resolvedValues.get(0);
       ResolvedValue<Double, Double> lastPair = resolvedValues.get(resolvedValues.size() - 1);
