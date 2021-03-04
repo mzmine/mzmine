@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,6 +38,7 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParam
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javax.annotation.Nullable;
 
 /**
  * Filters out peaks from feature list.
@@ -64,7 +66,8 @@ public class FeatureFilterTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public FeatureFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     // Initialize
     this.project = project;
@@ -131,7 +134,7 @@ public class FeatureFilterTask extends AbstractTask {
     // Make a copy of the peakList
     final ModularFeatureList newPeakList = new ModularFeatureList(
         peakList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
-        peakList.getRawDataFiles());
+        getMemoryMapStorage(), peakList.getRawDataFiles());
 
     // Get parameters - which filters are active
     final boolean filterByDuration =

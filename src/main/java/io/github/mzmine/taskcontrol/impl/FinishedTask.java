@@ -32,6 +32,7 @@ public class FinishedTask extends AbstractTask {
   private double finishedPercentage;
 
   public FinishedTask(Task task) {
+    super(null);
     setStatus(task.getStatus());
     setErrorMessage(task.getErrorMessage());
     description = task.getTaskDescription();

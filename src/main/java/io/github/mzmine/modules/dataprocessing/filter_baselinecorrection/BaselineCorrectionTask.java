@@ -38,6 +38,7 @@ import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import java.io.IOException;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * Task that performs baseline correction.
@@ -56,7 +57,6 @@ public class BaselineCorrectionTask extends AbstractTask {
   // Original data file and newly created baseline corrected file.
   private final MZmineProject project;
   private final RawDataFile origDataFile;
-  private final MemoryMapStorage storage;
   private RawDataFile correctedDataFile;
 
   // Remove original data file.
@@ -80,12 +80,12 @@ public class BaselineCorrectionTask extends AbstractTask {
    * @param storage
    */
   public BaselineCorrectionTask(MZmineProject project, final RawDataFile dataFile,
-      final ParameterSet parameters, MemoryMapStorage storage) {
+      final ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     // Initialize.
     this.project = project;
     this.origDataFile = dataFile;
-    this.storage = storage;
     this.correctedDataFile = null;
     this.removeOriginal =
         parameters.getParameter(BaselineCorrectionParameters.REMOVE_ORIGINAL).getValue();
@@ -129,7 +129,7 @@ public class BaselineCorrectionTask extends AbstractTask {
 
       final RawDataFile correctedDataFile =
           this.baselineCorrectorProcStep.getModule().correctDatafile(this.rSession, origDataFile,
-              baselineCorrectorProcStep.getParameterSet(), this.commonParameters, storage);
+              baselineCorrectorProcStep.getParameterSet(), this.commonParameters, getMemoryMapStorage());
 
       // If this task was canceled, stop processing.
       if (!isCanceled() && correctedDataFile != null) {

@@ -95,7 +95,7 @@ public class BatchModeModule implements MZmineProcessingModule {
       else
         return ExitCode.ERROR;
     } catch (Throwable e) {
-      logger.log(Level.SEVERE, "Error while running batch", e);
+      logger.log(Level.SEVERE, "Error while running batch. "+e.getMessage(), e);
       e.printStackTrace();
       return ExitCode.ERROR;
     }

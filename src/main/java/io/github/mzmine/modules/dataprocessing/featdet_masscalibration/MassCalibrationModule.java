@@ -53,7 +53,7 @@ public class MassCalibrationModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     // create a single storage map for all mass lists that were created with the same parameters
-    final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
+    final MemoryMapStorage storageMemoryMap = MemoryMapStorage.forMassList();
 
     RawDataFile[] dataFiles = parameters.getParameter(MassCalibrationParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();

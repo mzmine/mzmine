@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_msn;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -53,9 +54,9 @@ public class MsnFeatureDetectionModule implements MZmineProcessingModule {
 
     RawDataFile[] dataFiles = parameters.getParameter(MsnPeakPickerParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
-
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new MsnPeakPickingTask(project, dataFile, parameters);
+      Task newTask = new MsnPeakPickingTask(project, dataFile, parameters, storage);
       tasks.add(newTask);
     }
 

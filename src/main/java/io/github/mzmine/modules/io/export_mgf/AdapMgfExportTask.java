@@ -65,6 +65,7 @@ public class AdapMgfExportTask extends AbstractTask {
   }
 
   public AdapMgfExportTask(ParameterSet parameters, FeatureList[] featureLists) {
+    super(null); // no new data stored -> null
     this.featureLists = featureLists;
     totalRows = (int) Stream.of(featureLists).map(FeatureList::getRows).count();
 

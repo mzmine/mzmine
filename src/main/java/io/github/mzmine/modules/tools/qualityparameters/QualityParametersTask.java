@@ -31,6 +31,7 @@ public class QualityParametersTask extends AbstractTask {
 
   private double finishedPercentage;
   public QualityParametersTask(FeatureList featureList, ParameterSet parameterSet) {
+    super(null); // no new data stored -> null
     this.parameterSet = parameterSet;
     this.featureList = featureList;
     setStatus(TaskStatus.WAITING);

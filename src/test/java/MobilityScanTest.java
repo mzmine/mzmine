@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -34,7 +35,6 @@ import java.util.Random;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.Assert;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class MobilityScanTest {
@@ -46,14 +46,10 @@ public class MobilityScanTest {
     Random rnd = new Random(System.currentTimeMillis());
     double[] numbers = rnd.doubles().limit(10).toArray();
 
-    MemoryMapStorage storage = new MemoryMapStorage();
+    MemoryMapStorage storage = null; // MemoryMapStorage.create();
 
     DoubleBuffer stored = null;
-    try {
-      stored = storage.storeData(numbers);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    stored = StorageUtils.storeValuesToDoubleBuffer(storage, numbers);
 
     for (int i = 0; i < numbers.length; i++) {
       Assert.assertEquals(numbers[i], stored.get(i), 0E-8);
@@ -88,7 +84,6 @@ public class MobilityScanTest {
     return scans;
   }
 
-  @Disabled("Needs test file?")
   @Test
   public void testStorage() {
 

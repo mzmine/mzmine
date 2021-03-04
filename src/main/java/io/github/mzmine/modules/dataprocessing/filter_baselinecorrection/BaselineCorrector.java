@@ -37,6 +37,7 @@ import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import javax.annotation.Nullable;
 
 /**
  * @description Abstract corrector class for baseline correction. Has to be specialized via the
@@ -103,7 +104,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 
   public final RawDataFile correctDatafile(final RSessionWrapper rSession,
       final RawDataFile dataFile, final ParameterSet parameters,
-      final ParameterSet commonParameters, MemoryMapStorage storage) throws IOException, RSessionWrapperException {
+      final ParameterSet commonParameters, @Nullable MemoryMapStorage storage) throws IOException, RSessionWrapperException {
 
     if (isAborted(dataFile) || !rSession.isSessionRunning())
       return null;

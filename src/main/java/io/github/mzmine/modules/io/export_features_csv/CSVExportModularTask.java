@@ -64,6 +64,7 @@ public class CSVExportModularTask extends AbstractTask {
   private FeatureListRowsFilter filter;
 
   public CSVExportModularTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.featureLists =
         parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
             .getMatchingFeatureLists();
@@ -84,7 +85,7 @@ public class CSVExportModularTask extends AbstractTask {
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
       String fieldSeparator,
       String idSeparator, FeatureListRowsFilter filter) {
-    super();
+    super(null); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
       throw new IllegalArgumentException(MessageFormat
           .format("Column separator cannot equal the identity separator (currently {0})",

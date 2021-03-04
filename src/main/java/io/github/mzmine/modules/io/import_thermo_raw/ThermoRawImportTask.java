@@ -18,15 +18,6 @@
 
 package io.github.mzmine.modules.io.import_thermo_raw;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -39,6 +30,15 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.TextUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This module binds spawns a separate process that dumps the native format's data in a text+binary
@@ -67,6 +67,7 @@ public class ThermoRawImportTask extends AbstractTask {
   private double precursorMZ = 0;
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
+    super(null); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;

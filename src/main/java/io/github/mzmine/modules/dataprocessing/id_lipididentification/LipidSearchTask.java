@@ -71,6 +71,7 @@ public class LipidSearchTask extends AbstractTask {
    * @param featureList
    */
   public LipidSearchTask(ParameterSet parameters, FeatureList featureList) {
+    super(null); // no new data stored -> null
 
     this.featureList = featureList;
     this.parameters = parameters;

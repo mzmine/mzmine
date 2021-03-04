@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 class SameRangeTask extends AbstractTask {
 
@@ -60,7 +62,9 @@ class SameRangeTask extends AbstractTask {
 
   private ParameterSet parameters;
 
-  SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
+  SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;
@@ -86,7 +90,8 @@ class SameRangeTask extends AbstractTask {
     RawDataFile columns[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create new feature list
-    processedPeakList = new ModularFeatureList(peakList + " " + suffix, columns);
+    processedPeakList = new ModularFeatureList(peakList + " " + suffix, getMemoryMapStorage(),
+        columns);
 
     /*************************************************************
      * Creating a stream to process the data in parallel

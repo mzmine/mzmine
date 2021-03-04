@@ -18,7 +18,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_msn;
 
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -53,7 +55,9 @@ public class MsnPeakPickingTask extends AbstractTask {
 
   private final ModularFeatureList newFeatureList;
 
-  public MsnPeakPickingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  public MsnPeakPickingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -63,7 +67,8 @@ public class MsnPeakPickingTask extends AbstractTask {
     mzTolerance = parameters.getParameter(MsnPeakPickerParameters.mzDifference).getValue();
     rtTolerance = parameters.getParameter(MsnPeakPickerParameters.rtTolerance).getValue();
     scans = scanSelection.getMatchingScans(dataFile);
-    newFeatureList = new ModularFeatureList(dataFile.getName() + " MSn features", dataFile);
+    newFeatureList = new ModularFeatureList(dataFile.getName() + " MSn features",
+        getMemoryMapStorage(), dataFile);
     this.parameterSet = parameters;
   }
 

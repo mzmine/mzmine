@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeIonMobilityRetentionTimeHeatMapChart;
@@ -51,6 +52,9 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
       return null;
     }
     ModularFeature feature = row.getFeature(raw);
+    if(feature == null || !(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
+      return null;
+    }
 
     // get existing buffered node from row (for column name)
     // TODO listen to changes in features data

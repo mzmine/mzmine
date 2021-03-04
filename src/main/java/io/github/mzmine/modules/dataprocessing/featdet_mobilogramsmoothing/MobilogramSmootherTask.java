@@ -18,15 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.Nullable;
-import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
-import org.apache.commons.math3.exception.DimensionMismatchException;
-import org.apache.commons.math3.exception.NoDataException;
-import org.apache.commons.math3.exception.NotFiniteNumberException;
-import org.apache.commons.math3.exception.NumberIsTooSmallException;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.Mobilogram;
 import io.github.mzmine.datamodel.impl.MobilityDataPoint;
@@ -36,8 +27,20 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MobilogramUtils;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
+import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
+import org.apache.commons.math3.exception.DimensionMismatchException;
+import org.apache.commons.math3.exception.NoDataException;
+import org.apache.commons.math3.exception.NotFiniteNumberException;
+import org.apache.commons.math3.exception.NumberIsTooSmallException;
 
 public class MobilogramSmootherTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(MobilogramSmootherTask.class.getName());
 
   private final List<Frame> frames;
   private final double[] weights;
@@ -46,6 +49,9 @@ public class MobilogramSmootherTask extends AbstractTask {
 
 
   public MobilogramSmootherTask(List<Frame> frames, ParameterSet parameters) {
+    super(null); // this module is phased out atm
+    // todo "Implement memory map storage for this class"
+    logger.warning("Implement memory map storage for this class");
     this.frames = frames;
     weights = SavitzkyGolayFilter.getNormalizedWeights(
         parameters.getParameter(MobilogramSmootherParameters.filterWidth).getValue());

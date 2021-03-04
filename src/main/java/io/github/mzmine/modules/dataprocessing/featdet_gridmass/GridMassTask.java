@@ -18,19 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import java.text.Format;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
@@ -40,7 +34,15 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.text.Format;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class GridMassTask extends AbstractTask {
 
@@ -84,7 +86,10 @@ public class GridMassTask extends AbstractTask {
    * @param dataFile
    * @param parameters
    */
-  public GridMassTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  public GridMassTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      @Nullable
+          MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -166,7 +171,8 @@ public class GridMassTask extends AbstractTask {
     }
 
     // Create new feature list
-    newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
+    newPeakList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(),
+        dataFile);
 
     int j;
     // minimumTimeSpan

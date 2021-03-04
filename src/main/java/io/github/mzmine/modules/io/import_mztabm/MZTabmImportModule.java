@@ -25,6 +25,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
@@ -47,8 +48,9 @@ public class MZTabmImportModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
     File inputFiles[] = parameters.getParameter(MzTabmImportParameters.file).getValue();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (File inputFile : inputFiles) {
-      MzTabmImportTask task = new MzTabmImportTask(project, parameters, inputFile);
+      MzTabmImportTask task = new MzTabmImportTask(project, parameters, inputFile, storage);
       tasks.add(task);
     }
     return ExitCode.OK;

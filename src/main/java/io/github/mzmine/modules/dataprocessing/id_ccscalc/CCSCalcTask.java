@@ -29,8 +29,10 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -52,7 +54,8 @@ public class CCSCalcTask extends AbstractTask {
   private int processedRows;
   private int annotatedFeatures;
 
-  public CCSCalcTask(MZmineProject project, ParameterSet parameters) {
+  public CCSCalcTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.assumeChargeState = parameters.getParameter(CCSCalcParameters.assumeChargeStage)
         .getValue();
     this.rangeChargeMap = parameters.getParameter(CCSCalcParameters.assumeChargeStage)
@@ -89,7 +92,8 @@ public class CCSCalcTask extends AbstractTask {
     ModularFeatureList workingFeatureList = null;
     for (ModularFeatureList featureList : featureLists) {
       if (createNewFeatureList) {
-        workingFeatureList = featureList.createCopy(featureList.getName() + " CCS");
+        workingFeatureList = featureList.createCopy(featureList.getName() + " CCS",
+            getMemoryMapStorage());
       } else {
         workingFeatureList = featureList;
       }

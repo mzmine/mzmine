@@ -49,37 +49,60 @@ public class ConversionUtils {
   }
 
   public static MassSpectrumType msdkToMZmineSpectrumType(MsSpectrumType msdk) {
-    switch (msdk) {
-      case PROFILE -> {
-        return MassSpectrumType.PROFILE;
-      }
-      case CENTROIDED -> {
-        return MassSpectrumType.CENTROIDED;
-      }
-      case THRESHOLDED -> {
-        return MassSpectrumType.THRESHOLDED;
-      }
-      default -> {
-        return MassSpectrumType.CENTROIDED;
-      }
-    }
+    return switch (msdk) {
+      case PROFILE -> MassSpectrumType.PROFILE;
+      case CENTROIDED -> MassSpectrumType.CENTROIDED;
+      case THRESHOLDED -> MassSpectrumType.THRESHOLDED;
+    };
   }
 
   public static PolarityType msdkToMZminePolarityType(io.github.msdk.datamodel.PolarityType msdk) {
-    switch (msdk) {
-      case POSITIVE -> {
-        return PolarityType.POSITIVE;
-      }
-      case NEGATIVE -> {
-        return PolarityType.NEGATIVE;
-      }
-      default -> {
-        return PolarityType.UNKNOWN;
-      }
-    }
+    return switch (msdk) {
+      case POSITIVE -> PolarityType.POSITIVE;
+      case NEGATIVE -> PolarityType.NEGATIVE;
+      default -> PolarityType.UNKNOWN;
+    };
   }
 
+  /**
+   * Creates a {@link SimpleScan} from an MSDK scan from MzML import
+   *
+   * @param rawDataFile
+   * @param scan        the scan
+   * @return a {@link SimpleScan}
+   */
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan) {
+    return msdkScanToSimpleScan(rawDataFile, scan, scan.getMzValues(),
+        convertFloatsToDoubles(scan.getIntensityValues()));
+  }
+
+  /**
+   * Creates a {@link SimpleScan} from an MSDK scan from MzML import
+   *
+   * @param rawDataFile
+   * @param scan        the scan
+   * @param mzs         use these mz values instead of the scan data
+   * @param intensities use these intensity values instead of the scan data
+   * @return a {@link SimpleScan}
+   */
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
+      double[] intensities) {
+    return msdkScanToSimpleScan(rawDataFile, scan, mzs, intensities,
+        ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()));
+  }
+
+  /**
+   * Creates a {@link SimpleScan} from an MSDK scan from MzML import
+   *
+   * @param rawDataFile
+   * @param scan         the scan
+   * @param mzs          use these mz values instead of the scan data
+   * @param intensities  use these intensity values instead of the scan data
+   * @param spectrumType override spectrum type
+   * @return a {@link SimpleScan}
+   */
+  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
+      double[] intensities, MassSpectrumType spectrumType) {
     double precursorMz = 0.0;
     int precursorCharge = -1;
     for (MzMLPrecursorElement precursorElement : scan.getPrecursorList().getPrecursorElements()) {
@@ -102,11 +125,9 @@ public class ConversionUtils {
     }
 
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        scan.getRetentionTime() / 60, precursorMz, precursorCharge, scan.getMzValues(),
-        convertFloatsToDoubles(scan.getIntensityValues()),
-        ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
-        ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-        scan.getScanningRange());
+        scan.getRetentionTime() / 60, precursorMz, precursorCharge, mzs, intensities,
+        spectrumType, ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()),
+        scan.getScanDefinition(), scan.getScanningRange());
 
     return newScan;
   }
@@ -122,7 +143,8 @@ public class ConversionUtils {
    * element is added to the list parameter.
    *
    * @param scan
-   * @param buildingInfos Altered during this method. New Infos are added if not part of this list
+   * @param buildingInfos      Altered during this method. New Infos are added if not part of this
+   *                           list
    * @param currentFrameNumber
    * @param currentScanNumber
    */

@@ -48,6 +48,7 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
   public BuildMultipleMobilogramRanges(@Nonnull List<Range<Double>> mzRanges,
       @Nonnull Set<Frame> frames, @Nonnull IMSRawDataFile file,
       @Nonnull IMSRawDataOverviewPane pane) {
+    super(null); // no new data stored -> null
     finishedPercentage = 0d;
     this.mzRanges = mzRanges;
     this.frames = frames;

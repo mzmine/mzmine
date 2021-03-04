@@ -57,6 +57,7 @@ public class ExportChromatogramTask extends AbstractTask {
    * @param file file to write to.
    */
   public ExportChromatogramTask(final TICDataSet data, final File file) {
+    super(null);
 
     dataSet = data;
     exportFile = file;

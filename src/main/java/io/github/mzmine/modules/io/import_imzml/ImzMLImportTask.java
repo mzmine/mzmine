@@ -78,6 +78,7 @@ public class ImzMLImportTask extends AbstractTask {
   private LinkedList<SimpleScan> parentStack = new LinkedList<>();
 
   public ImzMLImportTask(MZmineProject project, File fileToOpen, ImagingRawDataFile newMZmineFile) {
+    super(null); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;

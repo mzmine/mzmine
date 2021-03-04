@@ -35,6 +35,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class CropFilterTask extends AbstractTask {
 
@@ -54,7 +55,9 @@ public class CropFilterTask extends AbstractTask {
   private final MemoryMapStorage storage;
 
   CropFilterTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storage) {
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
+
     this.project = project;
     this.dataFile = dataFile;
 

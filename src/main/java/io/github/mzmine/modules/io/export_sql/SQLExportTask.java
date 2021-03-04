@@ -52,6 +52,7 @@ class SQLExportTask extends AbstractTask {
   private Connection dbConnection;
 
   SQLExportTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
 
     this.featureList = parameters.getParameter(SQLExportParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];

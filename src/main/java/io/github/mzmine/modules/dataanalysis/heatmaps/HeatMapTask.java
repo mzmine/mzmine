@@ -64,6 +64,7 @@ public class HeatMapTask extends AbstractTask {
   private final FeatureList featureList;
 
   public HeatMapTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
+    super(null); // no new data stored -> null
 
     this.project = project;
     this.featureList = featureList;

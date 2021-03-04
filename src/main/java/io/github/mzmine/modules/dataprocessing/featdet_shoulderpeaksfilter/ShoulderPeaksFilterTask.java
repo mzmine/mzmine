@@ -45,7 +45,6 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 
   // User parameters
   private ParameterSet parameters;
-  private final MemoryMapStorage storage;
 
   /**
    * @param dataFile
@@ -54,9 +53,9 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
    */
   public ShoulderPeaksFilterTask(RawDataFile dataFile, ParameterSet parameters,
       MemoryMapStorage storage) {
+    super(storage);
     this.dataFile = dataFile;
     this.parameters = parameters;
-    this.storage = storage;
   }
 
   /**

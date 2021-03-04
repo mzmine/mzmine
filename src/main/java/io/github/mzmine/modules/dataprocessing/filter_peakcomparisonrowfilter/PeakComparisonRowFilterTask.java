@@ -30,8 +30,10 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * Filters out feature list rows.
@@ -57,7 +59,8 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public PeakComparisonRowFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     // Initialize.
     this.project = project;
@@ -128,7 +131,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
     final ModularFeatureList newPeakList = new ModularFeatureList(
         peakList.getName() + ' '
             + parameters.getParameter(PeakComparisonRowFilterParameters.SUFFIX).getValue(),
-        peakList.getRawDataFiles());
+        getMemoryMapStorage(), peakList.getRawDataFiles());
 
     // Copy previous applied methods.
     for (final FeatureListAppliedMethod method : peakList.getAppliedMethods()) {

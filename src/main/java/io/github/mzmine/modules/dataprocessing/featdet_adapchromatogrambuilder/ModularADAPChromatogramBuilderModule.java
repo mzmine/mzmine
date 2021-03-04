@@ -54,7 +54,7 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
     // one memory map storage per module call to reduce number of files and connect related feature lists
-    MemoryMapStorage storage = new MemoryMapStorage();
+    MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     RawDataFile[] dataFiles = parameters.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();

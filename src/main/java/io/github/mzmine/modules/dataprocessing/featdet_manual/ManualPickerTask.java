@@ -58,6 +58,7 @@ class ManualPickerTask extends AbstractTask {
 
   ManualPickerTask(MZmineProject project, FeatureListRow featureListRow, RawDataFile dataFiles[],
       ManualPickerParameters parameters, FeatureList featureList, FeatureTableFX table) {
+    super(null); // we get passed a flist, so it should contain a storage
 
     this.project = project;
     this.featureListRow = featureListRow;

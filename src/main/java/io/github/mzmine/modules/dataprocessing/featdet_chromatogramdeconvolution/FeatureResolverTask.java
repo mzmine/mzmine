@@ -51,6 +51,7 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 public class FeatureResolverTask extends AbstractTask {
 
@@ -60,7 +61,6 @@ public class FeatureResolverTask extends AbstractTask {
   // Feature lists.
   private final MZmineProject project;
   private final FeatureList originalPeakList;
-  private final MemoryMapStorage storage;
   // User parameters
   private final ParameterSet parameters;
   // function to find center mz of all feature data points
@@ -85,10 +85,10 @@ public class FeatureResolverTask extends AbstractTask {
   public FeatureResolverTask(final MZmineProject project,
       MemoryMapStorage storage, final FeatureList list,
       final ParameterSet parameterSet, CenterFunction mzCenterFunction) {
+    super(storage);
 
     // Initialize.
     this.project = project;
-    this.storage = storage;
     parameters = parameterSet;
     originalPeakList = list;
     newPeakList = null;
@@ -341,7 +341,7 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
-    final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
+    @Nonnull final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
         .getXYResolver(parameters);
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
@@ -384,7 +384,7 @@ public class FeatureResolverTask extends AbstractTask {
       }
       processedRows++;
     }
-    logger.info(c + "/" + resolvedFeatureList.getNumberOfRows() + " have less than 4 frames");
+    logger.info(c + "/" + resolvedFeatureList.getNumberOfRows() + " have less than 4 scans (frames for IMS data)");
     QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
@@ -425,9 +425,7 @@ public class FeatureResolverTask extends AbstractTask {
           .getRow(i);
       final ModularFeature originalFeature = originalRow.getFeature(dataFile);
 
-      final FeatureResolver resolverModule = resolver;
-      final ParameterSet resolverParams = parameters;
-      final ResolvedPeak[] peaks = resolverModule.resolvePeaks(originalFeature, resolverParams,
+      final ResolvedPeak[] peaks = resolver.resolvePeaks(originalFeature, parameters,
           rSession, mzCenterFunction, msmsRange, RTRangeMSMS);
 
       for (final ResolvedPeak peak : peaks) {

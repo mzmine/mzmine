@@ -11,4 +11,5 @@ public interface IonMobilitySeries extends IonSpectrumSeries<MobilityScan>, Mobi
   default double getMobility(int index) {
     return getSpectrum(index).getMobility();
   }
+
 }

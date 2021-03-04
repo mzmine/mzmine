@@ -67,6 +67,7 @@ public class WatersRawImportTask extends AbstractTask {
   private double precursorMZ = 0;
 
   public WatersRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
+    super(null); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;

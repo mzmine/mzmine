@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -51,11 +52,13 @@ public class PeakFinderModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
+    MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+
     FeatureList[] peakLists =
         parameters.getParameter(PeakFinderParameters.peakLists).getValue().getMatchingFeatureLists();
 
     for (FeatureList peakList : peakLists) {
-      Task newTask = new PeakFinderTask(project, peakList, parameters);
+      Task newTask = new PeakFinderTask(project, peakList, parameters, storage);
       tasks.add(newTask);
     }
 

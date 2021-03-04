@@ -32,6 +32,7 @@ import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -98,7 +99,7 @@ public class MZmineGUI extends Application implements Desktop {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public static void requestQuit() {
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getIcons().add(mzMineIcon);
@@ -119,7 +120,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   public static void requestCloseProject() {
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getIcons().add(mzMineIcon);
@@ -167,7 +168,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   public static void activateProject(MZmineProject project) {
 
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
 
       MZmineCore.getProjectManager().setCurrentProject(project);
 
@@ -213,7 +214,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   public static void showAboutWindow() {
     // Show the about window
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       final URL aboutPage =
           MZmineGUI.class.getClassLoader().getResource("aboutpage/AboutMZmine.html");
       HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
@@ -387,6 +388,7 @@ public class MZmineGUI extends Application implements Desktop {
     // save configuration on exit if we only run a batch
     ShutDownHook shutDownHook = new ShutDownHook();
     Runtime.getRuntime().addShutdownHook(shutDownHook);
+    Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
 
   }
 
@@ -420,17 +422,17 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void addTab(MZmineTab tab) {
     if (mainWindowController.getTabs().size() < MAX_TABS) {
-      Platform.runLater(() -> mainWindowController.addTab(tab));
+      MZmineCore.runLater(() -> mainWindowController.addTab(tab));
       return;
     } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows().isEmpty()) {
       for (MZmineWindow window : getWindows()) {
         if (window.getNumberOfTabs() < MAX_TABS && !window.isExclusive()) {
-          Platform.runLater(() -> window.addTab(tab));
+          MZmineCore.runLater(() -> window.addTab(tab));
           return;
         }
       }
     }
-    Platform.runLater(() -> new MZmineWindow().addTab(tab));
+    MZmineCore.runLater(() -> new MZmineWindow().addTab(tab));
   }
 
   @Override
@@ -441,7 +443,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void setStatusBarText(String message, Color textColor) {
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       if (mainWindowController == null) {
         return;
       }
@@ -461,7 +463,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void displayMessage(String title, String msg) {
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
@@ -500,7 +502,7 @@ public class MZmineGUI extends Application implements Desktop {
       if (Platform.isFxApplicationThread()) {
         alertTask.run();
       } else {
-        Platform.runLater(alertTask);
+        MZmineCore.runLater(alertTask);
       }
       return alertTask.get();
     } catch (Exception e) {
@@ -610,7 +612,7 @@ public class MZmineGUI extends Application implements Desktop {
     if (Platform.isFxApplicationThread()) {
       task.run();
     } else {
-      Platform.runLater(task);
+      MZmineCore.runLater(task);
     }
 
     try {

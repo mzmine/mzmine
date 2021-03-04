@@ -18,20 +18,12 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch;
 
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import java.awt.Color;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.logging.Logger;
-import org.jfree.chart.labels.ItemLabelAnchor;
-import org.jfree.chart.labels.ItemLabelPosition;
-import org.jfree.chart.ui.TextAnchor;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
@@ -48,6 +40,14 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.awt.Color;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
+import org.jfree.chart.ui.TextAnchor;
 
 /**
  * Task to search and annotate lipids in spectra
@@ -81,6 +81,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
    */
   public SpectraIdentificationLipidSearchTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
+    super(null); // no new data stored here -> null
 
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;

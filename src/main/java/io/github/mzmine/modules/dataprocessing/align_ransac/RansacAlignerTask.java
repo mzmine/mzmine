@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +46,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
@@ -68,7 +70,9 @@ class RansacAlignerTask extends AbstractTask {
   // ID counter for the new peaklist
   private int newRowID = 1;
 
-  public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists, ParameterSet parameters) {
+  public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.featureLists = (ModularFeatureList[]) featureLists;
@@ -144,7 +148,8 @@ class RansacAlignerTask extends AbstractTask {
     }
 
     // Create a new aligned feature list
-    alignedFeatureList = new ModularFeatureList(featureListName, allDataFiles.toArray(new RawDataFile[0]));
+    alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
+        allDataFiles.toArray(new RawDataFile[0]));
 
     // Iterate source feature lists
     for (FeatureList featureList : featureLists) {

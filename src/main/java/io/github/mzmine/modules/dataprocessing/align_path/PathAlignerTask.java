@@ -25,7 +25,9 @@ import io.github.mzmine.modules.dataprocessing.align_path.functions.ScoreAligner
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -41,7 +43,8 @@ class PathAlignerTask extends AbstractTask {
   private ParameterSet parameters;
   private Aligner aligner;
 
-  PathAlignerTask(MZmineProject project, ParameterSet parameters) {
+  PathAlignerTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.parameters = parameters;
@@ -77,7 +80,7 @@ class PathAlignerTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running Path aligner");
 
-    aligner = (Aligner) new ScoreAligner(this.peakLists, parameters);
+    aligner = (Aligner) new ScoreAligner(this.peakLists, parameters, getMemoryMapStorage());
     alignedPeakList = (ModularFeatureList) aligner.align();
     // Add new aligned feature list to the project
     project.addFeatureList(alignedPeakList);

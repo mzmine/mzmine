@@ -48,7 +48,6 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   /**
-   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -56,7 +55,6 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
   }
 
   /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {
