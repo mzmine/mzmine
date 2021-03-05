@@ -30,12 +30,14 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
+import org.jfree.chart.util.SortOrder;
 
 public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
   private MsMsDataProvider dataProvider;
   private ColoredXYZDataset dataset;
   private ColoredXYZDotRenderer renderer;
+  private SortOrder zOrder;
 
   public MsMsChart(ParameterSet parameters) {
     super("MS/MS visualizer");
@@ -87,31 +89,39 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
   public void setXAxisType(MsMsXYAxisType xAxisType) {
     dataProvider.setXAxisType(xAxisType);
-    //setDataset(dataProvider);
+    dataProvider.sortZValues(zOrder);
     dataset.fireDatasetChangedTMPNAME();
   }
 
   public void setYAxisType(MsMsXYAxisType yAxisType) {
     dataProvider.setYAxisType(yAxisType);
-    //setDataset(dataProvider);
+    dataProvider.sortZValues(zOrder);
     dataset.fireDatasetChangedTMPNAME();
   }
 
   public void setZAxisType(MsMsZAxisType zAxisType) {
     dataProvider.setZAxisType(zAxisType);
-    //setDataset(dataProvider);
+    dataProvider.sortZValues(zOrder);
     dataset.fireDatasetChangedTMPNAME();
   }
 
   public void highlightPrecursorMz(Range<Double> closed) {
     dataProvider.highlightPrecursorMz(closed);
-    //setDataset(dataProvider);
+    dataProvider.sortZValues(zOrder);
     dataset.fireDatasetChangedTMPNAME();
   }
 
   public void setDataFile(RawDataFile dataFile) {
     dataProvider.setDataFile(dataFile);
-    //setDataset(dataProvider);
+    dataProvider.sortZValues(zOrder);
     dataset.fireDatasetChangedTMPNAME();
   }
+
+  public void sortZValues(SortOrder zOrder) {
+    this.zOrder = zOrder;
+    dataProvider.sortZValues(zOrder);
+    renderer.setZOrder(zOrder);
+    dataset.fireDatasetChangedTMPNAME();
+  }
+
 }

@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.msms;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import java.awt.Color;
 import java.awt.Paint;
 
 public class MsMsPaintScale extends PaintScale {
@@ -46,11 +47,11 @@ public class MsMsPaintScale extends PaintScale {
     // Shades of blue
     if (v > 1) {
       int rgbVal = (int) Math.round(220 - (v - 1) * 220);
-      return new java.awt.Color(255, rgbVal, rgbVal);
+      return new Color(255, rgbVal, rgbVal);
     // Shades of red
     } else {
       int rgbVal = (int) Math.round(220 - v * 220);
-      return new java.awt.Color(rgbVal, rgbVal, 255);
+      return new Color(rgbVal, rgbVal, 255);
     }
   }
 

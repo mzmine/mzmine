@@ -45,6 +45,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
+import org.jfree.chart.util.SortOrder;
 
 public class MsMsDataProvider implements PlotXYZDataProvider {
 
@@ -81,7 +82,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   private double maxPrecursorIntensity = 0;
   private float maxRt = 0;
 
-  MsMsDataProvider(ParameterSet parameters) {
+  public MsMsDataProvider(ParameterSet parameters) {
 
     // Basic parameters
     dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
@@ -379,18 +380,13 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   @Nullable
   @Override
-  public PaintScale getPaintScale () {
+  public PaintScale getPaintScale() {
     return paintScale;
   }
 
   @Override
-  public double getZValue (int index) {
-    double zValue = switch (zAxisType) {
-      case PRECURSOR_INTENSITY -> dataPoints.get(index).getPrecursorIntensity() / maxPrecursorIntensity;
-      case PRODUCT_INTENSITY -> dataPoints.get(index).getProductIntensity() / maxProductIntensity;
-      case RETENTION_TIME -> dataPoints.get(index).getRetentionTime() / maxRt;
-    };
-
+  public double getZValue(int index) {
+    double zValue =  getRawZValue(dataPoints.get(index));
     if (dataPoints.get(index).isHighlighted()) {
       zValue += 1;
     }
@@ -398,15 +394,23 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     return zValue;
   }
 
+  private double getRawZValue(MsMsDataPoint dataPoint) {
+    return switch (zAxisType) {
+      case PRECURSOR_INTENSITY -> dataPoint.getPrecursorIntensity() / maxPrecursorIntensity;
+      case PRODUCT_INTENSITY -> dataPoint.getProductIntensity() / maxProductIntensity;
+      case RETENTION_TIME -> dataPoint.getRetentionTime() / maxRt;
+    };
+  }
+
   @Nullable
   @Override
-  public Double getBoxHeight () {
+  public Double getBoxHeight() {
     return null;
   }
 
   @Nullable
   @Override
-  public Double getBoxWidth () {
+  public Double getBoxWidth() {
     return null;
   }
 
@@ -439,6 +443,14 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   public void setDataFile(RawDataFile dataFile) {
     dataPoints.clear();
     allScans = dataFile.getScans();
+  }
+
+  public void sortZValues(@Nullable SortOrder sortOrder) {
+    if (sortOrder == SortOrder.ASCENDING) {
+      dataPoints.sort((a, b) -> Doubles.compare(getRawZValue(a), getRawZValue(b)));
+    } else if (sortOrder == SortOrder.DESCENDING) {
+      dataPoints.sort((a, b) -> Doubles.compare(getRawZValue(b), getRawZValue(a)));
+    }
   }
 
 }

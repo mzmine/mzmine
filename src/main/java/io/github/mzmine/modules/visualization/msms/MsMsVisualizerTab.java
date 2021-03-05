@@ -36,6 +36,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
@@ -48,6 +49,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javax.annotation.Nonnull;
+import org.jfree.chart.util.SortOrder;
 
 public class MsMsVisualizerTab extends MZmineTab {
 
@@ -57,6 +59,12 @@ public class MsMsVisualizerTab extends MZmineTab {
 
   private static final Image POINTS_ICON =
       FxIconUtil.loadImageFromResources("icons/pointsicon.png");
+
+  private static final Image Z_ASC_ICON =
+      FxIconUtil.loadImageFromResources("icons/msms_points_asc.png");
+
+  private static final Image Z_DESC_ICON =
+      FxIconUtil.loadImageFromResources("icons/msms_points_desc.png");
 
   public MsMsVisualizerTab(ParameterSet parameters) {
     super("MS/MS Visualizer", true, false);
@@ -104,10 +112,19 @@ public class MsMsVisualizerTab extends MZmineTab {
     toolBar.setOrientation(Orientation.VERTICAL);
 
     Button highlightMzButton = new Button(null, new ImageView(POINTS_ICON));
-    highlightMzButton.setTooltip(new Tooltip("Highlight ions with specific precursor m/z"));
+    highlightMzButton.setTooltip(new Tooltip("Highlight points with specific precursor m/z"));
     highlightMzButton.setOnAction(event -> highlightMzOnAction());
 
-    toolBar.getItems().addAll(highlightMzButton);
+    Button sortZValuesAscButton = new Button(null, new ImageView(Z_ASC_ICON));
+    sortZValuesAscButton.setTooltip(new Tooltip("Sort points by Z axis in ascending order"));
+    sortZValuesAscButton.setOnAction(event -> chart.sortZValues(SortOrder.ASCENDING));
+
+    Button sortZValuesDescButton = new Button(null, new ImageView(Z_DESC_ICON));
+    sortZValuesDescButton.setTooltip(new Tooltip("Sort points by Z axis in descending order"));
+    sortZValuesDescButton.setOnAction(event -> chart.sortZValues(SortOrder.DESCENDING));
+
+    toolBar.getItems().addAll(highlightMzButton, new Separator(Orientation.VERTICAL),
+        sortZValuesAscButton, sortZValuesDescButton);
 
     borderPane.setRight(toolBar);
   }
