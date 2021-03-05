@@ -68,6 +68,9 @@ public class MsMsVisualizerTab extends MZmineTab {
   private static final Image Z_DESC_ICON =
       FxIconUtil.loadImageFromResources("icons/msms_points_desc.png");
 
+  private static final Image TMP_IMG =
+      FxIconUtil.loadImageFromResources("icons/pickedpeakicon.png");
+
   public MsMsVisualizerTab(ParameterSet parameters) {
     super("MS/MS Visualizer", true, false);
 
@@ -111,8 +114,9 @@ public class MsMsVisualizerTab extends MZmineTab {
     });
     HBox bottomBox = new HBox();
     bottomBox.setAlignment(Pos.CENTER_LEFT);
-    bottomBox.getChildren().addAll(new Text("  X axis: "), xAxisTypes, new Text("  Y axis: "),
-        yAxisTypes, new Text("  Z axis: "), zAxisTypes);
+    bottomBox.getChildren().addAll(new Text("  X axis: "), xAxisTypes, new Text("   "),
+        new Separator(Orientation.VERTICAL), new Text("  Y axis: "), yAxisTypes, new Text("   "),
+        new Separator(Orientation.VERTICAL), new Text("  Z axis: "), zAxisTypes);
     borderPane.setBottom(bottomBox);
 
     // Tool bar
