@@ -26,8 +26,6 @@ import org.w3c.dom.Element;
 /**
  * This class represents a general parameter set of a module. Typical module will use a
  * SimpleParameterSet instance.
- *
- * @param <T>
  */
 public interface ParameterSet extends ParameterContainer {
 
@@ -64,4 +62,14 @@ public interface ParameterSet extends ParameterContainer {
 
   public ExitCode showSetupDialog(boolean valueCheckRequired);
 
+  /**
+   * Set the value of a parameter
+   *
+   * @param parameter the parameter to change
+   * @param value     the new value
+   * @param <T>       Value type
+   */
+  default <T> void setParameter(Parameter<T> parameter, T value) {
+    getParameter(parameter).setValue(value);
+  }
 }
