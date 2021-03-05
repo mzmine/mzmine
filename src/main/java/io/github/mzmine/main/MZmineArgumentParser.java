@@ -28,6 +28,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.fop.layoutmgr.Keep;
 
 /**
  * Parses the command line arguments
@@ -41,11 +42,12 @@ public class MZmineArgumentParser {
   private File batchFile;
   private File preferencesFile;
   private boolean isKeepRunningAfterBatch = false;
-  private boolean isKeepInRam = false;
+  private KeepInRam isKeepInRam = KeepInRam.NONE;
 
   public void parse(String[] args) {
     Options options = new Options();
 
+    // -b  or --batch
     Option batch = new Option("b", "batch", true, "batch mode file");
     batch.setRequired(false);
     options.addOption(batch);
@@ -58,8 +60,8 @@ public class MZmineArgumentParser {
     keepRunning.setRequired(false);
     options.addOption(keepRunning);
 
-    Option keepInMemory = new Option("m", "memory", false,
-        "keep objects (scan data, features, etc) in memory");
+    Option keepInMemory = new Option("m", "memory", true,
+        "keep objects (scan data, features, etc) in memory. Options: all, features, centroids, raw, noraw (noraw for features and centroids)");
     keepInMemory.setRequired(false);
     options.addOption(keepInMemory);
 
@@ -83,14 +85,16 @@ public class MZmineArgumentParser {
 
       isKeepRunningAfterBatch = cmd.hasOption(keepRunning.getLongOpt());
       if (isKeepRunningAfterBatch) {
+
         logger.info(
             () -> "the -r / --running argument was set to keep MZmine alive after batch is finished");
       }
 
-      isKeepInRam = cmd.hasOption(keepInMemory.getLongOpt());
-      if (isKeepInRam) {
+      String keepInData = cmd.getOptionValue(keepInMemory.getLongOpt());
+      if (keepInData != null) {
+        isKeepInRam = KeepInRam.parse(keepInData);
         logger.info(
-            () -> "the -m / --memory argument was set to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
+            () -> "the -m / --memory argument was set to "+isKeepInRam.toString()+" to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
       }
 
     } catch (ParseException e) {
@@ -100,14 +104,6 @@ public class MZmineArgumentParser {
     }
   }
 
-  /**
-   * Keep all {@link io.github.mzmine.util.MemoryMapStorage} items in RAM (e.g., scans, features, masslists)
-   *
-   * @return true will keep objects in memory which are usually stored in memory mapped files
-   */
-  public boolean isKeepInRam() {
-    return isKeepInRam;
-  }
 
   @Nullable
   public File getPreferencesFile() {
@@ -126,6 +122,30 @@ public class MZmineArgumentParser {
    */
   public boolean isKeepRunningAfterBatch() {
     return isKeepRunningAfterBatch;
+  }
+  /**
+   * Keep all {@link io.github.mzmine.util.MemoryMapStorage} items in RAM (e.g., scans, features, masslists)
+   *
+   * @return true will keep objects in memory which are usually stored in memory mapped files
+   */
+  public KeepInRam isKeepInRam() {
+    return isKeepInRam;
+  }
+
+  public enum KeepInRam {
+    NONE, ALL, FEATURES, MASS_LISTS, RAW_SCANS, NO_RAW_SCANS;
+
+    public static KeepInRam parse(String s) {
+      s = s.toLowerCase();
+      return switch(s) {
+        case "all" -> ALL;
+        case "features" -> FEATURES;
+        case "centroids" -> MASS_LISTS;
+        case "raw" -> RAW_SCANS;
+        case "noraw" -> NO_RAW_SCANS;
+        default -> throw new IllegalStateException("Unexpected value: " + s);
+      };
+    }
   }
 }
 

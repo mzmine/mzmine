@@ -92,13 +92,15 @@ public class MZmineTestUtil {
       lock.countDown();
     });
 
+    // wait
+    boolean finished = lock.await(timeout, unit);
+
     if (errorMessage.size() > 0) {
       throw new RuntimeException(
           "Error in task for module " + moduleClass.getName() + ".  " + errorMessage.stream()
               .collect(Collectors.joining("; ")));
     }
-    // wait
-    return lock.await(timeout, unit);
+    return finished;
   }
 
   public static boolean isSorted(FeatureList flist) {

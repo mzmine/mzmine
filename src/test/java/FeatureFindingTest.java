@@ -76,7 +76,7 @@ public class FeatureFindingTest {
   @BeforeAll
   public void init() {
     logger.info("Running MZmine");
-    MZmineCore.main(new String[]{"-r", "-m"});
+    MZmineCore.main(new String[]{"-r", "-m", "all"});
     logger.info("Getting project");
     project = MZmineCore.getProjectManager().getCurrentProject();
   }
@@ -110,7 +110,7 @@ public class FeatureFindingTest {
 
     // should have finished by now
     assertTrue(finished, "Time out during file read task. Not finished in time.");
-    assertEquals(project.getDataFiles().length, 2);
+    assertEquals(2, project.getDataFiles().length);
     // sort by name
     project.getRawDataFiles().sort(Comparator.comparing(RawDataFile::getName));
     int filesTested = 0;

@@ -132,8 +132,18 @@ public final class MZmineCore {
     argsParser.parse(args);
 
     // keep all in memory? (features, scans, ... in RAM instead of MemoryMapStorage
-    if(argsParser.isKeepInRam()) {
-      MemoryMapStorage.setStoreAllInRam(true);
+    switch(argsParser.isKeepInRam()) {
+      case NONE -> {
+        // nothing in RAM
+      }
+      case ALL -> MemoryMapStorage.setStoreAllInRam(true);
+      case FEATURES -> MemoryMapStorage.setStoreFeaturesInRam(true);
+      case MASS_LISTS -> MemoryMapStorage.setStoreMassListsInRam(true);
+      case RAW_SCANS ->  MemoryMapStorage.setStoreRawFilesInRam(true);
+      case NO_RAW_SCANS -> {
+        MemoryMapStorage.setStoreMassListsInRam(true);
+        MemoryMapStorage.setStoreFeaturesInRam(true);
+      }
     }
 
     // override preferences file by command line argument pref
