@@ -22,7 +22,9 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.Collection;
 import java.util.Collections;
@@ -79,6 +81,12 @@ public class MsMsVisualizerTab extends MZmineTab {
     // Chart
     chart = new MsMsChart(parameters);
     borderPane.setCenter(chart);
+    chart.datasetStatusProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == TaskStatus.FINISHED) {
+        assert MZmineCore.getDesktop() != null;
+        MZmineCore.getDesktop().addTab(this);
+      }
+    });
 
     // Axes selection
     ComboBox<MsMsXYAxisType> xAxisTypes = new ComboBox<>();

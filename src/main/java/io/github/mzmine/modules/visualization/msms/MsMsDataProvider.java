@@ -192,6 +192,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
       // Check the scan for the mass list of
       if (scan.getMassList() == null) {
+        status.setValue(TaskStatus.CANCELED);
         Platform.runLater(() -> {
           Alert alert = new Alert(AlertType.ERROR);
           alert.setTitle("Mass detection issue");
@@ -339,6 +340,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
     // Show message, if there is nothing to plot
     if (dataPoints.isEmpty()) {
+      status.setValue(TaskStatus.CANCELED);
       Platform.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING);
         alert.setTitle("Suspicious module parameters");

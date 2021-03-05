@@ -295,6 +295,10 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     return status.get();
   }
 
+  public SimpleObjectProperty<TaskStatus> statusProperty() {
+    return status;
+  }
+
   @Override
   public String getErrorMessage() {
     return errorMessage;

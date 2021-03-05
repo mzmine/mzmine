@@ -28,6 +28,8 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
 import org.jfree.chart.util.SortOrder;
@@ -122,6 +124,10 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     dataProvider.sortZValues(zOrder);
     renderer.setZOrder(zOrder);
     dataset.fireDatasetChangedTMPNAME();
+  }
+
+  public SimpleObjectProperty<TaskStatus> datasetStatusProperty() {
+    return dataset.statusProperty();
   }
 
 }
