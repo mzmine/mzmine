@@ -41,6 +41,7 @@ public class MZmineArgumentParser {
   private File batchFile;
   private File preferencesFile;
   private boolean isKeepRunningAfterBatch = false;
+  private boolean isKeepInRam = false;
 
   public void parse(String[] args) {
     Options options = new Options();
@@ -56,6 +57,11 @@ public class MZmineArgumentParser {
     Option keepRunning = new Option("r", "running", false, "keep MZmine running in headless mode");
     keepRunning.setRequired(false);
     options.addOption(keepRunning);
+
+    Option keepInMemory = new Option("m", "memory", false,
+        "keep objects (scan data, features, etc) in memory");
+    keepInMemory.setRequired(false);
+    options.addOption(keepInMemory);
 
     CommandLineParser parser = new BasicParser();
     HelpFormatter formatter = new HelpFormatter();
@@ -75,11 +81,16 @@ public class MZmineArgumentParser {
         preferencesFile = new File(spref);
       }
 
-      String srunning = cmd.getOptionValue(keepRunning.getLongOpt());
-      if (srunning != null) {
+      isKeepRunningAfterBatch = cmd.hasOption(keepRunning.getLongOpt());
+      if (isKeepRunningAfterBatch) {
         logger.info(
             () -> "the -r / --running argument was set to keep MZmine alive after batch is finished");
-        isKeepRunningAfterBatch = true;
+      }
+
+      isKeepInRam = cmd.hasOption(keepInMemory.getLongOpt());
+      if (isKeepInRam) {
+        logger.info(
+            () -> "the -m / --memory argument was set to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
       }
 
     } catch (ParseException e) {
@@ -87,6 +98,15 @@ public class MZmineArgumentParser {
       formatter.printHelp("utility-name", options);
       System.exit(1);
     }
+  }
+
+  /**
+   * Keep all {@link io.github.mzmine.util.MemoryMapStorage} items in RAM (e.g., scans, features, masslists)
+   *
+   * @return true will keep objects in memory which are usually stored in memory mapped files
+   */
+  public boolean isKeepInRam() {
+    return isKeepInRam;
   }
 
   @Nullable

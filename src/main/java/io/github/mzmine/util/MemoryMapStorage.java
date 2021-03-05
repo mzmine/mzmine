@@ -77,6 +77,16 @@ public class MemoryMapStorage {
   private static boolean storeMassListsInRam = false;
 
   /**
+   * Store everything in RAM instead of using MemoryMapStorage
+   *
+   * @param state true to keep all objects in RAM
+   */
+  public static void setStoreAllInRam(boolean state) {
+    storeFeaturesInRam = state;
+    storeMassListsInRam = state;
+    storeRawFilesInRam = state;
+  }
+  /**
    * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
    */
   @Nullable

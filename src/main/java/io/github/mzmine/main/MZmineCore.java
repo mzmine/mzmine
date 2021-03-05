@@ -131,6 +131,11 @@ public final class MZmineCore {
     MZmineArgumentParser argsParser = new MZmineArgumentParser();
     argsParser.parse(args);
 
+    // keep all in memory? (features, scans, ... in RAM instead of MemoryMapStorage
+    if(argsParser.isKeepInRam()) {
+      MemoryMapStorage.setStoreAllInRam(true);
+    }
+
     // override preferences file by command line argument pref
     File prefFile = argsParser.getPreferencesFile();
     if (prefFile == null) {
@@ -174,15 +179,17 @@ public final class MZmineCore {
       gatThread.setPriority(Thread.MIN_PRIORITY);
       gatThread.start();
 
-      // load batch
-      if ((!batchFile.exists()) || (!batchFile.canRead())) {
-        logger.severe("Cannot read batch file " + batchFile);
-        System.exit(1);
-      }
+      if(batchFile!=null) {
+        // load batch
+        if ((!batchFile.exists()) || (!batchFile.canRead())) {
+          logger.severe("Cannot read batch file " + batchFile);
+          System.exit(1);
+        }
 
-      // run batch file
-      batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
-          batchFile);
+        // run batch file
+        batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
+            batchFile);
+      }
 
       // option to keep MZmine running after the batch is finished
       // currently used to test - maybe useful to provide an API to access more data or to run other modules on demand
@@ -196,7 +203,7 @@ public final class MZmineCore {
    * Exit MZmine (usually used in headless mode)
    */
   public static void exit() {
-    if (batchExitCode == ExitCode.OK) {
+    if (batchExitCode == ExitCode.OK || batchExitCode == null) {
       System.exit(0);
     } else {
       System.exit(1);
@@ -306,7 +313,15 @@ public final class MZmineCore {
     }
   }
 
-  public static void runMZmineModule(@Nonnull Class<? extends MZmineRunnableModule> moduleClass,
+  /**
+   * Standard method to run modules in MZmine
+   *
+   * @param moduleClass the module class to run
+   * @param parameters  the parameter set
+   * @return a list of created tasks that were added to the controller
+   */
+  public static List<Task> runMZmineModule(
+      @Nonnull Class<? extends MZmineRunnableModule> moduleClass,
       @Nonnull ParameterSet parameters) {
 
     MZmineRunnableModule module = getModuleInstance(moduleClass);
@@ -324,11 +339,11 @@ public final class MZmineCore {
     module.runModule(currentProject, parameters, newTasks);
     taskController.addTasks(newTasks.toArray(new Task[0]));
 
+    return newTasks;
     // Log module run in audit log
     // AuditLogEntry auditLogEntry = new AuditLogEntry(module, parameters,
     // newTasks);
     // currentProject.logProcessingStep(auditLogEntry);
-
   }
 
   private static void setTempDirToPreference() {
