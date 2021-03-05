@@ -53,7 +53,6 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonType;
@@ -241,7 +240,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
         "Plot using Intensity plot module",
-        () -> !selectedRows.isEmpty());
+        () -> !selectedRows.isEmpty() && selectedFeature != null);
     showIntensityPlotItem.setOnAction(e ->
         IntensityPlotModule.showIntensityPlot(MZmineCore.getProjectManager().getCurrentProject(),
             selectedFeature.getFeatureList(), selectedRows.toArray(new ModularFeatureListRow[0])));
@@ -263,13 +262,14 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
         () -> selectedFeature != null && selectedFeature.getRepresentativeScan() != null);
     showSpectrumItem.setOnAction(
-        e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRepresentativeScan()));
+        e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(),
+            selectedFeature.getRepresentativeScan(), selectedFeature));
 
     // TODO this should display selected features instead of rows. MultiMSMSWindow does not support that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
-        () -> allRowsHaveFragmentScans(selectedRows) /*&& selectedRows.size() > 1*/);
+        () -> getNumberOfRowsWithFragmentScans(selectedRows) >= 1 && selectedFeature != null);
     showMSMSItem.setOnAction(e -> {
-      if (selectedRows.size() > 1) {
+      if (getNumberOfRowsWithFragmentScans(selectedRows) > 1) {
         MultiMsMsTab multi = new MultiMsMsTab(selectedRows,
             table.getFeatureList().getRawDataFiles(), selectedRows.get(0).getRawDataFiles().get(0));
         MZmineCore.getDesktop().addTab(multi);
@@ -279,7 +279,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
-        () -> selectedRows.size() == 2 && allRowsHaveFragmentScans(selectedRows));
+        () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
     showMSMSMirrorItem.setOnAction(e -> {
       MirrorScanWindowFX mirrorScanTab = new MirrorScanWindowFX();
       mirrorScanTab.setScans(selectedRows.get(0).getBestFragmentation(),
@@ -336,31 +336,30 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void updateItem(MenuItem item) {
-    if (item instanceof ConditionalMenuItem) {
-      ConditionalMenuItem conditionalMenuItem = (ConditionalMenuItem) item;
+    if (item instanceof ConditionalMenuItem conditionalMenuItem) {
       conditionalMenuItem.updateVisibility();
     }
-    if (item instanceof Menu) {
-      Menu menu = (Menu) item;
+    if (item instanceof Menu menu) {
       menu.getItems().forEach(this::updateItem);
     }
   }
 
-  private boolean allRowsHaveFragmentScans(Collection<ModularFeatureListRow> rows) {
+  private int getNumberOfRowsWithFragmentScans(Collection<ModularFeatureListRow> rows) {
     if (rows.isEmpty()) {
-      return false;
+      return 0;
     }
+    int numFragmentScans = 0;
     for (ModularFeatureListRow row : rows) {
-      if (row.getBestFragmentation() == null) {
-        return false;
+      if (row.getBestFragmentation() != null) {
+        numFragmentScans++;
       }
     }
-    return true;
+    return numFragmentScans;
   }
 
   private boolean rowHasSpectralDBMatchResults(ModularFeatureListRow row) {
     return row.getPeakIdentities().stream()
         .filter(pi -> pi instanceof SpectralDBFeatureIdentity)
-        .map(pi -> ((SpectralDBFeatureIdentity) pi)).collect(Collectors.toList()).size() > 0;
+        .map(pi -> ((SpectralDBFeatureIdentity) pi)).count() > 0;
   }
 }
