@@ -28,6 +28,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -68,8 +69,8 @@ public class MsMsVisualizerTab extends MZmineTab {
   private static final Image Z_DESC_ICON =
       FxIconUtil.loadImageFromResources("icons/msms_points_desc.png");
 
-  private static final Image TMP_IMG =
-      FxIconUtil.loadImageFromResources("icons/pickedpeakicon.png");
+  // Highlighted precursor mz range
+  Double minMzValue, maxMzValue;
 
   public MsMsVisualizerTab(ParameterSet parameters) {
     super("MS/MS Visualizer", true, false);
@@ -155,6 +156,8 @@ public class MsMsVisualizerTab extends MZmineTab {
     TextField maxMzField = new TextField();
     minMzField.setPrefColumnCount(6);
     maxMzField.setPrefColumnCount(6);
+    minMzField.setText(Objects.toString(minMzValue, ""));
+    maxMzField.setText(Objects.toString(maxMzValue, ""));
 
     // Add elements to the main VBox
     highlightDialogBox.getChildren().addAll(new Text("m/z range: "), minMzField, new Text(" - "), maxMzField);
@@ -167,7 +170,6 @@ public class MsMsVisualizerTab extends MZmineTab {
     Button btnApply = new Button("Apply");
     Button btnCancel = new Button("Cancel");
     btnApply.setOnAction(e -> {
-      double minMzValue, maxMzValue;
       try {
         minMzValue = Double.parseDouble(minMzField.getText());
         maxMzValue = Double.parseDouble(maxMzField.getText());
