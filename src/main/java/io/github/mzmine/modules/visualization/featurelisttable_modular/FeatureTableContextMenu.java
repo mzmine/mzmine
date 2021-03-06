@@ -20,6 +20,7 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -40,6 +41,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MS
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.imsfeaturevisualizer.IMSFeatureVisualizerModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -51,8 +53,10 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonType;
@@ -60,6 +64,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.SwingUtilities;
 
@@ -245,6 +250,14 @@ public class FeatureTableContextMenu extends ContextMenu {
         IntensityPlotModule.showIntensityPlot(MZmineCore.getProjectManager().getCurrentProject(),
             selectedFeature.getFeatureList(), selectedRows.toArray(new ModularFeatureListRow[0])));
 
+    final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(
+        "Show in IMS raw data overview",
+        () -> selectedFeature != null && selectedFeature
+            .getRawDataFile() instanceof IMSRawDataFile && !selectedFeatures.isEmpty());
+    showInIMSRawDataOverviewItem.setOnAction(
+        e -> IMSRawDataOverviewModule
+            .openIMSVisualizerTabWithFeatures(getFeaturesFromSelectedRaw(selectedFeatures)));
+
     final MenuItem showInIMSFeatureVisualizerItem = new ConditionalMenuItem(
         "Visualize ion mobility features", () -> !selectedFeatures.isEmpty());
     showInIMSFeatureVisualizerItem.setOnAction(e -> {
@@ -309,7 +322,8 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, new SeparatorMenuItem(), show2DItem, show3DItem,
-            showIntensityPlotItem, showInIMSFeatureVisualizerItem, new SeparatorMenuItem(),
+            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInIMSFeatureVisualizerItem,
+            new SeparatorMenuItem(),
             showSpectrumItem, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
             new SeparatorMenuItem(), showPeakRowSummaryItem);
@@ -361,5 +375,14 @@ public class FeatureTableContextMenu extends ContextMenu {
     return row.getPeakIdentities().stream()
         .filter(pi -> pi instanceof SpectralDBFeatureIdentity)
         .map(pi -> ((SpectralDBFeatureIdentity) pi)).count() > 0;
+  }
+
+  @Nonnull
+  private List<ModularFeature> getFeaturesFromSelectedRaw(Collection<ModularFeature> features) {
+    if (selectedFeature == null || selectedFeature.getRawDataFile() == null) {
+      return Collections.emptyList();
+    }
+    final RawDataFile file = selectedFeature.getRawDataFile();
+    return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
   }
 }
