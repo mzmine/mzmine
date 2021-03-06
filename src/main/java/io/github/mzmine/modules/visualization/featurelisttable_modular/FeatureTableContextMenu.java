@@ -251,12 +251,11 @@ public class FeatureTableContextMenu extends ContextMenu {
             selectedFeature.getFeatureList(), selectedRows.toArray(new ModularFeatureListRow[0])));
 
     final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(
-        "Show in IMS raw data overview",
+        "Show m/z ranges in IMS raw data overview",
         () -> selectedFeature != null && selectedFeature
             .getRawDataFile() instanceof IMSRawDataFile && !selectedFeatures.isEmpty());
-    showInIMSRawDataOverviewItem.setOnAction(
-        e -> IMSRawDataOverviewModule
-            .openIMSVisualizerTabWithFeatures(getFeaturesFromSelectedRaw(selectedFeatures)));
+    showInIMSRawDataOverviewItem.setOnAction(e -> IMSRawDataOverviewModule
+        .openIMSVisualizerTabWithFeatures(getFeaturesFromSelectedRaw(selectedFeatures)));
 
     final MenuItem showInIMSFeatureVisualizerItem = new ConditionalMenuItem(
         "Visualize ion mobility features", () -> !selectedFeatures.isEmpty());

@@ -323,9 +323,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void initChartListeners() {
-    mobilogramChart.cursorPositionProperty()
-        .addListener(((observable, oldValue, newValue) -> selectedMobilityScan
-            .set(cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex()))));
+    mobilogramChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
+      if (newValue.getValueIndex() != -1) {
+        selectedMobilityScan
+            .set(cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex()));
+      }
+    }));
     singleSpectrumChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> selectedMz
             .set(mzTolerance.getToleranceRange(newValue.getDomainValue()))));
@@ -342,6 +345,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
     ticChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
     ionTraceChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
+      if (newValue.getDataset() == null || newValue.getValueIndex() == -1) {
+        return;
+      }
       MobilityScan selectedScan =
           ((IMSIonTraceHeatmapProvider) ((ColoredXYZDataset) newValue.getDataset())
               .getXyzValueProvider())
