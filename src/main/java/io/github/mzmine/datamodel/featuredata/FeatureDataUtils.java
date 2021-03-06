@@ -50,13 +50,27 @@ public class FeatureDataUtils {
     double min = Double.MAX_VALUE;
     double max = Double.MIN_VALUE;
 
-    for (int i = 0; i < series.getNumberOfValues(); i++) {
-      final double mz = series.getMZ(i);
-      if (mz < min) {
-        min = mz;
+    if (series instanceof IonMobilogramTimeSeries ionTrace) {
+      for (IonMobilitySeries mobilogram : ionTrace.getMobilograms()) {
+        for (int i = 0; i < mobilogram.getNumberOfValues(); i++) {
+          final double mz = mobilogram.getMZ(i);
+          if (mz < min) {
+            min = mz;
+          }
+          if (mz > max) {
+            max = mz;
+          }
+        }
       }
-      if (mz > max) {
-        max = mz;
+    } else {
+      for (int i = 0; i < series.getNumberOfValues(); i++) {
+        final double mz = series.getMZ(i);
+        if (mz < min) {
+          min = mz;
+        }
+        if (mz > max) {
+          max = mz;
+        }
       }
     }
     return Range.closed(min, max);
