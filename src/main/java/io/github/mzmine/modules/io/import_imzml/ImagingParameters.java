@@ -22,6 +22,11 @@ import com.alanmrace.jimzmlparser.imzml.ImzML;
 import com.alanmrace.jimzmlparser.mzml.CVParam;
 import com.alanmrace.jimzmlparser.mzml.ScanSettings;
 import com.alanmrace.jimzmlparser.mzml.ScanSettingsList;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /*
  * <scanSettingsList count="1"> <scanSettings id="scansettings1"> <cvParam cvRef="IMS"
@@ -41,20 +46,6 @@ import com.alanmrace.jimzmlparser.mzml.ScanSettingsList;
 
 public class ImagingParameters {
 
-  public enum VerticalStart {
-    TOP, BOTTOM;
-  }
-
-  public enum HorizontalStart {
-    LEFT, RIGHT;
-  }
-  public enum Pattern {
-    MEANDER, FLY_BACK, RANDOM
-  }
-  public enum ScanDirection {
-    HORIZONTAL, VERTICAL
-  }
-
   private double minMZ, maxMZ;
   /**
    * lateral width and height in mumeter
@@ -70,12 +61,42 @@ public class ImagingParameters {
   // vertical and horizontal start
   private VerticalStart vStart;
   private HorizontalStart hStart;
-
   private int spectraPerPixel;
-
   private Pattern pattern;
   private ScanDirection scanDirection;
 
+
+  public ImagingParameters(TDFMaldiFrameInfoTable maldiFrameInfoTable) {
+    Map<Integer, Long> count = maldiFrameInfoTable.getyIndexPosColumn().stream().collect(Collectors
+        .groupingBy(Long::intValue, Collectors.counting()));
+    Entry<Integer, Long> mostFrequent = count.entrySet().stream().max(
+        Comparator.comparingLong(Entry::getValue)).get();
+    maxNumberOfPixelX = mostFrequent.getValue().intValue();
+
+    count = maldiFrameInfoTable.getxIndexPosColumn().stream().collect(Collectors
+        .groupingBy(Long::intValue, Collectors.counting()));
+    mostFrequent = count.entrySet().stream().max(
+        Comparator.comparingLong(Entry::getValue)).get();
+    maxNumberOfPixelY = mostFrequent.getValue().intValue();
+    maxNumberOfPixelZ = 1;
+    spectraPerPixel = 1;
+
+    vStart = VerticalStart.TOP;
+    hStart = HorizontalStart.LEFT;
+    pattern = Pattern.FLY_BACK;
+    scanDirection = ScanDirection.HORIZONTAL;
+
+    lateralWidth = Math
+        .abs(maldiFrameInfoTable.getMotorPositionXColumn().stream().min(Double::compare).get()
+            - maldiFrameInfoTable.getMotorPositionXColumn().stream().max(Double::compare).get());
+
+    lateralHeight = Math
+        .abs(maldiFrameInfoTable.getMotorPositionYColumn().stream().min(Double::compare).get()
+            - maldiFrameInfoTable.getMotorPositionYColumn().stream().max(Double::compare).get());
+
+    pixelWidth = getLateralWidth() / getMaxNumberOfPixelX();
+//    pixelHeight = getLateralHeight() / getMaxNumberOfPixelY();
+  }
 
   public ImagingParameters(ImzML imz) {
     maxNumberOfPixelX = imz.getWidth();
@@ -90,188 +111,168 @@ public class ImagingParameters {
     if (scanSettingsList != null) {
       for (ScanSettings scanSettings : scanSettingsList) {
         CVParam p = scanSettings.getCVParam(ScanSettings.MAX_DIMENSION_X_ID);
-        if (p != null)
+        if (p != null) {
           lateralWidth = p.getValueAsDouble();
+        }
         p = scanSettings.getCVParam(ScanSettings.MAX_DIMENSION_Y_ID);
-        if (p != null)
+        if (p != null) {
           lateralHeight = p.getValueAsDouble();
+        }
 
         p = scanSettings.getCVParam(ScanSettings.LINE_SCAN_DIRECTION_BOTTOM_UP_ID);
-        if (p != null)
+        if (p != null) {
           vStart = VerticalStart.BOTTOM;
-        else
+        } else {
           vStart = VerticalStart.TOP;
+        }
 
         p = scanSettings.getCVParam(ScanSettings.LINE_SCAN_DIRECTION_RIGHT_LEFT_ID);
-        if (p != null)
+        if (p != null) {
           hStart = HorizontalStart.RIGHT;
-        else
+        } else {
           hStart = HorizontalStart.LEFT;
+        }
 
         p = scanSettings.getCVParam(ScanSettings.PIXEL_AREA_ID);
-        if (p != null)
+        if (p != null) {
           pixelWidth = p.getValueAsDouble();
+        }
         pixelShape = pixelWidth;
 
         p = scanSettings.getCVParam(ScanSettings.SCAN_PATTERN_MEANDERING_ID);
-        if (p != null)
+        if (p != null) {
           pattern = Pattern.MEANDER;
+        }
         p = scanSettings.getCVParam(ScanSettings.SCAN_PATTERN_FLYBACK_ID);
-        if (p != null)
+        if (p != null) {
           pattern = Pattern.FLY_BACK;
+        }
         p = scanSettings.getCVParam(ScanSettings.SCAN_PATTERN_RANDOM_ACCESS_ID);
-        if (p != null)
+        if (p != null) {
           pattern = Pattern.RANDOM;
+        }
 
         p = scanSettings.getCVParam(ScanSettings.SCAN_TYPE_VERTICAL_ID);
-        if (p != null)
+        if (p != null) {
           scanDirection = ScanDirection.VERTICAL;
-        else
+        } else {
           scanDirection = ScanDirection.HORIZONTAL;
+        }
       }
     }
   }
-
 
   public double getMinMZ() {
     return minMZ;
   }
 
-
   public void setMinMZ(double minMZ) {
     this.minMZ = minMZ;
   }
-
 
   public double getMaxMZ() {
     return maxMZ;
   }
 
-
   public void setMaxMZ(double maxMZ) {
     this.maxMZ = maxMZ;
   }
-
 
   public double getLateralWidth() {
     return lateralWidth;
   }
 
-
   public void setLateralWidth(double lateralWidth) {
     this.lateralWidth = lateralWidth;
   }
-
 
   public double getLateralHeight() {
     return lateralHeight;
   }
 
-
   public void setLateralHeight(double lateralHeight) {
     this.lateralHeight = lateralHeight;
   }
-
 
   public double getPixelWidth() {
     return pixelWidth;
   }
 
-
   public void setPixelWidth(double pixelWidth) {
     this.pixelWidth = pixelWidth;
   }
-
 
   public double getPixelShape() {
     return pixelShape;
   }
 
-
   public void setPixelShape(double pixelShape) {
     this.pixelShape = pixelShape;
   }
-
 
   public int getMaxNumberOfPixelX() {
     return maxNumberOfPixelX;
   }
 
-
   public void setMaxNumberOfPixelX(int maxNumberOfPixelX) {
     this.maxNumberOfPixelX = maxNumberOfPixelX;
   }
-
 
   public int getMaxNumberOfPixelY() {
     return maxNumberOfPixelY;
   }
 
-
   public void setMaxNumberOfPixelY(int maxNumberOfPixelY) {
     this.maxNumberOfPixelY = maxNumberOfPixelY;
   }
-
 
   public int getMaxNumberOfPixelZ() {
     return maxNumberOfPixelZ;
   }
 
-
   public void setMaxNumberOfPixelZ(int maxNumberOfPixelZ) {
     this.maxNumberOfPixelZ = maxNumberOfPixelZ;
   }
-
 
   public VerticalStart getvStart() {
     return vStart;
   }
 
-
   public void setvStart(VerticalStart vStart) {
     this.vStart = vStart;
   }
-
 
   public HorizontalStart gethStart() {
     return hStart;
   }
 
-
   public void sethStart(HorizontalStart hStart) {
     this.hStart = hStart;
   }
-
 
   public int getSpectraPerPixel() {
     return spectraPerPixel;
   }
 
-
   public void setSpectraPerPixel(int spectraPerPixel) {
     this.spectraPerPixel = spectraPerPixel;
   }
-
 
   public Pattern getPattern() {
     return pattern;
   }
 
-
   public void setPattern(Pattern pattern) {
     this.pattern = pattern;
   }
-
 
   public ScanDirection getScanDirection() {
     return scanDirection;
   }
 
-
   public void setScanDirection(ScanDirection scanDirection) {
     this.scanDirection = scanDirection;
   }
-
 
   @Override
   public int hashCode() {
@@ -301,45 +302,81 @@ public class ImagingParameters {
     return result;
   }
 
-
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     ImagingParameters other = (ImagingParameters) obj;
-    if (hStart != other.hStart)
+    if (hStart != other.hStart) {
       return false;
-    if (Double.doubleToLongBits(lateralHeight) != Double.doubleToLongBits(other.lateralHeight))
+    }
+    if (Double.doubleToLongBits(lateralHeight) != Double.doubleToLongBits(other.lateralHeight)) {
       return false;
-    if (Double.doubleToLongBits(lateralWidth) != Double.doubleToLongBits(other.lateralWidth))
+    }
+    if (Double.doubleToLongBits(lateralWidth) != Double.doubleToLongBits(other.lateralWidth)) {
       return false;
-    if (Double.doubleToLongBits(maxMZ) != Double.doubleToLongBits(other.maxMZ))
+    }
+    if (Double.doubleToLongBits(maxMZ) != Double.doubleToLongBits(other.maxMZ)) {
       return false;
-    if (maxNumberOfPixelX != other.maxNumberOfPixelX)
+    }
+    if (maxNumberOfPixelX != other.maxNumberOfPixelX) {
       return false;
-    if (maxNumberOfPixelY != other.maxNumberOfPixelY)
+    }
+    if (maxNumberOfPixelY != other.maxNumberOfPixelY) {
       return false;
-    if (maxNumberOfPixelZ != other.maxNumberOfPixelZ)
+    }
+    if (maxNumberOfPixelZ != other.maxNumberOfPixelZ) {
       return false;
-    if (Double.doubleToLongBits(minMZ) != Double.doubleToLongBits(other.minMZ))
+    }
+    if (Double.doubleToLongBits(minMZ) != Double.doubleToLongBits(other.minMZ)) {
       return false;
-    if (pattern != other.pattern)
+    }
+    if (pattern != other.pattern) {
       return false;
-    if (Double.doubleToLongBits(pixelShape) != Double.doubleToLongBits(other.pixelShape))
+    }
+    if (Double.doubleToLongBits(pixelShape) != Double.doubleToLongBits(other.pixelShape)) {
       return false;
-    if (Double.doubleToLongBits(pixelWidth) != Double.doubleToLongBits(other.pixelWidth))
+    }
+    if (Double.doubleToLongBits(pixelWidth) != Double.doubleToLongBits(other.pixelWidth)) {
       return false;
-    if (scanDirection != other.scanDirection)
+    }
+    if (scanDirection != other.scanDirection) {
       return false;
-    if (spectraPerPixel != other.spectraPerPixel)
+    }
+    if (spectraPerPixel != other.spectraPerPixel) {
       return false;
-    if (vStart != other.vStart)
+    }
+    if (vStart != other.vStart) {
       return false;
+    }
     return true;
+  }
+
+
+  public enum VerticalStart {
+    TOP, BOTTOM;
+  }
+
+
+  public enum HorizontalStart {
+    LEFT, RIGHT;
+  }
+
+
+  public enum Pattern {
+    MEANDER, FLY_BACK, RANDOM
+  }
+
+
+  public enum ScanDirection {
+    HORIZONTAL, VERTICAL
   }
 
 }

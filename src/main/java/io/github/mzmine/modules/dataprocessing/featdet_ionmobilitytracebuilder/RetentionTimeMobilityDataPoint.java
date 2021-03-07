@@ -21,8 +21,9 @@ package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
+import javax.annotation.Nonnull;
 
-public class RetentionTimeMobilityDataPoint implements DataPoint {
+public class RetentionTimeMobilityDataPoint implements DataPoint, Comparable {
 
   private final double mz;
   private final double intensity;
@@ -56,6 +57,28 @@ public class RetentionTimeMobilityDataPoint implements DataPoint {
 
   public MobilityScan getMobilityScan() {
     return mobilityScan;
+  }
+
+  @Override
+  public int compareTo(@Nonnull Object o) {
+    if (o instanceof RetentionTimeMobilityDataPoint) {
+      int i = Double.compare(getIntensity(), ((RetentionTimeMobilityDataPoint) o).getIntensity());
+      if (i != 0) {
+        return i * -1; // descending, most intense first
+      }
+      int f = Integer.compare(getFrame().getFrameId(),
+          ((RetentionTimeMobilityDataPoint) o).getFrame().getFrameId());
+      if (f != 0) {
+        return f;
+      }
+      int m = Integer.compare(getMobilityScan().getMobilityScanNumber(),
+          ((RetentionTimeMobilityDataPoint) o).getMobilityScan().getMobilityScanNumber());
+      if(m != 0) {
+        return m;
+      }
+      return Double.compare(getMZ(), ((RetentionTimeMobilityDataPoint) o).getMZ());
+    }
+    return -1;
   }
 
   /*@Override

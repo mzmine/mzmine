@@ -180,6 +180,9 @@
       <MenuItem onAction="#runModule"
         text="Image builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
+      <MenuItem onAction="#runModule"
+        text="Ion mobility image expander"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_imsmsi.IonMobilityImageExpanderModule"/>
     </Menu>
     <Menu text="MSn">
       <MenuItem onAction="#runModule"

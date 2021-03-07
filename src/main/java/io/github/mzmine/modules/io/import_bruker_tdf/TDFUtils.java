@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.TDFLibrary;
@@ -37,6 +38,7 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.callbacks.Profile
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.import_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_mzml_msdk.ConversionUtils;
 import java.io.File;
 import java.io.IOException;
@@ -63,6 +65,8 @@ public class TDFUtils {
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
   public static int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private static TDFLibrary tdfLib = null;
+
+  public static double numDP = 0;
 
   private TDFUtils() {
   }
@@ -265,6 +269,7 @@ public class TDFUtils {
 
       spectra.add(
           new BuildingMobilityScan(i, dataPoints.get(i)[0], dataPoints.get(i)[1]));
+      numDP += dataPoints.get(i)[0].length;
     }
 
     return spectra;
@@ -299,11 +304,14 @@ public class TDFUtils {
   public static SimpleFrame extractCentroidScanForTimsFrame(IMSRawDataFile newFile,
       final long handle, final long frameId, @Nonnull final TDFMetaDataTable metaDataTable,
       @Nonnull final TDFFrameTable frameTable,
-      @Nonnull final FramePrecursorTable framePrecursorTable) {
+      @Nonnull final FramePrecursorTable framePrecursorTable,
+      @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
     final double[][] data = extractCentroidsForFrame(handle, frameId, 0, numScans);
+
+    numDP += data[0].length;
 
     final String scanDefinition = metaDataTable.getInstrumentType() + " - "
         + BrukerScanMode.fromScanMode(frameTable.getScanModeColumn().get(frameIndex).intValue());
@@ -322,10 +330,22 @@ public class TDFUtils {
 
     Range<Double> mzRange = metaDataTable.getMzRange();
 
-    SimpleFrame frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
-        (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-        0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-        MobilityType.TIMS, null);
+    SimpleFrame frame;
+    if (maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
+          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
+          0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
+          MobilityType.TIMS, null);
+    } else {
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
+          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
+          0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
+          MobilityType.TIMS, null);
+      Coordinates coords = new Coordinates(
+          maldiFrameInfoTable.getTransformedXIndexPos((int) (frameId - 1)),
+          maldiFrameInfoTable.getTransformedYIndexPos((int) (frameId - 1)), 0);
+      ((SimpleImagingFrame) frame).setCoordinates(coords);
+    }
 
     frame.setMobilities(mobilities);
 

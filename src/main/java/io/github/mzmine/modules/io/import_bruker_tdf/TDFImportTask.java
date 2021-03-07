@@ -20,10 +20,12 @@ package io.github.mzmine.modules.io.import_bruker_tdf;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
@@ -36,6 +38,7 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrame
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFPrecursorTable;
+import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -148,7 +151,7 @@ public class TDFImportTask extends AbstractTask {
     isMaldi = false;
 
     readMetadata();
-    /*if (isMaldi) {
+    if (isMaldi) {
       try {
         newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
             newMZmineFile.getMemoryMapStorage());
@@ -158,7 +161,7 @@ public class TDFImportTask extends AbstractTask {
         e.printStackTrace();
         return;
       }
-    }*/
+    }
 
     rawDataFileName = tdfBin.getParentFile().getName();
 
@@ -198,8 +201,8 @@ public class TDFImportTask extends AbstractTask {
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
         SimpleFrame frame = TDFUtils
-            .extractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
-                metaDataTable, frameTable, framePrecursorTable/*, maldiFrameInfoTable*/);
+            .exctractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
+                metaDataTable, frameTable, framePrecursorTable, maldiFrameInfoTable);
         newMZmineFile.addScan(frame);
         frames.add(frame);
         loadedFrames++;
@@ -213,9 +216,6 @@ public class TDFImportTask extends AbstractTask {
     }
     // if (!isMaldi) {
     appendScansFromTimsSegment(handle, frameTable, frames);
-
-//    logger.info("num dp (import): " + TDFUtils.numDP);
-//    logger.info("num dp (stored): " + SimpleFrame.numDp);
 
     // } else {
     // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
@@ -292,7 +292,7 @@ public class TDFImportTask extends AbstractTask {
       } else {
         setDescription("MALDI info for " + tdf.getName());
         maldiFrameInfoTable.executeQuery(connection);
-        /*maldiFrameInfoTable.process();*/
+        maldiFrameInfoTable.process();
         // maldiFrameInfoTable.print();
       }
 

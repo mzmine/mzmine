@@ -265,13 +265,14 @@ public class FeatureConvertors {
     // TODO
     modularFeature.set(AreaType.class, (float) 0);
     // TODO
-    modularFeature.set(BestScanNumberType.class, -1);
+    modularFeature.set(BestScanNumberType.class, null);
 
     // Data points of feature
     double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(image.getDataPoints());
     SimpleIonTimeSeries data = new SimpleIonTimeSeries(
         ((ModularFeatureList) image.getFeatureList()).getMemoryMapStorage(), dp[0], dp[1],
         image.getScanNumbers().stream().collect(Collectors.toList()));
+    modularFeature.set(FeatureDataType.class, data);
 
     // Ranges
     Range<Float> rtRange = Range.closed(0.f, 0.f);

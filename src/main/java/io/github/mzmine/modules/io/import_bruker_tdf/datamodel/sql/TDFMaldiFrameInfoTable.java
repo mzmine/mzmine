@@ -52,6 +52,10 @@ public class TDFMaldiFrameInfoTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Double> motorPositionZColumn;
   private final TDFDataColumn<Long> laserInfoColumn;
 
+  private int minXIndex;
+  private int minYIndex;
+
+
   public TDFMaldiFrameInfoTable() {
     super(MALDI_FRAME_INFO_TABLE_NAME, FRAME_ID);
 
@@ -124,5 +128,19 @@ public class TDFMaldiFrameInfoTable extends TDFDataTable<Long> {
 
   public TDFDataColumn<Long> getLaserInfoColumn() {
     return laserInfoColumn;
+  }
+
+
+  public void process() {
+    minXIndex = getxIndexPosColumn().stream().min(Long::compare).get().intValue();
+    minYIndex = getyIndexPosColumn().stream().min(Long::compare).get().intValue();
+  }
+
+  public int getTransformedXIndexPos(int index) {
+    return getxIndexPosColumn().get(index).intValue() - minXIndex;
+  }
+
+  public int getTransformedYIndexPos(int index) {
+    return getyIndexPosColumn().get(index).intValue() - minYIndex;
   }
 }
