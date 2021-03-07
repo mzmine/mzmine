@@ -18,19 +18,25 @@
 
 package io.github.mzmine.modules.io.import_bruker_tsf;
 
+import com.google.common.collect.Range;
 import com.sun.jna.Native;
 import io.github.mzmine.datamodel.ImagingScan;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_bruker_tdf.TDFUtils;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.import_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_mzml_msdk.ConversionUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -129,9 +135,27 @@ public class TSFUtils {
   }
 
   public ImagingScan loadMaldiScan(RawDataFile file, final long handle, final long frameId, @Nonnull
-      TDFMetaDataTable metaDataTable, @Nonnull TDFFrameTable frameTable, @Nonnull
+      TDFMetaDataTable metaDataTable, @Nonnull TSFFrameTable frameTable, @Nonnull
       TDFMaldiFrameInfoTable maldiTable) {
 
+    final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
+    final String scanDefinition = metaDataTable.getInstrumentType() + " - "
+        + BrukerScanMode.fromScanMode(frameTable.getScanModeColumn().get(frameIndex).intValue());
+    final int msLevel = TDFUtils.getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final PolarityType polarity = PolarityType
+        .fromSingleChar((String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final Range<Double> mzRange = metaDataTable.getMzRange();
+
+    final Coordinates coords = new Coordinates(
+        maldiTable.getTransformedXIndexPos((int) (frameIndex)),
+        maldiTable.getTransformedYIndexPos((int) (frameIndex)), 0);
+
+    double[][] mzIntensities = loadCentroidSpectrum(handle, frameId);
+
+    return new SimpleImagingScan(file, Math.toIntExact(frameId), msLevel,
+        (float) (frameTable.getTimeColumn().get(frameIndex) / 60), 0, 0, mzIntensities[0],
+        mzIntensities[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange, coords);
   }
 
   private boolean loadLibrary()
@@ -226,13 +250,9 @@ public class TSFUtils {
     if (errorCode == 0 || errorCode > BUFFER_SIZE) {
       byte[] errorBuffer = new byte[64];
       long len = tsfdata.tsf_get_last_error_string(errorBuffer, errorBuffer.length);
-      try {
-        final String errorMessage = new String(errorBuffer, "UTF-8");
-        logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
-            + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
-      }
+      final String errorMessage = new String(errorBuffer, StandardCharsets.UTF_8);
+      logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
+          + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
       return true;
     } else {
       return false;
