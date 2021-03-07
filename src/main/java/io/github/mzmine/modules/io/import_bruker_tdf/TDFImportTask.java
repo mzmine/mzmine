@@ -198,7 +198,7 @@ public class TDFImportTask extends AbstractTask {
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
         SimpleFrame frame = TDFUtils
-            .exctractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
+            .extractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
                 metaDataTable, frameTable, framePrecursorTable/*, maldiFrameInfoTable*/);
         newMZmineFile.addScan(frame);
         frames.add(frame);
