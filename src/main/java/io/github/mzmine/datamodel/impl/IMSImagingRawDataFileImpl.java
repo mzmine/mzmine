@@ -24,10 +24,12 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.import_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMSImagingRawDataFile {
 
@@ -39,8 +41,9 @@ public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMS
   private Scan[][][] xyzScanNumbers;
 
 
-  public IMSImagingRawDataFileImpl(String dataFileName) throws IOException {
-    super(dataFileName);
+  public IMSImagingRawDataFileImpl(String dataFileName, @Nullable MemoryMapStorage storage)
+      throws IOException {
+    super(dataFileName, storage);
   }
 
   @Override

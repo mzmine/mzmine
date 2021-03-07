@@ -37,6 +37,7 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.callbacks.Centroi
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.callbacks.ProfileData;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameTable;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_mzml_msdk.ConversionUtils;
