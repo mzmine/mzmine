@@ -33,9 +33,12 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import java.nio.DoubleBuffer;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 public class FeatureDataUtils {
+
+  private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
 
   public static Range<Float> getRtRange(IonTimeSeries<? extends Scan> series) {
     final List<? extends Scan> scans = series.getSpectra();
@@ -133,7 +136,7 @@ public class FeatureDataUtils {
   }
 
   public static double calculateMz(IonSeries series, CenterMeasure cm) {
-    CenterFunction cf = new CenterFunction(cm, Weighting.logger10);
+    CenterFunction cf = new CenterFunction(cm, Weighting.LINEAR);
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
     return cf.calcCenter(data[0], data[1]);

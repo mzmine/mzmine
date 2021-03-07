@@ -18,99 +18,135 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import java.nio.DoubleBuffer;
+import com.google.common.collect.Range;
+import com.google.common.collect.Streams;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.impl.AbstractMassSpectrum.DataPointIterator;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Simple implementation of MassSpectrum that stores all data in memory.
  */
-public class SimpleMassSpectrum extends AbstractMassSpectrum {
+public class SimpleMassSpectrum implements MassSpectrum {
 
-  private static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
+  private final double[] mzValues;
+  private final double[] intensityValues;
+  private final MassSpectrumType spectrumType;
+  private int basePeakIndex = -1;
+  private Range<Double> mzRange = null;
+  private Double tic = null;
 
-  private DoubleBuffer mzValues;
-  private DoubleBuffer intensityValues;
+  public SimpleMassSpectrum(double[] mzValues, double[] intensityValues) {
+    this(mzValues, intensityValues, MassSpectrumType.CENTROIDED);
+  }
+
+  public SimpleMassSpectrum(double[] mzValues, double[] intensityValues, MassSpectrumType spectrumType) {
+    this.spectrumType = spectrumType;
+    assert mzValues.length == intensityValues.length;
+    this.mzValues = mzValues;
+    this.intensityValues = intensityValues;
+  }
+
 
   @Override
-  public DoubleBuffer getMzValues() {
-    if (mzValues == null)
-      return EMPTY_BUFFER;
-    else {
-      return mzValues;
-    }
+  public int getNumberOfDataPoints() {
+    return mzValues.length;
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
-    if (intensityValues == null) {
-      return EMPTY_BUFFER;
-    } else {
-      return intensityValues;
-    }
+  public MassSpectrumType getSpectrumType() {
+    return spectrumType;
   }
 
   @Override
   public double[] getMzValues(@Nonnull double[] dst) {
-    double[] array = mzValues.array();
-    if (dst.length < array.length) {
-      return array;
-    }
-
-    for (int i = 0; i < mzValues.array().length; i++) {
-      dst[i] = array[i];
-    }
-    return dst;
+    return mzValues;
   }
 
   @Override
   public double[] getIntensityValues(@Nonnull double[] dst) {
-    double[] array = intensityValues.array();
-    if (dst.length < array.length) {
-      return array;
-    }
-
-    for (int i = 0; i < intensityValues.array().length; i++) {
-      dst[i] = array[i];
-    }
-    return dst;
+    return intensityValues;
   }
 
-  public synchronized void setDataPoints(@Nonnull double mzValues[],
-      @Nonnull double intensityValues[]) {
+  @Override
+  public double getMzValue(int index) {
+    return mzValues[index];
+  }
 
-    assert mzValues != null;
-    assert intensityValues != null;
-    assert mzValues.length == intensityValues.length;
+  @Override
+  public double getIntensityValue(int index) {
+    return intensityValues[index];
+  }
 
-    for (int i = 0; i < mzValues.length - 1; i++) {
-      if (mzValues[i] > mzValues[i + 1]) {
-        throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
+  @Nullable
+  @Override
+  public Double getBasePeakMz() {
+    Integer i = getBasePeakIndex();
+    return i!=null && i>=0 && i<getNumberOfDataPoints()? getMzValue(i) : null;
+  }
+
+  @Nullable
+  @Override
+  public Double getBasePeakIntensity() {
+    Integer i = getBasePeakIndex();
+    return i!=null && i>=0 && i<getNumberOfDataPoints()? getIntensityValue(i) : null;
+  }
+
+  @Nullable
+  @Override
+  public Integer getBasePeakIndex() {
+  if(basePeakIndex == -1) {
+    double max = 0d;
+    for (int i = 0; i < getNumberOfDataPoints(); i++) {
+      if (basePeakIndex == -1 || max < getIntensityValue(i)) {
+        max = getIntensityValue(i);
+        basePeakIndex = i;
+      }
+    }
+  }
+  return basePeakIndex != -1? basePeakIndex : null;
+  }
+
+  @Nullable
+  @Override
+  public Range<Double> getDataPointMZRange() {
+    if(mzRange == null) {
+      if(getNumberOfDataPoints()>1) {
+        mzRange = Range.closed(getMzValue(0), getMzValue(getNumberOfDataPoints()-1));
+      }
+      else if(getNumberOfDataPoints()==1) {
+        mzRange = Range.singleton(getMzValue(0));
       }
     }
 
-    this.mzValues = DoubleBuffer.wrap(mzValues);
-    this.intensityValues = DoubleBuffer.wrap(intensityValues);
-
-    updateMzRangeAndTICValues();
+    return mzRange;
   }
 
-  public synchronized void setDataPoints(@Nonnull DoubleBuffer mzValues,
-      DoubleBuffer intensityValues) {
-
-    assert mzValues != null;
-    assert intensityValues != null;
-    assert mzValues.capacity() == intensityValues.capacity();
-
-    for (int i = 0; i < mzValues.capacity() - 1; i++) {
-      if (mzValues.get(i) > mzValues.get(i + 1)) {
-        throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
-      }
+  @Nullable
+  @Override
+  public Double getTIC() {
+    if(tic == null) {
+      tic = Arrays.stream(intensityValues).sum();
     }
 
-    this.mzValues = mzValues;
-    this.intensityValues = intensityValues;
-
-    updateMzRangeAndTICValues();
+    return tic;
   }
 
+  @Override
+  public Stream<DataPoint> stream() {
+    return Streams.stream(this);
+  }
+
+  @Nonnull
+  @Override
+  public Iterator<DataPoint> iterator() {
+    return new DataPointIterator(this);
+  }
 }

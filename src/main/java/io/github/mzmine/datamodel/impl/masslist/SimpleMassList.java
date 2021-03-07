@@ -39,7 +39,6 @@ public class SimpleMassList extends AbstractStorableSpectrum implements MassList
   /**
    * Use mzValues and intensityValues constructor
    *
-   * @param scan
    * @param storageMemoryMap
    * @param dps
    */

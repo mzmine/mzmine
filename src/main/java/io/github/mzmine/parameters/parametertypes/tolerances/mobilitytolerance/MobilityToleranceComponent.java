@@ -26,7 +26,6 @@ import javafx.scene.layout.BorderPane;
  */
 public class MobilityToleranceComponent extends BorderPane {
 
-  // the same order that the unit enum in RTTolerance is defined in
   private final TextField toleranceField;
 
   public MobilityToleranceComponent() {
@@ -37,13 +36,13 @@ public class MobilityToleranceComponent extends BorderPane {
 
   public MobilityTolerance getValue() {
     final String valueString = toleranceField.getText();
-    final Number toleranceValue = Double.parseDouble(valueString);
-    final double tolerance = toleranceValue.doubleValue();
+    final Number toleranceValue = Float.parseFloat(valueString);
+    final float tolerance = toleranceValue.floatValue();
     return new MobilityTolerance(tolerance);
   }
 
   public void setValue(MobilityTolerance value) {
-    double tolerance = value.getTolerance();
+    float tolerance = value.getTolerance();
     String valueString = String.valueOf(tolerance);
     toleranceField.setText(valueString);
   }

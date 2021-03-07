@@ -82,7 +82,8 @@
         </accelerator>
         
       <SeparatorMenuItem/>
-        
+
+      <MenuItem text="MS data (advanced)" onAction="#runModule" userData="io.github.mzmine.modules.io.import_all_data_files.AllSpectralDataImportModule" />
       <MenuItem text="mzML" onAction="#runModule" userData="io.github.mzmine.modules.io.import_mzml_msdk.MSDKmzMLImportModule" />
       <MenuItem text="mzML via jmzml" onAction="#runModule" userData="io.github.mzmine.modules.io.import_mzml_jmzml.MzMLImportModule" />
       <MenuItem text="imzML" onAction="#runModule" userData="io.github.mzmine.modules.io.import_imzml.ImzMLImportModule" />   
@@ -195,11 +196,11 @@
 
     <SeparatorMenuItem/>
 
-    <MenuItem text="Chromatogram smoothing"
+    <MenuItem text="Smoothing"
       onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule"/>
 
-    <Menu text="Chromatogram deconvolution">
+    <Menu text="Chromatogram resolving">
       <MenuItem text="ADAP resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>
       <MenuItem text="Baseline resolver" onAction="#runModule"
@@ -288,7 +289,7 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule"/>
       <MenuItem onAction="#runModule" text="mobility-m/z region filter"
         userData="io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule"/>
-      <MenuItem onAction="#runModule" text="mobility-m/z region filter"
+      <MenuItem onAction="#runModule" text="Assign MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
     </Menu>
 

@@ -28,6 +28,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.text.NumberFormat;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
@@ -43,7 +44,7 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final SummedIntensityMobilitySeries data;
   private final String seriesKey;
-  private final SimpleObjectProperty<Color> color;
+  private final ObjectProperty<Color> color;
   private final boolean swapAxes;
 
   public SummedMobilogramXYProvider(final ModularFeature f) {
@@ -63,12 +64,12 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   }
 
   public SummedMobilogramXYProvider(SummedIntensityMobilitySeries summedMobilogram,
-      SimpleObjectProperty<Color> color, String seriesKey) {
+      ObjectProperty<Color> color, String seriesKey) {
     this(summedMobilogram, color, seriesKey, false);
   }
 
   public SummedMobilogramXYProvider(SummedIntensityMobilitySeries summedMobilogram,
-      SimpleObjectProperty<Color> color, String seriesKey, boolean swapAxes) {
+      ObjectProperty<Color> color, String seriesKey, boolean swapAxes) {
     this.seriesKey = seriesKey;
     this.color = color;
     this.data = summedMobilogram;

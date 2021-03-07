@@ -42,11 +42,11 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
 
   private final IonTimeSeries<? extends Scan> series;
   private final String seriesKey;
-  private final SimpleObjectProperty<javafx.scene.paint.Color> color;
+  private final ObjectProperty<javafx.scene.paint.Color> color;
 
   public IonTimeSeriesToXYProvider(@Nonnull IonTimeSeries<? extends Scan> series,
       @Nonnull String seriesKey,
-      @Nonnull SimpleObjectProperty<javafx.scene.paint.Color> color) {
+      @Nonnull ObjectProperty<javafx.scene.paint.Color> color) {
     this.series = series;
     this.seriesKey = seriesKey;
     this.color = color;

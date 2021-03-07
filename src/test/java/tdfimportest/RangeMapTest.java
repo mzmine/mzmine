@@ -24,6 +24,7 @@ import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.util.logging.Logger;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class RangeMapTest {
@@ -54,6 +55,13 @@ public class RangeMapTest {
     logger.info("actual " + map.getEntry(mz1).getKey().toString() + " proposed " + range1);
     logger.info("actual " + map.getEntry(mz2).getKey().toString() + " proposed " + range2);
     logger.info("actual " + map.getEntry(mz3).getKey().toString() + " proposed " + range3);
+
+    Assertions.assertEquals(760.5680853225, map.getEntry(mz1).getKey().lowerEndpoint());
+    Assertions.assertEquals(760.6061146774999, map.getEntry(mz1).getKey().upperEndpoint());
+    Assertions.assertEquals(760.5680853225, map.getEntry(mz2).getKey().lowerEndpoint());
+    Assertions.assertEquals(760.6061146774999, map.getEntry(mz2).getKey().upperEndpoint());
+    Assertions.assertEquals(760.6061146774999, map.getEntry(mz3).getKey().lowerEndpoint());
+    Assertions.assertEquals(760.634015375, map.getEntry(mz3).getKey().upperEndpoint());
   }
 
   @Test
