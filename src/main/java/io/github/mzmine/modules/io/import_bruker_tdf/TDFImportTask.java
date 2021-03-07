@@ -132,11 +132,16 @@ public class TDFImportTask extends AbstractTask {
       files = getDataFilesFromDir(fileNameToOpen.getParentFile());
     }
 
-    this.tdf = files[0];
-    this.tdfBin = files[0];
+    if (files == null || files.length != 2 || files[0] == null || files[1] == null) {
+      setErrorMessage("Could not find .tdf and .tdf_bin in " + fileNameToOpen.getAbsolutePath());
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
 
-    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead() || !tdfBin.exists()
-        || !tdfBin.canRead()) {
+    this.tdf = files[0];
+    this.tdfBin = files[1];
+
+    if (!tdf.exists() || !tdf.canRead() || !tdfBin.exists() || !tdfBin.canRead()) {
       setErrorMessage("Cannot open sql or bin files: " + tdf.getName() + "; " + tdfBin.getName());
       setStatus(TaskStatus.ERROR);
     }
@@ -146,7 +151,7 @@ public class TDFImportTask extends AbstractTask {
     precursorTable = new TDFPrecursorTable();
     pasefFrameMsMsInfoTable = new TDFPasefFrameMsMsInfoTable();
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
-    framePrecursorTable = new FramePrecursorTable(frameTable);
+    framePrecursorTable = new FramePrecursorTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     isMaldi = false;
 
@@ -174,15 +179,13 @@ public class TDFImportTask extends AbstractTask {
     logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
     final long handle = TDFUtils.openFile(tdfBin);
     newMZmineFile.setName(rawDataFileName);
-
-    loadedFrames = 0;
-
-    if (handle == 0l) {
+    if (handle == 0L) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
       return;
     }
 
+    loadedFrames = 0;
     final int numFrames = frameTable.getFrameIdColumn().size();
 
     Date start = new Date();
@@ -214,13 +217,9 @@ public class TDFImportTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    // if (!isMaldi) {
-    appendScansFromTimsSegment(handle, frameTable, frames);
 
-    // } else {
-    // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
-    // metaDataTable, maldiFrameInfoTable);
-    // }
+    // extract mobility scans
+    appendScansFromTimsSegment(handle, frameTable, frames);
 
     // now assign MS/MS infos
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
@@ -396,13 +395,13 @@ public class TDFImportTask extends AbstractTask {
         return true;
       }
       return false;
-    }).findAny().get();
+    }).findAny().orElse(null);
     File tdf_bin = Arrays.stream(files).filter(c -> {
       if (c.getAbsolutePath().endsWith(".tdf_bin")) {
         return true;
       }
       return false;
-    }).findAny().get();
+    }).findAny().orElse(null);
 
     return new File[]{tdf, tdf_bin};
   }

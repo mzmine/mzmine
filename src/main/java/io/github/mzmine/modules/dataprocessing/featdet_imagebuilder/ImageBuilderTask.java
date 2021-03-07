@@ -42,11 +42,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -174,6 +175,7 @@ public class ImageBuilderTask extends AbstractTask {
       }
       Range<Double> containsDataPointRange = rangeSet.rangeContaining(imageDataPoint.getMZ());
       Range<Double> toleranceRange = mzTolerance.getToleranceRange(imageDataPoint.getMZ());
+
       if (containsDataPointRange == null) {
         // look +- mz tolerance to see if ther is a range near by.
         // If there is use the proper boundry of that range for the
@@ -211,7 +213,7 @@ public class ImageBuilderTask extends AbstractTask {
           Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
           IImage newImage = new Image(imageDataPoint.getMZ(), imagingParameters,
               paintScaleParameter, imageDataPoint.getIntensity(), newRange);
-          LinkedHashSet<ImageDataPoint> dataPointsSetForImage = new LinkedHashSet<ImageDataPoint>();
+          List<ImageDataPoint> dataPointsSetForImage = new ArrayList<ImageDataPoint>();
           dataPointsSetForImage.add(imageDataPoint);
           newImage.setDataPoints(dataPointsSetForImage);
           rangeToImageMap.put(newRange, newImage);
@@ -219,9 +221,10 @@ public class ImageBuilderTask extends AbstractTask {
         } else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
           IImage currentImage = rangeToImageMap.get(plusRange);
           currentImage.getDataPoints().add(imageDataPoint);
-        } else
+        } else {
           throw new IllegalStateException(String.format("Incorrect range [%f, %f] for m/z %f",
               toBeLowerBound, toBeUpperBound, imageDataPoint.getMZ()));
+        }
 
       } else {
         // In this case we do not need to update the rangeSet
@@ -270,7 +273,7 @@ public class ImageBuilderTask extends AbstractTask {
   private IImage finishImage(IImage image) {
     Range<Double> rawDataPointsIntensityRange = null;
     Range<Double> rawDataPointsMZRange = null;
-    LinkedHashSet<Scan> scanNumbers = new LinkedHashSet<>();
+    List<Scan> scanNumbers = new ArrayList<>();
     SortedSet<ImageDataPoint> sortedRetentionTimeMobilityDataPoints =
         new TreeSet<>(new Comparator<ImageDataPoint>() {
           @Override
@@ -304,6 +307,8 @@ public class ImageBuilderTask extends AbstractTask {
       }
 
     }
+
+    image.setDataPoints(new ArrayList<>(sortedRetentionTimeMobilityDataPoints));
 
     // TODO think about representative scan
     image.setScanNumbers(scanNumbers);
@@ -363,9 +368,10 @@ public class ImageBuilderTask extends AbstractTask {
     for (IImage image : images) {
       image.setFeatureList(featureList);
       ModularFeature modular = FeatureConvertors.ImageToModularFeature(image, rawDataFile);
+      modular.set(ImageType.class, false);
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
-      newRow.set(ImageType.class, newRow.getFeaturesProperty());
+//      newRow.set(ImageType.class, newRow.getFeaturesProperty());
       // newRow.set(MobilityType.class, image.getMobility());
       // newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
       // newRow.set(FeatureShapeMobilogramType.class, newRow.getFeaturesProperty());

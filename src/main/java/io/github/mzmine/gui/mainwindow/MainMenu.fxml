@@ -96,6 +96,8 @@
       <MenuItem text="Thermo RAW" onAction="#runModule" userData="io.github.mzmine.modules.io.import_thermo_raw.ThermoRawImportModule" />
       <MenuItem text="Waters RAW" onAction="#runModule" userData="io.github.mzmine.modules.io.import_waters_raw.WatersRawImportModule" />
       <MenuItem text="Bruker TDF" onAction="#runModule" userData="io.github.mzmine.modules.io.import_bruker_tdf.TDFImportModule" />
+      <MenuItem onAction="#runModule" text="Bruker TSF"
+        userData="io.github.mzmine.modules.io.import_bruker_tsf.TSFImportModule"/>
 
       <SeparatorMenuItem/>
 

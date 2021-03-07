@@ -88,7 +88,8 @@ public class TSFUtils {
               centroidIndexArray.length);
 
       // check if the buffer size was enough
-      if (printLastError(numDataPoints) || numDataPoints > centroidIndexArray.length) {
+      // bug: if there are no data points, the return is 0 as well. -> just check for size
+      if (/*printLastError(numDataPoints) ||*/ numDataPoints > centroidIndexArray.length) {
         BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
         logger.fine(() -> "Could not read scan " + frameId
             + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
@@ -96,7 +97,7 @@ public class TSFUtils {
         centroidIndexArray = new double[BUFFER_SIZE];
         centroidMzArray = new double[BUFFER_SIZE]; // double array -> twice the size
       }
-    } while (numDataPoints == 0);
+    } while (/*numDataPoints == 0 || */ numDataPoints > centroidIndexArray.length);
 
     tsfdata.tsf_index_to_mz(handle, frameId, centroidIndexArray, centroidMzArray, numDataPoints);
 
@@ -123,7 +124,7 @@ public class TSFUtils {
         profileIndexArray = createPopulatedArray(BUFFER_SIZE);
         profileMzArray = new double[BUFFER_SIZE];
       }
-    } while (numDataPoints == 0);
+    } while (numDataPoints == 0 || numDataPoints > profileIndexArray.length);
 
     tsfdata.tsf_index_to_mz(handle, frameId, profileIndexArray, profileMzArray, numDataPoints);
 
@@ -134,9 +135,19 @@ public class TSFUtils {
     return mzIntensities;
   }
 
+  /**
+   * @param file
+   * @param handle
+   * @param frameId
+   * @param metaDataTable
+   * @param frameTable
+   * @param maldiTable
+   * @param spectrumType  The spectrum type to load.
+   * @return
+   */
   public ImagingScan loadMaldiScan(RawDataFile file, final long handle, final long frameId, @Nonnull
       TDFMetaDataTable metaDataTable, @Nonnull TSFFrameTable frameTable, @Nonnull
-      TDFMaldiFrameInfoTable maldiTable) {
+      TDFMaldiFrameInfoTable maldiTable, MassSpectrumType spectrumType) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final String scanDefinition = metaDataTable.getInstrumentType() + " - "
@@ -151,7 +162,10 @@ public class TSFUtils {
         maldiTable.getTransformedXIndexPos((int) (frameIndex)),
         maldiTable.getTransformedYIndexPos((int) (frameIndex)), 0);
 
-    double[][] mzIntensities = loadCentroidSpectrum(handle, frameId);
+    double[][] mzIntensities = switch (spectrumType) {
+      case PROFILE -> loadProfileSpectrum(handle, frameId);
+      case CENTROIDED, THRESHOLDED -> loadCentroidSpectrum(handle, frameId);
+    };
 
     return new SimpleImagingScan(file, Math.toIntExact(frameId), msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), 0, 0, mzIntensities[0],

@@ -7,6 +7,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
@@ -25,6 +26,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureConvertorIonMobility;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,6 +39,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 public class IonMobilityImageExpanderTask extends AbstractTask {
 
@@ -54,7 +57,8 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
   private String description;
 
   public IonMobilityImageExpanderTask(MZmineProject project, ParameterSet parameters,
-      ModularFeatureList flist) {
+      ModularFeatureList flist, @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.flist = flist;
 //    mzTolerance = new MZTolerance(0, 20);
@@ -84,24 +88,24 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
 
 //    List<List<ModularFeature>> partionedLists = Lists.partition(sortedFeatures, featuresPerStep);
 
-
     final IMSImagingRawDataFile file = (IMSImagingRawDataFile) flist.getRawDataFile(0);
 
     description = "Sorting frames";
     List<ImagingFrame> frames = new ArrayList<>((Collection<ImagingFrame>) file.getFrames(1));
     frames.sort(Comparator.comparingInt(Frame::getFrameId));
 
-    final ModularFeatureList newflist = new ModularFeatureList(flist.getName() + " ims", file);
+    final ModularFeatureList newflist = new ModularFeatureList(flist.getName() + " ims",
+        getMemoryMapStorage(), file);
     newflist.addRowType(new FeatureShapeMobilogramType());
     AtomicInteger emptyImageCounter = new AtomicInteger(0);
     List<ModularFeature> sublist = sortedFeatures;
-      Range<Double> mzRange = getListMZRange(sublist);
+    Range<Double> mzRange = getListMZRange(sublist);
     SortedSet<RetentionTimeMobilityDataPoint> dps = extractDataPoints(frames, mzRange);
 
-      description = "Extracting data points";
-      if (isCanceled()) {
-        return;
-      }
+    description = "Extracting data points";
+    if (isCanceled()) {
+      return;
+    }
 
       // sort dps and features by their intensity to associate them. I know this is rather
       // primitive, but should work for now.
@@ -207,18 +211,12 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
       description = "Extracting data points for frame " + processed.get() + "/" + total;
       List<MobilityScan> mobilityScans = frame.getMobilityScans();
       for (MobilityScan mobScan : mobilityScans) {
-//        MassList ml = mobScan.getMassLists().stream().findFirst().get();
-//        DataPoint[] points = ml
-//            .getDataPoints(); //ScanUtils.getDataPointsByMass(ml.getDataPoints(), mzRange);
-//        for (DataPoint d : points) {
-//          dps.add(new RetentionTimeMobilityDataPoint(mobScan, d.getMZ(), d.getIntensity()));
-//        }
-
-        dataBuffer[0] = mobScan.getMzValues(dataBuffer[0]);
-        dataBuffer[1] = mobScan.getIntensityValues(dataBuffer[1]);
+        MassList ml = mobScan.getMassList();
+        dataBuffer[0] = ml.getMzValues(dataBuffer[0]);
+        dataBuffer[1] = ml.getIntensityValues(dataBuffer[1]);
 //        double[][] filtered = DataPointUtils
 //            .getDataPointsInMzRange(dataBuffer[0], dataBuffer[1], mzRange);
-        for (int i = 0; i < mobScan.getNumberOfDataPoints(); i++) {
+        for (int i = 0; i < ml.getNumberOfDataPoints(); i++) {
           dps.add(new RetentionTimeMobilityDataPoint(mobScan, dataBuffer[0][i], dataBuffer[1][i]));
         }
         resetBuffer(dataBuffer);

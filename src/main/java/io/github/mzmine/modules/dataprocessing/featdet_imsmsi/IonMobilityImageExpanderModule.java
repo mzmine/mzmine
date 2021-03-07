@@ -7,6 +7,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,7 +41,8 @@ public class IonMobilityImageExpanderModule implements
     for (ModularFeatureList matchingFeatureList : parameters
         .getParameter(IonMobilityImageExpanderParameters.featureLists).getValue()
         .getMatchingFeatureLists()) {
-      tasks.add(new IonMobilityImageExpanderTask(project, parameters, matchingFeatureList));
+      tasks.add(new IonMobilityImageExpanderTask(project, parameters, matchingFeatureList,
+          MemoryMapStorage.forFeatureList()));
     }
 
     return ExitCode.OK;
