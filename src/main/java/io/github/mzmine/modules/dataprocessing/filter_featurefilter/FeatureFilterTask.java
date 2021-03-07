@@ -62,7 +62,7 @@ public class FeatureFilterTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list feature list to process.
+   * @param list         feature list to process.
    * @param parameterSet task parameters.
    */
   public FeatureFilterTask(final MZmineProject project, final FeatureList list,
@@ -100,7 +100,7 @@ public class FeatureFilterTask extends AbstractTask {
       logger.info("Filtering feature list");
 
       // Filter the feature list
-      filteredPeakList = filterPeakList(origPeakList);
+      filteredPeakList = filterPeakList((ModularFeatureList) origPeakList);
 
       if (!isCanceled()) {
 
@@ -129,12 +129,15 @@ public class FeatureFilterTask extends AbstractTask {
    * @param peakList feature list to filter.
    * @return a new feature list with entries of the original feature list that pass the filtering.
    */
-  private ModularFeatureList filterPeakList(final FeatureList peakList) {
+  private ModularFeatureList filterPeakList(final ModularFeatureList peakList) {
 
     // Make a copy of the peakList
-    final ModularFeatureList newPeakList = new ModularFeatureList(
+//    final ModularFeatureList newPeakList = new ModularFeatureList(
+//        peakList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
+//        getMemoryMapStorage(), peakList.getRawDataFiles());
+    final ModularFeatureList newPeakList = peakList.createCopy(
         peakList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
-        getMemoryMapStorage(), peakList.getRawDataFiles());
+        getMemoryMapStorage());
 
     // Get parameters - which filters are active
     final boolean filterByDuration =
@@ -155,7 +158,7 @@ public class FeatureFilterTask extends AbstractTask {
         parameters.getParameter(FeatureFilterParameters.MS2_Filter).getValue();
 
     // Loop through all rows in feature list
-    final ModularFeatureListRow[] rows = peakList.getRows().toArray(ModularFeatureListRow[]::new);
+    final ModularFeatureListRow[] rows = newPeakList.getRows().toArray(ModularFeatureListRow[]::new);
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
       final ModularFeatureListRow row = rows[processedRows];
@@ -231,8 +234,9 @@ public class FeatureFilterTask extends AbstractTask {
 
         // Check FWHM
         if (filterByFWHM) {
-          final Range<Float> fwhmRange = RangeUtils.toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_FWHM)
-              .getEmbeddedParameter().getValue());
+          final Range<Float> fwhmRange = RangeUtils
+              .toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_FWHM)
+                  .getEmbeddedParameter().getValue());
           if (!fwhmRange.contains(peakFWHM)) {
             // Mark peak to be removed
             keepPeak[i] = false;
@@ -242,8 +246,9 @@ public class FeatureFilterTask extends AbstractTask {
         // Check Tailing Factor
         if (filterByTailingFactor) {
           final Range<Float> tailingRange =
-              RangeUtils.toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR)
-                  .getEmbeddedParameter().getValue());
+              RangeUtils
+                  .toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR)
+                      .getEmbeddedParameter().getValue());
           if (!tailingRange.contains(peakTailingFactor)) {
             // Mark peak to be removed
             keepPeak[i] = false;
@@ -253,8 +258,9 @@ public class FeatureFilterTask extends AbstractTask {
         // Check height
         if (filterByAsymmetryFactor) {
           final Range<Float> asymmetryRange =
-              RangeUtils.toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR)
-                  .getEmbeddedParameter().getValue());
+              RangeUtils.toFloatRange(
+                  parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR)
+                      .getEmbeddedParameter().getValue());
           if (!asymmetryRange.contains(peakAsymmetryFactor)) {
             // Mark peak to be removed
             keepPeak[i] = false;
@@ -263,14 +269,22 @@ public class FeatureFilterTask extends AbstractTask {
 
         // Check MS/MS filter
         if (filterByMS2) {
-          if (msmsScanNumber != null)
+          if (msmsScanNumber != null) {
             keepPeak[i] = false;
+          }
         }
       }
       // empty row?
       boolean isEmpty = Booleans.asList(keepPeak).stream().allMatch(keep -> !keep);
-      if (!isEmpty)
-        newPeakList.addRow(copyPeakRow(newPeakList, row, keepPeak));
+      if(isEmpty) {
+        newPeakList.removeRow(row);
+      } else {
+        for(int i = 0; i < rawdatafiles.length; i++) {
+          if(!keepPeak[i]) {
+            row.removeFeature(rawdatafiles[i]);
+          }
+        }
+      }
 
     }
 

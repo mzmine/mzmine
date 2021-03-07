@@ -77,6 +77,7 @@ public class ImageBuilderTask extends AbstractTask {
   private double progress = 0.0;
   private String taskDescription = "";
   private final ParameterSet parameterSet;
+  private final ModularFeatureList featureList;
 
   public ImageBuilderTask(MZmineProject project, RawDataFile rawDataFile, ParameterSet parameters,
       @Nullable
@@ -93,8 +94,10 @@ public class ImageBuilderTask extends AbstractTask {
     this.paintScaleParameter =
         parameters.getParameter(ImageBuilderParameters.paintScale).getValue();
     this.suffix = parameters.getParameter(ImageBuilderParameters.suffix).getValue();
-    setStatus(TaskStatus.WAITING);
     this.parameterSet = parameters;
+    featureList = new ModularFeatureList(rawDataFile + " " + suffix, getMemoryMapStorage(),
+        rawDataFile);
+    setStatus(TaskStatus.WAITING);
   }
 
   @Override
@@ -150,7 +153,8 @@ public class ImageBuilderTask extends AbstractTask {
       }
       if (scan.getMassList() == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Scan #" + scan.getScanNumber() + " does not have a mass list. Run mass detection ");
+        setErrorMessage(
+            "Scan #" + scan.getScanNumber() + " does not have a mass list. Run mass detection ");
       } else {
         Arrays.stream(scan.getMassList().getDataPoints())
             .forEach(dp -> allDataPoints.add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(),
@@ -160,7 +164,9 @@ public class ImageBuilderTask extends AbstractTask {
       }
       progress = (processedScans / (double) scans.length) / 4;
       processedScans++;
+      featureList.setSelectedScans(rawDataFile, List.of(scans));
     }
+
     logger.info("Extracted " + allDataPoints.size() + " ims data points");
     return allDataPoints;
   }
@@ -357,8 +363,6 @@ public class ImageBuilderTask extends AbstractTask {
 
   private void buildModularFeatureList(SortedSet<IImage> images) {
     taskDescription = "Build feature list";
-    ModularFeatureList featureList =
-        new ModularFeatureList(rawDataFile + " " + suffix, getMemoryMapStorage(), rawDataFile);
     // featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
     // featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
     // featureList.addRowType(new FeatureShapeMobilogramType());

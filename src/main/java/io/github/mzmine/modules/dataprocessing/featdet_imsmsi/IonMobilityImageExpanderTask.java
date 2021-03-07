@@ -96,6 +96,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
 
     final ModularFeatureList newflist = new ModularFeatureList(flist.getName() + " ims",
         getMemoryMapStorage(), file);
+    newflist.setSelectedScans(file, flist.getSeletedScans(file));
     newflist.addRowType(new FeatureShapeMobilogramType());
     AtomicInteger emptyImageCounter = new AtomicInteger(0);
     List<ModularFeature> sublist = sortedFeatures;
