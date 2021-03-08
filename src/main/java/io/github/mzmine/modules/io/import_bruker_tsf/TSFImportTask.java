@@ -50,8 +50,8 @@ public class TSFImportTask extends AbstractTask {
   private String description;
   private File tsf;
   private File tsf_bin;
-  private int totalScans;
-  private int processedScans;
+  private int totalScans = 1;
+  private int processedScans = 0;
 
   public TSFImportTask(MZmineProject project, File fileName, ImagingRawDataFile newMZmineFile) {
     super(null);
