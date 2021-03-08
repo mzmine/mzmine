@@ -274,8 +274,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
       }
 
-      // Scale precursor intensity
-      precursorIntensity = scaleIntensity(precursorIntensity);
+      // Scale precursor intensity (fifth root scaling looks the best on tested files)
+      precursorIntensity = Math.pow(precursorIntensity, 0.2);
 
       // Find max precursor intensity for further normalization
       if (precursorIntensity > maxPrecursorIntensity) {
@@ -319,8 +319,9 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           }
         }
 
-        // Product intensity(scaled)
-        double productIntensity = scaleIntensity(intensityValue);
+        // Product intensity
+        // Scale precursor intensity (value 0.15 is just empirical)
+        double productIntensity = Math.pow(intensityValue, 0.15);
         if (productIntensity > maxProductIntensity) {
           maxProductIntensity = productIntensity;
         }
@@ -432,10 +433,6 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     for (MsMsDataPoint dataPoint : dataPoints) {
       dataPoint.setHighlighted(mzRange.contains(dataPoint.getPrecursorMz()));
     }
-  }
-
-  private double scaleIntensity(double intensity) {
-    return Math.pow(intensity, 0.2);
   }
 
   public MsMsDataPoint getDataPoint(int index) {
