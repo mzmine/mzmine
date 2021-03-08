@@ -34,6 +34,9 @@ public class ImageType extends LinkedDataType
       return null;
     }
     ModularFeature feature = row.getFeature(raw);
+    if(feature == null) {
+      return null;
+    }
 
     // get existing buffered node from row (for column name)
     // TODO listen to changes in features data

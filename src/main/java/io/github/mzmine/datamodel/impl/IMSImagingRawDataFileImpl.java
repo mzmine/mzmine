@@ -61,7 +61,7 @@ public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMS
     //
     Scan[][][] numbers = getXYZScanNumbers();
     // yline:
-    int iy = (int) ((y) / param.getPixelShape());
+    int iy = (int) ((y) / param.getPixelHeight());
     int ix = (int) (x / param.getPixelWidth());
 
     if (ix >= 0 && ix < numbers.length && iy >= 0 && iy < numbers[ix].length
@@ -83,10 +83,10 @@ public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMS
     y2 = Math.max(tmp, y2);
 
     Scan[][][] numbers = getXYZScanNumbers();
-    int iy = (int) ((y) / param.getPixelShape());
+    int iy = (int) ((y) / param.getPixelHeight());
     int ix = (int) (x / param.getPixelWidth());
 
-    int iy2 = (int) ((y2) / param.getPixelShape());
+    int iy2 = (int) ((y2) / param.getPixelHeight());
     int ix2 = (int) (x2 / param.getPixelWidth());
 
     List<Scan> list = new ArrayList<>();

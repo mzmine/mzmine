@@ -61,7 +61,7 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     //
     Scan[][][] numbers = getXYZScanNumbers();
     // yline:
-    int iy = (int) ((y) / param.getPixelShape());
+    int iy = (int) ((y) / param.getPixelHeight());
     int ix = (int) (x / param.getPixelWidth());
 
     if (ix >= 0 && ix < numbers.length && iy >= 0 && iy < numbers[ix].length
@@ -82,10 +82,10 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     y2 = Math.max(tmp, y2);
 
     Scan[][][] numbers = getXYZScanNumbers();
-    int iy = (int) ((y) / param.getPixelShape());
+    int iy = (int) ((y) / param.getPixelHeight());
     int ix = (int) (x / param.getPixelWidth());
 
-    int iy2 = (int) ((y2) / param.getPixelShape());
+    int iy2 = (int) ((y2) / param.getPixelHeight());
     int ix2 = (int) (x2 / param.getPixelWidth());
 
     List<Scan> list = new ArrayList<>();
@@ -107,7 +107,7 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
    * @return
    */
   public Scan[][][] getXYZScanNumbers() {
-    if (xyzScanNumbers == null) {
+//    if (xyzScanNumbers == null) {
       // sort all scan numbers to xyz location
       xyzScanNumbers = new Scan[param.getMaxNumberOfPixelX()][param.getMaxNumberOfPixelY()][param
           .getMaxNumberOfPixelZ()];
@@ -128,7 +128,7 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
             xyzScanNumbers[c.getX()][c.getY()][c.getZ()] = numbers.get(i);
         }
       }
-    }
+//    }
     return xyzScanNumbers;
   }
 

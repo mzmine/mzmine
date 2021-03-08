@@ -109,7 +109,7 @@ public interface TSFData extends Library {
    * @return 0 on error, otherwise the number of entries necessary for the output array of this call
    * (if this is larger than the provided output array length, the result is not complete).
    */
-  long tsf_read_profile_spectrum(long handle, long spectrum_id, long[] profile_array, long len);
+  long tsf_read_profile_spectrum(long handle, long spectrum_id, byte[] profile_array, long len);
 
   /// -----------------------------------------------------------------------------------
   ///

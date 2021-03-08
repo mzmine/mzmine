@@ -53,7 +53,7 @@ public class ImagingParameters {
   private double lateralWidth;
   private double lateralHeight;
   private double pixelWidth = 1;
-  private double pixelShape = 1;
+  private double pixelHeight = 1;
   // max number of pixels in x and y and z (depth)
   private int maxNumberOfPixelX;
   private int maxNumberOfPixelY;
@@ -95,7 +95,7 @@ public class ImagingParameters {
             - maldiFrameInfoTable.getMotorPositionYColumn().stream().max(Double::compare).get());
 
     pixelWidth = getLateralWidth() / getMaxNumberOfPixelX();
-//    pixelHeight = getLateralHeight() / getMaxNumberOfPixelY();
+    pixelHeight = getLateralHeight() / getMaxNumberOfPixelY();
   }
 
   public ImagingParameters(ImzML imz) {
@@ -137,7 +137,7 @@ public class ImagingParameters {
         if (p != null) {
           pixelWidth = p.getValueAsDouble();
         }
-        pixelShape = pixelWidth;
+        pixelHeight = pixelWidth;
 
         p = scanSettings.getCVParam(ScanSettings.SCAN_PATTERN_MEANDERING_ID);
         if (p != null) {
@@ -202,12 +202,12 @@ public class ImagingParameters {
     this.pixelWidth = pixelWidth;
   }
 
-  public double getPixelShape() {
-    return pixelShape;
+  public double getPixelHeight() {
+    return pixelHeight;
   }
 
-  public void setPixelShape(double pixelShape) {
-    this.pixelShape = pixelShape;
+  public void setPixelHeight(double pixelHeight) {
+    this.pixelHeight = pixelHeight;
   }
 
   public int getMaxNumberOfPixelX() {
@@ -292,7 +292,7 @@ public class ImagingParameters {
     temp = Double.doubleToLongBits(minMZ);
     result = prime * result + (int) (temp ^ (temp >>> 32));
     result = prime * result + ((pattern == null) ? 0 : pattern.hashCode());
-    temp = Double.doubleToLongBits(pixelShape);
+    temp = Double.doubleToLongBits(pixelHeight);
     result = prime * result + (int) (temp ^ (temp >>> 32));
     temp = Double.doubleToLongBits(pixelWidth);
     result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -341,7 +341,7 @@ public class ImagingParameters {
     if (pattern != other.pattern) {
       return false;
     }
-    if (Double.doubleToLongBits(pixelShape) != Double.doubleToLongBits(other.pixelShape)) {
+    if (Double.doubleToLongBits(pixelHeight) != Double.doubleToLongBits(other.pixelHeight)) {
       return false;
     }
     if (Double.doubleToLongBits(pixelWidth) != Double.doubleToLongBits(other.pixelWidth)) {

@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.io.import_bruker_tsf;
 
 import com.google.common.collect.Range;
+import com.google.common.primitives.Longs;
 import com.sun.jna.Native;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -38,6 +39,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
@@ -54,9 +56,14 @@ public class TSFUtils {
   private double[] centroidMzArray = new double[BUFFER_SIZE];
 
   // profile
-  private long[] profileIntensityArray = new long[BUFFER_SIZE];
+  private byte[] profileIntensityBufferArray = new byte[BUFFER_SIZE * 4]; // unit32_t
+  private long[] profileIntensityArray = new long[BUFFER_SIZE]; // unit32_t
   private double[] profileIndexArray = createPopulatedArray(BUFFER_SIZE);
   private double[] profileMzArray = new double[BUFFER_SIZE];
+
+  private double[] profileDeletedZeroMzs;
+  private double[] profileDeletedZeroIntensities;
+
 
   TSFUtils() throws IOException, UnsupportedOperationException {
     try {
@@ -112,26 +119,32 @@ public class TSFUtils {
     long numDataPoints = 0;
     do {
       numDataPoints = tsfdata
-          .tsf_read_profile_spectrum(handle, frameId, profileIntensityArray,
-              profileIntensityArray.length);
+          .tsf_read_profile_spectrum(handle, frameId, profileIntensityBufferArray,
+              BUFFER_SIZE);
 
       // check if the buffer size was enough
       if (printLastError(numDataPoints) || numDataPoints > profileIndexArray.length) {
         BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
         logger.fine(() -> "Could not read scan " + frameId
             + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+        profileIntensityBufferArray = new byte[BUFFER_SIZE * 4];
         profileIntensityArray = new long[BUFFER_SIZE];
         profileIndexArray = createPopulatedArray(BUFFER_SIZE);
         profileMzArray = new double[BUFFER_SIZE];
       }
     } while (numDataPoints == 0 || numDataPoints > profileIndexArray.length);
 
-    tsfdata.tsf_index_to_mz(handle, frameId, profileIndexArray, profileMzArray, numDataPoints);
+    convertUnsignedIntArrayToLong(profileIntensityBufferArray, profileIntensityArray);
+
+    AtomicInteger numValues = new AtomicInteger(0);
+    double[][] filtered = deleteZeroIntensities(profileIndexArray, profileIntensityArray,
+        numValues);
+
+    tsfdata.tsf_index_to_mz(handle, frameId, filtered[0], profileMzArray, numDataPoints);
 
     double[][] mzIntensities = new double[2][];
-    mzIntensities[0] = Arrays.copyOfRange(profileMzArray, 0, (int) numDataPoints);
-    mzIntensities[1] = ConversionUtils
-        .convertLongsToDoubles(profileIntensityArray, (int) numDataPoints);
+    mzIntensities[0] = Arrays.copyOfRange(profileMzArray, 0, numValues.get() - 1);
+    mzIntensities[1] = Arrays.copyOfRange(filtered[1], 0, numValues.get() - 1);
     return mzIntensities;
   }
 
@@ -169,7 +182,7 @@ public class TSFUtils {
 
     return new SimpleImagingScan(file, Math.toIntExact(frameId), msLevel,
         (float) (frameTable.getTimeColumn().get(frameIndex) / 60), 0, 0, mzIntensities[0],
-        mzIntensities[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange, coords);
+        mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange, coords);
   }
 
   private boolean loadLibrary()
@@ -270,6 +283,71 @@ public class TSFUtils {
       return true;
     } else {
       return false;
+    }
+  }
+
+  public double[][] deleteZeroIntensities(@Nonnull final double[] mzs,
+      @Nonnull final long[] intensities,
+      @Nonnull AtomicInteger outNumValues) {
+    // if they are assigned after the first spectrum has been loaded, we should have enough space since the scan range should not change
+    if (profileDeletedZeroMzs == null || profileDeletedZeroIntensities == null) {
+      profileDeletedZeroMzs = new double[mzs.length];
+      profileDeletedZeroIntensities = new double[intensities.length];
+    }
+
+    profileDeletedZeroIntensities[0] = 0d;
+    profileDeletedZeroMzs[0] = mzs[0];
+
+    final int currentBufferSize = profileDeletedZeroMzs.length;
+
+    int numValues = 0;
+
+    for (int i = 1; i < intensities.length - 1; i++) {
+      /*if (i >= currentBufferSize) {
+        profileDeletedZeroMzs = new double[mzs.length];
+        profileDeletedZeroIntensities = new double[intensities.length];
+        i = 1;
+        numValues = 0;
+      }*/
+
+      if (intensities[i] != 0 // current value != 0
+          || intensities[i + 1] > 0 // next value != 0
+          || intensities[i - 1] > 0) { // previous value != 0
+        profileDeletedZeroMzs[numValues] = mzs[i];
+        profileDeletedZeroIntensities[numValues] = (double) intensities[i];
+        numValues++;
+      }
+    }
+
+    // add a last 0
+    profileDeletedZeroMzs[numValues] = mzs[mzs.length - 1];
+    profileDeletedZeroIntensities[numValues] = 0d;
+    numValues++;
+    outNumValues.set(numValues);
+
+    double[][] filtered = new double[2][];
+    filtered[0] = profileDeletedZeroMzs;
+    filtered[1] = profileDeletedZeroIntensities;
+    return filtered;
+  }
+
+  private void convertUnsignedIntArrayToLong(byte[] uint32t, long[] dst) {
+    assert dst.length == uint32t.length / 4;
+    final byte zeroByte = 0;
+    for (int i = 0; i < uint32t.length / 4; i++) {
+//      dst[i] = Longs.fromBytes(b, b, b, b, uint32t[i * 4], uint32t[i * 4 + 1], uint32t[i * 4 + 2],
+//          uint32t[i * 4 + 3]);
+      dst[i] = Longs
+          .fromBytes(zeroByte, zeroByte, zeroByte, zeroByte, uint32t[i * 4 + 3], uint32t[i * 4 + 2],
+              uint32t[i * 4 + 1],
+              uint32t[i * 4]);
+      /*if (dst[i] != 0) {
+        logger
+            .info(String.format("%02X %02X %02X %02X %02X %02X %02X", zeroByte, zeroByte, zeroByte,
+                zeroByte, uint32t[i * 4 + 3], uint32t[i * 4 + 2], uint32t[i * 4 + 1],
+                uint32t[i * 4]));
+        logger.info("" + dst[i]);
+      }*/
     }
   }
 }
