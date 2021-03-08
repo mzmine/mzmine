@@ -126,7 +126,7 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
         // Get all values
         double x = dataset.getXValue(series, item);
         double y = dataset.getYValue(series, item);
-        double z = ((ColoredXYZDataset) dataset).getZValue(series, item) % 1;
+        double z = ((ColoredXYZDataset) dataset).getZValue(series, item);
         if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(z)) {
           continue;
         }
