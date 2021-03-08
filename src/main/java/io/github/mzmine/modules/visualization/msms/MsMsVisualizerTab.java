@@ -45,9 +45,13 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -114,10 +118,20 @@ public class MsMsVisualizerTab extends MZmineTab {
       chart.setZAxisType(zAxisTypes.getValue());
     });
     HBox bottomBox = new HBox();
-    bottomBox.setAlignment(Pos.CENTER_LEFT);
-    bottomBox.getChildren().addAll(new Text("  X axis: "), xAxisTypes, new Text("   "),
-        new Separator(Orientation.VERTICAL), new Text("  Y axis: "), yAxisTypes, new Text("   "),
-        new Separator(Orientation.VERTICAL), new Text("  Z axis: "), zAxisTypes);
+    bottomBox.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY,
+        Insets.EMPTY)));
+    bottomBox.setPadding(new Insets(5, 5, 5, 5));
+    bottomBox.setAlignment(Pos.BASELINE_CENTER);
+    Text xAxisText = new Text("  X axis: ");
+    xAxisText.setStyle("-fx-font-weight: bold");
+    Text yAxisText = new Text("  Y axis: ");
+    yAxisText.setStyle("-fx-font-weight: bold");
+    Text zAxisText = new Text("  Z axis: ");
+    zAxisText.setStyle("-fx-font-weight: bold");
+    bottomBox.getChildren().addAll(new Separator(Orientation.VERTICAL), xAxisText, xAxisTypes,
+        new Text("   "), new Separator(Orientation.VERTICAL), yAxisText, yAxisTypes,
+        new Text("   "), new Separator(Orientation.VERTICAL), zAxisText, zAxisTypes,
+        new Text("   "), new Separator(Orientation.VERTICAL));
     borderPane.setBottom(bottomBox);
 
     // Tool bar
