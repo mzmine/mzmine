@@ -103,6 +103,12 @@ public class MZmineTestUtil {
     return finished;
   }
 
+  /**
+   * Check for default sorting
+   *
+   * @param flist feature list
+   * @return
+   */
   public static boolean isSorted(FeatureList flist) {
     return Comparators.isInOrder(flist.getRows(), FeatureListRowSorter.DEFAULT);
   }
