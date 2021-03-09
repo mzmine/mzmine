@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Booleans;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -153,22 +154,50 @@ public class FeatureFilterTask extends AbstractTask {
     final boolean filterByMS2 =
         parameters.getParameter(FeatureFilterParameters.MS2_Filter).getValue();
 
+    final Range<Double> durationRange =
+        parameters.getParameter(FeatureFilterParameters.PEAK_DURATION).getEmbeddedParameter()
+            .getValue();
+    final Range<Double> areaRange = parameters.getParameter(FeatureFilterParameters.PEAK_AREA)
+        .getEmbeddedParameter().getValue();
+    final Range<Double> heightRange = parameters
+        .getParameter(FeatureFilterParameters.PEAK_HEIGHT).getEmbeddedParameter().getValue();
+    final Range<Integer> datapointsRange =
+        parameters.getParameter(FeatureFilterParameters.PEAK_DATAPOINTS)
+            .getEmbeddedParameter().getValue();
+    final Range<Float> fwhmRange = RangeUtils
+        .toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_FWHM)
+            .getEmbeddedParameter().getValue());
+    final Range<Float> tailingRange =
+        RangeUtils
+            .toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR)
+                .getEmbeddedParameter().getValue());
+    final Range<Float> asymmetryRange =
+        RangeUtils.toFloatRange(
+            parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR)
+                .getEmbeddedParameter().getValue());
+
     // Loop through all rows in feature list
     final ModularFeatureListRow[] rows = newPeakList.getRows()
         .toArray(ModularFeatureListRow[]::new);
+    final RawDataFile[] rawdatafiles = newPeakList.getRawDataFiles().toArray(new RawDataFile[0]);
+    int totalRawDataFiles = rawdatafiles.length;
+    boolean[] keepPeak = new boolean[totalRawDataFiles];
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
       final ModularFeatureListRow row = rows[processedRows];
-      final RawDataFile[] rawdatafiles = row.getRawDataFiles().toArray(new RawDataFile[0]);
-      int totalRawDataFiles = rawdatafiles.length;
-      boolean[] keepPeak = new boolean[totalRawDataFiles];
 
       for (int i = 0; i < totalRawDataFiles; i++) {
         // Peak values
         keepPeak[i] = true;
         final Feature peak = row.getFeature(rawdatafiles[i]);
+        // no feature for raw data file
+        if (peak == null || peak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
+          keepPeak[i] = false;
+          continue;
+        }
+
         final double peakDuration = peak.getRawDataPointsRTRange().upperEndpoint()
-            - peak.getRawDataPointsRTRange().lowerEndpoint();
+                                    - peak.getRawDataPointsRTRange().lowerEndpoint();
         final double peakArea = peak.getArea();
         final double peakHeight = peak.getHeight();
         final int peakDatapoints = peak.getScanNumbers().size();
@@ -188,89 +217,26 @@ public class FeatureFilterTask extends AbstractTask {
         }
 
         // Check Duration
-        if (filterByDuration) {
-          final Range<Double> durationRange =
-              parameters.getParameter(FeatureFilterParameters.PEAK_DURATION).getEmbeddedParameter()
-                  .getValue();
-          if (!durationRange.contains(peakDuration)) {
-            // Mark peak to be removed
-            keepPeak[i] = false;
-          }
-        }
-
         // Check Area
-        if (filterByArea) {
-          final Range<Double> areaRange = parameters.getParameter(FeatureFilterParameters.PEAK_AREA)
-              .getEmbeddedParameter().getValue();
-          if (!areaRange.contains(peakArea)) {
-            // Mark peak to be removed
-            keepPeak[i] = false;
-          }
-        }
-
         // Check Height
-        if (filterByHeight) {
-          final Range<Double> heightRange = parameters
-              .getParameter(FeatureFilterParameters.PEAK_HEIGHT).getEmbeddedParameter().getValue();
-          if (!heightRange.contains(peakHeight)) {
-            // Mark peak to be removed
-            keepPeak[i] = false;
-          }
-        }
-
         // Check # Data Points
-        if (filterByDatapoints) {
-          final Range<Integer> datapointsRange =
-              parameters.getParameter(FeatureFilterParameters.PEAK_DATAPOINTS)
-                  .getEmbeddedParameter().getValue();
-          if (!datapointsRange.contains(peakDatapoints)) {
-            // Mark peak to be removed
-            keepPeak[i] = false;
-          }
-        }
-
         // Check FWHM
-        if (filterByFWHM) {
-          final Range<Float> fwhmRange = RangeUtils
-              .toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_FWHM)
-                  .getEmbeddedParameter().getValue());
-          if (!fwhmRange.contains(peakFWHM)) {
-            // Mark peak to be removed
-            keepPeak[i] = false;
-          }
-        }
-
         // Check Tailing Factor
-        if (filterByTailingFactor) {
-          final Range<Float> tailingRange =
-              RangeUtils
-                  .toFloatRange(parameters.getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR)
-                      .getEmbeddedParameter().getValue());
-          if (!tailingRange.contains(peakTailingFactor)) {
-            // Mark peak to be removed
-            keepPeak[i] = false;
-          }
-        }
-
-        // Check height
-        if (filterByAsymmetryFactor) {
-          final Range<Float> asymmetryRange =
-              RangeUtils.toFloatRange(
-                  parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR)
-                      .getEmbeddedParameter().getValue());
-          if (!asymmetryRange.contains(peakAsymmetryFactor)) {
-            // Mark peak to be removed
-            keepPeak[i] = false;
-          }
-        }
-
         // Check MS/MS filter
-        if (filterByMS2 && msmsScanNumber != null) {
+        if ((filterByDuration && !durationRange.contains(peakDuration)) ||
+            (filterByArea && !areaRange.contains(peakArea)) ||
+            (filterByHeight && !heightRange.contains(peakHeight)) ||
+            (filterByDatapoints && !datapointsRange.contains(peakDatapoints)) ||
+            (filterByFWHM && !fwhmRange.contains(peakFWHM)) ||
+            (filterByTailingFactor && !tailingRange.contains(peakTailingFactor)) ||
+            (filterByAsymmetryFactor && !asymmetryRange.contains(peakAsymmetryFactor)) ||
+            (filterByMS2 && msmsScanNumber != null)) {
+          // Mark peak to be removed
           keepPeak[i] = false;
         }
       }
       // empty row?
-      boolean isEmpty = Booleans.asList(keepPeak).stream().allMatch(keep -> !keep);
+      boolean isEmpty = Booleans.asList(keepPeak).stream().noneMatch(keep -> keep);
       if (isEmpty) {
         newPeakList.removeRow(row);
       } else {
@@ -280,7 +246,6 @@ public class FeatureFilterTask extends AbstractTask {
           }
         }
       }
-
     }
 
     newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
