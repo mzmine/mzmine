@@ -28,11 +28,11 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -55,8 +55,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    * @param mz
    */
   public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage,
-      List<IonMobilitySeries> mobilograms,
-      double mz) {
+      @Nonnull List<IonMobilitySeries> mobilograms, double mz) {
 
     this.mz = mz;
     Frame exampleFrame = mobilograms.get(0).getSpectra().get(0).getFrame();
@@ -92,23 +91,8 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
         .mapToDouble(key -> (key.upperEndpoint() + key.lowerEndpoint()) / 2).toArray();
     double[] intensities = mapOfRanges.values().stream().mapToDouble(Double::doubleValue).toArray();
 
-    DoubleBuffer tempMobility;
-    DoubleBuffer tempIntensities;
-    if (storage != null) {
-      try {
-        tempMobility = storage.storeData(mobilities);
-        tempIntensities = storage.storeData(intensities);
-      } catch (IOException e) {
-        tempMobility = DoubleBuffer.wrap(mobilities);
-        tempIntensities = DoubleBuffer.wrap(intensities);
-        e.printStackTrace();
-      }
-    } else {
-      tempMobility = DoubleBuffer.wrap(mobilities);
-      tempIntensities = DoubleBuffer.wrap(intensities);
-    }
-    mobilityValues = tempMobility;
-    intensityValues = tempIntensities;
+    mobilityValues = StorageUtils.storeValuesToDoubleBuffer(storage, mobilities);
+    intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
 
   /**
@@ -120,26 +104,11 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    * @param intensities
    * @param mz
    */
-  public SummedIntensityMobilitySeries(MemoryMapStorage storage, double[] mobilities,
+  public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage, double[] mobilities,
       double[] intensities, double mz) {
     this.mz = mz;
-    DoubleBuffer tempMobility;
-    DoubleBuffer tempIntensities;
-    if (storage != null) {
-      try {
-        tempMobility = storage.storeData(mobilities);
-        tempIntensities = storage.storeData(intensities);
-      } catch (IOException e) {
-        tempMobility = DoubleBuffer.wrap(mobilities);
-        tempIntensities = DoubleBuffer.wrap(intensities);
-        e.printStackTrace();
-      }
-    } else {
-      tempMobility = DoubleBuffer.wrap(mobilities);
-      tempIntensities = DoubleBuffer.wrap(intensities);
-    }
-    this.mobilityValues = tempMobility;
-    this.intensityValues = tempIntensities;
+    mobilityValues = StorageUtils.storeValuesToDoubleBuffer(storage, mobilities);
+    intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
 
   public int getNumberOfDataPoints() {
