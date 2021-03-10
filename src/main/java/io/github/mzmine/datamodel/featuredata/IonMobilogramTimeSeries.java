@@ -63,7 +63,19 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
   IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues,
       @Nonnull List<IonMobilitySeries> newMobilograms,
+      @Nullable double[] summedMobilogramMobilities,
       @Nullable double[] smoothedSummedMobilogramIntensities);
+
+  /**
+   * Allows creation of a new {@link IonMobilogramTimeSeries} with processed {@link
+   * SummedIntensityMobilitySeries}.
+   *
+   * @param storage
+   * @param summedMobilogram
+   * @return
+   */
+  IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
+      @Nonnull SummedIntensityMobilitySeries summedMobilogram);
 
   /**
    * @param scan

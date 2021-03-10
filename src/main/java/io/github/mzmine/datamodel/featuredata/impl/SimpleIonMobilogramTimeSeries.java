@@ -27,16 +27,12 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.maths.CenterMeasure;
-import io.github.mzmine.util.maths.Weighting;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -46,11 +42,6 @@ import javax.annotation.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
-
-  private static final Logger logger = Logger.getLogger(SimpleIonTimeSeries.class.getName());
-
-  private static final CenterFunction mzCentering = new CenterFunction(CenterMeasure.AVG,
-      Weighting.logger10, 0d, 4);
 
   protected final List<IonMobilitySeries> mobilograms;
   protected final List<Frame> frames;
@@ -71,7 +62,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    * @param mobilograms
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[], List,
-   * double[])
+   * double[], double[])
    */
   public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage,
       @Nonnull List<IonMobilitySeries> mobilograms) {
@@ -112,7 +103,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    * @param frames
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[], List,
-   * double[])
+   * double[], double[])
    */
   public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
       @Nonnull double[] intensities, List<IonMobilitySeries> mobilograms,
@@ -150,7 +141,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    * @param smoothedSummedMobilogramIntensities
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[], List,
-   * double[])
+   * double[], double[])
    */
   public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
       @Nonnull double[] intensities, @Nonnull List<IonMobilitySeries> mobilograms,
@@ -182,11 +173,6 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
 
-  @Override
-  public List<Frame> getSpectraModifiable() {
-    return frames;
-  }
-
   public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
       @Nonnull double[] intensities, @Nonnull List<IonMobilitySeries> mobilograms,
       @Nonnull List<Frame> frames, @Nonnull final SummedIntensityMobilitySeries summedMobilogram) {
@@ -216,7 +202,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    *                wrapping over and over
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[], List,
-   * double[])
+   * double[], double[])
    */
   private SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage,
       @Nonnull IonMobilogramTimeSeries series, List<Frame> frames) {
@@ -234,6 +220,11 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, data[0]);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, data[1]);
+  }
+
+  @Override
+  public List<Frame> getSpectraModifiable() {
+    return frames;
   }
 
   @Override
@@ -350,6 +341,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    * @param newMzValues
    * @param newIntensityValues
    * @param newMobilograms
+   * @param summedMobilogramMobilities
    * @param smoothedSummedMobilogramIntensities If the summed mobilogram has been smoothed, the
    *                                            smoothed intensities can be passed here. If null,
    *                                            the previous intensities will be used.
@@ -359,9 +351,9 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
       @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues,
       @Nonnull List<IonMobilitySeries> newMobilograms,
+      @Nullable double[] summedMobilogramMobilities,
       @Nullable double[] smoothedSummedMobilogramIntensities) {
 
-    double[] summedMobilogramMobilities = null;
     if (smoothedSummedMobilogramIntensities != null) {
       summedMobilogramMobilities = DataPointUtils
           .getDoubleBufferAsArray(getSummedMobilogram().getMobilityValues());
@@ -372,17 +364,35 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
         smoothedSummedMobilogramIntensities);
   }
 
+  /**
+   * Allows creation of a new {@link IonMobilogramTimeSeries} with processed {@link
+   * SummedIntensityMobilitySeries}.
+   *
+   * @param storage
+   * @param summedMobilogram
+   * @return
+   */
+  @Override
+  public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
+      @Nonnull SummedIntensityMobilitySeries summedMobilogram) {
+
+    return new SimpleIonMobilogramTimeSeries(storage,
+        DataPointUtils.getDoubleBufferAsArray(mzValues),
+        DataPointUtils.getDoubleBufferAsArray(intensityValues), mobilograms, frames,
+        summedMobilogram);
+  }
+
   private double[] weightMzs(List<IonMobilitySeries> mobilograms,
       double[] summedIntensities) {
     double[] weightedMzs = new double[mobilograms.size()];
 
     for (int i = 0; i < mobilograms.size(); i++) {
       IonMobilitySeries ims = mobilograms.get(i);
-      DoubleBuffer intensities = ims.getIntensityValues();
-      DoubleBuffer mzValues = ims.getMZValues();
+      DoubleBuffer mobilogramIntensities = ims.getIntensityValues();
+      DoubleBuffer mobilogramMzs = ims.getMZValues();
       double weightedMz = 0;
-      for (int j = 0; j < mzValues.capacity(); j++) {
-        weightedMz += mzValues.get(j) * (intensities.get(j) / summedIntensities[i]);
+      for (int j = 0; j < mobilogramMzs.capacity(); j++) {
+        weightedMz += mobilogramMzs.get(j) * (mobilogramIntensities.get(j) / summedIntensities[i]);
       }
       // due to added zeros, the summed intensity might have been 0 -> NaN
       if (Double.compare(weightedMz, Double.NaN) == 0) {
