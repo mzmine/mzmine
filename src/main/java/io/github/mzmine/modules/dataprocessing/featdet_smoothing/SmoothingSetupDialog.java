@@ -14,13 +14,11 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.Summed
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SGIntensitySmoothing.ZeroHandlingType;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask.SmoothingDimension;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.util.FeatureUtils;
 import java.text.NumberFormat;
-import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,8 +29,6 @@ import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 
 public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
-
-  private static final Logger logger = Logger.getLogger(SmoothingSetupDialog.class.getName());
 
   private final SimpleXYChart<IonTimeSeriesToXYProvider> previewChart;
   private final ColoredXYShapeRenderer smoothedRenderer;

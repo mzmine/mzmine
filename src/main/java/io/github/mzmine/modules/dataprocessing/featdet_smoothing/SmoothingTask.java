@@ -21,7 +21,6 @@ import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SGIntensitySmoothing.ZeroHandlingType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -30,13 +29,10 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class SmoothingTask extends AbstractTask {
-
-  private static final Logger logger = Logger.getLogger(SmoothingTask.class.getName());
 
   private final ModularFeatureList flist;
   private final ParameterSet parameters;
