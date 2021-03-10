@@ -20,7 +20,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -45,7 +44,7 @@ public class ResolvingUtil {
    *
    * @param resolver
    * @param data
-   * @param storage      May be null, if the values shall be stored in ram (e.g. previews)
+   * @param storage       May be null, if the values shall be stored in ram (e.g. previews)
    * @param dimension
    * @param selectedScans
    * @return
@@ -54,6 +53,7 @@ public class ResolvingUtil {
       @Nonnull final IonTimeSeries<? extends Scan> data, @Nullable final MemoryMapStorage storage,
       @Nonnull final ResolvingDimension dimension,
       List<? extends Scan> selectedScans) {
+
     final double[][] extractedData = extractData(data, dimension);
     final int totalScans = getTotalNumberOfScansInDimension(data, dimension, selectedScans);
 
@@ -105,7 +105,7 @@ public class ResolvingUtil {
               .subSeries(null, subset);
           resolvedMobilograms.add(resolvedMobilogram);
         }
-        if(resolvedMobilograms.isEmpty()) {
+        if (resolvedMobilograms.isEmpty()) {
           continue;
         }
 
@@ -147,11 +147,10 @@ public class ResolvingUtil {
         ydata = new double[summedMobilogram.getNumberOfValues()];
 
         // tims 1/k0 decreases with scan number, drift time increases
-        MobilityType mt = mobData.getSpectra().get(0).getMobilityType();
-        int direction = mt == MobilityType.TIMS ? -1 : +1;
+//        MobilityType mt = mobData.getSpectra().get(0).getMobilityType();
+//        int direction = mt == MobilityType.TIMS ? -1 : +1;
         int dataIndex = 0;
-        for (int j = (mt == MobilityType.TIMS ? summedMobilogram.getNumberOfValues() - 1 : 0);
-            j < summedMobilogram.getNumberOfValues() && j >= 0; j += direction) {
+        for (int j = 0; j < summedMobilogram.getNumberOfValues() && j >= 0; j++) {
           xdata[dataIndex] = summedMobilogram.getMobility(j);
           ydata[dataIndex] = summedMobilogram.getIntensity(j);
           dataIndex++;

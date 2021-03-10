@@ -22,7 +22,6 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
@@ -37,7 +36,7 @@ import javax.annotation.Nullable;
 
 /**
  * Stores a summed mobilogram based on the intesities of the frame-specific mobilograms in the
- * constructor.
+ * constructor. It is guaranteed that mobility values are ascending with index.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -62,9 +61,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     double smallestDelta = IonMobilityUtils
         .getSmallestMobilityDelta(exampleFrame);
 
-    // we want to preserve the order of mobilities as it is ordered in the Frame.
-    boolean ascendingMobility = exampleFrame.getMobilityType() != MobilityType.TIMS;
-    RangeMap<Double, Double> mobilityIntensityValues = TreeRangeMap.create();
+    final RangeMap<Double, Double> mobilityIntensityValues = TreeRangeMap.create();
 
     for (int i = 0; i < mobilograms.size(); i++) {
       IonMobilitySeries mobilogram = mobilograms.get(i);
@@ -82,10 +79,8 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
       }
     }
 
-    // we want to preserve the order of mobilities as it is ordered in the Frame.
-    Map<Range<Double>, Double> mapOfRanges =
-        ascendingMobility ? mobilityIntensityValues.asMapOfRanges()
-            : mobilityIntensityValues.asDescendingMapOfRanges();
+    // this causes tims mobilities to be reordered
+    Map<Range<Double>, Double> mapOfRanges = mobilityIntensityValues.asMapOfRanges();
 
     double[] mobilities = mapOfRanges.keySet().stream()
         .mapToDouble(key -> (key.upperEndpoint() + key.lowerEndpoint()) / 2).toArray();
@@ -106,6 +101,10 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    */
   public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage, double[] mobilities,
       double[] intensities, double mz) {
+    if (mobilities.length > 1) {
+      assert mobilities[0] < mobilities[1];
+    }
+
     this.mz = mz;
     mobilityValues = StorageUtils.storeValuesToDoubleBuffer(storage, mobilities);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
@@ -122,6 +121,8 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
   /**
    * Note: Since this is a summed mobilogram, the data points were summed at a given mobility, not
    * necessarily at the same mobility scan number. Therefore, a list of scans is not provided.
+   * <p></p>
+   * THe mobility values are guaranteed to be ascending.
    *
    * @param index
    * @return
