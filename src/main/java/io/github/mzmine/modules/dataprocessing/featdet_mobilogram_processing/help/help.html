@@ -1,0 +1,81 @@
+<!--
+  ~  Copyright 2006-2020 The MZmine Development Team
+  ~
+  ~  This file is part of MZmine.
+  ~
+  ~  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+  ~  General Public License as published by the Free Software Foundation; either version 2 of the
+  ~  License, or (at your option) any later version.
+  ~
+  ~  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+  ~  Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License along with MZmine; if not,
+  ~  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+  ~  USA
+  -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mobilogram Interpolation (experimental)</title>
+</head>
+<body>
+
+<h1>Mobilogram interpolation</h1>
+
+<p>
+  This module can be used to interpolate between zero-values in mobilograms, if enough non-zero
+  values are detected in the neighbourhood. This can be used to interpolate in for high resolution
+  IMS data in the case that no ion package arrives at the detector due to low ion current. The use
+  of this module is experimental, since it can also lead to a lot of noise being detected as a
+  feature in later processing steps. (see <strong>figure 1</strong>, <strong>figure 2</strong>.)
+</p>
+
+<p>
+  Therefore, this module should only be used for <strong>targeted</strong> approaches only when a
+  specific compound
+  has to be detected and instrumental optimisations cannot achieve the required result. For
+  non-target approaches, the use of this module is <strong>strongly discouraged</strong>!
+</p>
+
+<h4>Example of wanted processing result during mobilogram resolving</h4>
+<figure>
+  <img src="wanted_sideeffect.PNG" width="700">
+  <figcaption><strong>Figure 1</strong> Example of a appreciated result during feature resolving.
+    Two features
+    are now recognised in the mobilogram. Beware, the same processing parameters can lead to a lot
+    of noise being recognised as a feature (see <strong>figure 2</strong>).
+  </figcaption>
+</figure>
+
+
+<h4>Example of unwanted processing result during mobilogram resolving</h4>
+<figure>
+  <img src="presumably_unwanted_sideeffect.PNG" width="700">
+  <figcaption><strong>Figure 2</strong> Example of a unwanted sideeffect towards mobility resolving,
+    if this
+    module is used to process noisy mobilograms. Results is a lot of noise recognised as features as
+    indicated by the coloured areas.
+  </figcaption>
+</figure>
+
+<p></p>
+
+<h2>Parameters</h2>
+<strong>Window width</strong> The number of consecutive mobility (and their corresponding intensity)
+values to
+be check by this algorithm.<br>
+<strong>Number of non-zero intensities</strong> The number of non-zero intensities in the <strong>Window
+  width</strong>
+to be eligible for interpolation.<br>
+<strong>Interpolation filter width</strong> The maximum number of values (=mobility scans) to be
+checked for
+neighbouring non-zero intensities during interpolation. If no value is found in that window, it will
+be interpolated from 0.<br>
+
+
+</body>
+</html>

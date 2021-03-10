@@ -211,6 +211,13 @@
       <MenuItem text="Savitzky Golay resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule"/>
     </Menu>
+
+    <MenuItem onAction="#runModule"
+      text="Mobilogram interpolation (experimental)"
+      userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogram_processing.MobilogramInterpolationModule"/>
+
+    <SeparatorMenuItem/>
+
   </Menu>
 
   <!-- FEATURE LIST METHODS -->
