@@ -26,8 +26,10 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
@@ -35,13 +37,19 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_all_data_files.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_all_data_files.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_all_data_files.AllSpectralDataImportParameters;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.maths.Precision;
 import java.io.File;
 import java.util.Comparator;
 import java.util.logging.Logger;
@@ -69,6 +77,18 @@ public class FeatureFindingTest {
 
   private static final Logger logger = Logger.getLogger(FeatureFindingTest.class.getName());
   private static MZmineProject project;
+  private final String sample1 = "DOM_a.mzML";
+  private final String sample2 = "DOM_b.mzXML";
+
+  private String chromSuffix = "chrom";
+  private String smoothSuffix = "smooth";
+  private String deconSuffix = "decon";
+  private String deisotopeSuffix = "deiso";
+  private String featureFilterSuffix = "ffilter";
+  private String rowFilterSuffix = "rowFilter";
+  private String alinged = "";
+  private String gapFilledSuffix = "gap";
+
 
   /**
    * Init MZmine core in headless mode with the options -r (keep running) and -m (keep in memory)
@@ -121,7 +141,7 @@ public class FeatureFindingTest {
         assertNotNull(scan.getMassList());
       }
       switch (raw.getName()) {
-        case "DOM_a.mzML" -> {
+        case sample1 -> {
           // num of scans, ms1, ms2
           assertEquals(521, raw.getNumOfScans());
           assertEquals(87, raw.getScanNumbers(1).size());
@@ -143,7 +163,7 @@ public class FeatureFindingTest {
           assertEquals(PolarityType.POSITIVE, scanMS2.getPolarity());
           filesTested++;
         }
-        case "DOM_b.mzXML" -> {
+        case sample2 -> {
           // num of scans, ms1, ms2
           assertEquals(521, raw.getNumOfScans());
           assertEquals(87, raw.getScanNumbers(1).size());
@@ -175,17 +195,17 @@ public class FeatureFindingTest {
   @Order(2)
   @DisplayName("Test ADAP chromatogram builder")
   void chromatogramBuilderTest() throws InterruptedException {
-    String suffix = "chrom";
 
     ADAPChromatogramBuilderParameters paramChrom = new ADAPChromatogramBuilderParameters();
     paramChrom.getParameter(ADAPChromatogramBuilderParameters.dataFiles).setValue(
         RawDataFilesSelectionType.ALL_FILES);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(1));
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, 4);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, new MZTolerance(0.002, 10));
+    paramChrom
+        .setParameter(ADAPChromatogramBuilderParameters.mzTolerance, new MZTolerance(0.002, 10));
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.startIntensity, 3E5);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.IntensityThresh2, 1E5);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, suffix);
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, chromSuffix);
 
     logger.info("Testing ADAPChromatogramBuilder");
     boolean finished = MZmineTestUtil
@@ -197,13 +217,13 @@ public class FeatureFindingTest {
     assertEquals(project.getFeatureLists().size(), 2);
     // test feature lists
     int filesTested = 0;
-    for(FeatureList flist : project.getFeatureLists()) {
+    for (FeatureList flist : project.getFeatureLists()) {
       assertEquals(1, flist.getNumberOfRawDataFiles());
       assertEquals(1, flist.getAppliedMethods().size());
       // check default sorting of rows
       // assertTrue(MZmineTestUtil.isSorted(flist));
 
-      if(flist.getName().equals("DOM_a.mzML "+suffix)) {
+      if (equalsFeatureListName(flist, sample1, chromSuffix)) {
         assertEquals(1011, flist.getNumberOfRows());
         // check number of chromatogram scans (equals MS1 scans)
         assertEquals(87, flist.getSeletedScans(flist.getRawDataFile(0)).size());
@@ -212,18 +232,17 @@ public class FeatureFindingTest {
         FeatureListRow row = flist.getRow(100);
         assertEquals(flist, row.getFeatureList());
         assertEquals(101, row.getID());
-        assertTrue(row.getAverageMZ()>249.206);
-        assertTrue(row.getAverageRT()>8.03);
-        assertTrue(row.getAverageHeight()>320000);
-        assertTrue(row.getAverageArea()>18354);
+        assertTrue(row.getAverageMZ() > 249.206);
+        assertTrue(row.getAverageRT() > 8.03);
+        assertTrue(row.getAverageHeight() > 320000);
+        assertTrue(row.getAverageArea() > 18354);
 
         IonTimeSeries<? extends Scan> data = row.getFeatures().get(0).getFeatureData();
         assertEquals(6, data.getNumberOfValues());
         assertEquals(6, data.getSpectra().size());
 
         filesTested++;
-      }
-      else if(flist.getName().equals("DOM_b.mzXML "+suffix)) {
+      } else if (equalsFeatureListName(flist, sample2, chromSuffix)) {
         assertEquals(1068, flist.getNumberOfRows());
         // check number of chromatogram scans (equals MS1 scans)
         assertEquals(87, flist.getSeletedScans(flist.getRawDataFile(0)).size());
@@ -233,6 +252,68 @@ public class FeatureFindingTest {
     }
     // both files tested
     assertEquals(2, filesTested);
+  }
+
+  @Test
+  @Order(3)
+  @DisplayName("Test chromatogram Smoothing")
+  void chromatogramSmootherTest() throws InterruptedException {
+
+    ModularFeatureList chromatograms1 = (ModularFeatureList) project.getFeatureList(getName(sample1, chromSuffix));
+    ModularFeatureList chromatograms2 = (ModularFeatureList) project.getFeatureList(getName(sample2, chromSuffix));
+
+    SmoothingParameters paramSmooth = new SmoothingParameters();
+    paramSmooth.getParameter(SmoothingParameters.featureLists).setValue(new FeatureListsSelection(chromatograms1, chromatograms2));
+    paramSmooth.setParameter(SmoothingParameters.mobilitySmoothing, false);
+    paramSmooth.setParameter(SmoothingParameters.removeOriginal, false);
+    paramSmooth
+        .setParameter(SmoothingParameters.rtSmoothing, true);
+    paramSmooth.getParameter(SmoothingParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
+    paramSmooth.setParameter(SmoothingParameters.suffix, smoothSuffix);
+
+    logger.info("Testing chromatogram smoothing (RT, 5 dp)");
+    boolean finished = MZmineTestUtil
+        .callModuleWithTimeout(30, SmoothingModule.class, paramSmooth);
+
+    // should have finished by now
+    assertTrue(finished, "Time out during chromatogram smoother. Not finished in time.");
+
+    assertEquals(project.getFeatureLists().size(), 4);
+    // test feature lists
+    FeatureList processed1 = project.getFeatureList(getName(sample1, chromSuffix, smoothSuffix));
+    FeatureList processed2 = project.getFeatureList(getName(sample2, chromSuffix, smoothSuffix));
+
+    // same size
+    assertEquals(chromatograms1.getNumberOfRows(), processed1.getNumberOfRows());
+    assertEquals(chromatograms2.getNumberOfRows(), processed2.getNumberOfRows());
+    assertEquals(chromatograms1.getAppliedMethods().size()+1, processed1.getAppliedMethods().size());
+    assertEquals(chromatograms2.getAppliedMethods().size()+1, processed2.getAppliedMethods().size());
+
+    for (int i = 0; i < chromatograms1.getNumberOfRows(); i++) {
+      // same order and number of data points after smoothing
+      FeatureListRow a = chromatograms1.getRow(i);
+      FeatureListRow b = processed1.getRow(i);
+      Feature fa = a.getFeatures().get(0);
+      Feature fb = b.getFeatures().get(0);
+      assertEquals(fa.getNumberOfDataPoints(), fb.getNumberOfDataPoints());
+      assertEquals(fa.getScanNumbers().size(), fb.getScanNumbers().size());
+      assertTrue(Precision.equals(a.getAverageRT(), b.getAverageRT(), 0.015), "RT change is too high");
+      assertTrue(Precision.equals(a.getAverageMZ(), b.getAverageMZ(), 0.0002), "mz change is too high");
+      assertTrue(Precision.equals(a.getAverageArea(), b.getAverageArea(), 0, 0.1), "area change is too high (more then 10%)");
+    }
+
+    for (int i = 0; i < chromatograms2.getNumberOfRows(); i++) {
+      // same order and number of data points after smoothing
+      FeatureListRow a = chromatograms2.getRow(i);
+      FeatureListRow b = processed2.getRow(i);
+      Feature fa = a.getFeatures().get(0);
+      Feature fb = b.getFeatures().get(0);
+      assertEquals(fa.getNumberOfDataPoints(), fb.getNumberOfDataPoints());
+      assertEquals(fa.getScanNumbers().size(), fb.getScanNumbers().size());
+      assertTrue(Precision.equals(a.getAverageRT(), b.getAverageRT(), 0.015), "RT change is too high");
+      assertTrue(Precision.equals(a.getAverageMZ(), b.getAverageMZ(), 0.0002), "mz change is too high");
+      assertTrue(Precision.equals(a.getAverageArea(), b.getAverageArea(), 0, 0.1), "area change is too high (more then 10%)");
+    }
   }
 
   @AfterAll
@@ -246,5 +327,19 @@ public class FeatureFindingTest {
     CentroidMassDetectorParameters param = new CentroidMassDetectorParameters();
     param.setParameter(CentroidMassDetectorParameters.noiseLevel, noise);
     return new MZmineProcessingStepImpl<>(detect, param);
+  }
+
+
+  private String getName(String sample, String... suffix) {
+    StringBuilder s = new StringBuilder(sample);
+    for (String suf : suffix) {
+      s.append(" ");
+      s.append(suf);
+    }
+    return s.toString();
+  }
+
+  private boolean equalsFeatureListName(FeatureList flist, String sample, String... suffix) {
+    return flist.getName().equals(getName(sample, suffix));
   }
 }
