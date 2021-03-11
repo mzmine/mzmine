@@ -19,6 +19,7 @@ package io.github.mzmine.datamodel.data_access;
 
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
@@ -28,27 +29,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class EfficientDataAccess {
-
-  /**
-   * Different types to handle feature data: {@link #ONLY_DETECTED}: Use only detected data points,
-   * currently assigned to the feature. Features might include leading and/or trailing zeros
-   * depending on the state of processing. Leading and trailing zeros are added during chromatogram
-   * detection, bit might be removed during feature resolving or other processing steps.; {@link
-   * #INCLUDE_ZEROS}: Fill all missing data points in the chromatogram with zeros;
-   */
-  public enum FeatureDataType {
-    ONLY_DETECTED, INCLUDE_ZEROS
-  }
-
-
-  /**
-   * Different types to handle Scan data: {@link #RAW}: Use raw data as imported; {@link #CENTROID}:
-   * Use processed centroid data ({@link MassList}
-   */
-  public enum ScanDataType {
-    RAW, CENTROID
-  }
-
 
   /**
    * The intended use of this memory access is to loop over all scans in a {@link RawDataFile} and
@@ -75,7 +55,6 @@ public class EfficientDataAccess {
     return new ScanDataAccess(dataFile, type, selection);
   }
 
-
   /**
    * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
    * by retention time)
@@ -98,9 +77,44 @@ public class EfficientDataAccess {
    */
   public static FeatureDataAccess of(FeatureList flist,
       FeatureDataType type, RawDataFile dataFile) {
-    return switch(type) {
+    return switch (type) {
       case ONLY_DETECTED -> new FeatureDetectedDataAccess(flist, dataFile);
       case INCLUDE_ZEROS -> new FeatureFullDataAccess(flist, dataFile);
     };
+  }
+
+  public static MobilogramDataAccess of(final IonMobilogramTimeSeries ionTrace,
+      final MobilogramAccessType accessType) {
+    return new MobilogramDataAccess(ionTrace, accessType);
+  }
+
+
+  /**
+   * Different types to handle feature data: {@link #ONLY_DETECTED}: Use only detected data points,
+   * currently assigned to the feature. Features might include leading and/or trailing zeros
+   * depending on the state of processing. Leading and trailing zeros are added during chromatogram
+   * detection, bit might be removed during feature resolving or other processing steps.; {@link
+   * #INCLUDE_ZEROS}: Fill all missing data points in the chromatogram with zeros;
+   */
+  public enum FeatureDataType {
+    ONLY_DETECTED, INCLUDE_ZEROS
+  }
+
+  /**
+   * Different types to handle Scan data: {@link #RAW}: Use raw data as imported; {@link #CENTROID}:
+   * Use processed centroid data ({@link MassList}
+   */
+  public enum ScanDataType {
+    RAW, CENTROID
+  }
+
+  /**
+   * {@link #ONLY_DETECTED} will only access data points stored in the mobilograms, which may or may
+   * not contain leading and trailing zeros depending on the state of processing. {@link
+   * #INCLUDE_ZEROS}: fill all missing data points in frame's mobility scans with 0 for the
+   * respective mobilogram.
+   */
+  public enum MobilogramAccessType {
+    ONLY_DETECTED, INCLUDE_ZEROS
   }
 }

@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
@@ -55,9 +56,15 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "ionmobilitytrace");
 
+  public static final OptionalModuleParameter<OptionalImsTraceBuilderParameters> advancedParameters =
+      new OptionalModuleParameter<>("Advanced parameters",
+          "Allows adjustment of internal interpolation parameters in case no data point has "
+              + "been detected in a frame or a mobilogram.",
+          new OptionalImsTraceBuilderParameters(), false);
+
   public IonMobilityTraceBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minDataPointsRt,
-        minTotalSignals, suffix});
+        minTotalSignals, suffix, advancedParameters});
   }
 
   @Override

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -25,10 +25,11 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
  */
 class RowVsRowScore implements Comparable<RowVsRowScore> {
 
-  private FeatureListRow peakListRow, alignedRow;
   double score;
+  private FeatureListRow peakListRow, alignedRow;
 
-  RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff, double mzWeight,
+  RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
+      double mzWeight,
       double rtMaxDiff, double rtWeight) {
 
     this.peakListRow = peakListRow;
@@ -41,6 +42,31 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 
     score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight);
 
+  }
+
+  RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
+      double mzWeight,
+      double rtMaxDiff, double rtWeight, double mobilityMaxDiff, double mobilityWeight) {
+
+    this.peakListRow = peakListRow;
+    this.alignedRow = alignedRow;
+
+    // Calculate differences between m/z and RT values
+    double mzDiff = Math.abs(peakListRow.getAverageMZ() - alignedRow.getAverageMZ());
+
+    double rtDiff = Math.abs(peakListRow.getAverageRT() - alignedRow.getAverageRT());
+
+    double mobilityDiff;
+    float row1Mobility = peakListRow.getAverageMobility();
+    float row2Mobility = alignedRow.getAverageMobility();
+    if (peakListRow.getAverageMobility() != Float.NaN
+        && alignedRow.getAverageMobility() != Float.NaN) {
+      mobilityDiff = Math.abs(row1Mobility - row2Mobility);
+      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight)
+          + ((1 - mobilityDiff / mobilityMaxDiff) * mobilityWeight);
+    } else {
+      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight);
+    }
   }
 
   /**
@@ -71,10 +97,11 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 
     // We must never return 0, because the TreeSet in JoinAlignerTask would
     // treat such elements as equal
-    if (score < object.getScore())
+    if (score < object.getScore()) {
       return 1;
-    else
+    } else {
       return -1;
+    }
 
   }
 
