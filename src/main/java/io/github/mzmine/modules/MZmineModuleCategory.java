@@ -52,4 +52,19 @@ public enum MZmineModuleCategory {
     return name;
   }
 
+  public String getMainCategory() {
+    return switch(this) {
+      case PROJECT, PROJECTIO -> "Project";
+      case RAWDATA, RAWDATAFILTERING -> "Spectral data";
+      case FEATURELIST, FEATURELISTDETECTION, FEATUREDETECTION, GAPFILLING, ALIGNMENT -> "Feature detection";
+      case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> "Feature filtering";
+      case NORMALIZATION, DATAANALYSIS -> "Data analysis";
+      case IDENTIFICATION -> "Feature identification";
+      case FEATURELISTEXPORT, FEATURELISTIMPORT -> "Feature IO";
+      case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST -> "Visualization";
+      // no main category
+      case HELPSYSTEM, TOOLS -> this.name;
+    };
+  }
+
 }
