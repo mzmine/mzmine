@@ -124,6 +124,7 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
   public void setDataFile(RawDataFile dataFile) {
     dataProvider.setDataFile(dataFile);
+    dataset.run();
     dataProvider.sortZValues(zOrder);
     dataset.fireDatasetChanged();
   }

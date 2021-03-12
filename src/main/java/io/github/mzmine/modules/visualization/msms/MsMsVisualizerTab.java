@@ -80,7 +80,7 @@ public class MsMsVisualizerTab extends MZmineTab {
   MsMsXYAxisType valueType1, valueType2;
 
   public MsMsVisualizerTab(ParameterSet parameters) {
-    super("MS/MS Visualizer", true, false);
+    super("MS/MS visualizer", true, false);
 
     this.parameters = parameters;
     dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
@@ -324,7 +324,7 @@ public class MsMsVisualizerTab extends MZmineTab {
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists) {
+      Collection<? extends FeatureList> featureLists) {
 
   }
 }

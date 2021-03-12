@@ -38,7 +38,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
-import org.jfree.data.DomainOrder;
 import org.jfree.data.xy.XYZDataset;
 
 /**

@@ -149,7 +149,7 @@ public class ScatterPlotTab extends MZmineTab {
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists) {
+      Collection<? extends FeatureList> featureLists) {
 
   }
 }

@@ -331,7 +331,6 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
             scan.getPrecursorCharge(), scan.getRetentionTime(), productIntensity, precursorIntensity);
 
         dataPoints.add(newPoint);
-
       }
 
       processedScans++;
