@@ -57,29 +57,32 @@ public class MsMsParameters extends SimpleParameterSet {
           .values(), MsMsZAxisType.PRECURSOR_INTENSITY);
 
   public static final IntegerParameter msLevel = new IntegerParameter("MS level",
-      "MS level for plotting, must be greater than 1", 2, 2, 1000);
+      "Scans MS level, must be greater than 1", 2, 2, 1000);
 
   // Most intense fragments filtering
 
   public static final OptionalParameter<ComboFieldParameter<IntensityFilteringType>> intensityFiltering
       = new OptionalParameter<>(new ComboFieldParameter<>("Intensities filtering",
-      "Most intense fragments filtering to be plotted", IntensityFilteringType.class,
-      false, new ComboFieldValue<>("95", IntensityFilteringType.BASE_PEAK_PERCENT)));
+      "Plot only ions with highest intensity values, see \"Help\" for detailed description of the options",
+      IntensityFilteringType.class, false,
+      new ComboFieldValue<>("95", IntensityFilteringType.BASE_PEAK_PERCENT)));
 
   // Diagnostic fragmentation filtering
 
   public static final ListDoubleParameter targetedMZ_List =
       new ListDoubleParameter("Diagnostic product ions (m/z)",
-          "Product m/z-values that must be included in MS/MS", false, null);
+          "Scans not containing any ion with all input m/z values will not be plotted",
+          false, null);
 
   public static final ListDoubleParameter targetedNF_List =
       new ListDoubleParameter("Diagnostic neutral loss values (Da)",
-          "Neutral loss m/z-values that must be included in MS/MS", false, null);
+          "Scans not containing any ion with all input neutral loss values will not be plotted",
+          false, null);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final OptionalModuleParameter dffParameters = new OptionalModuleParameter(
-      "Diagnostic fragmentation filtering", "",
+      "Diagnostic fragmentation filtering", "See \"Help\" for detailed information",
       new SimpleParameterSet(new Parameter[]{targetedMZ_List, targetedNF_List}));
 
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();

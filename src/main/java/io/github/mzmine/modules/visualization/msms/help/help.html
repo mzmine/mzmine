@@ -53,11 +53,10 @@
 
 <dd>
     <dt>Raw data file</dt>
-    <dd>Selection of the raw data file to display. Only one file can be selected.
-    
+    <dd>Selection of the raw data file to visualize. Only one file can be selected.
 
     <dt>X axis</dt>
-    <dd>Selection of the X axis of MS/MS plot. There are 4 options:
+    <dd>Selection of the X axis. There are 4 options:
     <ul>
         <li>Retention time</li>
         <li>Precursor ion m/z</li>
@@ -67,10 +66,10 @@
     </dd>
 
     <dt>Y axis</dt>
-    <dd>Selection of the Y axis of MS/MS plot. Options are the same as for X axis.</dd>
+    <dd>Selection of the Y axis. Options are the same as for X axis.</dd>
 
     <dt>Z axis</dt>
-    <dd>Selection of the Z axis of MS/MS plot. There are 3 options:
+    <dd>Selection of the Z axis. There are 3 options:
     <ul>
         <li>Precursor ion intensity</li>
         <li>Product ion intensity</li>
@@ -93,15 +92,19 @@
     <dt>Intensities filtering</dt>
     <dd>Optional parameter to filter ions by intensity. There are 3 different options:
         <ul>
-            <li>Number of best fragments - Number of most intense fragments from each scan. For example 5.</li>
-            <li>Base peak percent, % - Only fragments, that has intensity greater or equal to the given percent of base peak intensity will be plotted. For example 95.</li>
-            <li>Intensity threshold - Fragments, that have intensity lower than given value will not be plotted. For example 6.0E6</li>
+            <li>Number of best fragments - Number of ions with highest intensities from each scan to be visualized.
+                <br>For example 5(for each scan 5 ions with highest intensities will be plotted).</li>
+            <li>Base peak percent, % - Ions with intensity values lower than given percent of base peak intensity will be plotted.
+                <br>For example 95(ions with intensity values lower than 0.95 multiplied by base peak intensity will not be plotted).</li>
+            <li>Intensity threshold - Ions having intensities lower than given value will not be plotted.
+                <br>For example 6.0E6(ions with intensity values lower than 6.0E6 will not be plotted).</li>
         </ul>
     </dd>
 
     <dt>Diagnostic fragmentation filtering</dt>
     <dd>Optional parameter for diagnostic fragmentation filtering described above. Has 2 subparameters:
-        diagnostic product ions and diagnostic neutral loss values.</dd>
+        diagnostic product ions and diagnostic neutral loss values. Scans not containing any ion
+        satisfying all input values will not be considered for the visualization.</dd>
 
 </dl>
 
