@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_interpolation
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.data_access.SummedMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -61,7 +61,7 @@ public class MobilogramInterpolationSetupDialog extends ParameterSetupDialogWith
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
 
-  protected SummedMobilogramDataAccess dataAccess;
+  protected BinningMobilogramDataAccess dataAccess;
 
   public MobilogramInterpolationSetupDialog(boolean valueCheckRequired,
       ParameterSet parameters) {
@@ -135,7 +135,7 @@ public class MobilogramInterpolationSetupDialog extends ParameterSetupDialogWith
       return;
     }
     if (dataAccess == null || f.getRawDataFile() != dataAccess.getDataFile()) {
-      dataAccess = new SummedMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile(), 0d);
+      dataAccess = new BinningMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile(), 0d);
     }
 
     previewChart.setDomainAxisLabel(f.getMobilityUnit().getAxisLabel());

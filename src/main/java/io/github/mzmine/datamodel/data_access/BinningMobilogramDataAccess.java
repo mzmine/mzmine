@@ -46,9 +46,9 @@ import javax.annotation.Nullable;
  * Used to efficiently access mobilogram data of a raw data file. The data can be binned by mobility
  * to generate less noisy mobilograms.
  */
-public class SummedMobilogramDataAccess implements IntensitySeries, MobilitySeries {
+public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySeries {
 
-  private static Logger logger = Logger.getLogger(SummedMobilogramDataAccess.class.getName());
+  private static Logger logger = Logger.getLogger(BinningMobilogramDataAccess.class.getName());
 
   private final IMSRawDataFile dataFile;
 
@@ -58,7 +58,7 @@ public class SummedMobilogramDataAccess implements IntensitySeries, MobilitySeri
   private final double[] tempIntensities;
   private final double binWidth;
 
-  public SummedMobilogramDataAccess(@Nonnull final IMSRawDataFile rawDataFile,
+  public BinningMobilogramDataAccess(@Nonnull final IMSRawDataFile rawDataFile,
       final double binningWidth) {
     this.dataFile = rawDataFile;
     final Double maxTic = rawDataFile.getDataMaxTotalIonCurrent(1);

@@ -98,9 +98,9 @@ public class EfficientDataAccess {
    * @param binWidth The bin width (absolute, depends on the {@link io.github.mzmine.datamodel.MobilityType}.
    * @return
    */
-  public static SummedMobilogramDataAccess of(final IMSRawDataFile dataFile,
+  public static BinningMobilogramDataAccess of(final IMSRawDataFile dataFile,
       final double binWidth) {
-    return new SummedMobilogramDataAccess(dataFile, binWidth);
+    return new BinningMobilogramDataAccess(dataFile, binWidth);
   }
 
   /**

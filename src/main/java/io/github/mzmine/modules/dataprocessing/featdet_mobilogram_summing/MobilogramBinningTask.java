@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data_access.SummedMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -113,7 +113,7 @@ public class MobilogramBinningTask extends AbstractTask {
             "Summing of the mobility type in raw data file " + file.getName() + " is unsupported.");
       };
 
-      final SummedMobilogramDataAccess summedAccess = new SummedMobilogramDataAccess(
+      final BinningMobilogramDataAccess summedAccess = new BinningMobilogramDataAccess(
           (IMSRawDataFile) file, binWidth);
 
       for (ModularFeature feature : features) {

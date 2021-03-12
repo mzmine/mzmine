@@ -24,7 +24,7 @@ import com.google.common.collect.TreeRangeSet;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data_access.SummedMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -78,7 +78,7 @@ public class MobilogramInterpolationTask extends AbstractTask {
     this.project = project;
   }
 
-  public static boolean isEligible(@Nonnull final SummedMobilogramDataAccess summedAccess,
+  public static boolean isEligible(@Nonnull final BinningMobilogramDataAccess summedAccess,
       final int searchStart, final int searchEnd, final int windowWidth,
       final int minNumIntensityInWindow) {
 
@@ -102,14 +102,14 @@ public class MobilogramInterpolationTask extends AbstractTask {
     return false;
   }
 
-  public static boolean isEligible(@Nonnull final SummedMobilogramDataAccess summedAccess,
+  public static boolean isEligible(@Nonnull final BinningMobilogramDataAccess summedAccess,
       final int windowWidth, final int minNumIntensityInWindow) {
     return isEligible(summedAccess, 0, summedAccess.getNumberOfValues(), windowWidth,
         minNumIntensityInWindow);
   }
 
   public static List<Range<Integer>> getEligibleRanges(
-      @Nonnull final SummedMobilogramDataAccess summedAccess,
+      @Nonnull final BinningMobilogramDataAccess summedAccess,
       final int windowWidth, final int minNumIntensityInWindow) {
     assert windowWidth < summedAccess.getNumberOfValues();
     assert minNumIntensityInWindow <= windowWidth;
@@ -149,7 +149,7 @@ public class MobilogramInterpolationTask extends AbstractTask {
   }
 
   public static double[][] process(
-      @Nonnull final SummedMobilogramDataAccess dataAccess,
+      @Nonnull final BinningMobilogramDataAccess dataAccess,
       @Nonnull final List<Range<Integer>> ranges, final int filterWidth) {
 
     final double[] newMobilities = new double[dataAccess.getNumberOfValues()];
@@ -221,7 +221,7 @@ public class MobilogramInterpolationTask extends AbstractTask {
     };
   }
 
-  private static int getNextNonZeroIndex(SummedMobilogramDataAccess dataAccess, int startIndex,
+  private static int getNextNonZeroIndex(BinningMobilogramDataAccess dataAccess, int startIndex,
       int filterWidth) {
     for (int i = startIndex; i <= startIndex + filterWidth && i < dataAccess.getNumberOfValues();
         i++) {
@@ -269,7 +269,7 @@ public class MobilogramInterpolationTask extends AbstractTask {
 
       final List<ModularFeature> features = (List<ModularFeature>) (List<? extends Feature>) flist
           .getFeatures(file);
-      final SummedMobilogramDataAccess summedAccess = new SummedMobilogramDataAccess(
+      final BinningMobilogramDataAccess summedAccess = new BinningMobilogramDataAccess(
           (IMSRawDataFile) file, 0d);
 
       for (ModularFeature feature : features) {

@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.data_access.SummedMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -60,8 +60,8 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
 
-  protected SummedMobilogramDataAccess rawMobilogramAccess;
-  protected SummedMobilogramDataAccess summedMobilogramAccess;
+  protected BinningMobilogramDataAccess rawMobilogramAccess;
+  protected BinningMobilogramDataAccess summedMobilogramAccess;
 
   public MobilogramBinningSetupDialog(boolean valueCheckRequired,
       ParameterSet parameters) {
@@ -160,7 +160,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
 
     if (summedMobilogramAccess == null || f.getRawDataFile() != summedMobilogramAccess.getDataFile()
         || Double.compare(binWidth, summedMobilogramAccess.getBinWidth()) != 0) {
-      summedMobilogramAccess = new SummedMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile(),
+      summedMobilogramAccess = new BinningMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile(),
           binWidth);
     }
 
