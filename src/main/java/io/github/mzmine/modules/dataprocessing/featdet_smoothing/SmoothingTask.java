@@ -127,7 +127,7 @@ public class SmoothingTask extends AbstractTask {
     originalSeries.getMzValues(originalMzs);
     if (smoothMobility && originalSeries instanceof IonMobilogramTimeSeries) {
       SummedIntensityMobilitySeries smoothedMobilogram = smoothSummedMobilogram(storage,
-          (IonMobilogramTimeSeries) originalSeries, zht, mobilityWeights, feature.getMZ());
+          (IonMobilogramTimeSeries) originalSeries, zht, mobilityWeights);
       return new SimpleIonMobilogramTimeSeries(storage, originalMzs, newIntensities,
           ((SimpleIonMobilogramTimeSeries) originalSeries).getMobilogramsModifiable(),
           ((ModifiableSpectra) originalSeries).getSpectraModifiable(), smoothedMobilogram);
@@ -188,7 +188,7 @@ public class SmoothingTask extends AbstractTask {
   public static SummedIntensityMobilitySeries smoothSummedMobilogram(
       @Nullable MemoryMapStorage storage,
       @Nonnull final IonMobilogramTimeSeries originalSeries,
-      @Nonnull final ZeroHandlingType zht, @Nonnull final double[] weights, double mz) {
+      @Nonnull final ZeroHandlingType zht, @Nonnull final double[] weights) {
 
     final double[] mobilities = DataPointUtils.getDoubleBufferAsArray(
         originalSeries.getSummedMobilogram().getMobilityValues());
@@ -197,7 +197,7 @@ public class SmoothingTask extends AbstractTask {
 
     return new SummedIntensityMobilitySeries(
         storage, mobilities,
-        smoothedSummed.smooth(originalSeries.getSummedMobilogram()), mz);
+        smoothedSummed.smooth(originalSeries.getSummedMobilogram()));
   }
 
 

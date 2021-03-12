@@ -263,11 +263,10 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     }
   }
 
-  public SummedIntensityMobilitySeries toSummedMobilogram(@Nullable MemoryMapStorage storage,
-      final double mz) {
+  public SummedIntensityMobilitySeries toSummedMobilogram(@Nullable MemoryMapStorage storage) {
     return new SummedIntensityMobilitySeries(storage,
         Arrays.copyOf(mobilities, mobilities.length),
-        Arrays.copyOf(intensities, intensities.length), mz);
+        Arrays.copyOf(intensities, intensities.length));
   }
 
   @Override

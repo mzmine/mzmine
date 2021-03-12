@@ -294,7 +294,7 @@ public class MobilogramInterpolationTask extends AbstractTask {
         final double[][] processed = process(summedAccess, ranges, filterWidth);
         final SummedIntensityMobilitySeries mobilogram = new SummedIntensityMobilitySeries(
             flist.getMemoryMapStorage(), processed[0],
-            processed[1], feature.getMZ());
+            processed[1]);
         feature.set(
             FeatureDataType.class, series.copyAndReplace(flist.getMemoryMapStorage(), mobilogram));
       }

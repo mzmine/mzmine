@@ -42,7 +42,6 @@ import javax.annotation.Nullable;
  */
 public class SummedIntensityMobilitySeries implements IntensitySeries, MobilitySeries {
 
-  final double mz;
   final DoubleBuffer intensityValues;
   final DoubleBuffer mobilityValues;
 
@@ -51,12 +50,10 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    *
    * @param storage     May be null, if values shall be stored in ram.
    * @param mobilograms
-   * @param mz
    */
   public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<IonMobilitySeries> mobilograms, double mz) {
+      @Nonnull List<IonMobilitySeries> mobilograms) {
 
-    this.mz = mz;
     Frame exampleFrame = mobilograms.get(0).getSpectra().get(0).getFrame();
     double smallestDelta = IonMobilityUtils
         .getSmallestMobilityDelta(exampleFrame);
@@ -97,15 +94,13 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    * @param storage
    * @param mobilities
    * @param intensities
-   * @param mz
    */
   public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage, double[] mobilities,
-      double[] intensities, double mz) {
+      double[] intensities) {
     if (mobilities.length > 1) {
       assert mobilities[0] < mobilities[1];
     }
 
-    this.mz = mz;
     mobilityValues = StorageUtils.storeValuesToDoubleBuffer(storage, mobilities);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
@@ -145,10 +140,6 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     }
     getMobilityValues().get(0, dst, 0, getNumberOfValues());
     return dst;
-  }
-
-  public double getMZ() {
-    return mz;
   }
 
 }

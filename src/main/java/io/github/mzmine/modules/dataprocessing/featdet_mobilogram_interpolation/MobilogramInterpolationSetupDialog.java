@@ -168,7 +168,7 @@ public class MobilogramInterpolationSetupDialog extends ParameterSetupDialogWith
     final double[][] resultArray = MobilogramInterpolationTask
         .process(dataAccess, ranges, filterWidth);
     final SummedIntensityMobilitySeries result = new SummedIntensityMobilitySeries(null,
-        resultArray[0], resultArray[1], f.getMZ());
+        resultArray[0], resultArray[1]);
 
     final SimpleColorPalette colorPalette = MZmineCore.getConfiguration().getDefaultColorPalette();
 

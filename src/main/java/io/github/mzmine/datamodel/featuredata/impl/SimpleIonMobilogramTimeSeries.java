@@ -29,7 +29,6 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -80,11 +79,9 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     double[] summedIntensities = sumIntensities(mobilograms);
     double[] weightedMzs = weightMzs(mobilograms, summedIntensities);
-    final double mz = Arrays.stream(weightedMzs).filter(val -> Double.compare(val, 0d) != 0)
-        .average().orElse(Double.NaN);
 
     summedMobilogram = new SummedIntensityMobilitySeries(storage,
-        mobilograms, mz);
+        mobilograms);
 
     mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, weightedMzs);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, summedIntensities);
@@ -120,7 +117,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     this.frames = frames;
 
     summedMobilogram = new SummedIntensityMobilitySeries(storage,
-        mobilograms, mzs[(mzs.length / 2)]);
+        mobilograms);
 
     mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
@@ -159,14 +156,11 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     this.mobilograms = storeMobilograms(storage, mobilograms);
     this.frames = frames;
 
-    final double mz = Arrays.stream(mzs).filter(val -> Double.compare(val, 0d) != 0).average()
-        .orElse(Double.NaN);
-
     if (smoothedSummedMobilogramIntensities != null && summedMobilogramMobilitities != null) {
       summedMobilogram = new SummedIntensityMobilitySeries(storage, summedMobilogramMobilitities,
-          smoothedSummedMobilogramIntensities, mz);
+          smoothedSummedMobilogramIntensities);
     } else {
-      summedMobilogram = new SummedIntensityMobilitySeries(storage, mobilograms, mz);
+      summedMobilogram = new SummedIntensityMobilitySeries(storage, mobilograms);
     }
 
     mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
@@ -212,11 +206,8 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
 
-    final double mz = Arrays.stream(data[0]).filter(val -> Double.compare(val, 0d) != 0).average()
-        .orElse(Double.NaN);
-
     summedMobilogram = new SummedIntensityMobilitySeries(storage,
-        mobilograms, mz);
+        mobilograms);
 
     mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, data[0]);
     intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, data[1]);

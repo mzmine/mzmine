@@ -166,7 +166,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
 
     summedMobilogramAccess.setMobilogram(series.getSummedMobilogram());
     SummedIntensityMobilitySeries fromSummed = summedMobilogramAccess
-        .toSummedMobilogram(null, f.getMZ());
+        .toSummedMobilogram(null);
 
     previewChart.addDataset(new FastColoredXYDataset(
         new SummedMobilogramXYProvider(fromSummed,
@@ -175,7 +175,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
 
     summedMobilogramAccess.setMobilogram(series.getMobilograms());
     SummedIntensityMobilitySeries fromMobilograms = summedMobilogramAccess
-        .toSummedMobilogram(null, f.getMZ());
+        .toSummedMobilogram(null);
 
     previewChart.addDataset(new FastColoredXYDataset(
         new SummedMobilogramXYProvider(fromMobilograms,

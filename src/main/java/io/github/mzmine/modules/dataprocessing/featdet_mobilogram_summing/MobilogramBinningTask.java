@@ -128,7 +128,7 @@ public class MobilogramBinningTask extends AbstractTask {
           summedAccess.setMobilogram(series.getSummedMobilogram());
         }
         final SummedIntensityMobilitySeries mobilogram = summedAccess
-            .toSummedMobilogram(getMemoryMapStorage(), feature.getMZ());
+            .toSummedMobilogram(getMemoryMapStorage());
         feature.set(
             FeatureDataType.class, series.copyAndReplace(flist.getMemoryMapStorage(), mobilogram));
       }
