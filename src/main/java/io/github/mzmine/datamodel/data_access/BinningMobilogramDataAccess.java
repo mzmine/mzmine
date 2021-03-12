@@ -54,6 +54,8 @@ import javax.annotation.Nullable;
 /**
  * Used to efficiently access mobilogram data of a raw data file. The data can be binned by mobility
  * to generate less noisy mobilograms.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySeries {
 
@@ -130,6 +132,63 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
     mobilities = binnedValues.stream().mapToDouble(Double::doubleValue).toArray();
     intensities = new double[mobilities.length];
+  }
+
+  public static Double getPreviousBinningWith(@Nonnull final ModularFeatureList flist,
+      MobilityType mt) {
+    List<FeatureListAppliedMethod> methods = flist.getAppliedMethods();
+
+    Double binWidth = null;
+    for (int i = methods.size() - 1; i >= 0; i--) {
+      FeatureListAppliedMethod method = methods.get(i);
+      if (method.getModule()
+          .equals(MZmineCore.getModuleInstance(IonMobilityTraceBuilderModule.class))) {
+        final ParameterSet parameterSet = method.getParameters();
+        final var advancedParam = parameterSet
+            .getParameter(IonMobilityTraceBuilderParameters.advancedParameters).getValue();
+        binWidth = switch (mt) {
+          case TIMS ->
+              advancedParam.getParameter(OptionalImsTraceBuilderParameters.timsBinningWidth)
+                  .getValue() ? advancedParam
+                  .getParameter(OptionalImsTraceBuilderParameters.timsBinningWidth)
+                  .getEmbeddedParameter().getValue()
+                  : OptionalImsTraceBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
+          case DRIFT_TUBE ->
+              advancedParam.getParameter(OptionalImsTraceBuilderParameters.dtimsBinningWidth)
+                  .getValue() ? advancedParam
+                  .getParameter(OptionalImsTraceBuilderParameters.dtimsBinningWidth)
+                  .getEmbeddedParameter().getValue()
+                  : OptionalImsTraceBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
+          case TRAVELING_WAVE ->
+              advancedParam.getParameter(OptionalImsTraceBuilderParameters.twimsBinningWidth)
+                  .getValue() ? advancedParam
+                  .getParameter(OptionalImsTraceBuilderParameters.twimsBinningWidth)
+                  .getEmbeddedParameter().getValue()
+                  : OptionalImsTraceBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
+          default -> null;
+        };
+        break;
+      }
+
+      if (method.getModule().equals(MZmineCore.getModuleInstance(MobilogramBinningModule.class))) {
+        final ParameterSet parameterSet = method.getParameters();
+        binWidth = switch (mt) {
+          case TIMS -> parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth)
+              .getValue();
+          case DRIFT_TUBE -> parameterSet
+              .getParameter(MobilogramBinningParameters.dtimsBinningWidth).getValue();
+          case TRAVELING_WAVE -> parameterSet
+              .getParameter(MobilogramBinningParameters.twimsBinningWidth).getValue();
+          default -> null;
+        };
+        break;
+      }
+    }
+    if (binWidth == null) {
+      logger.info(
+          () -> "Previous binning width not recognised. Has the mobility type been implemented?");
+    }
+    return binWidth;
   }
 
   private void clearIntensities() {
@@ -302,63 +361,6 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   public double getBinWidth() {
-    return binWidth;
-  }
-
-  public static Double getPreviousBinningWith(@Nonnull final ModularFeatureList flist,
-      MobilityType mt) {
-    List<FeatureListAppliedMethod> methods = flist.getAppliedMethods();
-
-    Double binWidth = null;
-    for (int i = methods.size() - 1; i >= 0; i--) {
-      FeatureListAppliedMethod method = methods.get(i);
-      if (method.getModule()
-          .equals(MZmineCore.getModuleInstance(IonMobilityTraceBuilderModule.class))) {
-        final ParameterSet parameterSet = method.getParameters();
-        final var advancedParam = parameterSet
-            .getParameter(IonMobilityTraceBuilderParameters.advancedParameters).getValue();
-        binWidth = switch (mt) {
-          case TIMS ->
-              advancedParam.getParameter(OptionalImsTraceBuilderParameters.timsBinningWidth)
-                  .getValue() ? advancedParam
-                  .getParameter(OptionalImsTraceBuilderParameters.timsBinningWidth)
-                  .getEmbeddedParameter().getValue()
-                  : OptionalImsTraceBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
-          case DRIFT_TUBE ->
-              advancedParam.getParameter(OptionalImsTraceBuilderParameters.dtimsBinningWidth)
-                  .getValue() ? advancedParam
-                  .getParameter(OptionalImsTraceBuilderParameters.dtimsBinningWidth)
-                  .getEmbeddedParameter().getValue()
-                  : OptionalImsTraceBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
-          case TRAVELING_WAVE ->
-              advancedParam.getParameter(OptionalImsTraceBuilderParameters.twimsBinningWidth)
-                  .getValue() ? advancedParam
-                  .getParameter(OptionalImsTraceBuilderParameters.twimsBinningWidth)
-                  .getEmbeddedParameter().getValue()
-                  : OptionalImsTraceBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
-          default -> null;
-        };
-        break;
-      }
-
-      if (method.getModule().equals(MZmineCore.getModuleInstance(MobilogramBinningModule.class))) {
-        final ParameterSet parameterSet = method.getParameters();
-        binWidth = switch (mt) {
-          case TIMS -> parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth)
-              .getValue();
-          case DRIFT_TUBE -> parameterSet
-              .getParameter(MobilogramBinningParameters.dtimsBinningWidth).getValue();
-          case TRAVELING_WAVE -> parameterSet
-              .getParameter(MobilogramBinningParameters.twimsBinningWidth).getValue();
-          default -> null;
-        };
-        break;
-      }
-    }
-    if (binWidth == null) {
-      logger.info(
-          () -> "Previous binning width not recognised. Has the mobility type been implemented?");
-    }
     return binWidth;
   }
 }

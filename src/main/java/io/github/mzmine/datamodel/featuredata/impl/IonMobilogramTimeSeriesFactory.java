@@ -26,13 +26,15 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * @author https://github.com/SteffenHeu
+ */
 public class IonMobilogramTimeSeriesFactory {
 
   private IonMobilogramTimeSeriesFactory() {
@@ -112,39 +114,6 @@ public class IonMobilogramTimeSeriesFactory {
         summedMobilogram);
   }
 
-  private static double[] weightMzs(List<IonMobilitySeries> mobilograms,
-      double[] summedIntensities) {
-    double[] weightedMzs = new double[mobilograms.size()];
-
-    for (int i = 0; i < mobilograms.size(); i++) {
-      IonMobilitySeries ims = mobilograms.get(i);
-      DoubleBuffer mobilogramIntensities = ims.getIntensityValues();
-      DoubleBuffer mobilogramMzs = ims.getMZValues();
-      double weightedMz = 0;
-      for (int j = 0; j < mobilogramMzs.capacity(); j++) {
-        weightedMz += mobilogramMzs.get(j) * (mobilogramIntensities.get(j) / summedIntensities[i]);
-      }
-      // due to added zeros, the summed intensity might have been 0 -> NaN
-      if (Double.compare(weightedMz, Double.NaN) == 0) {
-        weightedMz = 0d;
-      }
-      weightedMzs[i] = weightedMz;
-    }
-    return weightedMzs;
-  }
-
-  private static double[] sumIntensities(List<IonMobilitySeries> mobilograms) {
-    double[] summedIntensities = new double[mobilograms.size()];
-    for (int i = 0; i < mobilograms.size(); i++) {
-      IonMobilitySeries ims = mobilograms.get(i);
-      DoubleBuffer intensities = ims.getIntensityValues();
-      for (int j = 0; j < intensities.capacity(); j++) {
-        summedIntensities[i] += intensities.get(j);
-      }
-    }
-    return summedIntensities;
-  }
-
   private static double[][] sumIntensitiesWeightMzs(List<IonMobilitySeries> mobilograms) {
     double[] summedIntensities = new double[mobilograms.size()];
     double[] weightedMzs = new double[mobilograms.size()];
@@ -174,11 +143,11 @@ public class IonMobilogramTimeSeriesFactory {
       ims.getIntensityValues(tmpIntensities);
       ims.getMzValues(tmpMzs);
       double weightedMz = 0;
-//      weightedMz = cf.calcCenter(tmpMzs, tmpIntensities);
+      weightedMz = cf.calcCenter(tmpMzs, tmpIntensities);
 
-      for (int j = 0; j < numValues; j++) {
-        weightedMz += tmpMzs[j] * (tmpIntensities[j] / summedIntensities[i]);
-      }
+//      for (int j = 0; j < numValues; j++) {
+//        weightedMz += tmpMzs[j] * (tmpIntensities[j] / summedIntensities[i]);
+//      }
 
       // due to added zeros, the summed intensity might have been 0 -> NaN
       if (Double.compare(weightedMz, Double.NaN) == 0) {
