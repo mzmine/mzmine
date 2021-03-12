@@ -42,7 +42,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 
 /**
@@ -138,7 +137,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     previewChart.setDomainAxisLabel(f.getMobilityUnit().getAxisLabel());
     previewChart.addDataset(new FastColoredXYDataset(
         new SummedMobilogramXYProvider(series.getSummedMobilogram(),
-            new SimpleObjectProperty<>(Color.RED),
+            new SimpleObjectProperty<>(f.getRawDataFile().getColor()),
             FeatureUtils.featureToString(f))));
 
     final Double binWidth = switch (((IMSRawDataFile) f.getRawDataFile()).getMobilityType()) {

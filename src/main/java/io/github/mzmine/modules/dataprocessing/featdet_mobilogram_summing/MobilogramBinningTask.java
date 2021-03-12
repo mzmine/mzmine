@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_interpolation.MobilogramInterpolationModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -135,7 +134,7 @@ public class MobilogramBinningTask extends AbstractTask {
     }
 
     flist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(MobilogramInterpolationModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(MobilogramBinningModule.class, parameters));
     if (createNewFlist) {
       project.addFeatureList(flist);
     }

@@ -224,14 +224,9 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule"/>
     </Menu>
 
-    <Menu text="Mobilogram processing">
-      <MenuItem onAction="#runModule"
-        text="Mobilogram binning"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningModule"/>
-      <MenuItem onAction="#runModule"
-        text="Mobilogram interpolation (experimental)"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogram_interpolation.MobilogramInterpolationModule"/>
-    </Menu>
+    <MenuItem onAction="#runModule"
+      text="Mobilogram binning"
+      userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningModule"/>
 
     <SeparatorMenuItem/>
 

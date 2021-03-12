@@ -264,6 +264,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   public SummedIntensityMobilitySeries toSummedMobilogram(@Nullable MemoryMapStorage storage) {
+    // todo: maybe remove all but flanking zeros here?
     return new SummedIntensityMobilitySeries(storage,
         Arrays.copyOf(mobilities, mobilities.length),
         Arrays.copyOf(intensities, intensities.length));
