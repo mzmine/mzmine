@@ -52,7 +52,8 @@ public class Precision {
   }
 
   /**
-   * Checks if difference of a and b is small equal to max difference
+   * Checks if difference of a and b is smaller equal to the maximum of the relative and absolute
+   * delta
    *
    * @param a                value 1
    * @param b                value 2
@@ -61,12 +62,13 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(double a, double b, double maxDelta, double maxRelativeDelta) {
-    double diff = Math.abs(a - b);
-    return diff <= maxDelta && diff <= Math.max(a, b) * maxRelativeDelta;
+    // diff <= max of relative and absolute
+    return Math.abs(a - b) <= Math.max(Math.max(a, b) * maxRelativeDelta, maxDelta);
   }
 
   /**
-   * Checks if difference of a and b is small equal to max difference
+   * Checks if difference of a and b is smaller equal to the maximum of the relative and absolute
+   * delta
    *
    * @param a                value 1
    * @param b                value 2
@@ -75,8 +77,8 @@ public class Precision {
    * @return true if Math.abs(a-b) <= maxDelta
    */
   public static boolean equals(float a, float b, float maxDelta, float maxRelativeDelta) {
-    double diff = Math.abs(a - b);
-    return diff <= maxDelta && diff <= Math.max(a, b) * maxRelativeDelta;
+    // diff <= max of relative and absolute
+    return Math.abs(a - b) <= Math.max(Math.max(a, b) * maxRelativeDelta, maxDelta);
   }
 
 

@@ -152,7 +152,7 @@ public class NeutralLossFilterTask extends AbstractTask {
     PeakListHandler plh = new PeakListHandler();
     plh.setUp(peakList);
 
-    resultPeakList = new ModularFeatureList(peakList.getName() + suffix, storage,
+    resultPeakList = new ModularFeatureList(peakList.getName() + " " + suffix, storage,
         peakList.getRawDataFiles());
     PeakListHandler resultMap = new PeakListHandler();
 
