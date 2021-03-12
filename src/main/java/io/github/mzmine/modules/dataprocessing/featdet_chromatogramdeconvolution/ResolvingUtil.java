@@ -21,11 +21,12 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -44,15 +45,19 @@ public class ResolvingUtil {
    *
    * @param resolver
    * @param data
-   * @param storage       May be null, if the values shall be stored in ram (e.g. previews)
+   * @param storage           May be null, if the values shall be stored in ram (e.g. previews)
    * @param dimension
    * @param selectedScans
+   * @param mobilogramBinning The {@link BinningMobilogramDataAccess} that shall be used to bin the
+   *                          resulting summed mobilograms. May not be null if dimension == {@link
+   *                          ResolvingDimension#MOBILITY}.
    * @return
    */
   public static List<IonTimeSeries<? extends Scan>> resolve(@Nonnull final XYResolver resolver,
       @Nonnull final IonTimeSeries<? extends Scan> data, @Nullable final MemoryMapStorage storage,
       @Nonnull final ResolvingDimension dimension,
-      List<? extends Scan> selectedScans) {
+      List<? extends Scan> selectedScans,
+      @Nullable BinningMobilogramDataAccess mobilogramBinning) {
 
     final double[][] extractedData = extractData(data, dimension);
     final int totalScans = getTotalNumberOfScansInDimension(data, dimension, selectedScans);
@@ -80,7 +85,7 @@ public class ResolvingUtil {
           resolvedSeries.add(resolved);
         } else if (data instanceof IonMobilogramTimeSeries) {
           IonMobilogramTimeSeries resolved = ((IonMobilogramTimeSeries) data)
-              .subSeries(storage, (List<Frame>) subset);
+              .subSeries(storage, (List<Frame>) subset, mobilogramBinning);
           resolvedSeries.add(resolved);
         } else {
           throw new IllegalArgumentException("Resolving behaviour of " + data.getClass().getName()
@@ -97,7 +102,7 @@ public class ResolvingUtil {
               .filter(s -> Double.compare(s.getMobility(), firstPair.x) >= 0
                   && Double.compare(s.getMobility(), lastPair.x) <= 0).collect(
                   Collectors.toList());
-          if (subset.size() < 3) {
+          if (subset.isEmpty()) {
             continue;
           }
           // IonMobilitySeries are stored in ram until they are added to an IonMobilogramTimeSeries
@@ -109,8 +114,10 @@ public class ResolvingUtil {
           continue;
         }
 
-        IonMobilogramTimeSeries resolved = new SimpleIonMobilogramTimeSeries(
-            storage, resolvedMobilograms);
+//        IonMobilogramTimeSeries resolved = new SimpleIonMobilogramTimeSeries(
+//            storage, resolvedMobilograms);
+        IonMobilogramTimeSeries resolved = IonMobilogramTimeSeriesFactory
+            .of(storage, resolvedMobilograms, mobilogramBinning);
         resolvedSeries.add(resolved);
 
       } else {

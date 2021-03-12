@@ -52,7 +52,8 @@ public class FeatureDataUtils {
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
       final double mz = series.getMZ(i);
-      if (mz < min) {
+      // we add flanking 0 intesities with 0d mz during building, don't count those
+      if (mz < min && Double.compare(mz, 0d) == 1) {
         min = mz;
       }
       if (mz > max) {

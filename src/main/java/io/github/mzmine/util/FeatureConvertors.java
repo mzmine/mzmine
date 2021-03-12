@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
@@ -203,7 +204,8 @@ public class FeatureConvertors {
               Collectors.toList()));
       mobilograms.add(mobilogram);
     }
-    IonMobilogramTimeSeries imTimeSeries = new SimpleIonMobilogramTimeSeries(storage, mobilograms);
+    IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory
+        .of(storage, mobilograms, mobilogramBinner);
     modularFeature.set(FeatureDataType.class, imTimeSeries);
 
     // Ranges
@@ -235,6 +237,8 @@ public class FeatureConvertors {
     if (!Float.isNaN(af)) {
       modularFeature.set(AsymmetryFactorType.class, af);
     }
+
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 
     return modularFeature;
   }

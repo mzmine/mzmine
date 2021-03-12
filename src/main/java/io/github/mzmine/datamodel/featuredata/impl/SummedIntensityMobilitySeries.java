@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
@@ -140,6 +141,12 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     }
     getMobilityValues().get(0, dst, 0, getNumberOfValues());
     return dst;
+  }
+
+  public SummedIntensityMobilitySeries copy(@Nullable MemoryMapStorage storage) {
+    return new SummedIntensityMobilitySeries(storage,
+        DataPointUtils.getDoubleBufferAsArray(mobilityValues),
+        DataPointUtils.getDoubleBufferAsArray(intensityValues));
   }
 
 }
