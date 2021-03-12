@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_processing;
+package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_interpolation;
 
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -270,7 +270,7 @@ public class MobilogramInterpolationTask extends AbstractTask {
       final List<ModularFeature> features = (List<ModularFeature>) (List<? extends Feature>) flist
           .getFeatures(file);
       final SummedMobilogramDataAccess summedAccess = new SummedMobilogramDataAccess(
-          (IMSRawDataFile) file);
+          (IMSRawDataFile) file, 0d);
 
       for (ModularFeature feature : features) {
         processedFeatures.getAndIncrement();
@@ -278,7 +278,7 @@ public class MobilogramInterpolationTask extends AbstractTask {
           continue;
         }
 
-        summedAccess.setSummedMobilogram(series.getSummedMobilogram());
+        summedAccess.setMobilogram(series.getSummedMobilogram());
 
         if (!isEligible(summedAccess, windowWidth, minNumIntensities)) {
           continue;

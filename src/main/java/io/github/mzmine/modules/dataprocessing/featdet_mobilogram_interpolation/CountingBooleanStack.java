@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_processing;
+package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_interpolation;
 
 import java.util.Stack;
 import javax.annotation.Nullable;

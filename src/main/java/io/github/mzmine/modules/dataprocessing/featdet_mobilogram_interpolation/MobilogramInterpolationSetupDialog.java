@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_processing;
+package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_interpolation;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -135,7 +135,7 @@ public class MobilogramInterpolationSetupDialog extends ParameterSetupDialogWith
       return;
     }
     if (dataAccess == null || f.getRawDataFile() != dataAccess.getDataFile()) {
-      dataAccess = new SummedMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile());
+      dataAccess = new SummedMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile(), 0d);
     }
 
     previewChart.setDomainAxisLabel(f.getMobilityUnit().getAxisLabel());
@@ -157,7 +157,7 @@ public class MobilogramInterpolationSetupDialog extends ParameterSetupDialogWith
     final int filterWidth = parameterSet.getParameter(MobilogramInterpolationParameters.filterWidth)
         .getValue();
 
-    dataAccess.setSummedMobilogram(series.getSummedMobilogram());
+//    dataAccess.setSummedMobilogram(series.getSummedMobilogram());
 
     if (!MobilogramInterpolationTask.isEligible(dataAccess, windowWidth, minNumIntensities)) {
       return;

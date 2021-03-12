@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_processing;
+package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_interpolation;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;

@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_processing;
+package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_interpolation;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -70,6 +70,8 @@ public class MobilogramInterpolationModule implements MZmineProcessingModule {
   @Nonnull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELISTDETECTION;
+    return MZmineModuleCategory.FEATUREDETECTION;
   }
+
+
 }
