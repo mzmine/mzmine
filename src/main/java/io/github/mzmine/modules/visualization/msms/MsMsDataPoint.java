@@ -27,7 +27,7 @@ class MsMsDataPoint {
   private static final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private static final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
-  private static final int defaultPrecursorCharge = 1;
+  //private static final int defaultPrecursorCharge = 1;
   private double productMz;
   private double precursorMz;
   private int precursorCharge;
@@ -39,7 +39,7 @@ class MsMsDataPoint {
 
   private int scanNumber;
   /**
-   * 0 - points is not highlighted, 1, 2, 3 - different colors
+   * 0 - point is not highlighted, 1, 2, 3 - different colors
    */
   private int highlightType = 0;
 
@@ -56,9 +56,9 @@ class MsMsDataPoint {
     precursorMass = precursorMz;
     if (precursorCharge > 0) {
       precursorMass *= precursorCharge;
-    } else if (precursorCharge == 0 && precursorMass < productMz) {
+    }/* else if (precursorCharge == 0 && precursorMass < productMz) {
       precursorMass *= defaultPrecursorCharge;
-    }
+    }*/
 
     neutralLoss = precursorMass - productMz;
   }
@@ -109,14 +109,14 @@ class MsMsDataPoint {
 
   @Override
   public String toString() {
-    return "Scan number: " + scanNumber + '\n'
-        + "Product m/z: " + mzFormat.format(productMz) + '\n'
-        + "Retention time: " + rtFormat.format(retentionTime) + '\n'
-        + "Precursor m/z: " + mzFormat.format(precursorMz) + '\n'
-        + "Neutral loss: " + mzFormat.format(neutralLoss) + '\n'
-        + "Precursor charge: " + precursorCharge + '\n'
-        + "Product intensity: " + intensityFormat.format(productIntensity) + '\n'
-        + "Precursor intensity: " + intensityFormat.format(precursorIntensity);
+    return "Scan number: " + scanNumber
+        + "\nRetention time: " + rtFormat.format(retentionTime)
+        + "\nProduct m/z: " + mzFormat.format(productMz)
+        + "\nPrecursor m/z: " + mzFormat.format(precursorMz)
+        + "\nNeutral loss: " + mzFormat.format(neutralLoss)
+        + "\nPrecursor charge: " + (precursorCharge < 0 ? "Unknown" : precursorCharge)
+        + "\nProduct intensity: " + intensityFormat.format(productIntensity)
+        + "\nPrecursor intensity: " + intensityFormat.format(precursorIntensity);
   }
 
 }

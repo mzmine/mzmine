@@ -237,7 +237,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           // Test base peak percent condition
           double intensityThreshold = intensityFilterValue;
           if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT) {
-            intensityThreshold = scan.getBasePeakIntensity() * (intensityFilterValue / 100);
+            intensityThreshold = massList.getBasePeakIntensity() * (intensityFilterValue / 100);
           }
 
           // Filter scans
@@ -274,9 +274,6 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
       }
 
-      // Scale precursor intensity (fifth root scaling looks the best on tested files)
-      precursorIntensity = Math.pow(precursorIntensity, 0.2);
-
       // Find max precursor intensity for further normalization
       if (precursorIntensity > maxPrecursorIntensity) {
         maxPrecursorIntensity = precursorIntensity;
@@ -293,12 +290,12 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           return;
         }
 
-        double mzValue = massList.getMzValue(pointIndex);
-        double intensityValue = massList.getIntensityValue(pointIndex);
+        double productMz = massList.getMzValue(pointIndex);
+        double productIntensity = massList.getIntensityValue(pointIndex);
 
         // Diagnostic fragmentation filtering (m/z)
         if (!(dffListMz == null || dffListMz.isEmpty())) {
-          Range<Double> toleranceRange = mzTolerance.getToleranceRange(mzValue);
+          Range<Double> toleranceRange = mzTolerance.getToleranceRange(productMz);
           for (double targetMz : dffListMz) {
             if (!toleranceRange.contains(targetMz)) {
               processedScans++;
@@ -309,7 +306,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
         // Diagnostic fragmentation filtering (neutral loss)
         if (!(dffListNl == null || dffListNl.isEmpty())) {
-          double neutralLoss = scan.getPrecursorMZ() - mzValue;
+          double neutralLoss = scan.getPrecursorMZ() - productMz;
           Range<Double> toleranceRange = mzTolerance.getToleranceRange(neutralLoss);
           for (double targetNeutralLoss : dffListNl) {
             if (!toleranceRange.contains(targetNeutralLoss)) {
@@ -320,14 +317,12 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
 
         // Product intensity
-        // Scale precursor intensity (value 0.15 is just empirical)
-        double productIntensity = Math.pow(intensityValue, 0.15);
         if (productIntensity > maxProductIntensity) {
           maxProductIntensity = productIntensity;
         }
 
         // Create new data point
-        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), mzValue, scan.getPrecursorMZ(),
+        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), productMz, scan.getPrecursorMZ(),
             scan.getPrecursorCharge(), scan.getRetentionTime(), productIntensity, precursorIntensity);
 
         dataPoints.add(newPoint);
@@ -346,7 +341,12 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
             + " data file, satisfying module parameters");
         alert.showAndWait();
       });
+      return;
     }
+
+    // Scale max intensities
+    maxProductIntensity = scaleProductIntensity(maxProductIntensity);
+    maxPrecursorIntensity = scalePrecursorIntensity(maxPrecursorIntensity);
   }
 
   @Override
@@ -396,10 +396,20 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   private double getRawZValue(MsMsDataPoint dataPoint) {
     return switch (zAxisType) {
-      case PRECURSOR_INTENSITY -> dataPoint.getPrecursorIntensity() / maxPrecursorIntensity;
-      case PRODUCT_INTENSITY -> dataPoint.getProductIntensity() / maxProductIntensity;
+      case PRECURSOR_INTENSITY
+          -> scalePrecursorIntensity(dataPoint.getPrecursorIntensity()) / maxPrecursorIntensity;
+      case PRODUCT_INTENSITY
+          -> scaleProductIntensity(dataPoint.getProductIntensity()) / maxProductIntensity;
       case RETENTION_TIME -> dataPoint.getRetentionTime() / maxRt;
     };
+  }
+
+  private double scalePrecursorIntensity(double intensity) {
+    return Math.pow(intensity, 0.2);
+  }
+
+  private double scaleProductIntensity(double intensity) {
+    return Math.pow(intensity, 0.15);
   }
 
   @Nullable
