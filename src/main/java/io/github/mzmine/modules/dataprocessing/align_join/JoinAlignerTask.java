@@ -57,6 +57,7 @@ public class JoinAlignerTask extends AbstractTask {
   private final MZmineProject project;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private ModularFeatureList[] featureLists;
+  private final ModularFeatureList baseList;
   private ModularFeatureList alignedFeatureList;
 
   // Processed rows counter
@@ -95,6 +96,10 @@ public class JoinAlignerTask extends AbstractTask {
 
     featureLists = parameters.getParameter(JoinAlignerParameters.peakLists).getValue()
         .getMatchingFeatureLists();
+
+    // split into base and lists to merge
+    baseList = featureLists[0];
+    featureLists = Arrays.copyOfRange(featureLists, 1, featureLists.length);
 
     featureListName = parameters.getParameter(JoinAlignerParameters.peakListName).getValue();
 
@@ -141,7 +146,7 @@ public class JoinAlignerTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Join aligner, " + featureListName + " (" + featureLists.length + " feature lists)";
+    return "Join aligner, " + featureListName + " (" + (featureLists.length+1) + " feature lists)";
   }
 
   /**
@@ -169,10 +174,6 @@ public class JoinAlignerTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running join aligner");
-
-    // split into base and lists to merge
-    ModularFeatureList baseList = featureLists[0];
-    featureLists = Arrays.copyOfRange(featureLists, 1, featureLists.length);
 
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
