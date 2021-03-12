@@ -42,39 +42,49 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
-import java.util.Vector;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 public class JoinAlignerTask extends AbstractTask {
 
   private final MZmineProject project;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private ModularFeatureList[] featureLists;
   private ModularFeatureList alignedFeatureList;
 
   // Processed rows counter
   private int processedRows, totalRows;
 
-  private String featureListName;
-  private MZTolerance mzTolerance;
-  private RTTolerance rtTolerance;
-  private MobilityTolerance mobilityTolerance;
-  private double mzWeight, rtWeight, mobilityWeight;
-  private boolean sameIDRequired, sameChargeRequired, compareIsotopePattern,
-      compareSpectraSimilarity;
-  private ParameterSet parameters;
+
+  private final ParameterSet isotopeParams;
+  private final String featureListName;
+  private final MZTolerance mzTolerance;
+  private final RTTolerance rtTolerance;
+  private final MobilityTolerance mobilityTolerance;
+  private final double mzWeight;
+  private final double rtWeight;
+  private final double mobilityWeight;
+  private final boolean sameIDRequired;
+  private final boolean sameChargeRequired;
+  private final boolean compareIsotopePattern;
+  private final boolean compareSpectraSimilarity;
+  private final ParameterSet parameters;
 
   // ID counter for the new peaklist
   private int newRowID = 1;
 
+
   // fields for spectra similarity
   private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
   private int msLevel;
-  private boolean compareMobility;
+  private final boolean compareMobility;
 
   public JoinAlignerTask(MZmineProject project, ParameterSet parameters,
       @Nullable MemoryMapStorage storage) {
@@ -107,6 +117,9 @@ public class JoinAlignerTask extends AbstractTask {
 
     compareIsotopePattern =
         parameters.getParameter(JoinAlignerParameters.compareIsotopePattern).getValue();
+
+    isotopeParams = parameters.getParameter(JoinAlignerParameters.compareIsotopePattern)
+        .getEmbeddedParameters();
 
     compareSpectraSimilarity =
         parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity).getValue();
@@ -157,6 +170,10 @@ public class JoinAlignerTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running join aligner");
 
+    // split into base and lists to merge
+    ModularFeatureList baseList = featureLists[0];
+    featureLists = Arrays.copyOfRange(featureLists, 1, featureLists.length);
+
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
     for (FeatureList list : featureLists) {
@@ -164,7 +181,7 @@ public class JoinAlignerTask extends AbstractTask {
     }
 
     // Collect all data files
-    Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
+    List<RawDataFile> allDataFiles = new ArrayList<>(baseList.getRawDataFiles());
     for (FeatureList featureList : featureLists) {
 
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
@@ -174,33 +191,34 @@ public class JoinAlignerTask extends AbstractTask {
         if (allDataFiles.contains(dataFile)) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Cannot run alignment, because file " + dataFile
-              + " is present in multiple feature lists");
+                          + " is present in multiple feature lists");
           return;
         }
 
         allDataFiles.add(dataFile);
       }
-
     }
 
-    // Create a new aligned feature list
-    alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
-        allDataFiles.toArray(new RawDataFile[0]));
-    for(ModularFeatureList flist : featureLists) {
-      flist.getRowTypes().values().forEach(type -> alignedFeatureList.addRowType(type));
+    // Create a new aligned feature list based on the baseList
+    alignedFeatureList = baseList.createCopy(featureListName, getMemoryMapStorage(), allDataFiles);
+    // recount ids
+    for (FeatureListRow row : alignedFeatureList.getRows()) {
+      row.setID(newRowID);
+      newRowID++;
     }
-
 
     // Iterate source feature lists
     for (ModularFeatureList featureList : featureLists) {
-
+      // set initial chromatogram builder scans
       featureList.getRawDataFiles().forEach(
           file -> alignedFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
 
       // Create a sorted set of scores matching
-      TreeSet<RowVsRowScore> scoreSet = new TreeSet<RowVsRowScore>();
+      TreeSet<RowVsRowScore> scoreSet = new TreeSet<>();
 
       FeatureListRow[] allRows = featureList.getRows().toArray(FeatureListRow[]::new);
+
+      Map<FeatureListRow, IsotopePattern> isotopePatternMap = new HashMap<>();
 
       // Calculate scores for all possible alignments of this row
       for (FeatureListRow row : allRows) {
@@ -216,109 +234,35 @@ public class JoinAlignerTask extends AbstractTask {
         Range<Float> mobilityRange = compareMobility && !Float.isNaN(row.getAverageMobility()) ?
             mobilityTolerance.getToleranceRange(row.getAverageMobility()) : Range.singleton(0f);
 
-        // Get all rows of the aligned peaklist within parameter limits
-        List<FeatureListRow> candidateRows = alignedFeatureList
-            .getRowsInsideScanAndMZRange(rtRange, mzRange);
-
         // Calculate scores and store them
-        for (FeatureListRow candidate : candidateRows) {
+        for (FeatureListRow candidate : alignedFeatureList.getRows()) {
+          if (checkMZ(candidate, mzRange) && checkRT(candidate, rtRange) &&
+              checkMobility(candidate, mobilityRange) &&
+              (!sameChargeRequired || FeatureUtils.compareChargeState(row, candidate)) &&
+              (!sameIDRequired || FeatureUtils.compareIdentities(row, candidate)) &&
+              checkIsotopePattern(isotopePatternMap, row, candidate) &&
+              checkSpectralSimilarity(row, candidate)) {
 
-          if (compareMobility && !Float.isNaN(candidate.getAverageMobility()) &&
-              !mobilityRange.contains(candidate.getAverageMobility())) {
-            continue;
-          }
-
-          if (sameChargeRequired) {
-            if (!FeatureUtils.compareChargeState(row, candidate)) {
-              continue;
+            RowVsRowScore score = null;
+            if (!compareMobility) {
+              score = new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0,
+                  mzWeight,
+                  RangeUtils.rangeLength(rtRange) / 2.0, rtWeight);
+            } else {
+              score = new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0,
+                  mzWeight,
+                  RangeUtils.rangeLength(rtRange) / 2.0, rtWeight,
+                  RangeUtils.rangeLength(mobilityRange), mobilityWeight);
             }
+            scoreSet.add(score);
           }
-
-          if (sameIDRequired) {
-            if (!FeatureUtils.compareIdentities(row, candidate)) {
-              continue;
-            }
-          }
-
-          if (compareIsotopePattern) {
-            IsotopePattern ip1 = row.getBestIsotopePattern();
-            IsotopePattern ip2 = candidate.getBestIsotopePattern();
-
-            if ((ip1 != null) && (ip2 != null)) {
-              ParameterSet isotopeParams =
-                  parameters.getParameter(JoinAlignerParameters.compareIsotopePattern)
-                      .getEmbeddedParameters();
-
-              if (!IsotopePatternScoreCalculator.checkMatch(ip1, ip2, isotopeParams)) {
-                continue;
-              }
-            }
-          }
-
-          // compare the similarity of spectra mass lists on MS1 or
-          // MS2 level
-          if (compareSpectraSimilarity) {
-            DataPoint[] rowDPs = null;
-            DataPoint[] candidateDPs = null;
-            SpectralSimilarity sim = null;
-
-            // get data points of mass list of the representative
-            // scans
-            if (msLevel == 1) {
-              rowDPs =
-                  row.getBestFeature().getRepresentativeScan().getMassList()
-                      .getDataPoints();
-              candidateDPs = candidate.getBestFeature().getRepresentativeScan()
-                  .getMassList()
-                  .getDataPoints();
-            }
-
-            // get data points of mass list of the best
-            // fragmentation scans
-            if (msLevel == 2) {
-              if (row.getBestFragmentation() != null && candidate.getBestFragmentation() != null) {
-                rowDPs = row.getBestFragmentation().getMassList().getDataPoints();
-                candidateDPs =
-                    candidate.getBestFragmentation().getMassList().getDataPoints();
-              } else {
-                continue;
-              }
-            }
-
-            // compare mass list data points of selected scans
-            if (rowDPs != null && candidateDPs != null) {
-
-              // calculate similarity using SimilarityFunction
-              sim = createSimilarity(rowDPs, candidateDPs);
-
-              // check if similarity is null. Similarity is not
-              // null if similarity score is >= the
-              // user set threshold
-              if (sim == null) {
-                continue;
-              }
-            }
-          }
-
-          RowVsRowScore score = null;
-          if (!compareMobility) {
-            score = new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0,
-                mzWeight,
-                RangeUtils.rangeLength(rtRange) / 2.0, rtWeight);
-          } else {
-            score = new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0,
-                mzWeight,
-                RangeUtils.rangeLength(rtRange) / 2.0, rtWeight,
-                RangeUtils.rangeLength(mobilityRange), mobilityWeight);
-          }
-          scoreSet.add(score);
         }
         processedRows++;
       }
 
       // Create a table of mappings for best scores
       Hashtable<FeatureListRow, FeatureListRow> alignmentMapping =
-          new Hashtable<FeatureListRow, FeatureListRow>();
+          new Hashtable<>();
 
       // Iterate scores by descending order
       for (RowVsRowScore score : scoreSet) {
@@ -374,6 +318,84 @@ public class JoinAlignerTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
 
   }
+
+  private boolean checkSpectralSimilarity(FeatureListRow row, FeatureListRow candidate) {
+    // compare the similarity of spectra mass lists on MS1 or
+    // MS2 level
+    if (compareSpectraSimilarity) {
+      DataPoint[] rowDPs = null;
+      DataPoint[] candidateDPs = null;
+      SpectralSimilarity sim = null;
+
+      // get data points of mass list of the representative
+      // scans
+      if (msLevel == 1) {
+        rowDPs =
+            row.getBestFeature().getRepresentativeScan().getMassList()
+                .getDataPoints();
+        candidateDPs = candidate.getBestFeature().getRepresentativeScan()
+            .getMassList()
+            .getDataPoints();
+      }
+
+      // get data points of mass list of the best
+      // fragmentation scans
+      if (msLevel == 2) {
+        if (row.getBestFragmentation() != null && candidate.getBestFragmentation() != null) {
+          rowDPs = row.getBestFragmentation().getMassList().getDataPoints();
+          candidateDPs =
+              candidate.getBestFragmentation().getMassList().getDataPoints();
+        } else {
+          return false;
+        }
+      }
+
+      // compare mass list data points of selected scans
+      if (rowDPs != null && candidateDPs != null) {
+
+        // calculate similarity using SimilarityFunction
+        sim = createSimilarity(rowDPs, candidateDPs);
+
+        // check if similarity is null. Similarity is not
+        // null if similarity score is >= the
+        // user set threshold
+        if (sim == null) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  private boolean checkIsotopePattern(Map<FeatureListRow, IsotopePattern> isotopePatternMap,
+      FeatureListRow row, FeatureListRow candidate) {
+    if (compareIsotopePattern) {
+      // get isotope pattern or put the best
+      IsotopePattern ip1 = isotopePatternMap.computeIfAbsent(row,
+          FeatureListRow::getBestIsotopePattern);
+      IsotopePattern ip2 = isotopePatternMap
+          .computeIfAbsent(candidate, FeatureListRow::getBestIsotopePattern);
+
+      return (ip1 == null) || (ip2 == null) || IsotopePatternScoreCalculator
+          .checkMatch(ip1, ip2, isotopeParams);
+    }
+    return true;
+  }
+
+  private boolean checkMZ(FeatureListRow candidate, Range<Double> mzRange) {
+    return mzWeight <= 0 || mzRange.contains(candidate.getAverageMZ());
+  }
+
+  private boolean checkRT(FeatureListRow candidate, Range<Float> rtRange) {
+    return rtWeight <= 0 || candidate.getAverageRT() < 0 || rtRange
+        .contains(candidate.getAverageRT());
+  }
+
+  private boolean checkMobility(FeatureListRow candidate, Range<Float> mobilityRange) {
+    return !compareMobility || mobilityWeight <= 0 || Float.isNaN(candidate.getAverageMobility())
+           || mobilityRange.contains(candidate.getAverageMobility());
+  }
+
 
   /**
    * Uses the similarity function and filter to create similarity.
