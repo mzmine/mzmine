@@ -38,7 +38,10 @@ class MsMsDataPoint {
   private double precursorIntensity;
 
   private int scanNumber;
-  private boolean isHighlighted = false;
+  /**
+   * 0 - points is not highlighted, 1, 2, 3 - different colors
+   */
+  private int highlightType = 0;
 
   public MsMsDataPoint(int scanNumber, double productMz, double precursorMz, int precursorCharge,
       double retentionTime, double productIntensity, double precursorIntensity) {
@@ -96,12 +99,12 @@ class MsMsDataPoint {
     return scanNumber;
   }
 
-  public void setHighlighted(boolean isHighlighted) {
-    this.isHighlighted = isHighlighted;
+  public void setHighlighted(int highlightType) {
+    this.highlightType = highlightType;
   }
 
-  public boolean isHighlighted() {
-    return isHighlighted;
+  public int getHighlighted() {
+    return highlightType;
   }
 
   @Override

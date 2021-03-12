@@ -227,7 +227,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       MassList massList = scan.getMassList();
 
       // Filter scans according to the input parameters
-      List<Integer> filteredScanIndices = new ArrayList<>();
+      List<Integer> filteredPointsIndices = new ArrayList<>();
       if (intensityFiltering) {
 
         // Intensity threshold
@@ -241,22 +241,22 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           }
 
           // Filter scans
-          for (int scanIndex = 0; scanIndex < massList.getNumberOfDataPoints(); scanIndex++) {
-            if (massList.getIntensityValue(scanIndex) >= intensityThreshold) {
-              filteredScanIndices.add(scanIndex);
+          for (int pointIndex = 0; pointIndex < massList.getNumberOfDataPoints(); pointIndex++) {
+            if (massList.getIntensityValue(pointIndex) >= intensityThreshold) {
+              filteredPointsIndices.add(pointIndex);
             }
           }
 
           // Number of most intense fragments
         } else if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
-          filteredScanIndices = IntStream.range(0, massList.getNumberOfDataPoints() - 1)
+          filteredPointsIndices = IntStream.range(0, massList.getNumberOfDataPoints() - 1)
               .boxed().sorted((i, j)
                   -> Doubles.compare(massList.getIntensityValue(j), massList.getIntensityValue(i)))
               .limit((int) intensityFilterValue).mapToInt(i -> i).boxed()
               .collect(Collectors.toList());
         }
       } else {
-        filteredScanIndices = IntStream.rangeClosed(0, massList.getNumberOfDataPoints() - 1).boxed()
+        filteredPointsIndices = IntStream.rangeClosed(0, massList.getNumberOfDataPoints() - 1).boxed()
             .collect(Collectors.toList());
       }
 
@@ -287,14 +287,14 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         maxRt = scan.getRetentionTime();
       }
 
-      for (int scanIndex : filteredScanIndices) {
+      for (int pointIndex : filteredPointsIndices) {
 
         if (status.getValue() == TaskStatus.CANCELED) {
           return;
         }
 
-        double mzValue = massList.getMzValue(scanIndex);
-        double intensityValue = massList.getIntensityValue(scanIndex);
+        double mzValue = massList.getMzValue(pointIndex);
+        double intensityValue = massList.getIntensityValue(pointIndex);
 
         // Diagnostic fragmentation filtering (m/z)
         if (!(dffListMz == null || dffListMz.isEmpty())) {
@@ -337,8 +337,6 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       processedScans++;
     }
 
-    System.out.println("[DEBUG] Total number of data points: " + dataPoints.size());
-
     // Show message, if there is nothing to plot
     if (dataPoints.isEmpty()) {
       status.setValue(TaskStatus.CANCELED);
@@ -363,11 +361,15 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   }
 
   private double getXYValue(MsMsXYAxisType axisType, int index) {
+    return getXYValue(axisType, dataPoints.get(index));
+  }
+
+  private double getXYValue(MsMsXYAxisType axisType, MsMsDataPoint dataPoint) {
     return switch (axisType) {
-      case PRODUCT_MZ -> dataPoints.get(index).getProductMZ();
-      case PRECURSOR_MZ -> dataPoints.get(index).getPrecursorMz();
-      case RETENTION_TIME -> dataPoints.get(index).getRetentionTime();
-      case NEUTRAL_LOSS -> dataPoints.get(index).getNeutralLoss();
+      case PRODUCT_MZ -> dataPoint.getProductMZ();
+      case PRECURSOR_MZ -> dataPoint.getPrecursorMz();
+      case RETENTION_TIME -> dataPoint.getRetentionTime();
+      case NEUTRAL_LOSS -> dataPoint.getNeutralLoss();
     };
   }
 
@@ -389,12 +391,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   @Override
   public double getZValue(int index) {
-    double zValue =  getRawZValue(dataPoints.get(index));
-    if (dataPoints.get(index).isHighlighted()) {
-      zValue += 1;
-    }
-
-    return zValue;
+    // Z value given by data point + int increment corresponding to highlight color
+    return getRawZValue(dataPoints.get(index)) + dataPoints.get(index).getHighlighted();
   }
 
   private double getRawZValue(MsMsDataPoint dataPoint) {
@@ -417,6 +415,14 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     return null;
   }
 
+  public MsMsXYAxisType getXAxisType() {
+    return xAxisType;
+  }
+
+  public MsMsXYAxisType getYAxisType() {
+    return yAxisType;
+  }
+
   public void setXAxisType(MsMsXYAxisType xAxisType) {
     this.xAxisType = xAxisType;
   }
@@ -429,9 +435,22 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     this.zAxisType = zAxisType;
   }
 
-  public void highlightPrecursorMz(Range<Double> mzRange) {
+  public void highlightPoints(MsMsXYAxisType valuesType1, @Nullable Range<Double> range1,
+      MsMsXYAxisType valuesType2, @Nullable Range<Double> range2) {
+
+    // Loop over data points and set highlight type given by input ranges
+    int highlightType;
     for (MsMsDataPoint dataPoint : dataPoints) {
-      dataPoint.setHighlighted(mzRange.contains(dataPoint.getPrecursorMz()));
+      highlightType = 0;
+      if (range1 != null && range1.contains(getXYValue(valuesType1, dataPoint))) {
+        highlightType += 1;
+      }
+
+      if (range2 != null && range2.contains(getXYValue(valuesType2, dataPoint))) {
+        highlightType += 2;
+      }
+
+      dataPoint.setHighlighted(highlightType);
     }
   }
 

@@ -32,6 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
+import javax.annotation.Nullable;
 import org.jfree.chart.util.SortOrder;
 
 public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
@@ -55,7 +56,6 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getMZFormat());
 
     renderer = new ColoredXYZDotRenderer();
-    renderer.pointsReduction = parameters.getParameter(MsMsParameters.pointsReduction).getValue();
 
     dataProvider = new MsMsDataProvider(parameters);
     dataset = new ColoredXYZDataset(dataProvider);
@@ -89,41 +89,50 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     setLegendCanvas(new Canvas());
   }
 
+  public MsMsXYAxisType getXAxisType() {
+    return dataProvider.getXAxisType();
+  }
+
+  public MsMsXYAxisType getYAxisType() {
+    return dataProvider.getYAxisType();
+  }
+
   public void setXAxisType(MsMsXYAxisType xAxisType) {
     dataProvider.setXAxisType(xAxisType);
     dataProvider.sortZValues(zOrder);
-    dataset.fireDatasetChangedTMPNAME();
+    dataset.fireDatasetChanged();
   }
 
   public void setYAxisType(MsMsXYAxisType yAxisType) {
     dataProvider.setYAxisType(yAxisType);
     dataProvider.sortZValues(zOrder);
-    dataset.fireDatasetChangedTMPNAME();
+    dataset.fireDatasetChanged();
   }
 
   public void setZAxisType(MsMsZAxisType zAxisType) {
     dataProvider.setZAxisType(zAxisType);
     dataProvider.sortZValues(zOrder);
-    dataset.fireDatasetChangedTMPNAME();
+    dataset.fireDatasetChanged();
   }
 
-  public void highlightPrecursorMz(Range<Double> closed) {
-    dataProvider.highlightPrecursorMz(closed);
+  public void highlightPoints(MsMsXYAxisType valuesType1, @Nullable Range<Double> range1,
+      MsMsXYAxisType valuesType2, @Nullable Range<Double> range2) {
+    dataProvider.highlightPoints(valuesType1, range1, valuesType2, range2);
     dataProvider.sortZValues(zOrder);
-    dataset.fireDatasetChangedTMPNAME();
+    dataset.fireDatasetChanged();
   }
 
   public void setDataFile(RawDataFile dataFile) {
     dataProvider.setDataFile(dataFile);
     dataProvider.sortZValues(zOrder);
-    dataset.fireDatasetChangedTMPNAME();
+    dataset.fireDatasetChanged();
   }
 
   public void sortZValues(SortOrder zOrder) {
     this.zOrder = zOrder;
     dataProvider.sortZValues(zOrder);
     renderer.setZOrder(zOrder);
-    dataset.fireDatasetChangedTMPNAME();
+    dataset.fireDatasetChanged();
   }
 
   public SimpleObjectProperty<TaskStatus> datasetStatusProperty() {

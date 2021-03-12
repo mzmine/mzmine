@@ -50,10 +50,6 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
 
   private static final Shape dataPointsShape = new Ellipse2D.Double(0, 0, 7, 7);
 
-  // TODO: remove
-  public boolean pointsReduction = false;
-  private int renderedCount = 0;
-
   /**
    * Order of z axis(i. e. darker/lighter colors on top)
    */
@@ -96,81 +92,73 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
 
     // Clear saved coordinated, when the renderer is initialized
     uniqueCoords.clear();
-    renderedCount = 0;
 
     // TODO: for loop over series?
     int series = 0;
 
-    // Do not show points, that are close to each other
-    if (pointsReduction) {
+    pointsToDraw = new boolean[dataset.getItemCount(series)];
 
-      pointsToDraw = new boolean[dataset.getItemCount(series)];
+    // Set to false, because following lines do the same as true
+    // Non visible dots will not be considered, for example after zoom
+    state.setProcessVisibleItemsOnly(false);
+    int firstItem = 0;
+    int lastItem = dataset.getItemCount(series) - 1;
+    if (lastItem == -1) {
+      return state;
+    }
+    int[] itemBounds = RendererUtils.findLiveItems(
+        dataset, series, plot.getDomainAxis().getLowerBound(),
+        plot.getDomainAxis().getUpperBound());
+    firstItem = Math.max(itemBounds[0] - 1, 0);
+    lastItem = Math.min(itemBounds[1] + 1, lastItem);
 
-      // Set to false, because following lines do the same as true
-      // Non visible dots will not be considered, for example after zoom
-      state.setProcessVisibleItemsOnly(false);
-      int firstItem = 0;
-      int lastItem = dataset.getItemCount(series) - 1;
-      if (lastItem == -1) {
-        return state;
+    // Loop through all data points and find "unique" points
+    for (int item = firstItem; item <= lastItem; item++) {
+
+      // Get all values
+      double x = dataset.getXValue(series, item);
+      double y = dataset.getYValue(series, item);
+      double z = ((ColoredXYZDataset) dataset).getZValue(series, item);
+      if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(z)) {
+        continue;
       }
-      int[] itemBounds = RendererUtils.findLiveItems(
-          dataset, series, plot.getDomainAxis().getLowerBound(),
-          plot.getDomainAxis().getUpperBound());
-      firstItem = Math.max(itemBounds[0] - 1, 0);
-      lastItem = Math.min(itemBounds[1] + 1, lastItem);
 
-      // Loop through all data points and find "unique" points
-      for (int item = firstItem; item <= lastItem; item++) {
+      // Calculate x and y coordinates relative to the data area
+      double transX = plot.getDomainAxis().valueToJava2D(x, dataArea,
+          plot.getDomainAxisEdge());
+      double transY = plot.getRangeAxis().valueToJava2D(y, dataArea,
+          plot.getRangeAxisEdge());
 
-        // Get all values
-        double x = dataset.getXValue(series, item);
-        double y = dataset.getYValue(series, item);
-        double z = ((ColoredXYZDataset) dataset).getZValue(series, item);
-        if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(z)) {
+      // Sparse the coordinates by rounding and making them odd
+      int roundX = (int) Math.round(transX);
+      int roundY = (int) Math.round(transY);
+      if (roundX % 2 == 0) {
+        roundX++;
+      }
+      if (roundY % 2 == 0) {
+        roundY++;
+      }
+
+      // Cantor pairing function(injection of roundX and roundY to single integer)
+      int coordinate = ((roundX + roundY) * (roundX + roundY + 1) + roundY) / 2;
+
+      // If point's coordinate is already present and z value is not visible according
+      // to the z values order, do nothing
+      if (uniqueCoords.containsKey(coordinate)) {
+        if (zOrder == null
+            || zOrder == SortOrder.ASCENDING && z <= uniqueCoords.get(coordinate).getValue()
+            || zOrder == SortOrder.DESCENDING && z >= uniqueCoords.get(coordinate).getValue()) {
           continue;
         }
-
-        // Calculate x and y coordinates relative to the data area
-        double transX = plot.getDomainAxis().valueToJava2D(x, dataArea,
-            plot.getDomainAxisEdge());
-        double transY = plot.getRangeAxis().valueToJava2D(y, dataArea,
-            plot.getRangeAxisEdge());
-
-        // Sparse the coordinates by rounding and making them odd
-        int roundX = (int) Math.round(transX);
-        int roundY = (int) Math.round(transY);
-        if (roundX % 2 == 0) {
-          roundX++;
-        }
-        if (roundY % 2 == 0) {
-          roundY++;
-        }
-
-        // Cantor pairing function(injection of roundX and roundY to single integer)
-        int coordinate = ((roundX + roundY) * (roundX + roundY + 1) + roundY) / 2;
-
-        // If point's coordinate is already present and z value is not important according
-        // to the z values order, do nothing
-        if (uniqueCoords.containsKey(coordinate)) {
-          if (zOrder == null
-              || zOrder == SortOrder.ASCENDING && z <= uniqueCoords.get(coordinate).getValue()
-              || zOrder == SortOrder.DESCENDING && z >= uniqueCoords.get(coordinate).getValue()) {
-            continue;
-          }
-        }
-
-        // Add new coordinate
-        uniqueCoords.put(coordinate, new Pair<>(item, z));
       }
 
-      // Loop through all unique coordinates and save indexes of points to be drawn
-      for (Pair<Integer, Double> pair : uniqueCoords.values()) {
-        pointsToDraw[pair.getKey()] = true;
-      }
+      // Add new coordinate
+      uniqueCoords.put(coordinate, new Pair<>(item, z));
+    }
 
-      Platform.runLater(() -> System.out
-          .println("[DEBUG] Number of rendered data points: " + renderedCount));
+    // Loop through all unique coordinates and save indexes of points to be drawn
+    for (Pair<Integer, Double> pair : uniqueCoords.values()) {
+      pointsToDraw[pair.getKey()] = true;
     }
 
     return state;
@@ -183,7 +171,7 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
       int series, int item, CrosshairState crosshairState, int pass) {
 
     // Test if point is need to be drawn
-    if (pointsReduction && !pointsToDraw[item]) {
+    if (!pointsToDraw[item]) {
       return;
     }
 
@@ -215,7 +203,6 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
     if (shape.intersects(dataArea)) {
       g2.setPaint(getPaint(dataset, series, item));
       g2.fill(shape);
-      renderedCount++;
     }
 
     int datasetIndex = plot.indexOf(dataset);

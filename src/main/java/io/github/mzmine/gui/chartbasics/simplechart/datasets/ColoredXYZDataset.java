@@ -292,19 +292,10 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 //    }
   }
 
-  // Some test methods
-
-  public void fireDatasetChangedTMPNAME() {
-    fireDatasetChanged();
+  // Makes protected method public // TODO: possible alternatives?
+  @Override
+  public void fireDatasetChanged() {
+    super.fireDatasetChanged();
   }
-
-  // - the dataset has DomainOrder.ASCENDING as DomainOrder. This makes it easier to find the data items
-  // that are within the value range of the axes. In this example, this is onmly of minor importance
-  // since all data points are visible.
-  /*
-  public DomainOrder getDomainOrder() {
-    return DomainOrder.ASCENDING;
-  }
-  */
 
 }

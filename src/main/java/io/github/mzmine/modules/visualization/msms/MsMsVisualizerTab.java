@@ -45,6 +45,8 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -73,8 +75,9 @@ public class MsMsVisualizerTab extends MZmineTab {
   private static final Image Z_DESC_ICON =
       FxIconUtil.loadImageFromResources("icons/msms_points_desc.png");
 
-  // Highlighted precursor mz range
-  Double minMzValue, maxMzValue;
+  // Highlighted points utility variables
+  Range<Double> range1, range2;
+  MsMsXYAxisType valueType1, valueType2;
 
   public MsMsVisualizerTab(ParameterSet parameters) {
     super("MS/MS Visualizer", true, false);
@@ -138,9 +141,9 @@ public class MsMsVisualizerTab extends MZmineTab {
     ToolBar toolBar = new ToolBar();
     toolBar.setOrientation(Orientation.VERTICAL);
 
-    Button highlightMzButton = new Button(null, new ImageView(POINTS_ICON));
-    highlightMzButton.setTooltip(new Tooltip("Highlight points with specific precursor m/z"));
-    highlightMzButton.setOnAction(event -> highlightMzOnAction());
+    Button highlightButton = new Button(null, new ImageView(POINTS_ICON));
+    highlightButton.setTooltip(new Tooltip("Highlight points with specific X and Y values"));
+    highlightButton.setOnAction(event -> highlightPointsOnAction());
 
     Button sortZValuesAscButton = new Button(null, new ImageView(Z_ASC_ICON));
     sortZValuesAscButton.setTooltip(new Tooltip("Sort points by Z axis in ascending order"));
@@ -150,68 +153,133 @@ public class MsMsVisualizerTab extends MZmineTab {
     sortZValuesDescButton.setTooltip(new Tooltip("Sort points by Z axis in descending order"));
     sortZValuesDescButton.setOnAction(event -> chart.sortZValues(SortOrder.DESCENDING));
 
-    toolBar.getItems().addAll(highlightMzButton, new Separator(Orientation.VERTICAL),
+    toolBar.getItems().addAll(highlightButton, new Separator(Orientation.VERTICAL),
         sortZValuesAscButton, sortZValuesDescButton);
 
     borderPane.setRight(toolBar);
   }
 
   /**
-   * Creates new popup stage with m/z range input fields, calls {@link MsMsChart#highlightPrecursorMz(Range)}
-   * if the input m/z range is valid and the "Apply button is pressed".
+   * Creates new popup stage with input fields for 2 ranges, calls
+   * {@link MsMsChart#highlightPoints(MsMsXYAxisType, Range, MsMsXYAxisType, Range)}
+   * if the ranges are valid and the Apply button or Enter key are pressed.
    */
-  private void highlightMzOnAction() {
+  private void highlightPointsOnAction() {
 
     // Create stage and fields
     Stage highlightDialog = new Stage();
-    HBox highlightDialogBox = new HBox();
-    highlightDialogBox.setAlignment(Pos.CENTER_LEFT);
-    TextField minMzField = new TextField();
-    TextField maxMzField = new TextField();
-    minMzField.setPrefColumnCount(6);
-    maxMzField.setPrefColumnCount(6);
-    minMzField.setText(Objects.toString(minMzValue, ""));
-    maxMzField.setText(Objects.toString(maxMzValue, ""));
+    HBox hbox1 = new HBox();
+    hbox1.setAlignment(Pos.CENTER_LEFT);
+    HBox hbox2 = new HBox();
+    hbox2.setAlignment(Pos.CENTER_LEFT);
+
+    // Ranges test fields
+    TextField minField1 = new TextField();
+    TextField maxField1 = new TextField();
+    TextField minField2 = new TextField();
+    TextField maxField2 = new TextField();
+    minField1.setPrefColumnCount(6);
+    maxField1.setPrefColumnCount(6);
+    minField2.setPrefColumnCount(6);
+    maxField2.setPrefColumnCount(6);
+    minField1.setText(range1 == null ? "" : Objects.toString(range1.lowerEndpoint()));
+    maxField1.setText(range1 == null ? "" : Objects.toString(range1.upperEndpoint()));
+    minField2.setText(range2 == null ? "" : Objects.toString(range2.lowerEndpoint()));
+    maxField2.setText(range2 == null ? "" : Objects.toString(range2.upperEndpoint()));
+
+    // Combo boxes
+    ComboBox<MsMsXYAxisType> combo1 = new ComboBox<>();
+    combo1.getItems().addAll(MsMsXYAxisType.values());
+    combo1.setValue(valueType1 != null ? valueType1 : chart.getXAxisType());
+    ComboBox<MsMsXYAxisType> combo2 = new ComboBox<>();
+    combo2.getItems().addAll(MsMsXYAxisType.values());
+    combo2.setValue(valueType2 != null ? valueType2 : chart.getYAxisType());
+
+    // Clear ranges buttons
+    Button clearBtn1 = new Button("Clear");
+    Button clearBtn2 = new Button("Clear");
+    clearBtn1.setOnAction(e -> {
+      minField1.setText("");
+      maxField1.setText("");
+    });
+    clearBtn2.setOnAction(e -> {
+      minField2.setText("");
+      maxField2.setText("");
+    });
+
+    // Set text fields frames colors according to the highlighting color
+    minField1.setStyle("-fx-text-box-border: #ff2121; -fx-focus-color: #ff2121");
+    maxField1.setStyle("-fx-text-box-border: #ff2121; -fx-focus-color: #ff2121");
+    minField2.setStyle("-fx-text-box-border: #d01ff2; -fx-focus-color: #d01ff2");
+    maxField2.setStyle("-fx-text-box-border: #d01ff2; -fx-focus-color: #d01ff2");
 
     // Add elements to the main VBox
-    highlightDialogBox.getChildren().addAll(new Text("m/z range: "), minMzField, new Text(" - "), maxMzField);
+    hbox1.getChildren().addAll(combo1, new Text(" "), minField1, new Text(" - "), maxField1,
+        new Text(" "), clearBtn1);
+    hbox2.getChildren().addAll(combo2, new Text(" "), minField2, new Text(" - "), maxField2,
+        new Text(" "), clearBtn2);
     VBox box = new VBox(5);
     box.setAlignment(Pos.CENTER);
     box.setPadding(new Insets(10, 10, 10, 10));
     highlightDialog.setScene(new Scene(box));
 
-    // Define buttons behaviour
-    Button btnApply = new Button("Apply");
-    Button btnCancel = new Button("Cancel");
-    btnApply.setOnAction(e -> {
+    // Create apply and cancel buttons and add them to the button bar
+    Button applyBtn = new Button("Apply");
+    Button cancelBtn = new Button("Cancel");
+    applyBtn.setOnAction(e -> {
+
+      // Try to parse fields, show alert window if input values are invalid or highlight plot chart
+      // points if the values are valid
       try {
-        minMzValue = Double.parseDouble(minMzField.getText());
-        maxMzValue = Double.parseDouble(maxMzField.getText());
+        if (minField1.getText().equals("") && maxField1.getText().equals("")) {
+          valueType1 = null;
+          range1 = null;
+        } else {
+          valueType1 = combo1.getValue();
+          range1 = Range.closed(Double.parseDouble(minField1.getText()),
+              Double.parseDouble(maxField1.getText()));
+        }
+
+        if (minField2.getText().equals("") && maxField2.getText().equals("")) {
+          valueType2 = null;
+          range2 = null;
+        } else {
+          valueType2 = combo2.getValue();
+          range2 = Range.closed(Double.parseDouble(minField2.getText()),
+              Double.parseDouble(maxField2.getText()));
+        }
       } catch (NumberFormatException exception) {
         Alert alert = new Alert(AlertType.ERROR);
         alert.setTitle("Input error");
-        alert.setHeaderText("m/z range input is invalid");
+        alert.setHeaderText("Invalid input");
+        alert.setContentText(exception.getMessage());
         alert.showAndWait();
         return;
       }
 
-      // Highlight plot chart points according to the input m/z range
-      chart.highlightPrecursorMz(Range.closed(minMzValue, maxMzValue));
+      chart.highlightPoints(valueType1, range1, valueType2, range2);
       highlightDialog.hide();
     });
-    btnCancel.setOnAction(e -> highlightDialog.hide());
-    ButtonBar.setButtonData(btnApply, ButtonData.APPLY);
-    ButtonBar.setButtonData(btnCancel, ButtonData.CANCEL_CLOSE);
+    cancelBtn.setOnAction(e -> highlightDialog.hide());
+    highlightDialog.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.ENTER) {
+        applyBtn.fire();
+      }
+    });
+    ButtonBar.setButtonData(applyBtn, ButtonData.APPLY);
+    ButtonBar.setButtonData(cancelBtn, ButtonData.CANCEL_CLOSE);
     ButtonBar btnBar = new ButtonBar();
-    btnBar.getButtons().addAll(btnApply, btnCancel);
-    box.getChildren().addAll(highlightDialogBox, btnBar);
+    btnBar.getButtons().addAll(applyBtn, cancelBtn);
+    box.getChildren().addAll(hbox1, hbox2, btnBar);
 
     // Setup stage
-    highlightDialog.setTitle("Precursor m/z range to highlight");
+    highlightDialog.setTitle("Values ranges to highlight");
     highlightDialog.setResizable(false);
     highlightDialog.initModality(Modality.APPLICATION_MODAL);
     highlightDialog.getIcons().add(new Image("MZmineIcon.png"));
     highlightDialog.show();
+
+    minField1.requestFocus();
   }
 
   @Nonnull

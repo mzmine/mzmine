@@ -12,9 +12,10 @@
 
 <p>
     This tool displays a three-dimensional plot of the MSn data. The are 4 options for X and Y axes:
-    Retention time, Precursor ion m/z, Product ion m/z, Neutral loss and 3 options for Z axis:
-    Precursor ion intensity, Product ion intensity, Retention time. Also there is an option for
-    diagnostic fragmentation filtering.
+    retention time, precursor ion m/z, product ion m/z, neutral loss and 3 options for Z axis:
+    precursor ion intensity, product ion intensity, retention time. You can filter ions by
+    the product intensity and select ions for diagnostic fragmentation filtering in parameters.
+    Also module enables you to highlight values of interest and sort ions by Z value.
 </p>
 
 <h3>Diagnostic fragmentation filtering</h3>
@@ -45,7 +46,7 @@
 </p>
 
 <p>
-    <img src="msms_visualizer.png" alt="MS/MS Visualizer" style="height:80%;">
+    <img src="msms_visualizer.png" alt="MS/MS Visualizer" style="width:60%;">
 </p>
 
 <h4>Parameters</h4>
@@ -113,9 +114,13 @@
         <li>Select combo boxes below - change axes types</li>
         <li>Hold the mouse on data point - show detailed information in a tooltip</li>
         <li>Double click on data point - show spectrum plot</li>
-        <li><img src="highlight_points.png"> - highlight precursor m/z range</li>
-        <li><img src="sort_z_asc.png"> - show points with higher z values in front</li>
-        <li><img src="sort_z_desc.png"> - show points with lower z values in front</li>
+        <li><img src="highlight_points_btn.png"> - highlight ions with specific values given by input
+            ranges with colors(Note: green color denotes ions satisfying both ranges)</li>
+        <img src = "msms_visualizer_highlight.png" style="width:60%;">
+        <li><img src="sort_z_asc_btn.png"> - show points with higher Z values in front</li>
+        <img src = "msms_visualizer_sortz_asc.png" style="width:60%;">
+        <li><img src="sort_z_desc_btn.png"> - show points with lower Z values in front</li>
+        <img src = "msms_visualizer_sortz_desc.png" style="width:60%;">
     </ul>
 </p>
 

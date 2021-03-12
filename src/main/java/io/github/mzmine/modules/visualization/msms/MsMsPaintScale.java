@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.msms;
 
 import com.google.common.collect.Range;
+import com.google.common.primitives.Doubles;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import java.awt.Color;
 import java.awt.Paint;
@@ -26,7 +27,7 @@ import java.awt.Paint;
 public class MsMsPaintScale extends PaintScale {
 
   private static final double LOWER_BOUND = 0d;
-  private static final double UPPER_BOUND = 2d;
+  private static final double UPPER_BOUND = 4d;
 
   public MsMsPaintScale() {
     super(Range.closed(LOWER_BOUND, UPPER_BOUND));
@@ -44,15 +45,29 @@ public class MsMsPaintScale extends PaintScale {
 
   @Override
   public Paint getPaint(double v) {
-    // Shades of blue
-    if (v > 1) {
-      int rgbVal = (int) Math.round(220 - (v - 1) * 220);
-      return new Color(255, rgbVal, rgbVal);
-    // Shades of red
+    float minS = 0.1f;
+    float vFract = (float) (v % 1);
+    float h;
+    float s = Doubles.compare(vFract, 0d) == 0 ? 1f : minS + vFract * (1 - minS);
+    float b = 1f;
+
+    if (v > 3) {
+      // Green
+      h = 0.333f;
+      b = 0.95f;
+    } else if (v > 2) {
+      // Purple
+      h = 0.806f;
+      b = 0.95f;
+    } else if (v > 1) {
+      // Red
+      h = 1f;
     } else {
-      int rgbVal = (int) Math.round(220 - v * 220);
-      return new Color(rgbVal, rgbVal, 255);
+      // Blue
+      h = 0.67f;
     }
+
+    return Color.getHSBColor(h, s, b);
   }
 
 }

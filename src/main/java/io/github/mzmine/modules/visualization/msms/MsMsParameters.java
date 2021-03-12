@@ -84,12 +84,9 @@ public class MsMsParameters extends SimpleParameterSet {
 
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-  public static final OptionalParameter<IntegerParameter> pointsReduction
-      = new OptionalParameter(new IntegerParameter("pointsReduction", "", 1));
-
   public MsMsParameters() {
     super(new Parameter[]{dataFiles, xAxisType, yAxisType, zAxisType, msLevel, rtRange,
-        mzRange, mzTolerance, intensityFiltering, dffParameters, pointsReduction, windowSettings});
+        mzRange, mzTolerance, intensityFiltering, dffParameters, windowSettings});
   }
 
 }
