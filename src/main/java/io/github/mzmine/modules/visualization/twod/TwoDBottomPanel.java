@@ -18,20 +18,21 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.RangeUtils;
-import java.util.Collections;
-import java.util.Vector;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.Collections;
+import java.util.Vector;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -53,6 +54,8 @@ class TwoDBottomPanel extends HBox {
 
   private TwoDVisualizerTab masterFrame;
   private RawDataFile dataFile;
+
+  private final MemoryMapStorage flistStorage = MemoryMapStorage.forFeatureList();
 
   TwoDBottomPanel(TwoDVisualizerTab masterFrame, RawDataFile dataFile, ParameterSet parameters) {
 
@@ -168,7 +171,7 @@ class TwoDBottomPanel extends HBox {
     if (selectedFeatureList == null)
       return null;
     ModularFeatureList newList =
-        new ModularFeatureList(selectedFeatureList.getName(), selectedFeatureList.getRawDataFiles());
+        new ModularFeatureList(selectedFeatureList.getName(), flistStorage, selectedFeatureList.getRawDataFiles());
 
     for (FeatureListRow featureListRow : selectedFeatureList.getRows()) {
       Feature feature = featureListRow.getFeature(dataFile);
@@ -190,7 +193,7 @@ class TwoDBottomPanel extends HBox {
     if (selectedFeatureList == null)
       return null;
     ModularFeatureList newList =
-        new ModularFeatureList(selectedFeatureList.getName(), selectedFeatureList.getRawDataFiles());
+        new ModularFeatureList(selectedFeatureList.getName(), flistStorage, selectedFeatureList.getRawDataFiles());
 
     Vector<FeatureListRow> featureRows = new Vector<FeatureListRow>();
 

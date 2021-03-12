@@ -119,7 +119,7 @@ public class ParameterSetupDialog extends Stage {
   @SuppressWarnings({"rawtypes", "unchecked"})
   public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters, String message) {
 
-    Image mzmineIcon = FxIconUtil.loadImageFromResources("MzmineIcon.png");
+    Image mzmineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
     this.getIcons().add(mzmineIcon);
 
     this.valueCheckRequired = valueCheckRequired;
@@ -168,9 +168,7 @@ public class ParameterSetupDialog extends Stage {
       UserParameter up = (UserParameter) p;
 
       Node comp = up.createEditingComponent();
-      if (comp instanceof Control) {
-        ((Control) comp).setTooltip(new Tooltip(up.getDescription()));
-      }
+      addToolTipToControls(comp, up.getDescription());
       if (comp instanceof Region) {
         double minWidth = ((Region) comp).getMinWidth();
         // if (minWidth > column2.getMinWidth()) column2.setMinWidth(minWidth);
@@ -395,14 +393,9 @@ public class ParameterSetupDialog extends Stage {
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
     if (node instanceof Region) {
-      Region panelComp = (Region)
-          node;
+      Region panelComp = (Region) node;
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
-        Node child =
-            panelComp.getChildrenUnmodifiable().get(i);
-        /*if (!(child instanceof Control)) {
-          continue;
-        }*/
+        Node child = panelComp.getChildrenUnmodifiable().get(i);
         addListenersToNode(child);
       }
     }
@@ -412,4 +405,16 @@ public class ParameterSetupDialog extends Stage {
     return valueCheckRequired;
   }
 
+  protected void addToolTipToControls(Node node, String toolTipText) {
+    if (node instanceof Control) {
+      ((Control) node).setTooltip(new Tooltip(toolTipText));
+    }
+    if (node instanceof Region) {
+      Region panelComp = (Region) node;
+      for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
+        Node child = panelComp.getChildrenUnmodifiable().get(i);
+        addToolTipToControls(child, toolTipText);
+      }
+    }
+  }
 }

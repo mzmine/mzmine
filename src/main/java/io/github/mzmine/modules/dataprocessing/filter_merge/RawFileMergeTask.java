@@ -29,12 +29,14 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 /**
  * Merge multiple raw data files into one. For example one positive, one negative and multiple with
@@ -55,7 +57,9 @@ class RawFileMergeTask extends AbstractTask {
   private String ms2Marker;
   private MZmineProject project;
 
-  RawFileMergeTask(MZmineProject project, ParameterSet parameters, RawDataFile[] raw) {
+  RawFileMergeTask(MZmineProject project, ParameterSet parameters, RawDataFile[] raw,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.parameters = parameters;
     this.raw = raw;
@@ -112,7 +116,8 @@ class RawFileMergeTask extends AbstractTask {
       scans.sort(Comparator.comparingDouble(Scan::getRetentionTime));
 
       // create new file
-      RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix);
+      RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix,
+          getMemoryMapStorage());
 
       int i = 0;
       for (Scan scan : scans) {

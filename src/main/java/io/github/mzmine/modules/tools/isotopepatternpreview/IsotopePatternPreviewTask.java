@@ -43,6 +43,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   IsotopePatternPreviewDialog dialog;
 
   public IsotopePatternPreviewTask() {
+    super(null);
     message = "Wating for parameters";
     parametersChanged = false;
     formula = "";
@@ -68,6 +69,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
 
   public IsotopePatternPreviewTask(String formula, double minIntensity, double mergeWidth,
       int charge, PolarityType polarity, IsotopePatternPreviewDialog dialog) {
+    super(null);
     parametersChanged = false;
     this.minIntensity = minIntensity;
     this.mergeWidth = mergeWidth;

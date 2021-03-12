@@ -20,6 +20,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
+import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -273,4 +274,5 @@ public class ScanSelection {
     }
     return true;
   }
+
 }

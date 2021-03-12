@@ -24,6 +24,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -63,9 +64,12 @@ public class BaselineCorrectionModule implements MZmineProcessingModule {
     RawDataFile dataFiles[] = parameters.getParameter(BaselineCorrectionParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
 
+    // one storage for all files in the same module call
+    MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
+
     for (final RawDataFile dataFile : dataFiles) {
 
-      Task newTask = new BaselineCorrectionTask(project, dataFile, parameters);
+      Task newTask = new BaselineCorrectionTask(project, dataFile, parameters, storage);
       tasks.add(newTask);
     }
 

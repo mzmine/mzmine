@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.import_mztab;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.util.Collection;
 
@@ -60,8 +61,9 @@ public class MzTabImportModule implements MZmineProcessingModule {
   public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
     File inputFiles[] = parameters.getParameter(MzTabImportParameters.file).getValue();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (File inputFile : inputFiles) {
-      MzTabImportTask task = new MzTabImportTask(project, parameters, inputFile);
+      MzTabImportTask task = new MzTabImportTask(project, parameters, inputFile, storage);
       tasks.add(task);
     }
     return ExitCode.OK;

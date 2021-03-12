@@ -108,6 +108,8 @@ public class SpectralMatchTask extends AbstractTask {
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan,
       SpectraIdentificationResultsWindowFX resultWindow) {
+    super(null); // no new data stored -> null
+
     this.startEntry = startEntry;
     this.list = list;
     this.currentScan = currentScan;

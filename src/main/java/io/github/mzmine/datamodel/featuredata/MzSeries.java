@@ -34,6 +34,19 @@ public interface MzSeries extends SeriesValueCount {
   DoubleBuffer getMZValues();
 
   /**
+   *
+   * @param dst results are reflected in this array
+   * @return All m/z values of detected data points.
+   */
+  default double[] getMzValues(double[] dst) {
+    if (dst.length < getNumberOfValues()) {
+      dst = new double[getNumberOfValues()];
+    }
+    getMZValues().get(0, dst, 0, getNumberOfValues());
+    return dst;
+  }
+
+  /**
    * @param index
    * @return The value at the index position. Note the index does not correspond to scan numbers.
    * @see IonTimeSeries#getMzForSpectrum(Scan)

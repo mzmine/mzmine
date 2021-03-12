@@ -97,6 +97,7 @@ public class LibrarySubmitTask extends AbstractTask {
 
   public LibrarySubmitTask(MSMSLibrarySubmissionWindow window,
       Map<LibrarySubmitIonParameters, DataPoint[]> map) {
+    super(null);
     this.window = window;
     this.map = map;
     // get file, user and pass

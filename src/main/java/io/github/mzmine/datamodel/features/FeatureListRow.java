@@ -89,6 +89,11 @@ public interface FeatureListRow {
   public float getAverageRT();
 
   /**
+   * Returns average mobility for features on this row
+   */
+  float getAverageMobility();
+
+  /**
    * Returns average height for features on this row
    */
   public double getAverageHeight();

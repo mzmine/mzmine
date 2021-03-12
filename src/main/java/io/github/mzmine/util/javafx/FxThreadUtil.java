@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.javafx;
 
+import io.github.mzmine.main.MZmineCore;
 import java.util.concurrent.CountDownLatch;
 import javax.annotation.Nonnull;
 import com.google.common.base.Preconditions;
@@ -33,8 +34,8 @@ public class FxThreadUtil {
 
     Preconditions.checkNotNull(action);
 
-    // run synchronously on JavaFX thread
-    if (Platform.isFxApplicationThread()) {
+    // is headless mode or already runs synchronously on JavaFX thread
+    if (MZmineCore.isHeadLessMode() || Platform.isFxApplicationThread()) {
       action.run();
       return;
     }

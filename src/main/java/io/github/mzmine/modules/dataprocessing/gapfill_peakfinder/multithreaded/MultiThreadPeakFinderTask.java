@@ -22,7 +22,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -62,6 +61,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       ModularFeatureList processedPeakList,
       ParameterSet parameters, int start, int endexcl, SubTaskFinishListener listener,
       int taskIndex) {
+    super(null);
 
     this.listener = listener;
     this.taskIndex = taskIndex;

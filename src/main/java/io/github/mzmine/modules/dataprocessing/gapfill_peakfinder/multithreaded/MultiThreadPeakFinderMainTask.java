@@ -18,15 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import java.util.Collection;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
 import io.github.mzmine.main.MZmineCore;
@@ -35,6 +29,10 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Collection;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * The main task creates sub tasks to perform the PeakFinder algorithm on multiple threads. Each sub
@@ -64,7 +62,8 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
    * @param batchTasks all sub tasks are registered to the batchtasks list
    */
   public MultiThreadPeakFinderMainTask(MZmineProject project, FeatureList peakList,
-      ParameterSet parameters, Collection<Task> batchTasks) {
+      ParameterSet parameters, Collection<Task> batchTasks, @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;
     this.parameters = parameters;
@@ -80,7 +79,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     logger.info("Running multithreaded gap filler on " + peakList);
 
     // Create new results feature list
-    processedPeakList = peakList.createCopy(peakList + " " + suffix);
+    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage());
     progress = 0.5;
 
     // split raw data files into groups for each thread (task)

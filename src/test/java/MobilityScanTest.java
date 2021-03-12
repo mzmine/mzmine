@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -45,14 +46,10 @@ public class MobilityScanTest {
     Random rnd = new Random(System.currentTimeMillis());
     double[] numbers = rnd.doubles().limit(10).toArray();
 
-    MemoryMapStorage storage = new MemoryMapStorage();
+    MemoryMapStorage storage = null; // MemoryMapStorage.create();
 
     DoubleBuffer stored = null;
-    try {
-      stored = storage.storeData(numbers);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    stored = StorageUtils.storeValuesToDoubleBuffer(storage, numbers);
 
     for (int i = 0; i < numbers.length; i++) {
       Assert.assertEquals(numbers[i], stored.get(i), 0E-8);
@@ -93,7 +90,7 @@ public class MobilityScanTest {
     logger.info("Creating raw data file.");
     RawDataFile rawDataFile = null;
     try {
-      rawDataFile = new IMSRawDataFileImpl("mobility scan test file", Color.WHITE);
+      rawDataFile = new IMSRawDataFileImpl("mobility scan test file", null, Color.WHITE);
     } catch (IOException e) {
       e.printStackTrace();
       Assert.fail();

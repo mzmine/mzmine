@@ -33,9 +33,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 class LinearNormalizerTask extends AbstractTask {
 
@@ -54,7 +56,9 @@ class LinearNormalizerTask extends AbstractTask {
   private boolean removeOriginal;
   private ParameterSet parameters;
 
-  public LinearNormalizerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
+  public LinearNormalizerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage); // no new data stored -> null
 
     this.project = project;
     this.originalFeatureList = (ModularFeatureList) featureList;
@@ -90,7 +94,8 @@ class LinearNormalizerTask extends AbstractTask {
 
     // Create new feature list
     normalizedFeatureList =
-        new ModularFeatureList(originalFeatureList + " " + suffix, originalFeatureList.getRawDataFiles());
+        new ModularFeatureList(originalFeatureList + " " + suffix, getMemoryMapStorage(),
+            originalFeatureList.getRawDataFiles());
 
     // Loop through all raw data files, and find the feature with biggest
     // height

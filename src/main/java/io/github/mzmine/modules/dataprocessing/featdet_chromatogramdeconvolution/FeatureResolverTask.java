@@ -42,6 +42,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
@@ -50,6 +51,7 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 public class FeatureResolverTask extends AbstractTask {
 
@@ -76,11 +78,14 @@ public class FeatureResolverTask extends AbstractTask {
   /**
    * Create the task.
    *
+   * @param storage
    * @param list         feature list to operate on.
    * @param parameterSet task parameters.
    */
-  public FeatureResolverTask(final MZmineProject project, final FeatureList list,
+  public FeatureResolverTask(final MZmineProject project,
+      MemoryMapStorage storage, final FeatureList list,
       final ParameterSet parameterSet, CenterFunction mzCenterFunction) {
+    super(storage);
 
     // Initialize.
     this.project = project;
@@ -94,19 +99,16 @@ public class FeatureResolverTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-
     return "Feature recognition on " + originalPeakList;
   }
 
   @Override
   public double getFinishedPercentage() {
-
     return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
   }
 
   @Override
   public void run() {
-
     errorMsg = null;
 
     if (!isCanceled()) {
@@ -120,11 +122,8 @@ public class FeatureResolverTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
             "Feature resolving can only be performed on feature lists with a single raw data file");
-
       } else {
-
         try {
-
           // Peak resolver.
           if (((GeneralResolverParameters) parameters).getXYResolver(parameters) != null) {
             dimensionIndependentResolve((ModularFeatureList) originalPeakList);
@@ -342,7 +341,7 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
-    final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
+    @Nonnull final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
         .getXYResolver(parameters);
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
@@ -354,6 +353,8 @@ public class FeatureResolverTask extends AbstractTask {
     ResolvingDimension dimension = parameters.getParameter(GeneralResolverParameters.dimension)
         .getValue();
 
+    final List<? extends Scan> seletedScans = originalFeatureList.getSeletedScans(dataFile);
+
     int c = 0;
     for (int i = 0; i < totalRows; i++) {
       final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList
@@ -362,7 +363,7 @@ public class FeatureResolverTask extends AbstractTask {
       final IonTimeSeries<? extends Scan> data = originalFeature.getFeatureData();
 
       final List<IonTimeSeries<? extends Scan>> resolvedSeries = ResolvingUtil
-          .resolve(resolver, data, resolvedFeatureList.getMemoryMapStorage(), dimension);
+          .resolve(resolver, data, resolvedFeatureList.getMemoryMapStorage(), dimension, seletedScans);
 
       for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
@@ -383,7 +384,7 @@ public class FeatureResolverTask extends AbstractTask {
       }
       processedRows++;
     }
-    logger.info(c + "/" + resolvedFeatureList.getNumberOfRows() + " have less than 4 frames");
+    logger.info(c + "/" + resolvedFeatureList.getNumberOfRows() + " have less than 4 scans (frames for IMS data)");
     QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
@@ -412,6 +413,7 @@ public class FeatureResolverTask extends AbstractTask {
 
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
+
     final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
 
     processedRows = 0;
@@ -423,9 +425,7 @@ public class FeatureResolverTask extends AbstractTask {
           .getRow(i);
       final ModularFeature originalFeature = originalRow.getFeature(dataFile);
 
-      final FeatureResolver resolverModule = resolver;
-      final ParameterSet resolverParams = parameters;
-      final ResolvedPeak[] peaks = resolverModule.resolvePeaks(originalFeature, resolverParams,
+      final ResolvedPeak[] peaks = resolver.resolvePeaks(originalFeature, parameters,
           rSession, mzCenterFunction, msmsRange, RTRangeMSMS);
 
       for (final ResolvedPeak peak : peaks) {
@@ -464,7 +464,7 @@ public class FeatureResolverTask extends AbstractTask {
     // during resolution
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters
-            .getParameter(GeneralResolverParameters.SUFFIX).getValue(), dataFile);
+            .getParameter(GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
 //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 

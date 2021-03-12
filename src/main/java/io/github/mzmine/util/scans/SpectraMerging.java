@@ -194,7 +194,7 @@ public class SpectraMerging {
    *                      overlapping, otherwise the enclosed range will be deleted.
    * @return
    */
-  private static Range<Double> createNewNonOverlappingRange(RangeMap<Double, ?> rangeMap,
+  public static Range<Double> createNewNonOverlappingRange(RangeMap<Double, ?> rangeMap,
       final Range<Double> proposedRange) {
 
     Entry<Range<Double>, ?> lowerEntry = rangeMap.getEntry(

@@ -82,6 +82,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   private FeatureListRowsFilter filter;
 
   GnpsFbmnMgfExportTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
 

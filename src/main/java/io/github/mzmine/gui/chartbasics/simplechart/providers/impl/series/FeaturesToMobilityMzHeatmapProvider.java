@@ -137,10 +137,9 @@ public class FeaturesToMobilityMzHeatmapProvider implements
     width /= numSamples;
     boxWidth = width;
 
-    if (features.isEmpty()) {
+    if (!features.isEmpty()) {
       boxHeight = IonMobilityUtils.getSmallestMobilityDelta(
           ((IMSRawDataFile) features.get(0).getRawDataFile()).getFrame(0)) * 3;
-
     }
 
   }
@@ -176,7 +175,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements
   @Nullable
   @Override
   public Double getBoxHeight() {
-    return null;
+    return boxHeight;
   }
 
   @Nullable

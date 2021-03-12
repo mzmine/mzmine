@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -65,8 +66,9 @@ public class DuplicateFilterModule implements MZmineProcessingModule {
     FeatureList[] peakLists = parameters.getParameter(DuplicateFilterParameters.peakLists).getValue()
         .getMatchingFeatureLists();
 
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (FeatureList peakList : peakLists) {
-      Task newTask = new DuplicateFilterTask(project, peakList, parameters);
+      Task newTask = new DuplicateFilterTask(project, peakList, parameters, storage);
       tasks.add(newTask);
     }
 

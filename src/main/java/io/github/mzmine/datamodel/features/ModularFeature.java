@@ -505,14 +505,9 @@ public class ModularFeature implements Feature, ModularDataModel {
    *
    * @return
    */
-  @Deprecated
   @Nonnull
   @Override
   public List<Scan> getScanNumbers() {
-    /*ListProperty<Scan> v = get(ScanNumbersType.class);
-    return v == null || v.getValue() == null ?
-        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-        : v.getValue();*/
     IonTimeSeries<? extends Scan> data = getFeatureData();
     return data == null ? Collections.emptyList() : (List<Scan>) data.getSpectra();
   }

@@ -4,7 +4,7 @@ plugins {
     id "java"
     id "application"
     id "org.openjfx.javafxplugin" version "0.0.9"
-    id "org.beryx.runtime" version "1.11.4"
+    id "org.beryx.runtime" version "1.12.1"
 }
 
 group = "io.github.mzmine"
@@ -12,8 +12,8 @@ version = "3.0"
 description = "MZmine"
 
 // JDK 14+ is needed for jpackage
-sourceCompatibility = "15"
-targetCompatibility = "15"
+sourceCompatibility = "14"
+targetCompatibility = "14"
 defaultTasks "jpackage"
 
 // Check the OS
@@ -63,7 +63,7 @@ ext {
     jmztabVersion = "3.0.9"
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
-    guavaVersion = "30.0-jre"
+    guavaVersion = "30.1-jre"
     slf4jVersion = "1.7.30"
     poiVersion = "4.1.0"
     batikVersion = "1.11"
@@ -79,8 +79,8 @@ ext {
 dependencies {
     implementation "com.github.graphstream:gs-core:2.0-alpha"
     implementation "com.github.graphstream:gs-ui-javafx:2.0-alpha"
-    implementation "org.jfree:jfreechart:1.5.2"
-    implementation "org.jfree:org.jfree.chart.fx:2.0"
+    implementation "org.jfree:jfreechart:1.5.3"
+    implementation "org.jfree:org.jfree.chart.fx:2.0.1"
     implementation "org.jfree:org.jfree.fxgraphics2d:2.1"
     implementation "org.jfree:org.jfree.svg:4.1"
     implementation "org.jfree:org.jfree.pdf:2.0"
@@ -159,12 +159,14 @@ dependencies {
     implementation "org.controlsfx:controlsfx:$controlsfxVersion"
     implementation "org.drjekyll:fontchooser:2.4"
     implementation "org.json:json:20190722"
-    implementation "com.panemu:tiwulfx:3.0" // For DetachableTabPane
     implementation "com.github.oshi:oshi-core:4.5.2"
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     implementation "com.alanmrace:jimzmlparser:1.0.5"
+    // https://mvnrepository.com/artifact/commons-cli/commons-cli
+    implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
+
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitversion"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitversion"
@@ -216,7 +218,7 @@ tasks.withType(JavaExec) {
  * Set the basic Java runtime parameters (heap size etc.)
  */
 application {
-    mainClassName = "io.github.mzmine.main.MZmineCore"
+    mainClass.set("io.github.mzmine.main.MZmineCore")
     applicationName = "MZmine"
 }
 

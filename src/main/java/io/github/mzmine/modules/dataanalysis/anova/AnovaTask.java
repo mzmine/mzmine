@@ -16,28 +16,32 @@
 
 package io.github.mzmine.modules.dataanalysis.anova;
 
+import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import java.util.stream.IntStream;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.apache.commons.math3.distribution.FDistribution;
-import org.apache.commons.math3.exception.MathIllegalArgumentException;
-
-import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.apache.commons.math3.distribution.FDistribution;
+import org.apache.commons.math3.exception.MathIllegalArgumentException;
 
 public class AnovaTask extends AbstractTask {
 
@@ -52,6 +56,7 @@ public class AnovaTask extends AbstractTask {
   private final UserParameter userParameter;
 
   public AnovaTask(FeatureListRow[] featureListRows, ParameterSet parameters) {
+    super(null);
     this.featureListRows = featureListRows;
     this.userParameter = parameters.getParameter(AnovaParameters.selectionData).getValue();
   }

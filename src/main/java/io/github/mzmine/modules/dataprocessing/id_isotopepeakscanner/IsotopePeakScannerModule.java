@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
@@ -63,9 +64,9 @@ public class IsotopePeakScannerModule implements MZmineProcessingModule {
       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
     FeatureList peakLists[] = parameters.getParameter(IsotopePeakScannerParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
-
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (FeatureList peakList : peakLists) {
-      Task newTask = new IsotopePeakScannerTask(project, peakList, parameters);
+      Task newTask = new IsotopePeakScannerTask(project, peakList, parameters, storage);
       tasks.add(newTask);
     }
     return ExitCode.OK;

@@ -59,6 +59,7 @@ public class FeatureDataSetCalc extends AbstractTask {
 
   public FeatureDataSetCalc(final Collection<RawDataFile> rawDataFiles, final Range<Double> mzRange,
       ScanSelection scanSelection, TICPlot chromPlot) {
+    super(null); // no new data stored -> null
     this.rawDataFiles = rawDataFiles;
     this.mzRange = mzRange;
     this.chromPlot = chromPlot;
@@ -88,7 +89,8 @@ public class FeatureDataSetCalc extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // TODO: new ModularFeatureList name
-    ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode());
+    ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode(),
+        null, new ArrayList<>(rawDataFiles));
 
     for (RawDataFile rawDataFile : rawDataFiles) {
       if (getStatus() == TaskStatus.CANCELED) {

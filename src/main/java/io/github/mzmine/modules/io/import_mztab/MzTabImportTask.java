@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.import_mztab;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RawDataFileUtils;
+import javax.annotation.Nullable;
 import uk.ac.ebi.pride.jmztab.model.Assay;
 import uk.ac.ebi.pride.jmztab.model.MZTabFile;
 import uk.ac.ebi.pride.jmztab.model.MsRun;
@@ -68,7 +70,8 @@ class MzTabImportTask extends AbstractTask {
   // underlying tasks for importing raw data
   private final List<Task> underlyingTasks = new ArrayList<Task>();
 
-  MzTabImportTask(MZmineProject project, ParameterSet parameters, File inputFile) {
+  MzTabImportTask(MZmineProject project, ParameterSet parameters, File inputFile, @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.inputFile = inputFile;
     this.importRawFiles = parameters.getParameter(MzTabImportParameters.importrawfiles).getValue();
@@ -139,7 +142,7 @@ class MzTabImportTask extends AbstractTask {
       // Create a new feature list
       String featureListName = inputFile.getName().replace(".mzTab", "");
       RawDataFile rawDataArray[] = rawDataFiles.values().toArray(new RawDataFile[0]);
-      ModularFeatureList newFeatureList = new ModularFeatureList(featureListName, rawDataArray);
+      ModularFeatureList newFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(), rawDataArray);
 
       // Check if not canceled
       if (isCanceled())
@@ -183,6 +186,9 @@ class MzTabImportTask extends AbstractTask {
 
     // If we are importing files, let's run RawDataImportModule
     if (importRawFiles) {
+      // one storage for all files imported in the same task as they are typically analyzed together
+      final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
+
       List<File> filesToImport = new ArrayList<>();
       for (Entry<Integer, MsRun> entry : msrun.entrySet()) {
         File fileToImport = new File(entry.getValue().getLocation().getPath());
@@ -259,6 +265,8 @@ class MzTabImportTask extends AbstractTask {
     } else {
       finishedPercentage = 0.5;
     }
+    // one storage for all files in the same module call
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     // Find a matching RawDataFile for each MsRun entry
     for (Entry<Integer, MsRun> entry : msrun.entrySet()) {
@@ -276,7 +284,7 @@ class MzTabImportTask extends AbstractTask {
 
       // If no data file of that name exists, create a dummy one
       if (rawDataFile == null) {
-        RawDataFile writer = MZmineCore.createNewFile(rawFileName);
+        RawDataFile writer = MZmineCore.createNewFile(rawFileName, storage);
         project.addFile(writer);
       }
 

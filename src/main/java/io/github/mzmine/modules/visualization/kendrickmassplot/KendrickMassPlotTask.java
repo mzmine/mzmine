@@ -83,6 +83,7 @@ public class KendrickMassPlotTask extends AbstractTask {
   private int totalSteps = 3, appliedSteps = 0;
 
   public KendrickMassPlotTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];
 

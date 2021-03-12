@@ -26,9 +26,11 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.visualization.imsfeaturevisualizer.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.List;
@@ -56,15 +58,18 @@ public class MobilityMzRegionExtractionModule implements MZmineRunnableModule {
   }*/
 
   public static void runExtractionForFeatureList(ModularFeatureList featureList,
-      List<List<Point2D>> region, String suffix) {
+      List<List<Point2D>> region, String suffix, PlotType ccsOrMobility) {
     ParameterSet parameterSet = MZmineCore.getConfiguration()
         .getModuleParameters(MobilityMzRegionExtractionModule.class).cloneParameterSet();
 
     parameterSet.getParameter(MobilityMzRegionExtractionParameters.regions).setValue(region);
     parameterSet.getParameter(MobilityMzRegionExtractionParameters.suffix).setValue(suffix);
+    parameterSet.getParameter(MobilityMzRegionExtractionParameters.ccsOrMobility)
+        .setValue(ccsOrMobility);
 
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     Task task = new MobilityMzRegionExtractionTask(parameterSet, featureList,
-        MZmineCore.getProjectManager().getCurrentProject());
+        MZmineCore.getProjectManager().getCurrentProject(), storage);
     MZmineCore.getTaskController().addTask(task);
   }
 
@@ -94,8 +99,9 @@ public class MobilityMzRegionExtractionModule implements MZmineRunnableModule {
         .getParameter(MobilityMzRegionExtractionParameters.featureLists).getValue()
         .getMatchingFeatureLists();
 
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList featureList : featureLists) {
-      Task task = new MobilityMzRegionExtractionTask(parameters, featureList, project);
+      Task task = new MobilityMzRegionExtractionTask(parameters, featureList, project, storage);
       tasks.add(task);
     }
 

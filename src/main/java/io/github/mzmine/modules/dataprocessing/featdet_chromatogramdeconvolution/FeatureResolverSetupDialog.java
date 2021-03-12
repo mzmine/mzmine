@@ -35,6 +35,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
@@ -54,6 +55,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.util.StringConverter;
 
 public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview {
 
@@ -92,6 +94,21 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
             fBox.setItems(FXCollections.emptyObservableList());
           }
         }));
+
+    fBox.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(ModularFeature object) {
+        if (object == null) {
+          return null;
+        }
+        return FeatureUtils.featureToString(object);
+      }
+
+      @Override
+      public ModularFeature fromString(String string) {
+        return null;
+      }
+    });
     fBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
 
@@ -112,8 +129,14 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
     previewChart.removeAllDatasets();
 
-    ResolvingDimension dimension = parameterSet.getParameter(GeneralResolverParameters.dimension)
-        .getValue();
+    ResolvingDimension dimension = ResolvingDimension.RETENTION_TIME;
+    try {
+      // not all resolvers are capable of resolving rt and mobility dimension. In that case, the
+      // parameter has not been added to the parameter set.
+      dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
+    } catch (IllegalArgumentException e) {
+      // this one can go silent
+    }
     // add preview depending on which dimension is selected.
     if (dimension == ResolvingDimension.RETENTION_TIME) {
       Platform.runLater(() -> {
@@ -147,27 +170,29 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     if (((GeneralResolverParameters) parameterSet).getXYResolver(parameterSet) != null) {
       XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameterSet)
           .getXYResolver(parameterSet);
-      List<IonTimeSeries<? extends Scan>> resolved = ResolvingUtil
-          .resolve(resolver, newValue.getFeatureData(), null, dimension);
-      if (resolved.isEmpty()) {
-        return;
-      }
+      if(newValue.getFeatureList() instanceof ModularFeatureList flist) {
+        List<? extends Scan> selectedScans = flist.getSeletedScans(newValue.getRawDataFile());
+        List<IonTimeSeries<? extends Scan>> resolved = ResolvingUtil
+            .resolve(resolver, newValue.getFeatureData(), null, dimension, selectedScans);
+        if (resolved.isEmpty()) {
+          return;
+        }
 
-      for (IonTimeSeries<? extends Scan> series : resolved) {
-        if (dimension == ResolvingDimension.RETENTION_TIME) {
-          FastColoredXYDataset ds = new FastColoredXYDataset(
-              new IonTimeSeriesToXYProvider(series, "",
-                  new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
-          Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
-        } else {
-          FastColoredXYDataset ds = new FastColoredXYDataset(
-              new SummedMobilogramXYProvider(
-                  ((IonMobilogramTimeSeries) series).getSummedMobilogram(),
-                  new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
-          Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+        for (IonTimeSeries<? extends Scan> series : resolved) {
+          if (dimension == ResolvingDimension.RETENTION_TIME) {
+            FastColoredXYDataset ds = new FastColoredXYDataset(
+                new IonTimeSeriesToXYProvider(series, "",
+                    new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
+            Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+          } else {
+            FastColoredXYDataset ds = new FastColoredXYDataset(
+                new SummedMobilogramXYProvider(
+                    ((IonMobilogramTimeSeries) series).getSummedMobilogram(),
+                    new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
+            Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+          }
         }
       }
-
     } else {
       ResolvedPeak[] resolved = resolveFeature(newValue);
       if (resolved.length == 0) {

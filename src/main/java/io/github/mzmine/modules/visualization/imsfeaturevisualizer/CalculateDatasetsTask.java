@@ -12,6 +12,7 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorSt
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.FeaturesToCCSMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.FeaturesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
@@ -27,20 +28,24 @@ import org.jfree.chart.renderer.PaintScale;
 
 public class CalculateDatasetsTask extends AbstractTask {
 
-  final Collection<ModularFeature> features;
+  private final Collection<ModularFeature> features;
   private double progress;
   private double minZ = Double.MAX_VALUE;
   private double maxZ = Double.MIN_VALUE;
   private final boolean useMobilograms;
+  private final PlotType plotType;
   private PaintScaleColorStyle defaultPaintScaleColorStyle;
   private PaintScaleBoundStyle defaultPaintScaleBoundStyle;
   private PaintScale paintScale;
   private String description;
   private Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> datasetsRenderers;
 
-  public CalculateDatasetsTask(Collection<ModularFeature> features, boolean useMobilograms) {
+  public CalculateDatasetsTask(Collection<ModularFeature> features, boolean useMobilograms,
+      PlotType plotType) {
+    super(null); // no new data stored -> null
     this.features = features;
     this.useMobilograms = useMobilograms;
+    this.plotType = plotType;
     description = "IMS Feature Visualizer: Waiting";
 
     defaultPaintScaleColorStyle = PaintScaleColorStyle.RAINBOW;
@@ -68,40 +73,14 @@ public class CalculateDatasetsTask extends AbstractTask {
 
     final Collection<FastColoredXYZDataset> datasets = new ArrayList<>();
 
-    if (useMobilograms) {
-      for (ModularFeature feature : features) {
-        description =
-            "IMS Feature Visualizer: Calculating dataset " + datasets.size() + "/" + features
-                .size();
-
-        FastColoredXYZDataset dataset = new FastColoredXYZDataset(
-            new SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(feature));
-
-        SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) feature
-            .getFeatureData()).getSummedMobilogram();
-        Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(mobilogram);
-
-        if (intensityRange.lowerEndpoint().doubleValue() < minZ) {
-          minZ = intensityRange.lowerEndpoint().doubleValue();
-        }
-        if (intensityRange.upperEndpoint().doubleValue() > maxZ) {
-          maxZ = intensityRange.upperEndpoint().doubleValue();
-        }
-        datasets.add(dataset);
-        progress = datasets.size() / (double) features.size();
-
-        if (isCanceled()) {
-          return;
-        }
-      }
-    } else {
+    if (plotType == PlotType.CCS) {
       if (features instanceof List) {
         FastColoredXYZDataset dataset = new FastColoredXYZDataset(
-            new FeaturesToMobilityMzHeatmapProvider((List<ModularFeature>) features));
+            new FeaturesToCCSMzHeatmapProvider((List<ModularFeature>) features));
         datasets.add(dataset);
       } else {
         FastColoredXYZDataset dataset = new FastColoredXYZDataset(
-            new FeaturesToMobilityMzHeatmapProvider(
+            new FeaturesToCCSMzHeatmapProvider(
                 new ArrayList<>(features)));
         datasets.add(dataset);
       }
@@ -112,6 +91,54 @@ public class CalculateDatasetsTask extends AbstractTask {
         }
         if (height > maxZ) {
           maxZ = height;
+        }
+      }
+    } else {
+      if (useMobilograms) {
+        for (ModularFeature feature : features) {
+          description =
+              "IMS Feature Visualizer: Calculating dataset " + datasets.size() + "/" + features
+                  .size();
+
+          FastColoredXYZDataset dataset = new FastColoredXYZDataset(
+              new SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(feature));
+
+          SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) feature
+              .getFeatureData()).getSummedMobilogram();
+          Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(mobilogram);
+
+          if (intensityRange.lowerEndpoint().doubleValue() < minZ) {
+            minZ = intensityRange.lowerEndpoint().doubleValue();
+          }
+          if (intensityRange.upperEndpoint().doubleValue() > maxZ) {
+            maxZ = intensityRange.upperEndpoint().doubleValue();
+          }
+          datasets.add(dataset);
+          progress = datasets.size() / (double) features.size();
+
+          if (isCanceled()) {
+            return;
+          }
+        }
+      } else {
+        if (features instanceof List) {
+          FastColoredXYZDataset dataset = new FastColoredXYZDataset(
+              new FeaturesToMobilityMzHeatmapProvider((List<ModularFeature>) features));
+          datasets.add(dataset);
+        } else {
+          FastColoredXYZDataset dataset = new FastColoredXYZDataset(
+              new FeaturesToMobilityMzHeatmapProvider(
+                  new ArrayList<>(features)));
+          datasets.add(dataset);
+        }
+        for (ModularFeature f : features) {
+          float height = f.getHeight();
+          if (height < minZ) {
+            minZ = height;
+          }
+          if (height > maxZ) {
+            maxZ = height;
+          }
         }
       }
     }

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.import_bruker_tdf;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -101,7 +102,9 @@ public class TDFImportModule implements MZmineProcessingModule {
       }
 
       try {
-        IMSRawDataFile newMZmineFile = MZmineCore.createNewIMSFile(newName);
+        // IMS files are big, reserve a single storage for each file
+        final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
+        IMSRawDataFile newMZmineFile = MZmineCore.createNewIMSFile(newName, storage);
         Task newTask = new TDFImportTask(project, fileNames[i], newMZmineFile);
         tasks.add(newTask);
       } catch (IOException e) {
@@ -110,8 +113,6 @@ public class TDFImportModule implements MZmineProcessingModule {
         logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
         return ExitCode.ERROR;
       }
-
-
     }
 
     return ExitCode.OK;

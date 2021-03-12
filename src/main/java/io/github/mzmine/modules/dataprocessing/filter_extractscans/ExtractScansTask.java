@@ -51,6 +51,8 @@ class ExtractScansTask extends AbstractTask {
   private boolean useCenterTime;
 
   ExtractScansTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
+
     dataFiles = Arrays.asList(parameters.getParameter(ExtractScansParameters.dataFiles).getValue()
         .getMatchingRawDataFiles());
     scans = parameters.getParameter(ExtractScansParameters.scans).getValue().intValue();

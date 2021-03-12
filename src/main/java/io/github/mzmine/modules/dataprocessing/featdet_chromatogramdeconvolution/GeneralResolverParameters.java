@@ -38,7 +38,7 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
-      "This string is added to feature list name as suffix", "deconvoluted");
+      "This string is added to feature list name as suffix", "resolved");
 
   public static final CenterMeasureParameter MZ_CENTER_FUNCTION = new CenterMeasureParameter(
       "m/z center calculation", "Median, average or an automatic log10-weighted approach",

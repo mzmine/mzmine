@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
@@ -64,8 +65,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   protected Range<Double> mobilityRange;
   protected MobilityType mobilityType;
 
-  public IMSRawDataFileImpl(String dataFileName) throws IOException {
-    super(dataFileName);
+  public IMSRawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
+    super(dataFileName, storage);
 
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
@@ -77,8 +78,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   }
 
-  public IMSRawDataFileImpl(String dataFileName, Color color) throws IOException {
-    super(dataFileName, color);
+  public IMSRawDataFileImpl(String dataFileName, MemoryMapStorage storage, Color color) throws IOException {
+    super(dataFileName, storage, color);
 
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();

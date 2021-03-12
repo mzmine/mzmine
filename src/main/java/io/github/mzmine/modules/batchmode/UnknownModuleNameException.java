@@ -12,27 +12,25 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.util.deconvolution;
-
-import java.util.Collection;
+package io.github.mzmine.modules.batchmode;
 
 /**
- *
- * @param <X> X-value type
- * @param <Y> Y-value type
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
-public interface IndexBasedXYResolver<X, Y> {
+public class UnknownModuleNameException extends RuntimeException {
 
-  /**
-   * See implementing classes for more detailed information on possible restrictions on x and y data
-   * such as ordering.
-   *
-   * @param x domain values of the data to be resolved.
-   * @param y range values of the data to be resolved.
-   */
-  public Collection<? extends Collection<Integer>> resolveToIndices(X x, Y y, int[] indices);
+  public UnknownModuleNameException(String methodName) {
+    super("Unknown module name or class path: "+methodName);
+  }
+
+  public UnknownModuleNameException(String methodName, Throwable cause) {
+    super("Unknown module name or class path: "+methodName, cause);
+  }
+
+  public UnknownModuleNameException(Throwable cause) {
+    super("Unknown module name or class path", cause);
+  }
 }

@@ -31,9 +31,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class AlignScansTask extends AbstractTask {
 
@@ -57,8 +59,11 @@ public class AlignScansTask extends AbstractTask {
   /**
    * @param dataFile
    * @param parameters
+   * @param storage
    */
-  public AlignScansTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  public AlignScansTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -110,9 +115,9 @@ public class AlignScansTask extends AbstractTask {
 
     RawDataFile newRDFW = null;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix);
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, getMemoryMapStorage());
 
-      DataPoint mzValues[][] = null; // [relative scan][j value]
+      DataPoint[][] mzValues = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, shift, ks;
       int shiftedScans[] = new int[mzSpan * 2 + 1];
       for (i = 0; i < totalScans; i++) {

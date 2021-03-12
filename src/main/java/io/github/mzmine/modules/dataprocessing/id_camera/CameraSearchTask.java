@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -66,6 +67,7 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import javax.annotation.Nullable;
 
 /**
  * A task to perform a CAMERA search.
@@ -125,7 +127,8 @@ public class CameraSearchTask extends AbstractTask {
   private REngineType rEngineType;
 
   public CameraSearchTask(final MZmineProject project, final ParameterSet parameters,
-      final FeatureList list) {
+      final FeatureList list, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     // Initialize.
     peakList = list;
@@ -572,7 +575,7 @@ public class CameraSearchTask extends AbstractTask {
     // Create new feature list.
     final FeatureList combinedPeakList = new ModularFeatureList(
         peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(),
-        peakList.getRawDataFiles());
+        getMemoryMapStorage(), peakList.getRawDataFiles());
 
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
@@ -734,7 +737,7 @@ public class CameraSearchTask extends AbstractTask {
     // Create new feature list.
     final FeatureList combinedPeakList = new ModularFeatureList(
         peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(),
-        peakList.getRawDataFiles());
+        getMemoryMapStorage(), peakList.getRawDataFiles());
 
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {

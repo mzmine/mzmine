@@ -45,6 +45,7 @@ public class MzMLExportTask extends AbstractTask {
    * @param parameters
    */
   public MzMLExportTask(RawDataFile dataFile, File outFilename) {
+    super(null); // no new data stored -> null
     this.dataFile = dataFile;
     this.outFilename = outFilename;
   }

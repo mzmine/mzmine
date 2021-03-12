@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.import_netcdf;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -82,6 +83,9 @@ public class NetCDFImportModule implements MZmineProcessingModule {
     // Find common prefix in raw file names if in GUI mode
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
+    // one storage for all files imported in the same task as they are typically analyzed together
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
+
     for (int i = 0; i < fileNames.length; i++) {
 
       if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
@@ -100,7 +104,7 @@ public class NetCDFImportModule implements MZmineProcessingModule {
       }
 
       try {
-        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName);
+        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, storage);
         Task newTask = new NetCDFImportTask(project, fileNames[i], newMZmineFile);
         tasks.add(newTask);
       } catch (IOException e) {

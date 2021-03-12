@@ -21,7 +21,9 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -48,7 +50,6 @@ public class MassDetectionTask extends AbstractTask {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
-  private final MemoryMapStorage storageMemoryMap;
   // scan counter
   private int processedScans = 0, totalScans = 0;
   // Mass detector
@@ -65,6 +66,7 @@ public class MassDetectionTask extends AbstractTask {
    */
   public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters,
       MemoryMapStorage storageMemoryMap) {
+    super(storageMemoryMap);
 
     this.dataFile = dataFile;
 
@@ -73,7 +75,6 @@ public class MassDetectionTask extends AbstractTask {
     this.scanSelection = parameters.getParameter(MassDetectionParameters.scanSelection).getValue();
 
     this.saveToCDF = parameters.getParameter(MassDetectionParameters.outFilenameOption).getValue();
-    this.storageMemoryMap = storageMemoryMap;
 
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
@@ -131,27 +132,33 @@ public class MassDetectionTask extends AbstractTask {
 
       logger.info("Started mass detector on " + dataFile);
 
-      final Scan scans[] = scanSelection.getMatchingScans(dataFile);
-      totalScans = scans.length;
-      // Process scans one by one
-      for (Scan scan : scans) {
+      // uses only a single array for each (mz and intensity) to loop over all scans
+      ScanDataAccess data = EfficientDataAccess.of(dataFile,
+          EfficientDataAccess.ScanDataType.RAW, scanSelection);
+      totalScans = data.getNumberOfScans();
 
+      // all scans
+      while(data.hasNextScan()) {
         if (isCanceled()) {
           return;
         }
 
+        Scan scan = data.nextScan();
+
         MassDetector detector = massDetector.getModule();
+        // run mass detection on data object
         // [mzs, intensities]
-        double[][] mzPeaks = detector.getMassValues(scan, massDetector.getParameterSet());
+        double[][] mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
 
         if (scan instanceof Frame) {
           // for ion mobility, detect subscans, too
-          FrameMassList frameMassList = new FrameMassList(storageMemoryMap, mzPeaks[0], mzPeaks[1]);
+          FrameMassList frameMassList = new FrameMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]);
           Frame frame = (Frame) scan;
           frameMassList.generateAndAddMobilityScanMassLists(frame.getMobilityScans(),
-              storageMemoryMap, detector, massDetector.getParameterSet());
+              getMemoryMapStorage(), detector, massDetector.getParameterSet());
+          frame.addMassList(frameMassList);
         } else {
-          SimpleMassList newMassList = new SimpleMassList(storageMemoryMap, mzPeaks[0], mzPeaks[1]);
+          SimpleMassList newMassList = new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]);
           scan.addMassList(newMassList);
         }
 

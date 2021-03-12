@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.OptOutParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
@@ -111,12 +112,18 @@ public class MZminePreferences extends SimpleParameterSet {
           "Shows a warning message when a module without explicit ion mobility support is "
               + "used to process ion mobility data."));
 
+  public static final DirectoryParameter tempDirectory =
+      new DirectoryParameter("Temporary file directory", "Directory where temporary files"
+          + " will be stored. Requires a restart of MZmine to take effect",
+          System.getProperty("java.io.tmpdir"));
+
   public MZminePreferences() {
     super(
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             unitFormat,
             numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
-            defaultColorPalette, defaultPaintScale, chartParam, darkMode, imsModuleWarnings});
+            defaultColorPalette, defaultPaintScale, chartParam, darkMode, imsModuleWarnings,
+            tempDirectory});
   }
 
   @Override

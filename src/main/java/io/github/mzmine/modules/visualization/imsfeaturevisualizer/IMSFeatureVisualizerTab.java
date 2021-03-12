@@ -31,7 +31,7 @@ public class IMSFeatureVisualizerTab extends MZmineTab {
   public IMSFeatureVisualizerTab(Collection<ModularFeature> features, boolean useMobilograms) {
     super("IMS feature visualizer", false, false);
     IMSFeaturesVisualizer visualizer = new IMSFeaturesVisualizer();
-    visualizer.setFeatures(features, useMobilograms);
+    visualizer.setFeatures(features, useMobilograms, PlotType.MOBILITY);
     setContent(visualizer);
   }
 

@@ -157,6 +157,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
     public PreviewTask(BaselineCorrectorSetupDialog dialog, TICPlot ticPlot, RawDataFile dataFile,
         Range<Float> rtRange, Range<Double> mzRange) {
+      super(null); // no new data stored -> null
 
       this.dialog = dialog;
       this.ticPlot = ticPlot;
@@ -229,7 +230,8 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
           // Create a new corrected raw data file
           RawDataFile newDataFile =
-              baselineCorrector.correctDatafile(this.rSession, dataFile, correctorParameters, null);
+              baselineCorrector.correctDatafile(this.rSession, dataFile, correctorParameters, null,
+                  null);
 
           // If successful, add the new data file
           if (newDataFile != null) {

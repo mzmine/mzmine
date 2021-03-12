@@ -30,6 +30,7 @@ import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -38,6 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.Assert;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class BrukerTdfTest {
@@ -51,7 +53,8 @@ public class BrukerTdfTest {
     String str = BrukerTdfTest.class.getClassLoader()
         .getResource("rawdatafiles/200ngHeLaPASEF_2min_compressed.d").getFile();
     File file = new File(str);
-    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(), Color.BLACK);
+    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(),
+        MemoryMapStorage.forRawDataFile(), Color.BLACK);
 
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
@@ -78,6 +81,7 @@ public class BrukerTdfTest {
     return rawDataFile;
   }
 
+  @Disabled("Needs test file?")
   @Test
   public void testFile() {
     IMSRawDataFile file = null;

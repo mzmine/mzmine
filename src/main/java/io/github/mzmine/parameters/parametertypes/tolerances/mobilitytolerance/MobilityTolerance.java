@@ -28,21 +28,21 @@ import com.google.common.collect.Range;
  */
 public class MobilityTolerance {
 
-  private final double tolerance;
+  private final float tolerance;
 
-  public MobilityTolerance(final double tolerance) {
+  public MobilityTolerance(final float tolerance) {
     this.tolerance = tolerance;
   }
 
-  public double getTolerance() {
+  public float getTolerance() {
     return tolerance;
   }
 
-  public Range<Double> getToleranceRange(final double mobility) {
+  public Range<Float> getToleranceRange(final float mobility) {
     return Range.closed(mobility - tolerance, mobility + tolerance);
   }
 
-  public boolean checkWithinTolerance(final double mobility1, final double mobility2) {
+  public boolean checkWithinTolerance(final float mobility1, final float mobility2) {
     return getToleranceRange(mobility1).contains(mobility2);
   }
 

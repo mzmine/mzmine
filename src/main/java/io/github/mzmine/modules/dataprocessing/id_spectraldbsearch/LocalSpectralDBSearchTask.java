@@ -21,13 +21,6 @@ package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -36,6 +29,12 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class LocalSpectralDBSearchTask extends AbstractTask {
 
@@ -52,6 +51,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   private FeatureListRow[] rows;
 
   public LocalSpectralDBSearchTask(FeatureList featureList, ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.featureList = featureList;
     this.rows = featureList.getRows().toArray(FeatureListRow[]::new);
     this.parameters = parameters;

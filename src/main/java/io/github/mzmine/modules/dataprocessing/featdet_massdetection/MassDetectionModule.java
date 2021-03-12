@@ -57,7 +57,7 @@ public class MassDetectionModule implements MZmineProcessingModule {
 
     // create a single storage map for all mass lists that were created with the same parameters
     // i.e., in the same mass detection run
-    final MemoryMapStorage storageMemoryMap = new MemoryMapStorage();
+    final MemoryMapStorage storageMemoryMap = MemoryMapStorage.forMassList();
 
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new MassDetectionTask(dataFile, parameters, storageMemoryMap);

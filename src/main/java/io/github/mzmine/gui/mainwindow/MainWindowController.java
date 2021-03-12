@@ -311,7 +311,7 @@ public class MainWindowController {
       // Add listener body to the event queue to run it after all selected items are added to
       // the observable list, so the collections' elements equality test in the if statement will
       // compare final result of the multiple selection
-      Platform.runLater(() -> {
+      MZmineCore.runLater(() -> {
         change.next();
 
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
@@ -326,7 +326,7 @@ public class MainWindowController {
     });
 
     featureListsList.getSelectedValues().addListener((ListChangeListener<FeatureList>) change -> {
-      Platform.runLater(() -> {
+      MZmineCore.runLater(() -> {
         change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
           if (tab instanceof MZmineTab && tab.isSelected()
@@ -683,7 +683,7 @@ public class MainWindowController {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
       // PeakListTableModule.showNewPeakListVisualizerWindow(fl);
-      Platform.runLater(() -> {
+      MZmineCore.runLater(() -> {
         FeatureTableFXUtil.addFeatureTableTab(fl);
       });
     }
