@@ -49,24 +49,39 @@ public class IMSRawDataOverviewModule implements MZmineRunnableModule {
       return;
     }
 
+    final List<MZmineTab> tabs = MZmineCore.getDesktop().getAllTabs();
+    IMSRawDataOverviewTab tab = null;
+    for (MZmineTab t : tabs) {
+      if (t instanceof IMSRawDataOverviewTab) {
+        tab = (IMSRawDataOverviewTab) t;
+        break;
+      }
+    }
+
     final ModularFeature feature = features.get(0);
-    final RawDataFilesSelection rawFileSelection = new RawDataFilesSelection(
-        RawDataFilesSelectionType.SPECIFIC_FILES);
-    rawFileSelection.setSpecificFiles(new RawDataFile[]{feature.getRawDataFile()});
-    final MZTolerance tolerance = MZTolerance
-        .getMaximumDataPointTolerance((List<Feature>) (List<? extends Feature>) features);
 
-    final ParameterSet parameterSet = MZmineCore.getConfiguration()
-        .getModuleParameters(IMSRawDataOverviewModule.class).cloneParameterSet();
-    parameterSet.getParameter(IMSRawDataOverviewParameters.rawDataFiles).setValue(rawFileSelection);
-    parameterSet.getParameter(IMSRawDataOverviewParameters.mzTolerance).setValue(tolerance);
+    // if no tab was found, make a new one.
+    if (tab == null) {
+      final RawDataFilesSelection rawFileSelection = new RawDataFilesSelection(
+          RawDataFilesSelectionType.SPECIFIC_FILES);
+      rawFileSelection.setSpecificFiles(new RawDataFile[]{feature.getRawDataFile()});
+      final MZTolerance tolerance = MZTolerance
+          .getMaximumDataPointTolerance((List<Feature>) (List<? extends Feature>) features);
 
-    final IMSRawDataOverviewTab tab = new IMSRawDataOverviewTab(parameterSet);
+      final ParameterSet parameterSet = MZmineCore.getConfiguration()
+          .getModuleParameters(IMSRawDataOverviewModule.class).cloneParameterSet();
+      parameterSet.getParameter(IMSRawDataOverviewParameters.rawDataFiles)
+          .setValue(rawFileSelection);
+      parameterSet.getParameter(IMSRawDataOverviewParameters.mzTolerance).setValue(tolerance);
 
+      tab = new IMSRawDataOverviewTab(parameterSet);
+    }
+
+    final var finalTab = tab;
     MZmineCore.runLater(() -> {
-      MZmineCore.getDesktop().addTab(tab);
-      tab.onRawDataFileSelectionChanged(List.of(feature.getRawDataFile()));
-      IMSRawDataOverviewPane pane = (IMSRawDataOverviewPane) tab.getContent();
+      MZmineCore.getDesktop().addTab(finalTab);
+      finalTab.onRawDataFileSelectionChanged(List.of(feature.getRawDataFile()));
+      IMSRawDataOverviewPane pane = (IMSRawDataOverviewPane) finalTab.getContent();
       pane.setSelectedFrame((Frame) feature.getRepresentativeScan());
       pane.addRanges(
           features.stream().map(f -> f.getRawDataPointsMZRange()).collect(Collectors.toList()));
