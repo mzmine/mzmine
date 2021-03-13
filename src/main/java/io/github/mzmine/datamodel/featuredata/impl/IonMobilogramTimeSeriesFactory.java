@@ -23,9 +23,6 @@ import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.maths.CenterMeasure;
-import io.github.mzmine.util.maths.Weighting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -118,13 +115,11 @@ public class IonMobilogramTimeSeriesFactory {
     double[] summedIntensities = new double[mobilograms.size()];
     double[] weightedMzs = new double[mobilograms.size()];
 
-    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
-
     final int maxNumDetected = mobilograms.stream()
         .mapToInt(IonMobilitySeries::getNumberOfValues).max().getAsInt();
 
-    double[] tmpIntensities = new double[maxNumDetected];
-    double[] tmpMzs = new double[maxNumDetected];
+    final double[] tmpIntensities = new double[maxNumDetected];
+    final double[] tmpMzs = new double[maxNumDetected];
 
     for (int i = 0; i < mobilograms.size(); i++) {
       final IonMobilitySeries ims = mobilograms.get(i);
@@ -143,14 +138,13 @@ public class IonMobilogramTimeSeriesFactory {
       ims.getIntensityValues(tmpIntensities);
       ims.getMzValues(tmpMzs);
       double weightedMz = 0;
-      weightedMz = cf.calcCenter(tmpMzs, tmpIntensities);
 
-//      for (int j = 0; j < numValues; j++) {
-//        weightedMz += tmpMzs[j] * (tmpIntensities[j] / summedIntensities[i]);
-//      }
+      for (int j = 0; j < numValues; j++) {
+        weightedMz += tmpMzs[j] * (tmpIntensities[j] / summedIntensities[i]);
+      }
 
       // due to added zeros, the summed intensity might have been 0 -> NaN
-      if (Double.compare(weightedMz, Double.NaN) == 0) {
+      if (Double.isNaN(weightedMz)) {
         weightedMz = 0d;
       }
       weightedMzs[i] = weightedMz;
