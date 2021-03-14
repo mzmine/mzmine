@@ -31,7 +31,7 @@ public class SmoothingModule implements MZmineProcessingModule {
   @Nonnull
   @Override
   public String getDescription() {
-    return "Smoothes intensity along the retentio time and/or mobility dimension.";
+    return "Smooths intensity along the retention time and/or mobility dimension.";
   }
 
   @Nonnull

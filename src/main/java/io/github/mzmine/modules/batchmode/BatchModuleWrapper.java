@@ -37,7 +37,7 @@ public class BatchModuleWrapper {
 
   @Override
   public String toString() {
-    return "     " + module.getName();
+    return module.getName();
   }
 
 }

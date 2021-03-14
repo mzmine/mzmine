@@ -48,8 +48,47 @@ public enum MZmineModuleCategory {
     this.name = name;
   }
 
+  @Override
   public String toString() {
     return name;
   }
 
+  public MainCategory getMainCategory() {
+    return switch (this) {
+      case PROJECT, PROJECTIO -> MainCategory.PROJECT;
+      case RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
+      case FEATURELIST, FEATURELISTDETECTION, FEATUREDETECTION, GAPFILLING, ALIGNMENT -> MainCategory.FEATURE_DETECTION;
+      case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> MainCategory.FEATURE_FILTERING;
+      case NORMALIZATION, DATAANALYSIS -> MainCategory.FEATURE_PROCESSING;
+      case IDENTIFICATION -> MainCategory.FEATURE_ANNOTATION;
+      case FEATURELISTEXPORT, FEATURELISTIMPORT -> MainCategory.FEATURE_IO;
+      case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST -> MainCategory.VISUALIZATION;
+      // no main category
+      case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
+      default -> throw new IllegalArgumentException("Category " + this + " has no main category.");
+    };
+  }
+
+  public enum MainCategory {
+    PROJECT("Project"), //
+    SPECTRAL_DATA("Spectral data"), //
+    FEATURE_DETECTION("Feature detection"), //
+    FEATURE_FILTERING("Feature filtering"), //
+    FEATURE_PROCESSING("Feature processing"), //
+    FEATURE_ANNOTATION("Feature annotation"), //
+    FEATURE_IO("Feature IO"), //
+    VISUALIZATION("Visualization"),
+    OTHER("Other");
+
+    private final String name;
+
+    MainCategory(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
 }

@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import java.util.logging.Logger;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -26,8 +25,6 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentPa
 import io.github.mzmine.util.ExitCode;
 
 public class BatchModeParameters extends SimpleParameterSet {
-  // Logger.
-  private static final Logger logger = Logger.getLogger(BatchModeParameters.class.getName());
 
   public static final FileNameListSilentParameter lastFiles =
       new FileNameListSilentParameter("Last used files");
@@ -40,11 +37,12 @@ public class BatchModeParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
+
     // set lastUsed files list
-    final BatchSetupComponent batchComponent = dialog.getComponentForParameter(batchQueue);
+    final BatchComponentController batchController = this.getParameter(batchQueue).getController();
 
     // new last used files are inserted to this list in the component
-    batchComponent.setLastFiles(lastFiles.getValue());
+    batchController.setLastFiles(lastFiles.getValue());
 
     dialog.showAndWait();
     return dialog.getExitCode();
