@@ -35,7 +35,7 @@ public class InterSampleHeightCorrParameters extends SimpleParameterSet {
    * Filter by minimum height
    */
   public static final DoubleParameter MIN_HEIGHT = new DoubleParameter("Min height",
-      "Used by min samples filter and MS annotations. Minimum height to recognize a feature (important to destinguis between real peaks and minor gap-filled).",
+      "Used by min samples filter and MS annotations. Minimum height to recognize a feature (important to distinguish between real peaks and minor gap-filled).",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E5);
 
   /**

@@ -48,9 +48,6 @@ public class MS2SimilarityParameters extends SimpleParameterSet {
   // General parameters
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
-  public static final MassListParameter MASS_LIST =
-      new MassListParameter("Mass lists (MS2)", "MS2 mass lists");
-
   public static final ComboParameter<Mode> MODE = new ComboParameter<>("Run check on",
       "Run check on row groups or ion identity networks (IINs)", Mode.values(), Mode.ION_NETWORKS);
 
@@ -84,7 +81,7 @@ public class MS2SimilarityParameters extends SimpleParameterSet {
   public MS2SimilarityParameters(boolean isSub) {
     super(isSub ? // no peak list and rt tolerance
         new Parameter[] {ONLY_BEST_MS2_SCAN, MIN_HEIGHT, MIN_DP, MIN_MATCH, MAX_DP_FOR_DIFF}
-        : new Parameter[] {PEAK_LISTS, MASS_LIST, MODE, MZ_TOLERANCE, ONLY_BEST_MS2_SCAN,
+        : new Parameter[] {PEAK_LISTS, MODE, MZ_TOLERANCE, ONLY_BEST_MS2_SCAN,
             MIN_HEIGHT, MIN_DP, MIN_MATCH, MAX_DP_FOR_DIFF});
   }
 

@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroupList;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrMap;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
@@ -44,6 +45,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
+import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter.OverlapResult;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -65,6 +67,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import javafx.collections.ObservableList;
 
 public class MetaCorrelateTask extends AbstractTask {
 
@@ -92,7 +95,7 @@ public class MetaCorrelateTask extends AbstractTask {
   protected ParameterSet parameters;
   protected MZmineProject project;
   // GENERAL
-  protected FeatureList featureList;
+  protected ModularFeatureList featureList;
   protected RTTolerance rtTolerance;
   protected boolean autoSuffix;
   protected String suffix;
@@ -155,7 +158,8 @@ public class MetaCorrelateTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public MetaCorrelateTask(final MZmineProject project, final ParameterSet parameterSet,
-      final FeatureList featureList) {
+      final ModularFeatureList featureList) {
+    super(featureList.getMemoryMapStorage());
     this.project = project;
     this.featureList = featureList;
     parameters = parameterSet;
@@ -249,9 +253,6 @@ public class MetaCorrelateTask extends AbstractTask {
 
   }
 
-  public MetaCorrelateTask() {}
-
-
   @Override
   public double getFinishedPercentage() {
     if (stage == null)
@@ -278,21 +279,14 @@ public class MetaCorrelateTask extends AbstractTask {
 
     // grouping
     CorrelateGroupingTask groupTask = new CorrelateGroupingTask(project, groupParam, featureList);
-    groupTask.addTaskStatusListener(new TaskStatusListener() {
-      @Override
-      public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
-        switch (newStatus) {
-          case CANCELED:
-            cancel();
-            break;
-          case ERROR:
-            cancel();
-            break;
-          case FINISHED:
-            groupedPKL = groupTask.getGroupedPKL();
-            RowGroupList groups = groupTask.getGroups();
-            analyseGroups(groupedPKL, groups);
-            break;
+    groupTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      switch (newStatus) {
+        case CANCELED -> cancel();
+        case ERROR -> cancel();
+        case FINISHED -> {
+          groupedPKL = groupTask.getGroupedPKL();
+          RowGroupList groups = groupTask.getGroups();
+          analyseGroups(groupedPKL, groups);
         }
       }
     });
@@ -453,7 +447,7 @@ public class MetaCorrelateTask extends AbstractTask {
     LOG.info("Corr: Creating row2row correlation map");
     FeatureListRow rows[] = featureList.getRows();
     totalRows = rows.length;
-    final RawDataFile raw[] = featureList.getRawDataFiles();
+    final ObservableList<RawDataFile> raw[] = featureList.getRawDataFiles();
 
     // sort by avgRT
     Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.RT, SortingDirection.Ascending));
@@ -481,7 +475,7 @@ public class MetaCorrelateTask extends AbstractTask {
               if (overlap.equals(OverlapResult.TRUE)) {
                 // correlate if in rt range
                 R2RFullCorrelationData corr =
-                    FeatureCorrelationUtil.corrR2R(raw, row, row2, groupByFShapeCorr,
+                    FeatureCorrelationUtil.corrR2R(data, raw, row, row2, groupByFShapeCorr,
                         minCorrelatedDataPoints, minCorrDPOnFeatureEdge, minDPHeightCorr, minHeight,
                         noiseLevelCorr, useHeightCorrFilter, heightSimMeasure, minHeightCorr);
 

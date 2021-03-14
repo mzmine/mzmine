@@ -17,10 +17,8 @@
 
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.test;
 
+import io.github.mzmine.main.MZmineCore;
 import java.io.File;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
-import net.sf.mzmine.modules.projectmethods.projectload.ProjectOpeningTask;
 
 public class TestMSEGroupingModule {
 

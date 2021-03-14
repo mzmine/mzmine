@@ -22,11 +22,17 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityParameters;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.*;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -86,8 +92,6 @@ public class MetaCorrelateParameters extends SimpleParameterSet {
           "Feature to feature correlation of the maximum intensities across all samples.",
           new InterSampleHeightCorrParameters(true), true);
 
-
-
   // #####################################################################################
   // Intensity profile correlation
   // intra group comparison
@@ -113,7 +117,7 @@ public class MetaCorrelateParameters extends SimpleParameterSet {
 
   // Constructor
   public MetaCorrelateParameters() {
-    super(new Parameter[] {PEAK_LISTS, RT_TOLERANCE,
+    super(new Parameter[]{PEAK_LISTS, RT_TOLERANCE,
         // Group and minimum samples filter
         GROUPSPARAMETER,
         // feature filter
@@ -150,12 +154,14 @@ public class MetaCorrelateParameters extends SimpleParameterSet {
     }
     getParameter(MetaCorrelateParameters.GROUPSPARAMETER).getEmbeddedParameter()
         .setChoices(choices);
-    if (choices.length > 1)
+    if (choices.length > 1) {
       getParameter(MetaCorrelateParameters.GROUPSPARAMETER).getEmbeddedParameter()
           .setValue(choices[1]);
+    }
 
-    if ((parameters == null) || (parameters.length == 0))
+    if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
+    }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
 
     // enable

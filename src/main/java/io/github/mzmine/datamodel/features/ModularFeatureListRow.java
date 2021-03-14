@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.CommentType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
@@ -96,23 +97,6 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
-
-  private ObservableList<FeatureIdentity> identities = FXCollections.observableArrayList();
-  private FeatureIdentity preferredIdentity;
-  private String comment;
-  private double maxDataPointIntensity;
-
-  /**
-   * These variables are used for caching the average values, so we don't need to calculate them
-   * again and again
-   */
-  private double averageMZ, averageHeight, averageArea;
-  private float averageRT;
-  private int rowCharge;
-
-  private FeatureInformation featureInformation;
-  // Group this row belongs to
-  private RowGroup group;
 
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist) {
     this(flist, null, false);
@@ -414,7 +398,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    */
   @Override
   public ModularFeature getFeature(RawDataFile raw) {
-    return features.get(raw);
+    ModularFeature f = features.get(raw);
+    return f!=null && f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)? null : f;
   }
 
   @Override
@@ -439,12 +424,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public void setGroup(RowGroup group) {
-    this.group = group;
+    set(FeatureGroupType.class, group);
   }
 
   @Override
   public RowGroup getGroup() {
-    return group;
+    return get(FeatureGroupType.class).getValue();
   }
 
   @Override

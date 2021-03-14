@@ -27,11 +27,10 @@ import javax.swing.JTextField;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.fx_viewer.FxViewPanel;
 import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
-import org.graphstream.ui.swing_viewer.SwingViewer;
-import org.graphstream.ui.swing_viewer.ViewPanel;
 import org.graphstream.ui.view.Viewer;
 
 public class TestNetworks {
@@ -43,7 +42,7 @@ public class TestNetworks {
   SingleGraph graph;
   Viewer viewer;
   double viewPercent = 1;
-  ViewPanel view;
+  FxViewPanel view;
   JTextField txt;
 
   public TestNetworks() {

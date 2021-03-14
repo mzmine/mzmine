@@ -251,6 +251,17 @@
         userData="io.github.mzmine.modules.io.export_sirius.SiriusExportModule"/>
     </Menu>
 
+
+    <Menu text="Feature grouping">
+      <MenuItem text="metaCorrelate"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.MetaCorrelateModule"/>
+      <MenuItem text="metaCorrelate (corrCtroup)"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
+
+    </Menu>
+
     <Menu text="Spectral deconvolution">
       <MenuItem text="Hierarchical clustering"
         onAction="#runModule"

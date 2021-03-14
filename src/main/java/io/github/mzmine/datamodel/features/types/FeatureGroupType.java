@@ -19,9 +19,38 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.features.RowGroup;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Level of feature grouping
  */
-public enum FeatureGroupType {
+public class FeatureGroupType extends DataType<ObjectProperty<RowGroup>> {
+
+  @Override
+  @Nonnull
+  public String getHeaderString() {
+    return "Group";
+  }
+
+  @Override
+  public ObjectProperty<RowGroup> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
+
+  @Nonnull
+  @Override
+  public String getFormattedString(@Nullable Object value) {
+    if (value instanceof RowGroup group) {
+      return String.valueOf(group.size());
+    }
+    return super.getFormattedString(value);
+  }
+
+  public enum GroupType {
     CORRELATED, ISOTOPES, ION_ADDUCTS;
+  }
 }

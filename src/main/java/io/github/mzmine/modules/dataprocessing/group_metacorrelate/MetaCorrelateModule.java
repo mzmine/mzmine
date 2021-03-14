@@ -18,19 +18,18 @@
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-
-import javax.annotation.Nonnull;
 import java.util.Collection;
+import javax.annotation.Nonnull;
 
 public class MetaCorrelateModule implements MZmineProcessingModule {
 
-  private static final String NAME = "metaMSEcorrelate";
+  private static final String NAME = "metaCorrelate";
 
   private static final String DESCRIPTION =
       "This method searches for the same features in different samples, scan events and MS levels.";
@@ -43,7 +42,8 @@ public class MetaCorrelateModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @Nonnull
+  String getDescription() {
 
     return DESCRIPTION;
   }
@@ -55,21 +55,21 @@ public class MetaCorrelateModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @Nonnull
+  Class<? extends ParameterSet> getParameterSetClass() {
     return MetaCorrelateParameters.class;
   }
-
-
 
   @Nonnull
   @Override
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
-                            @Nonnull final Collection<Task> tasks) {
+      @Nonnull final Collection<Task> tasks) {
 
-    FeatureList[] featureLists = parameters.getParameter(MetaCorrelateParameters.PEAK_LISTS).getValue()
-        .getMatchingFeatureLists();
-    for (FeatureList pkl : featureLists)
+    ModularFeatureList[] featureLists = parameters.getParameter(MetaCorrelateParameters.PEAK_LISTS)
+        .getValue().getMatchingFeatureLists();
+    for (ModularFeatureList pkl : featureLists) {
       tasks.add(new MetaCorrelateTask(project, parameters, pkl));
+    }
 
     return ExitCode.OK;
   }

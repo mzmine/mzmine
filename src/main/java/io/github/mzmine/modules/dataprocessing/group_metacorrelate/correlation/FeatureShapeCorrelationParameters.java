@@ -41,8 +41,6 @@ public class FeatureShapeCorrelationParameters extends SimpleParameterSet {
       "Noise level (peak shape correlation)", "Only correlate data points >= noiseLevel.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E4);
 
-  // General parameters
-  public static final MassListParameter MASS_LIST = new MassListParameter();
   // use mass lists
   public static final BooleanParameter USE_MASS_LIST_DATA = new BooleanParameter(
       "Use mass list data", "Uses the raw data stored in the given mass list", true);
@@ -97,14 +95,14 @@ public class FeatureShapeCorrelationParameters extends SimpleParameterSet {
   /**
    * As sub settings: No retention time tolerance and peak lists
    * 
-   * @param isSub
+   * @param isSub sub parameters
    */
   public FeatureShapeCorrelationParameters(boolean isSub) {
     super(isSub ? // no peak list and rt tolerance
         new Parameter[] {MIN_DP_CORR_PEAK_SHAPE, MIN_DP_FEATURE_EDGE, MEASURE, MIN_R_SHAPE_INTRA,
             MIN_TOTAL_CORR}
         : new Parameter[] {PEAK_LISTS, RT_TOLERANCE,
-            // MASS_LIST, USE_MASS_LIST_DATA, MAIN_PEAK_HEIGHT,
+            // USE_MASS_LIST_DATA, MAIN_PEAK_HEIGHT,
             NOISE_LEVEL_PEAK_SHAPE, MIN_DP_CORR_PEAK_SHAPE, MIN_DP_FEATURE_EDGE, MEASURE,
             MIN_R_SHAPE_INTRA, MIN_TOTAL_CORR});
   }
