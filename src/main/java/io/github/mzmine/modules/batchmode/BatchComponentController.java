@@ -157,7 +157,6 @@ public class BatchComponentController implements LastFilesComponent {
       for (TreeItem<Object> child : root.getChildren()) {
         child.setExpanded(hasMatchingChild(child, newValue.toLowerCase()));
       }
-
       selectFirstMatch(root, newValue.toLowerCase());
     });
 
@@ -192,6 +191,9 @@ public class BatchComponentController implements LastFilesComponent {
         }
       }
     } else {
+      if (filter.isEmpty()) {
+        return false;
+      }
       return item.getValue().toString().toLowerCase().contains(filter);
     }
     return false;

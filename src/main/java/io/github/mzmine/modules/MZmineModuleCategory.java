@@ -22,6 +22,7 @@ public enum MZmineModuleCategory {
 
   PROJECTIO("Project I/O"), //
   PROJECT("Project"), //
+  RAWDATAIMPORT("Raw data import"), //
   RAWDATA("Raw data methods"), //
   RAWDATAFILTERING("Raw data filtering"), //
   FEATUREDETECTION("Feature detection"), //
@@ -56,7 +57,7 @@ public enum MZmineModuleCategory {
   public MainCategory getMainCategory() {
     return switch (this) {
       case PROJECT, PROJECTIO -> MainCategory.PROJECT;
-      case RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
+      case RAWDATAIMPORT, RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
       case FEATURELIST, FEATURELISTDETECTION, FEATUREDETECTION, GAPFILLING, ALIGNMENT -> MainCategory.FEATURE_DETECTION;
       case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> MainCategory.FEATURE_FILTERING;
       case NORMALIZATION, DATAANALYSIS -> MainCategory.FEATURE_PROCESSING;

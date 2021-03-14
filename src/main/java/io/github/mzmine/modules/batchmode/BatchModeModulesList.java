@@ -84,12 +84,32 @@ import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectral
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
+import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
+import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule;
 import io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
+import io.github.mzmine.modules.io.export_gnps.gc.GnpsGcExportAndSubmitModule;
+import io.github.mzmine.modules.io.export_metaboanalyst.MetaboAnalystExportModule;
+import io.github.mzmine.modules.io.export_mgf.AdapMgfExportModule;
+import io.github.mzmine.modules.io.export_msp.AdapMspExportModule;
+import io.github.mzmine.modules.io.export_mzml.MzMLExportModule;
+import io.github.mzmine.modules.io.export_mztab.MzTabExportModule;
 import io.github.mzmine.modules.io.export_mztabm.MZTabmExportModule;
+import io.github.mzmine.modules.io.export_netcdf.NetCDFExportModule;
+import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
 import io.github.mzmine.modules.io.export_sirius.SiriusExportModule;
+import io.github.mzmine.modules.io.import_all_data_files.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_bruker_tdf.TDFImportModule;
+import io.github.mzmine.modules.io.import_imzml.ImzMLImportModule;
+import io.github.mzmine.modules.io.import_mzdata.MzDataImportModule;
 import io.github.mzmine.modules.io.import_mzml_jmzml.MzMLImportModule;
+import io.github.mzmine.modules.io.import_mzml_msdk.MSDKmzMLImportModule;
+import io.github.mzmine.modules.io.import_mztab.MzTabImportModule;
 import io.github.mzmine.modules.io.import_mztabm.MZTabmImportModule;
+import io.github.mzmine.modules.io.import_mzxml.MzXMLImportModule;
+import io.github.mzmine.modules.io.import_netcdf.NetCDFImportModule;
+import io.github.mzmine.modules.io.import_thermo_raw.ThermoRawImportModule;
+import io.github.mzmine.modules.io.import_waters_raw.WatersRawImportModule;
+import io.github.mzmine.modules.io.import_zip.ZipImportModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
@@ -111,8 +131,18 @@ public class BatchModeModulesList {
           /**
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
            */
+          AllSpectralDataImportModule.class, //
           TDFImportModule.class, //
           MzMLImportModule.class, //
+          ImzMLImportModule.class, //
+          MzDataImportModule.class, //
+          MSDKmzMLImportModule.class, //
+          MzXMLImportModule.class, //
+          NetCDFImportModule.class, //
+          ThermoRawImportModule.class, //
+          WatersRawImportModule.class, //
+          ZipImportModule.class, //
+
           MassDetectionModule.class, //
           MassCalibrationModule.class, //
           MobilityScanMergerModule.class, //
@@ -198,10 +228,21 @@ public class BatchModeModulesList {
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}
            */
           GnpsFbmnExportAndSubmitModule.class, //
+          GnpsGcExportAndSubmitModule.class, //
+          MetaboAnalystExportModule.class, //
+          AdapMgfExportModule.class, //
           GNPSResultsImportModule.class, //
+          AdapMspExportModule.class, //
+          MzMLExportModule.class, //
+          MzTabExportModule.class, //
           MZTabmExportModule.class, //
+          NetCDFExportModule.class, //
+          ExportScansFromRawFilesModule.class, //
+          SiriusExportModule.class, //
           MZTabmImportModule.class, //
-          SiriusExportModule.class //
+          MzTabImportModule.class, //
+          CSVExportModularModule.class, //
+          LegacyCSVExportModule.class //
 
           /**
            * needed in batch mode?
