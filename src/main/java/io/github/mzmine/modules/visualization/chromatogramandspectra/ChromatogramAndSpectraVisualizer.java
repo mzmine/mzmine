@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.plot.ValueMarker;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -53,6 +54,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -244,8 +246,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     // update feature data sets if the tolerance for the extraction changes
     chromMzToleranceProperty().addListener((obs, old, val) -> {
       if (getChromPosition() != null) {
-        updateFeatureDataSets(getChromPosition().getDataFile()
-            .getScan(getChromPosition().getScanNumber()).getHighestDataPoint().getMZ());
+        updateFeatureDataSets(getChromPosition().getScan().getBasePeakMz());
       }
     });
 
@@ -271,16 +272,33 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     setOnKeyPressed(e -> {
       if (e.getCode() == KeyCode.LEFT && e.isControlDown() && getChromPosition() != null) {
         logger.finest("Loading previous scan");
-        setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() - 1);
+        Scan scan = getScan(getChromPosition().getDataFile(), getChromPosition().getScan(), -1);
+        setFocusedScan(getChromPosition().getDataFile(), scan);
         requestFocus();
         e.consume();
       } else if (e.getCode() == KeyCode.RIGHT && e.isControlDown() && getChromPosition() != null) {
         logger.finest("Loading next scan");
-        setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() + 1);
+        Scan scan = getScan(getChromPosition().getDataFile(), getChromPosition().getScan(), +1);
+        setFocusedScan(getChromPosition().getDataFile(), scan);
         requestFocus();
         e.consume();
       }
     });
+  }
+
+  private Scan getScan(RawDataFile dataFile, Scan scan, int shift) {
+    if (!Objects.equals(scan.getDataFile(), dataFile)) {
+      throw new IllegalArgumentException("data file and the scan data file need to be the same");
+    }
+    ObservableList<Scan> scans = dataFile.getScans();
+    int index = scans.indexOf(scan);
+    if (index == -1)
+      return null;
+    else if (shift > 0) {
+      return scans.get(Math.min(index + shift, scans.size() - 1));
+    } else {
+      return scans.get(Math.max(index + shift, 0));
+    }
   }
 
   private void updateAllChromatogramDataSets() {
@@ -320,7 +338,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     filesToProcess.forEach(r -> removeRawDataFile(r));
 
     // presence of file is checked in the add method
-    rawDataFiles.forEach(r -> addRawDataFile(r));
+    rawDataFiles.forEach(r -> {
+      if (!(r instanceof ImagingRawDataFile)) {
+        addRawDataFile(r);
+      }
+    });
   }
 
   /**
@@ -346,7 +368,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         (getMzRange() != null && pnChromControls.cbXIC.isSelected()) ? getMzRange()
             : rawDataFile.getDataMZRange();
 
-    TICDataSet ticDataset = new TICDataSet(rawDataFile, scans, rawMZRange, null, getPlotType());
+    TICDataSet ticDataset =
+        new TICDataSet(rawDataFile, List.of(scans), rawMZRange, null, getPlotType());
     filesAndDataSets.put(rawDataFile, ticDataset);
     chromPlot.addTICDataSet(ticDataset, rawDataFile.getColorAWT());
 
@@ -378,7 +401,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     updateChromatogramDomainMarker(pos);
     // update feature data sets
-    updateFeatureDataSets(file.getScan(pos.getScanNumber()).getHighestDataPoint().getMZ());
+    Scan scan = pos.getScan();
+    if (scan.getBasePeakMz() != null)
+      updateFeatureDataSets(scan.getBasePeakMz());
     // update spectrum plots
     updateSpectraPlot(filesAndDataSets.keySet(), pos);
   }
@@ -407,10 +432,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromPlot.getXYPlot().clearDomainMarkers();
 
     if (rtMarker == null) {
-      rtMarker = new ValueMarker(pos.getDataFile().getScan(pos.getScanNumber()).getRetentionTime());
+      rtMarker = new ValueMarker(pos.getScan().getRetentionTime());
       rtMarker.setStroke(MARKER_STROKE);
     } else {
-      rtMarker.setValue(pos.getDataFile().getScan(pos.getScanNumber()).getRetentionTime());
+      rtMarker.setValue(pos.getScan().getRetentionTime());
     }
     rtMarker.setPaint(MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
 
@@ -438,12 +463,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFile The rawDataFile to focus.
    * @param scanNum The scan number.
    */
-  public void setFocusedScan(@Nonnull RawDataFile rawDataFile, int scanNum) {
-    if (!filesAndDataSets.keySet().contains(rawDataFile) || rawDataFile.getScan(scanNum) == null) {
+  public void setFocusedScan(@Nonnull RawDataFile rawDataFile, Scan scanNum) {
+    if (!filesAndDataSets.keySet().contains(rawDataFile) || scanNum == null) {
       return;
     }
-    ChromatogramCursorPosition pos = new ChromatogramCursorPosition(
-        rawDataFile.getScan(scanNum).getRetentionTime(), 0, 0, rawDataFile, scanNum);
+    ChromatogramCursorPosition pos =
+        new ChromatogramCursorPosition(scanNum.getRetentionTime(), 0, 0, rawDataFile, scanNum);
     setChromPosition(pos);
   }
 
@@ -454,9 +479,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFile The raw data file
    * @param scanNum The number of the scan
    */
-  private void forceScanDataSet(@Nonnull RawDataFile rawDataFile, int scanNum) {
+  private void forceScanDataSet(@Nonnull RawDataFile rawDataFile, Scan scanNum) {
     spectrumPlot.removeAllDataSets();
-    ScanDataSet dataSet = new ScanDataSet(rawDataFile.getScan(scanNum));
+    ScanDataSet dataSet = new ScanDataSet(scanNum);
     spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false);
     spectrumPlot.setTitle(rawDataFile.getName() + "(#" + scanNum + ")", "");
   }
@@ -468,12 +493,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFile The rawDataFile to focus.
    * @param scanNum The scan number.
    */
-  public void setFocusedScanSilent(@Nonnull RawDataFile rawDataFile, int scanNum) {
-    if (!filesAndDataSets.keySet().contains(rawDataFile) || rawDataFile.getScan(scanNum) == null) {
+  public void setFocusedScanSilent(@Nonnull RawDataFile rawDataFile, Scan scanNum) {
+    if (!filesAndDataSets.keySet().contains(rawDataFile) || scanNum == null) {
       return;
     }
-    ChromatogramCursorPosition pos = new ChromatogramCursorPosition(
-        rawDataFile.getScan(scanNum).getRetentionTime(), 0, 0, rawDataFile, scanNum);
+    ChromatogramCursorPosition pos =
+        new ChromatogramCursorPosition(scanNum.getRetentionTime(), 0, 0, rawDataFile, scanNum);
     updateChromatogramDomainMarker(pos);
     forceScanDataSet(rawDataFile, scanNum);
   }

@@ -18,53 +18,55 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.Color;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.*;
-import javafx.scene.control.Tab;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.exportscans.ExportScansModule;
+import io.github.mzmine.modules.io.export_scans.ExportScansModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.SinglePeakDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
-import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Tab;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -110,7 +112,7 @@ public class SpectraVisualizerTab extends MZmineTab {
   public static Color detectedIsotopesColor = Color.magenta;
   public static Color predictedIsotopesColor = Color.green;
 
-  //private final Scene mainScene;
+  // private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
   private final Button centroidContinuousButton, dataPointsButton, annotationsButton,
@@ -120,8 +122,6 @@ public class SpectraVisualizerTab extends MZmineTab {
   private final SpectraBottomPanel bottomPanel;
 
   private RawDataFile dataFile;
-  private String massList;
-  private final int scanNumber;
 
   // Currently loaded scan
   private Scan currentScan;
@@ -132,26 +132,25 @@ public class SpectraVisualizerTab extends MZmineTab {
   private ScanDataSet spectrumDataSet;
   private MassListDataSet massListDataSet;
 
-  private ParameterSet paramSet;
+  // private ParameterSet paramSet;
 
   private boolean dppmWindowOpen;
 
   private static final double zoomCoefficient = 1.2f;
   private Color dataFileColor;
 
-  public SpectraVisualizerTab(RawDataFile dataFile, int scanNumber, String massList, boolean enableProcessing) {
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing) {
     super("Spectra visualizer", true, false);
-    //setTitle("Spectrum loading...");
+    // setTitle("Spectrum loading...");
     this.dataFile = dataFile;
-    this.massList = massList;
-    this.scanNumber = scanNumber;
+    this.currentScan = scanNumber;
     dataFileColor = dataFile.getColorAWT();
 
     loadColorSettings();
 
     mainPane = new BorderPane();
-    //mainScene = new Scene(mainPane);
-    //setScene(mainScene);
+    // mainScene = new Scene(mainPane);
+    // setScene(mainScene);
 
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
@@ -196,7 +195,8 @@ public class SpectraVisualizerTab extends MZmineTab {
     axesButton = new Button(null, new ImageView(axesIcon));
     axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
     axesButton.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(), spectrumPlot.getXYPlot());
+      AxesSetupDialog dialog =
+          new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(), spectrumPlot.getXYPlot());
       dialog.show();
     });
 
@@ -266,21 +266,21 @@ public class SpectraVisualizerTab extends MZmineTab {
     // pack();
 
     // get the window settings parameter
-    //paramSet = MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
-    //WindowSettingsParameter settings =
-    //    paramSet.getParameter(SpectraVisualizerParameters.windowSettings);
+    // paramSet = MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
+    // WindowSettingsParameter settings =
+    // paramSet.getParameter(SpectraVisualizerParameters.windowSettings);
 
     // update the window and listen for changes
-    //settings.applySettingsToWindow(this);
+    // settings.applySettingsToWindow(this);
 
     dppmWindowOpen = false;
 
     // Add the Windows menu
-    //WindowsMenu.addWindowsMenu(mainScene);
+    // WindowsMenu.addWindowsMenu(mainScene);
   }
 
   public SpectraVisualizerTab(RawDataFile dataFile) {
-    this(dataFile, 1, null, false);
+    this(dataFile, null, false);
   }
 
   private void loadColorSettings() {
@@ -299,8 +299,9 @@ public class SpectraVisualizerTab extends MZmineTab {
         "Loading scan #" + scan.getScanNumber() + " from " + dataFile + " for spectra visualizer");
 
     spectrumDataSet = new ScanDataSet(scan);
+    MassList massList = scan.getMassList();
     if (massList != null) {
-      massListDataSet = new MassListDataSet(scan.getMassList(massList));
+      massListDataSet = new MassListDataSet(massList);
     }
 
     this.currentScan = scan;
@@ -319,7 +320,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     // Clean up the MS/MS selector combo
 
-    final ComboBox<String> msmsSelector = bottomPanel.getMSMSSelector();
+    final ComboBox<Scan> msmsSelector = bottomPanel.getMSMSSelector();
 
     // We disable the MSMS selector first and then enable it again later
     // after updating the items. If we skip this, the size of the
@@ -335,19 +336,14 @@ public class SpectraVisualizerTab extends MZmineTab {
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
+    // TODO: Search fragment scans
     // Add all fragment scans to MS/MS selector combo
-    int fragmentScans[] = currentScan.getFragmentScanNumbers();
+    Scan fragmentScans[] = null; // currentScan.getFragmentScanNumbers();
     if (fragmentScans != null) {
-      for (int fragment : fragmentScans) {
-        Scan fragmentScan = dataFile.getScan(fragment);
+      for (Scan fragmentScan : fragmentScans) {
         if (fragmentScan == null)
           continue;
-        final String itemText = "Fragment scan #" + fragment + ", RT: "
-            + rtFormat.format(fragmentScan.getRetentionTime()) + ", precursor m/z: "
-            + mzFormat.format(fragmentScan.getPrecursorMZ());
-        // Updating the combo in other than Swing thread may cause
-        // exception
-        msmsSelector.getItems().add(itemText);
+        msmsSelector.getItems().add(fragmentScan);
         msmsVisible = true;
       }
     }
@@ -358,16 +354,17 @@ public class SpectraVisualizerTab extends MZmineTab {
     bottomPanel.setMSMSSelectorVisible(msmsVisible);
 
     // Set window and plot titles
-    String massListTitle = massList != null ? " mass list " + massList : "";
-    String windowTitle =
-        "Spectrum: [" + dataFile.getName() + "; scan #" + currentScan.getScanNumber() + massListTitle + "]";
+    String massListTitle = "";
+    String windowTitle = "Spectrum: [" + dataFile.getName() + "; scan #"
+        + currentScan.getScanNumber() + massListTitle + "]";
 
     String spectrumTitle = ScanUtils.scanToString(currentScan, true);
 
-    DataPoint basePeak = currentScan.getHighestDataPoint();
-    if (basePeak != null) {
-      spectrumTitle += ", base peak: " + mzFormat.format(basePeak.getMZ()) + " m/z ("
-          + intensityFormat.format(basePeak.getIntensity()) + ")";
+    Integer basePeak = scan.getBasePeakIndex();
+
+    if (basePeak != 0) {
+      spectrumTitle += ", base peak: " + mzFormat.format(scan.getBasePeakMz()) + " m/z ("
+          + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
     }
     String spectrumSubtitle = null;
     if (!Strings.isNullOrEmpty(currentScan.getScanDefinition())) {
@@ -377,16 +374,17 @@ public class SpectraVisualizerTab extends MZmineTab {
     final String finalSpectrumTitle = spectrumTitle;
     final String finalSpectrumSubtitle = spectrumSubtitle;
 
-    Platform.runLater(() -> {
-      //setTitle(windowTitle);
-      spectrumPlot.setTitle(finalSpectrumTitle, finalSpectrumSubtitle);
+    // Platform.runLater(() -> { // this should be the fx thread, otherwise loading isotopes will
+    // fail
+    // setTitle(windowTitle);
+    spectrumPlot.setTitle(finalSpectrumTitle, finalSpectrumSubtitle);
 
-      // Set plot data set
-      spectrumPlot.removeAllDataSets();
-      spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
-      spectrumPlot.addDataSet(massListDataSet, massListColor, false);
-      spectrumPlot.getXYPlot().getRenderer().setDefaultPaint(dataFileColor);
-    });
+    // Set plot data set
+    spectrumPlot.removeAllDataSets();
+    spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
+    spectrumPlot.addDataSet(massListDataSet, massListColor, false);
+    spectrumPlot.getXYPlot().getRenderer().setDefaultPaint(dataFileColor);
+    // });
 
   }
 
@@ -399,10 +397,9 @@ public class SpectraVisualizerTab extends MZmineTab {
     }
 
     logger.finest(
-        "Loading a feature list " + selectedPeakList + " to a spectrum window"/* + getTitle()*/);
+        "Loading a feature list " + selectedPeakList + " to a spectrum window"/* + getTitle() */);
 
-    PeakListDataSet peaksDataSet =
-        new PeakListDataSet(dataFile, currentScan.getScanNumber(), selectedPeakList);
+    PeakListDataSet peaksDataSet = new PeakListDataSet(dataFile, currentScan, selectedPeakList);
 
     // Set plot data sets
     spectrumPlot.addDataSet(peaksDataSet, peaksColor, true);
@@ -411,7 +408,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   public void loadSinglePeak(Feature peak) {
 
-    SinglePeakDataSet peakDataSet = new SinglePeakDataSet(currentScan.getScanNumber(), peak);
+    SinglePeakDataSet peakDataSet = new SinglePeakDataSet(currentScan, peak);
 
     // Set plot data sets
     spectrumPlot.addDataSet(peakDataSet, singlePeakColor, true);
@@ -421,7 +418,12 @@ public class SpectraVisualizerTab extends MZmineTab {
   public void loadIsotopes(IsotopePattern newPattern) {
     // We need to find a normalization factor for the new isotope
     // pattern, to show meaningful intensity range
-    double mz = newPattern.getHighestDataPoint().getMZ();
+    Integer basePeak = newPattern.getBasePeakIndex();
+    if (basePeak == null) {
+      return;
+    }
+    double mz = newPattern.getBasePeakMz();
+
     Range<Double> searchMZRange = Range.closed(mz - 0.5, mz + 0.5);
     ScanDataSet scanDataSet = spectrumPlot.getMainScanDataSet();
     double normalizationFactor = scanDataSet.getHighestIntensity(searchMZRange);
@@ -469,23 +471,21 @@ public class SpectraVisualizerTab extends MZmineTab {
       return;
 
     int msLevel = currentScan.getMSLevel();
-    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-    int scanIndex = Arrays.binarySearch(scanNumbers, currentScan.getScanNumber());
+    List<Scan> scans = dataFile.getScanNumbers(msLevel);
+    int scanIndex = scans.indexOf(currentScan);
     if (scanIndex > 0) {
-      final int prevScanIndex = scanNumbers[scanIndex - 1];
+      final Scan prevScan = scans.get(scanIndex - 1);
 
       Runnable newThreadRunnable = new Runnable() {
 
         @Override
         public void run() {
-          loadRawData(dataFile.getScan(prevScanIndex));
+          loadRawData(prevScan);
         }
-
       };
 
       Thread newThread = new Thread(newThreadRunnable);
       newThread.start();
-
     }
   }
 
@@ -496,24 +496,14 @@ public class SpectraVisualizerTab extends MZmineTab {
       return;
 
     int msLevel = currentScan.getMSLevel();
-    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-    int scanIndex = Arrays.binarySearch(scanNumbers, currentScan.getScanNumber());
+    List<Scan> scanNumbers = dataFile.getScanNumbers(msLevel);
+    int scanIndex = scanNumbers.indexOf(currentScan);
 
-    if (scanIndex < (scanNumbers.length - 1)) {
-      final int nextScanIndex = scanNumbers[scanIndex + 1];
+    if (scanIndex < (scanNumbers.size() - 1)) {
+      final Scan nextScan = scanNumbers.get(scanIndex + 1);
 
-      Runnable newThreadRunnable = new Runnable() {
-
-        @Override
-        public void run() {
-          loadRawData(dataFile.getScan(nextScanIndex));
-        }
-
-      };
-
-      Thread newThread = new Thread(newThreadRunnable);
+      Thread newThread = new Thread(() -> loadRawData(nextScan));
       newThread.start();
-
     }
   }
 
@@ -592,7 +582,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     }
   }
 
-  public void addAnnotation(Map<DataPoint, String> annotation) {
+  public void addAnnotation(Map<Integer, String> annotation) {
     spectrumDataSet.addAnnotation(annotation);
   }
 
@@ -628,7 +618,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+    if (rawDataFiles == null || rawDataFiles.isEmpty()) {
       return;
     }
 
@@ -639,10 +629,10 @@ public class SpectraVisualizerTab extends MZmineTab {
     }
 
     // add new scan
-    Scan newScan = newFile.getScan(scanNumber);
-    if(newScan == null) {
-      MZmineCore.getDesktop().displayErrorMessage(
-          "Raw data file " + dataFile + " does not contain scan #" + scanNumber);
+    Scan newScan = newFile.getScanNumberAtRT(currentScan.getRetentionTime());
+    if (newScan == null) {
+      MZmineCore.getDesktop().displayErrorMessage("Raw data file " + dataFile
+          + " does not contain scan at retention time " + currentScan.getRetentionTime());
       return;
     }
 
@@ -660,8 +650,7 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featurelists) {
 
   }
 }

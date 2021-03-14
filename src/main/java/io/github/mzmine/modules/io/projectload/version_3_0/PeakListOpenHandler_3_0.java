@@ -18,18 +18,30 @@
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
+import com.Ostermiller.util.Base64;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.modules.io.projectload.PeakListOpenHandler;
+import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -41,16 +53,6 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import com.Ostermiller.util.Base64;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.modules.io.projectload.PeakListOpenHandler;
 
 public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListOpenHandler {
 
@@ -59,12 +61,14 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
   private ModularFeatureListRow buildingRow;
   private ModularFeatureList buildingPeakList;
 
-  private int numOfMZpeaks, representativeScan, fragmentScan;
+  private int numOfMZpeaks;
+  private Integer representativeScan;
+  private Integer fragmentScan;
   private String peakColumnID;
   private double mass;
   private float rt, area;
-  private int[] scanNumbers;
-  private int[] allMS2FragmentScanNumbers;
+  private Integer[] scanNumbers;
+  private Integer[] allMS2FragmentScanNumbers;
   private Vector<Integer> currentAllMS2FragmentScans;
   private float height;
   private double[] masses, intensities;
@@ -93,6 +97,10 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
   private int parsedRows, totalRows;
 
   private boolean canceled = false;
+
+  private final MemoryMapStorage flistStorage = MemoryMapStorage.forFeatureList();
+  private final MemoryMapStorage rawStorage = MemoryMapStorage.forRawDataFile();
+  private final MemoryMapStorage massListStorage = MemoryMapStorage.forMassList();
 
   public PeakListOpenHandler_3_0(Hashtable<String, RawDataFile> dataFilesIDMap) {
     this.dataFilesIDMap = dataFilesIDMap;
@@ -168,7 +176,8 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       int rowID = Integer.parseInt(attrs.getValue(PeakListElementName_3_0.ID.getElementName()));
       buildingRow = new ModularFeatureListRow(buildingPeakList, rowID);
       String comment = attrs.getValue(PeakListElementName_3_0.COMMENT.getElementName());
-      buildingRow.setComment(comment);
+      if (comment != null && !comment.isEmpty())
+        buildingRow.setComment(comment);
     }
 
     // <PEAK_IDENTITY>
@@ -200,9 +209,12 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       mass = Double.parseDouble(attrs.getValue(PeakListElementName_3_0.MZ.getElementName()));
       // Before MZmine.6 retention time was saved in seconds, but now we
       // use minutes, so we need to divide by 60
-      rt = (float) (Double.parseDouble(attrs.getValue(PeakListElementName_3_0.RT.getElementName())) / 60d);
-      height = (float) Double.parseDouble(attrs.getValue(PeakListElementName_3_0.HEIGHT.getElementName()));
-      area = (float) Double.parseDouble(attrs.getValue(PeakListElementName_3_0.AREA.getElementName()));
+      rt = (float) (Double.parseDouble(attrs.getValue(PeakListElementName_3_0.RT.getElementName()))
+          / 60d);
+      height = (float) Double
+          .parseDouble(attrs.getValue(PeakListElementName_3_0.HEIGHT.getElementName()));
+      area =
+          (float) Double.parseDouble(attrs.getValue(PeakListElementName_3_0.AREA.getElementName()));
       peakStatus = attrs.getValue(PeakListElementName_3_0.STATUS.getElementName());
       String chargeString = attrs.getValue(PeakListElementName_3_0.CHARGE.getElementName());
       if (chargeString != null)
@@ -240,7 +252,6 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
    */
   @Override
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
-
     if (canceled)
       throw new SAXException("Parsing canceled");
 
@@ -279,7 +290,7 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       byte[] bytes = Base64.decodeToBytes(getTextOfElement());
       // make a data input stream
       DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(bytes));
-      scanNumbers = new int[numOfMZpeaks];
+      scanNumbers = new Integer[numOfMZpeaks];
       for (int i = 0; i < numOfMZpeaks; i++) {
         try {
           scanNumbers[i] = dataInputStream.readInt();
@@ -348,9 +359,16 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       if (dataFile == null)
         throw new SAXException("Error in project: data file " + peakColumnID + " not found");
 
+      Scan[] scans =
+          Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
+      Scan[] fragmentScans = currentAllMS2FragmentScans.stream()
+          .map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
+      Scan bestMS1 = dataFile.getScanAtNumber(representativeScan);
+      Scan bestMS2 = dataFile.getScanAtNumber(fragmentScan);
+
       for (int i = 0; i < numOfMZpeaks; i++) {
 
-        Scan sc = dataFile.getScan(scanNumbers[i]);
+        Scan sc = scans[i];
         float retentionTime = sc.getRetentionTime();
 
         double mz = masses[i];
@@ -380,12 +398,6 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
 
       FeatureStatus status = FeatureStatus.valueOf(peakStatus);
 
-      // convert vector of allMS2FragmentScans to array
-      allMS2FragmentScanNumbers = new int[currentAllMS2FragmentScans.size()];
-      for (int i = 0; i < allMS2FragmentScanNumbers.length; i++) {
-        allMS2FragmentScanNumbers[i] = currentAllMS2FragmentScans.get(i);
-      }
-
       // clear all MS2 fragment scan numbers list for next peak
       currentAllMS2FragmentScans.clear();
 
@@ -393,25 +405,29 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
       if (peakRTRange == null)
         peakRTRange = Range.singleton(rt);
 
-      ModularFeature peak = new ModularFeature(dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
-          status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
-          peakMZRange, peakIntensityRange);
-      //SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
-      //    status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
-      //    peakMZRange, peakIntensityRange);
+      // SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers,
+      // mzPeaks,
+      // status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
+      // peakMZRange, peakIntensityRange);
+      ModularFeature peak = new ModularFeature(buildingPeakList, dataFile, mass, rt, height, area,
+          scans, mzPeaks, status, bestMS1, bestMS2, fragmentScans, peakRTRange, peakMZRange,
+          peakIntensityRange);
+      // SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers,
+      // mzPeaks,
+      // status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
+      // peakMZRange, peakIntensityRange);
 
       peak.setCharge(currentPeakCharge);
 
       if (currentIsotopes.size() > 0) {
-        SimpleIsotopePattern newPattern =
-            new SimpleIsotopePattern(currentIsotopes.toArray(new DataPoint[0]),
-                currentIsotopePatternStatus, currentIsotopePatternDescription);
+        SimpleIsotopePattern newPattern = new SimpleIsotopePattern(null, null,
+            currentIsotopePatternStatus, currentIsotopePatternDescription);
         peak.setIsotopePattern(newPattern);
         currentIsotopes.clear();
       }
 
       // TODO:
-      //peak.setParentChromatogramRowID(parentChromatogramRowID);
+      // peak.setParentChromatogramRowID(parentChromatogramRowID);
 
       buildingRow.addFeature(dataFile, peak);
 
@@ -498,13 +514,18 @@ public class PeakListOpenHandler_3_0 extends DefaultHandler implements PeakListO
 
     RawDataFile[] dataFiles = currentPeakListDataFiles.toArray(new RawDataFile[0]);
 
-    buildingPeakList = new ModularFeatureList(peakListName, dataFiles);
+    buildingPeakList = new ModularFeatureList(peakListName, flistStorage, dataFiles);
+
+    // just add all columns that we used in MZmine 2
+    // TODO create new method to save and load projects with modular data model
+    DataTypeUtils.addDefaultChromatographicTypeColumns(buildingPeakList);
 
     for (int i = 0; i < appliedMethods.size(); i++) {
       String methodName = appliedMethods.elementAt(i);
       String methodParams = appliedMethodParameters.elementAt(i);
-      SimpleFeatureListAppliedMethod pam = new SimpleFeatureListAppliedMethod(methodName, methodParams);
-      buildingPeakList.addDescriptionOfAppliedTask(pam);
+      /*SimpleFeatureListAppliedMethod pam =
+          new SimpleFeatureListAppliedMethod(methodName, methodParams);
+      buildingPeakList.addDescriptionOfAppliedTask(pam);*/
     }
     buildingPeakList.setDateCreated(dateCreated);
   }

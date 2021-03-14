@@ -34,6 +34,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import org.checkerframework.checker.units.qual.min;
 
 public abstract class NumberRangeType<T extends Comparable<?>>
     extends NumberType<ObjectProperty<Range<T>>>
@@ -75,6 +76,26 @@ public abstract class NumberRangeType<T extends Comparable<?>>
     return new SimpleObjectProperty<Range<T>>();
   }
 
+  @Nonnull
+  @Override
+  public int getNumberOfSubColumns() {
+    return 2;
+  }
+
+  @Nullable
+  @Override
+  public String getHeader(int subcolumn) {
+    switch (subcolumn) {
+      case 0:
+        return "min";
+      case 1:
+        return "max";
+    }
+    if(subcolumn<getNumberOfSubColumns())
+      throw new IllegalArgumentException("Sub column index is not handled: "+subcolumn);
+    else
+      throw new IndexOutOfBoundsException("Sub column index "+subcolumn+" is out of range "+getNumberOfSubColumns());
+  }
 
   @Override
   @Nonnull
@@ -83,20 +104,14 @@ public abstract class NumberRangeType<T extends Comparable<?>>
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
 
     // create column per name
-    TreeTableColumn<ModularFeatureListRow, Object> min = new TreeTableColumn<>("min");
-    DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this);
-    min.setCellValueFactory(cvFactoryMin);
-    min.setCellFactory(new DataTypeCellFactory(raw, this, 0));
-
-    TreeTableColumn<ModularFeatureListRow, Object> max = new TreeTableColumn<>("max");
-    DataTypeCellValueFactory cvFactoryMax = new DataTypeCellValueFactory(raw, this);
-    max.setCellValueFactory(cvFactoryMax);
-    max.setCellFactory(new DataTypeCellFactory(raw, this, 1));
-
-    // add all
-    cols.add(min);
-    cols.add(max);
-
+    for(int index=0; index<getNumberOfSubColumns(); index++) {
+      TreeTableColumn<ModularFeatureListRow, Object> min = new TreeTableColumn<>(getHeader(index));
+      DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this);
+      min.setCellValueFactory(cvFactoryMin);
+      min.setCellFactory(new DataTypeCellFactory(raw, this, index));
+      // add column
+      cols.add(min);
+    }
     return cols;
   }
 

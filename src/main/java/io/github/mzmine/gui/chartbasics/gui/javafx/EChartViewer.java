@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -96,7 +97,6 @@ public class EChartViewer extends ChartViewer {
    * stickyZeroForRangeAxis = false <br>
    * Graphics and data export menu are added
    *
-   * @param chart
    */
   public EChartViewer() {
     this(null, true, true, true, true, false);
@@ -328,7 +328,7 @@ public class EChartViewer extends ChartViewer {
       if (standardGestures) {
         addStandardGestures();
       }
-      // mouseAdapter.addDebugHandler();
+//      mouseAdapter.addDebugHandler();
     }
   }
 
@@ -492,6 +492,9 @@ public class EChartViewer extends ChartViewer {
     setDomainZoomable(flag);
     setRangeZoomable(flag);
     isMouseZoomable = flag;
+    // TODO find better solution
+    // clear handler to stop zoom rectangle (hacky solution)
+    getCanvas().clearLiveHandler();
   }
 
   public void setRangeZoomable(boolean flag) {

@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -63,6 +64,7 @@ public class PeakListIdentificationTask extends AbstractTask {
   private final IonizationType ionType;
   private DBGateway gateway;
   private FeatureListRow currentRow;
+  private final ParameterSet parameters;
 
   /**
    * Create the identification task.
@@ -71,6 +73,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param list feature list to operate on.
    */
   PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list) {
+    super(null); // no new data stored -> null
 
     peakList = list;
     numItems = 0;
@@ -88,6 +91,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     isotopeFilterParameters = parameters
         .getParameter(SingleRowIdentificationParameters.ISOTOPE_FILTER).getEmbeddedParameters();
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
+    this.parameters = parameters;
   }
 
   @Override
@@ -142,6 +146,9 @@ public class PeakListIdentificationTask extends AbstractTask {
         setErrorMessage(msg + ": " + ExceptionUtils.exceptionToString(t));
       }
     }
+
+    peakList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(OnlineDBSearchModule.class, parameters));
   }
 
   /**

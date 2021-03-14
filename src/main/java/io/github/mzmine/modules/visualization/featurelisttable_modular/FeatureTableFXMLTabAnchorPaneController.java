@@ -21,25 +21,27 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.text.NumberFormat;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
 
 public class FeatureTableFXMLTabAnchorPaneController {
 
@@ -79,9 +81,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
     // Add filter text fields listeners to filter on air
     mzSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     rtSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
-    HBox mzFilter = new HBox(new Text("m/z: "), mzSearchField);
+    HBox mzFilter = new HBox(new Label("m/z: "), mzSearchField);
     mzFilter.setAlignment(filtersRow.getAlignment());
-    HBox rtFilter = new HBox(new Text("RT: "), rtSearchField);
+    HBox rtFilter = new HBox(new Label("RT: "), rtSearchField);
     rtFilter.setAlignment(filtersRow.getAlignment());
 
     filtersRow.getChildren().addAll(filterIcon, mzFilter, separator, rtFilter);
@@ -165,7 +167,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
    * In case the parameters are changed in the setup dialog, they are applied to the window.
    */
   void updateWindowToParameterSetValues() {
-    featureTable.applyColumnsVisibility(
+    featureTable.updateColumnsVisibilityParameters(
         param.getParameter(FeatureTableFXParameters.showRowTypeColumns).getValue(),
         param.getParameter(FeatureTableFXParameters.showFeatureTypeColumns).getValue());
   }
@@ -173,27 +175,43 @@ public class FeatureTableFXMLTabAnchorPaneController {
   public void setFeatureList(FeatureList featureList) {
     featureTable.addData(featureList);
 
-    // Fill filters text fields with a prompt values
-    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    Range<Double> mzRange = featureTable.getFeatureList().getRowsMZRange();
-    mzSearchField.setPromptText(mzFormat.format(mzRange.lowerEndpoint()) + " - "
-        + mzFormat.format(mzRange.upperEndpoint()));
-    mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
+    if(featureList==null) {
+      return;
+    }
+    try {
+      // Fill filters text fields with a prompt values
+      NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+      Range<Double> mzRange = featureList.getRowsMZRange();
+      if(mzRange!=null)
+        mzSearchField.setPromptText(mzFormat.format(mzRange.lowerEndpoint()) + " - "
+                + mzFormat.format(mzRange.upperEndpoint()));
+      mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
 
-    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-    Range<Float> rtRange = featureTable.getFeatureList().getRowsRTRange();
-    rtSearchField.setPromptText(rtFormat.format(rtRange.lowerEndpoint()) + " - "
-        + rtFormat.format(rtRange.upperEndpoint()));
-    rtSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
+      NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+      Range<Float> rtRange = featureList.getRowsRTRange();
+      if(rtRange!=null) {
+        rtSearchField.setPromptText(rtFormat.format(rtRange.lowerEndpoint()) + " - "
+                + rtFormat.format(rtRange.upperEndpoint()));
+      }
+      rtSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Error in table visualization", ex);
+    }
+  }
+
+  public FeatureList getFeatureList() {
+    return featureTable.getFeatureList();
   }
 
   void selectedRowChanged() {
-    TreeItem<FeatureListRow> selectedItem = featureTable.getSelectionModel()
+    TreeItem<ModularFeatureListRow> selectedItem = featureTable.getSelectionModel()
         .getSelectedItem();
 //    featureTable.getColumns().forEach(c -> logger.info(c.getText()));
-    logger.info(
-        "selected: " + featureTable.getSelectionModel().getSelectedCells().get(0).getTableColumn()
-            .getText());
+    if (!featureTable.getSelectionModel().getSelectedCells().isEmpty()) {
+      logger.info(
+          "selected: " + featureTable.getSelectionModel().getSelectedCells().get(0).getTableColumn()
+              .getText());
+    }
 
     if (selectedItem == null) {
       return;

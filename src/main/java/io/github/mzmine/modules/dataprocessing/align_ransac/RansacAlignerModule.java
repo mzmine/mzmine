@@ -18,15 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.Collection;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 public class RansacAlignerModule implements MZmineProcessingModule {
 
@@ -52,7 +53,8 @@ public class RansacAlignerModule implements MZmineProcessingModule {
     FeatureList[] featureLists = parameters.getParameter(RansacAlignerParameters.peakLists).getValue()
         .getMatchingFeatureLists();
 
-    Task task = new RansacAlignerTask(project, featureLists, parameters);
+    Task task = new RansacAlignerTask(project, featureLists, parameters,
+        MemoryMapStorage.forFeatureList());
 
     tasks.add(task);
 

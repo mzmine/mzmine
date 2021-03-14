@@ -65,6 +65,7 @@ class PrecursorDBSearchTask extends AbstractTask {
   private AtomicInteger matches = new AtomicInteger(0);
 
   public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.peakList = peakList;
     this.parameters = parameters;
     dataBaseFile = parameters.getParameter(PrecursorDBSearchParameters.dataBaseFile).getValue();
@@ -139,6 +140,7 @@ class PrecursorDBSearchTask extends AbstractTask {
     // Add task description to peakList
     peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Possible precursor identification using MS/MS spectral database " + dataBaseFile,
+        PrecursorDBSearchModule.class,
         parameters));
 
     setStatus(TaskStatus.FINISHED);
@@ -158,7 +160,7 @@ class PrecursorDBSearchTask extends AbstractTask {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
 
-        AbstractTask task = new AbstractTask() {
+        AbstractTask task = new AbstractTask(null) {
           private int total = peakList.getNumberOfRows();
           private int done = 0;
 

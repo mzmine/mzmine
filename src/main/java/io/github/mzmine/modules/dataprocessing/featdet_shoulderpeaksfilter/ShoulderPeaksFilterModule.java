@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -50,11 +51,12 @@ public class ShoulderPeaksFilterModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-
+    // storage for masslists
+    MemoryMapStorage storage = MemoryMapStorage.forMassList();
     RawDataFile[] dataFiles = parameters.getParameter(ShoulderPeaksFilterParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new ShoulderPeaksFilterTask(dataFile, parameters.cloneParameterSet());
+      Task newTask = new ShoulderPeaksFilterTask(dataFile, parameters.cloneParameterSet(), storage);
       tasks.add(newTask);
     }
 

@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.visualization.chromatogram;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 
 /**
  *
@@ -26,22 +27,22 @@ public class ChromatogramCursorPosition {
 
   private double mzValue, retentionTime, intensityValue;
   private RawDataFile dataFile;
-  private int scanNumber;
+  private Scan scan;
 
   /**
    * @param retentionTime
    * @param mzValue
    * @param intensityValue
-   * @param rawDataFile
-   * @param scanNumber
+   * @param dataFile
+   * @param scan
    */
   public ChromatogramCursorPosition(double retentionTime, double mzValue, double intensityValue,
-      RawDataFile dataFile, int scanNumber) {
+      RawDataFile dataFile, Scan scan) {
     this.retentionTime = retentionTime;
     this.mzValue = mzValue;
     this.intensityValue = intensityValue;
     this.dataFile = dataFile;
-    this.scanNumber = scanNumber;
+    this.scan = scan;
   }
 
   /**
@@ -103,15 +104,15 @@ public class ChromatogramCursorPosition {
   /**
    * @return Returns the scanNumber.
    */
-  public int getScanNumber() {
-    return scanNumber;
+  public Scan getScan() {
+    return scan;
   }
 
   /**
-   * @param scanNumber The scanNumber to set.
+   * @param scan The scan to set.
    */
-  public void setScanNumber(int scanNumber) {
-    this.scanNumber = scanNumber;
+  public void setScan(Scan scan) {
+    this.scan = scan;
   }
 
 }

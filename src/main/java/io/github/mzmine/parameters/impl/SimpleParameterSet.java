@@ -18,20 +18,30 @@
 
 package io.github.mzmine.parameters.impl;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.scene.control.ButtonType;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Simple storage for the parameters. A typical MZmine module will inherit this class and define the
@@ -39,11 +49,9 @@ import javafx.application.Platform;
  */
 public class SimpleParameterSet implements ParameterSet {
 
-  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
-
   private static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
-
+  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
   protected Parameter<?> parameters[];
   private boolean skipSensitiveParameters = false;
 
@@ -64,8 +72,9 @@ public class SimpleParameterSet implements ParameterSet {
   public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
     this.skipSensitiveParameters = skipSensitiveParameters;
     for (Parameter<?> parameter : parameters) {
-      if (parameter instanceof ParameterContainer)
+      if (parameter instanceof ParameterContainer) {
         ((ParameterContainer) parameter).setSkipSensitiveParameters(skipSensitiveParameters);
+      }
     }
   }
 
@@ -92,8 +101,9 @@ public class SimpleParameterSet implements ParameterSet {
   public void saveValuesToXML(Element xmlElement) {
     Document parentDocument = xmlElement.getOwnerDocument();
     for (Parameter<?> param : parameters) {
-      if (skipSensitiveParameters && param.isSensitive())
+      if (skipSensitiveParameters && param.isSensitive()) {
         continue;
+      }
       Element paramElement = parentDocument.createElement(parameterElement);
       paramElement.setAttribute(nameAttribute, param.getName());
       xmlElement.appendChild(paramElement);
@@ -114,8 +124,9 @@ public class SimpleParameterSet implements ParameterSet {
       Parameter<?> param = parameters[i];
       Object value = param.getValue();
 
-      if (value == null)
+      if (value == null) {
         continue;
+      }
 
       s.append(param.getName());
       s.append(": ");
@@ -124,8 +135,9 @@ public class SimpleParameterSet implements ParameterSet {
       } else {
         s.append(value.toString());
       }
-      if (i < parameters.length - 1)
+      if (i < parameters.length - 1) {
         s.append(", ");
+      }
     }
     return s.toString();
   }
@@ -163,8 +175,9 @@ public class SimpleParameterSet implements ParameterSet {
   @SuppressWarnings("unchecked")
   public <T extends Parameter<?>> T getParameter(T parameter) {
     for (Parameter<?> p : parameters) {
-      if (p.getName().equals(parameter.getName()))
+      if (p.getName().equals(parameter.getName())) {
         return (T) p;
+      }
     }
     throw new IllegalArgumentException("Parameter " + parameter.getName() + " does not exist");
   }
@@ -173,8 +186,9 @@ public class SimpleParameterSet implements ParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     assert Platform.isFxApplicationThread();
 
-    if ((parameters == null) || (parameters.length == 0))
+    if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
+    }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
@@ -185,10 +199,93 @@ public class SimpleParameterSet implements ParameterSet {
     boolean allParametersOK = true;
     for (Parameter<?> p : parameters) {
       boolean pOK = p.checkValue(errorMessages);
-      if (!pOK)
+      if (!pOK) {
         allParametersOK = false;
+      }
+      if (p instanceof RawDataFilesParameter) {
+        pOK = checkRawDataFileIonMobilitySupport(
+            ((RawDataFilesParameter) p).getValue().getMatchingRawDataFiles(), errorMessages);
+      } else if (p instanceof FeatureListsParameter) {
+        FeatureList[] lists = ((FeatureListsParameter) p).getValue().getMatchingFeatureLists();
+        Set<RawDataFile> files = new HashSet<>();
+        Arrays.stream(lists).map(FeatureList::getRawDataFiles)
+            .forEach(listFiles -> listFiles.forEach(file -> files.add(file)));
+        pOK = checkRawDataFileIonMobilitySupport(files.toArray(new RawDataFile[0]), errorMessages);
+      }
+      if (!pOK) {
+        allParametersOK = false;
+      }
     }
     return allParametersOK;
   }
 
+  public boolean checkRawDataFileIonMobilitySupport(RawDataFile[] rawDataFiles,
+      Collection<String> errorMessages) {
+    boolean onlyImsFiles = true;
+    boolean containsImsFile = false;
+    for (RawDataFile file : rawDataFiles) {
+      if (!(file instanceof IMSRawDataFile)) {
+        onlyImsFiles = false;
+        errorMessages.add("Non-ion mobility spectrometry files: " + file.getName());
+      } else {
+        containsImsFile = true;
+      }
+    }
+
+    Map<String, Boolean> showMsgMap = MZmineCore.getConfiguration().getPreferences().getParameter(
+        MZminePreferences.imsModuleWarnings).getValue();
+    String className = this.getClass().getName();
+    Boolean showMsg = showMsgMap.getOrDefault(className, true);
+
+    if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.UNTESTED) {
+      logger.warning(
+          "This module has not been tested with ion mobility data files. This could lead to unexpected results.");
+      if (showMsg) {
+        return MZmineCore.getDesktop()
+            .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
+                "This module has not been tested with ion mobility data files. This could lead "
+                    + "to unexpected results. Do you want to continue anyway?", "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
+      }
+      return true;
+    } else if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.RESTRICTED) {
+      logger.warning(
+          "This module has certain restrictions when processing ion mobility data files. This"
+              + " could lead to unexpected results");
+      if (showMsg) {
+        return MZmineCore.getDesktop()
+            .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
+                getRestrictedIonMobilitySupportMessage(), "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
+      }
+    } else if (!onlyImsFiles && getIonMobilitySupport() == IonMobilitySupport.ONLY) {
+      logger.warning(
+          "This module is designed for ion mobility data only. Cannot process non-ion mobility files.");
+      errorMessages.add(
+          "This module is designed for ion mobility data only. Cannot process non-ion mobility files.");
+      return false;
+    } else if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.UNSUPPORTED) {
+      logger.warning("This module does not support ion mobility data.");
+      errorMessages.add("This module does not support ion mobility data.");
+      return MZmineCore.getDesktop()
+          .displayConfirmation(
+              "This module does not support ion mobility data. This will lead to unexpected "
+                  + "results. Do you want to continue anyway?", ButtonType.YES, ButtonType.NO)
+          == ButtonType.YES;
+    } // dont have to check for IonMobilitySupport.SUPPORTED
+
+    return true;
+  }
+
+  /**
+   * This message is displayed when a ion mobility file is processed with this module without it
+   * explicitly supporting ion mobility data. This method can be overridden to display a more
+   * specific user information on the expected outcome.
+   *
+   * @return The message.
+   */
+  public String getRestrictedIonMobilitySupportMessage() {
+    return "This module has certain restrictions when processing ion mobility data files. This "
+        + "could lead to unexpected results. Do you want to continue anyway?";
+  }
 }

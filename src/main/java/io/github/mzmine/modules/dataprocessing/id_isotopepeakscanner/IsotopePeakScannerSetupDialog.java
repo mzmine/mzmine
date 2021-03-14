@@ -32,7 +32,7 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.gui.chartbasics.chartthemes.EIsotopePatternChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
@@ -229,7 +229,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialog {
       return;
     }
 
-    ExtendedIsotopePattern pattern = calculateIsotopePattern();
+    SimpleIsotopePattern pattern = calculateIsotopePattern();
     if (pattern == null) {
       logger.warning("Could not calculate isotope pattern. Please check the parameters.");
       return;
@@ -238,7 +238,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialog {
     updateChart(pattern);
   }
 
-  private void updateChart(ExtendedIsotopePattern pattern) {
+  private void updateChart(SimpleIsotopePattern pattern) {
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
     chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
         dataset);
@@ -307,7 +307,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialog {
     return true;
   }
 
-  private ExtendedIsotopePattern calculateIsotopePattern() {
+  private SimpleIsotopePattern calculateIsotopePattern() {
     if (!checkParameters())
       return null;
 
@@ -323,12 +323,12 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialog {
       return null;
     logger.info("Calculating isotope pattern: " + strPattern);
 
-    ExtendedIsotopePattern pattern;
+    SimpleIsotopePattern pattern;
     PolarityType pol = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
     charge = (charge > 0) ? charge : charge * -1;
     try {
       // *0.2 so the user can see the peaks below the threshold
-      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator
+      pattern = (SimpleIsotopePattern) IsotopePatternCalculator
           .calculateIsotopePattern(strPattern, minIntensity * 0.1, mergeWidth, charge, pol, true);
     } catch (Exception e) {
       logger.warning("The entered Sum formula is invalid.");

@@ -20,53 +20,57 @@ package io.github.mzmine.gui;
 
 
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 
+import com.google.common.collect.ImmutableList;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.MainWindowController;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.GoogleAnalyticsTracker;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.TmpFileCleanup;
+import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.RawDataFileUtils;
+import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
-import javafx.stage.Window;
-import javax.annotation.Nonnull;
-import org.apache.commons.io.FilenameUtils;
-import org.controlsfx.control.StatusBar;
-import com.google.common.collect.ImmutableList;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.NewVersionCheck.CheckType;
-import io.github.mzmine.gui.helpwindow.HelpWindow;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.gui.mainwindow.MainWindowController;
-import io.github.mzmine.main.GoogleAnalyticsTracker;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
-import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectManager;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
-import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.javafx.FxColorUtil;
-import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.ListView;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -75,23 +79,213 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import javax.annotation.Nonnull;
+import org.apache.commons.io.FilenameUtils;
+import org.controlsfx.control.StatusBar;
 
 /**
  * MZmine JavaFX Application class
  */
 public class MZmineGUI extends Application implements Desktop {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
+  public static final int MAX_TABS = 7;
   private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
 
   private static MainWindowController mainWindowController;
-
-  public static final int MAX_TABS = 7;
-
   private static Stage mainStage;
   private static Scene rootScene;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+  public static void requestQuit() {
+    MZmineCore.runLater(() -> {
+      Alert alert = new Alert(AlertType.CONFIRMATION);
+      Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+      stage.getIcons().add(mzMineIcon);
+      alert.setTitle("Confirmation");
+      alert.setHeaderText("Exit MZmine");
+      String s = "Are you sure you want to exit?";
+      alert.setContentText(s);
+      Optional<ButtonType> result = alert.showAndWait();
+
+      if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
+        // Quit the JavaFX thread
+        Platform.exit();
+        // Call System.exit() because there are probably some background
+        // threads still running
+        System.exit(0);
+      }
+    });
+  }
+
+  public static void requestCloseProject() {
+    MZmineCore.runLater(() -> {
+      Alert alert = new Alert(AlertType.CONFIRMATION);
+      Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+      stage.getIcons().add(mzMineIcon);
+      alert.setTitle("Confirmation");
+      alert.setHeaderText("Close project");
+      String s = "Are you sure you want to close the current project?";
+      alert.setContentText(s);
+      Optional<ButtonType> result = alert.showAndWait();
+
+      if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
+        // Close all windows related to previous project
+        GUIUtils.closeAllWindows();
+
+        // Create a new, empty project
+        MZmineProject newProject = new MZmineProjectImpl();
+
+        // Replace the current project with the new one
+        ProjectManager projectManager = MZmineCore.getProjectManager();
+        projectManager.setCurrentProject(newProject);
+
+        MZmineCore.getDesktop().setStatusBarText("Project space cleaned");
+
+        // Ask the garbage collector to free the previously used memory
+        System.gc();
+      }
+    });
+  }
+
+  public static void addWindow(Node node, String title) {
+
+    BorderPane parent = new BorderPane();
+    parent.setCenter(node);
+    Scene newScene = new Scene(parent);
+
+    // Copy CSS styles
+    newScene.getStylesheets().addAll(rootScene.getStylesheets());
+
+    Stage newStage = new Stage();
+    newStage.setTitle(title);
+    newStage.getIcons().add(mzMineIcon);
+    newStage.setScene(newScene);
+    newStage.show();
+
+  }
+
+  public static void activateProject(MZmineProject project) {
+
+    MZmineCore.runLater(() -> {
+
+      MZmineCore.getProjectManager().setCurrentProject(project);
+
+      GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
+      rawDataList.setValues(project.getRawDataFiles());
+
+      GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
+      featureListsList.setValues(project.getFeatureLists());
+
+    });
+
+  }
+
+  @Nonnull
+  public static List<RawDataFile> getSelectedRawDataFiles() {
+
+    final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
+    return ImmutableList.copyOf(rawDataListView.getSelectedValues());
+
+  }
+
+  @Nonnull
+  public static List<FeatureList> getSelectedFeatureLists() {
+
+    final GroupableListView<FeatureList> featureListView =
+        mainWindowController.getFeatureListsList();
+    return ImmutableList.copyOf(featureListView.getSelectedValues());
+
+  }
+
+  @Nonnull
+  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
+      Class<ModuleType> moduleClass) {
+
+    final ParameterSet moduleParameters =
+        MZmineCore.getConfiguration().getModuleParameters(moduleClass);
+    ExitCode result = moduleParameters.showSetupDialog(true);
+    if (result == ExitCode.OK) {
+      MZmineCore.runMZmineModule(moduleClass, moduleParameters);
+    }
+
+  }
+
+  public static void showAboutWindow() {
+    // Show the about window
+    MZmineCore.runLater(() -> {
+      final URL aboutPage =
+          MZmineGUI.class.getClassLoader().getResource("aboutpage/AboutMZmine.html");
+      HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
+      aboutWindow.show();
+    });
+  }
+
+  /**
+   * The method activateSetOnDragOver controlling what happens when something is dragged over.
+   * Implemented activateSetOnDragOver to accept when files are dragged over it.
+   *
+   * @param event - DragEvent
+   */
+  public static void activateSetOnDragOver(DragEvent event) {
+    Dragboard dragBoard = event.getDragboard();
+    if (dragBoard.hasFiles()) {
+      event.acceptTransferModes(TransferMode.COPY);
+    } else {
+      event.consume();
+    }
+  }
+
+  /**
+   * The method activateSetOnDragDropped controlling what happens when something is dropped on
+   * window. Implemented activateSetOnDragDropped to select the module according to the dropped file
+   * type and open dropped file
+   *
+   * @param event - DragEvent
+   */
+
+  public static void activateSetOnDragDropped(DragEvent event) {
+    Dragboard dragboard = event.getDragboard();
+    boolean hasFileDropped = false;
+    if (dragboard.hasFiles()) {
+      hasFileDropped = true;
+      for (File selectedFile : dragboard.getFiles()) {
+
+        final String extension = FilenameUtils.getExtension(selectedFile.getName());
+        String[] rawDataFile =
+            {"cdf", "netcdf", "nc", "mzData", "mzML", "imzML", "mzXML", "raw", "tdf"};
+        final Boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
+        final Boolean isMZmineProject = extension.equals("mzmine");
+
+        Class<? extends MZmineRunnableModule> moduleJavaClass = null;
+        if (isMZmineProject) {
+          moduleJavaClass = ProjectLoadModule.class;
+          ParameterSet moduleParameters =
+              MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+          moduleParameters.getParameter(projectFile).setValue(selectedFile);
+          ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+          MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+        } else if (isRawDataFile) {
+          // import files
+          List<Task> underlyingTasks = new ArrayList<>();
+          try {
+            RawDataFileUtils.createRawDataImportTasks(
+                MZmineCore.getProjectManager().getCurrentProject(), underlyingTasks, selectedFile);
+            if (underlyingTasks.size() > 0) {
+              MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+
+        }
+
+      }
+    }
+    event.setDropCompleted(hasFileDropped);
+    event.consume();
+  }
 
   @Override
   public void start(Stage stage) {
@@ -109,6 +303,18 @@ public class MZmineGUI extends Application implements Desktop {
       rootScene = loader.load();
       mainWindowController = loader.getController();
       stage.setScene(rootScene);
+      rootScene.getStylesheets()
+          .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
+
+      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
+          .getParameter(MZminePreferences.darkMode).getValue();
+      if (darkMode != null && darkMode == true) {
+        rootScene.getStylesheets()
+            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
+      } else {
+        rootScene.getStylesheets()
+            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
+      }
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -165,7 +371,6 @@ public class MZmineGUI extends Application implements Desktop {
         (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
     MZmineGUI.activateProject(currentProject);
 
-
     // Check for updated version
     NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
     Thread nvcThread = new Thread(NVC);
@@ -183,192 +388,8 @@ public class MZmineGUI extends Application implements Desktop {
     // save configuration on exit if we only run a batch
     ShutDownHook shutDownHook = new ShutDownHook();
     Runtime.getRuntime().addShutdownHook(shutDownHook);
+    Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
 
-  }
-
-  public static void requestQuit() {
-    Platform.runLater(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION);
-      Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-      stage.getIcons().add(mzMineIcon);
-      alert.setTitle("Confirmation");
-      alert.setHeaderText("Exit MZmine");
-      String s = "Are you sure you want to exit?";
-      alert.setContentText(s);
-      Optional<ButtonType> result = alert.showAndWait();
-
-      if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
-        // Quit the JavaFX thread
-        Platform.exit();
-        // Call System.exit() because there are probably some background
-        // threads still running
-        System.exit(0);
-      }
-    });
-  }
-
-  public static void requestCloseProject() {
-    Platform.runLater(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION);
-      Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-      stage.getIcons().add(mzMineIcon);
-      alert.setTitle("Confirmation");
-      alert.setHeaderText("Close project");
-      String s = "Are you sure you want to close the current project?";
-      alert.setContentText(s);
-      Optional<ButtonType> result = alert.showAndWait();
-
-      if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
-        // Close all windows related to previous project
-        GUIUtils.closeAllWindows();
-
-        // Create a new, empty project
-        MZmineProject newProject = new MZmineProjectImpl();
-
-        // Replace the current project with the new one
-        ProjectManager projectManager = MZmineCore.getProjectManager();
-        projectManager.setCurrentProject(newProject);
-
-        MZmineCore.getDesktop().setStatusBarText("Project space cleaned");
-
-        // Ask the garbage collector to free the previously used memory
-        System.gc();
-      }
-    });
-  }
-
-  public static void addWindow(Node node, String title) {
-
-    BorderPane parent = new BorderPane();
-    parent.setCenter(node);
-    Scene newScene = new Scene(parent);
-
-    // Copy CSS styles
-    newScene.getStylesheets().addAll(rootScene.getStylesheets());
-
-    Stage newStage = new Stage();
-    newStage.setTitle(title);
-    newStage.getIcons().add(mzMineIcon);
-    newStage.setScene(newScene);
-    newStage.show();
-
-  }
-
-  public static void activateProject(MZmineProject project) {
-
-    Platform.runLater(() -> {
-
-      MZmineCore.getProjectManager().setCurrentProject(project);
-
-      ListView<RawDataFile> rawDataTree = mainWindowController.getRawDataTree();
-      rawDataTree.setItems(project.getRawDataFiles());
-
-      ListView<FeatureList> featureTree = mainWindowController.getFeatureTree();
-      featureTree.setItems(project.getFeatureLists());
-    });
-
-  }
-
-  @Nonnull
-  public static List<RawDataFile> getSelectedRawDataFiles() {
-
-    final var rawDataListView = mainWindowController.getRawDataTree();
-    final var selectedRawDataFiles =
-        ImmutableList.copyOf(rawDataListView.getSelectionModel().getSelectedItems());
-    return selectedRawDataFiles;
-
-  }
-
-  @Nonnull
-  public static List<FeatureList> getSelectedFeatureLists() {
-
-    final var featureListView = mainWindowController.getFeatureTree();
-    final var selectedFeatureLists =
-        ImmutableList.copyOf(featureListView.getSelectionModel().getSelectedItems());
-    return selectedFeatureLists;
-
-  }
-
-  @Nonnull
-  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(Class<ModuleType> moduleClass) {
-
-    final ParameterSet moduleParameters =
-        MZmineCore.getConfiguration().getModuleParameters(moduleClass);
-    ExitCode result = moduleParameters.showSetupDialog(true);
-    if (result == ExitCode.OK) {
-      MZmineCore.runMZmineModule(moduleClass, moduleParameters);
-    }
-
-  }
-
-  public static void showAboutWindow() {
-    // Show the about window
-    Platform.runLater(() -> {
-      final URL aboutPage =
-          MZmineGUI.class.getClassLoader().getResource("aboutpage/AboutMZmine.html");
-      HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
-      aboutWindow.show();
-    });
-  }
-
-  /**
-   * The method activateSetOnDragOver controlling what happens when something is dragged over.
-   * Implemented activateSetOnDragOver to accept when files are dragged over it.
-   *
-   * @param event - DragEvent
-   */
-  public static void activateSetOnDragOver(DragEvent event) {
-    Dragboard dragBoard = event.getDragboard();
-    if (dragBoard.hasFiles()) {
-      event.acceptTransferModes(TransferMode.COPY);
-    } else {
-      event.consume();
-    }
-  }
-
-  /**
-   * The method activateSetOnDragDropped controlling what happens when something is dropped on
-   * window. Implemented activateSetOnDragDropped to select the module according to the dropped file
-   * type and open dropped file
-   *
-   * @param event - DragEvent
-   */
-
-  public static void activateSetOnDragDropped(DragEvent event) {
-    Dragboard dragboard = event.getDragboard();
-    boolean hasFileDropped = false;
-    if (dragboard.hasFiles()) {
-      hasFileDropped = true;
-      for (File selectedFile : dragboard.getFiles()) {
-
-        final String extension = FilenameUtils.getExtension(selectedFile.getName());
-        String[] rawDataFile = {"cdf", "nc", "mzData", "mzML", "mzXML", "raw"};
-        final Boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
-        final Boolean isMZmineProject = extension.equals("mzmine");
-
-        Class<? extends MZmineRunnableModule> moduleJavaClass = null;
-        if (isMZmineProject) {
-          moduleJavaClass = ProjectLoadModule.class;
-        } else if (isRawDataFile) {
-          moduleJavaClass = RawDataImportModule.class;
-        }
-
-        if (moduleJavaClass != null) {
-          ParameterSet moduleParameters =
-              MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
-          if (isMZmineProject) {
-            moduleParameters.getParameter(projectFile).setValue(selectedFile);
-          } else if (isRawDataFile) {
-            File fileArray[] = {selectedFile};
-            moduleParameters.getParameter(fileNames).setValue(fileArray);
-          }
-          ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-          MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
-        }
-      }
-    }
-    event.setDropCompleted(hasFileDropped);
-    event.consume();
   }
 
   @Override
@@ -401,27 +422,28 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void addTab(MZmineTab tab) {
     if (mainWindowController.getTabs().size() < MAX_TABS) {
-      Platform.runLater(() -> mainWindowController.addTab(tab));
+      MZmineCore.runLater(() -> mainWindowController.addTab(tab));
       return;
     } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows().isEmpty()) {
       for (MZmineWindow window : getWindows()) {
         if (window.getNumberOfTabs() < MAX_TABS && !window.isExclusive()) {
-          Platform.runLater(() -> window.addTab(tab));
+          MZmineCore.runLater(() -> window.addTab(tab));
           return;
         }
       }
     }
-    Platform.runLater(() -> new MZmineWindow().addTab(tab));
+    MZmineCore.runLater(() -> new MZmineWindow().addTab(tab));
   }
 
   @Override
   public void setStatusBarText(String message) {
-    setStatusBarText(message, Color.BLACK);
+    Color messageColor = MZmineCore.getConfiguration().isDarkMode() ? Color.LIGHTGRAY : Color.BLACK;
+    setStatusBarText(message, messageColor);
   }
 
   @Override
   public void setStatusBarText(String message, Color textColor) {
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       if (mainWindowController == null) {
         return;
       }
@@ -441,9 +463,11 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void displayMessage(String title, String msg) {
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
       dialog.setContentText(msg);
@@ -467,16 +491,19 @@ public class MZmineGUI extends Application implements Desktop {
 
     FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION, msg, buttonTypes);
+      alert.getDialogPane().getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       alert.showAndWait();
       return alert.getResult();
     });
 
     // Show the dialog
     try {
-      if (Platform.isFxApplicationThread())
+      if (Platform.isFxApplicationThread()) {
         alertTask.run();
-      else
-        Platform.runLater(alertTask);
+      } else {
+        MZmineCore.runLater(alertTask);
+      }
       return alertTask.get();
     } catch (Exception e) {
       e.printStackTrace();
@@ -546,4 +573,55 @@ public class MZmineGUI extends Application implements Desktop {
     return tabs;
   }
 
+  public ButtonType createAlertWithOptOut(String title, String headerText,
+      String message, String optOutMessage, Consumer<Boolean> optOutAction) {
+    // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
+    FutureTask<ButtonType> task = new FutureTask<>(() -> {
+      Alert alert = new Alert(AlertType.WARNING);
+      alert.getDialogPane().getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      // Need to force the alert to layout in order to grab the graphic,
+      // as we are replacing the dialog pane with a custom pane
+      alert.getDialogPane().applyCss();
+      Node graphic = alert.getDialogPane().getGraphic();
+      // Create a new dialog pane that has a checkbox instead of the hide/show details button
+      // Use the supplied callback for the action of the checkbox
+      alert.setDialogPane(new DialogPane() {
+        @Override
+        protected Node createDetailsButton() {
+          CheckBox optOut = new CheckBox();
+          optOut.setText(optOutMessage);
+          optOut.setOnAction(e -> optOutAction.accept(optOut.isSelected()));
+          return optOut;
+        }
+      });
+      alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
+      alert.getDialogPane().setContentText(message);
+      // Fool the dialog into thinking there is some expandable content
+      // a Group won't take up any space if it has no children
+      alert.getDialogPane().setExpandableContent(new Group());
+      alert.getDialogPane().setExpanded(true);
+      // Reset the dialog graphic using the default style
+      alert.getDialogPane().setGraphic(graphic);
+      alert.setTitle(title);
+      alert.setHeaderText(headerText);
+      alert.showAndWait();
+      return alert.getResult();
+    });
+
+    if (Platform.isFxApplicationThread()) {
+      task.run();
+    } else {
+      MZmineCore.runLater(task);
+    }
+
+    try {
+      return task.get();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    }
+    return ButtonType.NO;
+  }
 }

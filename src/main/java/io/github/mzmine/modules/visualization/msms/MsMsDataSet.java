@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,10 +19,8 @@
 package io.github.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
-import javafx.application.Platform;
 import org.jfree.data.xy.AbstractXYDataset;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -31,9 +29,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
 
 /**
- * 
+ *
  */
 class MsMsDataSet extends AbstractXYDataset implements Task {
 
@@ -45,12 +46,19 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
   private RawDataFile rawDataFile;
   private Range<Double> totalMZRange;
   private Range<Float> totalRTRange;
-  private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans,
-      allProcessedScans, processedColors, totalEntries, lastMSIndex;
+  private ObservableList<Scan> allScanNumbers;
+  private Scan[] msmsScanNumbers;
+  private int totalScans;
+  private int totalmsmsScans;
+  private int processedScans;
+  private int allProcessedScans;
+  private int processedColors;
+  private int totalEntries;
+  private int lastMSIndex;
   private final double[] rtValues, mzValues, intensityValues;
   private IntensityType intensityType;
   private NormalizationType normalizationType;
-  private final int[] scanNumbers;
+  private final Scan[] scanNumbers;
   private double minFeatureInt, maxIntensity;
   private Color[] colorValues;
 
@@ -68,14 +76,14 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
     this.normalizationType = normalizationType;
     this.minFeatureInt = minFeatureInt - EPSILON;
 
-    allScanNumbers = rawDataFile.getScanNumbers();
+    allScanNumbers = rawDataFile.getScans();
     msmsScanNumbers = rawDataFile.getScanNumbers(2, rtRange);
 
-    totalScans = allScanNumbers.length;
+    totalScans = allScanNumbers.size();
     totalmsmsScans = msmsScanNumbers.length;
     totalEntries = totalmsmsScans;
 
-    scanNumbers = new int[totalScans];
+    scanNumbers = new Scan[totalScans];
     rtValues = new double[totalmsmsScans];
     mzValues = new double[totalmsmsScans];
     intensityValues = new double[totalmsmsScans];
@@ -97,7 +105,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
       if (status == TaskStatus.CANCELED)
         return;
 
-      Scan scan = rawDataFile.getScan(allScanNumbers[index]);
+      Scan scan = allScanNumbers.get(index);
 
       if (scan.getMSLevel() == 1) {
         // Store info about MS spectra for MS/MS to allow extraction of
@@ -112,29 +120,21 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
         totalScanIntensity = 0;
         if (intensityType == IntensityType.MS) {
           // Get intensity of precursor ion from MS scan
-          Scan msscan = rawDataFile.getScan(allScanNumbers[lastMSIndex]);
+          Scan msscan = allScanNumbers.get(lastMSIndex);
           Double mzTolerance = precursorMZ * 10 / 1000000;
           Range<Double> precursorMZRange =
               Range.closed(precursorMZ - mzTolerance, precursorMZ + mzTolerance);
-          DataPoint scanDataPoints[] = msscan.getDataPointsByMass(precursorMZRange);
+          DataPoint scanDataPoints[] = ScanUtils
+              .selectDataPointsByMass(ScanUtils.extractDataPoints(msscan), precursorMZRange);
+
           for (int x = 0; x < scanDataPoints.length; x++) {
             totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
           }
         } else if (intensityType == IntensityType.MSMS) {
-          // Get total intensity of all peaks in MS/MS scan
-          DataPoint scanDataPoints[] = scan.getDataPoints();
-          for (int x = 0; x < scanDataPoints.length; x++) {
-            totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
-          }
+          totalScanIntensity = scan.getTIC();
         }
 
-        maxFeatureIntensity = 0;
-        DataPoint scanDataPoints[] = scan.getDataPoints();
-        for (int x = 0; x < scanDataPoints.length; x++) {
-          if (maxFeatureIntensity < scanDataPoints[x].getIntensity()) {
-            maxFeatureIntensity = scanDataPoints[x].getIntensity();
-          }
-        }
+        maxFeatureIntensity = scan.getBasePeakIntensity();
 
         if (totalRTRange.contains(scanRT) && totalMZRange.contains(precursorMZ)
             && maxFeatureIntensity > minFeatureInt) {
@@ -142,7 +142,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
           rtValues[processedScans] = scanRT;
           mzValues[processedScans] = precursorMZ;
           intensityValues[processedScans] = totalScanIntensity;
-          scanNumbers[processedScans] = index + 1; // +1 because loop
+          scanNumbers[processedScans] = scan; // +1 because loop
           // runs from 0 not
           // 1
           processedScans++;
@@ -207,6 +207,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
   private void refresh() {
     Platform.runLater(this::fireDatasetChanged);
   }
+
   @Override
   public int getSeriesCount() {
     return 1;
@@ -264,10 +265,9 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
    * Highlights all MS/MS spots for which a peak is found in the MS/MS spectrum with the m/z value
    *
    * @param mz m/z.
-   * @param ppm ppm value.
    * @param neutralLoss true or false.
    * @param c color.
-   * 
+   *
    */
   public void highlightSpectra(double mz, MZTolerance searchMZTolerance, double minIntensity,
       boolean neutralLoss, Color c) {
@@ -277,11 +277,11 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
 
     // Loop through all scans
     for (int row = 0; row < scanNumbers.length; row++) {
-      Scan msscan = rawDataFile.getScan(scanNumbers[row]);
+      Scan msscan = scanNumbers[row];
 
       // Get total intensity of all features in MS/MS scan
-      if (scanNumbers[row] > 0) {
-        DataPoint scanDataPoints[] = msscan.getDataPoints();
+      if (scanNumbers[row] != null) {
+        DataPoint scanDataPoints[] = ScanUtils.extractDataPoints(msscan);
         double selectedIons[] = new double[scanDataPoints.length];
         int ions = 0;
         boolean colorSpectra = false;
@@ -351,7 +351,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
     return rawDataFile;
   }
 
-  public int getScanNumber(final int item) {
+  public Scan getScan(final int item) {
     return scanNumbers[item];
   }
 

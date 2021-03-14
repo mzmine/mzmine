@@ -1,24 +1,30 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
@@ -30,13 +36,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYSeries;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern;
-
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.main.MZmineCore;
 
 public class PseudoSpectrum {
 
@@ -62,7 +61,7 @@ public class PseudoSpectrum {
       // add isotopes
       IsotopePattern pattern = row.getBestIsotopePattern();
       if (pattern != null) {
-        for (DataPoint dp : pattern.getDataPoints())
+        for (DataPoint dp : ScanUtils.extractDataPoints(pattern))
           isoSeries.add(dp.getMZ(), dp.getIntensity());
       }
     }
@@ -71,14 +70,14 @@ public class PseudoSpectrum {
     return series;
   }
 
-  public static EChartPanel createChartPanel(FeatureListRow[] group, RawDataFile raw, boolean sum,
+  public static EChartViewer createChartViewer(FeatureListRow[] group, RawDataFile raw, boolean sum,
       String title) {
     PseudoSpectrumDataSet data = createDataSet(group, raw, sum);
     if (data == null)
       return null;
     JFreeChart chart = createChart(data, raw, sum, title);
     if (chart != null) {
-      EChartPanel pn = new EChartPanel(chart);
+      EChartViewer pn = new EChartViewer(chart);
       XYItemRenderer renderer = chart.getXYPlot().getRenderer();
       PseudoSpectraItemLabelGenerator labelGenerator = new PseudoSpectraItemLabelGenerator(pn);
       renderer.setDefaultItemLabelsVisible(true);

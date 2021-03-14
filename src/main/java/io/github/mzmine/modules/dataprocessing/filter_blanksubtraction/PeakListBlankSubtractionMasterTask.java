@@ -18,12 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.*;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +35,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -61,7 +60,8 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
   private List<AbstractTask> subTasks;
 
   public PeakListBlankSubtractionMasterTask(MZmineProject project,
-      PeakListBlankSubtractionParameters parameters) {
+      PeakListBlankSubtractionParameters parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -115,7 +115,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
     // minBlankDetections);
 
     FeatureListRow[] rows =
-        FeatureUtils.copyFeatureRows(alignedFeatureList.getRows().toArray(FeatureListRow[]::new));
+        FeatureUtils.copyFeatureRows(alignedFeatureList.getRows().toArray(ModularFeatureListRow[]::new));
     rows = FeatureUtils.sortRowsMzAsc(rows);
 
     for (RawDataFile raw : alignedFeatureList.getRawDataFiles()) {
@@ -126,7 +126,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
       // these tasks will access the passed array and remove the features
       // that appear in their raw
       // data file and the blanks from these rows
-      AbstractTask task = new PeakListBlankSubtractionSingleTask(parameters, raw, rows);
+      AbstractTask task = new PeakListBlankSubtractionSingleTask(parameters, raw, rows, getMemoryMapStorage());
       MZmineCore.getTaskController().addTask(task);
       subTasks.add(task);
 
@@ -174,7 +174,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
     logger.finest("Removed " + onlyBlankRows + " rows that only existed in blankfiles.");
 
     FeatureList result = new ModularFeatureList(alignedFeatureList.getName() + " sbtrctd",
-        alignedFeatureList.getRawDataFiles());
+        getMemoryMapStorage(), alignedFeatureList.getRawDataFiles());
 
     for (FeatureListRow row : rows) {
       if (row != null) {
@@ -184,7 +184,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
     FeatureListUtils.copyPeakListAppliedMethods(alignedFeatureList, result);
     result.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(PeakListBlankSubtractionModule.MODULE_NAME, parameters));
+        new SimpleFeatureListAppliedMethod(PeakListBlankSubtractionModule.class, parameters));
 
     project.addFeatureList(result);
 

@@ -21,13 +21,6 @@ package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -36,13 +29,18 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class LocalSpectralDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final FeatureList featureList;
-  private final @Nonnull String massListName;
   private final File dataBaseFile;
 
   private ParameterSet parameters;
@@ -53,11 +51,11 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   private FeatureListRow[] rows;
 
   public LocalSpectralDBSearchTask(FeatureList featureList, ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.featureList = featureList;
     this.rows = featureList.getRows().toArray(FeatureListRow[]::new);
     this.parameters = parameters;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
-    massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
   }
 
   /**
@@ -122,7 +120,8 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
     // Add task description to peakList
     featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Peak identification using MS/MS spectral database " + dataBaseFile, parameters));
+        "Peak identification using MS/MS spectral database " + dataBaseFile,
+        LocalSpectralDBSearchModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 

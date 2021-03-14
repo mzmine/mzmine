@@ -19,26 +19,23 @@
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.project.impl.StorableFrame;
-import io.github.mzmine.project.impl.StorableMassList;
-import io.github.mzmine.project.impl.StorableScan;
 import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javafx.scene.paint.Color;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -55,7 +52,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   private RawDataFileImpl newRawDataFile;
   private int scanNumber;
   private int msLevel;
-  private int[] fragmentScan;
+  // private int[] fragmentScan;
   private int numberOfFragments;
   private double precursorMZ;
   private int precursorCharge;
@@ -68,7 +65,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   private int storedDataNumDP;
   private TreeMap<Integer, Long> dataPointsOffsets;
   private TreeMap<Integer, Integer> dataPointsLengths;
-  private ArrayList<StorableMassList> massLists;
+  private MassList massList;
   private PolarityType polarity = PolarityType.UNKNOWN;
   private String scanDescription = "";
   private Range<Double> scanMZRange = null;
@@ -94,21 +91,25 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
    * @throws SAXException
    * @throws ParserConfigurationException
    */
-  public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile)
-      throws IOException, ParserConfigurationException, SAXException {
+  @Override
+  public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile,
+      boolean isImagingRawDataFile) throws IOException, ParserConfigurationException, SAXException {
 
     charBuffer = new StringBuffer();
-    massLists = new ArrayList<StorableMassList>();
+    massList = null;
 
     if (isIMSRawDataFile) {
-      newRawDataFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(null);
-    } else {
-      newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+      newRawDataFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(null, null);
     }
-    newRawDataFile.openDataPointsFile(scansFile);
+    if (isImagingRawDataFile) {
+      newRawDataFile = (ImagingRawDataFileImpl) MZmineCore.createNewImagingFile(null, null);
+    } else {
+      newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null);
+    }
+    // newRawDataFile.openDataPointsFile(scansFile);
 
-    dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
-    dataPointsLengths = newRawDataFile.getDataPointsLengths();
+    // dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
+    // dataPointsLengths = newRawDataFile.getDataPointsLengths();
 
     // Reads the XML file (raw data description)
     SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -116,11 +117,12 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
     saxParser.parse(is, this);
 
     // Adds the raw data file to MZmine
-    RawDataFile rawDataFile = newRawDataFile.finishWriting();
-    return rawDataFile;
+    // RawDataFile rawDataFile = newRawDataFile.finishWriting();
+    return newRawDataFile;
 
   }
 
+  @Override
   public void cancel() {
     canceled = true;
   }
@@ -139,50 +141,40 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
     // This will remove any remaining characters from previous elements
     getTextOfElement();
 
-    if (qName.equals(RawDataElementName_3_0.QUANTITY_FRAGMENT_SCAN.getElementName())) {
-      numberOfFragments =
-          Integer.parseInt(attrs.getValue(
-              RawDataElementName_3_0.QUANTITY.getElementName()));
-      if (numberOfFragments > 0) {
-        fragmentScan = new int[numberOfFragments];
-        fragmentCount = 0;
-      }
-    }
+    /*
+     * if (qName.equals(RawDataElementName_3_0.QUANTITY_FRAGMENT_SCAN.getElementName())) {
+     * numberOfFragments = Integer.parseInt(attrs.getValue(
+     * RawDataElementName_3_0.QUANTITY.getElementName())); if (numberOfFragments > 0) { fragmentScan
+     * = new int[numberOfFragments]; fragmentCount = 0; } }
+     */
 
     if (qName.equals(RawDataElementName_3_0.SCAN.getElementName())) {
       currentStorageID =
-          Integer.parseInt(attrs.getValue(
-              RawDataElementName_3_0.STORAGE_ID.getElementName()));
+          Integer.parseInt(attrs.getValue(RawDataElementName_3_0.STORAGE_ID.getElementName()));
     }
 
     if (qName.equals(RawDataElementName_3_0.STORED_DATA.getElementName())) {
       storedDataID =
-          Integer.parseInt(attrs.getValue(
-              RawDataElementName_3_0.STORAGE_ID.getElementName()));
+          Integer.parseInt(attrs.getValue(RawDataElementName_3_0.STORAGE_ID.getElementName()));
       storedDataNumDP = Integer
-          .parseInt(attrs.getValue(
-              RawDataElementName_3_0.QUANTITY_DATAPOINTS.getElementName()));
+          .parseInt(attrs.getValue(RawDataElementName_3_0.QUANTITY_DATAPOINTS.getElementName()));
     }
 
     if (qName.equals(RawDataElementName_3_0.MASS_LIST.getElementName())) {
-      String name = attrs.getValue(
-          RawDataElementName_3_0.NAME.getElementName());
+      String name = attrs.getValue(RawDataElementName_3_0.NAME.getElementName());
       int storageID =
-          Integer.parseInt(attrs.getValue(
-              RawDataElementName_3_0.STORAGE_ID.getElementName()));
-      StorableMassList newML = new StorableMassList(newRawDataFile, storageID, name, null);
-      massLists.add(newML);
+          Integer.parseInt(attrs.getValue(RawDataElementName_3_0.STORAGE_ID.getElementName()));
+//      massList = new SimpleMassList(null, null, null, null);
     }
 
     if (qName.equals(RawDataElementName_3_0.FRAME.getElementName())) {
-      currentStorageID = Integer
-          .parseInt(attrs.getValue(RawDataElementName_3_0.STORAGE_ID.getElementName()));
+      currentStorageID =
+          Integer.parseInt(attrs.getValue(RawDataElementName_3_0.STORAGE_ID.getElementName()));
     }
 
     if (qName.equals(RawDataElementName_3_0.QUANTITY_MOBILITY_SCANS.getElementName())) {
       numberMoblityScans =
-          Integer.parseInt(attrs.getValue(
-              RawDataElementName_3_0.QUANTITY.getElementName()));
+          Integer.parseInt(attrs.getValue(RawDataElementName_3_0.QUANTITY.getElementName()));
       if (numberMoblityScans > 0) {
         mobilityScans = new int[numberMoblityScans];
         mobilityScanCount = 0;
@@ -274,9 +266,10 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       dataPointsNumber = Integer.parseInt(getTextOfElement());
     }
 
-    if (qName.equals(RawDataElementName_3_0.FRAGMENT_SCAN.getElementName())) {
-      fragmentScan[fragmentCount++] = Integer.parseInt(getTextOfElement());
-    }
+    /*
+     * if (qName.equals(RawDataElementName_3_0.FRAGMENT_SCAN.getElementName())) {
+     * fragmentScan[fragmentCount++] = Integer.parseInt(getTextOfElement()); }
+     */
 
     if (qName.equals(RawDataElementName_3_0.MOBILITY.getElementName())) {
       mobility = Double.parseDouble(getTextOfElement());
@@ -305,10 +298,11 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
 
     if (qName.equals(RawDataElementName_3_0.SCAN.getElementName())) {
 
-      final StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
-          dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ,
-          precursorCharge, fragmentScan, null, polarity, scanDescription, scanMZRange,
-          mobility, mobilityType);
+      // TODO
+
+      final Scan storableScan = new SimpleScan(newRawDataFile, scanNumber, msLevel, retentionTime,
+          precursorMZ, precursorCharge, /* fragmentScan, */ null, null, null, polarity,
+          scanDescription, scanMZRange);
 
       try {
         newRawDataFile.addScan(storableScan);
@@ -316,10 +310,9 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
         throw new SAXException(e);
       }
 
-      for (StorableMassList newML : massLists) {
-        newML.setScan(storableScan);
-        storableScan.addMassList(newML);
-      }
+      // TODO where do we read the massList?
+        // newML.setScan(storableScan);
+        storableScan.addMassList(massList);
 
       // Cleanup
       resetReadValues();
@@ -327,22 +320,20 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
 
     if (qName.equals(RawDataElementName_3_0.FRAME.getElementName())) {
 
-      final StorableFrame storableScan = new StorableFrame(newRawDataFile, currentStorageID,
-          dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
-          fragmentScan, null, polarity, scanDescription, scanMZRange, frameId,
-          mobilityType, Range.closed(lowerMobilityRange, upperMobilityRange),
-          Arrays.stream(mobilityScans).boxed().collect(Collectors.toList()));
-
-      try {
-        newRawDataFile.addScan(storableScan);
-      } catch (IOException e) {
-        throw new SAXException(e);
-      }
-
-      for (StorableMassList newML : massLists) {
-        newML.setScan(storableScan);
-        storableScan.addMassList(newML);
-      }
+      /*
+       * final StorableFrame storableScan = new StorableFrame(newRawDataFile, currentStorageID,
+       * dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
+       *//* fragmentScan, *//*
+                             * null, polarity, scanDescription, scanMZRange, frameId, mobilityType,
+                             * Range.closed(lowerMobilityRange, upperMobilityRange),
+                             * Arrays.stream(mobilityScans).boxed().collect(Collectors.toList()));
+                             *
+                             * try { newRawDataFile.addScan(storableScan); } catch (IOException e) {
+                             * throw new SAXException(e); }
+                             *
+                             * for (StorableMassList newML : massLists) {
+                             * newML.setScan(storableScan); storableScan.addMassList(newML); }
+                             */
 
       resetReadValues();
     }
@@ -367,12 +358,13 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
    *
    * @see org.xml.sax.ContentHandler#characters(char[], int, int)
    */
+  @Override
   public void characters(char buf[], int offset, int len) throws SAXException {
     charBuffer = charBuffer.append(buf, offset, len);
   }
 
   private void resetReadValues() {
-    massLists.clear();
+    massList = null;
     currentStorageID = -1;
     dataPointsNumber = -1;
     scanNumber = -1;
@@ -381,7 +373,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
     mobility = -1;
     precursorMZ = -1;
     precursorCharge = -1;
-    fragmentScan = null;
+    // fragmentScan = null;
     polarity = PolarityType.UNKNOWN;
     scanDescription = "";
     scanMZRange = null;

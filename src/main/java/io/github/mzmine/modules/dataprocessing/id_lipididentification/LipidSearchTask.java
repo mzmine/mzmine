@@ -59,7 +59,6 @@ public class LipidSearchTask extends AbstractTask {
   private IonizationType ionizationType;
   private Boolean searchForMSMSFragments;
   private Boolean searchForModifications;
-  private String massListName;
   private double[] lipidModificationMasses;
   private LipidModification[] lipidModification;
 
@@ -72,6 +71,7 @@ public class LipidSearchTask extends AbstractTask {
    * @param featureList
    */
   public LipidSearchTask(ParameterSet parameters, FeatureList featureList) {
+    super(null); // no new data stored -> null
 
     this.featureList = featureList;
     this.parameters = parameters;
@@ -99,8 +99,6 @@ public class LipidSearchTask extends AbstractTask {
       mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)
           .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.mzToleranceMS2)
           .getValue();
-      massListName = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)
-          .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.massList).getValue();
     }
 
     // Convert Objects to LipidClasses
@@ -180,7 +178,8 @@ public class LipidSearchTask extends AbstractTask {
     }
     // Add task description to peakList
     featureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Lipid search", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Lipid search",
+            LipidSearchModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -190,8 +189,6 @@ public class LipidSearchTask extends AbstractTask {
   /**
    * Check if candidate peak may be a possible adduct of a given main peak
    *
-   * @param mainPeak
-   * @param possibleFragment
    */
   private void findPossibleLipid(LipidIdentity lipid, FeatureListRow rows[]) {
     double lipidIonMass = 0.0;
@@ -241,7 +238,7 @@ public class LipidSearchTask extends AbstractTask {
 
         DataPoint[] massList = null;
         // check if MS/MS scan already has a mass list
-        massList = msmsScan.getMassList(massListName).getDataPoints();
+        massList = msmsScan.getMassList().getDataPoints();
         MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
 
         // check for negative polarity

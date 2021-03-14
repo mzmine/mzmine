@@ -23,7 +23,7 @@ import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
@@ -78,10 +78,10 @@ public class DynamicParameterUtils {
     if (result == null)
       return def;
 
-    if (!(result.getValue() instanceof ExtendedIsotopePattern))
+    if (!(result.getValue() instanceof SimpleIsotopePattern))
       return def;
 
-    ExtendedIsotopePattern pattern = (ExtendedIsotopePattern) result.getValue();
+    SimpleIsotopePattern pattern = (SimpleIsotopePattern) result.getValue();
     String form = IsotopePatternUtils.makePatternSuggestion(pattern.getIsotopeCompositions());
 
     MolecularFormulaRange range = new MolecularFormulaRange();

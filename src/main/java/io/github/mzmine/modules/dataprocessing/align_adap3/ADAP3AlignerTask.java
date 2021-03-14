@@ -17,20 +17,6 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nullable;
 import dulab.adap.common.algorithms.machineleanring.OptimizationParameters;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
@@ -43,12 +29,28 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.adap.ADAPInterface;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * @author aleksandrsmirnov
@@ -66,8 +68,9 @@ public class ADAP3AlignerTask extends AbstractTask {
 
   private final Project alignment;
 
-  public ADAP3AlignerTask(MZmineProject project, ParameterSet parameters) {
-
+  public ADAP3AlignerTask(MZmineProject project, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.parameters = parameters;
 
@@ -114,7 +117,7 @@ public class ADAP3AlignerTask extends AbstractTask {
       if (!isCanceled()) {
         project.addFeatureList(peakList);
 
-        //QualityParameters.calculateQualityParameters(peakList);
+        // QualityParameters.calculateQualityParameters(peakList);
 
         setStatus(TaskStatus.FINISHED);
         logger.info("Finished ADAP Peak Alignment");
@@ -171,8 +174,8 @@ public class ADAP3AlignerTask extends AbstractTask {
     process();
 
     // Create new feature list
-    final FeatureList alignedPeakList =
-        new ModularFeatureList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
+    final ModularFeatureList alignedPeakList =
+        new ModularFeatureList(peakListName, getMemoryMapStorage(), allDataFiles.toArray(new RawDataFile[0]));
 
     int rowID = 0;
 
@@ -182,14 +185,15 @@ public class ADAP3AlignerTask extends AbstractTask {
 
     for (final ReferenceComponent referenceComponent : alignedComponents) {
 
-      ModularFeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) alignedPeakList, ++rowID);
+      ModularFeatureListRow newRow = new ModularFeatureListRow(alignedPeakList, ++rowID);
       for (int i = 0; i < referenceComponent.size(); ++i) {
 
         Component component = referenceComponent.getComponent(i);
         Peak peak = component.getBestPeak();
         peak.getInfo().mzValue(component.getMZ());
 
-        FeatureListRow row = findPeakListRow(referenceComponent.getSampleID(i), peak.getInfo().peakID);
+        FeatureListRow row =
+            findPeakListRow(referenceComponent.getSampleID(i), peak.getInfo().peakID);
 
         if (row == null)
           throw new IllegalStateException(
@@ -199,7 +203,7 @@ public class ADAP3AlignerTask extends AbstractTask {
         RawDataFile file = row.getRawDataFiles().get(0);
 
         // Create a new MZmine feature
-        Feature feature = ADAPInterface.peakToFeature(file, peak);
+        Feature feature = ADAPInterface.peakToFeature(alignedPeakList, file, peak);
 
         // Add spectrum as an isotopic pattern
         DataPoint[] spectrum = component.getSpectrum().entrySet().stream()
@@ -212,7 +216,8 @@ public class ADAP3AlignerTask extends AbstractTask {
       }
 
       // Save alignment score
-      SimpleFeatureInformation peakInformation = (SimpleFeatureInformation) newRow.getFeatureInformation();
+      SimpleFeatureInformation peakInformation =
+          (SimpleFeatureInformation) newRow.getFeatureInformation();
       if (peakInformation == null)
         peakInformation = new SimpleFeatureInformation();
       peakInformation.addProperty("Alignment score",
@@ -222,13 +227,15 @@ public class ADAP3AlignerTask extends AbstractTask {
       alignedPeakList.addRow(newRow);
     }
 
+    alignedPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        ADAP3AlignerModule.class, parameters));
     return alignedPeakList;
   }
 
   /**
-   * Convert a {@link PeakListRow} with one {@link Feature} into {@link Component}.
+   * Convert a {@link FeatureListRow} with one {@link Feature} into {@link Component}.
    *
-   * @param row an instance of {@link PeakListRow}. This parameter cannot be null.
+   * @param row an instance of {@link FeatureListRow}. This parameter cannot be null.
    * @return an instance of {@link Component} or null if the row doesn't contain any peaks or
    *         isotope patterns.
    */
@@ -247,19 +254,18 @@ public class ADAP3AlignerTask extends AbstractTask {
       throw new IllegalArgumentException("ADAP Alignment requires mass "
           + "spectra (or isotopic patterns) of peaks. No spectra found.");
 
-    for (DataPoint dataPoint : pattern.getDataPoints())
+    for (DataPoint dataPoint : pattern)
       spectrum.put(dataPoint.getMZ(), dataPoint.getIntensity());
 
     // Read Chromatogram
     final Feature peak = row.getBestFeature();
-    final RawDataFile dataFile = peak.getRawDataFile();
-
     NavigableMap<Double, Double> chromatogram = new TreeMap<>();
 
-    for (final int scan : peak.getScanNumbers()) {
-      final DataPoint dataPoint = peak.getDataPoint(scan);
+    for (int i = 0; i < peak.getNumberOfDataPoints(); i++) {
+      final DataPoint dataPoint = peak.getDataPointAtIndex(i);
       if (dataPoint != null)
-        chromatogram.put((double) dataFile.getScan(scan).getRetentionTime(), dataPoint.getIntensity());
+        chromatogram.put(Double.valueOf(String.valueOf(peak.getRetentionTimeAtIndex(i))),
+            dataPoint.getIntensity());
     }
 
     return new Component(null,
@@ -270,7 +276,6 @@ public class ADAP3AlignerTask extends AbstractTask {
   /**
    * Call the alignment from the ADAP package.
    *
-   * @param alignment an instance of {@link Project} containing all samples and peaks to be aligned.
    */
   private void process() {
     AlignmentParameters params = new AlignmentParameters()
@@ -292,12 +297,12 @@ public class ADAP3AlignerTask extends AbstractTask {
   }
 
   /**
-   * Find the existing {@link PeakListRow} for a given feature list ID and row ID.
+   * Find the existing {@link FeatureListRow} for a given feature list ID and row ID.
    *
-   * @param peakListID number of a feature list in the array of {@link PeakList}. The numeration
+   * @param peakListID number of a feature list in the array of {@link FeatureList}. The numeration
    *        starts with 0.
-   * @param rowID integer that is returned by method getId() of {@link PeakListRow}.
-   * @return an instance of {@link PeakListRow} if an existing row is found. Otherwise it returns
+   * @param rowID integer that is returned by method getId() of {@link FeatureListRow}.
+   * @return an instance of {@link FeatureListRow} if an existing row is found. Otherwise it returns
    *         null.
    */
   @Nullable
@@ -320,11 +325,11 @@ public class ADAP3AlignerTask extends AbstractTask {
   }
 
   /**
-   * Find the existing {@link PeakList} for a given feature list ID.
+   * Find the existing {@link FeatureList} for a given feature list ID.
    *
-   * @param peakListId number of a feature list in the array of {@link PeakList}. The numeration
+   * @param peakListId number of a feature list in the array of {@link FeatureList}. The numeration
    *        starts with 0.
-   * @return an instance of {@link PeakList} if a feature list is found, or null.
+   * @return an instance of {@link FeatureList} if a feature list is found, or null.
    */
   @Nullable
   private FeatureList findPeakList(int peakListId) {

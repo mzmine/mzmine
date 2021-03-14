@@ -18,21 +18,21 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.roundresample;
 
-import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
-
-import java.util.Arrays;
+import io.github.mzmine.util.scans.ScanUtils;
+import javax.annotation.Nonnull;
 
 public class RndResampleFilter implements ScanFilter {
 
-  public Scan filterScan(Scan scan, ParameterSet parameters) {
+  @Override
+  public Scan filterScan(RawDataFile newFile, Scan scan, ParameterSet parameters) {
 
     boolean sum_duplicates =
         parameters.getParameter(RndResampleFilterParameters.SUM_DUPLICATES).getValue();
@@ -40,14 +40,12 @@ public class RndResampleFilter implements ScanFilter {
         parameters.getParameter(RndResampleFilterParameters.REMOVE_ZERO_INTENSITY).getValue();
 
     // If CENTROIDED scan, use it as-is
-    Scan inputScan;
+    DataPoint dps[];
     if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
-      inputScan = scan;
+      dps = ScanUtils.extractDataPoints(scan);
     // Otherwise, detect local maxima
     else
-      inputScan = new LocMaxCentroidingAlgorithm(scan).centroidScan();
-
-    DataPoint dps[] = inputScan.getDataPoints();
+      dps = LocMaxCentroidingAlgorithm.centroidScan(ScanUtils.extractDataPoints(scan));
 
     // Cleanup first: Remove zero intensity data points (if requested)
     // Reuse dps array
@@ -109,9 +107,15 @@ public class RndResampleFilter implements ScanFilter {
       prevMz = newDps[i].getMZ();
     }
 
+    double[][] newDp = new double[2][];
+    newDp[0] = new double[newNumOfDataPoints];
+    newDp[1] = new double[newNumOfDataPoints];
+    for(int i = 0; i < newNumOfDataPoints; i++) {
+      newDp[0][i] = dps[i].getMZ();
+      newDp[1][i] = dps[i].getIntensity();
+    }
     // Create updated scan
-    SimpleScan newScan = new SimpleScan(inputScan);
-    newScan.setDataPoints(Arrays.copyOfRange(dps, 0, newNumOfDataPoints));
+    SimpleScan newScan = new SimpleScan(newFile, scan, newDp[0], newDp[1]);
     newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
 
     return newScan;

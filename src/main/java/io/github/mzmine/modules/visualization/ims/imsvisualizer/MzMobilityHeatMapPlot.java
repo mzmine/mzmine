@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
+/*
 package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
 import java.awt.Color;
@@ -44,11 +44,11 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYZDataset;
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
@@ -65,8 +65,8 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
   private XYBlockPixelSizeRenderer pixelRenderer;
   private XYBlockRenderer blockRenderer;
 
-  public MzMobilityHeatMapPlot(XYZDataset dataset, String paintScaleStyle,
-      ImsVisualizerTask imsTask, IntensityMobilityPlot implot) {
+  public MzMobilityHeatMapPlot(XYZDataset dataset, PaintScale paintScale, ImsVisualizerTask imsTask,
+      IntensityMobilityPlot implot) {
 
     super(ChartFactory.createScatterPlot("", "m/z", "mobility", dataset, PlotOrientation.VERTICAL,
         true, true, true));
@@ -101,30 +101,21 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
     int maxIndexScale = copyZValues.length - 1;
     double min = copyZValues[minIndexScale];
     double max = copyZValues[maxIndexScale];
-    Color[] contourColors =
-        XYBlockPixelSizePaintScales.getPaintColors("", Range.closed(min, max), paintScaleStyle);
-    contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
-    LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
+    PaintScaleFactory paintScaleFactoy = new PaintScaleFactory();
+    paintScaleFactoy.createColorsForPaintScale(paintScale);
+    // contourColors = XYBlockPixelSizePaintScales.scaleAlphaForPaintScale(contourColors);
 
-    double[] scaleValues = new double[contourColors.length];
-    double delta = (max - min) / (contourColors.length - 1);
-    double value = min;
-    for (int i = 0; i < contourColors.length; i++) {
-      scaleValues[i] = value;
-      scale.add(value, contourColors[i]);
-      value = value + delta;
-    }
     plot = chart.getXYPlot();
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
 
     // set the pixel renderer
-    setPixelRenderer(copyXValues, copyYValues, scale);
+    setPixelRenderer(copyXValues, copyYValues, paintScale);
     // Legend
-    prepareLegend(min, max, scale);
+    prepareLegend(min, max, paintScale);
 
     // Set paint scale
-    blockRenderer.setPaintScale(scale);
+    blockRenderer.setPaintScale(paintScale);
 
     plot.setRenderer(blockRenderer);
     plot.setBackgroundPaint(Color.black);
@@ -235,4 +226,4 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
     legend.getAxis().setTickLabelFont(legendFont);
   }
 
-}
+}*/

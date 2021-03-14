@@ -23,10 +23,11 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import java.text.Format;
+import java.util.Collection;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -54,13 +55,13 @@ public class ManualFeature {
   private Range<Float> intensityRange, rtRange;
 
   // Map of scan number and data point
-  private TreeMap<Integer, DataPoint> dataPointMap;
+  private TreeMap<Scan, DataPoint> dataPointMap;
 
   // Number of most intense fragment scan
-  private int fragmentScan, representativeScan;
+  private Scan fragmentScan, representativeScan;
 
   // Number of all MS2 fragment scans
-  private int[] allMS2FragmentScanNumbers;
+  private Scan[] allMS2FragmentScanNumbers;
 
   // Isotope pattern. Null by default but can be set later by deisotoping
   // method.
@@ -72,7 +73,7 @@ public class ManualFeature {
    */
   public ManualFeature(RawDataFile dataFile) {
     this.dataFile = dataFile;
-    dataPointMap = new TreeMap<Integer, DataPoint>();
+    dataPointMap = new TreeMap<Scan, DataPoint>();
   }
 
   /**
@@ -113,8 +114,8 @@ public class ManualFeature {
   /**
    * This method returns numbers of scans that contain this feature
    */
-  public @Nonnull int[] getScanNumbers() {
-    return Ints.toArray(dataPointMap.keySet());
+  public @Nonnull Scan[] getScanNumbers() {
+    return dataPointMap.keySet().toArray(Scan[]::new);
   }
 
   /**
@@ -169,9 +170,8 @@ public class ManualFeature {
    * @param scanNumber
    * @param dataPoint
    */
-  public void addDatapoint(int scanNumber, DataPoint dataPoint) {
-
-    float rt = dataFile.getScan(scanNumber).getRetentionTime();
+  public void addDatapoint(Scan scanNumber, DataPoint dataPoint) {
+    float rt = scanNumber.getRetentionTime();
 
     if (dataPointMap.isEmpty()) {
       rtRange = Range.singleton(rt);
@@ -184,20 +184,18 @@ public class ManualFeature {
     }
 
     dataPointMap.put(scanNumber, dataPoint);
-
   }
 
   public void finalizeFeature() {
-
     // Trim the zero-intensity data points from the beginning and end
     while (!dataPointMap.isEmpty()) {
-      int scanNumber = dataPointMap.firstKey();
+      Scan scanNumber = dataPointMap.firstKey();
       if (dataPointMap.get(scanNumber).getIntensity() > 0)
         break;
       dataPointMap.remove(scanNumber);
     }
     while (!dataPointMap.isEmpty()) {
-      int scanNumber = dataPointMap.lastKey();
+      Scan scanNumber = dataPointMap.lastKey();
       if (dataPointMap.get(scanNumber).getIntensity() > 0)
         break;
       dataPointMap.remove(scanNumber);
@@ -208,69 +206,66 @@ public class ManualFeature {
       throw (new IllegalStateException("Feature can not be finalized without any data points"));
     }
 
-    // Get all scan numbers
-    int allScanNumbers[] = Ints.toArray(dataPointMap.keySet());
-
     // Find the data point with top intensity and use its RT and height
-    for (int i = 0; i < allScanNumbers.length; i++) {
-      DataPoint dataPoint = dataPointMap.get(allScanNumbers[i]);
-      float rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
+    dataPointMap.keySet().forEach(scan -> {
+      DataPoint dataPoint = dataPointMap.get(scan);
+      float rt = scan.getRetentionTime();
       if (dataPoint.getIntensity() > height) {
         height = dataPoint.getIntensity();
-        representativeScan = allScanNumbers[i];
+        representativeScan = scan;
         this.rt = rt;
       }
-    }
+    });
 
     // Calculate feature area
     area = 0;
-    for (int i = 1; i < allScanNumbers.length; i++) {
+    Entry<Scan, DataPoint> lastEntry = null;
+    for(Entry<Scan, DataPoint> entry : dataPointMap.entrySet()) {
+      if(lastEntry == null) {
+        lastEntry = entry;
+      }
+      else {
+        // For area calculation, we use retention time in seconds
+        double previousRT = lastEntry.getKey().getRetentionTime() * 60d;
+        double currentRT = entry.getKey().getRetentionTime() * 60d;
 
-      // For area calculation, we use retention time in seconds
-      double previousRT = dataFile.getScan(allScanNumbers[i - 1]).getRetentionTime() * 60d;
-      double currentRT = dataFile.getScan(allScanNumbers[i]).getRetentionTime() * 60d;
+        double rtDifference = currentRT - previousRT;
 
-      double rtDifference = currentRT - previousRT;
+        // Intensity at the beginning and end of the interval
+        double previousIntensity = lastEntry.getValue().getIntensity();
+        double thisIntensity = entry.getValue().getIntensity();
+        double averageIntensity = (previousIntensity + thisIntensity) / 2;
 
-      // Intensity at the beginning and end of the interval
-      double previousIntensity = dataPointMap.get(allScanNumbers[i - 1]).getIntensity();
-      double thisIntensity = dataPointMap.get(allScanNumbers[i]).getIntensity();
-      double averageIntensity = (previousIntensity + thisIntensity) / 2;
-
-      // Calculate area of the interval
-      area += (rtDifference * averageIntensity);
-
+        // Calculate area of the interval
+        area += (rtDifference * averageIntensity);
+      }
     }
 
     // Calculate median MZ
-    double mzArray[] = new double[allScanNumbers.length];
-    for (int i = 0; i < allScanNumbers.length; i++) {
-      mzArray[i] = dataPointMap.get(allScanNumbers[i]).getMZ();
-    }
+    double[] mzArray = dataPointMap.values().stream().mapToDouble(dp -> dp.getMZ()).toArray();
     this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
 
     fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
 
     allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
 
-    if (fragmentScan > 0) {
-      Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-      int precursorCharge = fragmentScanObject.getPrecursorCharge();
+    if (fragmentScan != null) {
+      int precursorCharge = fragmentScan.getPrecursorCharge();
       if ((precursorCharge > 0) && (this.charge == 0))
         this.charge = precursorCharge;
     }
 
   }
 
-  public int getRepresentativeScanNumber() {
+  public Scan getRepresentativeScanNumber() {
     return representativeScan;
   }
 
-  public int getMostIntenseFragmentScanNumber() {
+  public Scan getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
-  public int[] getAllMS2FragmentScanNumbers() {
+  public Scan[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
@@ -319,19 +314,21 @@ public class ManualFeature {
     return featureInfo;
   }
 
-  public void setFragmentScanNumber(int fragmentScanNumber) {
+  public void setFragmentScanNumber(Scan fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
 
-  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
+  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
     // also set best scan by TIC
-    int best = -1;
+    Scan best = null;
     double tic = 0;
     if (allMS2FragmentScanNumbers != null) {
-      for (int i : allMS2FragmentScanNumbers) {
-        if (tic < dataFile.getScan(i).getTIC())
-          best = i;
+      for (Scan scan : allMS2FragmentScanNumbers) {
+        if (tic < scan.getTIC()) {
+          best = scan;
+          tic = scan.getTIC();
+        }
       }
     }
     setFragmentScanNumber(best);
@@ -349,4 +346,7 @@ public class ManualFeature {
   }
 
 
+  public Collection<DataPoint> getDataPoints() {
+    return dataPointMap.values();
+  }
 }

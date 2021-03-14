@@ -18,11 +18,15 @@
 
 package io.github.mzmine.taskcontrol;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javax.annotation.Nullable;
 
 /**
  * An abstract implementation of task which defines common methods to make Task implementation
@@ -30,12 +34,14 @@ import javafx.beans.property.StringProperty;
  */
 public abstract class AbstractTask implements Task {
 
+  protected final MemoryMapStorage storage;
+
   private TaskStatus status = TaskStatus.WAITING;
   private String errorMessage = null;
   // listener to control status changes
   private List<TaskStatusListener> listener;
 
-  private StringProperty name = new SimpleStringProperty("Gagaga");
+  private StringProperty name = new SimpleStringProperty("Task name");
 
   public final String getName() {
     return name.get();
@@ -49,9 +55,28 @@ public abstract class AbstractTask implements Task {
     return name;
   }
 
+  /**
+   *
+   * @param storage The {@link MemoryMapStorage} used to store results of this task (e.g.
+   *                RawDataFiles, MassLists, FeatureLists). May be null if results shall be stored
+   *                in ram. For now, one storage should be created per module call in {@link
+   *                io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject, ParameterSet, Collection)}.
+   */
+  protected AbstractTask(@Nullable MemoryMapStorage storage) {
+    this.storage = storage;
+  }
 
   /**
-   * @see io.github.mzmine.taskcontrol.Task#setStatus()
+   *
+   * @return The {@link MemoryMapStorage} used to store results of this task (e.g. RawDataFiles,
+   * MassLists, FeatureLists). May be null if results shall be stored in ram.
+   */
+  @Nullable
+  public MemoryMapStorage getMemoryMapStorage() {
+    return storage;
+  }
+
+  /**
    */
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;
@@ -64,7 +89,7 @@ public abstract class AbstractTask implements Task {
   /**
    * Convenience method for determining if this task has been canceled. Also returns true if the
    * task encountered an error.
-   * 
+   *
    * @return true if this task has been canceled or stopped due to an error
    */
   public final boolean isCanceled() {
@@ -73,7 +98,7 @@ public abstract class AbstractTask implements Task {
 
   /**
    * Convenience method for determining if this task has been completed
-   * 
+   *
    * @return true if this task is finished
    */
   public final boolean isFinished() {
@@ -109,7 +134,7 @@ public abstract class AbstractTask implements Task {
 
   /**
    * Returns the TaskStatus of this Task
-   * 
+   *
    * @return The current status of this task
    */
   @Override

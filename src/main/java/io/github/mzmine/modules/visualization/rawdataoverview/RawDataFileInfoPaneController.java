@@ -18,6 +18,10 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -27,9 +31,6 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.StringToDoubleComparator;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -42,7 +43,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.GridPane;
-import javax.annotation.Nonnull;
 
 public class RawDataFileInfoPaneController {
 
@@ -86,9 +86,6 @@ public class RawDataFileInfoPaneController {
   private TableColumn<ScanDescription, String> definitionColumn;
 
   @FXML
-  private TableColumn<ScanDescription, String> mobilityColumn;
-
-  @FXML
   private Label lblNumScans;
 
   @FXML
@@ -104,8 +101,8 @@ public class RawDataFileInfoPaneController {
   private GridPane metaDataGridPane;
 
   /**
-   * Only populate the table if it gets selected. This is called by a listener in {@link
-   * RawDataOverviewWindowController}.
+   * Only populate the table if it gets selected. This is called by a listener in
+   * {@link RawDataOverviewWindowController}.
    *
    * @param rawDataFile
    */
@@ -126,8 +123,9 @@ public class RawDataFileInfoPaneController {
 
     String scansMSLevel = "Total scans (" + rawDataFile.getNumOfScans() + ") ";
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
-      scansMSLevel = scansMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level ("
-          + rawDataFile.getScanNumbers(i + 1).length + ") ";
+      int level = rawDataFile.getMSLevels()[i];
+      scansMSLevel = scansMSLevel + "MS" + level + " level ("
+          + rawDataFile.getScanNumbers(level).size() + ") ";
       lblNumScans.setText(scansMSLevel);
     }
 
@@ -135,9 +133,9 @@ public class RawDataFileInfoPaneController {
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       rtRangeMSLevel = rtRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
           + MZminePreferences.rtFormat.getValue()
-          .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint())
+              .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint())
           + "-" + MZminePreferences.rtFormat.getValue()
-          .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint())
+              .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint())
           + " [min] ";
       lblRtRange.setText(rtRangeMSLevel);
     }
@@ -146,9 +144,9 @@ public class RawDataFileInfoPaneController {
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       mzRangeMSLevel = mzRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
           + MZminePreferences.mzFormat.getValue()
-          .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint())
+              .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint())
           + "-" + MZminePreferences.mzFormat.getValue()
-          .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint())
+              .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint())
           + " ";
       lblMzRange.setText(mzRangeMSLevel);
     }
@@ -169,14 +167,12 @@ public class RawDataFileInfoPaneController {
     scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
     polarityColumn.setCellValueFactory(new PropertyValueFactory<>("polarity"));
     definitionColumn.setCellValueFactory(new PropertyValueFactory<>("definition"));
-    mobilityColumn.setCellValueFactory(new PropertyValueFactory<>("mobility"));
 
     scanColumn.setComparator(new StringToDoubleComparator());
     rtColumn.setComparator(new StringToDoubleComparator());
     msLevelColumn.setComparator(new StringToDoubleComparator());
-//    basePeakColumn.setComparator(new StringToDoubleComparator());
+    // basePeakColumn.setComparator(new StringToDoubleComparator());
     basePeakIntensityColumn.setComparator(new StringToDoubleComparator());
-    mobilityColumn.setComparator(new StringToDoubleComparator());
 
     MZmineCore.getTaskController().addTask(new PopulateTask(rawDataFile));
   }
@@ -190,8 +186,7 @@ public class RawDataFileInfoPaneController {
     VirtualFlow<?> flow = (VirtualFlow) skin.getChildren().get(1);
     int indexFirst;
     int indexLast;
-    if (flow != null && flow.getFirstVisibleCell() != null
-        && flow.getLastVisibleCell() != null) {
+    if (flow != null && flow.getFirstVisibleCell() != null && flow.getLastVisibleCell() != null) {
       indexFirst = flow.getFirstVisibleCell().getIndex();
       if (indexFirst >= rawDataTableView.getItems().size()) {
         indexFirst = rawDataTableView.getItems().size() - 1;
@@ -241,22 +236,20 @@ public class RawDataFileInfoPaneController {
 
       tableData.clear();
 
-      final int[] scanNumbers = rawDataFile.getScanNumbers();
-      if (scanNumbers.length > 5E5) {
+      final ObservableList<Scan> scanNumbers = rawDataFile.getScans();
+      if (scanNumbers.size() > 5E5) {
         status = TaskStatus.FINISHED;
         // it's not the computation that takes long, it's putting the data into the table.
         // This bricks the MZmine window
-        logger.info(
-            "Number of entries >500 000 for raw data file " + rawDataFile.getName() + " ("
-                + rawDataFile.getNumOfScans() + ")");
+        logger.info("Number of entries >500 000 for raw data file " + rawDataFile.getName() + " ("
+            + rawDataFile.getNumOfScans() + ")");
         logger.info("Will not compute table data.");
         return;
       }
 
       // add raw data to table
-      for (int i = 1; i < scanNumbers.length; i++) {
-        Scan scan = rawDataFile.getScan(scanNumbers[i]);
-
+      for (int i = 0; i < scanNumbers.size(); i++) {
+        Scan scan = scanNumbers.get(i);
         if (scan == null) {
           continue;
         }
@@ -268,36 +261,38 @@ public class RawDataFileInfoPaneController {
         } else {
           precursor = mzFormat.format(scan.getPrecursorMZ());
         }
-        String mobility = "";
-        mobility = mzFormat.format(scan.getMobility());
 
         // format mzRange
-        String mzRange =
-            mzFormat.format(scan.getDataPointMZRange().lowerEndpoint())
-                + "-" + mzFormat.format(scan.getDataPointMZRange().upperEndpoint());
+        Range<Double> mzRange = scan.getDataPointMZRange();
+
+        String mzRangeStr = "";
+        if (mzRange != null) {
+          mzRangeStr = mzFormat.format(mzRange.lowerEndpoint()) + "-"
+              + mzFormat.format(mzRange.upperEndpoint());
+        }
 
         String basePeakMZ = "-";
         String basePeakIntensity = "-";
 
-        if (scan.getHighestDataPoint() != null) {
-          basePeakMZ = mzFormat.format(scan.getHighestDataPoint().getMZ());
-          basePeakIntensity = itFormat.format(scan.getHighestDataPoint().getIntensity());
+        if (scan.getBasePeakMz() != null) {
+          basePeakMZ = mzFormat.format(scan.getBasePeakMz());
+          basePeakIntensity = itFormat.format(scan.getBasePeakIntensity());
         }
 
-        tableData.add(new ScanDescription(Integer.toString(scan.getScanNumber()), // scan number
+        tableData.add(new ScanDescription(scan, Integer.toString(scan.getScanNumber()), // scan
+                                                                                        // number
             rtFormat.format(scan.getRetentionTime()), // rt
             Integer.toString(scan.getMSLevel()), // MS level
             precursor, // precursor mz
-            mzRange, // mz range
+            mzRangeStr, // mz range
             scan.getSpectrumType().toString(), // profile/centroid
             scan.getPolarity().toString(), // polarity
-            scan.getScanDefinition(),      // definition
-            mobility,  // mobility
+            scan.getScanDefinition(), // definition
             basePeakMZ, // base peak mz
             basePeakIntensity) // base peak intensity
         );
 
-        perc = i / (scanNumbers.length + 1);
+        perc = i / (scanNumbers.size() + 1);
         if (isCanceled) {
           status = TaskStatus.CANCELED;
           return;
@@ -306,7 +301,7 @@ public class RawDataFileInfoPaneController {
 
       Platform.runLater(() -> {
         rawDataTableView.setItems(tableData);
-//        rawDataTableView.getSelectionModel().select(0);
+        // rawDataTableView.getSelectionModel().select(0);
       });
 
       status = TaskStatus.FINISHED;

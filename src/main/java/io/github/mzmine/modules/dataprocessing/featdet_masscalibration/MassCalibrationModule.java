@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
@@ -51,10 +52,13 @@ public class MassCalibrationModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
+    // create a single storage map for all mass lists that were created with the same parameters
+    final MemoryMapStorage storageMemoryMap = MemoryMapStorage.forMassList();
+
     RawDataFile[] dataFiles = parameters.getParameter(MassCalibrationParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new MassCalibrationTask(dataFile, parameters.cloneParameterSet());
+      Task newTask = new MassCalibrationTask(dataFile, parameters.cloneParameterSet(), storageMemoryMap);
       tasks.add(newTask);
     }
 

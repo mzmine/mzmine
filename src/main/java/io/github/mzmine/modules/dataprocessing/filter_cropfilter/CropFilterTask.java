@@ -18,21 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_cropfilter;
 
-import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class CropFilterTask extends AbstractTask {
 
@@ -48,8 +51,13 @@ public class CropFilterTask extends AbstractTask {
   private Range<Double> mzRange;
   private String suffix;
   private boolean removeOriginal;
+  private ParameterSet parameters;
+  private final MemoryMapStorage storage;
 
-  CropFilterTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  CropFilterTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
+
     this.project = project;
     this.dataFile = dataFile;
 
@@ -57,6 +65,8 @@ public class CropFilterTask extends AbstractTask {
     this.mzRange = parameters.getParameter(CropFilterParameters.mzRange).getValue();
     this.suffix = parameters.getParameter(CropFilterParameters.suffix).getValue();
     this.removeOriginal = parameters.getParameter(CropFilterParameters.autoRemove).getValue();
+    this.parameters = parameters;
+    this.storage = storage;
   }
 
   /**
@@ -81,26 +91,35 @@ public class CropFilterTask extends AbstractTask {
 
     try {
 
-      RawDataFileWriter rawDataFileWriter =
-          MZmineCore.createNewFile(dataFile.getName() + " " + suffix);
+      RawDataFile newFile = MZmineCore.createNewFile(dataFile.getName() + " " + suffix, storage);
 
       for (Scan scan : scans) {
 
-        SimpleScan scanCopy = new SimpleScan(scan);
+        SimpleScan scanCopy = null;
 
         // Check if we have something to crop
         if (!mzRange.encloses(scan.getDataPointMZRange())) {
-          DataPoint croppedDataPoints[] = scan.getDataPointsByMass(mzRange);
-          scanCopy.setDataPoints(croppedDataPoints);
+          DataPoint croppedDataPoints[] =
+              ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange);
+
+          double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(croppedDataPoints);
+          scanCopy = new SimpleScan(newFile, scan, dp[0], dp[1]);
+        } else {
+          scanCopy = new SimpleScan(newFile, scan, scan.getMzValues(new double[0]),
+              scan.getIntensityValues(new double[0]));
         }
 
-        rawDataFileWriter.addScan(scanCopy);
+        newFile.addScan(scanCopy);
 
         processedScans++;
       }
 
-      RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
-      project.addFile(filteredRawDataFile);
+      for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
+        newFile.getAppliedMethods().add(appliedMethod);
+      }
+      newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+          CropFilterModule.class, parameters));
+      project.addFile(newFile);
 
       // Remove the original file if requested
       if (removeOriginal) {

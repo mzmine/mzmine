@@ -38,23 +38,22 @@ import javafx.util.Callback;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
- * @param <T>
  */
 public class DataTypeCellValueFactory implements
     Callback<TreeTableColumn.CellDataFeatures<ModularFeatureListRow, Object>, ObservableValue<Object>>,
-    Function<CellDataFeatures<ModularFeatureListRow, Object>, ModularDataModel> {
+    Function<ModularFeatureListRow, ModularDataModel> {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private RawDataFile raw;
   private DataType<?> type;
-  private final @Nonnull Function<CellDataFeatures<ModularFeatureListRow, Object>, ModularDataModel> dataMapSupplier;
+  private final @Nonnull Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier;
 
   public DataTypeCellValueFactory(RawDataFile raw, DataType<?> type) {
     this(raw, type, null);
   }
 
   public DataTypeCellValueFactory(RawDataFile raw, DataType<?> type,
-      Function<CellDataFeatures<ModularFeatureListRow, Object>, ModularDataModel> dataMapSupplier) {
+      Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier) {
     this.type = type;
     this.raw = raw;
     this.dataMapSupplier = dataMapSupplier == null ? this : dataMapSupplier;
@@ -62,10 +61,10 @@ public class DataTypeCellValueFactory implements
 
   @Override
   public ObservableValue<Object> call(CellDataFeatures<ModularFeatureListRow, Object> param) {
-    final ModularDataModel map = dataMapSupplier.apply(param);
+    final ModularDataModel map = dataMapSupplier.apply(param.getValue().getValue());
     if (map == null) {
-      logger.log(Level.WARNING, "There was no DataTypeMap for the column of DataType "
-          + type.getClass().toString() + " and raw file " + (raw == null ? "NONE" : raw.getName()));
+      //logger.log(Level.WARNING, "There was no DataTypeMap for the column of DataType "
+      //    + type.getClass().toString() + " and raw file " + (raw == null ? "NONE" : raw.getName()));
       return null;
     }
 
@@ -77,17 +76,17 @@ public class DataTypeCellValueFactory implements
    * The default way to get the DataMap. FeatureListRow (for raw==null), Feature for raw!=null.
    */
   @Override
-  public ModularDataModel apply(CellDataFeatures<ModularFeatureListRow, Object> param) {
+  public ModularDataModel apply(ModularFeatureListRow row) {
     if (raw != null) {
       // find data type map for feature for this raw file
-      Map<RawDataFile, ModularFeature> features = param.getValue().getValue().getFilesFeatures();
+      Map<RawDataFile, ModularFeature> features = row.getFilesFeatures();
       // no features
       if (features.get(raw) == null)
         return null;
       return features.get(raw);
     } else {
       // use feature list row DataTypeMap
-      return param.getValue().getValue();
+      return row;
     }
   }
 }

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 
 
 /**
@@ -33,14 +34,14 @@ import io.github.mzmine.datamodel.DataPoint;
  */
 public class ExpandedDataPoint implements DataPoint {
 
-  private int scanNumber = -1;
+  private Scan scan = null;
   private double mz, intensity;
 
   /**
    */
-  public ExpandedDataPoint(double mz, double intensity, int scanNumber) {
+  public ExpandedDataPoint(double mz, double intensity, Scan scan) {
 
-    this.scanNumber = scanNumber;
+    this.scan = scan;
     this.mz = mz;
     this.intensity = intensity;
 
@@ -57,16 +58,16 @@ public class ExpandedDataPoint implements DataPoint {
   /**
    * Constructor which copies the data from another DataPoint and takes the scan number
    */
-  public ExpandedDataPoint(DataPoint dp, int scanNumIn) {
+  public ExpandedDataPoint(DataPoint dp, Scan scanNumIn) {
     this.mz = dp.getMZ();
     this.intensity = dp.getIntensity();
-    this.scanNumber = scanNumIn;
+    this.scan = scanNumIn;
   }
 
   public ExpandedDataPoint() {
     this.mz = 0.0;
     this.intensity = 0.0;
-    this.scanNumber = -1;
+    this.scan = null;
   }
 
   @Override
@@ -79,10 +80,7 @@ public class ExpandedDataPoint implements DataPoint {
     return mz;
   }
 
-  public int getScanNumber() {
-    return scanNumber;
+  public Scan getScan() {
+    return scan;
   }
-
-
-
 }

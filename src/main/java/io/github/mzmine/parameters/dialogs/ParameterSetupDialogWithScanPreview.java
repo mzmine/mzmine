@@ -18,50 +18,42 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import io.github.mzmine.datamodel.DataPoint;
+import java.text.NumberFormat;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.CollectionUtils;
-import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
  * This class extends ParameterSetupDialog class, including a SpectraPlot. This is used to preview
  * how the selected mass detector and his parameters works over the raw data file.
  */
-public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog {
+public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetupDialogWithPreview {
 
+  // Dialog components
+  private FlowPane pnlDataFile, pnlScanArrows, pnlScanNumber;
+  private VBox pnlControls;
+  private ComboBox<RawDataFile> comboDataFileName;
+  private ComboBox<Scan> comboScanNumber;
+  // XYPlot
+  private SpectraPlot spectrumPlot;
   private RawDataFile[] dataFiles;
   private RawDataFile previewDataFile;
 
-  // Dialog components
-  private final BorderPane pnlPreviewFields;
-  private final FlowPane pnlDataFile, pnlScanArrows, pnlScanNumber;
-  private final VBox pnlControls;
-  private final ComboBox<RawDataFile> comboDataFileName;
-  private final ComboBox<Integer> comboScanNumber;
-  private final CheckBox previewCheckBox;
-
-  // XYPlot
-  private final SpectraPlot spectrumPlot;
-
   /**
+   * @param valueCheckRequired
    * @param parameters
-   * @param massDetectorTypeNumber
    */
   public ParameterSetupDialogWithScanPreview(boolean valueCheckRequired, ParameterSet parameters) {
 
@@ -69,8 +61,16 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
-    // TODO: if (dataFiles.length == 0)
-    // return;
+    // if no data files, return the dialog without preview functions
+    if (dataFiles.length == 0) {
+      return;
+    }
+//      this.hide();
+//      MZmineCore.getDesktop()
+//          .displayMessage("Please load a raw data file before selecting a " + "mass detector.");
+//      throw new UnsupportedOperationException(
+//          "Please load a raw data file before selecting a mass detector.");
+//    }
 
     RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
 
@@ -80,11 +80,6 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
       previewDataFile = dataFiles[0];
     }
 
-    previewCheckBox = new CheckBox("Show preview");
-
-    paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
-    paramsPane.add(previewCheckBox, 0, getNumberOfParameters() + 2);
-
     // Elements of pnlLab
     pnlDataFile = new FlowPane();
     pnlDataFile.getChildren().add(new Label("Data file "));
@@ -92,10 +87,8 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     pnlScanNumber = new FlowPane();
     pnlScanNumber.getChildren().add(new Label("Scan number "));
 
-    int scanNumbers[] = previewDataFile.getScanNumbers();
-    ObservableList<Integer> scanNums =
-        FXCollections.observableArrayList(CollectionUtils.toIntegerArray(scanNumbers));
-    comboScanNumber = new ComboBox<Integer>(scanNums);
+    ObservableList<Scan> scanNumbers = previewDataFile.getScans();
+    comboScanNumber = new ComboBox<>(scanNumbers);
     comboScanNumber.getSelectionModel().select(0);
     comboScanNumber.getSelectionModel().selectedItemProperty().addListener((obs, old, newIndex) -> {
       parametersChanged();
@@ -109,19 +102,17 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
       if (previewDataFile == null) {
         return;
       }
-      int scanNumbers2[] = previewDataFile.getScanNumbers();
-      ObservableList<Integer> scanNums2 =
-          FXCollections.observableArrayList(CollectionUtils.toIntegerArray(scanNumbers2));
-
-      comboScanNumber.setItems(scanNums2);
+      ObservableList<Scan> scanNumbers2 = previewDataFile.getScans();
+      comboScanNumber.setItems(scanNumbers2);
       comboScanNumber.getSelectionModel().select(0);
       parametersChanged();
     });
 
     pnlDataFile.getChildren().add(comboDataFileName);
+    pnlDataFile.setAlignment(Pos.TOP_CENTER);
 
     pnlScanArrows = new FlowPane();
-    final String leftArrow = new String(new char[]{'\u2190'});
+    final String leftArrow = new String(new char[] {'\u2190'});
     Button leftArrowButton = new Button(leftArrow);
     leftArrowButton.setOnAction(e -> {
       int ind = comboScanNumber.getSelectionModel().getSelectedIndex() - 1;
@@ -130,7 +121,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
       }
     });
 
-    final String rightArrow = new String(new char[]{'\u2192'});
+    final String rightArrow = new String(new char[] {'\u2192'});
     Button rightArrowButton = new Button(rightArrow);
     rightArrowButton.setOnAction(e -> {
       int ind = comboScanNumber.getSelectionModel().getSelectedIndex() + 1;
@@ -141,37 +132,24 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
     pnlScanArrows.getChildren().addAll(leftArrowButton, comboScanNumber, rightArrowButton);
     pnlScanNumber.getChildren().add(pnlScanArrows);
+    pnlScanNumber.setAlignment(Pos.TOP_CENTER);
+    pnlScanArrows.setAlignment(Pos.TOP_CENTER);
 
     spectrumPlot = new SpectraPlot();
     spectrumPlot.setMinSize(400, 300);
 
     pnlControls = new VBox();
     pnlControls.setSpacing(5);
-    BorderPane.setAlignment(pnlControls, Pos.CENTER);
 
     // Put all together
     pnlControls.getChildren().add(pnlDataFile);
     pnlControls.getChildren().add(pnlScanNumber);
-    pnlPreviewFields = new BorderPane();
-    pnlPreviewFields.setCenter(pnlControls);
-    pnlPreviewFields.visibleProperty().bind(previewCheckBox.selectedProperty());
-    spectrumPlot.visibleProperty().bind(previewCheckBox.selectedProperty());
-    spectrumPlot.visibleProperty().addListener((c, o, n) -> {
-      if (n == true) {
-        mainPane.setCenter(spectrumPlot);
-        mainPane.setLeft(mainScrollPane);
-        mainPane.autosize();
-        mainPane.getScene().getWindow().sizeToScene();
-        parametersChanged();
-      } else {
-        mainPane.setLeft(null);
-        mainPane.setCenter(mainScrollPane);
-        mainPane.autosize();
-        mainPane.getScene().getWindow().sizeToScene();
-      }
-    });
+    pnlControls.setAlignment(Pos.TOP_CENTER);
 
-    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 2, 1);
+    getPreviewWrapperPane().setCenter(spectrumPlot);
+    getPreviewWrapperPane().setBottom(pnlControls);
+    BorderPane.setAlignment(pnlControls, Pos.TOP_CENTER);
+    setOnPreviewShown(() -> parametersChanged());
   }
 
   /**
@@ -193,10 +171,11 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     String subTitle =
         "MS" + currentScan.getMSLevel() + ", RT " + rtFormat.format(currentScan.getRetentionTime());
 
-    DataPoint basePeak = currentScan.getHighestDataPoint();
-    if (basePeak != null) {
-      subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ()) + " m/z ("
-          + intensityFormat.format(basePeak.getIntensity()) + ")";
+    Double basePeakMz = currentScan.getBasePeakMz();
+    Double basePeakIntensity = currentScan.getBasePeakIntensity();
+    if (basePeakMz != null) {
+      subTitle += ", base peak: " + mzFormat.format(basePeakMz) + " m/z ("
+          + intensityFormat.format(basePeakIntensity) + ")";
     }
     spectrumPlot.setTitle(title, subTitle);
 
@@ -206,18 +185,17 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   protected void parametersChanged() {
 
     // Update preview as parameters have changed
-    if ((comboScanNumber == null) || (!previewCheckBox.isSelected())) {
+    if ((comboScanNumber == null) || (!getPreviewCheckbox().isSelected())) {
       return;
     }
 
-    Integer scanNumber = comboScanNumber.getSelectionModel().getSelectedItem();
-    if (scanNumber == null) {
+    Scan scan = comboScanNumber.getSelectionModel().getSelectedItem();
+    if (scan == null) {
       return;
     }
 
-    Scan currentScan = previewDataFile.getScan(scanNumber);
     updateParameterSetFromComponents();
-    loadPreview(spectrumPlot, currentScan);
-    updateTitle(currentScan);
+    loadPreview(spectrumPlot, scan);
+    updateTitle(scan);
   }
 }

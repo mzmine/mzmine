@@ -18,24 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fragmentsearch;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.scans.ScanUtils;
 
 public class FragmentSearchTask extends AbstractTask {
 
@@ -55,6 +55,7 @@ public class FragmentSearchTask extends AbstractTask {
    * @param peakList
    */
   public FragmentSearchTask(ParameterSet parameters, FeatureList peakList) {
+    super(null); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;
@@ -100,7 +101,8 @@ public class FragmentSearchTask extends AbstractTask {
     totalRows = rows.length;
 
     // Start with the highest peaks
-    Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.Height, SortingDirection.Descending));
+    Arrays.sort(rows,
+        new FeatureListRowSorter(SortingProperty.Height, SortingDirection.Descending));
 
     // Compare each two rows against each other
     for (int i = 0; i < totalRows; i++) {
@@ -129,7 +131,8 @@ public class FragmentSearchTask extends AbstractTask {
 
     // Add task description to peakList
     ((ModularFeatureList) peakList).addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Identification of fragments", parameters));
+        new SimpleFeatureListAppliedMethod("Identification of fragments",
+            FragmentSearchModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -156,19 +159,18 @@ public class FragmentSearchTask extends AbstractTask {
       return false;
 
     // Get MS/MS scan, if exists
-    int fragmentScanNumber = mainPeak.getBestFeature().getMostIntenseFragmentScanNumber();
-    if (fragmentScanNumber <= 0)
+    Scan fragmentScan = mainPeak.getBestFeature().getMostIntenseFragmentScan();
+    if (fragmentScan == null)
       return false;
 
-    RawDataFile dataFile = mainPeak.getBestFeature().getRawDataFile();
-    Scan fragmentScan = dataFile.getScan(fragmentScanNumber);
     if (fragmentScan == null)
       return false;
 
     // Get MS/MS data points in the tolerance range
     Range<Double> ms2mzRange = ms2mzTolerance.getToleranceRange(possibleFragment.getAverageMZ());
 
-    DataPoint fragmentDataPoints[] = fragmentScan.getDataPointsByMass(ms2mzRange);
+    DataPoint fragmentDataPoints[] =
+        ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(fragmentScan), ms2mzRange);
 
     // If there is a MS/MS peak of required height, we have a hit
     for (DataPoint dp : fragmentDataPoints) {

@@ -19,28 +19,18 @@
 package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import javafx.beans.binding.ObjectBinding;
 
-public class RowBinding {
-  private final DataType rowType;
-  private final BindingsFactoryType featureType;
-  private final BindingsType bindingType;
+/**
+ * A RowBinding automatically creates a {@link ModularFeatureListRow} column that is based on {@link
+ * DataType}s in all {@link ModularFeature}s
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public interface RowBinding {
 
-  public RowBinding(BindingsFactoryType featureAndRowType, BindingsType bindingType) {
-    this((DataType) featureAndRowType, featureAndRowType, bindingType);
-  }
+  public void apply(ModularFeatureListRow row);
 
-  public RowBinding(DataType rowType, BindingsFactoryType featureType, BindingsType bindingType) {
-    super();
-    this.rowType = rowType;
-    this.featureType = featureType;
-    this.bindingType = bindingType;
-  }
+  public DataType getRowType();
 
-  public void apply(ModularFeatureListRow row) {
-    ObjectBinding<?> binding = featureType.createBinding(bindingType, row);
-    row.get(rowType).bind(binding);
-  }
+  public DataType getFeatureType();
 }

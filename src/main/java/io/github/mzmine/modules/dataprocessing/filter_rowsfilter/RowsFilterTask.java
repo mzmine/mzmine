@@ -18,32 +18,31 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * Filters out feature list rows.
@@ -68,7 +67,8 @@ public class RowsFilterTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public RowsFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     // Initialize.
     this.project = project;
@@ -136,9 +136,9 @@ public class RowsFilterTask extends AbstractTask {
 
     // Create new feature list.
 
-    final FeatureList newFeatureList = new ModularFeatureList(
+    final ModularFeatureList newFeatureList = new ModularFeatureList(
         featureList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
-        featureList.getRawDataFiles());
+        getMemoryMapStorage(), featureList.getRawDataFiles());
 
     // Copy previous applied methods.
     for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
@@ -148,7 +148,8 @@ public class RowsFilterTask extends AbstractTask {
 
     // Add task description to featureList.
     newFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(), parameters));
+        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class,
+            parameters));
 
     // Get parameters.
     final boolean onlyIdentified =
@@ -198,13 +199,13 @@ public class RowsFilterTask extends AbstractTask {
     int intMinCount = minCount.intValue();
 
     // Filter rows.
-    final FeatureListRow[] rows = featureList.getRows().toArray(FeatureListRow[]::new);
+    final ModularFeatureListRow[] rows = featureList.getRows().toArray(ModularFeatureListRow[]::new);
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
 
       filterRowCriteriaFailed = false;
 
-      final FeatureListRow row = rows[processedRows];
+      final ModularFeatureListRow row = rows[processedRows];
 
       final int featureCount = getFeatureCount(row, groupingParameter);
 
@@ -401,7 +402,7 @@ public class RowsFilterTask extends AbstractTask {
         // iterates the features
         int failCounts = 0;
         for (int i = 0; i < featureCount; i++) {
-          if (row.getFeatures().get(i).getMostIntenseFragmentScanNumber() < 1) {
+          if (row.getFeatures().get(i).getMostIntenseFragmentScan() == null) {
             failCounts++;
             // filterRowCriteriaFailed = true;
             // break;
@@ -415,7 +416,7 @@ public class RowsFilterTask extends AbstractTask {
       if (!filterRowCriteriaFailed && !removeRow) {
         // Only add the row if none of the criteria have failed.
         rowsCount++;
-        FeatureListRow resetRow = copyFeatureRow(row);
+        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList, row, true);
         if (renumber) {
           resetRow.setID(rowsCount);
         }
@@ -426,7 +427,7 @@ public class RowsFilterTask extends AbstractTask {
         // Only remove rows that match *all* of the criteria, so add
         // rows that fail any of the criteria.
         rowsCount++;
-        FeatureListRow resetRow = copyFeatureRow(row);
+        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList, row, true);
         if (renumber) {
           resetRow.setID(rowsCount);
         }
@@ -436,37 +437,6 @@ public class RowsFilterTask extends AbstractTask {
     }
 
     return newFeatureList;
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static FeatureListRow copyFeatureRow(final FeatureListRow row) {
-
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) row.getFeatureList(), row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the features.
-    for (final Feature feature : row.getFeatures()) {
-
-      final Feature newFeature = new ModularFeature(feature);
-      FeatureUtils.copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getRawDataFile(), newFeature);
-    }
-
-    // Add FeatureInformation
-    if (row.getFeatureInformation() != null) {
-      SimpleFeatureInformation information =
-          new SimpleFeatureInformation(new HashMap<>(row.getFeatureInformation().getAllProperties()));
-      newRow.setFeatureInformation(information);
-    }
-
-    return newRow;
   }
 
   private int getFeatureCount(FeatureListRow row, String groupingParameter) {

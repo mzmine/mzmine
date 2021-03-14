@@ -18,19 +18,23 @@
 
 package io.github.mzmine.util.color;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleFactory;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ModifiableObservableListBase;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
-import com.google.common.collect.ImmutableMap;
-import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.util.javafx.FxColorUtil;
-import javafx.collections.ModifiableObservableListBase;
-import javafx.scene.paint.Color;
 
 /**
  * Implementation of a color palette. It's an observable list to allow addition of listeners.
@@ -39,33 +43,33 @@ import javafx.scene.paint.Color;
  */
 public class SimpleColorPalette extends ModifiableObservableListBase<Color> implements Cloneable {
 
+  public static final SimpleColorPalette RAINBOW = new SimpleColorPalette(
+      new Color[]{new Color(0.3d, 0d, 0.4d, 1d), new Color(0d, 0d, 1d, 1d),
+          new Color(0d, 1d, 0d, 1d), new Color(1d, 1d, 0d, 1d), new Color(1d, .5d, 0, 1d),
+          new Color(1d, 0, 0, 1d)}, "Rainbow");
+
   protected static final SimpleColorPalette DEFAULT_NORMAL =
       new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
           ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),
           ColorsFX.getNegativeColor(Vision.NORMAL_VISION));
-
   protected static final SimpleColorPalette DEFAULT_DEUTERANOPIA =
       new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true),
           "Deuteranopia", ColorsFX.getPositiveColor(Vision.DEUTERANOPIA),
           ColorsFX.getNeutralColor(), ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
-
   protected static final SimpleColorPalette DEFAULT_PROTANOPIA =
       new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.PROTANOPIA, true), "Protanopia",
           ColorsFX.getPositiveColor(Vision.PROTANOPIA), ColorsFX.getNeutralColor(),
           ColorsFX.getNegativeColor(Vision.PROTANOPIA));
-
   protected static final SimpleColorPalette DEFAULT_TRITANOPIA =
       new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.TRITANOPIA, true), "Tritanopia",
           ColorsFX.getPositiveColor(Vision.TRITANOPIA), ColorsFX.getNeutralColor(),
           ColorsFX.getNegativeColor(Vision.TRITANOPIA));
-
   /**
    * Access via {@link Vision}
    */
   public static final ImmutableMap<Vision, SimpleColorPalette> DEFAULT = ImmutableMap.of(
       Vision.NORMAL_VISION, DEFAULT_NORMAL, Vision.DEUTERANOPIA, DEFAULT_DEUTERANOPIA,
       Vision.PROTANOPIA, DEFAULT_PROTANOPIA, Vision.TRITANOPIA, DEFAULT_TRITANOPIA);
-
   private static final String NAME_ATTRIBUTE = "name";
   private static final String POS_ATTRIBUTE = "positive_color";
   private static final String NEG_ATTRIBUTE = "negative_color";
@@ -114,6 +118,12 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     setPositiveColor(positiveColor);
     setNeutralColor(neutralColor);
     setNegativeColor(negativeColor);
+  }
+
+  public static SimpleColorPalette createFromXML(Element xmlElement) {
+    SimpleColorPalette p = new SimpleColorPalette();
+    p.loadFromXML(xmlElement);
+    return p;
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
@@ -173,7 +183,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
         return false;
       }
     }
-    if (this.size() < 3) {
+    if (this.isEmpty()) {
+      return false;
+    }
+    if (positiveColor == null || negativeColor == null || neutralColor == null) {
       return false;
     }
     return true;
@@ -227,6 +240,13 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     fireChange(new ColorPaletteChangedEvent(this, oldIndex, newIndex));
 
     return indexOf(clr);
+  }
+
+  public PaintScale toPaintScale(PaintScaleTransform transform, Range<Double> valueRange) {
+    var paintScale = new PaintScale(valueRange);
+    PaintScaleFactory psf = new PaintScaleFactory();
+    return psf
+        .createColorsForCustomPaintScaleFX(paintScale, transform, this);
   }
 
   /**
@@ -342,12 +362,6 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     setNeutralColor(clrNeu);
   }
 
-  public static SimpleColorPalette createFromXML(Element xmlElement) {
-    SimpleColorPalette p = new SimpleColorPalette();
-    p.loadFromXML(xmlElement);
-    return p;
-  }
-
   /**
    * Saves this color palette to an xml element.
    *
@@ -365,22 +379,18 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return positiveColor;
   }
 
-  public java.awt.Color getPositiveColorAWT() {
-    return FxColorUtil.fxColorToAWT(getPositiveColor());
-  }
-
   public void setPositiveColor(Color positiveColor) {
     this.positiveColor = positiveColor;
     fireChange(new ColorPaletteChangedEvent(this,
         ColorPaletteChangeEventType.POSITIVE_MARKER_UPDATED, positiveColor));
   }
 
-  public Color getNegativeColor() {
-    return negativeColor;
+  public java.awt.Color getPositiveColorAWT() {
+    return FxColorUtil.fxColorToAWT(getPositiveColor());
   }
 
-  public java.awt.Color getNegativeColorAWT() {
-    return FxColorUtil.fxColorToAWT(getNegativeColor());
+  public Color getNegativeColor() {
+    return negativeColor;
   }
 
   public void setNegativeColor(Color negativeColor) {
@@ -389,12 +399,12 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
         ColorPaletteChangeEventType.NEGATIVE_MARKER_UPDATED, negativeColor));
   }
 
-  public Color getNeutralColor() {
-    return neutralColor;
+  public java.awt.Color getNegativeColorAWT() {
+    return FxColorUtil.fxColorToAWT(getNegativeColor());
   }
 
-  public java.awt.Color getNeutralColorAWT() {
-    return FxColorUtil.fxColorToAWT(getNeutralColor());
+  public Color getNeutralColor() {
+    return neutralColor;
   }
 
   public void setNeutralColor(Color neutralColor) {
@@ -403,10 +413,17 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
         ColorPaletteChangeEventType.NEUTRAL_MARKER_UPDATED, neutralColor));
   }
 
+  public java.awt.Color getNeutralColorAWT() {
+    return FxColorUtil.fxColorToAWT(getNeutralColor());
+  }
+
   // --- super type
   @Override
   public Color get(int index) {
-    return delegate.get(index);
+    if (index < delegate.size()) {
+      return delegate.get(index);
+    }
+    return delegate.get(index % delegate.size());
   }
 
   public java.awt.Color getAWT(int index) {

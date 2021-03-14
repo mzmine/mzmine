@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,11 +18,7 @@
 
 package io.github.mzmine.modules.tools.isotopepatternscore;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -32,6 +28,9 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class IsotopePatternScoreCalculator {
 
@@ -61,8 +60,15 @@ public class IsotopePatternScoreCalculator {
 
     assert mzTolerance != null;
 
-    final double patternIntensity = Math.max(ip1.getHighestDataPoint().getIntensity(),
-        ip2.getHighestDataPoint().getIntensity());
+    double pattern1Intensity = 0.0, pattern2Intensity = 0.0;
+    if (ip1.getBasePeakIndex() >= 0) {
+      pattern1Intensity = ip1.getIntensityValue(ip1.getBasePeakIndex());
+    }
+    if (ip2.getBasePeakIndex() >= 0) {
+      pattern1Intensity = ip2.getIntensityValue(ip2.getBasePeakIndex());
+    }
+    final double patternIntensity = Math.max(pattern1Intensity, pattern2Intensity);
+
     final double noiseIntensity =
         parameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
@@ -74,12 +80,12 @@ public class IsotopePatternScoreCalculator {
     // Data points from first pattern will have positive intensities, data
     // points from second pattern will have negative intensities.
     ArrayList<DataPoint> mergedDataPoints = new ArrayList<DataPoint>();
-    for (DataPoint dp : nip1.getDataPoints()) {
+    for (DataPoint dp : ScanUtils.extractDataPoints(nip1)) {
       if (dp.getIntensity() * patternIntensity < noiseIntensity)
         continue;
       mergedDataPoints.add(dp);
     }
-    for (DataPoint dp : nip2.getDataPoints()) {
+    for (DataPoint dp : ScanUtils.extractDataPoints(nip2)) {
       if (dp.getIntensity() * patternIntensity < noiseIntensity)
         continue;
       DataPoint negativeDP = new SimpleDataPoint(dp.getMZ(), dp.getIntensity() * -1);

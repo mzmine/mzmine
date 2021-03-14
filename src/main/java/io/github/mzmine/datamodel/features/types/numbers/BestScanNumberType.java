@@ -18,14 +18,22 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 
-public class BestScanNumberType extends IntegerType implements NullColumnType {
+public class BestScanNumberType extends DataType<ObjectProperty<Scan>> implements NullColumnType {
 
   @Override
   public String getHeaderString() {
-    return "Best Scan #";
+    return "Best scan";
+  }
+
+  @Override
+  public ObjectProperty<Scan> createProperty() {
+    return new SimpleObjectProperty<Scan>();
   }
 
 }

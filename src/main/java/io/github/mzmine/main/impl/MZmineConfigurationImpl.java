@@ -47,6 +47,7 @@ import org.w3c.dom.NodeList;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -165,8 +166,18 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
+  public NumberFormat getCCSFormat() {
+    return preferences.getParameter(MZminePreferences.ccsFormat).getValue();
+  }
+
+  @Override
   public NumberFormat getPPMFormat() {
     return preferences.getParameter(MZminePreferences.ppmFormat).getValue();
+  }
+
+  @Override
+  public UnitFormat getUnitFormat() {
+    return preferences.getParameter(MZminePreferences.unitFormat).getValue();
   }
 
   @Override
@@ -349,10 +360,24 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   @Override
   public SimpleColorPalette getDefaultColorPalette() {
-    SimpleColorPalette p = preferences.getParameter(MZminePreferences.stdColorPalette).getValue();
+    SimpleColorPalette p =
+        preferences.getParameter(MZminePreferences.defaultColorPalette).getValue();
     if (!p.isValid()) {
       logger.warning(
           "Current default color palette set in preferences is invalid. Returning standard "
+              + "colors.");
+      p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
+      p.setName("default-deuternopia");
+    }
+    return p;
+  }
+
+  @Override
+  public SimpleColorPalette getDefaultPaintScalePalette() {
+    SimpleColorPalette p = preferences.getParameter(MZminePreferences.defaultPaintScale).getValue();
+    if (!p.isValid()) {
+      logger
+          .warning("Current default paint scale set in preferences is invalid. Returning standard "
               + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
@@ -376,4 +401,9 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     return standardChartTheme;
   }
 
+  @Override
+  public boolean isDarkMode() {
+    Boolean darkMode = preferences.getParameter(MZminePreferences.darkMode).getValue();
+    return darkMode == null ? false : darkMode;
+  }
 }

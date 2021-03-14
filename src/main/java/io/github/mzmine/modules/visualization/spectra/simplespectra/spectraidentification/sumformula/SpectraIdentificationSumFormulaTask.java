@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,28 +18,12 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula;
 
-import java.awt.Color;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.logging.Logger;
-import org.jfree.chart.labels.ItemLabelAnchor;
-import org.jfree.chart.labels.ItemLabelPosition;
-import org.jfree.chart.ui.TextAnchor;
-import org.openscience.cdk.formula.MolecularFormulaGenerator;
-import org.openscience.cdk.formula.MolecularFormulaRange;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
@@ -56,10 +40,26 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.awt.Color;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
+import org.jfree.chart.ui.TextAnchor;
+import org.openscience.cdk.formula.MolecularFormulaGenerator;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Task for sum formula prediction in spectra.
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectraIdentificationSumFormulaTask extends AbstractTask {
@@ -88,11 +88,12 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
   /**
    * Create the task.
-   * 
+   *
    * @param parameters task parameters.
    */
   public SpectraIdentificationSumFormulaTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
+    super(null);
 
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;
@@ -152,23 +153,23 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     logger.finest("Starting search for formulas for " + massRange + " Da");
 
     // create mass list for scan
-    DataPoint[] massList = null;
+    double[][] massList = null;
     ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
     MassDetector massDetector = null;
     ArrayList<String> allCompoundIDs = new ArrayList<>();
 
-    // Create a new mass list for MS/MS scan. Check if sprectrum is profile
+    // Create a new mass list for MS/MS scan. Check if spectrum is profile
     // or centroid mode
     if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
       massDetector = new CentroidMassDetector();
       CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
       CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
+      massList = massDetector.getMassValues(currentScan, parameters);
     } else {
       massDetector = new ExactMassDetector();
       ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
       ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
+      massList = massDetector.getMassValues(currentScan, parameters);
     }
     numItems = massList.length;
     // loop through every peak in mass list
@@ -180,7 +181,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
     for (int i = 0; i < massList.length; i++) {
       massRange =
-          mzTolerance.getToleranceRange((massList[i].getMZ() - ionType.getAddedMass()) / charge);
+          mzTolerance.getToleranceRange((massList[0][i] - ionType.getAddedMass()) / charge);
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
           massRange.upperEndpoint(), elementCounts);
 
@@ -198,11 +199,11 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
           String formula = MolecularFormulaManipulator.getString(cdkFormula);
 
           // calc rel mass deviation
-          Double relMassDev = ((((massList[i].getMZ() - //
+          Double relMassDev = ((((massList[0][i] - //
               ionType.getAddedMass()) / charge)//
               - (FormulaUtils.calculateExactMass(//
                   MolecularFormulaManipulator.getString(cdkFormula))) / charge)
-              / ((massList[i].getMZ() //
+              / ((massList[0][i] //
                   - ionType.getAddedMass()) / charge))
               * 1000000;
 
@@ -229,7 +230,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
       }
       if (annotation != "") {
         allCompoundIDs.add(annotation);
-        massListAnnotated.add(massList[i]);
+        massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
       }
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
           + " formulas");

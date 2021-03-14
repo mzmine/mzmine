@@ -15,62 +15,61 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
+/*
 package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import org.jfree.data.xy.AbstractXYZDataset;
+import io.github.mzmine.datamodel.Scan;
 
 public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
 
-    private final Scan[] scans;
-    private final double[] xValues;
-    private final double[] yValues;
-    private final double[] zValues;
-    private final int scanSize;
+  private final Scan[] scans;
+  private final Double[] xValues;
+  private final Double[] yValues;
+  private final Double[] zValues;
+  private final int scanSize;
 
-    public RetentionTimeMobilityXYZDataset(DataFactory dataFactory) {
+  public RetentionTimeMobilityXYZDataset(DataFactory dataFactory) {
 
-        scans = dataFactory.getScans();
-        xValues = dataFactory.getRetentionTimeretentionTimeMobility();
-        yValues = dataFactory.getMobilityretentionTimeMobility();
-        zValues = dataFactory.getIntensityretentionTimeMobility();
-        scanSize = scans.length;
-    }
+    scans = dataFactory.getScans();
+    xValues = dataFactory.getRetentionTimeretentionTimeMobility();
+    yValues = dataFactory.getMobilityretentionTimeMobility();
+    zValues = dataFactory.getIntensityretentionTimeMobility();
+    scanSize = scans.length;
+  }
 
-    @Override
-    public int getSeriesCount() {
-        return 1;
-    }
+  @Override
+  public int getSeriesCount() {
+    return 1;
+  }
 
-    public Comparable<?> getRowKey(int item) {
-        return scans[item].toString();
-    }
+  public Comparable<?> getRowKey(int item) {
+    return scans[item].toString();
+  }
 
-    @Override
-    public Comparable getSeriesKey(int series) {
-        return getRowKey(series);
-    }
+  @Override
+  public Comparable getSeriesKey(int series) {
+    return getRowKey(series);
+  }
 
-    @Override
-    public Number getZ(int series, int item) {
-        return zValues[item];
-    }
+  @Override
+  public Number getZ(int series, int item) {
+    return zValues[item];
+  }
 
-    @Override
-    public int getItemCount(int series) {
-        return scanSize;
-    }
+  @Override
+  public int getItemCount(int series) {
+    return scanSize;
+  }
 
-    @Override
-    public Number getX(int series, int item) {
-        return xValues[item];
-    }
+  @Override
+  public Number getX(int series, int item) {
+    return xValues[item];
+  }
 
-    @Override
-    public Number getY(int series, int item) {
-        return yValues[item];
-    }
+  @Override
+  public Number getY(int series, int item) {
+    return yValues[item];
+  }
 }
+*/

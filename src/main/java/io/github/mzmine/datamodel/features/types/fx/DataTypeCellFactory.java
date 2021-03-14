@@ -18,15 +18,15 @@
 
 package io.github.mzmine.datamodel.features.types.fx;
 
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
+import java.util.logging.Logger;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
@@ -36,7 +36,6 @@ import javafx.util.Callback;
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
- * @param <T>
  */
 public class DataTypeCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
@@ -86,21 +85,20 @@ public class DataTypeCellFactory implements
             setText(
                 n != null ? null
                     : sub.getFormattedSubColValue(subcolumn, this, param, item, raw));
-            setTooltip(
-                new Tooltip(sub.getFormattedSubColValue(subcolumn, this, param, item, raw)));
           } else if (type instanceof GraphicalColumType) {
             Node node = ((GraphicalColumType) type).getCellNode(this, param, item, raw);
             getTableColumn().setMinWidth(((GraphicalColumType<?>) type).getColumnWidth());
             setGraphic(node);
             setText(null);
-            setTooltip(new Tooltip(type.getFormattedString(item)));
           } else {
-            setTooltip(new Tooltip(type.getFormattedString(item)));
             setText(type.getFormattedString(item));
             setGraphic(null);
           }
         }
-        setAlignment(Pos.CENTER);
+        if(type instanceof NumberType)
+          setAlignment(Pos.CENTER_RIGHT);
+        else
+          setAlignment(Pos.CENTER);
       }
     };
   }

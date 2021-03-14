@@ -17,31 +17,31 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
+import com.Ostermiller.util.CSVParser;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import com.Ostermiller.util.CSVParser;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 class TargetedPeakDetectionModuleTask extends AbstractTask {
 
@@ -65,7 +65,8 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
   private double noiseLevel;
 
   TargetedPeakDetectionModuleTask(MZmineProject project, ParameterSet parameters,
-      RawDataFile dataFile) {
+      RawDataFile dataFile, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.parameters = parameters;
@@ -94,7 +95,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     totalScans = dataFile.getNumOfScans(1);
 
     // Create new feature list
-    processedPeakList = new ModularFeatureList(dataFile.getName() + " " + suffix, dataFile);
+    processedPeakList = new ModularFeatureList(dataFile.getName() + " " + suffix, getMemoryMapStorage(), dataFile);
 
     List<PeakInformation> peaks = this.readFile();
 
@@ -129,7 +130,6 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       newRow.addFeatureIdentity(new SimpleFeatureIdentity(peaks.get(row).getName()), true);
 
       Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance, noiseLevel);
-
       gaps.add(newGap);
     }
 
@@ -139,7 +139,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
 
     // Get all scans of this data file
-    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+    Scan scanNumbers[] = dataFile.getScanNumbers(msLevel).toArray(Scan[]::new);
     if (scanNumbers == null) {
       logger.log(Level.WARNING, "Could not read file with the MS level of " + msLevel);
       setStatus(TaskStatus.ERROR);
@@ -147,15 +147,12 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
 
     // Process each scan
-    for (int scanNumber : scanNumbers) {
+    for (Scan scan : scanNumbers) {
 
       // Canceled?
       if (isCanceled()) {
         return;
       }
-
-      // Get the scan
-      Scan scan = dataFile.getScan(scanNumber);
 
       // Feed this scan to all gaps
       for (Gap gap : gaps) {
@@ -176,9 +173,11 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     // Add quality parameters to peaks
     //QualityParameters.calculateQualityParameters(processedPeakList);
 
+    dataFile.getAppliedMethods().forEach(m -> processedPeakList.getAppliedMethods().add(m));
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Targeted feature detection ", parameters));
+        new SimpleFeatureListAppliedMethod("Targeted feature detection ",
+            TargetedFeatureDetectionModule.class, parameters));
 
     logger.log(Level.INFO, "Finished targeted feature detection on {0}", this.dataFile);
     setStatus(TaskStatus.FINISHED);

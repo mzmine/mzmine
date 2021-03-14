@@ -18,20 +18,28 @@
 
 package io.github.mzmine.gui.preferences;
 
-import java.text.DecimalFormat;
-import org.w3c.dom.Element;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
+import io.github.mzmine.parameters.parametertypes.OptOutParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
+import java.text.DecimalFormat;
+import java.util.Map;
+import javafx.collections.FXCollections;
+import org.w3c.dom.Element;
 
 public class MZminePreferences extends SimpleParameterSet {
 
@@ -51,11 +59,19 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final NumberFormatParameter mobilityFormat = new NumberFormatParameter(
       "Mobility value format", "Format of mobility values", false, new DecimalFormat("0.000"));
 
+  public static final NumberFormatParameter ccsFormat = new NumberFormatParameter(
+      "CCS value format", "Format for colission cross section (CCS) values.", false,
+      new DecimalFormat("0.0"));
+
   public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
       "Intensity format", "Format of intensity values", true, new DecimalFormat("0.0E0"));
 
   public static final NumberFormatParameter ppmFormat = new NumberFormatParameter("PPM format",
       "Format used for PPM values such as mass errors", true, new DecimalFormat("0.0000"));
+
+  public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>(
+      "Unit format", "The default unit format to format e.g. axis labels in MZmine.",
+      FXCollections.observableArrayList(UnitFormat.values()), UnitFormat.DIVIDE);
 
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
@@ -76,21 +92,38 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
-  public static final ColorPaletteParameter stdColorPalette =
-      new ColorPaletteParameter("Main color palette",
+  public static final ColorPaletteParameter defaultColorPalette =
+      new ColorPaletteParameter("Default color palette",
           "Defines the default color palette used to create charts throughout MZmine");
+
+  public static final PaintScalePaletteParameter defaultPaintScale =
+      new PaintScalePaletteParameter("Default paint scale",
+          "Defines the default paint scale used to create charts throughout MZmine");
 
   public static final ParameterSetParameter chartParam =
       new ParameterSetParameter("Chart parameters",
           "The default chart parameters to be used trhoughout MZmine", new ChartThemeParameters());
 
-  public static final BooleanParameter darkMode =
-      new BooleanParameter("Dark mode", "Enables dark mode throughout MZmine.", false);
+  public static final BooleanParameter darkMode = new BooleanParameter("Dark mode",
+      "Enables dark mode");
+
+  public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> imsModuleWarnings =
+      new HiddenParameter<>(new OptOutParameter("Ion mobility compatibility warnings",
+          "Shows a warning message when a module without explicit ion mobility support is "
+              + "used to process ion mobility data."));
+
+  public static final DirectoryParameter tempDirectory =
+      new DirectoryParameter("Temporary file directory", "Directory where temporary files"
+          + " will be stored. Requires a restart of MZmine to take effect",
+          System.getProperty("java.io.tmpdir"));
 
   public MZminePreferences() {
-    super(new Parameter[] {mzFormat, rtFormat, mobilityFormat, intensityFormat, ppmFormat,
-        numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
-        stdColorPalette, chartParam});
+    super(
+        new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
+            unitFormat,
+            numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
+            defaultColorPalette, defaultPaintScale, chartParam, darkMode, imsModuleWarnings,
+            tempDirectory});
   }
 
   @Override
@@ -105,6 +138,22 @@ public class MZminePreferences extends SimpleParameterSet {
 
       // Repaint windows to update number formats
       // MZmineCore.getDesktop().getMainWindow().repaint();
+
+      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+          .removeIf(e -> e.contains("_dark.css"));
+      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+          .removeIf(e -> e.contains("_light.css"));
+      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
+          .getParameter(MZminePreferences.darkMode).getValue();
+      if (darkMode) {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .add(getClass().getResource(
+                "/themes/MZmine_dark.css").toExternalForm());
+      } else {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .add(getClass().getResource(
+                "/themes/MZmine_light.css").toExternalForm());
+      }
     }
 
     return retVal;

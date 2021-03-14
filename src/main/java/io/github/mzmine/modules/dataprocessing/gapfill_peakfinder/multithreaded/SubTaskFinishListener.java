@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -31,12 +32,12 @@ public class SubTaskFinishListener implements Consumer<FeatureList> {
 
   private final MZmineProject project;
   private ParameterSet parameters;
-  private FeatureList peakList;
+  private ModularFeatureList peakList;
   private int tasks;
   private int finished = 0;
   private boolean removeOriginal;
 
-  public SubTaskFinishListener(MZmineProject project, ParameterSet parameters, FeatureList peakList,
+  public SubTaskFinishListener(MZmineProject project, ParameterSet parameters, ModularFeatureList peakList,
       boolean removeOriginal, int tasks) {
     super();
     this.project = project;
@@ -60,7 +61,8 @@ public class SubTaskFinishListener implements Consumer<FeatureList> {
 
       // Add task description to peakList
       processedPeakList
-          .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ", parameters));
+          .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
+              MultiThreadPeakFinderModule.class, parameters));
 
       // Remove the original peaklist if requested
       if (removeOriginal)

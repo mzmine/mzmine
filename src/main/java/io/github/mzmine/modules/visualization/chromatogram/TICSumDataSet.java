@@ -77,10 +77,9 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   /**
    * Create the data set.
    *
-   * @param file           data file to plot.
-   * @param theScanNumbers scans to plot.
-   * @param rangeMZ        range of m/z to plot.
-   * @param window         visualizer window.
+   * @param files data file to plot.
+   * @param rangeMZ range of m/z to plot.
+   * @param window visualizer window.
    */
   public TICSumDataSet(final RawDataFile[] files, final Range<Float> rangeRT,
       final Range<Double> rangeMZ, final TICVisualizerTab window) {
@@ -92,11 +91,10 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
    * Create the data set + possibility to specify a plot type, even outside a "TICVisualizerWindow"
    * context.
    *
-   * @param file           data file to plot.
-   * @param theScanNumbers scans to plot.
-   * @param rangeMZ        range of m/z to plot.
-   * @param window         visualizer window.
-   * @param plotType       plot type.
+   * @param files data file to plot.
+   * @param rangeMZ range of m/z to plot.
+   * @param window visualizer window.
+   * @param plotType plot type.
    */
   public TICSumDataSet(final RawDataFile[] files, final Range<Float> rangeRT,
       final Range<Double> rangeMZ, final TICVisualizerTab window, TICPlotType plotType) {
@@ -121,7 +119,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   private void calcTotalScans() {
     totalScans = 0;
     for (RawDataFile raw : dataFiles) {
-      int[] scans = raw.getScanNumbers(1, rangeRT);
+      Scan[] scans = raw.getScanNumbers(1, rangeRT);
       totalScans += scans.length;
     }
   }
@@ -225,20 +223,18 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
     // all raw data files
     for (int r = 0; r < dataFiles.length; r++) {
       RawDataFile raw = dataFiles[r];
-      int[] scans = raw.getScanNumbers(1, rangeRT);
+      Scan[] scans = raw.getScanNumbers(1, rangeRT);
       // Process each scan.
       for (int index = 0; status != TaskStatus.CANCELED && index < scans.length; index++) {
         // Current scan.
-        final Scan scan = raw.getScan(scans[index]);
+        final Scan scan = scans[index];
         float rt = scan.getRetentionTime();
         double mzBasePeak = 0;
         double intensityBasePeak = 0;
         double intensity = 0.0;
 
         // Determine base peak value.
-        final DataPoint basePeak =
-            mzRange.encloses(scan.getDataPointMZRange()) ? scan.getHighestDataPoint()
-                : ScanUtils.findBasePeak(scan, mzRange);
+        final DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
         if (basePeak != null) {
           mzBasePeak = basePeak.getMZ();
           intensityBasePeak = basePeak.getIntensity();

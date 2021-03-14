@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,92 +18,44 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass;
 
+import gnu.trove.list.array.TDoubleArrayList;
+import gnu.trove.list.array.TIntArrayList;
 import java.util.ArrayList;
-import java.util.TreeSet;
-
+import java.util.List;
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 
 public class ExactMassDetector implements MassDetector {
 
-  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
-    return getMassValues(scan.getDataPoints(), parameters);
-  }
-
-  /**
-   * @see io.github.mzmine.modules.peakpicking.threestep.massdetection.MassDetector#getMassValues(io.github.mzmine.datamodel.Scan)
-   */
-  public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
+  @Override
+  public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
+    if (spectrum.getNumberOfDataPoints() == 0)
+      return EMPTY_DATA;
 
     double noiseLevel = parameters.getParameter(ExactMassDetectorParameters.noiseLevel).getValue();
 
-    // Create a tree set of detected mzPeaks sorted by MZ in ascending order
-    TreeSet<ExactMzDataPoint> mzPeaks = new TreeSet<ExactMzDataPoint>(
-        new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
-
-    // Create a tree set of candidate mzPeaks sorted by intensity in
-    // descending order.
-    TreeSet<ExactMzDataPoint> candidatePeaks = new TreeSet<ExactMzDataPoint>(
-        new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+    // lists of primitive doubles
+    TDoubleArrayList mzs = new TDoubleArrayList(100);
+    TDoubleArrayList intensities = new TDoubleArrayList(100);
 
     // First get all candidate peaks (local maximum)
-    getLocalMaxima(dataPoints, candidatePeaks, noiseLevel);
-
-    // We calculate the exact mass for each peak,
-    // starting with biggest intensity peak and so on
-    while (candidatePeaks.size() > 0) {
-
-      // Always take the biggest (intensity) peak
-      ExactMzDataPoint currentCandidate = candidatePeaks.first();
-
-      // Calculate the exact mass and update value in current candidate
-      // (MzPeak)
-      double exactMz = calculateExactMass(currentCandidate);
-      currentCandidate.setMZ(exactMz);
-
-      // Add this candidate to the final tree set sorted by MZ and remove
-      // from tree set sorted by intensity
-      mzPeaks.add(currentCandidate);
-      candidatePeaks.remove(currentCandidate);
-
-    }
-
-    // Return an array of detected MzPeaks sorted by MZ
-    return mzPeaks.toArray(new ExactMzDataPoint[0]);
-
-  }
-
-  /**
-   * This method gets all possible MzPeaks using local maximum criteria from the current scan and
-   * return a tree set of MzPeaks sorted by intensity in descending order.
-   * 
-   * @param scan
-   * @return
-   */
-  private void getLocalMaxima(DataPoint scanDataPoints[], TreeSet<ExactMzDataPoint> candidatePeaks,
-      double noiseLevel) {
-
-    if (scanDataPoints.length == 0)
-      return;
-    DataPoint localMaximum = scanDataPoints[0];
-    ArrayList<DataPoint> rangeDataPoints = new ArrayList<DataPoint>();
+    int localMaximumIndex = 0;
+    ArrayList<Integer> rangeDataPoints = new ArrayList<>();
 
     boolean ascending = true;
 
     // Iterate through all data points
-    for (int i = 0; i < scanDataPoints.length - 1; i++) {
+    for (int i = 0; i < spectrum.getNumberOfDataPoints() - 1; i++) {
+      double intensity = spectrum.getIntensityValue(i);
+      double nextIntensity = spectrum.getIntensityValue(i+1);
 
-      boolean nextIsBigger =
-          scanDataPoints[i + 1].getIntensity() > scanDataPoints[i].getIntensity();
-      boolean nextIsZero = scanDataPoints[i + 1].getIntensity() == 0;
-      boolean currentIsZero = scanDataPoints[i].getIntensity() == 0;
+      boolean nextIsBigger =  nextIntensity > intensity;
+      boolean nextIsZero = Double.compare(nextIntensity, 0d) == 0;
+      boolean currentIsZero = Double.compare(intensity, 0d) == 0;
 
       // Ignore zero intensity regions
       if (currentIsZero) {
@@ -111,75 +63,78 @@ public class ExactMassDetector implements MassDetector {
       }
 
       // Add current (non-zero) data point to the current m/z peak
-      rangeDataPoints.add(scanDataPoints[i]);
+      rangeDataPoints.add(i);
 
       // Check for local maximum
       if (ascending && (!nextIsBigger)) {
-        localMaximum = scanDataPoints[i];
+        localMaximumIndex = i;
         ascending = false;
         continue;
       }
 
       // Check for the end of the peak
       if ((!ascending) && (nextIsBigger || nextIsZero)) {
-
         // Add the m/z peak if it is above the noise level
-        if (localMaximum.getIntensity() > noiseLevel) {
+        if (spectrum.getIntensityValue(localMaximumIndex) > noiseLevel) {
+          // Calculate the exact mass
+          double exactMz = calculateExactMass(spectrum, localMaximumIndex, rangeDataPoints);
 
-          DataPoint[] rawDataPoints = rangeDataPoints.toArray(new DataPoint[0]);
-          candidatePeaks.add(new ExactMzDataPoint(localMaximum, rawDataPoints));
+          // add data point to lists
+          mzs.add(exactMz);
+          intensities.add(spectrum.getIntensityValue(localMaximumIndex));
         }
 
         // Reset and start with new peak
         ascending = true;
         rangeDataPoints.clear();
       }
-
     }
 
+    // Return an array of detected MzPeaks sorted by MZ
+    return new double[][]{mzs.toArray(), intensities.toArray()};
   }
+
 
   /**
    * This method calculates the exact mass of a peak using the FWHM concept and linear equation (y =
    * mx + b).
-   * 
-   * @param ExactMassDataPoint
+   *
    * @return double
    */
-  private double calculateExactMass(ExactMzDataPoint currentCandidate) {
+  private double calculateExactMass(MassSpectrum spectrum, int topIndex,
+      List<Integer> rangeDataPoints) {
 
     /*
      * According with the FWHM concept, the exact mass of this peak is the half point of FWHM. In
      * order to get the points in the curve that define the FWHM, we use the linear equation.
-     * 
+     *
      * First we look for, in left side of the peak, 2 data points together that have an intensity
      * less (first data point) and bigger (second data point) than half of total intensity. Then we
      * calculate the slope of the line defined by this two data points. At least, we calculate the
      * point in this line that has an intensity equal to the half of total intensity
-     * 
+     *
      * We repeat the same process in the right side.
      */
 
     double xRight = -1, xLeft = -1;
-    double halfIntensity = currentCandidate.getIntensity() / 2;
-    DataPoint[] rangeDataPoints = currentCandidate.getRawDataPoints();
+    double halfIntensity = spectrum.getIntensityValue(topIndex) / 2;
 
-    for (int i = 0; i < rangeDataPoints.length - 1; i++) {
+    for (int i = 0; i < rangeDataPoints.size() - 1; i++) {
 
       // Left side of the curve
-      if ((rangeDataPoints[i].getIntensity() <= halfIntensity)
-          && (rangeDataPoints[i].getMZ() < currentCandidate.getMZ())
-          && (rangeDataPoints[i + 1].getIntensity() >= halfIntensity)) {
+      if ((spectrum.getIntensityValue(rangeDataPoints.get(i)) <= halfIntensity)
+          && (spectrum.getMzValue(rangeDataPoints.get(i)) < spectrum.getMzValue(topIndex))
+          && (spectrum.getIntensityValue(rangeDataPoints.get(i + 1)) >= halfIntensity)) {
 
         // First point with intensity just less than half of total
         // intensity
-        double leftY1 = rangeDataPoints[i].getIntensity();
-        double leftX1 = rangeDataPoints[i].getMZ();
+        double leftY1 = spectrum.getIntensityValue(rangeDataPoints.get(i));
+        double leftX1 = spectrum.getMzValue(rangeDataPoints.get(i));
 
         // Second point with intensity just bigger than half of total
         // intensity
-        double leftY2 = rangeDataPoints[i + 1].getIntensity();
-        double leftX2 = rangeDataPoints[i + 1].getMZ();
+        double leftY2 = spectrum.getIntensityValue(rangeDataPoints.get(i + 1));
+        double leftX2 = spectrum.getMzValue(rangeDataPoints.get(i + 1));
 
         // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
         double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
@@ -190,29 +145,28 @@ public class ExactMassDetector implements MassDetector {
           xLeft = (leftX1 + leftX2) / 2;
         } else {
           // We calculate the desired point (at half intensity) with
-          // the
-          // linear equation
-          // X = X1 + [(Y - Y1) / m ], where Y = half of total
-          // intensity
+          // the linear equation
+          // X = X1 + [(Y - Y1) / m ]
+          // where Y = half of total intensity
           xLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
         }
         continue;
       }
 
       // Right side of the curve
-      if ((rangeDataPoints[i].getIntensity() >= halfIntensity)
-          && (rangeDataPoints[i].getMZ() > currentCandidate.getMZ())
-          && (rangeDataPoints[i + 1].getIntensity() <= halfIntensity)) {
+      if ((spectrum.getIntensityValue(rangeDataPoints.get(i)) >= halfIntensity)
+          && (spectrum.getMzValue(rangeDataPoints.get(i)) > spectrum.getMzValue(topIndex))
+          && (spectrum.getIntensityValue(rangeDataPoints.get(i + 1)) <= halfIntensity)) {
 
         // First point with intensity just bigger than half of total
         // intensity
-        double rightY1 = rangeDataPoints[i].getIntensity();
-        double rightX1 = rangeDataPoints[i].getMZ();
+        double rightY1 = spectrum.getIntensityValue(rangeDataPoints.get(i));
+        double rightX1 = spectrum.getMzValue(rangeDataPoints.get(i));
 
         // Second point with intensity just less than half of total
         // intensity
-        double rightY2 = rangeDataPoints[i + 1].getIntensity();
-        double rightX2 = rangeDataPoints[i + 1].getMZ();
+        double rightY2 = spectrum.getIntensityValue(rangeDataPoints.get(i + 1));
+        double rightX2 = spectrum.getMzValue(rangeDataPoints.get(i + 1));
 
         // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
         double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
@@ -236,7 +190,7 @@ public class ExactMassDetector implements MassDetector {
     // We verify the values to confirm we find the desired points. If not we
     // return the same mass value.
     if ((xRight == -1) || (xLeft == -1))
-      return currentCandidate.getMZ();
+      return spectrum.getMzValue(topIndex);
 
     // The center of left and right points is the exact mass of our peak.
     double exactMass = (xLeft + xRight) / 2;
@@ -244,6 +198,7 @@ public class ExactMassDetector implements MassDetector {
     return exactMass;
   }
 
+  @Override
   public @Nonnull String getName() {
     return "Exact mass";
   }

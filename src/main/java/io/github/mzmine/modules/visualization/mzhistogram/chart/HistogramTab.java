@@ -21,7 +21,10 @@ package io.github.mzmine.modules.visualization.mzhistogram.chart;
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -56,12 +59,10 @@ import org.jfree.data.xy.XYDataset;
  */
 public class HistogramTab extends MZmineTab implements ActionListener {
 
-  private CheckBox cbKeepSameXaxis;
   //private final Scene mainScene;
   private final BorderPane mainPane;
-
   protected HistogramPanel histo;
-
+  private CheckBox cbKeepSameXaxis;
   private RawDataFile dataFile;
 
   // scan counter
@@ -70,10 +71,10 @@ public class HistogramTab extends MZmineTab implements ActionListener {
   // parameters
   private ScanSelection scanSelection;
   private Scan[] scans;
-  private String massListName;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
   private Boolean useRTRange;
+  private boolean useMobilityScans;
   private double binWidth;
 
   private HistogramData data;
@@ -88,9 +89,9 @@ public class HistogramTab extends MZmineTab implements ActionListener {
   //}
 
   /**
-   * @param dataFile rawDataFile
-   * @param title title
-   * @param xLabel xLabel
+   * @param dataFile   rawDataFile
+   * @param title      title
+   * @param xLabel     xLabel
    * @param parameters parameters
    */
   public HistogramTab(RawDataFile dataFile, String title, String xLabel, ParameterSet parameters) {
@@ -99,14 +100,17 @@ public class HistogramTab extends MZmineTab implements ActionListener {
 
     this.dataFile = dataFile;
     scanSelection = parameters.getParameter(MZDistributionHistoParameters.scanSelection).getValue();
-    massListName = parameters.getParameter(MZDistributionHistoParameters.massList).getValue();
 
     mzRange = parameters.getParameter(MZDistributionHistoParameters.mzRange).getValue();
     useRTRange = parameters.getParameter(MZDistributionHistoParameters.rtRange).getValue();
-    if (useRTRange)
-      rtRange = RangeUtils.toFloatRange(parameters.getParameter(MZDistributionHistoParameters.rtRange)
-          .getEmbeddedParameter().getValue());
+    if (useRTRange) {
+      rtRange = RangeUtils
+          .toFloatRange(parameters.getParameter(MZDistributionHistoParameters.rtRange)
+              .getEmbeddedParameter().getValue());
+    }
     binWidth = parameters.getParameter(MZDistributionHistoParameters.binWidth).getValue();
+    useMobilityScans = parameters.getParameter(MZDistributionHistoParameters.useMobilityScans)
+        .getValue();
 
     data = buildHistogramData(dataFile);
 
@@ -162,26 +166,45 @@ public class HistogramTab extends MZmineTab implements ActionListener {
 
       // retention time in range
       if (!useRTRange || rtRange.contains(scan.getRetentionTime())) {
-        // go through all mass lists
-        MassList massList = scan.getMassList(massListName);
-        if (massList == null) {
-          throw new NullPointerException("Scan " + dataFile + " #" + scan.getScanNumber()
-              + " does not have a mass list " + massListName);
-        }
-        DataPoint mzValues[] = massList.getDataPoints();
 
-        // insert all mz in order and count them
-        Arrays.stream(mzValues).mapToDouble(dp -> dp.getMZ()).filter(mz -> mzRange.contains(mz))
-            .forEach(mz -> data.add(mz));
-        processedScans++;
+        if (scan.getDataFile() instanceof IMSRawDataFile && useMobilityScans
+            && scan instanceof Frame) {
+          for (MobilityScan mobilityScan : ((Frame) scan).getMobilityScans()) {
+            // go through all mass lists
+            MassList massList = mobilityScan.getMassList();
+            if (massList == null) {
+              throw new NullPointerException("Scan " + dataFile + " #" + scan.getScanNumber()
+                  + " does not have a mass list");
+            }
+            DataPoint mzValues[] = massList.getDataPoints();
+
+            // insert all mz in order and count them
+            Arrays.stream(mzValues).mapToDouble(dp -> dp.getMZ()).filter(mz -> mzRange.contains(mz))
+                .forEach(mz -> data.add(mz));
+          }
+        } else {
+          // go through all mass lists
+          MassList massList = scan.getMassList();
+          if (massList == null) {
+            throw new NullPointerException("Scan " + dataFile + " #" + scan.getScanNumber()
+                + " does not have a mass list");
+          }
+          DataPoint mzValues[] = massList.getDataPoints();
+
+          // insert all mz in order and count them
+          Arrays.stream(mzValues).mapToDouble(dp -> dp.getMZ()).filter(mz -> mzRange.contains(mz))
+              .forEach(mz -> data.add(mz));
+          processedScans++;
+        }
       }
     }
 
     double[] dataArray = new double[data.size()];
     if (!data.isEmpty()) {
       // to array
-      for (int i = 0; i < data.size(); i++)
+      for (int i = 0; i < data.size(); i++) {
         dataArray[i] = data.get(i);
+      }
     } else {
       throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
     }
@@ -375,7 +398,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+    if (rawDataFiles == null || rawDataFiles.isEmpty()) {
       return;
     }
 

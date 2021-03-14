@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -29,11 +29,9 @@ import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.openscience.cdk.interfaces.IIsotope;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
@@ -46,7 +44,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 /**
- * 
+ *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
@@ -57,7 +55,7 @@ public class IsotopePatternUtils {
 
   /**
    * Finds data points with the best m/z differences (lowest) to a predicted isotope peak.
-   * 
+   *
    * @param dp The base data point.
    * @param originalDataPoints Array of all peaks in consideration
    * @param i_dp the start index inside originalDataPoints to search for.
@@ -106,7 +104,7 @@ public class IsotopePatternUtils {
   /**
    * Searches for an isotopic peaks (pattern) of the data point dp within an array of data points by
    * the elements m/z differences.
-   * 
+   *
    * @param dp the base peak with lowest m/z.
    * @param originalDataPoints All the data points in consideration for isotope peaks.
    * @param mzTolerance the m/z tolerance.
@@ -116,7 +114,7 @@ public class IsotopePatternUtils {
    */
   public static ProcessedDataPoint findIsotopicPeaks(ProcessedDataPoint dp,
       ProcessedDataPoint[] originalDataPoints, MZTolerance mzTolerance,
-      ExtendedIsotopePattern pattern, Range<Double> mzrange, int maxCharge) {
+      SimpleIsotopePattern pattern, Range<Double> mzrange, int maxCharge) {
     // dp is the peak we are currently searching an isotope pattern for
 
     if (maxCharge < 1 || !mzrange.contains(dp.getMZ()))
@@ -124,7 +122,7 @@ public class IsotopePatternUtils {
 
     int i_dp = ArrayUtils.indexOf(dp, originalDataPoints);
 
-    int numIsotopes = pattern.getDataPoints().length;
+    int numIsotopes = pattern.getNumberOfDataPoints();
 
     for (int i_charge = 1; i_charge <= maxCharge; i_charge++) {
 
@@ -141,8 +139,7 @@ public class IsotopePatternUtils {
 
         // this is the mass difference the current isotope peak would
         // add to the base peak.
-        double isoMzDiff =
-            pattern.getDataPoints()[isotopeindex].getMZ() - pattern.getDataPoints()[0].getMZ();
+        double isoMzDiff = pattern.getMzValue(isotopeindex) - pattern.getMzValue(0);
 
         bestdp[isotopeindex] = (ProcessedDataPoint) findBestMZDiff(dp, originalDataPoints, i_dp,
             mzTolerance, isoMzDiff);
@@ -182,26 +179,26 @@ public class IsotopePatternUtils {
    * merged into the parent. This method recursively calls itself and will merge all results into
    * the parent peak. The results of the child peaks will be removed, the isotopic composition is
    * updated on every merge step, making it possible to be evaluated in later steps.
-   * 
+   *
    * Please note, that on bigger isotope patterns the parent might contain a peak twice. This has
    * the following reason (e.g.:) Let's assume an isotope pattern of C1 Cl1
-   * 
+   *
    * This isotope pattern will have the following compositions: A: 12C, 35Cl
-   * 
+   *
    * B: 13C, 35Cl
-   * 
+   *
    * C: 12C, 37Cl D: 13C, 37Cl
-   * 
+   *
    * When using the findIsotopicPeaks method, the following assignments will be made:
-   * 
+   *
    * A -> B (13C of A) A -> C (37Cl of A) B -> D (37Cl of B) C -> D (13C of C)
-   * 
+   *
    * As you can see, D has been assigned twice. This is correct behaviour of the method, but if the
    * convertIsotopicPeakResultsToPattern method was called now, it would contain peak D twice, even
    * though there was only one peak. Comparing isotope patterns now would lead to wrong results.
    * This is why the use of sortAndRemoveDuplicateIsotopicPeakResults before converting to an
    * isotope pattern is recommended.
-   * 
+   *
    * @param parent The peak to process
    */
   public static void mergeIsotopicPeakResults(ProcessedDataPoint parent) {
@@ -238,7 +235,7 @@ public class IsotopePatternUtils {
   /**
    * Takes all DPPIsotopicPeakResults of one charge and puts them into one isotope pattern (per
    * charge).
-   * 
+   *
    * @param dp A ProcessedDataPoint
    * @param keepResults if false, all DPPIsotopicPeakResults will be removed from this data point.
    */
@@ -267,12 +264,10 @@ public class IsotopePatternUtils {
       ProcessedDataPoint dps[] = peaks.toArray(new ProcessedDataPoint[0]);
       String[] isos = isotopes.toArray(new String[0]);
 
-      ExtendedIsotopePattern pattern =
-          new ExtendedIsotopePattern(dps, IsotopePatternStatus.DETECTED,
-              format.format(dp.getMZ()) /* + Arrays.toString(isos) */, isos);
+      SimpleIsotopePattern pattern = new SimpleIsotopePattern(dps, IsotopePatternStatus.DETECTED,
+          format.format(dp.getMZ()) /* + Arrays.toString(isos) */, isos);
 
-      dp.addResult(new DPPIsotopePatternResult(pattern,
-          (ProcessedDataPoint[]) pattern.getDataPoints(), charge));
+      dp.addResult(new DPPIsotopePatternResult(pattern, dps, charge));
 
       peaks.clear();
       isotopes.clear();
@@ -321,7 +316,7 @@ public class IsotopePatternUtils {
 
   /**
    * Compresses the peak description from [37]Cl[37]Cl to [37]Cl2
-   * 
+   *
    * @param descr
    * @return
    */
@@ -349,7 +344,7 @@ public class IsotopePatternUtils {
 
   /**
    * Returns the maximum number of isotope occurrences within a full isotope pattern.
-   * 
+   *
    * @param comps
    * @param isotopes
    * @return
@@ -382,7 +377,7 @@ public class IsotopePatternUtils {
   }
 
   /**
-   * 
+   *
    * @param comps Isotope composition of an isotope pattern in the format [13]C[37]Cl[13]C
    * @return Array of all occurring isotopes within comp
    */
@@ -403,7 +398,7 @@ public class IsotopePatternUtils {
   }
 
   /**
-   * 
+   *
    * @param isotopes Array of strings, each String must contain one expression like [37]Cl
    * @return Array of only element strings, no duplicates
    */
@@ -436,7 +431,7 @@ public class IsotopePatternUtils {
 
   /**
    * Sorts DPPIsotopicPeakResults by m/z and removes duplicates
-   * 
+   *
    * @param dp
    */
   public static void sortAndRemoveDuplicateIsotopicPeakResult(ProcessedDataPoint dp) {
@@ -463,7 +458,7 @@ public class IsotopePatternUtils {
 
   /**
    * Returns a list of all DPPIsotopicPeakResults
-   * 
+   *
    * @param dp the ProcessedDataPoint to gather the list from.
    * @return List of all results, empty if no such results exists.
    */
@@ -484,7 +479,7 @@ public class IsotopePatternUtils {
 
   /**
    * Convenience method to get all isotope pattern results in a List<DPPIsotopePatternResult> list
-   * 
+   *
    * @param dp
    * @return
    */
@@ -504,7 +499,7 @@ public class IsotopePatternUtils {
   }
 
   /**
-   * 
+   *
    * @param dp a processed data point.
    * @return an empty list if no isotope pattern was detected, a list of the charge states if there
    *         was at least one charge detected.
@@ -547,8 +542,7 @@ public class IsotopePatternUtils {
 
   public static IsotopePattern checkOverlappingIsotopes(IsotopePattern pattern, IIsotope[] isotopes,
       double mergeWidth, double minAbundance) {
-    DataPoint[] dp = pattern.getDataPoints();
-    double basemz = dp[0].getMZ();
+    double basemz = pattern.getMzValue(0);
     List<DataPoint> newPeaks = new ArrayList<DataPoint>();
 
     double isotopeBaseMass = 0d;
@@ -569,7 +563,7 @@ public class IsotopePatternUtils {
       if (possiblemzdiff < 0.000001)
         continue;
       boolean add = true;
-      for (DataPoint patternDataPoint : dp) {
+      for (DataPoint patternDataPoint : pattern) {
         // here check for every peak in the pattern, if a new peak would
         // overlap
         // if it overlaps good, we dont need to add a new peak
@@ -603,9 +597,9 @@ public class IsotopePatternUtils {
     // now add all new mzs to the isotopePattern
     // DataPoint[] newDataPoints = new SimpleDataPoint[dp.length +
     // newPeaks.size()];
-    for (DataPoint p : dp) {
-      newPeaks.add(p);
-    }
+    // for (DataPoint p : dp) {
+    // newPeaks.add(p);
+    // }
     newPeaks.sort((o1, o2) -> {
       return Double.compare(o1.getMZ(), o2.getMZ());
     });

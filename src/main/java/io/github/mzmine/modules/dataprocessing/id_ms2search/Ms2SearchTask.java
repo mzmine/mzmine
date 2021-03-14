@@ -34,50 +34,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
-class Ms2SearchResult {
-  private double score;
-  private String searchType;
-  private List<DataPoint> matchedIons;
-
-  public Ms2SearchResult(double score, String searchType, List<DataPoint> matchedIons) {
-    this.score = score;
-    this.searchType = searchType;
-    this.matchedIons = matchedIons;
-  }
-
-  public double getScore() {
-    return this.score;
-  }
-
-  public int getNumIonsMatched() {
-    return matchedIons.size();
-  }
-
-  public String getSearchType() {
-    return this.searchType;
-  }
-
-  public List<DataPoint> getMatchedIons() {
-    return this.matchedIons;
-  }
-
-  public String getMatchedIonsAsString() {
-    // Return the matched ions as a string with the following format:
-    // 10.2312_20.4324_55.1231
-    String returnString = new String();
-    for (int i = 0; i < this.matchedIons.size(); i++) {
-      returnString = returnString + String.format("%.4f", this.matchedIons.get(i).getMZ()) + "_";
-    }
-    return returnString.substring(0, returnString.length() - 1); // Some
-                                                                 // hackery
-                                                                 // to
-                                                                 // remove
-                                                                 // the last
-                                                                 // "_"
-  }
-
-}
-
 
 class Ms2SearchTask extends AbstractTask {
 
@@ -92,13 +48,12 @@ class Ms2SearchTask extends AbstractTask {
   private double scoreThreshold;
   private double intensityThreshold;
   private int minimumIonsMatched;
-  private String massListName;
 
   /**
    * @param parameters
-   * @param peakList
    */
   public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2) {
+    super(null); // no new data stored -> null
 
     this.peakList1 = peakList1;
     this.peakList2 = peakList2;
@@ -111,9 +66,6 @@ class Ms2SearchTask extends AbstractTask {
     intensityThreshold = parameters.getParameter(Ms2SearchParameters.intensityThreshold).getValue();
 
     minimumIonsMatched = parameters.getParameter(Ms2SearchParameters.minimumIonsMatched).getValue();
-
-    massListName = parameters.getParameter(Ms2SearchParameters.massList).getValue();
-
   }
 
   /**
@@ -164,7 +116,7 @@ class Ms2SearchTask extends AbstractTask {
         Scan scanB = rows2[j].getBestFragmentation();
 
         searchResult =
-            simpleMS2similarity(scanA, scanB, intensityThreshold, mzTolerance, massListName);
+            simpleMS2similarity(scanA, scanB, intensityThreshold, mzTolerance);
 
         // Report the final score to the peaklist identity
         if (searchResult != null && searchResult.getScore() > scoreThreshold
@@ -181,7 +133,8 @@ class Ms2SearchTask extends AbstractTask {
 
     // Add task description to peakList
     ((ModularFeatureList) peakList1).addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Identification of similar MS2s", parameters));
+        new SimpleFeatureListAppliedMethod("Identification of similar MS2s",
+            Ms2SearchModule.class, parameters));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -190,7 +143,7 @@ class Ms2SearchTask extends AbstractTask {
   }
 
   private Ms2SearchResult simpleMS2similarity(Scan scanMS2A, Scan scanMS2B,
-      double intensityThreshold, MZTolerance mzRange, String massList) {
+      double intensityThreshold, MZTolerance mzRange) {
 
     double runningScoreTotal = 0.0;
     double mzRangePPM = mzRange.getPpmTolerance();
@@ -210,15 +163,15 @@ class Ms2SearchTask extends AbstractTask {
     }
 
     // Fetch centroided data
-    MassList massListA = scanMS2A.getMassList(massListName);
-    MassList massListB = scanMS2B.getMassList(massListName);
+    MassList massListA = scanMS2A.getMassList();
+    MassList massListB = scanMS2B.getMassList();
 
     if (massListA == null) {
       // Will this work properly? As this function isn't directly the
       // task?
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Scan " + scanMS2A.getDataFile().getName() + " #" + scanMS2A.getScanNumber()
-          + " does not have a mass list " + massListName);
+          + " does not have a mass list");
       return null;
     }
 
@@ -227,7 +180,7 @@ class Ms2SearchTask extends AbstractTask {
       // task?
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Scan " + scanMS2B.getDataFile().getName() + " #" + scanMS2B.getScanNumber()
-          + " does not have a mass list " + massListName);
+          + " does not have a mass list");
       return null;
     }
 
@@ -280,9 +233,6 @@ class Ms2SearchTask extends AbstractTask {
 
   /**
    * Add new identity based on fragmentation similarity to the row
-   *
-   * @param mainRow
-   * @param fragmentRow
    */
   private void addMS2Identity(FeatureListRow row1, Feature featureA, Feature featureB,
       Ms2SearchResult searchResult) {

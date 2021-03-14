@@ -18,17 +18,17 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.FileType;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import javafx.collections.ObservableList;
 
 /**
  * Simple implementation of the Scan interface.
@@ -45,13 +45,11 @@ public class MZmineToMSDKRawDataFile implements io.github.msdk.datamodel.RawData
   public MZmineToMSDKRawDataFile(RawDataFile mzmineRawdataFile) {
     this.mzmineRawdataFile = mzmineRawdataFile;
 
-    int scanNumbers[] = mzmineRawdataFile.getScanNumbers();
-    for (int scanNum : scanNumbers) {
-      Scan mzmineScan = mzmineRawdataFile.getScan(scanNum);
+    ObservableList<Scan> scanNumbers = mzmineRawdataFile.getScans();
+    for (Scan mzmineScan : scanNumbers) {
       MsScan msdkScan = new MZmineToMSDKMsScan(mzmineScan);
       scans.add(msdkScan);
     }
-
   }
 
   @Override

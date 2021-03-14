@@ -18,9 +18,14 @@
 
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -33,12 +38,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.ManualFeatureUtils;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 
 /**
@@ -58,8 +57,9 @@ public class FeatureDataSetCalc extends AbstractTask {
   private final TICPlot chromPlot;
   private final ScanSelection scanSelection;
 
-  public FeatureDataSetCalc(final Collection<RawDataFile> rawDataFiles,
-      final Range<Double> mzRange, ScanSelection scanSelection, TICPlot chromPlot) {
+  public FeatureDataSetCalc(final Collection<RawDataFile> rawDataFiles, final Range<Double> mzRange,
+      ScanSelection scanSelection, TICPlot chromPlot) {
+    super(null); // no new data stored -> null
     this.rawDataFiles = rawDataFiles;
     this.mzRange = mzRange;
     this.chromPlot = chromPlot;
@@ -73,9 +73,9 @@ public class FeatureDataSetCalc extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Calculating base peak chromatogram(s) of m/z " + mzFormat
-        .format((mzRange.upperEndpoint() + mzRange.lowerEndpoint()) / 2) + " in " + rawDataFiles
-        .size() + " file(s).";
+    return "Calculating base peak chromatogram(s) of m/z "
+        + mzFormat.format((mzRange.upperEndpoint() + mzRange.lowerEndpoint()) / 2) + " in "
+        + rawDataFiles.size() + " file(s).";
   }
 
   @Override
@@ -89,7 +89,8 @@ public class FeatureDataSetCalc extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // TODO: new ModularFeatureList name
-    FeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode());
+    ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode(),
+        null, new ArrayList<>(rawDataFiles));
 
     for (RawDataFile rawDataFile : rawDataFiles) {
       if (getStatus() == TaskStatus.CANCELED) {
@@ -98,10 +99,11 @@ public class FeatureDataSetCalc extends AbstractTask {
 
       ManualFeature feature = ManualFeatureUtils.pickFeatureManually(rawDataFile,
           rawDataFile.getDataRTRange(scanSelection.getMsLevel()), mzRange);
-      feature.setFeatureList(newFeatureList);
-      ModularFeature modularFeature = FeatureConvertors.ManualFeatureToModularFeature(feature);
       if (feature != null && feature.getScanNumbers() != null
           && feature.getScanNumbers().length > 0) {
+        feature.setFeatureList(newFeatureList);
+        ModularFeature modularFeature =
+            FeatureConvertors.ManualFeatureToModularFeature(newFeatureList, feature);
         features.add(new FeatureDataSet(modularFeature));
       } else {
         logger.finest("No scans found for " + rawDataFile.getName());

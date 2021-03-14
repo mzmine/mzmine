@@ -53,6 +53,7 @@ public class ComplexSearchTask extends AbstractTask {
    * @param peakList
    */
   public ComplexSearchTask(ParameterSet parameters, FeatureList peakList) {
+    super(null); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;
@@ -132,7 +133,8 @@ public class ComplexSearchTask extends AbstractTask {
 
     // Add task description to peakList
     ((ModularFeatureList) peakList).addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Identification of complexes", parameters));
+        new SimpleFeatureListAppliedMethod("Identification of complexes",
+            ComplexSearchModule.class, parameters));
 
 
     setStatus(TaskStatus.FINISHED);
@@ -172,9 +174,6 @@ public class ComplexSearchTask extends AbstractTask {
 
   /**
    * Add new identity to the complex row
-   *
-   * @param mainRow
-   * @param fragmentRow
    */
   private void addComplexInfo(FeatureListRow complexRow, FeatureListRow row1, FeatureListRow row2) {
     ComplexIdentity newIdentity = new ComplexIdentity(row1, row2);

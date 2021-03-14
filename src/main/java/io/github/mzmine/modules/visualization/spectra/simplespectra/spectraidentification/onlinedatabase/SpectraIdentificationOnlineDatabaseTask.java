@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.DATABASE;
 
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -28,7 +29,6 @@ import java.util.logging.Logger;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.ui.TextAnchor;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -54,7 +54,7 @@ import io.github.mzmine.util.ExceptionUtils;
 
 /**
  * Task for identifying peaks by searching on-line databases.
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
@@ -76,12 +76,12 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
 
   /**
    * Create the task.
-   * 
+   *
    * @param parameters task parameters.
-   * @param peakListRow peak-list row to identify.
    */
   public SpectraIdentificationOnlineDatabaseTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot) {
+    super(null);
 
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;
@@ -128,7 +128,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // create mass list for scan
-    DataPoint[] massList = null;
+    double[][] massList = null;
     ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
     MassDetector massDetector = null;
     ArrayList<String> allCompoundIDs = new ArrayList<>();
@@ -139,12 +139,12 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
       massDetector = new CentroidMassDetector();
       CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
       CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
+      massList = massDetector.getMassValues(currentScan, parameters);
     } else {
       massDetector = new ExactMassDetector();
       ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
       ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
+      massList = massDetector.getMassValues(currentScan, parameters);
     }
     numItems = massList.length;
     for (int i = 0; i < massList.length; i++) {
@@ -152,7 +152,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
       if (getStatus() != TaskStatus.PROCESSING) {
         return;
       }
-      searchedMass = massList[i].getMZ() - ionType.getAddedMass();
+      searchedMass = massList[0][i] - ionType.getAddedMass();
       try {
         // find candidate compounds
         String compoundIDs[] =
@@ -175,7 +175,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
         }
         if (annotation != "") {
           allCompoundIDs.add(annotation);
-          massListAnnotated.add(massList[i]);
+          massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
         }
       } catch (Exception e) {
         e.printStackTrace();

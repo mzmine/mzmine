@@ -18,14 +18,9 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -41,6 +36,7 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
@@ -54,6 +50,10 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Cursor;
 import javafx.scene.control.ContextMenu;
 
@@ -271,9 +271,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         Paint clr = oldRenderer.getDefaultPaint();
 
         // if getPlotMode() == AUTO then we use the scan's type, if not we use getPlotMode()
-        SpectrumPlotType typeForDataSet =
-            (getPlotMode() == SpectrumPlotType.AUTO) ? SpectrumPlotType
-                .fromScan(((ScanDataSet) dataset).getScan()) : getPlotMode();
+        SpectrumPlotType typeForDataSet = (getPlotMode() == SpectrumPlotType.AUTO)
+            ? SpectrumPlotType.fromScan(((ScanDataSet) dataset).getScan())
+            : getPlotMode();
 
         XYItemRenderer newRenderer;
         if (typeForDataSet == SpectrumPlotType.CENTROID) {
@@ -474,8 +474,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     if (dataSet instanceof ScanDataSet) {
       Scan scan = ((ScanDataSet) dataSet).getScan();
       MSLevel mslevel = inst.decideMSLevel(scan);
-      controller = new DataPointProcessingController(inst.getProcessingQueue(mslevel), this,
-          getMainScanDataSet().getDataPoints());
+      controller = new DataPointProcessingController(inst.getProcessingQueue(mslevel), this, scan);
       inst.addController(controller);
     }
   }

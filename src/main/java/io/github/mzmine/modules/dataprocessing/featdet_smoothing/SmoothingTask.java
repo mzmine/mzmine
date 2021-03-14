@@ -1,278 +1,320 @@
-/*
- * Copyright 2006-2020 The MZmine Development Team
- *
- * This file is part of MZmine.
- *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
- */
-
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
-
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.FeatureDataType;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilogramAccessType;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
+import io.github.mzmine.datamodel.data_access.MobilogramDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.RangeUtils;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SGIntensitySmoothing.ZeroHandlingType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-/**
- * Performs chromatographic smoothing of a peak-list.
- *
- */
 public class SmoothingTask extends AbstractTask {
 
-  // Logger.
   private static final Logger logger = Logger.getLogger(SmoothingTask.class.getName());
 
-  // Feature lists: original and processed.
-  private final MZmineProject project;
-  private final FeatureList origPeakList;
-  private ModularFeatureList newPeakList;
-
-  // Parameters.
+  private final ModularFeatureList flist;
   private final ParameterSet parameters;
+  private final MZmineProject project;
+
+  private final AtomicInteger processedFeatures = new AtomicInteger(0);
+  private final SmoothingDimension dimension = SmoothingDimension.RETENTION_TIME;
+
+  private final int numFeatures;
+  private final int rtFilterWidth;
+  private final int mobilityFilterWidth;
+  private final double[] rtWeights;
+  private final double[] mobilityWeights;
+  private final ZeroHandlingType zht;
   private final String suffix;
-  private final boolean removeOriginal;
-  private final int filterWidth;
+  private final boolean smoothMobility;
+  private final boolean smoothRt;
 
-  private int progress;
-  private final int progressMax;
+  public SmoothingTask(@Nonnull MZmineProject project, @Nonnull ModularFeatureList flist,
+      @Nullable MemoryMapStorage storage, @Nonnull ParameterSet parameters) {
+    super(storage);
 
-  /**
-   * Create the task.
-   *
-   * @param peakList the peak-list.
-   * @param smoothingParameters smoothing parameters.
-   */
-  public SmoothingTask(final MZmineProject project, final FeatureList peakList,
-      final ParameterSet smoothingParameters) {
-
-    // Initialize.
+    this.flist = flist;
+    this.parameters = parameters;
     this.project = project;
-    origPeakList = peakList;
-    progress = 0;
-    progressMax = peakList.getNumberOfRows();
+    numFeatures = flist.getNumberOfRows();
+    zht = ZeroHandlingType.KEEP;
 
-    // Parameters.
-    parameters = smoothingParameters;
-    suffix = parameters.getParameter(SmoothingParameters.SUFFIX).getValue();
-    removeOriginal = parameters.getParameter(SmoothingParameters.REMOVE_ORIGINAL).getValue();
-    filterWidth = parameters.getParameter(SmoothingParameters.FILTER_WIDTH).getValue();
+    suffix = parameters.getParameter(SmoothingParameters.suffix).getValue();
+
+    smoothRt = parameters.getParameter(SmoothingParameters.rtSmoothing).getValue();
+    rtFilterWidth = parameters.getParameter(SmoothingParameters.rtSmoothing).getEmbeddedParameter()
+        .getValue();
+    smoothMobility = parameters.getParameter(SmoothingParameters.mobilitySmoothing).getValue();
+    mobilityFilterWidth = parameters.getParameter(SmoothingParameters.mobilitySmoothing)
+        .getEmbeddedParameter().getValue();
+    rtWeights = SavitzkyGolayFilter.getNormalizedWeights(rtFilterWidth);
+    mobilityWeights = SavitzkyGolayFilter.getNormalizedWeights(mobilityFilterWidth);
   }
 
   @Override
   public String getTaskDescription() {
-    return "Smoothing " + origPeakList;
+    return "Smoothing " + flist.getName() + ": " + processedFeatures.get() + "/" + numFeatures;
   }
 
   @Override
   public double getFinishedPercentage() {
-    return progressMax == 0 ? 0.0 : (double) progress / (double) progressMax;
+    return processedFeatures.get() / (double) numFeatures;
+  }
+
+  /**
+   * Handles {@link ZeroHandlingType#KEEP}
+   *
+   * @param dataAccess
+   * @param feature
+   * @param smoothedIntensities
+   * @return
+   */
+  public static IonTimeSeries<? extends Scan> replaceOldIntensities(
+      @Nullable final MemoryMapStorage storage,
+      @Nonnull final IntensitySeries dataAccess, @Nonnull final ModularFeature feature,
+      @Nullable final double[] smoothedIntensities, ZeroHandlingType zht, boolean smoothMobility,
+      double[] mobilityWeights) {
+
+    final IonTimeSeries<? extends Scan> originalSeries = feature.getFeatureData();
+    final double[] originalIntensities = new double[originalSeries.getNumberOfValues()];
+    final double[] newIntensities;
+    originalSeries.getIntensityValues(originalIntensities);
+
+    if (smoothedIntensities == null) {
+      // rt should not be smoothed, so just copy the old values.
+      newIntensities = originalIntensities;
+    } else {
+      newIntensities = new double[originalSeries.getNumberOfValues()];
+      int newIntensitiesIndex = 0;
+      for (int i = 0; i < dataAccess.getNumberOfValues(); i++) {
+        // check if we originally did have an intensity at the current index. I know that the data
+        // access contains more zeros and the zeros of different indices will be matched, but the
+        // newIntensitiesIndex will "catch" up, once real intensities are reached.
+        if (Double.compare(dataAccess.getIntensity(i), originalIntensities[newIntensitiesIndex])
+            == 0) {
+          newIntensities[newIntensitiesIndex] = smoothedIntensities[i];
+          newIntensitiesIndex++;
+        }
+        if (newIntensitiesIndex == originalIntensities.length - 1) {
+          break;
+        }
+      }
+    }
+
+    double[] originalMzs = new double[originalSeries.getNumberOfValues()];
+    originalSeries.getMzValues(originalMzs);
+    if (smoothMobility && originalSeries instanceof IonMobilogramTimeSeries) {
+      SummedIntensityMobilitySeries smoothedMobilogram = smoothSummedMobilogram(storage,
+          (IonMobilogramTimeSeries) originalSeries, zht, mobilityWeights, feature.getMZ());
+      return new SimpleIonMobilogramTimeSeries(storage, originalMzs, newIntensities,
+          ((SimpleIonMobilogramTimeSeries) originalSeries).getMobilogramsModifiable(),
+          ((ModifiableSpectra) originalSeries).getSpectraModifiable(), smoothedMobilogram);
+    }
+
+    return (IonTimeSeries<? extends Scan>) originalSeries
+        .copyAndReplace(storage, originalMzs, newIntensities);
   }
 
   @Override
   public void run() {
-
     setStatus(TaskStatus.PROCESSING);
-
-    try {
-      // Get filter weights.
-      final double[] filterWeights = SavitzkyGolayFilter.getNormalizedWeights(filterWidth);
-
-      // Create new feature list
-      newPeakList = new ModularFeatureList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
-
-      // Process each row.
-      for (final FeatureListRow row : origPeakList.getRows()) {
-
-        if (!isCanceled()) {
-
-          // Create a new peak-list row.
-          final int originalID = row.getID();
-          final FeatureListRow newRow = new ModularFeatureListRow(newPeakList, originalID);
-
-          // Process each peak.
-          for (final Feature peak : row.getFeatures()) {
-
-            if (!isCanceled()) {
-
-              // Copy original peak intensities.
-              final int[] scanNumbers = peak.getScanNumbers().stream().mapToInt(i -> i).toArray();
-              final int numScans = scanNumbers.length;
-              final double[] intensities = new double[numScans];
-              for (int i = 0; i < numScans; i++) {
-
-                final DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
-                intensities[i] = dataPoint == null ? 0.0 : dataPoint.getIntensity();
-              }
-
-              // Smooth peak.
-              final double[] smoothed = convolve(intensities, filterWeights);
-
-              // Measure peak (max, ranges, area etc.)
-              final RawDataFile dataFile = peak.getRawDataFile();
-              final DataPoint[] newDataPoints = new DataPoint[numScans];
-              float maxIntensity = 0f;
-              int maxScanNumber = -1;
-              DataPoint maxDataPoint = null;
-              Range<Double> intensityRange = null;
-              float area = 0f;
-              for (int i = 0; i < numScans; i++) {
-
-                final int scanNumber = scanNumbers[i];
-                final DataPoint dataPoint = peak.getDataPoint(scanNumber);
-                final double intensity = smoothed[i];
-                if (dataPoint != null && intensity > 0.0) {
-
-                  // Create a new data point.
-                  final double mz = dataPoint.getMZ();
-                  final double rt = dataFile.getScan(scanNumber).getRetentionTime();
-                  final DataPoint newDataPoint = new SimpleDataPoint(mz, intensity);
-                  newDataPoints[i] = newDataPoint;
-
-                  // Track maximum intensity data point.
-                  if (intensity > maxIntensity) {
-
-                    maxIntensity = (float) intensity;
-                    maxScanNumber = scanNumber;
-                    maxDataPoint = newDataPoint;
-                  }
-
-                  // Update ranges.
-                  if (intensityRange == null) {
-                    intensityRange = Range.singleton(intensity);
-                  } else {
-                    intensityRange = intensityRange.span(Range.singleton(intensity));
-                  }
-
-                  // Accumulate peak area.
-                  if (i != 0) {
-
-                    final DataPoint lastDP = newDataPoints[i - 1];
-                    final double lastIntensity = lastDP == null ? 0.0 : lastDP.getIntensity();
-                    final double lastRT = dataFile.getScan(scanNumbers[i - 1]).getRetentionTime();
-                    area += (rt - lastRT) * 60d * (intensity + lastIntensity) / 2.0;
-                  }
-                }
-              }
-
-              assert maxDataPoint != null;
-
-              if (!isCanceled() && maxScanNumber >= 0) {
-
-                // Create a new peak.
-                ModularFeature newFeature
-                    = new ModularFeature(dataFile, maxDataPoint.getMZ(), peak.getRT(), maxIntensity,
-                    area, scanNumbers, newDataPoints, peak.getFeatureStatus(), maxScanNumber,
-                    peak.getMostIntenseFragmentScanNumber(),
-                    peak.getAllMS2FragmentScanNumbers().stream().mapToInt(i -> i).toArray(), peak.getRawDataPointsRTRange(),
-                    peak.getRawDataPointsMZRange(), RangeUtils.toFloatRange(intensityRange));
-                newFeature.setFeatureList(newPeakList);
-                newRow.addFeature(dataFile, newFeature);
-              }
-            }
-          }
-          newPeakList.addRow(newRow);
-          progress++;
-        }
-      }
-
-      // Finish up.
-      if (!isCanceled()) {
-
-        // Add new peak-list to the project.
-        project.addFeatureList(newPeakList);
-
-        // Add quality parameters to peaks
-        //QualityParameters.calculateQualityParameters(newPeakList);
-
-        // Remove the original peak-list if requested.
-        if (removeOriginal) {
-          project.removeFeatureList(origPeakList);
-        }
-
-        // Copy previously applied methods
-        for (final FeatureListAppliedMethod method : origPeakList.getAppliedMethods()) {
-
-          newPeakList.addDescriptionOfAppliedTask(method);
-        }
-
-        // Add task description to peak-list.
-        newPeakList.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod("Peaks smoothed by Savitzky-Golay filter", parameters));
-
-        logger.finest("Finished peak smoothing: " + progress + " rows processed");
-
-        setStatus(TaskStatus.FINISHED);
-      }
-    } catch (Throwable t) {
-
-      logger.log(Level.SEVERE, "Smoothing error", t);
-      setErrorMessage(t.getMessage());
+    if (flist.getNumberOfRawDataFiles() != 1) {
+      setErrorMessage("Cannot smooth feature lists with more than one raw data file.");
       setStatus(TaskStatus.ERROR);
+      return;
     }
+
+    if (dimension != SmoothingDimension.RETENTION_TIME) {
+      return;
+    }
+
+    final ModularFeatureList smoothedList = flist
+        .createCopy(flist.getName() + suffix, getMemoryMapStorage());
+    final SGIntensitySmoothing smoother = new SGIntensitySmoothing(ZeroHandlingType.KEEP,
+        rtWeights);
+    // include zeros
+    final FeatureDataAccess dataAccess = EfficientDataAccess
+        .of(smoothedList, FeatureDataType.INCLUDE_ZEROS);
+
+    while (dataAccess.hasNextFeature()) {
+      final ModularFeature feature = (ModularFeature) dataAccess.nextFeature();
+      double[] smoothedIntensities = null;
+      if (smoothRt) {
+        smoothedIntensities = smoother.smooth(dataAccess);
+      }
+
+      final IonTimeSeries<? extends Scan> smoothedSeries = replaceOldIntensities(
+          getMemoryMapStorage(), dataAccess,
+          feature, smoothedIntensities, zht, smoothMobility, mobilityWeights);
+      feature.set(io.github.mzmine.datamodel.features.types.FeatureDataType.class, smoothedSeries);
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
+
+      processedFeatures.getAndIncrement();
+    }
+
+    if (isCanceled()) {
+      return;
+    }
+
+    smoothedList.getAppliedMethods()
+        .add(new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters));
+    project.addFeatureList(smoothedList);
+
+    setStatus(TaskStatus.FINISHED);
   }
 
-  /**
-   * Convolve a set of weights with a set of intensities.
-   *
-   * @param intensities the intensities.
-   * @param weights the filter weights.
-   * @return the convolution results.
-   */
-  private static double[] convolve(final double[] intensities, final double[] weights) {
+  public static SummedIntensityMobilitySeries smoothSummedMobilogram(
+      @Nullable MemoryMapStorage storage,
+      @Nonnull final IonMobilogramTimeSeries originalSeries,
+      @Nonnull final ZeroHandlingType zht, @Nonnull final double[] weights, double mz) {
 
-    // Initialise.
-    final int fullWidth = weights.length;
-    final int halfWidth = (fullWidth - 1) / 2;
-    final int numPoints = intensities.length;
+    final double[] mobilities = DataPointUtils.getDoubleBufferAsArray(
+        originalSeries.getSummedMobilogram().getMobilityValues());
+    final SGIntensitySmoothing smoothedSummed = new SGIntensitySmoothing(ZeroHandlingType.KEEP,
+        weights);
 
-    // Convolve.
-    final double[] convolved = new double[numPoints];
-    for (int i = 0; i < numPoints; i++) {
+    return new SummedIntensityMobilitySeries(
+        storage, mobilities,
+        smoothedSummed.smooth(originalSeries.getSummedMobilogram()), mz);
+  }
 
-      double sum = 0.0;
-      final int k = i - halfWidth;
-      for (int j = Math.max(0, -k); j < Math.min(fullWidth, numPoints - k); j++) {
 
-        sum += intensities[k + j] * weights[j];
-      }
+  // -----------------------------
+  // todo: these are not used yet due to questions regarding the actual implementation
+  //  1. if new intensities are added on the peak edges - what do we do on the mobilogram level? We
+  //   need the same number of mobilograms as for rt data points
+  //  2. Which m/z do we put for newly created intensities? they will influence the overall m/z of
+  //   the feature
+  private List<IonMobilitySeries> smoothMobilograms(@Nonnull final ModularFeature feature,
+      @Nonnull final double[] smoothedRtIntensities,
+      @Nonnull final MobilogramAccessType dataAccessType,
+      @Nonnull final ZeroHandlingType zht,
+      @Nonnull final double[] weights) {
+    final IonTimeSeries<? extends Scan> s = feature.getFeatureData();
+    assert s instanceof IonMobilogramTimeSeries;
 
-      // Set the result.
-      convolved[i] = sum;
+    final IonMobilogramTimeSeries originalSeries = (IonMobilogramTimeSeries) s;
+    final MobilogramDataAccess dataAccess = EfficientDataAccess.of(originalSeries, dataAccessType);
+
+    List<IonMobilitySeries> smoothedMobilograms = new ArrayList<>();
+    final SGIntensitySmoothing smoothing = new SGIntensitySmoothing(zht, weights);
+    while (dataAccess.hasNext()) {
+      final IonMobilitySeries mobilogram = dataAccess.next();
+      double[] smoothedMobilogramIntensities = smoothing.smooth(dataAccess);
+
+    }
+    return new ArrayList<>();
+  }
+
+  private IonTimeSeries<? extends Scan> createNewSeries(@Nonnull final IntensitySeries dataAccess,
+      @Nonnull final ModularFeature feature,
+      @Nonnull final double[] smoothedIntensities, List<Scan> allScans) {
+
+    final IonTimeSeries<? extends Scan> originalSeries = feature.getFeatureData();
+    double[] originalIntensities = new double[originalSeries.getNumberOfValues()];
+    originalSeries.getIntensityValues(originalIntensities);
+
+    final List<Double> newIntensities = new ArrayList<>();
+    final List<Double> mzs = new ArrayList<>();
+    final List<Scan> newScans = new ArrayList<>();
+    final List<IonMobilitySeries> mobilograms;
+    final int someMobilityScanIndex;
+
+    if (originalSeries instanceof IonMobilogramTimeSeries) {
+      mobilograms = new ArrayList<>();
+      someMobilityScanIndex = ((IonMobilogramTimeSeries) originalSeries).getMobilogram(0)
+          .getSpectrum(0).getMobilityScanNumber();
+    } else {
+      mobilograms = null;
+      someMobilityScanIndex = 0;
     }
 
-    return convolved;
+    int oldSeriesIndex = 0;
+    double prevIntensity = 0d;
+    for (int i = 0; i < smoothedIntensities.length; i++) {
+      // if the intensity is != 0, keep it
+      // todo leading/trailing 0s
+      if (Double.compare(smoothedIntensities[i], 0) == 0) {
+        continue;
+      }
+
+      final Scan newScan = allScans.get(i);
+      newIntensities.add(smoothedIntensities[i]);
+      newScans.add(newScan);
+
+      if (newScan == originalSeries.getSpectrum(oldSeriesIndex)) {
+        mzs.add(originalSeries.getMZ(oldSeriesIndex));
+        oldSeriesIndex++;
+        if (originalSeries instanceof IonMobilogramTimeSeries) {
+          mobilograms.add(((IonMobilogramTimeSeries) originalSeries).getMobilogram(oldSeriesIndex));
+        }
+      } else {
+        // todo what do we do with mzs in this case? putting a new intensity with some mz will
+        //  influence the features m/z in every case.
+        mzs.add(feature.getMZ());
+        // if this is an IonMobilogramTimeSeries, we also have to create an empty mobilogram
+        if (originalSeries instanceof IonMobilogramTimeSeries) {
+          final Frame frame = (Frame) newScan;
+          final MobilityScan someMobilityScan;
+          if (someMobilityScanIndex < frame.getNumberOfMobilityScans()) {
+            someMobilityScan = frame.getMobilityScan(someMobilityScanIndex);
+          } else {
+            someMobilityScan = frame.getMobilityScans().get(frame.getNumberOfMobilityScans() - 1);
+          }
+          final IonMobilitySeries dummyMobilogram = new SimpleIonMobilitySeries(null,
+              new double[]{feature.getMZ()}, new double[]{0}, List.of(someMobilityScan));
+          mobilograms.add(dummyMobilogram);
+        }
+      }
+    }
+
+    // todo smooth mobilograms here if needed
+    if (originalSeries instanceof IonMobilogramTimeSeries) {
+
+      if (smoothMobility) {
+
+      }
+    }
+    return null;
+  }
+
+  public enum SmoothingDimension {
+    RETENTION_TIME("Retention time"), MOBILITY("Mobility");
+    private final String name;
+
+    SmoothingDimension(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
   }
 }

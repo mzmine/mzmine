@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,8 +18,26 @@
 
 package io.github.mzmine.util.scans;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.sorting.ScanSortMode;
+import io.github.mzmine.util.scans.sorting.ScanSorter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -34,9 +52,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,22 +66,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.exceptions.MissingMassListException;
-import io.github.mzmine.util.scans.sorting.ScanSortMode;
-import io.github.mzmine.util.scans.sorting.ScanSorter;
-import java.util.Map;
 
 /**
  * Scan related utilities
@@ -83,24 +86,27 @@ public class ScanUtils {
 
   /**
    * Common utility method to be used as Scan.toString() method in various Scan implementations
-   * 
+   *
    * @param scan Scan to be converted to String
    * @return String representation of the scan
    */
-  public static @Nonnull String scanToString(@Nonnull Scan scan, @Nonnull Boolean includeFileName) {
+  public static @Nonnull
+  String scanToString(@Nonnull Scan scan, @Nonnull Boolean includeFileName) {
     StringBuffer buf = new StringBuffer();
     Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    if (includeFileName)
+    if (includeFileName) {
       buf.append(scan.getDataFile().getName());
+    }
     buf.append("#");
     buf.append(scan.getScanNumber());
     buf.append(" @");
     buf.append(rtFormat.format(scan.getRetentionTime()));
     buf.append(" MS");
     buf.append(scan.getMSLevel());
-    if (scan.getMSLevel() > 1)
+    if (scan.getMSLevel() > 1) {
       buf.append(" (" + mzFormat.format(scan.getPrecursorMZ()) + ")");
+    }
     switch (scan.getSpectrumType()) {
       case CENTROIDED:
         buf.append(" c");
@@ -116,6 +122,13 @@ public class ScanUtils {
     buf.append(" ");
     buf.append(scan.getPolarity().asSingleChar());
 
+    if (scan instanceof MergedMsMsSpectrum) {
+      buf.append(" merged ");
+      buf.append(((MergedMsMsSpectrum) scan).getSourceSpectra().size());
+      buf.append(" spectra, CE: ");
+      buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
+    }
+
     /*
      * if ((scan.getScanDefinition() != null) && (scan.getScanDefinition().length() > 0)) {
      * buf.append(" ("); buf.append(scan.getScanDefinition()); buf.append(")"); }
@@ -124,30 +137,44 @@ public class ScanUtils {
     return buf.toString();
   }
 
+  @Deprecated
+  public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
+    DataPoint result[] = new DataPoint[spectrum.getNumberOfDataPoints()];
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      result[i] = new SimpleDataPoint(spectrum.getMzValue(i), spectrum.getIntensityValue(i));
+    }
+    return result;
+  }
+
   /**
    * Find a base peak of a given scan in a given m/z range
-   * 
+   *
    * @param scan    Scan to search
    * @param mzRange mz range to search in
    * @return double[2] containing base peak m/z and intensity
    */
-  public static @Nonnull DataPoint findBasePeak(@Nonnull Scan scan,
-      @Nonnull Range<Double> mzRange) {
+  @Nullable
+  public static DataPoint findBasePeak(@Nonnull Scan scan, @Nonnull Range<Double> mzRange) {
 
-    DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
-    DataPoint basePeak = null;
-
-    for (DataPoint dp : dataPoints) {
-      if ((basePeak == null) || (dp.getIntensity() > basePeak.getIntensity()))
-        basePeak = dp;
+    double baseMz = 0d;
+    double baseIntensity = 0d;
+    for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
+      double mz = scan.getMzValue(i);
+      if (!mzRange.contains(mz)) {
+        continue;
+      }
+      double intensity = scan.getIntensityValue(i);
+      if (intensity > baseIntensity) {
+        baseIntensity = intensity;
+        baseMz = mz;
+      }
     }
-
-    return basePeak;
+    return new SimpleDataPoint(baseMz, baseIntensity);
   }
 
   /**
    * Calculate the total ion count of a scan within a given mass range.
-   * 
+   *
    * @param scan    the scan.
    * @param mzRange mass range.
    * @return the total ion count of the scan within the mass range.
@@ -155,7 +182,7 @@ public class ScanUtils {
   public static double calculateTIC(Scan scan, Range<Double> mzRange) {
 
     double tic = 0.0;
-    for (final DataPoint dataPoint : scan.getDataPointsByMass(mzRange)) {
+    for (final DataPoint dataPoint : selectDataPointsByMass(extractDataPoints(scan), mzRange)) {
       tic += dataPoint.getIntensity();
     }
     return tic;
@@ -163,47 +190,41 @@ public class ScanUtils {
 
   /**
    * Selects data points within given m/z range
-   * 
    */
   public static DataPoint[] selectDataPointsByMass(DataPoint dataPoints[], Range<Double> mzRange) {
     ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
     for (DataPoint dp : dataPoints) {
-      if (mzRange.contains(dp.getMZ()))
+      if (mzRange.contains(dp.getMZ())) {
         goodPoints.add(dp);
+      }
     }
     return goodPoints.toArray(new DataPoint[0]);
   }
 
   /**
    * Selects data points with intensity >= given intensity
-   * 
    */
   public static DataPoint[] selectDataPointsOverIntensity(DataPoint dataPoints[],
       double minIntensity) {
     ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
     for (DataPoint dp : dataPoints) {
-      if (dp.getIntensity() >= minIntensity)
+      if (dp.getIntensity() >= minIntensity) {
         goodPoints.add(dp);
+      }
     }
     return goodPoints.toArray(new DataPoint[0]);
   }
 
   /**
-   * Binning modes
-   */
-  public static enum BinningType {
-    SUM, MAX, MIN, AVG
-  }
-
-  /**
    * This method bins values on x-axis. Each bin is assigned biggest y-value of all values in the
    * same bin.
-   * 
+   *
    * @param x            X-coordinates of the data
    * @param y            Y-coordinates of the data
    * @param binRange     x coordinates of the left and right edge of the first bin
    * @param numberOfBins Number of bins
-   * @param interpolate  If true, then empty bins will be filled with interpolation using other bins
+   * @param interpolate  If true, then empty bins will be filled with interpolation using other
+   *                     bins
    * @param binningType  Type of binning (sum of all 'y' within a bin, max of 'y', min of 'y', avg
    *                     of 'y')
    * @return Values for each bin
@@ -246,8 +267,9 @@ public class ScanUtils {
 
       // in case x[valueIndex] is exactly lastBinStop, we would overflow
       // the array
-      if (binIndex == binValues.length)
+      if (binIndex == binValues.length) {
         binIndex--;
+      }
 
       switch (binningType) {
         case MAX:
@@ -357,7 +379,7 @@ public class ScanUtils {
   /**
    * sort the data points by their m/z value. This method should be called before using other search
    * methods to do binary search in logarithmic time.
-   * 
+   *
    * @param dataPoints spectrum that should be sorted
    */
   public static void sortDataPointsByMz(DataPoint[] dataPoints) {
@@ -367,7 +389,7 @@ public class ScanUtils {
   /**
    * Returns the index of the datapoint with lowest m/z within the given datapoints which is within
    * the given mass range
-   * 
+   *
    * @param dataPoints sorted(!) list of datapoints
    * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
@@ -378,10 +400,11 @@ public class ScanUtils {
             (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 1;
-      if (k < dataPoints.length && mzRange.contains(dataPoints[k].getMZ()))
+      if (k < dataPoints.length && mzRange.contains(dataPoints[k].getMZ())) {
         return k;
-      else
+      } else {
         return -1;
+      }
     } else {
       return insertionPoint;
     }
@@ -390,7 +413,7 @@ public class ScanUtils {
   /**
    * Returns the index of the datapoint with largest m/z within the given datapoints which is within
    * the given mass range
-   * 
+   *
    * @param dataPoints sorted(!) list of datapoints
    * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
@@ -401,10 +424,11 @@ public class ScanUtils {
             (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 2;
-      if (k >= 0 && mzRange.contains(dataPoints[k].getMZ()))
+      if (k >= 0 && mzRange.contains(dataPoints[k].getMZ())) {
         return k;
-      else
+      } else {
         return -1;
+      }
     } else {
       return insertionPoint;
     }
@@ -413,19 +437,21 @@ public class ScanUtils {
   /**
    * Returns the index of the datapoint with highest intensity within the given datapoints which is
    * within the given mass range
-   * 
+   *
    * @param dataPoints sorted(!) list of datapoints
    * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findMostIntenseFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
     int k = findFirstFeatureWithin(dataPoints, mzRange);
-    if (k < 0)
+    if (k < 0) {
       return -1;
+    }
     int mostIntense = k;
     for (; k < dataPoints.length; ++k) {
-      if (!mzRange.contains(dataPoints[k].getMZ()))
+      if (!mzRange.contains(dataPoints[k].getMZ())) {
         break;
+      }
       if (dataPoints[k].getIntensity() > dataPoints[mostIntense].getIntensity()) {
         mostIntense = k;
       }
@@ -436,32 +462,35 @@ public class ScanUtils {
   /**
    * Returns index of m/z value in a given array, which is closest to given value, limited by given
    * m/z tolerance. We assume the m/z array is sorted.
-   * 
+   *
    * @return index of best match, or -1 if no datapoint was found
    */
   public static int findClosestDatapoint(double key, double mzValues[], double mzTolerance) {
 
     int index = Arrays.binarySearch(mzValues, key);
 
-    if (index >= 0)
+    if (index >= 0) {
       return index;
+    }
 
     // Get "insertion point"
     index = (index * -1) - 1;
 
     // If key value is bigger than biggest m/z value in array
-    if (index == mzValues.length)
+    if (index == mzValues.length) {
       index--;
-    else if (index > 0) {
+    } else if (index > 0) {
       // Check insertion point value and previous one, see which one
       // is closer
-      if (Math.abs(mzValues[index - 1] - key) < Math.abs(mzValues[index] - key))
+      if (Math.abs(mzValues[index - 1] - key) < Math.abs(mzValues[index] - key)) {
         index--;
+      }
     }
 
     // Check m/z tolerancee
-    if (Math.abs(mzValues[index] - key) <= mzTolerance)
+    if (Math.abs(mzValues[index] - key) <= mzTolerance) {
       return index;
+    }
 
     // Nothing was found
     return -1;
@@ -479,31 +508,29 @@ public class ScanUtils {
    * msdk-spectra-spectrumtypedetection/src/main/java/io/github/
    * msdk/spectra/spectrumtypedetection/SpectrumTypeDetectionAlgorithm.java
    */
-  public static MassSpectrumType detectSpectrumType(@Nonnull DataPoint[] dataPoints) {
-
-    double[] intensityValues = new double[dataPoints.length];
-    double[] mzValues = new double[dataPoints.length];
+  public static MassSpectrumType detectSpectrumType(@Nonnull double[] mzValues,
+      double[] intensityValues) {
 
     // If the spectrum has less than 5 data points, it should be centroided.
-    if (dataPoints.length < 5)
+    if (mzValues.length < 5) {
       return MassSpectrumType.CENTROIDED;
+    }
 
     int basePeakIndex = 0;
     boolean hasZeroDataPoint = false;
 
     // Go through the data points and find the highest one
-    int size = dataPoints.length;
+    int size = mzValues.length;
     for (int i = 0; i < size; i++) {
 
-      intensityValues[i] = dataPoints[i].getIntensity();
-      mzValues[i] = dataPoints[i].getMZ();
-
       // Update the maxDataPointIndex accordingly
-      if (intensityValues[i] > intensityValues[basePeakIndex])
+      if (intensityValues[i] > intensityValues[basePeakIndex]) {
         basePeakIndex = i;
+      }
 
-      if (intensityValues[i] == 0.0)
+      if (intensityValues[i] == 0.0) {
         hasZeroDataPoint = true;
+      }
     }
 
     final double scanMzSpan = mzValues[size - 1] - mzValues[0];
@@ -527,13 +554,14 @@ public class ScanUtils {
     // feature is more than 0.1% of the scan m/z range, it also indicates a
     // centroid spectrum. These criteria are empirical and probably not
     // bulletproof. However, it works for all the test cases we have.
-    if ((mainFeatureDataPointCount < 3) || (mainFeatureMzSpan > (scanMzSpan / 1000.0)))
+    if ((mainFeatureDataPointCount < 3) || (mainFeatureMzSpan > (scanMzSpan / 1000.0))) {
       return MassSpectrumType.CENTROIDED;
-    else {
-      if (hasZeroDataPoint)
+    } else {
+      if (hasZeroDataPoint) {
         return MassSpectrumType.PROFILE;
-      else
+      } else {
         return MassSpectrumType.THRESHOLDED;
+      }
     }
 
   }
@@ -542,78 +570,68 @@ public class ScanUtils {
    * Finds the MS/MS scan with highest intensity, within given retention time range and with
    * precursor m/z within given m/z range
    */
-  public static int findBestFragmentScan(RawDataFile dataFile, Range<Float> rtRange,
+  public static Scan findBestFragmentScan(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
 
     assert dataFile != null;
     assert rtRange != null;
     assert mzRange != null;
 
-    int bestFragmentScan = -1;
-    double topBasePeak = 0;
-
-    int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
-
-    for (int number : fragmentScanNumbers) {
-
-      Scan scan = dataFile.getScan(number);
-
-      if (mzRange.contains(scan.getPrecursorMZ())) {
-
-        DataPoint basePeak = scan.getHighestDataPoint();
-
-        // If there is no feature in the scan, basePeak can be null
-        if (basePeak == null)
-          continue;
-
-        if (basePeak.getIntensity() > topBasePeak) {
-          bestFragmentScan = scan.getScanNumber();
-          topBasePeak = basePeak.getIntensity();
-        }
-      }
-
-    }
-
-    return bestFragmentScan;
-
+    return dataFile.getScanNumbers(2).stream()
+        .filter(s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime())
+            && mzRange.contains(s.getPrecursorMZ()))
+        .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
   }
 
   /**
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
    * within given m/z range
    */
-  public static int[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
+  public static Scan[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
-
     assert dataFile != null;
     assert rtRange != null;
     assert mzRange != null;
 
-    int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
-    ArrayList<Integer> fragmentScanNumbersInMZRange = new ArrayList<Integer>();
+    return dataFile.getScanNumbers(2).stream()
+        .filter(s -> rtRange.contains(s.getRetentionTime())
+            && mzRange.contains(s.getPrecursorMZ()))
+        .toArray(Scan[]::new);
+  }
 
-    for (int number : fragmentScanNumbers) {
+  /**
+   * @param dataFile
+   * @param msLevel  0 for all scans
+   * @return
+   */
+  public static Stream<Scan> streamScans(RawDataFile dataFile, int msLevel) {
+    return dataFile.getScanNumbers(msLevel).stream();
+  }
 
-      Scan scan = dataFile.getScan(number);
-
-      if (mzRange.contains(scan.getPrecursorMZ())) {
-        fragmentScanNumbersInMZRange.add(number);
+  @Nullable
+  public static List<ImsMsMsInfo> findMsMsInfos(IMSRawDataFile imsRawDataFile,
+      Range<Double> mzRange, Range<Float> rtRange) {
+    List<ImsMsMsInfo> featureMsMsInfos = new ArrayList<>();
+    Collection<? extends Frame> ms2Frames = imsRawDataFile.getFrames(2, rtRange);
+    for (Frame frame : ms2Frames) {
+      Set<ImsMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
+      for (ImsMsMsInfo msmsInfo : frameMsMsInfos) {
+        if (mzRange.contains(msmsInfo.getLargestPeakMz())) {
+          featureMsMsInfos.add(msmsInfo);
+        }
       }
     }
-    int[] resultScans = new int[fragmentScanNumbersInMZRange.size()];
-    if (resultScans.length > 0) {
-      resultScans = fragmentScanNumbersInMZRange.stream().mapToInt(i -> i).toArray();
-    } else {
-      resultScans = new int[] {};
+    if (featureMsMsInfos.isEmpty()) {
+      return null;
     }
-    return resultScans;
+    return featureMsMsInfos;
   }
 
   /**
    * Find the highest data point in array
-   * 
    */
-  public static @Nonnull DataPoint findTopDataPoint(@Nonnull DataPoint dataPoints[]) {
+  public static @Nonnull
+  DataPoint findTopDataPoint(@Nonnull DataPoint dataPoints[]) {
 
     DataPoint topDP = null;
 
@@ -627,10 +645,26 @@ public class ScanUtils {
   }
 
   /**
+   * Find the highest data point index in array
+   */
+  public static int findTopDataPoint(@Nonnull double intensityValues[]) {
+
+    int basePeak = 0;
+    for (int i = 0; i < intensityValues.length; i++) {
+
+      if (intensityValues[i] > intensityValues[basePeak]) {
+        basePeak = i;
+      }
+    }
+    return basePeak;
+  }
+
+  /**
    * Find the m/z range of the data points in the array. We assume there is at least one data point,
    * and the data points are sorted by m/z.
    */
-  public static @Nonnull Range<Double> findMzRange(@Nonnull DataPoint dataPoints[]) {
+  public static @Nonnull
+  Range<Double> findMzRange(@Nonnull DataPoint dataPoints[]) {
 
     assert dataPoints.length > 0;
 
@@ -641,8 +675,33 @@ public class ScanUtils {
         lowMz = dataPoints[i].getMZ();
         continue;
       }
-      if (dataPoints[i].getMZ() > highMz)
+      if (dataPoints[i].getMZ() > highMz) {
         highMz = dataPoints[i].getMZ();
+      }
+    }
+
+    return Range.closed(lowMz, highMz);
+  }
+
+  /**
+   * Find the m/z range of the data points in the array. We assume there is at least one data point,
+   * and the data points are sorted by m/z.
+   */
+  public static @Nonnull
+  Range<Double> findMzRange(@Nonnull double mzValues[]) {
+
+    assert mzValues.length > 0;
+
+    double lowMz = mzValues[0];
+    double highMz = lowMz;
+    for (int i = 1; i < mzValues.length; i++) {
+      if (mzValues[i] < lowMz) {
+        lowMz = mzValues[i];
+        continue;
+      }
+      if (mzValues[i] > highMz) {
+        highMz = mzValues[i];
+      }
     }
 
     return Range.closed(lowMz, highMz);
@@ -651,7 +710,8 @@ public class ScanUtils {
   /**
    * Find the RT range of given scans. We assume there is at least one scan.
    */
-  public static @Nonnull Range<Float> findRtRange(@Nonnull Scan scans[]) {
+  public static @Nonnull
+  Range<Float> findRtRange(@Nonnull Scan scans[]) {
 
     assert scans.length > 0;
 
@@ -728,82 +788,79 @@ public class ScanUtils {
   /**
    * Sorted list (best first) of all MS2 fragmentation scans with n signals >= noiseLevel in the
    * specified or first massList, if none was specified
-   * 
+   *
    * @param row                all MS2 scans of all features in this row
-   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @param sort               the sorting property (best first, index=0)
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllFragmentScans(FeatureListRow row, @Nullable String massListName,
+  public static List<Scan> listAllFragmentScans(FeatureListRow row,
       double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
       throws MissingMassListException {
-    List<Scan> scans = listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals);
+    List<Scan> scans = listAllFragmentScans(row, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
-    scans.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
+    scans.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
     return scans;
   }
 
   /**
    * List of all MS2 fragmentation scans with n signals >= noiseLevel in the specified or first
    * massList, if none was specified
-   * 
+   *
    * @param row
-   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
    */
   @Nonnull
-  public static ObservableList<Scan> listAllFragmentScans(FeatureListRow row, @Nullable String massListName,
-      double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
+  public static ObservableList<Scan> listAllFragmentScans(FeatureListRow row,
+      double noiseLevel, int minNumberOfSignals)
+      throws MissingMassListException {
     ObservableList<Scan> scans = row.getAllMS2Fragmentations();
-    return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+    return listAllScans(scans, noiseLevel, minNumberOfSignals);
   }
 
   /**
    * Sorted list of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n
    * signals >= noiseLevel in the specified or first massList, if none was specified
-   * 
+   *
    * @param row                all representative MS1 scans of all features in this row
-   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @param sort               the sorting property (best first, index=0)
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllMS1Scans(FeatureListRow row, @Nullable String massListName,
-      double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
-      throws MissingMassListException {
-    List<Scan> scans = listAllMS1Scans(row, massListName, noiseLevel, minNumberOfSignals);
+  public static List<Scan> listAllMS1Scans(FeatureListRow row, double noiseLevel,
+      int minNumberOfSignals, ScanSortMode sort) throws MissingMassListException {
+    List<Scan> scans = listAllMS1Scans(row, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
-    scans.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
+    scans.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
     return scans;
   }
 
   /**
    * List of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n signals
    * >= noiseLevel in the specified or first massList, if none was specified
-   * 
+   *
    * @param row
-   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
    */
   @Nonnull
-  public static ObservableList<Scan> listAllMS1Scans(FeatureListRow row, @Nullable String massListName,
-      double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
+  public static ObservableList<Scan> listAllMS1Scans(FeatureListRow row,
+      double noiseLevel, int minNumberOfSignals)
+      throws MissingMassListException {
     ObservableList<Scan> scans = getAllMostIntenseMS1Scans(row);
-    return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+    return listAllScans(scans, noiseLevel, minNumberOfSignals);
   }
 
   /**
    * Array of all {@link Feature#getRepresentativeScan()} of all features
-   * 
+   *
    * @param row
    * @return
    */
@@ -815,73 +872,54 @@ public class ScanUtils {
   /**
    * List of all scans with n signals >= noiseLevel in the specified or first massList, if none was
    * specified
-   * 
-   * @param massListName       the name or null/empty to always use the first masslist
+   *
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
    */
   @Nonnull
-  public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans, @Nullable String massListName,
+  public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans,
       double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
       throws MissingMassListException {
-    ObservableList<Scan> filtered = listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+    ObservableList<Scan> filtered =
+        listAllScans(scans, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
-    filtered.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
+    filtered.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
     return filtered;
   }
 
   /**
    * List of all scans with n signals >= noiseLevel in the specified or first massList, if none was
    * specified
-   * 
-   * @param massListName       the name or null/empty to always use the first masslist
+   *
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
    */
   @Nonnull
-  public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans, @Nullable String massListName,
-      double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
+  public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans,
+      double noiseLevel, int minNumberOfSignals)
+      throws MissingMassListException {
     ObservableList<Scan> filtered = FXCollections.observableArrayList();
     for (Scan scan : scans) {
       // find mass list: with name or first
-      final MassList massList = getMassListOrFirst(scan, massListName);
-      if (massList == null)
-        throw new MissingMassListException("", massListName);
+      final MassList massList = scan.getMassList();
+      if (massList == null) {
+        throw new MissingMassListException(scan);
+      }
 
       // minimum number of signals >= noiseLevel
-      int signals = 0;
-      for (DataPoint dp : massList.getDataPoints())
-        if (dp.getIntensity() >= noiseLevel)
-          signals++;
-      if (signals >= minNumberOfSignals)
+      int signals = getNumberOfSignals(massList, noiseLevel);
+      if (signals >= minNumberOfSignals) {
         filtered.add(scan);
+      }
     }
     return filtered;
   }
 
   /**
-   * Get specific masslist or the first if no masslist name is specified
-   * 
-   * @param scan
-   * @param massListName
-   * @return null if no masslist with this name or if name was not specified and this scan has zero
-   *         masslists
-   * @throws MissingMassListException
-   */
-  public static MassList getMassListOrFirst(Scan scan, String massListName) {
-    final MassList massList;
-    if (Strings.isNullOrEmpty(massListName)) {
-      return Arrays.stream(scan.getMassLists()).findFirst().orElse(null);
-    } else {
-      return massList = scan.getMassList(massListName);
-    }
-  }
-
-  /**
    * Sum of intensity of all data points >= noiseLevel
-   * 
+   *
    * @param data
    * @param noiseLevel
    * @return
@@ -892,7 +930,7 @@ public class ScanUtils {
 
   /**
    * threshold: keep data points >= noiseLevel
-   * 
+   *
    * @param data
    * @param noiseLevel
    * @return
@@ -903,7 +941,7 @@ public class ScanUtils {
 
   /**
    * below threshold: keep data points < noiseLevel
-   * 
+   *
    * @param data
    * @param noiseLevel
    * @return
@@ -914,34 +952,76 @@ public class ScanUtils {
 
   /**
    * Number of signals >=noiseLevel
-   * 
+   *
    * @param data
    * @param noiseLevel
    * @return
    */
   public static int getNumberOfSignals(DataPoint[] data, double noiseLevel) {
     int n = 0;
-    for (DataPoint dp : data)
-      if (dp.getIntensity() >= noiseLevel)
+    for (DataPoint dp : data) {
+      if (dp.getIntensity() >= noiseLevel) {
         n++;
+      }
+    }
+    return n;
+  }
+
+
+  /**
+   * Sum of intensity of all data points >= noiseLevel
+   *
+   * @param spec
+   * @param noiseLevel
+   * @return
+   */
+  public static double getTIC(MassSpectrum spec, double noiseLevel) {
+    int size = spec.getNumberOfDataPoints();
+    double sum = 0;
+    for (int i = 0; i < size; i++) {
+      double intensity = spec.getIntensityValue(i);
+      if (intensity >= noiseLevel) {
+        sum += intensity;
+      }
+    }
+    return sum;
+  }
+
+  /**
+   * Number of signals >=noiseLevel
+   *
+   * @param spec
+   * @param noiseLevel
+   * @return
+   */
+  public static int getNumberOfSignals(MassSpectrum spec, double noiseLevel) {
+    int size = spec.getNumberOfDataPoints();
+    int n = 0;
+    for (int i = 0; i < size; i++) {
+      if (spec.getIntensityValue(i) >= noiseLevel) {
+        n++;
+      }
+    }
     return n;
   }
 
   /**
    * Finds the first MS1 scan preceding the given MS2 scan. If no such scan exists, returns null.
    */
-  public static @Nullable Scan findPrecursorScan(@Nonnull Scan scan) {
+  public static @Nullable
+  Scan findPrecursorScan(@Nonnull Scan scan) {
 
     assert scan != null;
     final RawDataFile dataFile = scan.getDataFile();
-    final int scanNumbers[] = dataFile.getScanNumbers();
+    final ObservableList<Scan> scanNumbers = dataFile.getScans();
 
-    int startIndex = Arrays.binarySearch(scanNumbers, scan.getScanNumber());
+    int startIndex = scanNumbers.indexOf(scan);
 
     for (int i = startIndex; i >= 0; i--) {
-      Scan s = dataFile.getScan(scanNumbers[i]);
-      if (s.getMSLevel() == 1)
+      Scan s = scanNumbers.get(i);
+      if (s.getMSLevel() == 1) {
         return s;
+      }
     }
 
     // Didn't find any MS1 scan
@@ -951,18 +1031,19 @@ public class ScanUtils {
   /**
    * Finds the first MS1 scan succeeding the given MS2 scan. If no such scan exists, returns null.
    */
-  public static @Nullable Scan findSucceedingPrecursorScan(@Nonnull Scan scan) {
-
+  @Nullable
+  public static Scan findSucceedingPrecursorScan(@Nonnull Scan scan) {
     assert scan != null;
     final RawDataFile dataFile = scan.getDataFile();
-    final int scanNumbers[] = dataFile.getScanNumbers();
+    final ObservableList<Scan> scanNumbers = dataFile.getScans();
 
-    int startIndex = Arrays.binarySearch(scanNumbers, scan.getScanNumber());
+    int startIndex = scanNumbers.indexOf(scan);
 
-    for (int i = startIndex; i < scanNumbers.length; i++) {
-      Scan s = dataFile.getScan(scanNumbers[i]);
-      if (s.getMSLevel() == 1)
+    for (int i = startIndex; i < scanNumbers.size(); i++) {
+      Scan s = scanNumbers.get(i);
+      if (s.getMSLevel() == 1) {
         return s;
+      }
     }
 
     // Didn't find any MS1 scan
@@ -972,28 +1053,25 @@ public class ScanUtils {
   /**
    * Selects best N MS/MS scans from a feature list row
    */
-  public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull FeatureListRow row,
-      @Nonnull String massListName, @Nonnull Integer topN) throws MissingMassListException {
-
-    @SuppressWarnings("null")
+  public static @Nonnull
+  Collection<Scan> selectBestMS2Scans(@Nonnull FeatureListRow row,
+      @Nonnull Integer topN) throws MissingMassListException {
     final @Nonnull List<Scan> allMS2Scans = row.getAllMS2Fragmentations();
-
-    return selectBestMS2Scans(allMS2Scans, massListName, topN);
+    return selectBestMS2Scans(allMS2Scans, topN);
   }
 
   /**
    * Selects best N MS/MS scans from a collection of scans
    */
-  public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull Collection<Scan> scans,
-      @Nonnull String massListName, @Nonnull Integer topN) throws MissingMassListException {
-
+  public static @Nonnull
+  Collection<Scan> selectBestMS2Scans(@Nonnull Collection<Scan> scans,
+      @Nonnull Integer topN) throws MissingMassListException {
     assert scans != null;
-    assert massListName != null;
     assert topN != null;
 
     // Keeps MS2 scans sorted by decreasing quality
     TreeSet<Scan> sortedScans = new TreeSet<>(
-        Collections.reverseOrder(new ScanSorter(massListName, 0, ScanSortMode.MAX_TIC)));
+        Collections.reverseOrder(new ScanSorter(0, ScanSortMode.MAX_TIC)));
     sortedScans.addAll(scans);
 
     // Filter top N scans into an immutable list
@@ -1004,12 +1082,13 @@ public class ScanUtils {
   }
 
   /**
-   * Move the mass window given by binRange across the spectrum, keep only the numberOfFeaturesPerBin
-   * most intense features within the window. This is a very simple and robust method to remove most
-   * noise in the spectrum without having to estimate any noise intensity parameter.
-   * 
-   * @param dataPoints          spectrum
-   * @param binRange            sliding mass window. Is shifted in each step by its width.
+   * Move the mass window given by binRange across the spectrum, keep only the
+   * numberOfFeaturesPerBin most intense features within the window. This is a very simple and
+   * robust method to remove most noise in the spectrum without having to estimate any noise
+   * intensity parameter.
+   *
+   * @param dataPoints             spectrum
+   * @param binRange               sliding mass window. Is shifted in each step by its width.
    * @param numberOfFeaturesPerBin number of features to keep within the sliding mass window
    * @return
    */
@@ -1020,15 +1099,17 @@ public class ScanUtils {
     final HashMap<Integer, List<DataPoint>> bins = new HashMap<>();
     for (DataPoint p : dataPoints) {
       final int bin = (int) Math.floor((p.getMZ() - offset) / width);
-      if (bin >= 0)
+      if (bin >= 0) {
         bins.computeIfAbsent(bin, (x) -> new ArrayList<>()).add(p);
+      }
     }
     final List<DataPoint> finalDataPoints = new ArrayList<>();
     for (Integer bin : bins.keySet()) {
       List<DataPoint> list = bins.get(bin);
       Collections.sort(list, (u, v) -> Double.compare(v.getIntensity(), u.getIntensity()));
-      for (int i = 0; i < Math.min(list.size(), numberOfFeaturesPerBin); ++i)
+      for (int i = 0; i < Math.min(list.size(), numberOfFeaturesPerBin); ++i) {
         finalDataPoints.add(list.get(i));
+      }
     }
     DataPoint[] spectrum = finalDataPoints.toArray(new DataPoint[0]);
     sortDataPointsByMz(spectrum);
@@ -1040,7 +1121,7 @@ public class ScanUtils {
    * by Sebastian Böcker, chapter 4.2 While the cosine similarity transforms the spectrum into a
    * finite dimensional vector, the probability product transforms it into a mixture of continuous
    * gaussians.
-   *
+   * <p>
    * As for cosine similarity it is recommended to first take the square root of all feature
    * intensities, before calling this method.
    *
@@ -1050,9 +1131,8 @@ public class ScanUtils {
    *                                   deviation). Rather use a larger than a small value! Value is
    *                                   given in ppm and Dalton.
    * @param noiseLevel                 the lowest intensity for a feature to be considered
-   * @param mzRange                    the m/z range in which the features are compared. use null for
-   *                                   the whole spectrum
-   *
+   * @param mzRange                    the m/z range in which the features are compared. use null
+   *                                   for the whole spectrum
    */
   public static double probabilityProduct(DataPoint[] scanLeft, DataPoint[] scanRight,
       MZTolerance expectedMassDeviationInPPM, double noiseLevel, @Nullable Range<Double> mzRange) {
@@ -1069,7 +1149,7 @@ public class ScanUtils {
   /**
    * Calculates the probability product without normalization. Usually, this method is only useful
    * if you plan to normalize the spectra (or value) yourself.
-   * 
+   *
    * @see #probabilityProduct(DataPoint[], DataPoint[], MZTolerance, double, Range)
    */
   public static double probabilityProductUnnormalized(DataPoint[] scanLeft, DataPoint[] scanRight,
@@ -1087,8 +1167,9 @@ public class ScanUtils {
       nr = findLastFeatureWithin(scanRight, mzRange) + 1;
       i = findFirstFeatureWithin(scanLeft, mzRange);
       j = findFirstFeatureWithin(scanRight, mzRange);
-      if (i < 0 || j < 0)
+      if (i < 0 || j < 0) {
         return 0d;
+      }
     }
     // gaussians are set to zero above allowedDifference to speed up
     // computation
@@ -1117,8 +1198,9 @@ public class ScanUtils {
           if (Math.abs(difference2) <= allowedDifference) {
             matchScore = probabilityProductScore(lp2, rp, variance);
             score += matchScore;
-          } else
+          } else {
             break;
+          }
         }
         for (int l = j + 1; l < nr; ++l) {
           DataPoint rp2 = scanRight[l];
@@ -1126,8 +1208,9 @@ public class ScanUtils {
           if (Math.abs(difference2) <= allowedDifference) {
             matchScore = probabilityProductScore(lp, rp2, variance);
             score += matchScore;
-          } else
+          } else {
             break;
+          }
         }
         ++i;
         ++j;
@@ -1152,30 +1235,9 @@ public class ScanUtils {
     return (lp.getIntensity() * rp.getIntensity()) * propOverlap;
   }
 
-
-  /**
-   * Integer conversion methods.
-   */
-  public static enum IntegerMode {
-
-    SUM("Merging mode: Sum"),
-    MAX("Merging mode: Maximum");
-    
-    private final String intMode;
-
-    IntegerMode(String intMode){
-        this.intMode = intMode;
-    }
-    
-    @Override
-    public String toString() {
-      return this.intMode;
-    }
-  }
-
   /**
    * Converts DataPoint ion mz to int.
-   *
+   * <p>
    * Function adapted from module: adap.mspexport.
    *
    * @param dataPoints spectra to convert.
@@ -1190,7 +1252,7 @@ public class ScanUtils {
     Map<Double, Double> integerDataPoints = new HashMap<>();
 
     for (int i = 0; i < size; ++i) {
-      double mz = (double) Math.round(dataPoints[i].getMZ());
+      double mz = Math.round(dataPoints[i].getMZ());
       double intensity = dataPoints[i].getIntensity();
       Double prevIntensity = integerDataPoints.get(mz);
       if (prevIntensity == null) {
@@ -1214,6 +1276,63 @@ public class ScanUtils {
     }
 
     return result;
+  }
+
+  /**
+   * @param dataPoints Sorted (by mz, ascending) array of data points
+   * @param mzRange
+   * @return
+   */
+  @Nonnull
+  public static DataPoint[] getDataPointsByMass(@Nonnull DataPoint[] dataPoints,
+      @Nonnull Range<Double> mzRange) {
+
+    int startIndex, endIndex;
+    for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
+      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
+        break;
+      }
+    }
+
+    for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
+      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
+        break;
+      }
+    }
+
+    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+
+    // Copy the relevant points
+    System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
+
+    return pointsWithinRange;
+  }
+
+
+  /**
+   * Binning modes
+   */
+  public static enum BinningType {
+    SUM, MAX, MIN, AVG
+  }
+
+  /**
+   * Integer conversion methods.
+   */
+  public static enum IntegerMode {
+
+    SUM("Merging mode: Sum"), MAX("Merging mode: Maximum");
+
+    private final String intMode;
+
+    IntegerMode(String intMode) {
+      this.intMode = intMode;
+    }
+
+    @Override
+    public String toString() {
+      return this.intMode;
+    }
   }
 
 

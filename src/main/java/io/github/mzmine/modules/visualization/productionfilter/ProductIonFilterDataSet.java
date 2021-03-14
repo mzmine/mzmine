@@ -18,15 +18,6 @@
 
 package io.github.mzmine.modules.visualization.productionfilter;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -37,10 +28,20 @@ import java.util.List;
 import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javafx.application.Platform;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.scans.ScanUtils;
+import javafx.application.Platform;
 
 class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
@@ -51,7 +52,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   private Range<Double> totalMZRange;
 
   private Object xAxisType;
-  private int scanNumbers[], totalScans, processedScans;
+  private Scan[] scanNumbers;
+  private int totalScans;
+  private int processedScans;
 
   private MZTolerance mzDifference;
   private List<Double> targetedMZ_List;
@@ -108,6 +111,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
 
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -122,14 +126,12 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     // m/z for plotting in R
     List<String> dataListVisual = new ArrayList<String>();
 
-    for (int scanNumber : scanNumbers) {
+    for (Scan scan : scanNumbers) {
 
       // Cancel?
       if (status == TaskStatus.CANCELED) {
         return;
       }
-
-      Scan scan = rawDataFile.getScan(scanNumber);
 
       // check parent m/z
       if (!totalMZRange.contains(scan.getPrecursorMZ())) {
@@ -137,10 +139,10 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       }
 
       // get m/z and intensity values
-      DataPoint scanDataPoints[] = scan.getDataPoints();
+      DataPoint scanDataPoints[] = ScanUtils.extractDataPoints(scan);
 
       // skip empty scans
-      if (scan.getHighestDataPoint() == null) {
+      if (scan.getBasePeakMz() == null) {
         processedScans++;
         continue;
       }
@@ -149,7 +151,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       // threshold defined as : 'scan
       // basePeak Intensity' * percent of base peak to include
       List<Integer> topFeaturesList = new ArrayList<Integer>();
-      double highestIntensity = scan.getHighestDataPoint().getIntensity() * basePeakPercent;
+      double highestIntensity = scan.getBasePeakIntensity() * basePeakPercent;
 
       for (int i = 0; i < scanDataPoints.length; i++) {
         // Cancel?
@@ -223,8 +225,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
               return;
             }
 
-            if (mzDifference.getToleranceRange(targetedNF_List.get(j))
-                .contains(neutralLoss)) {
+            if (mzDifference.getToleranceRange(targetedNF_List.get(j)).contains(neutralLoss)) {
               booleanValuesB[j] = true;
             }
           }
@@ -284,8 +285,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
               return;
             }
 
-            if (mzDifference.getToleranceRange(targetedNF_List.get(j))
-                .contains(neutralLoss)) {
+            if (mzDifference.getToleranceRange(targetedNF_List.get(j)).contains(neutralLoss)) {
               booleanValues[j] = true;
             }
           }
@@ -318,15 +318,14 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
           }
 
           ProductIonFilterDataPoint newPoint =
-              new ProductIonFilterDataPoint(scanDataPoints[featureIndex].getMZ(), scan.getScanNumber(),
+              new ProductIonFilterDataPoint(scanDataPoints[featureIndex].getMZ(), scan,
                   scan.getPrecursorMZ(), scan.getPrecursorCharge(), scan.getRetentionTime());
 
           dataSeries.get(0).add(newPoint);
 
           // Grab product ion, precursor ion, and retention time for
           // sending to output file
-          String temp = scan.getPrecursorMZ() + ","
-              + scanDataPoints[featureIndex].getMZ() + ","
+          String temp = scan.getPrecursorMZ() + "," + scanDataPoints[featureIndex].getMZ() + ","
               + scan.getRetentionTime();
           // add to output file
           dataListVisual.add(temp);
@@ -461,6 +460,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   /**
    * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesCount()
    */
+  @Override
   public int getSeriesCount() {
     return dataSeries.size();
   }
@@ -468,6 +468,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   /**
    * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesKey(int)
    */
+  @Override
   public Comparable<Integer> getSeriesKey(int series) {
     return series;
   }
@@ -475,6 +476,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   /**
    * @see org.jfree.data.xy.XYDataset#getItemCount(int)
    */
+  @Override
   public int getItemCount(int series) {
     return dataSeries.get(series).size();
   }
@@ -482,6 +484,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   /**
    * @see org.jfree.data.xy.XYDataset#getX(int, int)
    */
+  @Override
   public Number getX(int series, int item) {
     ProductIonFilterDataPoint point = dataSeries.get(series).get(item);
     if (xAxisType.equals(ProductIonFilterParameters.xAxisPrecursor)) {
@@ -496,6 +499,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   /**
    * @see org.jfree.data.xy.XYDataset#getY(int, int)
    */
+  @Override
   public Number getY(int series, int item) {
     ProductIonFilterDataPoint point = dataSeries.get(series).get(item);
     return point.getProductMZ();
@@ -519,8 +523,8 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       }
       currentY = point.getProductMZ();
       // check for equality
-      if ((Math.abs(currentX - xValue) < 0.00000001) && (Math.abs(currentY - yValue)
-          < 0.00000001)) {
+      if ((Math.abs(currentX - xValue) < 0.00000001)
+          && (Math.abs(currentY - yValue) < 0.00000001)) {
         return point;
       }
     }
@@ -529,20 +533,24 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
 
   /**
    * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
-   * int, int)
+   *      int, int)
    */
+  @Override
   public String generateToolTip(XYDataset dataset, int series, int item) {
     return dataSeries.get(series).get(item).getName();
   }
 
+  @Override
   public void cancel() {
     setStatus(TaskStatus.CANCELED);
   }
 
+  @Override
   public String getErrorMessage() {
     return null;
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (totalScans == 0) {
       return 0;
@@ -551,10 +559,12 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     }
   }
 
+  @Override
   public TaskStatus getStatus() {
     return status;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Updating fragment filter visualizer of " + rawDataFile;
   }

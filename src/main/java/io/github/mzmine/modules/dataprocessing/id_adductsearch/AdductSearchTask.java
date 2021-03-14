@@ -62,6 +62,7 @@ public class AdductSearchTask extends AbstractTask {
    * @param list feature list.
    */
   public AdductSearchTask(final ParameterSet parameterSet, final FeatureList list) {
+    super(null); // no new data stored -> null
 
     peakList = list;
     parameters = parameterSet;
@@ -102,7 +103,8 @@ public class AdductSearchTask extends AbstractTask {
 
         // Add task description to peakList.
         peakList.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod("Identification of adducts", parameters));
+            new SimpleFeatureListAppliedMethod("Identification of adducts", AdductSearchModule.class,
+                parameters));
 
         // Done.
         setStatus(TaskStatus.FINISHED);

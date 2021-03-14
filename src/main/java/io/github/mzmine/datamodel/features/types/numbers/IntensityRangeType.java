@@ -18,11 +18,15 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatRangeType;
 import io.github.mzmine.main.MZmineCore;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.List;
+import javax.annotation.Nonnull;
 
 public class IntensityRangeType extends FloatRangeType {
 
@@ -43,7 +47,13 @@ public class IntensityRangeType extends FloatRangeType {
   @Override
   @Nonnull
   public String getHeaderString() {
-    return "Intensity Range";
+    return "Intensity range";
   }
 
+
+  @Nonnull
+  @Override
+  public List<RowBinding> createDefaultRowBindings() {
+    return List.of(new SimpleRowBinding(this, BindingsType.RANGE));
+  }
 }

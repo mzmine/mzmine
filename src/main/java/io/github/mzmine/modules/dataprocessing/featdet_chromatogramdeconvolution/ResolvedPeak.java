@@ -18,29 +18,36 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.main.MZmineCore;
-import java.text.Format;
-import java.util.Arrays;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.text.Format;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javafx.beans.property.SimpleObjectProperty;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * ResolvedPeak
- *
  */
-public class ResolvedPeak{
+public class ResolvedPeak implements PlotXYDataProvider {
 
   private SimpleFeatureInformation peakInfo;
 
@@ -52,7 +59,7 @@ public class ResolvedPeak{
   private Double fwhm = null, tf = null, af = null;
 
   // Scan numbers
-  private int scanNumbers[];
+  private Scan scanNumbers[];
 
   // We store the values of data points as double[] arrays in order to save
   // memory, which would be wasted by keeping a lot of instances of
@@ -60,10 +67,10 @@ public class ResolvedPeak{
   private double dataPointMZValues[], dataPointIntensityValues[];
 
   // Top intensity scan, fragment scan
-  private int representativeScan, fragmentScan;
+  private Scan representativeScan, fragmentScan;
 
   // All MS2 fragment scan numbers
-  private int[] allMS2FragmentScanNumbers;
+  private Scan[] allMS2FragmentScanNumbers;
 
   // Ranges of raw data points
   private Range<Double> rawDataPointsMZRange;
@@ -79,6 +86,9 @@ public class ResolvedPeak{
   // set by
   // chromatogram deconvolution method.
   private Integer parentChromatogramRowID = null;
+  private FeatureList peakList;
+
+  private javafx.scene.paint.Color color;
 
   /**
    * Initializes this peak using data points from a given chromatogram - regionStart marks the index
@@ -94,10 +104,12 @@ public class ResolvedPeak{
     this.peakList = chromatogram.getFeatureList();
     this.dataFile = chromatogram.getRawDataFile();
 
-    // Make an array of scan numbers of this peak
-    scanNumbers = new int[regionEnd - regionStart + 1];
+    color = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
 
-    int chromatogramScanNumbers[] = chromatogram.getScanNumbers().stream().mapToInt(i -> i).toArray();
+    // Make an array of scan numbers of this peak
+    scanNumbers = new Scan[regionEnd - regionStart + 1];
+
+    Scan chromatogramScanNumbers[] = chromatogram.getScanNumbers().stream().toArray(Scan[]::new);
 
     System.arraycopy(chromatogramScanNumbers, regionStart, scanNumbers, 0,
         regionEnd - regionStart + 1);
@@ -113,39 +125,46 @@ public class ResolvedPeak{
 
       dataPointMZValues[i] = mzValue;
 
-      DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
-      if (dp == null) {
-        continue;
-        /*
-         * String error =
-         * "Cannot create a resolved peak in a region with missing data points: chromatogram " +
-         * chromatogram + " scans " + chromatogramScanNumbers[regionStart] + "-" +
-         * chromatogramScanNumbers[regionEnd] + ", missing data point in scan " + scanNumbers[i];
-         *
-         * throw new IllegalArgumentException(error);
-         */
-      }
+      if (chromatogram instanceof ModularFeature) {
+        dataPointMZValues[i] = ((ModularFeature) chromatogram).getFeatureData()
+            .getMzForSpectrum(scanNumbers[i]);
+        dataPointIntensityValues[i] = ((ModularFeature) chromatogram).getFeatureData()
+            .getIntensityForSpectrum(scanNumbers[i]);
+      } else {
+        DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
 
-      dataPointMZValues[i] = dp.getMZ();
-      dataPointIntensityValues[i] = dp.getIntensity();
+        if (dp == null) {
+          continue;
+          /*
+           * String error =
+           * "Cannot create a resolved peak in a region with missing data points: chromatogram " +
+           * chromatogram + " scans " + chromatogramScanNumbers[regionStart] + "-" +
+           * chromatogramScanNumbers[regionEnd] + ", missing data point in scan " + scanNumbers[i];
+           *
+           * throw new IllegalArgumentException(error);
+           */
+        }
+
+        dataPointMZValues[i] = dp.getMZ();
+        dataPointIntensityValues[i] = dp.getIntensity();
+      }
 
       if (rawDataPointsIntensityRange == null) {
-        rawDataPointsIntensityRange = Range.singleton((float) dp.getIntensity());
-        rawDataPointsRTRange = Range.singleton(dataFile.getScan(scanNumbers[i]).getRetentionTime());
-        rawDataPointsMZRange = Range.singleton(dp.getMZ());
+        rawDataPointsIntensityRange = Range.singleton((float) dataPointMZValues[i]);
+        rawDataPointsRTRange = Range.singleton(scanNumbers[i].getRetentionTime());
+        rawDataPointsMZRange = Range.singleton(dataPointMZValues[i]);
       } else {
         rawDataPointsRTRange = rawDataPointsRTRange
-            .span(Range.singleton(dataFile.getScan(scanNumbers[i]).getRetentionTime()));
+            .span(Range.singleton(scanNumbers[i].getRetentionTime()));
         rawDataPointsIntensityRange =
-            rawDataPointsIntensityRange.span(Range.singleton((float) dp.getIntensity()));
-        rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(dp.getMZ()));
+            rawDataPointsIntensityRange.span(Range.singleton((float) dataPointIntensityValues[i]));
+        rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(dataPointMZValues[i]));
       }
 
-      if (height < dp.getIntensity()) {
-        height = dp.getIntensity();
-        rt = dataFile.getScan(scanNumbers[i]).getRetentionTime();
+      if (height < dataPointMZValues[i]) {
+        height = dataPointMZValues[i];
+        rt = scanNumbers[i].getRetentionTime();
         representativeScan = scanNumbers[i];
-
       }
     }
 
@@ -157,8 +176,8 @@ public class ResolvedPeak{
     for (int i = 1; i < scanNumbers.length; i++) {
 
       // For area calculation, we use retention time in seconds
-      double previousRT = dataFile.getScan(scanNumbers[i - 1]).getRetentionTime() * 60d;
-      double currentRT = dataFile.getScan(scanNumbers[i]).getRetentionTime() * 60d;
+      double previousRT = scanNumbers[i - 1].getRetentionTime() * 60d;
+      double currentRT = scanNumbers[i].getRetentionTime() * 60d;
 
       double previousHeight = dataPointIntensityValues[i - 1];
       double currentHeight = dataPointIntensityValues[i];
@@ -185,20 +204,22 @@ public class ResolvedPeak{
     }
     Range<Float> searchingRangeRT = Range.closed(lowerBoundRT, upperBoundRT);
 
-    if (msmsRange == 0)
+    if (msmsRange == 0) {
       searchingRange = rawDataPointsMZRange;
-    if (RTRangeMSMS == 0)
+    }
+    if (RTRangeMSMS == 0) {
       searchingRangeRT = rawDataPointsRTRange;
+    }
 
     fragmentScan = ScanUtils.findBestFragmentScan(dataFile, searchingRangeRT, searchingRange);
     allMS2FragmentScanNumbers =
         ScanUtils.findAllMS2FragmentScans(dataFile, searchingRangeRT, searchingRange);
 
-    if (fragmentScan > 0) {
-      Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-      int precursorCharge = fragmentScanObject.getPrecursorCharge();
-      if (precursorCharge > 0)
+    if (fragmentScan != null) {
+      int precursorCharge = fragmentScan.getPrecursorCharge();
+      if (precursorCharge > 0) {
         this.charge = precursorCharge;
+      }
     }
 
   }
@@ -208,8 +229,9 @@ public class ResolvedPeak{
    */
   public DataPoint getDataPoint(int scanNumber) {
     int index = Arrays.binarySearch(scanNumbers, scanNumber);
-    if (index < 0)
+    if (index < 0) {
       return null;
+    }
     SimpleDataPoint dp =
         new SimpleDataPoint(dataPointMZValues[index], dataPointIntensityValues[index]);
     return dp;
@@ -248,15 +270,32 @@ public class ResolvedPeak{
     return height;
   }
 
-  public int getMostIntenseFragmentScanNumber() {
+  public Scan getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
-  public int[] getAllMS2FragmentScanNumbers() {
+  public Scan[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
-  public @Nonnull FeatureStatus getFeatureStatus() {
+  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
+    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
+    // also set best scan by TIC
+    Scan best = null;
+    double tic = 0;
+    if (allMS2FragmentScanNumbers != null) {
+      for (Scan scan : allMS2FragmentScanNumbers) {
+        if (tic < scan.getTIC()) {
+          best = scan;
+          tic = scan.getTIC();
+        }
+      }
+    }
+    setFragmentScanNumber(best);
+  }
+
+  public @Nonnull
+  FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
@@ -264,27 +303,32 @@ public class ResolvedPeak{
     return rt;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
+  public @Nonnull
+  Range<Float> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull Range<Double> getRawDataPointsMZRange() {
+  public @Nonnull
+  Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsRTRange() {
+  public @Nonnull
+  Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
-  public int getRepresentativeScanNumber() {
+  public Scan getRepresentativeScanNumber() {
     return representativeScan;
   }
 
-  public @Nonnull int[] getScanNumbers() {
+  public @Nonnull
+  Scan[] getScanNumbers() {
     return scanNumbers;
   }
 
-  public @Nonnull RawDataFile getRawDataFile() {
+  public @Nonnull
+  RawDataFile getRawDataFile() {
     return dataFile;
   }
 
@@ -332,18 +376,14 @@ public class ResolvedPeak{
   public void outputChromToFile() {
     int nothing = -1;
   }
-
-  public void setPeakInformation(SimpleFeatureInformation peakInfoIn) {
-    this.peakInfo = peakInfoIn;
-  }
+  // End dulab Edit
 
   public SimpleFeatureInformation getPeakInformation() {
     return peakInfo;
   }
-  // End dulab Edit
 
-  public void setParentChromatogramRowID(@Nullable Integer id) {
-    this.parentChromatogramRowID = id;
+  public void setPeakInformation(SimpleFeatureInformation peakInfoIn) {
+    this.peakInfo = peakInfoIn;
   }
 
   @Nullable
@@ -351,25 +391,13 @@ public class ResolvedPeak{
     return this.parentChromatogramRowID;
   }
 
-  public void setFragmentScanNumber(int fragmentScanNumber) {
+  public void setParentChromatogramRowID(@Nullable Integer id) {
+    this.parentChromatogramRowID = id;
+  }
+
+  public void setFragmentScanNumber(Scan fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
-
-  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
-    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
-    // also set best scan by TIC
-    int best = -1;
-    double tic = 0;
-    if (allMS2FragmentScanNumbers != null) {
-      for (int i : allMS2FragmentScanNumbers) {
-        if (tic < dataFile.getScan(i).getTIC())
-          best = i;
-      }
-    }
-    setFragmentScanNumber(best);
-  }
-
-  private FeatureList peakList;
 
   public FeatureList getPeakList() {
     return peakList;
@@ -380,4 +408,66 @@ public class ResolvedPeak{
   }
 
 
+  public List<DataPoint> getDataPoints() {
+    List<DataPoint> dp = new ArrayList<>(dataPointMZValues.length);
+    for (int i = 0; i < dataPointMZValues.length; i++) {
+      dp.add(new SimpleDataPoint(dataPointMZValues[i], dataPointIntensityValues[i]));
+    }
+    return dp;
+  }
+
+  @Nonnull
+  @Override
+  public Color getAWTColor() {
+    return FxColorUtil.fxColorToAWT(color);
+  }
+
+  @Nonnull
+  @Override
+  public javafx.scene.paint.Color getFXColor() {
+    return color;
+  }
+
+  @Nullable
+  @Override
+  public String getLabel(int index) {
+    return null;
+  }
+
+  @Nonnull
+  @Override
+  public Comparable<?> getSeriesKey() {
+    return String.format("%f - %f min", getRawDataPointsIntensityRange().lowerEndpoint(), getRawDataPointsRTRange().upperEndpoint());
+  }
+
+  @Nullable
+  @Override
+  public String getToolTipText(int itemIndex) {
+    return null;
+  }
+
+  @Override
+  public void computeValues(SimpleObjectProperty<TaskStatus> status){
+    // nothing to compute
+  }
+
+  @Override
+  public double getDomainValue(int index) {
+    return getScanNumbers()[index].getRetentionTime();
+  }
+
+  @Override
+  public double getRangeValue(int index) {
+    return getDataPoints().get(index).getIntensity();
+  }
+
+  @Override
+  public int getValueCount() {
+    return getDataPoints().size();
+  }
+
+  @Override
+  public double getComputationFinishedPercentage() {
+    return 1d;
+  }
 }

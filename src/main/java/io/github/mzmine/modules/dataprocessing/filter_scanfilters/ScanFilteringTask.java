@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,30 +18,34 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 
-import java.io.IOException;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.io.IOException;
+import java.util.logging.Logger;
+import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 class ScanFilteringTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private RawDataFile dataFile, filteredRawDataFile;
+  private RawDataFile dataFile, newFile;
 
   // scan counter
   private int processedScans = 0, totalScans;
-  private int[] scanNumbers;
+  private ObservableList<Scan> scanNumbers;
 
   // User parameters
   private String suffix;
@@ -51,12 +55,16 @@ class ScanFilteringTask extends AbstractTask {
   private MZmineProcessingStep<ScanFilter> rawDataFilter;
 
   private ScanSelection select;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param storage
    */
-  ScanFilteringTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  ScanFilteringTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -66,6 +74,7 @@ class ScanFilteringTask extends AbstractTask {
     suffix = parameters.getParameter(ScanFiltersParameters.suffix).getValue();
     select = parameters.getParameter(ScanFiltersParameters.scanSelect).getValue();
 
+    this.parameters = parameters;
   }
 
   /**
@@ -102,15 +111,15 @@ class ScanFilteringTask extends AbstractTask {
 
     logger.info("Started filtering scans on " + dataFile);
 
-    scanNumbers = dataFile.getScanNumbers();
-    totalScans = scanNumbers.length;
+    scanNumbers = dataFile.getScans();
+    totalScans = scanNumbers.size();
 
     try {
 
       // Create new raw data file
 
       String newName = dataFile.getName() + " " + suffix;
-      RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(newName);
+      newFile = MZmineCore.createNewFile(newName, getMemoryMapStorage());
 
       for (int i = 0; i < totalScans; i++) {
 
@@ -118,15 +127,16 @@ class ScanFilteringTask extends AbstractTask {
           return;
         }
 
-        Scan scan = dataFile.getScan(scanNumbers[i]);
+        Scan scan = scanNumbers.get(i);
         Scan newScan = null;
         if (select.matches(scan))
-          newScan = rawDataFilter.getModule().filterScan(scan, rawDataFilter.getParameterSet());
+          newScan =
+              rawDataFilter.getModule().filterScan(newFile, scan, rawDataFilter.getParameterSet());
         else
-          newScan = scan;
+          newScan = scan; // TODO need to create a copy of the scan
 
         if (newScan != null) {
-          rawDataFileWriter.addScan(newScan);
+          newFile.addScan(newScan);
         }
 
         processedScans++;
@@ -134,8 +144,13 @@ class ScanFilteringTask extends AbstractTask {
 
       // Finalize writing
       try {
-        filteredRawDataFile = rawDataFileWriter.finishWriting();
-        project.addFile(filteredRawDataFile);
+        for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
+          newFile.getAppliedMethods().add(appliedMethod);
+        }
+        newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+            BaselineCorrectionModule.class, parameters));
+
+        project.addFile(newFile);
 
         // Remove the original file if requested
         if (removeOriginal) {
@@ -153,7 +168,6 @@ class ScanFilteringTask extends AbstractTask {
       setErrorMessage(e.toString());
       return;
     }
-
   }
 
 }

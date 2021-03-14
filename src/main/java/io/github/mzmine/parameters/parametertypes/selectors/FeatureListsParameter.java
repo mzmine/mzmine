@@ -102,8 +102,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
     FeatureList matchingPeakLists[];
     if (value == null)
       matchingPeakLists = new FeatureList[0];
-    else
-      matchingPeakLists = value.getMatchingFeatureLists();
+    else      matchingPeakLists = value.getMatchingFeatureLists();
 
     if (matchingPeakLists.length < minCount) {
       errorMessages.add("At least " + minCount + " feature lists  must be selected");

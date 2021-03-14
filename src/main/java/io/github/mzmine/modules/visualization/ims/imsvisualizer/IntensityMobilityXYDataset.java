@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
+/*
 package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
 import io.github.mzmine.datamodel.Scan;
@@ -61,4 +61,4 @@ public class IntensityMobilityXYDataset extends AbstractXYDataset {
     public Number getY(int series, int item) {
         return yValues[item];
     }
-}
+}*/

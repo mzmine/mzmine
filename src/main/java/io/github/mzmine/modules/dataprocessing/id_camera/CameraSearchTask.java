@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -66,6 +67,7 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import javax.annotation.Nullable;
 
 /**
  * A task to perform a CAMERA search.
@@ -125,7 +127,8 @@ public class CameraSearchTask extends AbstractTask {
   private REngineType rEngineType;
 
   public CameraSearchTask(final MZmineProject project, final ParameterSet parameters,
-      final FeatureList list) {
+      final FeatureList list, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     // Initialize.
     peakList = list;
@@ -256,7 +259,7 @@ public class CameraSearchTask extends AbstractTask {
       final Map<Scan, Set<DataPoint>> peakDataPointsByScan =
           new HashMap<Scan, Set<DataPoint>>(rawFile.getNumOfScans(MS_LEVEL));
       int dataPointCount = 0;
-      for (final int scanNumber : rawFile.getScanNumbers(MS_LEVEL)) {
+      for (final Scan scan : rawFile.getScanNumbers(MS_LEVEL)) {
 
         // Create a set to hold data points (sorted by m/z).
         final Set<DataPoint> dataPoints = new TreeSet<DataPoint>(ASCENDING_MASS_SORTER);
@@ -266,7 +269,7 @@ public class CameraSearchTask extends AbstractTask {
         dataPointCount++;
 
         // Map the set.
-        peakDataPointsByScan.put(rawFile.getScan(scanNumber), dataPoints);
+        peakDataPointsByScan.put(scan, dataPoints);
       }
 
       // Add peaks.
@@ -280,17 +283,15 @@ public class CameraSearchTask extends AbstractTask {
         final double mz = peak.getMZ();
 
         // Get the peak's data points per scan.
-        for (final int scanNumber : peak.getScanNumbers()) {
-
-          final Scan scan = rawFile.getScan(scanNumber);
+        for (int i=0; i<peak.getNumberOfDataPoints(); i++){
+          Scan scan = peak.getScanAtIndex(i);
           if (scan.getMSLevel() != MS_LEVEL) {
-
             throw new IllegalStateException(
                 "CAMERA can only process feature lists from MS-level " + MS_LEVEL);
           }
 
           // Copy the data point.
-          final DataPoint dataPoint = peak.getDataPoint(scanNumber);
+          final DataPoint dataPoint = peak.getDataPointAtIndex(i);
           if (dataPoint != null) {
 
             final double intensity = dataPoint.getIntensity();
@@ -346,15 +347,12 @@ public class CameraSearchTask extends AbstractTask {
       // Fill vectors.
       int scanIndex = 0;
       int pointIndex = 0;
-      for (final int scanNumber : rawFile.getScanNumbers(MS_LEVEL)) {
-
-        final Scan scan = rawFile.getScan(scanNumber);
+      for (final Scan scan : rawFile.getScanNumbers(MS_LEVEL)) {
         scanTimes[scanIndex] = scan.getRetentionTime();
         scanIndices[scanIndex] = pointIndex + 1;
         scanIndex++;
 
         for (final DataPoint dataPoint : peakDataPointsByScan.get(scan)) {
-
           masses[pointIndex] = dataPoint.getMZ();
           intensities[pointIndex] = dataPoint.getIntensity();
           pointIndex++;
@@ -499,8 +497,8 @@ public class CameraSearchTask extends AbstractTask {
    * Add pseudo-spectra identities.
    *
    * @param peaks peaks to annotate with identities.
-   * @param spectraExp the pseudo-spectra ids vector.
-   * @param isotopeExp the isotopes vector.
+   * @param spectra the pseudo-spectra ids vector.
+   * @param isotopes the isotopes vector.
    */
   private void addPseudoSpectraIdentities(final Feature[] peaks, final int[] spectra,
       final String[] isotopes, final String[] adducts) {
@@ -577,7 +575,7 @@ public class CameraSearchTask extends AbstractTask {
     // Create new feature list.
     final FeatureList combinedPeakList = new ModularFeatureList(
         peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(),
-        peakList.getRawDataFiles());
+        getMemoryMapStorage(), peakList.getRawDataFiles());
 
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
@@ -586,7 +584,8 @@ public class CameraSearchTask extends AbstractTask {
 
     // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", parameters));
+        new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", CameraSearchModule.class,
+            parameters));
 
     // ------------------------------------------------
     // Find unique isotopes belonging to the same group
@@ -738,7 +737,7 @@ public class CameraSearchTask extends AbstractTask {
     // Create new feature list.
     final FeatureList combinedPeakList = new ModularFeatureList(
         peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(),
-        peakList.getRawDataFiles());
+        getMemoryMapStorage(), peakList.getRawDataFiles());
 
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
@@ -747,7 +746,8 @@ public class CameraSearchTask extends AbstractTask {
 
     // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", parameters));
+        new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", CameraSearchModule.class,
+            parameters));
 
     // --------------------
     // Find unique PCGroups

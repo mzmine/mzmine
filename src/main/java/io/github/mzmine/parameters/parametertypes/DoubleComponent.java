@@ -37,7 +37,7 @@ public class DoubleComponent extends FlowPane {
     textField = new TextField();
     textField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(format)));
     textField.setPrefWidth(inputsize);
-    textField.setText(String.valueOf(defvalue));
+    textField.setText(String.valueOf(defvalue)); // why not format.format(defValue)?
 
     // Add an input verifier if any bounds are specified.
     if (minimum != null || maximum != null) {

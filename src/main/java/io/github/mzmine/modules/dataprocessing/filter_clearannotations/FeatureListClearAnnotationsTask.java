@@ -19,14 +19,15 @@
 package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Filters out feature list rows.
@@ -53,7 +54,7 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
    */
   public FeatureListClearAnnotationsTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
-
+    super(null); // no new data stored -> null
     // Initialize.
     this.project = project;
     parameters = parameterSet;
@@ -107,7 +108,9 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
         return;
 
       // Add new peaklist to the project
-      project.addFeatureList(filteredPeakList);
+//      project.addFeatureList(filteredPeakList); // the origList is processed, this doesnt make sense
+      origPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+          FeatureListClearAnnotationsModule.class, parameters));
 
       // Remove the original peaklist if requested
       /*

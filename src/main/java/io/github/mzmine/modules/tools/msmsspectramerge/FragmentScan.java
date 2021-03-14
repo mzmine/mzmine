@@ -23,22 +23,19 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
-/**
- * A fragment scan consists of a list of MS/MS spectra surrounded by MS1 scans
- */
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.logging.Logger;
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
-
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * An MS/MS scan with some statistics about its precursor in MS
@@ -57,11 +54,6 @@ class FragmentScan {
   protected final Feature feature;
 
   /**
-   * mass list to use
-   */
-  protected final String massList;
-
-  /**
    * the MS1 scan that comes before the first MS/MS
    */
   protected final Integer ms1ScanNumber;
@@ -72,7 +64,7 @@ class FragmentScan {
   /**
    * all consecutive(!) MS/MS scans. There should ne no other MS1 scan between them
    */
-  protected final int[] ms2ScanNumbers;
+  protected final Scan[] ms2ScanNumbers;
   /**
    * the intensity of the precursor peak in MS (left or right from MS/MS scans)
    */
@@ -88,28 +80,27 @@ class FragmentScan {
   protected int precursorCharge;
   private PolarityType polarity;
 
-  static FragmentScan[] getAllFragmentScansFor(Feature feature, String massList,
+  static FragmentScan[] getAllFragmentScansFor(Feature feature,
       Range<Double> isolationWindow, MZTolerance massAccuracy) {
     final RawDataFile file = feature.getRawDataFile();
-    final Integer[] ms2 = (feature.getAllMS2FragmentScanNumbers().toArray(new Integer[0])).clone();
-    Arrays.sort(ms2);
+    final Scan[] ms2 = feature.getAllMS2FragmentScans().stream()
+        .sorted(Comparator.comparingInt(Scan::getScanNumber)).toArray(Scan[]::new).clone();
     final List<FragmentScan> fragmentScans = new ArrayList<>();
     // search for ms1 scans
     int i = 0;
     while (i < ms2.length) {
-      int scanNumber = ms2[i];
-      Scan scan = file.getScan(scanNumber);
+      Scan scan = ms2[i];
       Scan precursorScan = ScanUtils.findPrecursorScan(scan);
       Scan precursorScan2 = ScanUtils.findSucceedingPrecursorScan(scan);
       int j = precursorScan2 == null ? ms2.length
-          : Arrays.binarySearch(ms2, precursorScan2.getScanNumber());
+          : Arrays.binarySearch(ms2, precursorScan2);
       if (j < 0)
         j = -j - 1;
-      final int[] subms2 = new int[j - i];
+      final Scan[] subms2 = new Scan[j - i];
       for (int k = i; k < j; ++k)
         subms2[k - i] = ms2[k];
 
-      fragmentScans.add(new FragmentScan(file, feature, massList,
+      fragmentScans.add(new FragmentScan(file, feature,
           precursorScan != null ? precursorScan.getScanNumber() : null,
           precursorScan2 != null ? precursorScan2.getScanNumber() : null, subms2, isolationWindow,
           massAccuracy));
@@ -118,12 +109,11 @@ class FragmentScan {
     return fragmentScans.toArray(new FragmentScan[0]);
   }
 
-  FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber,
-      Integer ms1ScanNumber2, int[] ms2ScanNumbers, Range<Double> isolationWindow,
+  FragmentScan(RawDataFile origin, Feature feature, Integer ms1ScanNumber,
+      Integer ms1ScanNumber2, Scan[] ms2ScanNumbers, Range<Double> isolationWindow,
       MZTolerance massAccuracy) {
     this.origin = origin;
     this.feature = feature;
-    this.massList = massList;
     this.ms1ScanNumber = ms1ScanNumber;
     this.ms1SucceedingScanNumber = ms1ScanNumber2;
     this.ms2ScanNumbers = ms2ScanNumbers;
@@ -150,7 +140,7 @@ class FragmentScan {
   /**
    * interpolate the precursor intensity and chimeric intensity of the MS1 scans linearly by
    * retention time to estimate this values for the MS2 scans
-   * 
+   *
    * @return two arrays, one for precursor intensities, one for chimeric intensities, for all MS2
    *         scans
    */
@@ -166,7 +156,7 @@ class FragmentScan {
       Scan left = origin.getScan(ms1ScanNumber);
       Scan right = origin.getScan(ms1SucceedingScanNumber);
       for (int k = 0; k < ms2ScanNumbers.length; ++k) {
-        Scan ms2 = origin.getScan(ms2ScanNumbers[k]);
+        Scan ms2 = ms2ScanNumbers[k];
         float rtRange = (ms2.getRetentionTime() - left.getRetentionTime())
             / (right.getRetentionTime() - left.getRetentionTime());
         if (rtRange >= 0 && rtRange <= 1) {
@@ -175,8 +165,8 @@ class FragmentScan {
           values[1][k] =
               (1d - rtRange) * chimericIntensityLeft + (rtRange) * chimericIntensityRight;
         } else {
-          LoggerFactory.getLogger(FragmentScan.class)
-              .warn("Retention time is non-monotonic within scan numbers.");
+          Logger.getLogger(FragmentScan.class.getName())
+              .warning("Retention time is non-monotonic within scan numbers.");
           values[0][k] = precursorIntensityLeft + precursorIntensityRight;
           values[1][k] = chimericIntensityLeft + chimericIntensityRight;
         }
@@ -193,9 +183,10 @@ class FragmentScan {
     Scan spectrum = origin.getScan(ms1Scan);
     this.precursorCharge = spectrum.getPrecursorCharge();
     this.polarity = spectrum.getPolarity();
+    Range<Double> mzRange = Range.closed(precursorMass + isolationWindow.lowerEndpoint(),
+        precursorMass + isolationWindow.upperEndpoint());
     DataPoint[] dps =
-        spectrum.getDataPointsByMass(Range.closed(precursorMass + isolationWindow.lowerEndpoint(),
-            precursorMass + isolationWindow.upperEndpoint()));
+        ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(spectrum), mzRange);
     // for simplicity, just use the most intense peak within massAccuracy
     // range
     int bestPeak = -1;

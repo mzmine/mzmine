@@ -18,6 +18,13 @@
 
 package io.github.mzmine.modules.visualization.combinedmodule;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
@@ -27,14 +34,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Vector;
 import javafx.application.Platform;
-import org.jfree.chart.labels.XYToolTipGenerator;
-import org.jfree.data.xy.AbstractXYDataset;
-import org.jfree.data.xy.XYDataset;
+import javafx.collections.ObservableList;
 
 public class CombinedModuleDataset extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
@@ -43,11 +44,11 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
   private Range<Float> totalRTRange;
   private CombinedModuleVisualizerTabController visualizer;
   private TaskStatus status = TaskStatus.WAITING;
-  private int processedScans, scanNumbers[];
+  private int processedScans;
+  private ObservableList<Scan> scanNumbers;
   private HashMap<Integer, Vector<CombinedModuleDataPoint>> dataSeries;
   int totalScans;
   private AxisType xAxisType, yAxisType;
-  private String massListName;
   private Double noiseLevel;
   private ColorScale colorScale;
   private static int RAW_LEVEL = 0;
@@ -56,7 +57,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
 
   public CombinedModuleDataset(RawDataFile dataFile, Range<Float> rtRange, Range<Double> mzRange,
       CombinedModuleVisualizerTabController visualizer, AxisType xAxisType, AxisType yAxisType,
-      Double noiseLevel, ColorScale colorScale, String massList) {
+      Double noiseLevel, ColorScale colorScale) {
     this.rawDataFile = dataFile;
     this.totalMZRange = mzRange;
     this.totalRTRange = rtRange;
@@ -65,10 +66,9 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
     this.yAxisType = yAxisType;
     this.noiseLevel = noiseLevel;
     this.colorScale = colorScale;
-    this.massListName = massList;
 
-    scanNumbers = rawDataFile.getScanNumbers();
-    totalScans = scanNumbers.length;
+    scanNumbers = rawDataFile.getScans();
+    totalScans = scanNumbers.size();
     dataSeries = new HashMap<Integer, Vector<CombinedModuleDataPoint>>();
     dataSeries.put(RAW_LEVEL, new Vector<CombinedModuleDataPoint>(totalScans));
     dataSeries.put(PRECURSOR_LEVEL, new Vector<CombinedModuleDataPoint>(totalScans));
@@ -85,13 +85,12 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
 
     ArrayList<Float> retentionList = new ArrayList<Float>();
     ArrayList<Double> precursorList = new ArrayList<Double>();
-    for (int scanNumber : scanNumbers) {
+    for (Scan scan : scanNumbers) {
       if (status == TaskStatus.CANCELED) {
         return;
       }
-      Scan scan = rawDataFile.getScan(scanNumber);
 
-      //ignore scans of MS level 1
+      // ignore scans of MS level 1
       if (scan.getMSLevel() == 1) {
         processedScans++;
         continue;
@@ -102,7 +101,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
       }
 
       // skip empty scans
-      if (scan.getHighestDataPoint() == null) {
+      if (scan.getBasePeakMz() == null) {
         processedScans++;
         continue;
       }
@@ -110,7 +109,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
       retentionList.add(scan.getRetentionTime());
       precursorList.add(scan.getPrecursorMZ());
 
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
       if (massList == null) {
         setStatus(TaskStatus.ERROR);
         return;

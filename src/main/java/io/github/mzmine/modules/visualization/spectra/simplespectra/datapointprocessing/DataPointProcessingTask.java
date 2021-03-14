@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,22 +18,21 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Nonnull;
-
-import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 /**
- * 
+ *
  * This abstract class defines the methods for processing an array of DataPoints. When implementing
  * this, make sure to use setStatus and setResults at the end of the task. The next task will not be
  * launched, if the status has not been set to FINISHED. The next Task will be launched using
@@ -41,14 +40,16 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
  * array of DataPoint[]). If you method requires mass detection, it is recommended to chech if it's
  * an instance of ProcessedDataPoint[]. ParameterSet, plot and controller are also stored during the
  * constructor of this this abstract class.
- * 
+ *
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- * 
+ *
  */
 public abstract class DataPointProcessingTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(DataPointProcessingTask.class.getName());
+
   private SpectraPlot targetPlot;
-  protected DataPoint[] dataPoints;
+  protected MassSpectrum dataPoints;
   protected ParameterSet parameterSet;
   private DataPointProcessingController controller;
   protected String taskDescription;
@@ -64,16 +65,19 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    * Stores the dataPoints, plot, parameters, controller, and TaskStatusListener passed to this task
    * and sets the task status to WAITING. Make sure to call this super constructor in your extending
    * class.
-   * 
+   *
    * @param dataPoints
    * @param plot
    * @param parameterSet
    * @param controller
    * @param listener
    */
-  public DataPointProcessingTask(@Nonnull DataPoint[] dataPoints, @Nonnull SpectraPlot plot,
+  public DataPointProcessingTask(@Nonnull MassSpectrum dataPoints, @Nonnull SpectraPlot plot,
       @Nonnull ParameterSet parameterSet, @Nonnull DataPointProcessingController controller,
       @Nonnull TaskStatusListener listener) {
+    super(null); // no new data stored -> null
+    logger.warning("Rethink storage creation when re-implementing data point processing");
+
     setDataPoints(dataPoints);
     setTargetPlot(plot);
     setParameterSet(parameterSet);
@@ -87,11 +91,11 @@ public abstract class DataPointProcessingTask extends AbstractTask {
 
   public abstract void displayResults();
 
-  public @Nonnull DataPoint[] getDataPoints() {
+  public @Nonnull MassSpectrum getDataPoints() {
     return dataPoints;
   }
 
-  private void setDataPoints(@Nonnull DataPoint[] dataPoints) {
+  private void setDataPoints(@Nonnull MassSpectrum dataPoints) {
     this.dataPoints = dataPoints;
   }
 
@@ -104,7 +108,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @return Array of ProcessedDataPoints. Make sure the task has finished. If results are not set a
    *         new ProcessedDataPoint[0] will be returned.
    */
@@ -116,7 +120,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
 
   /**
    * Set the results when your task is done processing.
-   * 
+   *
    * @param dp Array the results shall be set to.
    */
   public void setResults(@Nonnull ProcessedDataPoint[] dp) {
@@ -124,7 +128,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @return The parameter set passed to this task.
    */
   public @Nonnull ParameterSet getParameterSet() {
@@ -155,7 +159,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   /**
    * Convenience method to execute the {@link ParameterSet#checkParameterValues} method and set an
    * error message using setErrorMessage method.
-   * 
+   *
    * @return true if all values are valid, false otherwise.
    */
   protected boolean checkParameterSet() {
@@ -172,7 +176,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    * Checks if any invalid arguments were passed through the constructor of this class and sets an
    * error message using setErrorMessage. Only checks for errors that would cause a
    * NullPointerException, the length of the passed DataPoint array is not checked.
-   * 
+   *
    * @return true if all arguments are valid, false otherwise.
    */
   protected boolean checkValues() {
@@ -186,7 +190,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @return Returns the color the results of this task should be displayed with.
    */
   public Color getColor() {
@@ -194,7 +198,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @return true if the results should be displayed, false otherwise.
    */
   public boolean isDisplayResults() {
@@ -203,7 +207,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
 
   /**
    * Sets the color of the results of this task.
-   * 
+   *
    * @param color
    */
   protected void setColor(Color color) {
@@ -212,7 +216,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
 
   /**
    * Sets if the results of this task should be displayed.
-   * 
+   *
    * @param displayResults
    */
   protected void setDisplayResults(boolean displayResults) {

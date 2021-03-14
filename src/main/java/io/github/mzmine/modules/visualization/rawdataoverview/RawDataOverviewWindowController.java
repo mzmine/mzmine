@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +29,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
@@ -89,6 +91,8 @@ public class RawDataOverviewWindowController {
    * Sets the raw data files to be displayed. Already present files are not removed to optimise
    * performance. This should be called over
    * {@link RawDataOverviewWindowController#addRawDataFileTab} if possible.
+   * 
+   * Only add LC-MS data sets, exclude imaging
    *
    * @param rawDataFiles
    */
@@ -103,7 +107,11 @@ public class RawDataOverviewWindowController {
     filesToProcess.forEach(r -> removeRawDataFile(r));
 
     // presence of file is checked in the add method
-    rawDataFiles.forEach(r -> addRawDataFileTab(r));
+    rawDataFiles.forEach(r -> {
+      if (!(r instanceof ImagingRawDataFileImpl)) {
+        addRawDataFileTab(r);
+      }
+    });
     visualizer.setRawDataFiles(rawDataFiles);
   }
 
@@ -135,8 +143,7 @@ public class RawDataOverviewWindowController {
               // in that case we just select the table.
               return;
             }
-            Integer scanNum = Integer.valueOf(newValue.getScanNumber());
-            visualizer.setFocusedScan(raw, scanNum);
+            visualizer.setFocusedScan(raw, newValue.getScan());
           }));
 
       Tab rawDataFileTab = new Tab(raw.getName());
@@ -183,7 +190,9 @@ public class RawDataOverviewWindowController {
 
     visualizer.chromPositionProperty().addListener((observable, oldValue, pos) -> {
       RawDataFile selectedRawDataFile = pos.getDataFile();
-
+      if (selectedRawDataFile instanceof ImagingRawDataFileImpl) {
+        return;
+      }
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
       if (con == null || selectedRawDataFile == null) {
         logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
@@ -195,15 +204,14 @@ public class RawDataOverviewWindowController {
 
       if (rawDataTableView.getItems() != null) {
         try {
-          String scanNumberString = String.valueOf(pos.getScanNumber());
+          Scan scan = pos.getScan();
           rawDataTableView.getItems().stream()
-              .filter(item -> item.getScanNumber().equals(scanNumberString)).findFirst()
+              .filter(item -> item.getScan().equals(scan)).findFirst()
               .ifPresent(item -> {
                 rawDataTableView.getSelectionModel().select(item);
                 if (!con.getVisibleRange().contains(rawDataTableView.getItems().indexOf(item))) {
                   rawDataTableView.scrollTo(item);
                 }
-
               });
         } catch (Exception e) {
           e.getStackTrace();

@@ -18,33 +18,35 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 class MultiThreadPeakFinderTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private FeatureList peakList, processedPeakList;
+  private ModularFeatureList peakList, processedPeakList;
   private double intTolerance;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
-  private int processedScans, totalScans;
+  private int totalScans;
+  private AtomicInteger processedScans = new AtomicInteger(0);
 
   // start and end (exclusive) for raw data file processing
   private int start;
@@ -55,9 +57,11 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
   private int taskIndex;
 
-  MultiThreadPeakFinderTask(MZmineProject project, FeatureList peakList, FeatureList processedPeakList,
+  MultiThreadPeakFinderTask(MZmineProject project, ModularFeatureList peakList,
+      ModularFeatureList processedPeakList,
       ParameterSet parameters, int start, int endexcl, SubTaskFinishListener listener,
       int taskIndex) {
+    super(null);
 
     this.listener = listener;
     this.taskIndex = taskIndex;
@@ -105,48 +109,38 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
         Feature sourcePeak = sourceRow.getFeature(dataFile);
 
-        if (sourcePeak == null) {
-
+        if (sourcePeak == null || sourcePeak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
           // Create a new gap
 
           Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
           Range<Float> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
 
           Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
-
           gaps.add(newGap);
-
-        } else {
-          newRow.addFeature(dataFile, sourcePeak);
         }
       }
 
       // Stop processing this file if there are no gaps
       if (gaps.isEmpty()) {
-        processedScans += dataFile.getNumOfScans();
+        processedScans.addAndGet(dataFile.getNumOfScans());
         continue;
       }
 
       // Get all scans of this data file
-      int scanNumbers[] = dataFile.getScanNumbers(1);
+      dataFile.getScanNumbers(1).forEach(scan -> {
+        if(!isCanceled()) {
+          // Feed this scan to all gaps
+          for (Gap gap : gaps) {
+            gap.offerNextScan(scan);
+          }
 
-      // Process each scan
-      for (int scanNumber : scanNumbers) {
-        // Canceled?
+          processedScans.incrementAndGet();
+        }
+      });
+
         if (isCanceled()) {
           return;
         }
-
-        // Get the scan
-        Scan scan = dataFile.getScan(scanNumber);
-
-        // Feed this scan to all gaps
-        for (Gap gap : gaps) {
-          gap.offerNextScan(scan);
-        }
-
-        processedScans++;
-      }
 
       // Finalize gaps
       for (Gap gap : gaps) {
@@ -166,7 +160,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     if (totalScans == 0) {
       return 0;
     }
-    return (double) processedScans / (double) totalScans;
+    return (double) processedScans.get() / (double) totalScans;
   }
 
   public String getTaskDescription() {

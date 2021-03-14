@@ -20,16 +20,15 @@ package io.github.mzmine.gui;
 
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import java.util.Arrays;
-import javafx.beans.InvalidationListener;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -68,6 +67,9 @@ public class MZmineWindow extends Stage {
    */
   public MZmineWindow(boolean isExclusive) {
     super();
+
+    Image mzmineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
+    this.getIcons().add(mzmineIcon);
 
     setWidth(DEFAULT_WIDTH);
     setHeight(DEFAULT_HEIGHT);

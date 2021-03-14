@@ -18,41 +18,50 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import com.google.common.collect.ImmutableList;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.util.FeatureTableFXUtil;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.logging.Logger;
-import javafx.application.Platform;
-import org.controlsfx.control.StatusBar;
-import com.google.common.collect.Ordering;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.groupablelistview.GroupEntity;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
+import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
+import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -62,6 +71,7 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -73,9 +83,9 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
@@ -84,53 +94,57 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.controlsfx.control.StatusBar;
 
 public class MainWindowController {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private Boolean reorderListItem = false;
-  private static final Image rawDataFileIcon =
-      FxIconUtil.loadImageFromResources("icons/fileicon.png");
-
   private static final Image featureListSingleIcon =
       FxIconUtil.loadImageFromResources("icons/peaklisticon_single.png");
-
   private static final Image featureListAlignedIcon =
       FxIconUtil.loadImageFromResources("icons/peaklisticon_aligned.png");
-
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  @FXML
+  public ContextMenu rawDataContextMenu;
+  @FXML
+  public ContextMenu featureListContextMenu;
+  @FXML
+  public MenuItem rawDataGroupMenuItem;
+  @FXML
+  public MenuItem rawDataRemoveMenuItem;
+  @FXML
+  public MenuItem rawDataRenameMenuItem;
+  @FXML
+  public MenuItem rawDataRemoveExtensionMenuItem;
+  @FXML
+  public MenuItem rawDataSetColorMenuItem;
+  @FXML
+  public MenuItem openFeatureListMenuItem;
+  @FXML
+  public MenuItem showFeatureListSummaryMenuItem;
+  @FXML
+  public MenuItem featureListsRenameMenuItem;
+  @FXML
+  public MenuItem featureListsRemoveMenuItem;
   @FXML
   private Scene mainScene;
-
   @FXML
-  private ListView<RawDataFile> rawDataTree;
-
+  private GroupableListView<RawDataFile> rawDataList;
   @FXML
-  private ListView<FeatureList> featureTree;
-
-  @FXML
-  private Tab tvAligned;
-
-  @FXML
-  private TreeView<FeatureList> tvAlignedFeatureLists;
-
+  private GroupableListView<FeatureList> featureListsList;
   @FXML
   private AnchorPane tbRawData;
 
@@ -179,97 +193,74 @@ public class MainWindowController {
   @FXML
   public void initialize() {
 
-    rawDataTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    // rawDataTree.setShowRoot(true);
-    rawDataTree.setEditable(false);
+    rawDataList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-    rawDataTree.setCellFactory(rawDataListView -> new DraggableListCellWithDraggableFiles<>() {
-      private final TextField textField = new TextField();
-      {
-        textField.setOnAction(event -> commitEdit(getItem()));
-        textField.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
-          if (event.getCode() == KeyCode.ESCAPE) {
-            cancelEdit();
+    featureListsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    featureListsList.setGrouping(featureList -> featureList.isAligned()
+        ? "Aligned feature lists"
+        : featureList.getRawDataFile(0).getName());
+
+    rawDataList
+        .setCellFactory(rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
+
+          @Override
+          protected void updateItem(GroupableListViewEntity item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || (item == null)) {
+              setText("");
+              setGraphic(null);
+              return;
+            }
+            if (item instanceof GroupEntity) {
+              return;
+            }
+
+            RawDataFile rawDataFile = ((ValueEntity<RawDataFile>) item).getValue();
+
+            setText(rawDataFile.getName());
+            setGraphic(new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor())));
+
+            rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
+              // Check raw data file name to avoid 'setGraphic' invocation for other items from
+              // different thread, where 'updateItem' is called. Can it be done better?!
+              if (rawDataFile.getName().equals(getText())) {
+                setGraphic(new ImageView(FxIconUtil.getFileIcon(newColor)));
+              }
+            });
+          }
+
+          @Override
+          public void commitEdit(GroupableListViewEntity item) {
+            super.commitEdit(item);
+            if (item instanceof GroupEntity) {
+              return;
+            }
+
+            ((ValueEntity<RawDataFile>) item).getValue().setName(getText());
           }
         });
-      }
-
-      @Override
-      protected void updateItem(RawDataFile item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || (item == null)) {
-          setText("");
-          setGraphic(null);
-          return;
-        }
-        setText(item.getName());
-        // setTextFill(item.getColor());
-        textFillProperty().bind(item.colorProperty());
-        setGraphic(new ImageView(rawDataFileIcon));
-      }
-
-      @Override
-      public void startEdit() {
-        if (!isEditable() || !getListView().isEditable() || getItem() == null) {
-          return;
-        }
-
-        super.startEdit();
-
-        textField.setText(getItem().getName());
-        setText(null);
-        HBox hbox = (new HBox(new ImageView(rawDataFileIcon), textField));
-        hbox.setAlignment(Pos.CENTER_LEFT);
-        setGraphic(hbox);
-        textField.selectAll();
-        textField.requestFocus();
-      }
-
-      @Override
-      public void cancelEdit() {
-        if (getItem() == null) {
-          return;
-        }
-
-        super.cancelEdit();
-
-        setText(getItem().getName());
-        setGraphic(new ImageView(rawDataFileIcon));
-        rawDataTree.setEditable(false);
-      }
-
-      @Override
-      public void commitEdit(RawDataFile item) {
-        if (item == null) {
-          return;
-        }
-
-        super.commitEdit(item);
-
-        item.setName(textField.getText());
-
-        setText(item.getName());
-        setGraphic(new ImageView(rawDataFileIcon));
-        rawDataTree.setEditable(false);
-      }
-    });
 
     // Add mouse clicked event handler
-    rawDataTree.setOnMouseClicked(event -> {
+    rawDataList.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        handleShowChromatogram(event);
+        List<RawDataFile> selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+        if (selectedFiles.stream().anyMatch(f -> f instanceof ImagingRawDataFileImpl)) {
+          handleShowImage(event);
+        } else {
+          handleShowChromatogram(event);
+        }
       }
     });
 
     // Add long mouse pressed event handler
-    rawDataTree.addEventHandler(MouseEvent.ANY, new EventHandler<MouseEvent>() {
+    rawDataList.addEventHandler(MouseEvent.ANY, new EventHandler<MouseEvent>() {
       final PauseTransition timer = new PauseTransition(Duration.millis(400));
 
       @Override
       public void handle(MouseEvent event) {
         timer.setOnFinished(e -> {
-          rawDataTree.setEditable(true);
-          rawDataTree.edit(rawDataTree.getSelectionModel().getSelectedIndex());
+          rawDataList.setEditable(true);
+          rawDataList.edit(rawDataList.getSelectionModel().getSelectedIndex());
         });
 
         if (event.getEventType().equals(MouseEvent.MOUSE_PRESSED)) {
@@ -281,75 +272,82 @@ public class MainWindowController {
       }
     });
 
-    featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    // featureTree.setShowRoot(true);
-
-    featureTree.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
+    featureListsList.setCellFactory(featureListView -> new GroupableListViewCell<FeatureList>() {
       @Override
-      protected void updateItem(FeatureList item, boolean empty) {
+      protected void updateItem(GroupableListViewEntity item, boolean empty) {
         super.updateItem(item, empty);
         if (empty || (item == null)) {
           setText("");
           setGraphic(null);
           return;
         }
-        setText(item.getName());
-        if (item.getNumberOfRawDataFiles() > 1) {
+        if (item instanceof GroupEntity) {
+          return;
+        }
+
+        FeatureList featureList = ((ValueEntity<FeatureList>) item).getValue();
+
+        setText(featureList.getName());
+        if (featureList.isAligned()) {
           setGraphic(new ImageView(featureListAlignedIcon));
         } else {
           setGraphic(new ImageView(featureListSingleIcon));
         }
       }
     });
+
     // Add mouse clicked event handler
-    featureTree.setOnMouseClicked(event -> {
+    featureListsList.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         handleOpenFeatureList(event);
       }
     });
 
-    // notify selected tab about raw file selection change
-    rawDataTree.getSelectionModel().getSelectedItems()
-        .addListener((ListChangeListener<RawDataFile>) c -> {
-          c.next();
-          for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-            if (tab instanceof MZmineTab && tab.isSelected()
-                && ((MZmineTab) tab).isUpdateOnSelection()) {
-              ((MZmineTab) tab).onRawDataFileSelectionChanged(c.getList());
-            }
-          }
-        });
+    // Notify selected tab about raw data files selection change
+    rawDataList.getSelectedValues().addListener((ListChangeListener<RawDataFile>) change -> {
 
-    featureTree.getSelectionModel().getSelectedItems()
-        .addListener((ListChangeListener<FeatureList>) c -> {
-          c.next();
-          for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-            if (tab instanceof MZmineTab && tab.isSelected()
-                && ((MZmineTab) tab).isUpdateOnSelection()) {
-              ((MZmineTab) tab).onFeatureListSelectionChanged(c.getList());
-            }
-          }
-        });
+      // Add listener body to the event queue to run it after all selected items are added to
+      // the observable list, so the collections' elements equality test in the if statement will
+      // compare final result of the multiple selection
+      MZmineCore.runLater(() -> {
+        change.next();
 
-    // TODO: aligned feature lists tree selection listener
-
-    /*
-    // update if tab selection in main window changes
-    getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
-      if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) {
-        if (!((MZmineTab) val).getRawDataFiles()
-            .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
-            || ((MZmineTab) val).getRawDataFiles().size() != rawDataTree.getSelectionModel()
-                .getSelectedItems().size()) {
-          if (((MZmineTab) val).isUpdateOnSelection()) {
-            ((MZmineTab) val)
-                .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
+        for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
+          if (tab instanceof MZmineTab && tab.isSelected()
+              && ((MZmineTab) tab).isUpdateOnSelection()
+              && !(CollectionUtils.isEqualCollection(
+              ((MZmineTab) tab).getRawDataFiles(), change.getList()))) {
+            ((MZmineTab) tab).onRawDataFileSelectionChanged(change.getList());
           }
         }
-        // TODO: Add the same for feature lists
-      }
+      });
     });
-    */
+
+    featureListsList.getSelectedValues().addListener((ListChangeListener<FeatureList>) change -> {
+      MZmineCore.runLater(() -> {
+        change.next();
+        for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
+          if (tab instanceof MZmineTab && tab.isSelected()
+              && ((MZmineTab) tab).isUpdateOnSelection()
+              && !(CollectionUtils.isEqualCollection(
+              ((MZmineTab) tab).getFeatureLists(), change.getList()))) {
+            ((MZmineTab) tab).onFeatureListSelectionChanged(change.getList());
+          }
+        }
+      });
+    });
+
+    /*
+     * // update if tab selection in main window changes
+     * getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
+     * if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) { if
+     * (!((MZmineTab) val).getRawDataFiles()
+     * .containsAll(rawDataTree.getSelectionModel().getSelectedItems()) || ((MZmineTab)
+     * val).getRawDataFiles().size() != rawDataTree.getSelectionModel() .getSelectedItems().size())
+     * { if (((MZmineTab) val).isUpdateOnSelection()) { ((MZmineTab) val)
+     * .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems()); } } //
+     * TODO: Add the same for feature lists } });
+     */
 
     // taskNameColumn.setPrefWidth(800.0);
     // taskNameColumn.setMinWidth(600.0);
@@ -424,16 +422,80 @@ public class MainWindowController {
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
      */
 
+    // Update rawDataList context menu depending on selected items
+    rawDataList.getSelectionModel().getSelectedItems().addListener(
+        (ListChangeListener<GroupableListViewEntity>) change -> {
+          while (change.next()) {
+            if (change.getList() == null) {
+              return;
+            }
+
+            if (rawDataList.getSelectedValues().size() == 1) {
+              rawDataRemoveMenuItem.setText("Remove file");
+              rawDataRemoveExtensionMenuItem.setText("Remove file extension");
+              rawDataSetColorMenuItem.setDisable(false);
+            } else {
+              rawDataRemoveMenuItem.setText("Remove files");
+              rawDataRemoveExtensionMenuItem.setText("Remove files' extensions");
+              rawDataSetColorMenuItem.setDisable(true);
+            }
+
+            if (rawDataList.getSelectionModel().getSelectedItems().size() == 1) {
+              rawDataRenameMenuItem.setDisable(false);
+              if (rawDataList.getSelectionModel().getSelectedItems()
+                  .get(0) instanceof GroupEntity) {
+                rawDataRenameMenuItem.setText("Rename group");
+              } else {
+                rawDataRenameMenuItem.setText("Rename file");
+              }
+            } else {
+              rawDataRenameMenuItem.setDisable(true);
+            }
+          }
+        });
+
+    featureListsList.getSelectionModel().getSelectedItems().addListener(
+        (ListChangeListener<GroupableListViewEntity>) change -> {
+          while (change.next()) {
+            if (change.getList() == null) {
+              return;
+            }
+
+            if (featureListsList.getSelectedValues().size() == 1) {
+              openFeatureListMenuItem.setText("Open feature list");
+              showFeatureListSummaryMenuItem.setText("Show feature list summary");
+              featureListsRemoveMenuItem.setText("Remove feature list");
+            } else {
+              openFeatureListMenuItem.setText("Open feature lists");
+              showFeatureListSummaryMenuItem.setText("Show feature lists summary");
+              featureListsRemoveMenuItem.setText("Remove feature lists");
+            }
+
+            if (featureListsList.getSelectionModel().getSelectedItems().size() == 1) {
+              featureListsRenameMenuItem.setDisable(false);
+              if (featureListsList.getSelectionModel().getSelectedItems()
+                  .get(0) instanceof GroupEntity) {
+                featureListsRenameMenuItem.setText("Rename group");
+              } else {
+                featureListsRenameMenuItem.setText("Rename file");
+              }
+            } else {
+              featureListsRenameMenuItem.setDisable(true);
+            }
+          }
+        }
+    );
+
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
     addTab(rop);
   }
 
-  public ListView<RawDataFile> getRawDataTree() {
-    return rawDataTree;
+  public GroupableListView<RawDataFile> getRawDataList() {
+    return rawDataList;
   }
 
-  public ListView<FeatureList> getFeatureTree() {
-    return featureTree;
+  public GroupableListView<FeatureList> getFeatureListsList() {
+    return featureListsList;
   }
 
   /*
@@ -500,34 +562,53 @@ public class MainWindowController {
     }
   }
 
-  public void handleShowMsMsPlot(Event event) {}
-
-  public void handleSort(Event event) {
-    if (!(event.getSource() instanceof ListView)) {
-      return;
+  public void handleShowImage(Event event) {
+    logger.finest("Activated Show image menu item");
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class);
+    parameters.getParameter(ImageVisualizerParameters.rawDataFiles).setValue(
+        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ExitCode exitCode = parameters.showSetupDialog(true);
+    if (exitCode == ExitCode.OK) {
+      MZmineCore.runMZmineModule(ImageVisualizerModule.class, parameters);
     }
-    ListView<?> sourceList = (ListView<?>) event.getSource();
-    List<?> files = sourceList.getItems();
-    files.sort(Ordering.usingToString());
   }
 
-  public void handleRemoveFileExtension(Event event) {}
 
-  public void handleExportFile(Event event) {}
+  public void handleShowMsMsPlot(Event event) {
+  }
 
-  public void handleRenameFile(Event event) {
-    if (rawDataTree.getSelectionModel() == null) {
+  public void handleRawDataSort(Event event) {
+    rawDataList.sortSelectedItems();
+  }
+
+  public void handleFeatureListsSort(Event event) {
+    featureListsList.sortSelectedItems();
+  }
+
+  public void handleRemoveFileExtension(Event event) {
+    for (RawDataFile file : rawDataList.getSelectedValues()) {
+      file.setName(FilenameUtils.removeExtension(file.getName()));
+    }
+    rawDataList.refresh();
+  }
+
+  public void handleExportFile(Event event) {
+  }
+
+  public void handleRenameRawData(Event event) {
+    if (rawDataList.getSelectionModel() == null) {
       return;
     }
 
-    ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
     // Only one file must be selected
-    if (rows == null || rows.size() != 1) {
+    if (rawDataList.getSelectionModel().getSelectedIndices().size() != 1) {
       return;
     }
 
-    rawDataTree.setEditable(true);
-    rawDataTree.edit(rawDataTree.getSelectionModel().getSelectedIndex());
+    rawDataList.setEditable(true);
+    rawDataList.edit(rawDataList.getSelectionModel().getSelectedIndex());
   }
 
   @SuppressWarnings("unchecked")
@@ -560,8 +641,9 @@ public class MainWindowController {
     logger.info("Setting parameters for module " + module.getName());
 
     ExitCode exitCode = moduleParameters.showSetupDialog(true);
-    if (exitCode != ExitCode.OK)
+    if (exitCode != ExitCode.OK) {
       return;
+    }
 
     ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
     logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
@@ -569,12 +651,9 @@ public class MainWindowController {
   }
 
   public void handleRemoveRawData(Event event) {
-    if (rawDataTree.getSelectionModel() == null) {
+    if (rawDataList.getSelectionModel() == null) {
       return;
     }
-
-    // Get selected tree items
-    ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
 
     // Show alert window
     Alert alert =
@@ -589,31 +668,68 @@ public class MainWindowController {
       return;
     }
 
-    // Loop through all selected tree items
-    if (rows != null) {
-      for (int i = rows.size() - 1; i >= 0; i--) {
-        RawDataFile row = rows.get(i);
-        MZmineCore.getProjectManager().getCurrentProject().removeFile(row);
-      }
-      // rawDataTree.getSelectionModel().clearSelection();
+    for (RawDataFile selectedItem : ImmutableList.copyOf(rawDataList.getSelectedValues())) {
+      MZmineCore.getProjectManager().getCurrentProject().removeFile(selectedItem);
+    }
+
+    for (GroupEntity group : ImmutableList.copyOf(rawDataList.getSelectedGroups())) {
+      rawDataList.ungroupItems(group);
     }
   }
 
   public void handleOpenFeatureList(Event event) {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
-      //PeakListTableModule.showNewPeakListVisualizerWindow(fl);
-      Platform.runLater(() -> {
+      // PeakListTableModule.showNewPeakListVisualizerWindow(fl);
+      MZmineCore.runLater(() -> {
         FeatureTableFXUtil.addFeatureTableTab(fl);
       });
     }
   }
 
-  public void handleShowFeatureListSummary(Event event) {}
+  public void handleShowFeatureListSummary(Event event) {
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("FeatureListSummary.fxml"));
 
-  public void handleShowScatterPlot(Event event) {}
+    ObservableList<FeatureList> selectedValues = featureListsList.getSelectedValues();
+    if (selectedValues.isEmpty()) {
+      return;
+    }
 
-  public void handleRenameFeatureList(Event event) {}
+    ModularFeatureList selectedFeatureList = (ModularFeatureList) selectedValues.get(0);
+
+    try {
+      AnchorPane pane = loader.load();
+      Stage stage = new Stage();
+      stage.setTitle("Feature list summary - " + selectedFeatureList.getName());
+      stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+      stage.setScene(new Scene(pane));
+      stage.getScene().getStylesheets()
+          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      FeatureListSummaryController controller = loader.getController();
+      controller.setFeatureList(selectedFeatureList);
+      stage.show();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void handleShowScatterPlot(Event event) {
+    // TODO
+  }
+
+  public void handleRenameFeatureList(Event event) {
+    if (featureListsList.getSelectionModel() == null) {
+      return;
+    }
+
+    // Only one item must be selected
+    if (featureListsList.getSelectionModel().getSelectedIndices().size() != 1) {
+      return;
+    }
+
+    featureListsList.setEditable(true);
+    featureListsList.edit(featureListsList.getSelectionModel().getSelectedIndex());
+  }
 
   @FXML
   public void handleRemoveFeatureList(Event event) {
@@ -679,17 +795,20 @@ public class MainWindowController {
   public void addTab(Tab tab) {
     if (tab instanceof MZmineTab) {
       ((MZmineTab) tab).updateOnSelectionProperty().addListener(((obs, old, val) -> {
-        if (val.booleanValue()) {
-          if (((MZmineTab) tab).getRawDataFiles() != null && (!((MZmineTab) tab).getRawDataFiles()
-              .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
-              || ((MZmineTab) tab).getRawDataFiles().size() != rawDataTree.getSelectionModel()
-                  .getSelectedItems().size())) {
+        if (val) {
+          if (((MZmineTab) tab).getRawDataFiles() != null && !((MZmineTab) tab).getRawDataFiles()
+              .equals(rawDataList.getSelectionModel().getSelectedItems())) {
             ((MZmineTab) tab)
-                .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
+                .onRawDataFileSelectionChanged(rawDataList.getSelectedValues());
+          }
+
+          if (((MZmineTab) tab).getFeatureLists() != null && !((MZmineTab) tab).getFeatureLists()
+              .equals(featureListsList.getSelectionModel().getSelectedItems())) {
+            ((MZmineTab) tab)
+                .onFeatureListSelectionChanged(featureListsList.getSelectedValues());
           }
         }
       }));
-      // TODO: add same for feature lists
     }
 
     getMainTabPane().getTabs().add(tab);
@@ -698,12 +817,11 @@ public class MainWindowController {
 
   @FXML
   public void handleSetRawDataFileColor(Event event) {
-    if (rawDataTree.getSelectionModel() == null) {
+    if (rawDataList.getSelectionModel() == null) {
       return;
     }
 
-    ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
-
+    ObservableList<RawDataFile> rows = rawDataList.getSelectedValues();
     // Only one file must be selected
     if (rows == null || rows.size() != 1 || rows.get(0) == null) {
       return;
@@ -712,9 +830,9 @@ public class MainWindowController {
     Stage popup = new Stage();
     VBox box = new VBox(5);
     Label label = new Label("Please choose a color for \""
-        + getRawDataTree().getSelectionModel().getSelectedItem().getName() + "\":");
+        + rows.get(0) + "\":");
     ColorPicker picker =
-        new ColorPicker(getRawDataTree().getSelectionModel().getSelectedItem().getColor());
+        new ColorPicker(rows.get(0).getColor());
 
     BooleanProperty apply = new SimpleBooleanProperty(false);
 
@@ -752,5 +870,15 @@ public class MainWindowController {
         rows.get(0).setColor(picker.getValue());
       }
     });
+  }
+
+  public void handleGroupRawDataFiles(Event event) {
+    if (rawDataList.onlyGroupsSelected()) {
+      rawDataList.ungroupItems(rawDataList.getSelectedGroups());
+    } else if (rawDataList.onlyGroupedItemsSelected()) {
+      rawDataList.removeValuesFromGroup(rawDataList.getSelectedValues());
+    } else if (rawDataList.onlyItemsSelected()) {
+      rawDataList.groupSelectedItems();
+    }
   }
 }

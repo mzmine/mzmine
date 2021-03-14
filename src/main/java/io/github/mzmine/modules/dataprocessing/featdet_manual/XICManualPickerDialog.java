@@ -18,21 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
-import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.RangeUtils;
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Stroke;
-import java.awt.Toolkit;
-import java.awt.geom.Rectangle2D;
-import java.text.NumberFormat;
-import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
-import org.jfree.chart.fx.interaction.ChartMouseEventFX;
-import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.plot.XYPlot;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -47,8 +32,19 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Stroke;
+import java.awt.Toolkit;
+import java.awt.geom.Rectangle2D;
+import java.text.NumberFormat;
+import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -62,6 +58,10 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.plot.XYPlot;
 
 public class XICManualPickerDialog extends ParameterSetupDialog {
 
@@ -88,18 +88,10 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
   protected TextField txtArea;
 
   protected NumberFormat intensityFormat, mzFormat;
-
-  public enum NextBorder {
-    LOWER, UPPER
-  };
-
-  private enum InputSource {
-    OTHER, GRAPH
-  }
-
   protected InputSource inputSource;
-  protected NextBorder nextBorder;
 
+  ;
+  protected NextBorder nextBorder;
   // XYPlot
   private TICPlot ticPlot;
 
@@ -190,7 +182,6 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
         Rectangle2D plotArea =
             getTicPlot().getCanvas().getRenderingInfo().getPlotInfo().getDataArea();
 
-
         XYPlot plot = ticPlot.getXYPlot();
         double rtValue =
             plot.getDomainAxis().java2DToValue(p.getX(), plotArea, plot.getDomainAxisEdge());
@@ -202,8 +193,6 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     });
 
     mainPane.setRight(pnlNewMain);
-
-
 
     nextBorder = NextBorder.LOWER;
     inputSource = InputSource.OTHER;
@@ -236,8 +225,6 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     calcArea();
   }
 
-
-
   private void setRTBoundary(double rt) {
     if (rt <= rtRange.lowerEndpoint() || nextBorder == NextBorder.LOWER) {
       lower = rt;
@@ -266,13 +253,15 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
   }
 
   private void setValuesToRangeParameter() {
-    if (!checkRanges() || rtRange == null)
+    if (!checkRanges() || rtRange == null) {
       return;
+    }
     parameters.getParameter(XICManualPickerParameters.rtRange).setValue(rtRange);
   }
 
   @Override
-  public void parametersChanged() {}
+  public void parametersChanged() {
+  }
 
   private void addMarkers() {
     getTicPlot().getXYPlot().clearDomainMarkers();
@@ -283,23 +272,18 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
   }
 
   private void calcArea() {
-    if (!checkRanges())
+    if (!checkRanges()) {
       return;
+    }
 
-    Task integration = new AbstractTask() {
+    Task integration = new AbstractTask(null) {
 
       @Override
       public void run() {
         setStatus(TaskStatus.PROCESSING);
         double area = FeatureUtils.integrateOverMzRtRange(rawDataFile,
             RangeUtils.toFloatRange(rtRange), mzRange);
-        SwingUtilities.invokeLater(new Runnable() {
-
-          @Override
-          public void run() {
-            txtArea.setText(intensityFormat.format(area));
-          }
-        });
+        Platform.runLater(() -> txtArea.setText(intensityFormat.format(area)));
         setStatus(TaskStatus.FINISHED);
       }
 
@@ -317,8 +301,6 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
 
     MZmineCore.getTaskController().addTask(integration);
   }
-
-
 
   public TICPlot getTicPlot() {
     return ticPlot;
@@ -338,8 +320,6 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     }
   }
 
-
-
   public void updatePlot() {
     // logger.info(event.getType().toString() + " source: " +
     // inputSource.toString());
@@ -354,15 +334,14 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     }
   }
 
-
-
   private boolean checkRtComponentValue() {
     Range<Double> value = rtRangeComp.getValue();
     if (value == null) {
       return false;
     }
-    if (!value.hasLowerBound() || !value.hasUpperBound())
+    if (!value.hasLowerBound() || !value.hasUpperBound()) {
       return false;
+    }
 
     if (value != null) {
       if (value.lowerEndpoint() > value.upperEndpoint()) {
@@ -373,5 +352,15 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
       }
     }
     return true;
+  }
+
+
+  public enum NextBorder {
+    LOWER, UPPER
+  }
+
+
+  private enum InputSource {
+    OTHER, GRAPH
   }
 }

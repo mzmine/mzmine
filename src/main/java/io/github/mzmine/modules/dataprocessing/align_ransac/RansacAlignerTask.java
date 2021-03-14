@@ -18,13 +18,25 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,27 +46,19 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
 import org.apache.commons.math.stat.regression.SimpleRegression;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.RangeUtils;
 
 class RansacAlignerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private FeatureList featureLists[], alignedFeatureList;
+  private ModularFeatureList[] featureLists;
+  private ModularFeatureList alignedFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
   // Parameters
@@ -66,10 +70,12 @@ class RansacAlignerTask extends AbstractTask {
   // ID counter for the new peaklist
   private int newRowID = 1;
 
-  public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists, ParameterSet parameters) {
+  public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
-    this.featureLists = featureLists;
+    this.featureLists = (ModularFeatureList[]) featureLists;
     this.parameters = parameters;
 
     // Get parameter values for easier use
@@ -121,7 +127,7 @@ class RansacAlignerTask extends AbstractTask {
     // Collect all data files
     List<RawDataFile> allDataFiles = new ArrayList<RawDataFile>();
 
-    for (FeatureList featureList : featureLists) {
+    for (ModularFeatureList featureList : featureLists) {
 
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
 
@@ -135,11 +141,15 @@ class RansacAlignerTask extends AbstractTask {
         }
 
         allDataFiles.add(dataFile);
+
+        featureList.getRawDataFiles().forEach(
+            file -> alignedFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
       }
     }
 
     // Create a new aligned feature list
-    alignedFeatureList = new ModularFeatureList(featureListName, allDataFiles.toArray(new RawDataFile[0]));
+    alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
+        allDataFiles.toArray(new RawDataFile[0]));
 
     // Iterate source feature lists
     for (FeatureList featureList : featureLists) {
@@ -154,7 +164,7 @@ class RansacAlignerTask extends AbstractTask {
 
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
-          targetRow = new ModularFeatureListRow((ModularFeatureList) featureList, newRowID);
+          targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
           //(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
           //    ModularFeature p)
           newRowID++;
@@ -163,15 +173,10 @@ class RansacAlignerTask extends AbstractTask {
 
         // Add all peaks from the original row to the aligned row
         for (RawDataFile file : row.getRawDataFiles()) {
-          targetRow.addFeature(file, row.getFeature(file));
+          targetRow.addFeature(file, new ModularFeature(alignedFeatureList, row.getFeature(file)));
         }
 
-        // Add all non-existing identities from the original row to the
-        // aligned row
-        FeatureUtils.copyFeatureListRowProperties(row, targetRow);
-
         processedRows++;
-
       }
 
     } // Next feature list
@@ -189,9 +194,9 @@ class RansacAlignerTask extends AbstractTask {
 
       SortedMap<Double, Double> chromatogram = new TreeMap<>();
 
-      for (int scan : feature.getScanNumbers()) {
-        DataPoint dataPoint = feature.getDataPoint(scan);
-        double retTime = dataFile.getScan(scan).getRetentionTime() + retTimeDelta;
+      for (int i=0; i < feature.getNumberOfDataPoints(); i++) {
+        DataPoint dataPoint = feature.getDataPointAtIndex(i);
+        double retTime = feature.getRetentionTimeAtIndex(i) + retTimeDelta;
         if (dataPoint != null)
           chromatogram.put(retTime, dataPoint.getIntensity());
       }
@@ -201,7 +206,8 @@ class RansacAlignerTask extends AbstractTask {
 
     // Add task description to peakList
     alignedFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Ransac aligner", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Ransac aligner",
+            RansacAlignerModule.class, parameters));
 
     logger.info("Finished RANSAC aligner");
     setStatus(TaskStatus.FINISHED);

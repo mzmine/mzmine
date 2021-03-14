@@ -96,6 +96,7 @@ public class GNPSResultsImportTask extends AbstractTask {
    * @param peakList
    */
   public GNPSResultsImportTask(ParameterSet parameters, FeatureList peakList) {
+    super(null); // no new data stored -> null
     this.parameters = parameters;
     this.peakList = peakList;
     file = parameters.getParameter(GNPSResultsImportParameters.FILE).getValue();
@@ -135,7 +136,8 @@ public class GNPSResultsImportTask extends AbstractTask {
 
       // Add task description to peakList
       ((ModularFeatureList) peakList).addDescriptionOfAppliedTask(
-          new SimpleFeatureListAppliedMethod("Identification of complexes", parameters));
+          new SimpleFeatureListAppliedMethod("Identification of complexes",
+              GNPSResultsImportModule.class, parameters));
 
 
       setStatus(TaskStatus.FINISHED);
@@ -146,7 +148,7 @@ public class GNPSResultsImportTask extends AbstractTask {
   /**
    * All edges have id=0 - this causes an exception. Replace all zero ids and save the file
    *
-   * @param file2
+   * @param file
    */
   private void removeZeroIDFromEdge(File file) {
     try {

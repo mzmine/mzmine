@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -50,12 +51,14 @@ public class ScanFiltersModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
+    // one storage for all files in the same module call
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     RawDataFile[] dataFiles = parameters.getParameter(ScanFiltersParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
 
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new ScanFilteringTask(project, dataFile, parameters);
+      Task newTask = new ScanFilteringTask(project, dataFile, parameters, storage);
       tasks.add(newTask);
     }
     return ExitCode.OK;

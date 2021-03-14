@@ -15,6 +15,17 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
+import dulab.adap.common.algorithms.FeatureTools;
+import dulab.adap.datamodel.Component;
+import dulab.adap.datamodel.Peak;
+import dulab.adap.datamodel.PeakInfo;
+import dulab.adap.workflow.TwoStepDecomposition;
+import dulab.adap.workflow.TwoStepDecompositionParameters;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -22,7 +33,13 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,24 +52,9 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import dulab.adap.common.algorithms.FeatureTools;
-import dulab.adap.datamodel.Component;
-import dulab.adap.datamodel.Peak;
-import dulab.adap.datamodel.PeakInfo;
-import dulab.adap.workflow.TwoStepDecomposition;
-import dulab.adap.workflow.TwoStepDecompositionParameters;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
+import javax.annotation.Nullable;
 
 /**
- *
  * @author aleksandrsmirnov
  */
 public class ADAP3DecompositionV1_5Task extends AbstractTask {
@@ -70,7 +72,8 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
   private final ParameterSet parameters;
 
   ADAP3DecompositionV1_5Task(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
+    super(storage);
     // Initialize.
     this.project = project;
     parameters = parameterSet;
@@ -157,7 +160,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     final ModularFeatureList resolvedPeakList = new ModularFeatureList(
         peakList + " "
             + parameters.getParameter(ADAP3DecompositionV1_5Parameters.SUFFIX).getValue(),
-        dataFile);
+        getMemoryMapStorage(), dataFile);
 
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
@@ -166,7 +169,8 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
     // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3", parameters));
+        new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3",
+            ADAPHierarchicalClusteringModule.class, parameters));
 
     // Collect peak information
     List<Peak> peaks = getPeaks(peakList,
@@ -184,17 +188,18 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     int rowID = 0;
 
     for (final Component component : components) {
-      if (component.getSpectrum().isEmpty())
+      if (component.getSpectrum().isEmpty()) {
         continue;
+      }
 
-      FeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
+      ModularFeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
 
       // Add the reference peak
       FeatureListRow refPeakRow = originalPeakList.getRow(component.getBestPeak().getInfo().peakID);
       // ?
       refPeakRow.setFeatureList(resolvedPeakList);
       // ?
-      Feature refPeak = new ModularFeature(refPeakRow.getBestFeature());
+      Feature refPeak = new ModularFeature(resolvedPeakList, refPeakRow.getBestFeature());
 
       // Add spectrum
       List<DataPoint> dataPoints = new ArrayList<>();
@@ -237,17 +242,18 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       }
     });
 
-    for (FeatureListRow row : newPeakListRows)
+    for (FeatureListRow row : newPeakListRows) {
       resolvedPeakList.addRow(row);
+    }
 
     return resolvedPeakList;
   }
 
   /**
    * Convert MZmine PeakList to a list of ADAP Peaks
-   * 
-   * @param peakList MZmine PeakList object
-   * @param edgeToHeightThreshold edge-to-height threshold to determine peaks that can be merged
+   *
+   * @param peakList               MZmine PeakList object
+   * @param edgeToHeightThreshold  edge-to-height threshold to determine peaks that can be merged
    * @param deltaToHeightThreshold delta-to-height threshold to determine peaks that can be merged
    * @return list of ADAP Peaks
    */
@@ -261,19 +267,21 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
     for (FeatureListRow row : peakList.getRows()) {
       Feature peak = row.getBestFeature();
-      int[] scanNumbers = peak.getScanNumbers().stream().mapToInt(i -> i).toArray();
+      List<Scan> scanNumbers = peak.getScanNumbers();
 
       // Build chromatogram
       NavigableMap<Double, Double> chromatogram = new TreeMap<>();
-      for (int scanNumber : scanNumbers) {
-        DataPoint dataPoint = peak.getDataPoint(scanNumber);
-        if (dataPoint != null)
-          chromatogram.put((double) dataFile.getScan(scanNumber).getRetentionTime(),
+      for (int i = 0; i < scanNumbers.size(); i++) {
+        DataPoint dataPoint = peak.getDataPointAtIndex(i);
+        if (dataPoint != null) {
+          chromatogram.put(Double.valueOf(String.valueOf(peak.getRetentionTimeAtIndex(i))),
               dataPoint.getIntensity());
+        }
       }
 
-      if (chromatogram.size() <= 1)
+      if (chromatogram.size() <= 1) {
         continue;
+      }
 
       // Fill out PeakInfo
       PeakInfo info = new PeakInfo();
@@ -285,17 +293,17 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
         info.peakID = row.getID() - 1;
 
         double height = -Double.MIN_VALUE;
-        for (int scan : scanNumbers) {
-          double intensity = peak.getDataPoint(scan).getIntensity();
+        for (int i = 0; i < scanNumbers.size(); i++) {
+          double intensity = peak.getDataPointAtIndex(i).getIntensity();
 
           if (intensity > height) {
             height = intensity;
-            info.peakIndex = scan;
+            info.peakIndex = scanNumbers.get(i).getScanNumber();
           }
         }
 
-        info.leftApexIndex = scanNumbers[0];
-        info.rightApexIndex = scanNumbers[scanNumbers.length - 1];
+        info.leftApexIndex = scanNumbers.get(0).getScanNumber();
+        info.rightApexIndex = scanNumbers.get(scanNumbers.size() - 1).getScanNumber();
         info.retTime = peak.getRT();
         info.mzValue = peak.getMZ();
         info.intensity = peak.getHeight();
@@ -317,7 +325,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
   /**
    * Performs ADAP Peak Decomposition
-   * 
+   *
    * @param peaks list of Peaks
    * @return Collection of dulab.adap.Component objects
    */

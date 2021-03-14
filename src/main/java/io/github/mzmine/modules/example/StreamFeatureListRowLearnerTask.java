@@ -18,35 +18,35 @@
 
 package io.github.mzmine.modules.example;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.List;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.List;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 class StreamFeatureListRowLearnerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private FeatureList featureList;
-  private FeatureList resultFeatureList;
+  private ModularFeatureList featureList;
+  private ModularFeatureList resultFeatureList;
 
   // features counter
   private int processedFeatures;
@@ -62,13 +62,13 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
   /**
    * Constructor to set all parameters and the project
    *
-   * @param rawDataFile
    * @param parameters
    */
   public StreamFeatureListRowLearnerTask(MZmineProject project, FeatureList featureList,
-      ParameterSet parameters) {
+      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
-    this.featureList = featureList;
+    this.featureList = (ModularFeatureList) featureList;
     this.parameters = parameters;
     // Get parameter values for easier use
     suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
@@ -104,7 +104,8 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
     logger.info("Running learner task on " + featureList);
 
     // Create a new results feature list which is added at the end
-    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, featureList.getRawDataFiles());
+    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, getMemoryMapStorage(),
+        featureList.getRawDataFiles());
 
     /**
      * - A FeatureList is a list of Features (feature in retention time dimension with accurate m/z)<br>
@@ -113,7 +114,8 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
      */
 
     // use streams to filter, sort and create list
-    List<FeatureListRow> rowList = featureList.getRows().stream().filter(r -> r.getAverageHeight() > 5000)
+    List<ModularFeatureListRow> rowList = featureList.getRows().stream().filter(r -> r.getAverageHeight() > 5000)
+            .map(ModularFeatureListRow.class::cast)
         .sorted(new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending))
         .collect(Collectors.toList());
     totalRows = rowList.size();
@@ -121,7 +123,7 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
     // ###########################################################
     // OPTION 1: Streams
     // either use stream to process all rows
-    rowList.stream().forEachOrdered(row -> {
+    rowList.stream().map(ModularFeatureListRow.class::cast).forEachOrdered(row -> {
       // check for cancelled state and stop
       if (isCanceled())
         return;
@@ -135,7 +137,7 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
       // ...
 
       // add row to feature list result
-      FeatureListRow copy = copyFeatureRow(row);
+      FeatureListRow copy = new ModularFeatureListRow(resultFeatureList, row, true);
       resultFeatureList.addRow(copy);
 
       // Update completion rate
@@ -144,7 +146,7 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
 
     // ###########################################################
     // OPTION 2: For loop
-    for (FeatureListRow row : rowList) {
+    for (ModularFeatureListRow row : rowList) {
       // check for cancelled state and stop
       if (isCanceled())
         return;
@@ -158,7 +160,7 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
       // ...
 
       // add row to feature list result
-      FeatureListRow copy = copyFeatureRow(row);
+      FeatureListRow copy = new ModularFeatureListRow(resultFeatureList, row, true);
       resultFeatureList.addRow(copy);
 
       // Update completion rate
@@ -172,27 +174,6 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  /**
-   * Create a copy of a feature list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static FeatureListRow copyFeatureRow(final FeatureListRow row) {
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) row.getFeatureList(), row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the features.
-    for (final Feature feature : row.getFeatures()) {
-      final Feature newFeature = new ModularFeature(feature);
-      FeatureUtils.copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getRawDataFile(), newFeature);
-    }
-
-    return newRow;
-  }
 
   /**
    * Add feature list to project, delete old if requested, add description to result
@@ -208,7 +189,7 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
 
     // Add task description to feature list
     resultFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Learner task", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class,parameters));
 
     // Remove the original feature list if requested
     if (removeOriginal)

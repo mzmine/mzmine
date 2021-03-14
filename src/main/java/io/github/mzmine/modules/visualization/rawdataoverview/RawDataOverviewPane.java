@@ -18,15 +18,17 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.BorderPane;
+import javax.annotation.Nonnull;
 
 public class RawDataOverviewPane extends MZmineTab {
 
@@ -43,11 +45,9 @@ public class RawDataOverviewPane extends MZmineTab {
     try {
       BorderPane root = loader.load();
       controller = loader.getController();
-      controller.initialize();
       setContent(root);
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Could not load RawDataOverview.fxml", e);
-      return;
     }
   }
 
@@ -55,19 +55,22 @@ public class RawDataOverviewPane extends MZmineTab {
     this(false, false);
   }
 
+  @Nonnull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return controller.getRawDataFiles();
   }
 
+  @Nonnull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
-    return null;
+    return Collections.emptyList();
   }
 
+  @Nonnull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return null;
+    return Collections.emptyList();
   }
 
   @Override
@@ -81,8 +84,7 @@ public class RawDataOverviewPane extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featurelists) {
     return;
   }
 }

@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -56,8 +57,10 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
 
     FeatureList featureLists[] = parameters.getParameter(StandardCompoundNormalizerParameters.featureList)
         .getValue().getMatchingFeatureLists();
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+
     for (FeatureList featureList : featureLists) {
-      Task newTask = new StandardCompoundNormalizerTask(project, featureList, parameters);
+      Task newTask = new StandardCompoundNormalizerTask(project, featureList, parameters, storage);
       tasks.add(newTask);
     }
 

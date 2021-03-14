@@ -18,26 +18,25 @@
 
 package io.github.mzmine.modules.example;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.Arrays;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 class FeatureListRowLearnerTask extends AbstractTask {
 
@@ -45,7 +44,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
 
   private final MZmineProject project;
   private FeatureList featureList;
-  private FeatureList resultFeatureList;
+  private ModularFeatureList resultFeatureList;
 
   // features counter
   private int processedFeatures;
@@ -61,10 +60,10 @@ class FeatureListRowLearnerTask extends AbstractTask {
   /**
    * Constructor to set all parameters and the project
    *
-   * @param rawDataFile
-   * @param parameters
    */
-  public FeatureListRowLearnerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
+  public FeatureListRowLearnerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
     this.project = project;
     this.featureList = featureList;
     this.parameters = parameters;
@@ -102,7 +101,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
     logger.info("Running learner task on " + featureList);
 
     // Create a new results feature list which is added at the end
-    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, featureList.getRawDataFiles());
+    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, getMemoryMapStorage(), featureList.getRawDataFiles());
 
     /**
      * - A FeatureList is a list of Features (feature in retention time dimension with accurate m/z)<br>
@@ -110,7 +109,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
      * ---- access mean retention time, mean m/z, maximum intensity, ...<br>
      */
     // get all rows and sort by m/z
-    FeatureListRow[] rows = featureList.getRows().toArray(FeatureListRow[]::new);
+    ModularFeatureListRow[] rows = featureList.getRows().toArray(ModularFeatureListRow[]::new);
     Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     totalRows = rows.length;
@@ -119,7 +118,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
       if (isCanceled())
         return;
 
-      FeatureListRow row = rows[i];
+      ModularFeatureListRow row = rows[i];
       // access details
       double mz = row.getAverageMZ();
       double intensity = row.getAverageHeight();
@@ -129,7 +128,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
       // ...
 
       // add row to feature list result
-      FeatureListRow copy = copyFeatureRow(row);
+      ModularFeatureListRow copy = new ModularFeatureListRow(resultFeatureList, row, true);
       resultFeatureList.addRow(copy);
 
       // Update completion rate
@@ -141,28 +140,6 @@ class FeatureListRowLearnerTask extends AbstractTask {
 
     logger.info("Finished on " + featureList);
     setStatus(TaskStatus.FINISHED);
-  }
-
-  /**
-   * Create a copy of a feature list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static FeatureListRow copyFeatureRow(final FeatureListRow row) {
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) row.getFeatureList(), row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the features.
-    for (final Feature feature : row.getFeatures()) {
-      final Feature newFeature = new ModularFeature(feature);
-      FeatureUtils.copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getRawDataFile(), newFeature);
-    }
-
-    return newRow;
   }
 
   /**
@@ -179,7 +156,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
 
     // Add task description to feature list
     resultFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Learner task", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters));
 
     // Remove the original feature list if requested
     if (removeOriginal)

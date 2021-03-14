@@ -18,11 +18,10 @@
 
 package io.github.mzmine.parameters.parametertypes.ranges;
 
+import com.google.common.collect.Range;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
-
-import com.google.common.collect.Range;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
@@ -57,7 +56,7 @@ public class DoubleRangeComponent extends HBox {
 
     getChildren().addAll(minTxtField, minusLabel, maxTxtField);
 
-    setMinWidth(600.0);
+    setMinWidth(200.0);
     // setStyle("-fx-border-color: red");
 
     setNumberFormat(format);

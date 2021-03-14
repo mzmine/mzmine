@@ -19,27 +19,26 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 
 /**
  * DataPoint implementation extended with retention time and scan number
  */
 class GapDataPoint implements DataPoint {
 
-  private int scanNumber;
+  private Scan scanNumber;
   private double mz, rt, intensity;
 
   /**
    */
-  GapDataPoint(int scanNumber, double mz, double rt, double intensity) {
-
+  GapDataPoint(Scan scanNumber, double mz, double rt, double intensity) {
     this.scanNumber = scanNumber;
     this.mz = mz;
     this.rt = rt;
     this.intensity = intensity;
-
   }
 
-  int getScanNumber() {
+  Scan getScan() {
     return scanNumber;
   }
 

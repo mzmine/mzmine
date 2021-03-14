@@ -18,21 +18,23 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.mean;
 
-import java.util.Vector;
-import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Vector;
+import javax.annotation.Nonnull;
 
 public class MeanFilter implements ScanFilter {
 
   @Override
-  public Scan filterScan(Scan sc, ParameterSet parameters) {
+  public Scan filterScan(RawDataFile newFile, Scan sc, ParameterSet parameters) {
 
     double windowLength =
         parameters.getParameter(MeanFilterParameters.oneSidedWindowLength).getValue();
@@ -49,7 +51,7 @@ public class MeanFilter implements ScanFilter {
 
     double elSum;
 
-    DataPoint oldDataPoints[] = sc.getDataPoints();
+    DataPoint oldDataPoints[] = ScanUtils.extractDataPoints(sc);
     DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
 
     int addi = 0;
@@ -89,25 +91,23 @@ public class MeanFilter implements ScanFilter {
 
     }
 
+    double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(newDataPoints);
     // Create filtered scan
-    Scan newScan = new SimpleScan(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(),
-        sc.getRetentionTime(), sc.getPrecursorMZ(), sc.getPrecursorCharge(),
-        sc.getFragmentScanNumbers(), newDataPoints, MassSpectrumType.CENTROIDED, sc.getPolarity(),
-        sc.getScanDefinition(), sc.getScanningMZRange(), sc.getMobility(), sc.getMobilityType());
-
+    SimpleScan newScan =
+        new SimpleScan(newFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
+            sc.getPrecursorMZ(), sc.getPrecursorCharge(), dp[0], dp[1], MassSpectrumType.CENTROIDED,
+            sc.getPolarity(), sc.getScanDefinition(), sc.getScanningMZRange());
     return newScan;
 
   }
 
   @Override
-  public @Nonnull
-  String getName() {
+  public @Nonnull String getName() {
     return "Mean filter";
   }
 
   @Override
-  public @Nonnull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
     return MeanFilterParameters.class;
   }
 }

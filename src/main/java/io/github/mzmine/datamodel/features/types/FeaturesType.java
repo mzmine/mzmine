@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -52,7 +53,7 @@ import javafx.scene.layout.StackPane;
  */
 // TODO: remove implements SubColumnsFactory...
 public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeature>>
-    implements SubColumnsFactory<MapProperty<RawDataFile, ModularFeature>> {
+    implements NoTextColumn {
 
   @Override
   public String getHeaderString() {
@@ -64,132 +65,4 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
     return new SimpleMapProperty<RawDataFile, ModularFeature>();
   }
 
-  @Override
-  @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
-      final @Nullable RawDataFile raw) {
-    /*
-    List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
-    // create bar chart
-    TreeTableColumn<ModularFeatureListRow, Object> barsCol = new TreeTableColumn<>("Area Bars");
-    barsCol.setCellValueFactory(new DataTypeCellValueFactory(null, this));
-    barsCol.setCellFactory(new DataTypeCellFactory(null, this, cols.size()));
-    cols.add(barsCol);
-
-    TreeTableColumn<ModularFeatureListRow, Object> sharesCol = new TreeTableColumn<>("Area Share");
-    sharesCol.setCellValueFactory(new DataTypeCellValueFactory(null, this));
-    sharesCol.setCellFactory(new DataTypeCellFactory(null, this, cols.size()));
-    cols.add(sharesCol);
-
-    TreeTableColumn<ModularFeatureListRow, Object> shapes = new TreeTableColumn<>("Shapes");
-    shapes.setCellValueFactory(new DataTypeCellValueFactory(null, this));
-    shapes.setCellFactory(new DataTypeCellFactory(null, this, cols.size()));
-    cols.add(shapes);
-    */
-    /*
-     * sample columns are created in the FeatureListFX class
-     */
-
-    return Collections.emptyList();
-  }
-
-  /**
-   * Create bar chart of data
-   * 
-   * @param cell
-   * @param coll
-   * @return
-   */
-  public Node getBarChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
-    return new AreaBarChart(row, progress);
-  }
-
-  /**
-   * Create bar chart of data
-   * 
-   * @param cell
-   * @param coll
-   * @return
-   */
-  public Node getAreaShareChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
-    return new AreaShareChart(row, progress);
-  }
-
-  @Override
-  @Nullable
-  public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    return "";
-  }
-
-  @Override
-  @Nullable
-  public Node getSubColNode(int subcolumn, TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null)
-      return null;
-
-    // get existing buffered node from row (for column name)
-    // TODO listen to changes in features data
-    Node node = row.getBufferedColChart(coll.getText());
-    if (node != null)
-      return node;
-
-    final StackPane pane = new StackPane();
-
-    // TODO stop task if new task is started
-    Task task = new AbstractTask() {
-      private AtomicDouble progress = new AtomicDouble(0d);
-      private int rowID = -1;
-
-      @Override
-      public void run() {
-        rowID = row.getID();
-
-        setStatus(TaskStatus.PROCESSING);
-        final Node n;
-
-        switch (subcolumn) {
-          case 0:
-            n = new AreaBarChart(row, progress);
-            break;
-          case 1:
-            n = new AreaShareChart(row, progress);
-            break;
-          case 2:
-            n = new FeatureShapeChart(row, progress);
-            break;
-          default:
-            n = null;
-            break;
-        }
-        // save chart for later
-        row.addBufferedColChart(coll.getText(), n);
-        if (n != null) {
-          Platform.runLater(() -> {
-            pane.getChildren().add(n);
-          });
-        }
-        setStatus(TaskStatus.FINISHED);
-        progress.set(1d);
-      }
-
-      @Override
-      public String getTaskDescription() {
-        return "Creating a graphical column for col: " + cell.getTableColumn().getText()
-            + " in row: " + rowID;
-      }
-
-      @Override
-      public double getFinishedPercentage() {
-        return progress.get();
-      }
-    };
-    if (MZmineCore.getTaskController() != null)
-      MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-
-    return pane;
-  }
 }

@@ -255,7 +255,6 @@ public class MouseEventWrapper {
    * @since 1.4
    * @see Toolkit#areExtraMouseButtonsEnabled()
    * @see java.awt.MouseInfo#getNumberOfButtons()
-   * @see #MouseEvent(Component, int, long, int, int, int, int, int, int, boolean, int)
    * @see InputEvent#getMaskForButton(int)
    */
   public int getButton() {
@@ -311,7 +310,7 @@ public class MouseEventWrapper {
         else
           return 0;
       case FX_SCROLL:
-        return scrollfx.getDeltaY();
+        return scrollfx.getDeltaY()+scrollfx.getDeltaX();
     }
     return 0;
   }

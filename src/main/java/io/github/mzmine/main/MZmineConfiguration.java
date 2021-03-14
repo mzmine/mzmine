@@ -18,19 +18,20 @@
 
 package io.github.mzmine.main;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.NumberFormat;
-import java.util.List;
-import javax.annotation.Nonnull;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.StringCrypter;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.io.File;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
  * MZmine configuration interface
@@ -67,9 +68,18 @@ public interface MZmineConfiguration {
 
   public NumberFormat getMobilityFormat();
 
+  /**
+   *
+   * @return The default collision cross section format
+   * @see io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule
+   */
+  public NumberFormat getCCSFormat();
+
   public NumberFormat getIntensityFormat();
 
   public NumberFormat getPPMFormat();
+
+  public UnitFormat getUnitFormat();
 
   public void loadConfiguration(File file) throws IOException;
 
@@ -81,16 +91,19 @@ public interface MZmineConfiguration {
 
   /**
    * For color blindness or "normal vision"
-   * 
+   *
    * @return
    */
   // public Vision getColorVision();
-
   public SimpleColorPalette getDefaultColorPalette();
+
+  public SimpleColorPalette getDefaultPaintScalePalette();
 
   public ChartThemeParameters getDefaultChartThemeParameters();
 
   public EStandardChartTheme getDefaultChartTheme();
 
   public StringCrypter getEncrypter();
+
+  public boolean isDarkMode();
 }

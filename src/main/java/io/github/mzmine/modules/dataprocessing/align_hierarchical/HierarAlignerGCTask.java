@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import org.gnf.clustering.DataSource;
 import org.gnf.clustering.DistanceMatrix;
 import org.gnf.clustering.FloatSource1D;
@@ -125,7 +127,8 @@ public class HierarAlignerGCTask extends AbstractTask {
   //// public static final double MIN_SCORE_ABSOLUTE = Double.MIN_VALUE;
   public static final double MIN_SCORE_ABSOLUTE = 0.0;
 
-  HierarAlignerGCTask(MZmineProject project, ParameterSet parameters) {
+  HierarAlignerGCTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.parameters = parameters;
@@ -295,7 +298,7 @@ public class HierarAlignerGCTask extends AbstractTask {
     }
 
     // Create a new aligned feature list
-    alignedPeakList = new ModularFeatureList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
+    alignedPeakList = new ModularFeatureList(peakListName, getMemoryMapStorage(), allDataFiles.toArray(new RawDataFile[0]));
 
     if (DEBUG)
       printMemoryUsage(logger, run_time, prevTotal, prevFree, "COMPOUND DETECTED");
@@ -666,7 +669,8 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     // Add task description to peakList
     alignedPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(HierarAlignerGCTask.TASK_NAME, parameters));
+        new SimpleFeatureListAppliedMethod(HierarAlignerGCTask.TASK_NAME,
+            HierarAlignerGcModule.class, parameters));
 
     logger.info("Finished join aligner GC");
     setStatus(TaskStatus.FINISHED);

@@ -18,10 +18,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import java.util.Collection;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -31,11 +27,18 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParam
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.javafx.ArrayObservableList;
+import java.util.Collection;
+import java.util.logging.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Batch steps queue
  */
 public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineProcessingModule>> {
+
+  public static final Logger logger = Logger.getLogger(BatchQueue.class.getName());
 
   // Batch step element name.
   private static final String BATCH_STEP_ELEMENT = "batchstep";
@@ -45,13 +48,12 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
   @Override
   public BatchQueue clone() {
-
     // Clone the parameters.
     final BatchQueue clonedQueue = new BatchQueue();
     for (final MZmineProcessingStep<MZmineProcessingModule> step : this) {
       final ParameterSet parameters = step.getParameterSet();
       final MZmineProcessingStepImpl<MZmineProcessingModule> stepCopy =
-          new MZmineProcessingStepImpl<MZmineProcessingModule>(step.getModule(),
+          new MZmineProcessingStepImpl<>(step.getModule(),
               parameters.cloneParameterSet());
       clonedQueue.add(stepCopy);
     }
@@ -87,21 +89,35 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       final Element stepElement = (Element) nodes.item(i);
       final String methodName = stepElement.getAttribute(METHOD_ELEMENT);
 
+      logger.fine("Loading batch step: " + methodName);
       // Find a matching module.
-      for (final MZmineModule module : allModules) {
-
+      MZmineModule moduleFound = null;
+      for (MZmineModule module : allModules) {
         if (module instanceof MZmineProcessingModule
             && module.getClass().getName().equals(methodName)) {
-
-          // Get parameters and add step to queue.
-          final ParameterSet parameterSet =
-              MZmineCore.getConfiguration().getModuleParameters(module.getClass());
-          final ParameterSet methodParams = parameterSet.cloneParameterSet();
-          methodParams.loadValuesFromXML(stepElement);
-          queue.add(new MZmineProcessingStepImpl<MZmineProcessingModule>(
-              (MZmineProcessingModule) module, methodParams));
+          moduleFound = module;
           break;
         }
+      }
+
+      if (moduleFound == null) {
+        try {
+          moduleFound = MZmineCore
+              .getModuleInstance((Class<MZmineModule>) Class.forName(methodName));
+        } catch (ClassNotFoundException e) {
+          logger.warning(
+              "Module not found for class " + methodName + " (maybe recreate the batch file)");
+          throw new UnknownModuleNameException(methodName, e);
+        }
+      }
+      if (moduleFound != null) {
+        // Get parameters and add step to queue.
+        final ParameterSet parameterSet =
+            MZmineCore.getConfiguration().getModuleParameters(moduleFound.getClass());
+        final ParameterSet methodParams = parameterSet.cloneParameterSet();
+        methodParams.loadValuesFromXML(stepElement);
+        queue.add(new MZmineProcessingStepImpl<>(
+            (MZmineProcessingModule) moduleFound, methodParams));
       }
     }
 

@@ -18,27 +18,29 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.util.FeatureConvertors;
-import io.github.mzmine.util.FeatureSorter;
-import java.util.Arrays;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.FeatureSorter;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class ChromatogramBuilderTask extends AbstractTask {
 
@@ -54,24 +56,25 @@ public class ChromatogramBuilderTask extends AbstractTask {
   private Scan[] scans;
 
   // User parameters
-  private String suffix, massListName;
+  private String suffix;
   private MZTolerance mzTolerance;
   private double minimumTimeSpan, minimumHeight;
 
   private ModularFeatureList newPeakList;
+  private ParameterSet parameters;
 
   /**
    * @param dataFile
    * @param parameters
    */
   public ChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters) {
+      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;
     this.scanSelection =
         parameters.getParameter(ChromatogramBuilderParameters.scanSelection).getValue();
-    this.massListName = parameters.getParameter(ChromatogramBuilderParameters.massList).getValue();
 
     this.mzTolerance =
         parameters.getParameter(ChromatogramBuilderParameters.mzTolerance).getValue();
@@ -81,7 +84,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         parameters.getParameter(ChromatogramBuilderParameters.minimumHeight).getValue();
 
     this.suffix = parameters.getParameter(ChromatogramBuilderParameters.suffix).getValue();
-
+    this.parameters = parameters;
   }
 
   /**
@@ -115,7 +118,6 @@ public class ChromatogramBuilderTask extends AbstractTask {
     logger.info("Started chromatogram builder on " + dataFile);
 
     scans = scanSelection.getMatchingScans(dataFile);
-    int allScanNumbers[] = scanSelection.getMatchingScanNumbers(dataFile);
     totalScans = scans.length;
 
     // Check if the scans are properly ordered by RT
@@ -134,22 +136,22 @@ public class ChromatogramBuilderTask extends AbstractTask {
     }
 
     // Create new feature list
-    newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
+    newPeakList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(), dataFile);
 
     Chromatogram[] chromatograms;
     HighestDataPointConnector massConnector = new HighestDataPointConnector(dataFile,
-        allScanNumbers, minimumTimeSpan, minimumHeight, mzTolerance);
+        scans, minimumTimeSpan, minimumHeight, mzTolerance);
 
     for (Scan scan : scans) {
 
       if (isCanceled())
         return;
 
-      MassList massList = scan.getMassList(massListName);
+      MassList massList = scan.getMassList();
       if (massList == null) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-            + " does not have a mass list " + massListName);
+            + " does not have a mass list");
         return;
       }
 
@@ -157,12 +159,12 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
       if (mzValues == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Mass list " + massListName + " does not contain m/z values for scan #"
+        setErrorMessage("Mass list does not contain m/z values for scan #"
             + scan.getScanNumber() + " of file " + dataFile);
         return;
       }
 
-      massConnector.addScan(scan.getScanNumber(), mzValues);
+      massConnector.addScan(scan, mzValues);
       processedScans++;
     }
 
@@ -170,7 +172,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
     // Convert chromatograms to modular features
     Feature[] features = Arrays.stream(chromatograms)
-        .map(FeatureConvertors::ChromatogramToModularFeature)
+        .map(f -> FeatureConvertors.ChromatogramToModularFeature(newPeakList, f))
         .toArray(ModularFeature[]::new);
 
     // Sort the final features by m/z
@@ -184,7 +186,10 @@ public class ChromatogramBuilderTask extends AbstractTask {
       newPeakList.addRow(newRow);
     }
 
+    dataFile.getAppliedMethods().forEach(m -> newPeakList.getAppliedMethods().add(m));
     // Add new peaklist to the project
+    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        ChromatogramBuilderModule.class, parameters));
     project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks

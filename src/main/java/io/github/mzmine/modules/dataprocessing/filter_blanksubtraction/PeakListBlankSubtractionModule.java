@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -56,7 +57,7 @@ public class PeakListBlankSubtractionModule implements MZmineRunnableModule {
       Collection<Task> tasks) {
 
     Task task = new PeakListBlankSubtractionMasterTask(project,
-        (PeakListBlankSubtractionParameters) parameters);
+        (PeakListBlankSubtractionParameters) parameters, MemoryMapStorage.forFeatureList());
 
     tasks.add(task);
 

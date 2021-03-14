@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Vector;
@@ -42,8 +43,8 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
   private double mzValues[], intensityValues[];
   private String label;
 
-  public PeakListDataSet(RawDataFile dataFile, int scanNumber, FeatureList featureList) {
-
+  public PeakListDataSet(RawDataFile dataFile, Scan scanNumber, FeatureList featureList) {
+    // TODO why do we show
     this.featureList = featureList;
 
     Feature features[] = featureList.getFeatures(dataFile).toArray(Feature[]::new);

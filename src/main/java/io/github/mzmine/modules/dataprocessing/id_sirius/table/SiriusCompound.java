@@ -18,28 +18,19 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius.table;
 
-import de.unijena.bioinf.chemdb.DBLink;
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
-
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
@@ -50,9 +41,14 @@ import org.openscience.cdk.renderer.generators.BasicBondGenerator;
 import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import de.unijena.bioinf.chemdb.DBLink;
+import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 
 
 /**
@@ -61,7 +57,7 @@ import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
  * FingerIdWebMethod is used, then name may differ, added SMILES & Inchi and links to DBs
  */
 public class SiriusCompound extends SimpleFeatureIdentity {
-  private static final Logger logger = LoggerFactory.getLogger(SiriusCompound.class);
+  private static final Logger logger = Logger.getLogger(SiriusCompound.class.getName());
   public static final int PREVIEW_HEIGHT = 150;
   public static final int PREVIEW_WIDTH = 150;
   public static final int STRUCTURE_WIDTH = 600;
@@ -72,7 +68,7 @@ public class SiriusCompound extends SimpleFeatureIdentity {
 
   /**
    * Constructor for SiriusCompound
-   * 
+   *
    * @param annotation
    */
   public SiriusCompound(@Nonnull final SiriusIonAnnotation annotation) {
@@ -83,7 +79,7 @@ public class SiriusCompound extends SimpleFeatureIdentity {
 
   /**
    * Copy constructor
-   * 
+   *
    * @param master - SiriusCompound to copy from
    */
   public SiriusCompound(final SiriusCompound master) {
@@ -95,7 +91,7 @@ public class SiriusCompound extends SimpleFeatureIdentity {
   /**
    * Construct parameters from SiriusIonAnnotation Amount of params differ, either it is identified
    * by SiriusIdentificationMethod, or also by FingerIdWebMethod
-   * 
+   *
    * @param annotation
    * @return constructed Hashtable
    */
@@ -148,6 +144,7 @@ public class SiriusCompound extends SimpleFeatureIdentity {
   /**
    * @return cloned object
    */
+  @Override
   public SiriusCompound clone() {
     final SiriusCompound compound = new SiriusCompound(this);
     return compound;
@@ -186,13 +183,14 @@ public class SiriusCompound extends SimpleFeatureIdentity {
     Set<String> dbNames = new TreeSet<String>();
     for (DBLink link : dblinks) {
       dbNames.add(link.name);
-      }
+    }
 
     String[] dbs = new String[dbNames.size()];
     dbs = dbNames.toArray(dbs);
 
     return dbs;
   }
+
   /**
    * Method returns AtomContainer of the compound (if exists)
    *
@@ -217,7 +215,7 @@ public class SiriusCompound extends SimpleFeatureIdentity {
   /**
    * Method returns image generated from Chemical Structure IAtomContainer Better to use 3:2
    * relation of width:height
-   * 
+   *
    * @param width of the image
    * @param height of the image
    * @return new Image object
@@ -250,7 +248,7 @@ public class SiriusCompound extends SimpleFeatureIdentity {
       renderer.paint(molecule, new AWTDrawVisitor(g2));
       return image;
     } catch (Exception ex) {
-      logger.info("Exception during ImageIcon construction occured");
+      logger.warning("Exception during ImageIcon construction occured");
     }
     return null;
   }
@@ -271,7 +269,7 @@ public class SiriusCompound extends SimpleFeatureIdentity {
 
   /**
    * FingerId score had negative value, the closer it is to 0, the better result is (Ex.: -115.23)
-   * 
+   *
    * @return FingerId score, if exists
    */
   public String getFingerIdScore() {
@@ -289,30 +287,29 @@ public class SiriusCompound extends SimpleFeatureIdentity {
   }
 
   public SimpleObjectProperty<Structure2DComponent> getChemicalStructureNode() throws CDKException {
-    SimpleObjectProperty<Structure2DComponent>chemicalStructure;
+    SimpleObjectProperty<Structure2DComponent> chemicalStructure;
 
-    Structure2DComponent node =new Structure2DComponent(this.getContainer());
+    Structure2DComponent node = new Structure2DComponent(this.getContainer());
     chemicalStructure = new SimpleObjectProperty<Structure2DComponent>(node);
 
     return chemicalStructure;
 
   }
 
-  public SimpleObjectProperty<Node>getDBSNode(){
-     String dbs[] = this.getDBS();
+  public SimpleObjectProperty<Node> getDBSNode() {
+    String dbs[] = this.getDBS();
     VBox vBox = new VBox();
-    String dbsWords="";
+    String dbsWords = "";
     Label label = new Label();
     label.setMaxWidth(180);
     label.setWrapText(true);
-    for(String S:dbs)
-    {
-      dbsWords+=S+" \n";
+    for (String S : dbs) {
+      dbsWords += S + " \n";
     }
     label.setText(dbsWords);
     vBox.getChildren().add(label);
 
-   return new SimpleObjectProperty<>(label);
+    return new SimpleObjectProperty<>(label);
   }
 
 }

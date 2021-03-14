@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.gestures;
 
+import io.github.mzmine.datamodel.Scan;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -207,7 +208,7 @@ public class ChartGestureHandler {
           }
         };
       default:
-        throw new Exception("DragHandler not specified");
+        throw new IllegalArgumentException("Drag Gesture handler not created: "+handler.toString());
     }
   }
 
@@ -297,7 +298,8 @@ public class ChartGestureHandler {
           if (axis != null) {
             double diff = 0.03;
             if (e.getMouseEvent().isMouseWheelEvent()) {
-              diff = -0.10 * e.getMouseEvent().getWheelRotation();
+              // TODO actually get the mouse wheel distance and calculate percentage
+              diff = 0.10 * (e.getMouseEvent().getWheelRotation()>0? 1 : -1);
             }
             ChartLogics.offsetAxis(axis, diff);
           }
@@ -309,7 +311,8 @@ public class ChartGestureHandler {
           if (axis != null) {
             double diff = 0.03;
             if (e.getMouseEvent().isMouseWheelEvent()) {
-              diff = -0.10 * e.getMouseEvent().getWheelRotation();
+              // TODO actually get the mouse wheel distance and calculate percentage
+              diff = 0.10 * (e.getMouseEvent().getWheelRotation()>0? 1 : -1);
             }
             ChartLogics.offsetAxis(axis, diff);
 
@@ -326,7 +329,8 @@ public class ChartGestureHandler {
           if (axis != null) {
             double diff = 0.05;
             if (e.getMouseEvent().isMouseWheelEvent()) {
-              diff = -0.10 * e.getMouseEvent().getWheelRotation();
+              // TODO actually get the mouse wheel distance and calculate percentage
+              diff = -0.10 * (e.getMouseEvent().getWheelRotation()>0? 1 : -1);
             }
             ChartLogics.zoomAxis(axis, diff, true);
           }
@@ -339,7 +343,8 @@ public class ChartGestureHandler {
             MouseEventWrapper p = e.getMouseEvent();
             double diff = 0.05;
             if (e.getMouseEvent().isMouseWheelEvent()) {
-              diff = -0.10 * p.getWheelRotation();
+              // TODO actually get the mouse wheel distance and calculate percentage
+              diff = 0.10 * (e.getMouseEvent().getWheelRotation()>0? 1 : -1);
             }
 
             // get data space coordinates
@@ -361,7 +366,7 @@ public class ChartGestureHandler {
         break;
     }
     if (newHandler == null)
-      return null;
+      throw new IllegalArgumentException("Gesture handler not created: "+handler.toString());
     else
       return new ChartGestureHandler(g, newHandler);
   }
@@ -421,8 +426,6 @@ public class ChartGestureHandler {
           Entity.DOMAIN_AXIS, new Event[] {Event.MOUSE_WHEEL}, null, Key.SHIFT, null));
       standardGestures.add(new GestureHandlerDef(Handler.ZOOM_AXIS_CENTER, Entity.DOMAIN_AXIS,
           new Event[] {Event.MOUSE_WHEEL}, null, Key.CTRL, null));
-      standardGestures.add(new GestureHandlerDef(Handler.ZOOM_AXIS_CENTER, Entity.DOMAIN_AXIS,
-          new Event[] {Event.MOUSE_WHEEL}, null, Key.CTRL_SHIFT, null));
       standardGestures.add(new GestureHandlerDef(Handler.AUTO_ZOOM_OPPOSITE_AXIS,
           Entity.DOMAIN_AXIS, new Event[] {Event.MOUSE_WHEEL}, null, Key.CTRL_SHIFT, null));
       // Zoom range axis (include zero): MOUSE WHEEL

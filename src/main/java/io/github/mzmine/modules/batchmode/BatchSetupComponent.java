@@ -18,28 +18,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -50,12 +28,22 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesComponent;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.DraggableListCell;
-import javafx.collections.FXCollections;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
@@ -67,6 +55,17 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 public class BatchSetupComponent extends BorderPane implements LastFilesComponent {
 
@@ -114,7 +113,21 @@ public class BatchSetupComponent extends BorderPane implements LastFilesComponen
     // The steps list.
     currentStepsList = new ListView<>();
     currentStepsList.setCellFactory(
-        param -> new DraggableListCell<MZmineProcessingStep<MZmineProcessingModule>>());
+        param -> new DraggableListCell<MZmineProcessingStep<MZmineProcessingModule>>() {
+          @Override
+          protected void updateItem(MZmineProcessingStep<MZmineProcessingModule> item,
+              boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+              setText(null);
+              setGraphic(null);
+            }
+            if (item != null && !empty) {
+              setText(item.getModule().getName());
+              setGraphic(null);
+            }
+          }
+        });
     currentStepsList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
     // Methods combo box.
@@ -229,7 +242,7 @@ public class BatchSetupComponent extends BorderPane implements LastFilesComponen
 
         // Add step to queue.
         batchQueue.add(step);
-        currentStepsList.setItems(FXCollections.observableArrayList(batchQueue));
+        currentStepsList.setItems(batchQueue);
         currentStepsList.getSelectionModel().select(batchQueue.size() - 1);
 
       }

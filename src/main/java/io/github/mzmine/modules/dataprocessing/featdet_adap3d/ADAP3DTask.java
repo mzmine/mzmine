@@ -22,7 +22,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +44,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javax.annotation.Nullable;
 
 public class ADAP3DTask extends AbstractTask {
 
@@ -52,18 +55,21 @@ public class ADAP3DTask extends AbstractTask {
   private final ScanSelection scanSelection;
   private final String suffix;
   private ADAP3DFeatureDetectionMethod msdkADAP3DMethod;
+  private final ParameterSet parameters;
 
   /**
    * @param dataFile
    * @param parameters
    */
-  public ADAP3DTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+  public ADAP3DTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters, @Nullable
+      MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
     this.dataFile = dataFile;
     this.scanSelection = parameters.getParameter(ADAP3DParameters.scanSelection).getValue();
     this.suffix = parameters.getParameter(ADAP3DParameters.suffix).getValue();
-
+    this.parameters = parameters;
   }
 
   /**
@@ -150,7 +156,8 @@ public class ADAP3DTask extends AbstractTask {
         + ", converting to MZmine peaklist");
 
     // Create new MZmine feature list
-    ModularFeatureList newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
+    ModularFeatureList newPeakList = new ModularFeatureList(dataFile + " " + suffix,
+        getMemoryMapStorage(), dataFile);
 
     int rowId = 1;
     for (Feature msdkFeature : features) {
@@ -165,6 +172,8 @@ public class ADAP3DTask extends AbstractTask {
       rowId++;
     }
 
+    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        ADAP3DModule.class, parameters));
     // Add new peaklist to the project
     project.addFeatureList(newPeakList);
 

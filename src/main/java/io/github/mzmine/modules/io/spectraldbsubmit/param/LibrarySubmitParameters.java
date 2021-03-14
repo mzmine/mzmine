@@ -37,7 +37,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -52,7 +51,6 @@ import io.github.mzmine.util.scans.sorting.ScanSortMode;
 public class LibrarySubmitParameters extends SimpleParameterSet {
 
   // scan selection and preprocessing
-  public static final MassListParameter massList = new MassListParameter();
   public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
       "Noise level to filter masslists", MZmineCore.getConfiguration().getIntensityFormat(), 0d);
   public static final IntegerParameter minSignals = new IntegerParameter("Min signals",
@@ -76,7 +74,7 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
           new GnpsLibrarySubmitParameters(), true);
 
   public LibrarySubmitParameters() {
-    super(new Parameter[] {massList, noiseLevel, minSignals, sorting,
+    super(new Parameter[] {noiseLevel, minSignals, sorting,
         // save to local file
         LOCALFILE, EXPORT_GNPS_JSON, EXPORT_MSP,
         // submit to online library

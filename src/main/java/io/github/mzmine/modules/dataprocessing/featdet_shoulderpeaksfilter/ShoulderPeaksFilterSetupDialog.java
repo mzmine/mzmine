@@ -45,7 +45,6 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 
   /**
    * @param parameters
-   * @param massFilterTypeNumber
    */
   public ShoulderPeaksFilterSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
@@ -55,7 +54,6 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
   /**
    * This function set all the information into the plot chart
    *
-   * @param scanNumber
    */
   @Override
   protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
@@ -77,9 +75,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
       return;
 
     // Get mass list
-    String massListName =
-        parameters.getParameter(ShoulderPeaksFilterParameters.massList).getValue();
-    MassList massList = previewScan.getMassList(massListName);
+    MassList massList = previewScan.getMassList();
     if (massList == null)
       return;
 

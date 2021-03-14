@@ -77,11 +77,9 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
       int keyCode = ke.getKeyCode();
       if (keyCode == KeyEvent.VK_ESCAPE) {
-
         logger.info("<ESC> Presssed.");
         previewTask.kill();
-        hidePreview();
-
+        showPreview(false);
       }
     }
 
@@ -159,6 +157,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
     public PreviewTask(BaselineCorrectorSetupDialog dialog, TICPlot ticPlot, RawDataFile dataFile,
         Range<Float> rtRange, Range<Double> mzRange) {
+      super(null); // no new data stored -> null
 
       this.dialog = dialog;
       this.ticPlot = ticPlot;
@@ -219,7 +218,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         final ScanSelection sel = new ScanSelection(rtRange, 1);
         Scan scans[] = sel.getMatchingScans(dataFile);
 
-        TICDataSet ticDataset = new TICDataSet(dataFile, scans, mzRange, null, getPlotType());
+        TICDataSet ticDataset = new TICDataSet(dataFile, List.of(scans), mzRange, null, getPlotType());
         ticPlot.addTICDataSet(ticDataset);
 
         try {
@@ -231,13 +230,14 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
           // Create a new corrected raw data file
           RawDataFile newDataFile =
-              baselineCorrector.correctDatafile(this.rSession, dataFile, correctorParameters, null);
+              baselineCorrector.correctDatafile(this.rSession, dataFile, correctorParameters, null,
+                  null);
 
           // If successful, add the new data file
           if (newDataFile != null) {
             scans = sel.getMatchingScans(newDataFile);
             final TICDataSet newDataset =
-                new TICDataSet(newDataFile, scans, mzRange, null, getPlotType());
+                new TICDataSet(newDataFile, List.of(scans), mzRange, null, getPlotType());
             ticPlot.addTICDataSet(newDataset);
 
             // Show the trend line as well
@@ -332,7 +332,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         setErrorMessage(errorMsg);
         logger.log(Level.SEVERE, "Baseline correction error", this.getErrorMessage());
         MZmineCore.getDesktop().displayErrorMessage(this.getErrorMessage());
-        hidePreview();
+        Platform.runLater(() -> showPreview(false));
       }
     }
   }
@@ -354,7 +354,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     @Override
     public void run() {
 
-      addProgessBar();
+      Platform.runLater(() -> addProgessBar());
       while ((this.previewTask != null && this.previewTask.getStatus() == TaskStatus.PROCESSING)) {
 
         Platform.runLater(
@@ -366,7 +366,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         }
       }
       // Clear GUI stuffs
-      removeProgessBar();
+      Platform.runLater(() -> removeProgessBar());
       // unset_VK_ESCAPE_KeyListener();
     }
 
@@ -444,22 +444,26 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     DataPoint dp, new_dp;
 
     // Get scan numbers from original file.
-    final int[] scanNumbers = dataFile.getScanNumbers(1);
-    final int numScans = scanNumbers.length;
+    final Scan[] scans = dataFile.getScanNumbers(1).toArray(Scan[]::new);
+    final Scan[] newScans = newDataFile.getScanNumbers(1).toArray(Scan[]::new);
+    assert scans.length == newScans.length;
+
+    final int numScans = scans.length;
     for (int scanIndex = 0; scanIndex < numScans; ++scanIndex) {
 
-      sc = dataFile.getScan(scanNumbers[scanIndex]);
-      new_sc = newDataFile.getScan(scanNumbers[scanIndex]);
+      sc = scans[scanIndex];
+      new_sc = newScans[scanIndex];
 
       if (plotType == TICPlotType.BASEPEAK) {
-        dp = sc.getHighestDataPoint();
-        new_dp = new_sc.getHighestDataPoint();
-        if (dp == null) {
+        Double scanBP = sc.getBasePeakIntensity();
+        Double newScanBP = new_sc.getBasePeakIntensity();
+
+        if (scanBP == null) {
           intensity = 0.0;
-        } else if (new_dp == null) {
-          intensity = dp.getIntensity();
+        } else if (newScanBP == null) {
+          intensity = scanBP;
         } else {
-          intensity = dp.getIntensity() - new_dp.getIntensity();
+          intensity = scanBP - newScanBP;
         }
       } else {
         intensity = sc.getTIC() - new_sc.getTIC();

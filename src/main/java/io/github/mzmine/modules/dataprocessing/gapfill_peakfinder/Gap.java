@@ -18,18 +18,19 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import java.util.List;
-import java.util.Vector;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.List;
+import java.util.Vector;
 
 public class Gap {
 
@@ -48,8 +49,8 @@ public class Gap {
   /**
    * Constructor: Initializes an empty gap
    * 
-   * @param mz M/Z coordinate of this empty gap
-   * @param rt RT coordinate of this empty gap
+   * @param mzRange M/Z coordinate of this empty gap
+   * @param rtRange RT coordinate of this empty gap
    */
   public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
       Range<Float> rtRange, double intTolerance) {
@@ -59,7 +60,6 @@ public class Gap {
     this.intTolerance = intTolerance;
     this.mzRange = mzRange;
     this.rtRange = rtRange;
-
   }
 
   public void offerNextScan(Scan scan) {
@@ -80,10 +80,10 @@ public class Gap {
     GapDataPoint currentDataPoint;
     if (basePeak != null) {
       currentDataPoint =
-          new GapDataPoint(scan.getScanNumber(), basePeak.getMZ(), scanRT, basePeak.getIntensity());
+          new GapDataPoint(scan, basePeak.getMZ(), scanRT, basePeak.getIntensity());
     } else {
       currentDataPoint =
-          new GapDataPoint(scan.getScanNumber(), RangeUtils.rangeCenter(mzRange), scanRT, 0);
+          new GapDataPoint(scan, RangeUtils.rangeCenter(mzRange), scanRT, 0);
     }
 
     // If we have not yet started, just create a new peak
@@ -114,7 +114,6 @@ public class Gap {
   /**
    * Finalizes the gap, adds a peak
    * 
-   * @param lock A lock for multi threading purpose. null if single threaded
    */
   public void noMoreOffers() {
 
@@ -129,11 +128,11 @@ public class Gap {
 
       double mz = 0;
       float rt = 0, height = 0, area = 0;
-      int scanNumbers[] = new int[bestPeakDataPoints.size()];
+      Scan scanNumbers[] = new Scan[bestPeakDataPoints.size()];
       DataPoint finalDataPoint[] = new DataPoint[bestPeakDataPoints.size()];
       Range<Double> finalMZRange = null;
       Range<Float> finalRTRange = null, finalIntensityRange = null;
-      int representativeScan = 0;
+      Scan representativeScan = null;
 
       // Process all datapoints
       for (int i = 0; i < bestPeakDataPoints.size(); i++) {
@@ -151,7 +150,7 @@ public class Gap {
           finalIntensityRange = finalIntensityRange.span(Range.singleton((float) dp.getIntensity()));
         }
 
-        scanNumbers[i] = bestPeakDataPoints.get(i).getScanNumber();
+        scanNumbers[i] = bestPeakDataPoints.get(i).getScan();
         finalDataPoint[i] = new SimpleDataPoint(dp.getMZ(), dp.getIntensity());
         mz += bestPeakDataPoints.get(i).getMZ();
 
@@ -159,7 +158,7 @@ public class Gap {
         if (bestPeakDataPoints.get(i).getIntensity() > height) {
           height = (float) bestPeakDataPoints.get(i).getIntensity();
           rt = (float) bestPeakDataPoints.get(i).getRT();
-          representativeScan = bestPeakDataPoints.get(i).getScanNumber();
+          representativeScan = bestPeakDataPoints.get(i).getScan();
         }
 
         // Skip last data point
@@ -183,13 +182,14 @@ public class Gap {
       mz /= bestPeakDataPoints.size();
 
       // Find the best fragmentation scan, if available
-      int fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
+      Scan fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
 
       // Find all MS2 level scans
-      int[] allMS2FragmentScanNumbers =
+      Scan[] allMS2FragmentScanNumbers =
           ScanUtils.findAllMS2FragmentScans(rawDataFile, finalRTRange, finalMZRange);
 
-      ModularFeature newPeak = new ModularFeature(rawDataFile, mz, rt, height, area, scanNumbers,
+      ModularFeature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
+          rawDataFile, mz, rt, height, area, scanNumbers,
           finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
           allMS2FragmentScanNumbers, finalRTRange, finalMZRange, finalIntensityRange);
 

@@ -70,7 +70,6 @@ public class SpectralMatchTask extends AbstractTask {
   private Scan currentScan;
   private SpectraPlot spectraPlot;
   private List<DataPoint[]> alignedSignals;
-  private String massListName;
 
   private final double noiseLevel;
   private final int minMatch;
@@ -109,6 +108,8 @@ public class SpectralMatchTask extends AbstractTask {
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan,
       SpectraIdentificationResultsWindowFX resultWindow) {
+    super(null); // no new data stored -> null
+
     this.startEntry = startEntry;
     this.list = list;
     this.currentScan = currentScan;
@@ -118,8 +119,6 @@ public class SpectralMatchTask extends AbstractTask {
     listsize = list.size();
     dataBaseFile = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.dataBaseFile).getValue();
-    massListName = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.massList)
-        .getValue();
     mzToleranceSpectra = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
     mzTolerancePrecursor = parameters
@@ -188,8 +187,8 @@ public class SpectralMatchTask extends AbstractTask {
     } catch (MissingMassListException e) {
       // no mass list
       setStatus(TaskStatus.ERROR);
-      setErrorMessage(MessageFormat.format("No masslist for name: {0} in scan {1} of raw file {2}",
-          massListName, currentScan.getScanNumber(), currentScan.getDataFile().getName()));
+      setErrorMessage(MessageFormat.format("No masslist in scan {0} of raw file {1}",
+          currentScan.getScanNumber(), currentScan.getDataFile().getName()));
       return;
     }
 
@@ -214,7 +213,7 @@ public class SpectralMatchTask extends AbstractTask {
           count++;
           // use SpectralDBFeatureIdentity to store all results similar
           // to peaklist method
-          matches.add(new SpectralDBFeatureIdentity(currentScan, massListName, ident, sim,
+          matches.add(new SpectralDBFeatureIdentity(currentScan, ident, sim,
               SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
         }
         // next row
@@ -345,9 +344,9 @@ public class SpectralMatchTask extends AbstractTask {
    * @throws MissingMassListException
    */
   private DataPoint[] getDataPoints(Scan scan) throws MissingMassListException {
-    MassList massList = scan.getMassList(massListName);
+    MassList massList = scan.getMassList();
     if (massList == null) {
-      throw new MissingMassListException(massListName);
+      throw new MissingMassListException(scan);
     } else {
       // thresholded list
       DataPoint[] dps = massList.getDataPoints();

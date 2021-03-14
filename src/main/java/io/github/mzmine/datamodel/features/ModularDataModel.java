@@ -18,17 +18,19 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javax.annotation.Nullable;
 
 public interface ModularDataModel {
 
@@ -98,7 +100,6 @@ public interface ModularDataModel {
   /**
    * Value for this datatype
    * 
-   * @param <T>
    * @param type
    * @return
    */
@@ -109,7 +110,6 @@ public interface ModularDataModel {
   /**
    * Value for this datatype
    * 
-   * @param <T>
    * @param tclass
    * @return
    */
@@ -125,6 +125,7 @@ public interface ModularDataModel {
    * @param type
    * @return
    */
+  @Nullable
   default <T extends Property<?>> T get(DataType<T> type) {
     return (T) getMap().get(type);
   }
@@ -136,6 +137,7 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
+  @Nullable
   default <T extends Property<?>> T get(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypeColumn(tclass);
     return get(type);
@@ -169,7 +171,6 @@ public interface ModularDataModel {
    * FeatureList). To set the value of wrapping Property<?> call
    * {@link ModularDataModel#set(Class, Object)}
    * 
-   * @param <T>
    * @param type
    * @param value
    */
@@ -204,14 +205,29 @@ public interface ModularDataModel {
    */
   default <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, Object value) {
     // type in defined columns?
-    if (!getTypes().containsKey(tclass))
+    if (!getTypes().containsKey(tclass)) {
       throw new TypeColumnUndefinedException(this, tclass);
+    }
 
     DataType realType = getTypeColumn(tclass);
     Property property = get(realType);
+    // TODO check if good - init property if not there
+    if(property == null) {
+      property = realType.createProperty();
+      setProperty(realType, property);
+    }
+    if(value == null) {
+      property.setValue(null);
+      return;
+    }
+
+    if(value instanceof Property)
+      value = ((Property)value).getValue();
+
     // lists need to be ObservableList
-    if (value instanceof List && !(value instanceof ObservableList))
+    if (value instanceof List && !(value instanceof ObservableList)) {
       property.setValue(FXCollections.observableList((List) value));
+    }
     else if (value instanceof Map && !(value instanceof ObservableMap))
       property.setValue(FXCollections.observableMap((Map) value));
     else
@@ -221,8 +237,7 @@ public interface ModularDataModel {
   /**
    * Should only be called whenever a DataType column is removed from this model. To remove the
    * value of the underlying Property<?> call {@link ModularDataModel#set(DataType, Object)}
-   * 
-   * @param <T>
+   *  @param <T>
    * @param tclass
    */
   default <T extends Property<?>> void removeProperty(Class<? extends DataType<T>> tclass) {

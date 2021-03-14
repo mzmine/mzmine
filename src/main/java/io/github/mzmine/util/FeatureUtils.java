@@ -30,11 +30,14 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
 
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
@@ -146,50 +149,6 @@ public class FeatureUtils {
   }
 
   /**
-   * Copies properties such as identification results and comments from the source row to the target
-   * row.
-   */
-  public static void copyFeatureListRowProperties(FeatureListRow source, FeatureListRow target) {
-
-    // Combine the comments
-    String targetComment = target.getComment();
-    if ((targetComment == null) || (targetComment.trim().length() == 0)) {
-      targetComment = source.getComment();
-    } else {
-      if ((source.getComment() != null) && (source.getComment().trim().length() > 0))
-        targetComment += "; " + source.getComment();
-    }
-    target.setComment(targetComment);
-
-    // Copy all feature identities, if these are not already present
-    for (FeatureIdentity identity : source.getPeakIdentities()) {
-      if (!containsIdentity(target, identity))
-        target.addFeatureIdentity(identity, false);
-    }
-
-
-    // Set the preferred identity
-    target.setPreferredFeatureIdentity(source.getPreferredFeatureIdentity());
-
-  }
-
-  /**
-   * Copies properties such as isotope pattern and charge from the source feature to the target feature
-   */
-  public static void copyFeatureProperties(Feature source, Feature target) {
-
-    // Copy isotope pattern
-    IsotopePattern originalPattern = source.getIsotopePattern();
-    if (originalPattern != null)
-      target.setIsotopePattern(originalPattern);
-
-    // Copy charge
-    int charge = source.getCharge();
-    target.setCharge(charge);
-
-  }
-
-  /**
    * Finds a combined m/z range that covers all given features
    */
   public static Range<Double> findMZRange(Feature features[]) {
@@ -221,24 +180,20 @@ public class FeatureUtils {
     ManualFeature newFeature = new ManualFeature(dataFile);
     boolean dataPointFound = false;
 
-    int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+    Scan[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
 
-    for (int scanNumber : scanNumbers) {
-
-      // Get next scan
-      Scan scan = dataFile.getScan(scanNumber);
-
+    for (Scan scan : scanNumbers) {
       // Find most intense m/z feature
       DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
       if (basePeak != null) {
         if (basePeak.getIntensity() > 0)
           dataPointFound = true;
-        newFeature.addDatapoint(scan.getScanNumber(), basePeak);
+        newFeature.addDatapoint(scan, basePeak);
       } else {
         final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
         DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-        newFeature.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+        newFeature.addDatapoint(scan, fakeDataPoint);
       }
 
     }
@@ -297,18 +252,29 @@ public class FeatureUtils {
    * @param row A row.
    * @return A copy of row.
    */
-  public static FeatureListRow copyFeatureRow(final FeatureListRow row) {
-    // TODO: generalize beyond modular
-    // Copy the feature list row.
-    final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) row.getFeatureList());
-    copyFeatureListRowProperties(row, newRow);
+  public static ModularFeatureListRow copyFeatureRow(final ModularFeatureListRow row) {
+    return copyFeatureRow((ModularFeatureList)row.getFeatureList(), row, true);
+  }
 
-    // Copy the features.
-    for (final Feature feature : row.getFeatures()) {
-      final Feature newFeature = new ModularFeature((ModularFeatureList) feature.getFeatureList());
-      copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getRawDataFile(), newFeature);
-    }
+  /**
+   * Create a copy of a feature list row.
+   *
+   *
+   * @param newFeatureList
+   * @param row the row to copy.
+   * @return the newly created copy.
+   */
+  private static ModularFeatureListRow copyFeatureRow(ModularFeatureList newFeatureList, final ModularFeatureListRow row,
+                                               boolean copyFeatures) {
+    // Copy the feature list row.
+    final ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, row, copyFeatures);
+
+    // TODO this should actually be already copied in the feature list row constructor (all DataTypes are)
+//     if (row.getFeatureInformation() != null) {
+//      SimpleFeatureInformation information =
+//              new SimpleFeatureInformation(new HashMap<>(row.getFeatureInformation().getAllProperties()));
+//      newRow.setFeatureInformation(information);
+//    }
 
     return newRow;
   }
@@ -319,14 +285,29 @@ public class FeatureUtils {
    * @param rows The rows to be copied.
    * @return A copy of rows.
    */
-  public static FeatureListRow[] copyFeatureRows(final FeatureListRow[] rows) {
-    FeatureListRow[] newRows = new FeatureListRow[rows.length];
-
+  public static ModularFeatureListRow[] copyFeatureRows(final ModularFeatureListRow[] rows) {
+    ModularFeatureListRow[] newRows = new ModularFeatureListRow[rows.length];
     for (int i = 0; i < newRows.length; i++) {
       newRows[i] = copyFeatureRow(rows[i]);
     }
-
     return newRows;
+  }
+
+  public static ModularFeatureListRow[] copyFeatureRows(ModularFeatureList newFeatureList, final ModularFeatureListRow[] rows, boolean copyFeatures) {
+    ModularFeatureListRow[] newRows = new ModularFeatureListRow[rows.length];
+    for (int i = 0; i < newRows.length; i++) {
+      newRows[i] = copyFeatureRow(newFeatureList, rows[i], copyFeatures);
+    }
+    return newRows;
+  }
+
+  public static List<ModularFeatureListRow> copyFeatureRows(final List<ModularFeatureListRow> rows) {
+    return rows.stream().map(row -> copyFeatureRow(row)).collect(Collectors.toList());
+  }
+
+  public static List<ModularFeatureListRow> copyFeatureRows(ModularFeatureList newFeatureList, final List<ModularFeatureListRow> rows,
+                                                            boolean copyFeatures) {
+    return rows.stream().map(row -> copyFeatureRow(newFeatureList, row, copyFeatures)).collect(Collectors.toList());
   }
 
   /**
@@ -338,5 +319,91 @@ public class FeatureUtils {
   public static FeatureListRow[] sortRowsMzAsc(FeatureListRow[] rows) {
     Arrays.sort(rows, ascMzRowSorter);
     return rows;
+  }
+
+  /**
+   * Builds simple modular feature from manual feature using mz and rt range.
+   *
+   * @param featureList
+   * @param dataFile
+   * @param rtRange
+   * @param mzRange
+   * @return The result of the integration.
+   */
+  public static ModularFeature buildSimpleModularFeature(ModularFeatureList featureList,
+      RawDataFile dataFile, Range<Float> rtRange, Range<Double> mzRange) {
+
+    // Get MS1 scans in RT range.
+    Scan[] scanRange = dataFile.getScanNumbers(1, rtRange);
+
+    // Feature parameters.
+    DataPoint targetDP[] = new DataPoint[scanRange.length];
+    double targetMZ;
+    float targetRT, targetHeight, targetArea;
+    targetMZ = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2;
+    targetRT = (float) (rtRange.upperEndpoint() + rtRange.lowerEndpoint()) / 2;
+    targetHeight = targetArea = 0;
+    Scan representativeScan = null;
+    Scan[] allMS2fragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
+    Scan fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
+
+    // Get target data points, height, and estimated area over range.
+    for (int i = 0; i < scanRange.length; i++) {
+      Scan scan = scanRange[i];
+      double mz = targetMZ;
+      double intensity = 0;
+
+      // Get base peak for target.
+      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+
+      // If peak exists, get data point values.
+      if (basePeak != null) {
+        mz = basePeak.getMZ();
+        intensity = basePeak.getIntensity();
+      }
+
+      // Add data point to array.
+      targetDP[i] = new SimpleDataPoint(mz, intensity);
+
+      // Update feature height and scan.
+      if (intensity > targetHeight) {
+        targetHeight = (float) intensity;
+        representativeScan = scan;
+      }
+
+      // Skip area calculation for last datapoint.
+      if (i == scanRange.length - 1) {
+        break;
+      }
+
+      // Get next scan for area calculation.
+      Scan nextScan = scanRange[i + 1];
+      DataPoint nextBasePeak = ScanUtils.findBasePeak(scan, mzRange);
+      double nextIntensity = 0;
+
+      if (nextBasePeak != null) {
+        nextIntensity = nextBasePeak.getIntensity();
+      }
+
+      // Naive area under the curve calculation.
+      double rtDifference = nextScan.getRetentionTime() - scan.getRetentionTime();
+      rtDifference *= 60;
+      targetArea += (rtDifference * (intensity + nextIntensity) / 2);
+    }
+
+    if (targetHeight != 0) {
+
+      // Set intensity range with maximum height in range.
+      Range intensityRange = Range.open((float) 0.0, targetHeight);
+      
+      // Build new feature for target.
+      ModularFeature newPeak = new ModularFeature(featureList, dataFile, targetMZ, targetRT,
+          targetHeight, targetArea, scanRange, targetDP, FeatureStatus.DETECTED, representativeScan,
+          fragmentScan, allMS2fragmentScanNumbers, rtRange, mzRange, intensityRange);
+
+      return newPeak;
+    } else {
+      return null;
+    }
   }
 }

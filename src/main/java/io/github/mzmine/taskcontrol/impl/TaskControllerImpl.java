@@ -95,27 +95,29 @@ public class TaskControllerImpl implements TaskController, Runnable {
   }
 
   @Override
-  public void addTasks(Task tasks[]) {
+  public WrappedTask[] addTasks(Task tasks[]) {
     if (tasks == null || tasks.length == 0)
-      return;
+      return new WrappedTask[0];
 
     TaskPriority[] prio =
         Arrays.stream(tasks).map(Task::getTaskPriority).toArray(TaskPriority[]::new);
-    addTasks(tasks, prio);
+    return addTasks(tasks, prio);
   }
 
   @Override
-  public void addTasks(Task tasks[], TaskPriority[] priorities) {
+  public WrappedTask[] addTasks(Task tasks[], TaskPriority[] priorities) {
     // It can sometimes happen during a batch that no tasks are actually
     // executed --> tasks[] array may be empty
     if ((tasks == null) || (tasks.length == 0))
-      return;
+      return new WrappedTask[0];
 
+    WrappedTask[] wrappedTasks = new WrappedTask[tasks.length];
     for (int i = 0; i < tasks.length; i++) {
       Task task = tasks[i];
       TaskPriority priority = priorities[i];
       WrappedTask newQueueEntry = new WrappedTask(task, priority);
       taskQueue.addWrappedTask(newQueueEntry);
+      wrappedTasks[i] = newQueueEntry;
       // logger.finest("Added wrapped task for " +
       // task.getTaskDescription());
     }
@@ -124,6 +126,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
     synchronized (this) {
       this.notifyAll();
     }
+    return wrappedTasks;
   }
 
   /**
@@ -153,7 +156,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
       synchronized (this) {
         while (taskQueue.isEmpty()) {
           try {
-            this.wait();
+            this.wait(100);
           } catch (InterruptedException e) {
             // Ignore
           }

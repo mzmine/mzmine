@@ -19,6 +19,7 @@ package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -38,16 +39,19 @@ public class FormulaSortTask extends AbstractTask {
   private Double weightIsotopeScore;
   private Double ppmMaxWeight;
   private Double weightMSMSscore;
+  private final ParameterSet parameterSet;
 
   /**
    *
    * @param parameters
    */
   public FormulaSortTask(ParameterSet parameters) {
+    super(null); // no new data stored -> null
     weightIsotopeScore =
         parameters.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue();
     ppmMaxWeight = parameters.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue();
     weightMSMSscore = parameters.getParameter(FormulaSortParameters.MSMS_SCORE_WEIGHT).getValue();
+    parameterSet = parameters;
   }
 
   public FormulaSortTask(FeatureList featureList, ParameterSet parameters) {
@@ -97,6 +101,8 @@ public class FormulaSortTask extends AbstractTask {
     }
 
     logger.finest("Finished formula search for all networks");
+    featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
+        FormulaSortModule.class, parameterSet));
     setStatus(TaskStatus.FINISHED);
   }
 

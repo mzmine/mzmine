@@ -20,7 +20,7 @@ package io.github.mzmine.modules.tools.isotopepatternpreview;
 
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -39,10 +39,11 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   private String formula;
   private boolean displayResult;
 
-  ExtendedIsotopePattern pattern;
+  SimpleIsotopePattern pattern;
   IsotopePatternPreviewDialog dialog;
 
   public IsotopePatternPreviewTask() {
+    super(null);
     message = "Wating for parameters";
     parametersChanged = false;
     formula = "";
@@ -68,6 +69,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
 
   public IsotopePatternPreviewTask(String formula, double minIntensity, double mergeWidth,
       int charge, PolarityType polarity, IsotopePatternPreviewDialog dialog) {
+    super(null);
     parametersChanged = false;
     this.minIntensity = minIntensity;
     this.mergeWidth = mergeWidth;
@@ -86,7 +88,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     message = "Calculating isotope pattern " + formula + ".";
-    pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula,
+    pattern = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula,
         minIntensity, mergeWidth, charge, polarity, true);
     if (pattern == null) {
       logger.warning("Isotope pattern could not be calculated.");

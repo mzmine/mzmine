@@ -22,6 +22,7 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AdductInfo;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
@@ -64,6 +65,7 @@ public class CliqueMSTask extends AbstractTask {
 
   public CliqueMSTask(final ParameterSet parameters,
       final FeatureList list) {
+    super(null); // no new data stored -> null
     this.parameters = parameters;
     peakList = list;
   }
@@ -151,6 +153,9 @@ public class CliqueMSTask extends AbstractTask {
       }
 
       addFeatureIdentity(anClique, addInfos);
+
+      peakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(CliqueMSModule.class,
+          parameters));
 
       // Finished.
       this.progress.setValue(1.0);

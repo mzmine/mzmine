@@ -21,10 +21,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import java.util.Objects;
+import java.util.List;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,9 +48,19 @@ public interface Feature {
   double getMZ();
 
   /**
+   * Sets raw M/Z value of the feature
+   */
+  void setMZ(double mz);
+
+  /**
    * This method returns raw retention time of the feature in minutes
    */
   float getRT();
+
+  /**
+   * Sets retention time of the feature
+   */
+  void setRT(float rt);
 
   /**
    * This method returns the raw height of the feature
@@ -56,52 +68,98 @@ public interface Feature {
   float getHeight();
 
   /**
+   * Sets height of the feature
+   */
+  void setHeight(float height);
+
+  /**
    * This method returns the raw area of the feature
    */
   float getArea();
 
   /**
+   * Sets area of the feature
+   */
+  void setArea(float area);
+
+  /**
    * Returns raw data file where this feature is present
    */
-  @Nonnull
+  @Nullable
   RawDataFile getRawDataFile();
 
   /**
    * This method returns numbers of scans that contain this feature
    */
   @Nonnull
-  ObservableList<Integer> getScanNumbers();
+  List<Scan> getScanNumbers();
 
   /**
-   * This method sets the number of most representative scan of this feature
-   */
-  void setRepresentativeScanNumber(int representiveScanNumber);
-
-  /**
-   * This method returns the number of most representative scan of this feature
-   */
-  int getRepresentativeScanNumber();
-
-  /**
-   * This method returns the best scan
-   */
-  default @Nonnull
-  Scan getRepresentativeScan() {
-    return Objects.requireNonNull(getRawDataFile().getScan(getRepresentativeScanNumber()));
-  };
-
-  /**
-   * This method returns m/z and intensity of this feature in a given scan. This m/z and intensity does
-   * not need to match any actual raw data point. May return null, if there is no data point in
-   * given scan.
+   * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
+   *
+   * @param i
+   * @return
    */
   @Nullable
-  DataPoint getDataPoint(int scanNumber);
+  default Scan getScanAtIndex(int i) {
+    List<Scan> scans = getScanNumbers();
+    return scans == null ? null : scans.get(i);
+  }
+
+  /**
+   * Used to loop over retention time, scans, and data points in combination with ({@link
+   * #getDataPointAtIndex(int)}
+   *
+   * @param i
+   * @return
+   */
+  @Nullable
+  default float getRetentionTimeAtIndex(int i) {
+    List<Scan> scans = getScanNumbers();
+    return scans == null ? null : scans.get(i).getRetentionTime();
+  }
+
+  /**
+   * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
+   *
+   * @param i
+   * @return
+   */
+  @Deprecated
+  @Nullable
+  default DataPoint getDataPointAtIndex(int i) {
+    List<DataPoint> dataPoints = getDataPoints();
+    return dataPoints == null ? null : dataPoints.get(i);
+  }
+
+  /**
+   * This method returns the best scan (null if no raw file is attached)
+   */
+  @Nullable
+  Scan getRepresentativeScan();
+
+  /**
+   * The representative scan of this feature
+   *
+   * @param scan
+   */
+  void setRepresentativeScan(Scan scan);
+
+  /**
+   * This method returns m/z and intensity of this feature in a given scan. This m/z and intensity
+   * does not need to match any actual raw data point. May return null, if there is no data point in
+   * given scan. Tip: Better loop over the data points and scans with an index to retrieve all
+   * information
+   */
+  @Nullable
+  @Deprecated
+  DataPoint getDataPoint(Scan scan);
 
   /**
    * Returns all data points.
    */
-  ObservableList<DataPoint> getDataPoints();
+  @Deprecated
+  List<DataPoint> getDataPoints();
 
   /**
    * Returns the retention time range of all raw data points used to detect this feature
@@ -124,39 +182,12 @@ public interface Feature {
   /**
    * Returns the number of scan that represents the fragmentation of this feature in MS2 level.
    */
-  int getMostIntenseFragmentScanNumber();
+  Scan getMostIntenseFragmentScan();
 
   /**
    * Returns all scan numbers that represent fragmentations of this feature in MS2 level.
    */
-  ObservableList<Integer> getAllMS2FragmentScanNumbers();
-
-  /**
-   * Sets raw M/Z value of the feature
-   */
-  void setMZ(double mz);
-
-  /**
-   * Sets retention time of the feature
-   */
-  void setRT(float rt);
-
-  /**
-   * Sets height of the feature
-   */
-  void setHeight(float height);
-
-  /**
-   * Sets area of the feature
-   */
-  void setArea(float area);
-
-  /**
-   * Set best fragment scan numbers
-   *
-   * @param fragmentScanNumber
-   */
-  void setFragmentScanNumber(int fragmentScanNumber);
+  ObservableList<Scan> getAllMS2FragmentScans();
 
   /**
    * Set all fragment scan numbers
@@ -164,7 +195,66 @@ public interface Feature {
    * @param allMS2FragmentScanNumbers
    */
   //void setAllMS2FragmentScanNumbers(List<Integer> allMS2FragmentScanNumbers); ?
-  void setAllMS2FragmentScanNumbers(ObservableList<Integer> allMS2FragmentScanNumbers);
+  void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
+
+  /**
+   * @return The mobility if no mobility was set. Note that mobility can have different units.
+   * @see Feature#getMobilityUnit()
+   */
+  @Nullable
+  Float getMobility();
+
+  /**
+   * Sets the mobility of this feature. Note that mobility has a unit, which should be set by {@link
+   * Feature#setMobilityUnit(MobilityType)}.
+   *
+   * @param mobility The mobility.
+   */
+  void setMobility(Float mobility);
+
+  /**
+   * @return The unit of the mobility of this feature or null, if no mobility unit was set.
+   */
+  @Nullable
+  MobilityType getMobilityUnit();
+
+  /**
+   * Sets the {@link MobilityType} of this feature.
+   *
+   * @param mobilityUnit
+   */
+  void setMobilityUnit(MobilityType mobilityUnit);
+
+  /**
+   * @return The ccs value or null, if no value was set.
+   */
+  @Nullable
+  Float getCCS();
+
+  /**
+   * Sets the collision cross section of this feature.
+   *
+   * @param ccs The ccs value.
+   */
+  void setCCS(Float ccs);
+
+  /**
+   * @return The mobility range of this feature or null, if no range was set.
+   */
+  @Nullable
+  Range<Float> getMobilityRange();
+
+  /**
+   * Sets the mobiltiy range
+   */
+  void setMobilityRange(Range<Float> range);
+
+  /**
+   * Set best fragment scan
+   *
+   * @param fragmentScan
+   */
+  void setFragmentScan(Scan fragmentScan);
 
   /**
    * Returns the isotope pattern of this feature or null if no pattern is attached
@@ -193,24 +283,24 @@ public interface Feature {
   float getFWHM();
 
   /**
-   * This method returns the tailing factor of the feature
-   */
-  float getTailingFactor();
-
-  /**
-   * This method returns the asymmetry factor of the feature
-   */
-  float getAsymmetryFactor();
-
-  /**
    * Sets the full width at half maximum (FWHM)
    */
   void setFWHM(double fwhm);
 
   /**
+   * This method returns the tailing factor of the feature
+   */
+  float getTailingFactor();
+
+  /**
    * Sets the tailing factor
    */
   void setTailingFactor(double tf);
+
+  /**
+   * This method returns the asymmetry factor of the feature
+   */
+  float getAsymmetryFactor();
 
   /**
    * Sets the asymmetry factor
@@ -220,9 +310,9 @@ public interface Feature {
   // dulab Edit
   void outputChromToFile();
 
-  void setFeatureInformation(SimpleFeatureInformation featureInfo);
-
   SimpleFeatureInformation getFeatureInformation();
+
+  void setFeatureInformation(SimpleFeatureInformation featureInfo);
   // End dulab Edit
 
   @Nullable
@@ -235,4 +325,19 @@ public interface Feature {
 
   void setFeatureList(@Nonnull FeatureList featureList);
 
+  default int getNumberOfDataPoints() {
+    List<DataPoint> dp = getDataPoints();
+    return dp == null ? -1 : dp.size();
+  }
+
+
+  /**
+   * The detected data points of this feature/chromatogram
+   *
+   * @return
+   */
+  default IonTimeSeries<? extends Scan> getFeatureData() {
+    throw new UnsupportedOperationException(
+        "Get feature data is not implemented for this sub class. Use ModularFeature or implement");
+  }
 }

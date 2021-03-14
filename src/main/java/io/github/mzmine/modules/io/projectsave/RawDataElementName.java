@@ -27,8 +27,8 @@ enum RawDataElementName {
   SCAN("scan"), //
   SCAN_ID("id"), //
   MS_LEVEL("mslevel"), //
-  QUANTITY_FRAGMENT_SCAN("fragmentscans"), //
-  FRAGMENT_SCAN("fragmentscan"), //
+  // QUANTITY_FRAGMENT_SCAN("fragmentscans"),
+  // FRAGMENT_SCAN("fragmentscan"), //
   QUANTITY("quantity"), //
   PARENT_SCAN("parent"), //
   PRECURSOR_MZ("precursor_mz"), //
@@ -44,6 +44,9 @@ enum RawDataElementName {
   SCAN_DESCRIPTION("scan_description"), //
   SCAN_MZ_RANGE("scan_mz_range"), //
   COLOR("color"), //
+
+  // imaging related
+  COORDINATES("coordinates"),
 
   // ims related
   FRAME("frame"), //

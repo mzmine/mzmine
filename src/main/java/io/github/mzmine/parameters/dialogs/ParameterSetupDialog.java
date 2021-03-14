@@ -18,10 +18,6 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import com.google.common.base.Strings;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
@@ -30,6 +26,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -45,6 +46,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -62,46 +64,45 @@ import javafx.stage.Stage;
 public class ParameterSetupDialog extends Stage {
 
   public static final Logger logger = Logger.getLogger(ParameterSetupDialog.class.getName());
-
-  private ExitCode exitCode = ExitCode.UNKNOWN;
-
   protected final URL helpURL;
-
-  /**
-   * Help window for this setup dialog. Initially null, until the user clicks the Help button.
-   */
-  protected HelpWindow helpWindow = null;
-
   // Parameters and their representation in the dialog
   protected final ParameterSet parameterSet;
   protected final Map<String, Node> parametersAndComponents = new HashMap<>();
-
-  // If true, the dialog won't allow the OK button to proceed, unless all
-  // parameters pass the value check. This is undesirable in the BatchMode
-  // setup dialog, where some parameters need to be set in advance according
-  // to values that are not yet imported etc.
-  private final boolean valueCheckRequired;
-
   // Buttons
   protected final Button btnOK, btnCancel, btnHelp;
-
   // Button panel - added here so it is possible to move buttons as a whole,
   // if needed.
   protected final ButtonBar pnlButtons;
-
   // Footer message
   protected final String footerMessage;
-
   /**
    * This single panel contains a grid of all the components of this dialog. Row number 100 contains
    * all the buttons of the dialog. Derived classes may add their own components such as previews to
    * the unused cells of the grid.
    */
   protected final GridPane paramsPane;
-
   protected final BorderPane mainPane;
-
   protected final ScrollPane mainScrollPane;
+  /*
+   * Structure: <p></p> //
+   * - mainPane <p></p> //
+   *  -bottom <p></p> //
+   *    - pnlButtons <p></p> //
+   *  -center <p></p> //
+   *    - mainScrollPane <p></p> //
+   *      - paramsPane <p></p> //
+   */
+  // If true, the dialog won't allow the OK button to proceed, unless all
+  // parameters pass the value check. This is undesirable in the BatchMode
+  // setup dialog, where some parameters need to be set in advance according
+  // to values that are not yet imported etc.
+  private final boolean valueCheckRequired;
+  /**
+   * Help window for this setup dialog. Initially null, until the user clicks the Help button.
+   */
+  protected HelpWindow helpWindow = null;
+  private ExitCode exitCode = ExitCode.UNKNOWN;
+
 
   /**
    * Constructor
@@ -117,6 +118,9 @@ public class ParameterSetupDialog extends Stage {
    */
   @SuppressWarnings({"rawtypes", "unchecked"})
   public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters, String message) {
+
+    Image mzmineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
+    this.getIcons().add(mzmineIcon);
 
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
@@ -137,17 +141,13 @@ public class ParameterSetupDialog extends Stage {
     // paramsPane.setStyle("-fx-border-color: blue;");
 
     ColumnConstraints column1 = new ColumnConstraints();
-
     /*
      * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
      * constraints, leaving the GridPane to compute the column's layout based solely on its
      * content's size preferences and constraints.
      */
     ColumnConstraints column2 = new ColumnConstraints();
-    // column2.setHgrow(Priority.ALWAYS);
-    // paramsPane.getColumnConstraints().addAll(column1, column2);
-    // paramsPane.setMinWidth(500.0);
-    // paramsPane.setPrefWidth(800.0);
+    paramsPane.getColumnConstraints().addAll(column1, column2);
 
     mainScrollPane = new ScrollPane(paramsPane);
     // mainScrollPane.setStyle("-fx-border-color: red;");
@@ -168,9 +168,7 @@ public class ParameterSetupDialog extends Stage {
       UserParameter up = (UserParameter) p;
 
       Node comp = up.createEditingComponent();
-      if (comp instanceof Control) {
-        ((Control) comp).setTooltip(new Tooltip(up.getDescription()));
-      }
+      addToolTipToControls(comp, up.getDescription());
       if (comp instanceof Region) {
         double minWidth = ((Region) comp).getMinWidth();
         // if (minWidth > column2.getMinWidth()) column2.setMinWidth(minWidth);
@@ -190,7 +188,6 @@ public class ParameterSetupDialog extends Stage {
       // By calling this we make sure the components will never be resized
       // smaller than their optimal size
       // comp.setMinimumSize(comp.getPreferredSize());
-
       // comp.setToolTipText(up.getDescription());
 
       Label label = new Label(p.getName());
@@ -215,12 +212,6 @@ public class ParameterSetupDialog extends Stage {
       rowCounter++;
 
     }
-
-    // Add a single empty cell to the 99th row. This cell is expandable
-    // (weightY is 1), therefore the other components will be
-    // aligned to the top, which is what we want
-    // JComponent emptySpace = (JComponent) Box.createVerticalStrut(1);
-    // mainPanel.add(emptySpace, 0, 99, 3, 1, 0, 1);
 
     btnOK = new Button("OK");
     btnOK.setOnAction(e -> {
@@ -259,14 +250,6 @@ public class ParameterSetupDialog extends Stage {
 
     mainPane.setBottom(pnlButtons);
 
-    /*
-     * Last row in the table will be occupied by the buttons. We set the row number to 100 and width
-     * to 3, spanning the 3 component columns defined above.
-     */
-    if (vertWeightSum == 0) {
-      // mainPanel.add(Box.createGlue(), 0, 99, 3, 1, 1, 1);
-    }
-
     if (!Strings.isNullOrEmpty(footerMessage)) {
 
       WebView label = new WebView();
@@ -299,11 +282,6 @@ public class ParameterSetupDialog extends Stage {
     // Add some space around the widgets
     // GUIUtils.addMargin(mainPanel, 10);
 
-    // Add the main panel as the only component of this dialog
-    // add(mainPanel);
-
-    // pack();
-
     setTitle("Please set the parameters");
 
     // minWidthProperty().bind(scene.widthProperty());
@@ -315,18 +293,6 @@ public class ParameterSetupDialog extends Stage {
     centerOnScreen();
 
   }
-
-  /**
-   * This method must be called each time when a component is added to mainPanel. It will ensure the
-   * minimal size of the dialog is set to the minimum size of the mainPanel plus a little extra, so
-   * user cannot resize the dialog window smaller.
-   */
-  /*
-   * public void updateMinimumSize() { Dimension panelSize = mainPanel.getMinimumSize(); Dimension
-   * minimumSize = new Dimension(panelSize.width + 50, panelSize.height + 50);
-   * setMinimumSize(minimumSize); }
-   */
-
 
   /**
    * Method for reading exit code
@@ -427,14 +393,9 @@ public class ParameterSetupDialog extends Stage {
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
     if (node instanceof Region) {
-      Region panelComp = (Region)
-          node;
+      Region panelComp = (Region) node;
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
-        Node child =
-            panelComp.getChildrenUnmodifiable().get(i);
-        /*if (!(child instanceof Control)) {
-          continue;
-        }*/
+        Node child = panelComp.getChildrenUnmodifiable().get(i);
         addListenersToNode(child);
       }
     }
@@ -444,4 +405,16 @@ public class ParameterSetupDialog extends Stage {
     return valueCheckRequired;
   }
 
+  protected void addToolTipToControls(Node node, String toolTipText) {
+    if (node instanceof Control) {
+      ((Control) node).setTooltip(new Tooltip(toolTipText));
+    }
+    if (node instanceof Region) {
+      Region panelComp = (Region) node;
+      for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
+        Node child = panelComp.getChildrenUnmodifiable().get(i);
+        addToolTipToControls(child, toolTipText);
+      }
+    }
+  }
 }

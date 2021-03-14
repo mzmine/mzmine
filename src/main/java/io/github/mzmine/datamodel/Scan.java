@@ -4,109 +4,94 @@
  * This file is part of MZmine.
  *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * General License as published by the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * You should have received a copy of the GNU General License along with MZmine; if not, write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.Range;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import com.google.common.collect.Range;
 
 /**
  * This class represent one spectrum of a raw data file.
  */
-public interface Scan extends MassSpectrum {
+public interface Scan extends MassSpectrum, Comparable<Scan> {
 
   /**
-   *
    * @return RawDataFile containing this Scan
    */
   @Nonnull
-  public RawDataFile getDataFile();
+  RawDataFile getDataFile();
 
   /**
-   *
    * @return Scan number
    */
-  public int getScanNumber();
+  int getScanNumber();
 
   /**
-   *
    * @return Instrument-specific scan definition as String
    */
-  public String getScanDefinition();
+  @Nonnull
+  String getScanDefinition();
 
   /**
-   *
    * @return MS level
    */
-  public int getMSLevel();
+  int getMSLevel();
 
   /**
-   *
    * @return Retention time of this scan in minutes
    */
-  public float getRetentionTime();
+  float getRetentionTime();
 
   /**
-   *
-   * @return mobility of this scan
-   */
-  public double getMobility();
-
-  /**
-   *
-   * @return {@link MobilityType} of this scan
-   */
-  public MobilityType getMobilityType();
-
-  /**
-   *
    * @return The actual scanning range of the instrument
    */
-  public @Nonnull Range<Double> getScanningMZRange();
+  @Nonnull
+  Range<Double> getScanningMZRange();
 
   /**
-   *
    * @return Precursor m/z or 0 if this is not MSn scan
    */
-  public double getPrecursorMZ();
-
-  public @Nonnull PolarityType getPolarity();
-
-  /**
-   *
-   * @return Precursor charge or 0 if this is not MSn scan or charge is unknown
-   */
-  public int getPrecursorCharge();
-
-  /**
-   *
-   * @return array of fragment scan numbers, or null if there are none
-   */
-  public int[] getFragmentScanNumbers();
+  double getPrecursorMZ();
 
   @Nonnull
-  public MassList[] getMassLists();
+  PolarityType getPolarity();
+
+  /**
+   * @return Precursor charge or 0 if this is not MSn scan or charge is unknown
+   */
+  int getPrecursorCharge();
 
   @Nullable
-  public MassList getMassList(@Nonnull String name);
+  MassList getMassList();
 
-  public void addMassList(@Nonnull MassList massList);
+  void addMassList(@Nonnull MassList massList);
 
-  public void removeMassList(@Nonnull MassList massList);
-
-  public void addFragmentScan(int scanNumber);
+  /**
+   * Standard method to sort scans based on scan number (or if not available retention time)
+   *
+   * @param s other scan
+   * @return
+   */
+  @Override
+  default int compareTo(@Nonnull Scan s) {
+    assert s != null;
+    int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
+    if (result != 0) {
+      return result;
+    } else {
+      return Float.compare(this.getRetentionTime(), s.getRetentionTime());
+    }
+  }
 }
 

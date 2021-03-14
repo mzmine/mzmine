@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -55,8 +56,9 @@ public class GridMassModule implements MZmineProcessingModule {
     RawDataFile[] dataFiles =
         parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
 
+    MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask = new GridMassTask(project, dataFiles[i], parameters.cloneParameterSet());
+      Task newTask = new GridMassTask(project, dataFiles[i], parameters.cloneParameterSet(), storage);
       tasks.add(newTask);
     }
 

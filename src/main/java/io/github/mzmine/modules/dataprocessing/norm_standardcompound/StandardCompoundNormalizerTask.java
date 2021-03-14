@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,31 +18,28 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class StandardCompoundNormalizerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private FeatureList originalFeatureList, normalizedFeatureList;
+  private ModularFeatureList originalFeatureList, normalizedFeatureList;
 
   private int processedRows, totalRows;
 
@@ -55,10 +52,11 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
   private ParameterSet parameters;
 
   public StandardCompoundNormalizerTask(MZmineProject project, FeatureList featureList,
-      ParameterSet parameters) {
+      ParameterSet parameters,  @Nullable MemoryMapStorage storage) {
+    super(storage);
 
     this.project = project;
-    this.originalFeatureList = featureList;
+    this.originalFeatureList = (ModularFeatureList) featureList;
 
     suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
     normalizationType =
@@ -99,15 +97,15 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     }
 
     // Initialize new alignment result for the normalized result
-    normalizedFeatureList =
-        new ModularFeatureList(originalFeatureList + " " + suffix, originalFeatureList.getRawDataFiles());
+    normalizedFeatureList = originalFeatureList.createCopy(originalFeatureList + " " + suffix,
+        getMemoryMapStorage());
 
     // Copy raw data files from original alignment result to new alignment
     // result
-    totalRows = originalFeatureList.getNumberOfRows();
+    totalRows = normalizedFeatureList.getNumberOfRows();
 
     // Loop through all rows
-    rowIteration: for (FeatureListRow row : originalFeatureList.getRows()) {
+    rowIteration: for (FeatureListRow row : normalizedFeatureList.getRows()) {
 
       // Cancel ?
       if (isCanceled()) {
@@ -122,17 +120,12 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
         }
       }
 
-      // Copy comment and identification
-      ModularFeatureListRow normalizedRow = new ModularFeatureListRow(
-          (ModularFeatureList) row.getFeatureList(), row.getID());
-      FeatureUtils.copyFeatureListRowProperties(row, normalizedRow);
-
       // Get m/z and RT of the current row
       double mz = row.getAverageMZ();
       double rt = row.getAverageRT();
 
       // Loop through all raw data files
-      for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
+      for (RawDataFile file : normalizedFeatureList.getRawDataFiles()) {
 
         double normalizationFactors[] = null;
         double normalizationFactorWeights[] = null;
@@ -237,37 +230,24 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
         // Normalize feature
         Feature originalFeature = row.getFeature(file);
         if (originalFeature != null) {
-
-          ModularFeature normalizedFeature = new ModularFeature(originalFeature);
-
-          FeatureUtils.copyFeatureProperties(originalFeature, normalizedFeature);
-
           float normalizedHeight = (float) (originalFeature.getHeight() / normalizationFactor);
           float normalizedArea = (float) (originalFeature.getArea() / normalizationFactor);
-          normalizedFeature.setHeight(normalizedHeight);
-          normalizedFeature.setArea(normalizedArea);
-
-          normalizedRow.addFeature(file, normalizedFeature);
+          originalFeature.setHeight(normalizedHeight);
+          originalFeature.setArea(normalizedArea);
         }
 
       }
 
-      normalizedFeatureList.addRow(normalizedRow);
       processedRows++;
-
     }
 
     // Add new feature list to the project
     project.addFeatureList(normalizedFeatureList);
 
-    // Load previous applied methods
-    for (FeatureListAppliedMethod proc : originalFeatureList.getAppliedMethods()) {
-      normalizedFeatureList.addDescriptionOfAppliedTask(proc);
-    }
-
     // Add task description to feature list
     normalizedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Standard compound normalization", parameters));
+        new SimpleFeatureListAppliedMethod("Standard compound normalization",
+            StandardCompoundNormalizerModule.class, parameters));
 
     // Remove the original feature list if requested
     if (removeOriginal)

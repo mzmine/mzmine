@@ -20,7 +20,6 @@ package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-//import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.parameters.ParameterSet;
@@ -37,15 +36,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
+
+//import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
 
 public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final FeatureListRow[] peakListRows;
-  private final @Nonnull
-  String massListName;
   private final File dataBaseFile;
 
   private ParameterSet parameters;
@@ -60,11 +58,11 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
   public SelectedRowsLocalSpectralDBSearchTask(FeatureListRow[] peakListRows, FeatureTableFX table,
       ParameterSet parameters) {
+    super(null); // no new data stored -> null
     this.peakListRows = peakListRows;
     this.parameters = parameters;
     this.table = table;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
-    massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
   }
 
   /**

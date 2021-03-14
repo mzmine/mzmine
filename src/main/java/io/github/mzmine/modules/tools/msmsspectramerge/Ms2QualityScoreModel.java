@@ -53,7 +53,7 @@ public interface Ms2QualityScoreModel {
               : Range.closed(0d, fragmentScan.feature.getMZ() - 20d);
       for (int i = 0; i < scores.length; ++i) {
         double tic = ScanUtils
-            .calculateTIC(fragmentScan.origin.getScan(fragmentScan.ms2ScanNumbers[i]), mzRange);
+            .calculateTIC(fragmentScan.ms2ScanNumbers[i], mzRange);
         scores[i] = tic;
       }
       return scores;
@@ -68,8 +68,7 @@ public interface Ms2QualityScoreModel {
           fragmentScan.feature.getMZ() < 75 ? Range.closed(50d, fragmentScan.feature.getMZ())
               : Range.closed(0d, fragmentScan.feature.getMZ());
       for (int i = 0; i < scores.length; ++i) {
-        DataPoint[] spectrum = fragmentScan.origin.getScan(fragmentScan.ms2ScanNumbers[i])
-            .getMassList(fragmentScan.massList).getDataPoints();
+        DataPoint[] spectrum = fragmentScan.ms2ScanNumbers[i].getMassList().getDataPoints();
         Arrays.sort(spectrum, (u, v) -> Double.compare(v.getIntensity(), u.getIntensity()));
         for (int j = 0; j < spectrum.length; ++j)
           scores[i] += spectrum[j].getIntensity();

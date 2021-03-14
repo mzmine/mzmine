@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.Font;
 import java.util.logging.Logger;
@@ -46,7 +47,7 @@ class SpectraBottomPanel extends BorderPane {
   public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
   private FlowPane topPanel, bottomPanel;
-  private ComboBox<String> msmsSelector;
+  private ComboBox<Scan> msmsSelector;
   private ComboBox<FeatureList> peakListSelector;
   private CheckBox processingCbx;
   private Button processingParametersBtn;
@@ -124,7 +125,7 @@ class SpectraBottomPanel extends BorderPane {
 
     Label msmsLabel = new Label("MS/MS: ");
 
-    msmsSelector = new ComboBox<String>();
+    msmsSelector = new ComboBox<>();
     // msmsSelector.setBackground(Color.white);
     // msmsSelector.setFont(smallFont);
 
@@ -133,14 +134,9 @@ class SpectraBottomPanel extends BorderPane {
 
     // showButton.setBackground(Color.white);
     showButton.setOnAction(e -> {
-      String selectedScanString = msmsSelector.getSelectionModel().getSelectedItem();
-      if (selectedScanString == null)
+      Scan selectedScan = msmsSelector.getSelectionModel().getSelectedItem();
+      if (selectedScan == null)
         return;
-
-      int sharpIndex = selectedScanString.indexOf('#');
-      int commaIndex = selectedScanString.indexOf(',');
-      selectedScanString = selectedScanString.substring(sharpIndex + 1, commaIndex);
-      int selectedScan = Integer.valueOf(selectedScanString);
 
       SpectraVisualizerModule.addNewSpectrumTab(dataFile, selectedScan);
     });
@@ -150,7 +146,7 @@ class SpectraBottomPanel extends BorderPane {
 
   }
 
-  ComboBox<String> getMSMSSelector() {
+  ComboBox<Scan> getMSMSSelector() {
     return msmsSelector;
   }
 
