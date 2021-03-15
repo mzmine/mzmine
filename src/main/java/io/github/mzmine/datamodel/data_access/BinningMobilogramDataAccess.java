@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.data_access;
 
 import com.google.common.collect.Range;
+import com.google.common.primitives.Booleans;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
@@ -79,7 +80,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     double delta = frames.stream()
         .mapToDouble(IonMobilityUtils::getSmallestMobilityDelta).min().orElse(-1d);
     assert Double.compare(-1, delta) != 0;
-    final double smallestDelta = delta - delta * 1E-10;
+    final double smallestDelta = delta /*- delta * 1E-10*/;
     final Range<Double> mobilityRange = rawDataFile.getDataMobilityRange();
 
     if (smallestDelta > binningWidth) {
@@ -105,7 +106,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     intensities = new double[numBinnedEntries];
 
     final double first = mobilityRange.lowerEndpoint() + binWidth / 2;
-    for(int i = 0; i < numBinnedEntries; i++) {
+    for (int i = 0; i < numBinnedEntries; i++) {
       mobilities[i] = first + i * binWidth;
     }
   }
@@ -277,6 +278,9 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       final int start = order == 1 ? 0 : numValues - 1;
       int rawIndex = start;
 
+      boolean[] assigned = new boolean[numValues];
+      Arrays.fill(assigned, false);
+
       for (int binnedIndex = 0;
           binnedIndex < intensities.length && rawIndex < numValues && rawIndex >= 0;
           binnedIndex++) {
@@ -287,18 +291,21 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
           rawIndex += order;
         }
 
-        boolean assigned = false;
         // ensure we are below the current upper-binning-limit
         while (rawIndex < numValues && rawIndex >= 0
             && Double.compare(tempMobilities[rawIndex], mobilities[binnedIndex] + binWidth / 2)
-            <= 0) {
+            == -1) {
+          logger.info("Adding raw mobility " + tempMobilities[rawIndex] + " to range " + (
+              mobilities[binnedIndex] - binWidth / 2) + " to " + (mobilities[binnedIndex]
+              + binWidth / 2));
           intensities[binnedIndex] += tempIntensities[rawIndex];
+          assigned[rawIndex] = true;
           rawIndex += order;
-          assigned = true;
         }
-        /*if(assigned == false) {
-          logger.info(String.format("Intensity %.1f at mobility %.5f was not assigned ", tempIntensities[rawIndex], tempMobilities[rawIndex]));
-        }*/
+      }
+      long numAssigned = Booleans.asList(assigned).stream().filter(val -> true).count();
+      if (numAssigned != numValues) {
+        logger.info("assiged " + numAssigned + "/" + numValues);
       }
     }
   }
