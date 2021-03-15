@@ -56,8 +56,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
       @Nonnull List<IonMobilitySeries> mobilograms) {
 
     Frame exampleFrame = mobilograms.get(0).getSpectra().get(0).getFrame();
-    double smallestDelta = IonMobilityUtils
-        .getSmallestMobilityDelta(exampleFrame);
+    final double smallestDelta = IonMobilityUtils.getSmallestMobilityDelta(exampleFrame);
 
     final RangeMap<Double, Double> mobilityIntensityValues = TreeRangeMap.create();
 
@@ -147,6 +146,22 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     return new SummedIntensityMobilitySeries(storage,
         DataPointUtils.getDoubleBufferAsArray(mobilityValues),
         DataPointUtils.getDoubleBufferAsArray(intensityValues));
+  }
+
+  public String print() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("Num values: ");
+    builder.append(getNumberOfValues());
+    builder.append("/");
+    builder.append(getNumberOfDataPoints());
+    builder.append(": ");
+    for(int i = 0; i < getNumberOfValues(); i++) {
+      builder.append(String.format("(%2.5f", getMobility(i)));
+      builder.append(", ");
+      builder.append(String.format("(%.1f", getIntensity(i)));
+      builder.append("), ");
+    }
+    return builder.toString();
   }
 
 }
