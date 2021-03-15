@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.PreloadedFeatureDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroupList;
@@ -184,7 +183,7 @@ public class CorrelateGroupingTask extends AbstractTask {
     }
   }
 
-  public FeatureList getGroupedPKL() {
+  public ModularFeatureList getGroupedPKL() {
     return groupedPKL;
   }
 

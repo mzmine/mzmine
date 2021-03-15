@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formu
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -61,10 +62,10 @@ public class CreateAvgNetworkFormulasModule implements MZmineProcessingModule {
   public @Nonnull
   ExitCode runModule(@Nonnull MZmineProject project,
                      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    FeatureList featureLists[] = parameters.getParameter(CreateAvgNetworkFormulasParameters.PEAK_LISTS)
+    ModularFeatureList featureLists[] = parameters.getParameter(CreateAvgNetworkFormulasParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
 
-    for (FeatureList featureList : featureLists) {
+    for (ModularFeatureList featureList : featureLists) {
       Task newTask = new CreateAvgNetworkFormulasTask(featureList, parameters);
       tasks.add(newTask);
     }

@@ -18,12 +18,12 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIdentityList;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity;
+import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity.Relation;
 import io.github.mzmine.datamodel.identities.ms2.MSMSMultimerIdentity;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
-
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ public class IonIdentity {
   private MSMSIdentityList msmsIdent;
 
   // possible formulas for this neutral mass
-  private List<MolecularFormulaIdentity> molFormulas;
+  private List<ResultFormula> molFormulas;
 
   // mark as beeing deleted
   private boolean isDeleted;
@@ -70,7 +70,7 @@ public class IonIdentity {
 
   /**
    * Adds new identities or just adds the rows to identities as links
-   * 
+   *
    * @param row1 row to add the identity to
    * @param row2 identified by this row
    */
@@ -79,7 +79,6 @@ public class IonIdentity {
     // already added?
     IonIdentity a = getAdductEqualIdentity(row1, row1ID);
     IonIdentity b = getAdductEqualIdentity(row2, row2ID);
-
 
     IonNetwork net = null;
 
@@ -101,8 +100,9 @@ public class IonIdentity {
         for (Entry<FeatureListRow, IonIdentity> e : netB.entrySet()) {
           net.put(e.getKey(), e.getValue());
         }
-      } else
+      } else {
         net = b.getNetwork();
+      }
     }
 
     // no network so far
@@ -114,19 +114,18 @@ public class IonIdentity {
     net.put(row2, b);
     a.addPartnerRow(row2, b);
     b.addPartnerRow(row1, a);
-    return new IonIdentity[] {a, b};
+    return new IonIdentity[]{a, b};
   }
 
   /**
    * Find equal identity that was already added
-   * 
-   * @param row
-   * @param adduct
+   *
    * @return equal identity or null
    */
   public static IonIdentity getAdductEqualIdentity(FeatureListRow row, IonType adduct) {
-    if (!row.hasIonIdentity())
+    if (!row.hasIonIdentity()) {
       return null;
+    }
     // is old?
     for (IonIdentity a : row.getIonIdentities()) {
       // equals? add row2 to partners
@@ -139,7 +138,7 @@ public class IonIdentity {
 
   /**
    * Get adduct type
-   * 
+   *
    * @return
    */
   public IonType getIonType() {
@@ -152,7 +151,7 @@ public class IonIdentity {
 
   /**
    * Comma separated
-   * 
+   *
    * @return
    */
   public String getPartnerRows() {
@@ -160,7 +159,6 @@ public class IonIdentity {
   }
 
   /**
-   * 
    * @param delimiter
    * @return
    */
@@ -215,8 +213,9 @@ public class IonIdentity {
   }
 
   public int[] getPartnerRowsID() {
-    if (partner.isEmpty())
+    if (partner.isEmpty()) {
       return new int[0];
+    }
 
     return partner.keySet().stream().mapToInt(FeatureListRow::getID).toArray();
   }
@@ -227,7 +226,6 @@ public class IonIdentity {
 
   /**
    * Network number
-   * 
    */
   public void setNetwork(IonNetwork net) {
     network = net;
@@ -235,7 +233,7 @@ public class IonIdentity {
 
   /**
    * Network number
-   * 
+   *
    * @return
    */
   public int getNetID() {
@@ -249,7 +247,7 @@ public class IonIdentity {
 
   /**
    * Checks whether partner ids contain a certain id
-   * 
+   *
    * @param id
    * @return
    */
@@ -262,8 +260,9 @@ public class IonIdentity {
   }
 
   public void addMSMSIdentity(AbstractMSMSIdentity ident) {
-    if (this.msmsIdent == null)
+    if (this.msmsIdent == null) {
       msmsIdent = new MSMSIdentityList();
+    }
     msmsIdent.add(ident);
   }
 
@@ -273,22 +272,25 @@ public class IonIdentity {
 
   /**
    * Count of signals that verify this multimer identity
-   * 
+   *
    * @return
    */
   public int getMSMSMultimerCount() {
-    if (msmsIdent == null || msmsIdent.isEmpty())
+    if (msmsIdent == null || msmsIdent.isEmpty()) {
       return 0;
+    }
 
     return (int) msmsIdent.stream().filter(id -> id instanceof MSMSMultimerIdentity).count();
   }
 
   public int getMSMSModVerify() {
-    if (msmsIdent == null || msmsIdent.isEmpty())
+    if (msmsIdent == null || msmsIdent.isEmpty()) {
       return 0;
+    }
 
     return (int) msmsIdent.stream().filter(id -> id instanceof MSMSIonRelationIdentity
-        && ((MSMSIonRelationIdentity) id).getRelation().equals(Relation.NEUTRAL_LOSS)).count();
+                                                 && ((MSMSIonRelationIdentity) id).getRelation()
+                                                     .equals(Relation.NEUTRAL_LOSS)).count();
   }
 
   public IonNetwork getNetwork() {
@@ -299,8 +301,9 @@ public class IonIdentity {
    * deletes from network
    */
   public void delete(FeatureListRow row) {
-    if (isDeleted())
+    if (isDeleted()) {
       return;
+    }
     setDeleted(true);
     if (network != null) {
       network.remove(row);
@@ -321,87 +324,95 @@ public class IonIdentity {
 
   /**
    * Score is the network size plus MSMS verifiers
-   * 
+   *
    * @return
    */
   public int getScore() {
-    if (network == null)
+    if (network == null) {
       return partner.size();
+    }
     return network.size() + (getMSMSMultimerCount() > 0 ? 1 : 0) + (getMSMSModVerify() > 0 ? 1 : 0);
   }
 
-  public List<MolecularFormulaIdentity> getMolFormulas() {
+  public List<ResultFormula> getMolFormulas() {
     return molFormulas;
   }
 
   /**
    * The first formula should be the best
-   * 
+   *
    * @param molFormulas
    */
-  public void setMolFormulas(List<MolecularFormulaIdentity> molFormulas) {
+  public void setMolFormulas(List<ResultFormula> molFormulas) {
     this.molFormulas = molFormulas;
   }
 
-  public void addMolFormula(MolecularFormulaIdentity formula) {
+  public void addMolFormula(ResultFormula formula) {
     addMolFormula(formula, false);
   }
 
-  public void addMolFormula(MolecularFormulaIdentity formula, boolean asBest) {
-    if (molFormulas == null)
+  public void addMolFormula(ResultFormula formula, boolean asBest) {
+    if (molFormulas == null) {
       molFormulas = new ArrayList<>();
+    }
 
-    if (!molFormulas.isEmpty())
+    if (!molFormulas.isEmpty()) {
       molFormulas.remove(formula);
+    }
 
-    if (asBest)
+    if (asBest) {
       this.molFormulas.add(0, formula);
-    else
+    } else {
       this.molFormulas.add(formula);
+    }
   }
 
   /**
    * Best molecular formula (first in list)
-   * 
+   *
    * @return
    */
-  public MolecularFormulaIdentity getBestMolFormula() {
+  public ResultFormula getBestMolFormula() {
     return molFormulas == null || molFormulas.isEmpty() ? null : molFormulas.get(0);
   }
 
 
-  public void setBestMolFormula(MolecularFormulaIdentity formula) {
+  public void setBestMolFormula(ResultFormula formula) {
     addMolFormula(formula, true);
   }
 
-  public void removeMolFormula(MolecularFormulaIdentity formula) {
-    if (molFormulas != null && !molFormulas.isEmpty())
+  public void removeMolFormula(ResultFormula formula) {
+    if (molFormulas != null && !molFormulas.isEmpty()) {
       molFormulas.remove(formula);
+    }
   }
 
   /**
    * Likyhood to be true. the higher the better. Used to compare. MSMS multimer and modification
    * verification is used.
-   * 
+   *
    * @return
    */
   public int getLikelyhood() {
     // M+?
-    if (ionType.isUndefinedAdductParent())
+    if (ionType.isUndefinedAdductParent()) {
       return 0;
+    }
     // M-H2O+?
-    else if (ionType.isUndefinedAdduct())
+    else if (ionType.isUndefinedAdduct()) {
       return 1;
-    else {
+    } else {
       int score = getMSMSMultimerCount() > 0 ? 3 : 0;
       score += getMSMSModVerify() > 0 ? 1 : 0;
-      if (getNetwork() != null)
+      if (getNetwork() != null) {
         score += getNetwork().size() - 1;
-      else
+      } else {
         score += partner.size();
+      }
 
-      if (ionType.getMolecules() == 1)
+      if (ionType.getMolecules() == 1) {
         score += 0.5;
+      }
       return score;
     }
   }

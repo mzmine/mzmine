@@ -16,23 +16,20 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.main.MZmineCore;
-
-import javax.annotation.Nonnull;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-public class CosineScoreType extends ScoreType {
+public abstract class ScoreType extends FloatType {
+public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
+  public ScoreType() {
+    super(DEFAULT);
+  }
 
   @Override
-  public String getHeaderString() {
-    return "Cosine similarity";
+  public NumberFormat getFormatter() {
+    return DEFAULT_FORMAT;
   }
 
 }

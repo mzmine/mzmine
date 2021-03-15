@@ -28,14 +28,17 @@ import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.fx_viewer.FxViewPanel;
+import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.ui.view.Viewer;
+import org.graphstream.ui.view.Viewer.ThreadingModel;
 
 public class TestNetworks {
   public static void main(String args[]) {
     // System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+    System.setProperty("org.graphstream.ui", "javafx");
     new TestNetworks();
   }
 
@@ -46,9 +49,9 @@ public class TestNetworks {
   JTextField txt;
 
   public TestNetworks() {
-    createNewFrame();
+//    createNewFrame();
     // createDirectMulti();
-    // createDirect();
+    createDirect();
   }
 
   private void createDirect() {
@@ -101,102 +104,102 @@ public class TestNetworks {
 
   }
 
-  public void createNewFrame() {
-    graph = new SingleGraph("tutorial 1");
-
-    graph.setAttribute("ui.stylesheet", styleSheet);
-    graph.setAutoCreate(true);
-    graph.setStrict(false);
-
-    graph.addEdge("AB", "A", "B");
-    graph.addEdge("BC", "B", "C");
-    graph.addEdge("CA", "C", "A");
-    graph.addEdge("AD", "A", "D");
-    graph.addEdge("DE", "D", "E");
-    graph.addEdge("DF", "D", "F");
-    graph.addEdge("EF", "E", "F");
-
-    graph.getEdge("AB").setAttribute("ui.label", "EDGE");
-
-    graph.getNode("A").setAttribute("ui.class", "big, important");
-
-    for (Node node : graph) {
-      node.setAttribute("ui.label", node.getId());
-    }
-
-    viewer = new SwingViewer(graph, Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
-    viewer.enableAutoLayout();
-    view = (ViewPanel) viewer.addDefaultView(false); // false indicates "no JFrame".
-
-    JFrame frame = new JFrame("Test");
-    frame.getContentPane().add(view, BorderLayout.CENTER);
-
-    txt = new JTextField();
-    frame.getContentPane().add(txt, BorderLayout.SOUTH);
-    frame.setSize(800, 800);
-    frame.setVisible(true);
-
-
-    graph.addEdge("XY", "X", "Y");
-    graph.addEdge("YZ", "Y", "Z");
-    graph.addEdge("XZ", "X", "Z");
-
-    SpriteManager sman = new SpriteManager(graph);
-    Sprite s = sman.addSprite("XYs");
-    s.setAttribute("ui.label", "text");
-    s.attachToEdge("XY");
-    s.setPosition(0.2);
-
-
-    // listener
-    view.addMouseListener(new MouseAdapter() {
-      private Point last;
-
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        System.out.println("CLICK");
-        // try to find node
-        for (Node node : graph) {
-          if (node.hasAttribute("ui.selected")) {
-            System.out.println(String.format(" %s", node.getId()));
-          }
-          if (node.hasAttribute("ui.clicked")) {
-            System.err.printf("node %s clicked%n", node.getId());
-          }
-        }
-        //
-        // // no node do zoom
-        // if (e.getClickCount() == 2) {
-        // viewPercent = 1;
-        // view.getCamera().resetView();
-        // e.consume();
-        // } else if (e.getClickCount() == 1)
-        // setCenter(e.getX(), e.getY());
-
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        last = null;
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {
-        if (last == null)
-          last = e.getPoint();
-      }
-
-      @Override
-      public void mouseDragged(MouseEvent e) {
-        if (last != null) {
-          // translate
-          translate(e.getX() - last.getX(), e.getY() - last.getY());
-        }
-        last = e.getPoint();
-      }
-    });
-    view.addMouseWheelListener(event -> zoom(event.getWheelRotation() < 0));
-  }
+//  public void createNewFrame() {
+//    graph = new SingleGraph("tutorial 1");
+//
+//    graph.setAttribute("ui.stylesheet", styleSheet);
+//    graph.setAutoCreate(true);
+//    graph.setStrict(false);
+//
+//    graph.addEdge("AB", "A", "B");
+//    graph.addEdge("BC", "B", "C");
+//    graph.addEdge("CA", "C", "A");
+//    graph.addEdge("AD", "A", "D");
+//    graph.addEdge("DE", "D", "E");
+//    graph.addEdge("DF", "D", "F");
+//    graph.addEdge("EF", "E", "F");
+//
+//    graph.getEdge("AB").setAttribute("ui.label", "EDGE");
+//
+//    graph.getNode("A").setAttribute("ui.class", "big, important");
+//
+//    for (Node node : graph) {
+//      node.setAttribute("ui.label", node.getId());
+//    }
+//
+//    viewer = new FxViewer(graph, ThreadingModel.GRAPH_IN_GUI_THREAD);
+//    viewer.enableAutoLayout();
+//    view = (ViewPanel) viewer.addDefaultView(false); // false indicates "no JFrame".
+//
+//    JFrame frame = new JFrame("Test");
+//    frame.getContentPane().add(view, BorderLayout.CENTER);
+//
+//    txt = new JTextField();
+//    frame.getContentPane().add(txt, BorderLayout.SOUTH);
+//    frame.setSize(800, 800);
+//    frame.setVisible(true);
+//
+//
+//    graph.addEdge("XY", "X", "Y");
+//    graph.addEdge("YZ", "Y", "Z");
+//    graph.addEdge("XZ", "X", "Z");
+//
+//    SpriteManager sman = new SpriteManager(graph);
+//    Sprite s = sman.addSprite("XYs");
+//    s.setAttribute("ui.label", "text");
+//    s.attachToEdge("XY");
+//    s.setPosition(0.2);
+//
+//
+//    // listener
+//    view.addMouseListener(new MouseAdapter() {
+//      private Point last;
+//
+//      @Override
+//      public void mouseClicked(MouseEvent e) {
+//        System.out.println("CLICK");
+//        // try to find node
+//        for (Node node : graph) {
+//          if (node.hasAttribute("ui.selected")) {
+//            System.out.println(String.format(" %s", node.getId()));
+//          }
+//          if (node.hasAttribute("ui.clicked")) {
+//            System.err.printf("node %s clicked%n", node.getId());
+//          }
+//        }
+//        //
+//        // // no node do zoom
+//        // if (e.getClickCount() == 2) {
+//        // viewPercent = 1;
+//        // view.getCamera().resetView();
+//        // e.consume();
+//        // } else if (e.getClickCount() == 1)
+//        // setCenter(e.getX(), e.getY());
+//
+//      }
+//
+//      @Override
+//      public void mouseReleased(MouseEvent e) {
+//        last = null;
+//      }
+//
+//      @Override
+//      public void mousePressed(MouseEvent e) {
+//        if (last == null)
+//          last = e.getPoint();
+//      }
+//
+//      @Override
+//      public void mouseDragged(MouseEvent e) {
+//        if (last != null) {
+//          // translate
+//          translate(e.getX() - last.getX(), e.getY() - last.getY());
+//        }
+//        last = e.getPoint();
+//      }
+//    });
+//    view.addMouseWheelListener(event -> zoom(event.getWheelRotation() < 0));
+//  }
 
   public void explore(Node source) {
     Iterator<? extends Node> k = source.getBreadthFirstIterator();

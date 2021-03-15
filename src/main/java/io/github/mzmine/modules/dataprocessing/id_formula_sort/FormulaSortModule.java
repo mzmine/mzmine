@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -56,10 +57,10 @@ public class FormulaSortModule implements MZmineProcessingModule {
   @Override
   public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    FeatureList featureLists[] =
+    ModularFeatureList featureLists[] =
         parameters.getParameter(FormulaSortParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
 
-    for (FeatureList featureList : featureLists) {
+    for (ModularFeatureList featureList : featureLists) {
       Task newTask = new FormulaSortTask(featureList, parameters);
       tasks.add(newTask);
     }

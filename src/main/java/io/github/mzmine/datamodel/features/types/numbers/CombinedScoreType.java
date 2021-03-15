@@ -18,21 +18,16 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.main.MZmineCore;
-
-import javax.annotation.Nonnull;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-public class CosineScoreType extends ScoreType {
+public class CombinedScoreType extends ScoreType {
 
   @Override
   public String getHeaderString() {
-    return "Cosine similarity";
+    return "Combined score";
   }
 
 }

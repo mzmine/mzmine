@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2015 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,8 +22,8 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addio
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.RowGroupList;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -34,22 +34,19 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Add row/ionidentites to existing networks
- * 
- * @author
  *
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class AddIonNetworkingTask extends AbstractTask {
 
@@ -57,32 +54,28 @@ public class AddIonNetworkingTask extends AbstractTask {
   private static final Logger LOG = Logger.getLogger(AddIonNetworkingTask.class.getName());
 
   private AtomicDouble stageProgress = new AtomicDouble(0);
-  private final FeatureList featureList;
+  private final ModularFeatureList featureList;
 
   private IonNetworkLibrary library;
 
   private final ParameterSet parameters;
   private final MZmineProject project;
-  private boolean neverStop = false;
 
-  private double minHeight;
-  private CheckMode checkMode;
+  private final double minHeight;
 
-  private CheckMode adductCheckMode;
+  private final boolean performAnnotationRefinement;
+  private final IonNetworkRefinementParameters refineParam;
 
-  private boolean performAnnotationRefinement;
-  private IonNetworkRefinementParameters refineParam;
-
-  private MZTolerance mzTolerance;
+  private final MZTolerance mzTolerance;
 
   /**
    * Create the task.
    *
    * @param parameterSet the parameters.
-   * @param list peak list.
    */
   public AddIonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final FeatureList featureLists, MinimumFeatureFilter minFeaturesFilter) {
+      final ModularFeatureList featureLists) {
+    super(featureLists.getMemoryMapStorage());
     this.project = project;
     this.featureList = featureLists;
     parameters = parameterSet;
@@ -96,11 +89,6 @@ public class AddIonNetworkingTask extends AbstractTask {
         .getEmbeddedParameters();
   }
 
-  public AddIonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final FeatureList featureLists) {
-    this(project, parameterSet, featureLists, null);
-  }
-
   @Override
   public double getFinishedPercentage() {
     return getStatus().equals(TaskStatus.FINISHED) ? 1 : stageProgress.get();
@@ -109,7 +97,7 @@ public class AddIonNetworkingTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Identification of adducts, in-source fragments and clusters in " + featureList.getName()
-        + " ";
+           + " ";
   }
 
   @Override
@@ -137,9 +125,10 @@ public class AddIonNetworkingTask extends AbstractTask {
     // get groups
     RowGroupList groups = featureList.getGroups();
 
-    if (groups == null || groups.isEmpty())
+    if (groups == null || groups.isEmpty()) {
       throw new MSDKRuntimeException(
           "Run grouping before: No groups found for peakList + " + featureList.getName());
+    }
     //
     AtomicInteger compared = new AtomicInteger(0);
     AtomicInteger annotPairs = new AtomicInteger(0);
@@ -151,14 +140,14 @@ public class AddIonNetworkingTask extends AbstractTask {
       }
     });
     LOG.info("Corr: A total of " + compared.get() + " row2row adduct comparisons with "
-        + annotPairs.get() + " annotation pairs");
+             + annotPairs.get() + " annotation pairs");
 
     refineAndFinishNetworks();
   }
 
   /**
    * Annotates all rows in a group
-   * 
+   *
    * @param library
    * @param g
    * @param compared
@@ -168,7 +157,7 @@ public class AddIonNetworkingTask extends AbstractTask {
       // AtomicInteger finished,
       AtomicInteger compared, AtomicInteger annotPairs) {
     // all networks of this group
-    IonNetwork[] nets = IonNetworkLogic.getAllNetworks(g.toArray(new FeatureListRow[g.size()]), false);
+    IonNetwork[] nets = IonNetworkLogic.getAllNetworks(g, false);
 
     for (int i = 0; i < g.size(); i++) {
       FeatureListRow row = g.get(i);
@@ -183,8 +172,9 @@ public class AddIonNetworkingTask extends AbstractTask {
                 compared.incrementAndGet();
                 // check for adducts in library
                 IonIdentity id = library.findAdducts(g.get(i), net);
-                if (id != null)
+                if (id != null) {
                   annotPairs.incrementAndGet();
+                }
               }
             }
           }
@@ -197,18 +187,19 @@ public class AddIonNetworkingTask extends AbstractTask {
 
   /**
    * minimum correlation between row and network
-   * 
-   * @param g
-   * @param a
-   * @param net
-   * @return
+   *
+   * @param g   group
+   * @param a   feature list row
+   * @param net ion identity network
+   * @return true if correlation is greater than 0.5
    */
   private boolean isCorrelated(RowGroup g, FeatureListRow a, IonNetwork net) {
     int n = net.size();
     int correlated = 0;
     for (FeatureListRow b : net.keySet()) {
-      if (g.isCorrelated(a, b))
+      if (g.isCorrelated(a, b)) {
         correlated++;
+      }
     }
     return (double) correlated / (double) n >= 0.5;
   }
@@ -228,17 +219,20 @@ public class AddIonNetworkingTask extends AbstractTask {
     // recalc annotation networks
     IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);
 
-    if (isCanceled())
+    if (isCanceled()) {
       return;
+    }
 
     // refinement
     if (performAnnotationRefinement) {
       LOG.info("Corr: Refine annotations");
-      IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam, featureList);
+      IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam,
+          featureList);
       ref.refine();
     }
-    if (isCanceled())
+    if (isCanceled()) {
       return;
+    }
 
     // recalc annotation networks
     IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);

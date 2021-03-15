@@ -19,11 +19,10 @@ package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetRelationFeatureIdentity;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelationInterf;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,12 +32,12 @@ import java.util.stream.Collectors;
 
 /**
  * An annotation network full of ions that point to the same neutral molecule (neutral mass)
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     implements Comparable<IonNetwork> {
+
   private static final long serialVersionUID = 1L;
 
   // MZtolerance on MS1 to generate this network
@@ -63,7 +62,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   private Map<IonNetwork, IonNetworkRelationInterf> relations;
 
   // possible formulas for this neutral mass
-  private List<MolecularFormulaIdentity> molFormulas;
+  private List<ResultFormula> molFormulas;
 
   public IonNetwork(MZTolerance mzTolerance, int id) {
     super();
@@ -77,7 +76,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * The ion types are undefined M+?
-   * 
+   *
    * @return
    */
   public boolean isUndefined() {
@@ -86,14 +85,14 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * Network ID
-   * 
+   *
    * @return
    */
   public int getID() {
     return id;
   }
 
-  public List<MolecularFormulaIdentity> getMolFormulas() {
+  public List<ResultFormula> getMolFormulas() {
     return molFormulas;
   }
 
@@ -103,26 +102,26 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * Add a relation to another ion network. This relation could be a modification
-   * 
+   *
    * @param net
    * @param rel
    */
   public void addRelation(IonNetwork net, IonNetworkRelationInterf rel) {
-    if (relations == null)
+    if (relations == null) {
       relations = new HashMap<>();
+    }
     relations.put(net, rel);
     createRelationIdentity();
   }
 
   /**
    * Remove a relation to another ion network. This relation could be a modification
-   * 
-   * @param net
-   * @param rel
+   *
    */
   public void removeRelation(IonNetwork net) {
-    if (relations == null)
+    if (relations == null) {
       return;
+    }
     relations.remove(net);
     createRelationIdentity();
   }
@@ -140,61 +139,65 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
    */
   private IonNetRelationFeatureIdentity createRelationIdentity() {
     String name = "";
-    if (relations != null)
+    if (relations != null) {
       name = relations.values().stream().filter(Objects::nonNull).map(rel -> rel.getName(this))
           .collect(Collectors.joining(", "));
+    }
 
     return new IonNetRelationFeatureIdentity(this, name);
   }
 
   /**
    * The first formula should be the best
-   * 
+   *
    * @param molFormulas
    */
-  public void setMolFormulas(List<MolecularFormulaIdentity> molFormulas) {
+  public void setMolFormulas(List<ResultFormula> molFormulas) {
     this.molFormulas = molFormulas;
   }
 
-  public void addMolFormula(MolecularFormulaIdentity formula) {
+  public void addMolFormula(ResultFormula formula) {
     addMolFormula(formula, false);
   }
 
-  public void addMolFormula(MolecularFormulaIdentity formula, boolean asBest) {
-    if (molFormulas == null)
+  public void addMolFormula(ResultFormula formula, boolean asBest) {
+    if (molFormulas == null) {
       molFormulas = new ArrayList<>();
+    }
 
-    if (!molFormulas.isEmpty())
+    if (!molFormulas.isEmpty()) {
       molFormulas.remove(formula);
+    }
 
-    if (asBest)
+    if (asBest) {
       this.molFormulas.add(0, formula);
-    else
+    } else {
       this.molFormulas.add(formula);
+    }
   }
 
-  public void setBestMolFormula(MolecularFormulaIdentity formula) {
+  public void setBestMolFormula(ResultFormula formula) {
     addMolFormula(formula, true);
   }
 
-  public void removeMolFormula(MolecularFormulaIdentity formula) {
-    if (molFormulas != null && !molFormulas.isEmpty())
+  public void removeMolFormula(ResultFormula formula) {
+    if (molFormulas != null && !molFormulas.isEmpty()) {
       molFormulas.remove(formula);
+    }
   }
 
   /**
    * Best molecular formula (first in list)
-   * 
+   *
    * @return
    */
-  public MolecularFormulaIdentity getBestMolFormula() {
+  public ResultFormula getBestMolFormula() {
     return molFormulas == null || molFormulas.isEmpty() ? null : molFormulas.get(0);
   }
 
   /**
    * Neutral mass of center molecule which is described by all members of this network
-   * 
-   * @param neutralMass
+   *
    */
   public double getNeutralMass() {
     return neutralMass == null ? calcNeutralMass() : neutralMass;
@@ -203,8 +206,9 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   @Override
   public IonIdentity put(FeatureListRow key, IonIdentity value) {
     IonIdentity e = super.put(key, value);
-    if (key.getID() < lowestID || lowestID == -1)
+    if (key.getID() < lowestID || lowestID == -1) {
       lowestID = key.getID();
+    }
 
     value.setNetwork(this);
 
@@ -215,8 +219,9 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   @Override
   public IonIdentity remove(Object key) {
     IonIdentity e = super.remove(key);
-    if (e != null && key instanceof FeatureListRow && ((FeatureListRow) key).getID() <= lowestID)
+    if (e != null && key instanceof FeatureListRow && ((FeatureListRow) key).getID() <= lowestID) {
       recalcMinID();
+    }
 
     if (e != null) {
       e.setNetwork(null);
@@ -243,8 +248,9 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   @Override
   public IonIdentity replace(FeatureListRow key, IonIdentity value) {
     IonIdentity e = super.replace(key, value);
-    if (key.getID() < lowestID || lowestID == -1)
+    if (key.getID() < lowestID || lowestID == -1) {
       lowestID = key.getID();
+    }
 
     value.setNetwork(this);
     fireChanged();
@@ -269,13 +275,14 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * Calculates and sets the neutral mass average and average rt
-   * 
+   *
    * @return
    */
   public double calcNeutralMass() {
     neutralMass = null;
-    if (size() == 0)
+    if (size() == 0) {
       return 0;
+    }
 
     double mass = 0;
     avgRT = 0;
@@ -292,30 +299,34 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   }
 
   public double getAvgRT() {
-    if (neutralMass == null)
+    if (neutralMass == null) {
       calcNeutralMass();
+    }
     return avgRT;
   }
 
   public double getHeightSum() {
-    if (neutralMass == null)
+    if (neutralMass == null) {
       calcNeutralMass();
+    }
     return heightSum;
   }
 
   /**
    * calculates the maximum deviation from the average mass
-   * 
+   *
    * @return
    */
   public double calcMaxDev() {
     maxDev = null;
-    if (size() == 0)
+    if (size() == 0) {
       return 0;
+    }
 
     neutralMass = getNeutralMass();
-    if (neutralMass == null || neutralMass == 0)
+    if (neutralMass == null || neutralMass == 0) {
       return 0;
+    }
 
     double max = 0;
     for (Entry<FeatureListRow, IonIdentity> e : entrySet()) {
@@ -328,7 +339,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * Neutral mass of entry
-   * 
+   *
    * @param e
    * @return
    */
@@ -342,7 +353,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * All rows point to the same neutral mass
-   * 
+   *
    * @param mzTol
    * @return
    */
@@ -362,7 +373,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * Checks the calculated neutral mass of the ion annotation against the avg neutral mass
-   * 
+   *
    * @param row
    * @param pid
    * @return
@@ -373,7 +384,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * Checks for links and adds those as partner rows
-   * 
+   *
    * @param row
    * @param pid
    */
@@ -400,7 +411,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * row has smallest id?
-   * 
+   *
    * @param row
    * @return
    */
@@ -410,27 +421,30 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * Correlation group id (if existing) is always the one of the first entry
-   * 
+   *
    * @return correlation group id or -1
    */
   public int getCorrID() {
-    if (isEmpty())
+    if (isEmpty()) {
       return -1;
+    }
     return keySet().iterator().next().getGroupID();
   }
 
   /**
    * Checks if all entries are in the same correlation group
-   * 
+   *
    * @return correlation group id or -1
    */
   public boolean allSameCorrGroup() {
-    if (isEmpty())
+    if (isEmpty()) {
       return true;
+    }
     int cid = getCorrID();
     for (FeatureListRow r : keySet()) {
-      if (r.getGroupID() != cid)
+      if (r.getGroupID() != cid) {
         return false;
+      }
     }
     return true;
   }
@@ -455,8 +469,9 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     // add all links
     for (Entry<FeatureListRow, IonIdentity> a : entrySet()) {
       IonIdentity adduct = a.getValue();
-      if (adduct.getIonType().getAbsCharge() > 0)
+      if (adduct.getIonType().getAbsCharge() > 0) {
         addAllLinksTo(a.getKey(), adduct);
+      }
     }
   }
 
@@ -464,25 +479,6 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   public int compareTo(IonNetwork net) {
     // -1 if this is better
     return Integer.compare(net.size(), this.size());
-  }
-
-  /**
-   * Add identity of all relations to rows
-   */
-  public void addRelationsIdentityToRows() {
-    for (FeatureListRow r : keySet()) {
-      // delete old relation identity
-      for (int i = 0; i < r.getFeatureIdentities().length;) {
-        FeatureIdentity id = r.getFeatureIdentities()[i];
-        if (id instanceof IonNetRelationFeatureIdentity
-            && ((IonNetRelationFeatureIdentity) id).getNetwork() == this)
-          r.removeFeatureIdentity(id);
-        else
-          i++;
-      }
-
-      r.addFeatureIdentity(createRelationIdentity(), true);
-    }
   }
 
 }

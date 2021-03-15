@@ -16,23 +16,20 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 
-import javax.annotation.Nonnull;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
-public class CosineScoreType extends ScoreType {
+public class FormulaAnnotationSummaryType extends ListDataType<ResultFormula>
+    implements AnnotationType, EditableColumnType {
 
   @Override
   public String getHeaderString() {
-    return "Cosine similarity";
+    return "Formula";
   }
 
 }

@@ -17,8 +17,8 @@
 
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.test;
 
-import net.sf.mzmine.modules.featurelistmethods.grouping.metacorrelate.datastructure.CorrelationData.SimilarityMeasure;
-import net.sf.mzmine.util.maths.similarity.Similarity;
+import io.github.mzmine.util.maths.similarity.Similarity;
+import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 
 public class TestSimilarityMeasure {
 

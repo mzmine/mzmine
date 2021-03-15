@@ -62,11 +62,6 @@ import java.util.logging.Level;
  */
 public class IonModificationComponent extends HBox {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-
   protected MultiChoiceComponent<IonModification> adducts, mods;
 
   /**
@@ -78,7 +73,7 @@ public class IonModificationComponent extends HBox {
     setFillHeight(true);
     setSpacing(5);
 
-    adducts = new MultiChoiceComponent<IonModification>(choicesAdducts, List.of(IonModification.getDefaultValuesPos()), null,
+    adducts = new MultiChoiceComponent<>(choicesAdducts, List.of(IonModification.getDefaultValuesPos()), null,
             IonModification.H, // just any object as a parser
             true, true, true, false
     );

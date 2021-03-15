@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations;
 
-import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.ionidentity.IonModificationParameter;
-import net.sf.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonModificationParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class IonNetRelationsParameters extends SimpleParameterSet {
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();

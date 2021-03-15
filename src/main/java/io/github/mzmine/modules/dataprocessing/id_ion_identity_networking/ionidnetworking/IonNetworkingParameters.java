@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2015 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,18 +23,18 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import io.github.mzmine.util.ExitCode;
 
 public class IonNetworkingParameters extends SimpleParameterSet {
+
   // different depth of settings
   public enum Setup {
     FULL, SUB, SIMPLE;
@@ -52,7 +52,7 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   public static final ComboParameter<CheckMode> CHECK_MODE =
       new ComboParameter<CheckMode>("Check",
           "The modes to check for adduct identities. Average compares only the average m/z values (without min. height).\n "
-              + "ALL features and SINGLE feature compares the m/z values of features with height>minHeight in raw data files",
+          + "ALL features and SINGLE feature compares the m/z values of features with height>minHeight in raw data files",
           CheckMode.values(), CheckMode.ALL_FEATURES);
 
   public static final DoubleParameter MIN_HEIGHT = new DoubleParameter("Min height",
@@ -92,21 +92,20 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   private static Parameter[] createParam(Setup setup) {
     switch (setup) {
       case FULL:
-        return new Parameter[] {PEAK_LISTS, MZ_TOLERANCE, CHECK_MODE, MIN_HEIGHT,
+        return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, CHECK_MODE, MIN_HEIGHT,
             ANNOTATION_REFINEMENTS, LIBRARY};
       case SUB:
-        return new Parameter[] {MZ_TOLERANCE, CHECK_MODE, ANNOTATION_REFINEMENTS, LIBRARY};
+        return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, ANNOTATION_REFINEMENTS, LIBRARY};
       case SIMPLE:
-        return new Parameter[] {CHECK_MODE, LIBRARY};
+        return new Parameter[]{CHECK_MODE, LIBRARY};
     }
     return new Parameter[0];
   }
 
   /**
    * Create full set of parameters
-   * 
+   *
    * @param param
-   * @param rtTol
    * @return
    */
   public static IonNetworkingParameters createFullParamSet(IonNetworkingParameters param,
@@ -116,20 +115,16 @@ public class IonNetworkingParameters extends SimpleParameterSet {
 
   /**
    * Create full set of parameters
-   * 
-   * @param param
-   * @param rtTol
-   * @param mzTol
-   * @return
    */
   public static IonNetworkingParameters createFullParamSet(IonNetworkingParameters param,
-                                                           MZTolerance mzTol, double minHeight) {
+      MZTolerance mzTol, double minHeight) {
     IonNetworkingParameters full = new IonNetworkingParameters();
     for (Parameter p : param.getParameters()) {
       full.getParameter(p).setValue(p.getValue());
     }
-    if (mzTol != null)
+    if (mzTol != null) {
       full.getParameter(IonNetworkingParameters.MZ_TOLERANCE).setValue(mzTol);
+    }
 
     full.getParameter(IonNetworkingParameters.MIN_HEIGHT).setValue(minHeight);
     return full;
@@ -137,7 +132,7 @@ public class IonNetworkingParameters extends SimpleParameterSet {
 
   /**
    * The setup mode
-   * 
+   *
    * @return
    */
   public Setup getSetup() {

@@ -28,7 +28,6 @@ import io.github.mzmine.datamodel.identities.ms2.MSMSMultimerIdentity;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -40,38 +39,37 @@ public class MSMSLogic {
 
   /**
    * Checks the MSMS scan for matches of x-mers to the x-mer precursorMZ
-   * 
+   *
    * @param scan
-   * @param masslist
    * @param precursorMZ
-   * @param adduct only the basic information is taken (charge and deltaMass, molecules are then
-   *        added from 1-maxM)
+   * @param adduct      only the basic information is taken (charge and deltaMass, molecules are
+   *                    then added from 1-maxM)
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static MSMSIdentityList checkMultiMolCluster(Scan scan, String masslist,
-                                                      double precursorMZ, IonType adduct, MZTolerance mzTolerance, double minHeight) {
-    return checkMultiMolCluster(scan, masslist, precursorMZ, adduct, adduct.getMolecules(),
+  public static MSMSIdentityList checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
+      MZTolerance mzTolerance, double minHeight) {
+    return checkMultiMolCluster(scan, precursorMZ, adduct, adduct.getMolecules(),
         mzTolerance, minHeight);
   }
 
   /**
    * Checks the MSMS scan for matches of x-mers to the x-mer precursorMZ
-   * 
+   *
    * @param scan
-   * @param masslist
    * @param precursorMZ
-   * @param adduct only the basic information is taken (charge and deltaMass, molecules are then
-   *        added from 1-maxM)
-   * @param maxM maximum M
+   * @param adduct      only the basic information is taken (charge and deltaMass, molecules are
+   *                    then added from 1-maxM)
+   * @param maxM        maximum M
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static MSMSIdentityList checkMultiMolCluster(Scan scan, String masslist,
-      double precursorMZ, IonType adduct, int maxM, MZTolerance mzTolerance, double minHeight) {
-    MassList masses = scan.getMassList(masslist);
-    if (masses == null)
+  public static MSMSIdentityList checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
+      int maxM, MZTolerance mzTolerance, double minHeight) {
+    MassList masses = scan.getMassList();
+    if (masses == null) {
       return null;
+    }
 
     // generate all M adducts 3M+X -> 2M+X -> M+X
     List<IonType> list = new ArrayList<>();
@@ -89,8 +87,9 @@ public class MSMSLogic {
 
     // find precursor in MSMS or create dummy
     DataPoint precursorDP = findDPAt(dps, precursorMZ, mzTolerance);
-    if (precursorDP == null)
+    if (precursorDP == null) {
       precursorDP = new SimpleDataPoint(precursorMZ, 1);
+    }
 
     // check each adduct againt all other
     for (int i = 1; i < list.size(); i++) {
@@ -112,10 +111,12 @@ public class MSMSLogic {
           MSMSMultimerIdentity ib = null;
           for (AbstractMSMSIdentity o : ident) {
             MSMSMultimerIdentity old = (MSMSMultimerIdentity) o;
-            if (old.getType().equals(a))
+            if (old.getType().equals(a)) {
               ia = old;
-            if (old.getType().equals(b))
+            }
+            if (old.getType().equals(b)) {
               ib = old;
+            }
           }
 
           // create new if empty
@@ -134,8 +135,9 @@ public class MSMSLogic {
         }
       }
       // highest number of identities
-      if (!ident.isEmpty() && (best == null || best.size() < ident.size()))
+      if (!ident.isEmpty() && (best == null || best.size() < ident.size())) {
         best = ident;
+      }
     }
     return best;
   }
@@ -143,16 +145,17 @@ public class MSMSLogic {
 
   /**
    * Checks the MSMS scan for matches of x-mers to the x-mer precursorMZ
-   * 
-   * @param adduct only the basic information is taken (charge and deltaMass, molecules are then
-   *        added from 1-maxM)
+   *
+   * @param adduct      only the basic information is taken (charge and deltaMass, molecules are
+   *                    then added from 1-maxM)
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
   public static MSMSIdentityList checkNeutralLoss(DataPoint[] dps, IonType adduct,
       MZTolerance mzTolerance, double minHeight) {
-    if (dps == null || dps.length == 0)
+    if (dps == null || dps.length == 0) {
       return null;
+    }
 
     // delta
     double dmz = adduct.getMassDifference();
@@ -178,7 +181,7 @@ public class MSMSLogic {
 
   /**
    * Heighest dp within mzTolerance
-   * 
+   *
    * @param dps
    * @param precursorMZ
    * @param mzTolerance
@@ -190,7 +193,7 @@ public class MSMSLogic {
 
   /**
    * Heighest dp within mzTolerance
-   * 
+   *
    * @param dps
    * @param precursorMZ
    * @param mzTolerance
@@ -199,11 +202,13 @@ public class MSMSLogic {
   public static DataPoint findDPAt(DataPoint[] dps, double precursorMZ, MZTolerance mzTolerance,
       double minHeight) {
     DataPoint best = null;
-    for (DataPoint dp : dps)
+    for (DataPoint dp : dps) {
       if (dp.getIntensity() >= minHeight
           && (best == null || dp.getIntensity() > best.getIntensity())
-          && mzTolerance.checkWithinTolerance(dp.getMZ(), precursorMZ))
+          && mzTolerance.checkWithinTolerance(dp.getMZ(), precursorMZ)) {
         best = dp;
+      }
+    }
     return best;
   }
 

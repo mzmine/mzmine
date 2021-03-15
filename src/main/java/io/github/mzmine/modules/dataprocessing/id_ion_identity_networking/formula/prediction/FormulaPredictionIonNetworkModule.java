@@ -61,11 +61,11 @@ public class FormulaPredictionIonNetworkModule implements MZmineProcessingModule
   public @Nonnull
   ExitCode runModule(@Nonnull MZmineProject project,
                      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    FeatureList featureLists[] =
+    ModularFeatureList featureLists[] =
         parameters.getParameter(FormulaPredictionIonNetworkParameters.PEAK_LISTS).getValue()
             .getMatchingFeatureLists();
 
-    for (FeatureList featureList : featureLists) {
+    for (ModularFeatureList featureList : featureLists) {
       Task newTask = new FormulaPredictionIonNetworkTask(featureList, parameters);
       tasks.add(newTask);
     }

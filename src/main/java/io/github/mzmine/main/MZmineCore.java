@@ -66,7 +66,7 @@ import javax.annotation.Nullable;
  */
 public final class MZmineCore {
 
-  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+  private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private static TaskControllerImpl taskController;
   private static MZmineConfiguration configuration;
@@ -75,14 +75,14 @@ public final class MZmineCore {
   private static final List<MemoryMapStorage> storageList = Collections
       .synchronizedList(new ArrayList<>());
 
-  private static Map<Class<?>, MZmineModule> initializedModules =
-      new Hashtable<Class<?>, MZmineModule>();
+  private static final Map<Class<?>, MZmineModule> initializedModules =
+      new Hashtable<>();
   private static boolean headLessMode = false;
 
   /**
    * Main method
    */
-  public static void main(final String args[]) {
+  public static void main(final String[] args) {
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
     // be . or , depending on the locale)
@@ -201,7 +201,6 @@ public final class MZmineCore {
     return desktop;
   }
 
-  @Nonnull
   public static void setDesktop(Desktop desktop) {
     assert desktop != null;
     MZmineCore.desktop = desktop;

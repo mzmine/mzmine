@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2015 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,8 +21,10 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addio
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
@@ -30,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class AddIonNetworkingParameters extends SimpleParameterSet {
+
   // different depth of settings
   public enum Setup {
     FULL, SUB, SIMPLE;
@@ -77,22 +80,18 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
   private static Parameter[] createParam(Setup setup) {
     switch (setup) {
       case FULL:
-        return new Parameter[] {PEAK_LISTS, MZ_TOLERANCE, MIN_HEIGHT, ANNOTATION_REFINEMENTS,
+        return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, MIN_HEIGHT, ANNOTATION_REFINEMENTS,
             LIBRARY};
       case SUB:
-        return new Parameter[] {MZ_TOLERANCE, ANNOTATION_REFINEMENTS};
+        return new Parameter[]{MZ_TOLERANCE, ANNOTATION_REFINEMENTS};
       case SIMPLE:
-        return new Parameter[] {LIBRARY};
+        return new Parameter[]{LIBRARY};
     }
     return new Parameter[0];
   }
 
   /**
    * Create full set of parameters
-   * 
-   * @param param
-   * @param rtTol
-   * @return
    */
   public static AddIonNetworkingParameters createFullParamSet(AddIonNetworkingParameters param,
       double minHeight) {
@@ -101,20 +100,16 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
 
   /**
    * Create full set of parameters
-   * 
-   * @param param
-   * @param rtTol
-   * @param mzTol
-   * @return
    */
   public static AddIonNetworkingParameters createFullParamSet(AddIonNetworkingParameters param,
-                                                              MZTolerance mzTol, double minHeight) {
+      MZTolerance mzTol, double minHeight) {
     AddIonNetworkingParameters full = new AddIonNetworkingParameters();
     for (Parameter p : param.getParameters()) {
       full.getParameter(p).setValue(p.getValue());
     }
-    if (mzTol != null)
+    if (mzTol != null) {
       full.getParameter(AddIonNetworkingParameters.MZ_TOLERANCE).setValue(mzTol);
+    }
 
     full.getParameter(AddIonNetworkingParameters.MIN_HEIGHT).setValue(minHeight);
     return full;
@@ -122,17 +117,11 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
 
   /**
    * The setup mode
-   * 
+   *
    * @return
    */
   public Setup getSetup() {
     return setup;
   }
 
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
 }

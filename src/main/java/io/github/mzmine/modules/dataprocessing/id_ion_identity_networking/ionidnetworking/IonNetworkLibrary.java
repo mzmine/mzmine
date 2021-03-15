@@ -1,16 +1,22 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking;
 
+
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.iontype.*;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 public class IonNetworkLibrary {
   private static final Logger LOG = Logger.getLogger(IonNetworkLibrary.class.getName());
@@ -64,7 +70,6 @@ public class IonNetworkLibrary {
   /**
    * For simple setup
    * 
-   * @param parameterSet
    */
   public IonNetworkLibrary(MZTolerance mzTolerance, int maxCharge, boolean isPositive,
       int maxMolecules, IonModification[] selectedAdducts, IonModification[] selectedMods) {
@@ -108,8 +113,6 @@ public class IonNetworkLibrary {
   /**
    * Does find all possible adduct combinations
    * 
-   * @param mainRow main peak.
-   * @param possibleAdduct candidate adduct peak.
    */
   public @Nonnull
   List<IonIdentity[]> findAdducts(final FeatureList featureList, final FeatureListRow row1,
@@ -121,7 +124,6 @@ public class IonNetworkLibrary {
   /**
    * Does find all possible adducts
    * 
-   * @param peakList
    * @param row1
    * @param row2
    * @param z1 -1 or 0 if not set (charge state always positive)
@@ -165,9 +167,6 @@ public class IonNetworkLibrary {
               // only if not already present
               list.add(IonIdentity.addAdductIdentityToRow(row1, adduct, row2, adduct2));
             }
-            // update
-            MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row1, false);
-            MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row2, false);
           }
         }
       }
@@ -203,8 +202,6 @@ public class IonNetworkLibrary {
             IonIdentity a = new IonIdentity(adduct);
             net.put(row, a);
             row.addIonIdentity(a, false);
-            // update
-            MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
             return a;
           }
         }
@@ -284,7 +281,6 @@ public class IonNetworkLibrary {
    * Check if candidate peak is a given type of adduct of given main peak. is not checking retention
    * time (has to be checked before)
    * 
-   * @param peakList
    * @param row1
    * @param row2
    * @param adduct

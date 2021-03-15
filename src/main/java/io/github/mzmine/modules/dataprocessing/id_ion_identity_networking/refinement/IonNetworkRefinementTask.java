@@ -18,23 +18,26 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement;
 
+
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javafx.collections.ObservableList;
 import javax.swing.SwingUtilities;
-import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.datamodel.FeatureList;
-import net.sf.mzmine.datamodel.FeatureListRow;
-import net.sf.mzmine.datamodel.identities.iontype.IonIdentity;
-import net.sf.mzmine.datamodel.identities.iontype.IonModification;
-import net.sf.mzmine.datamodel.identities.iontype.IonNetwork;
-import net.sf.mzmine.datamodel.identities.iontype.IonNetworkLogic;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.taskcontrol.AbstractTask;
-import net.sf.mzmine.taskcontrol.TaskStatus;
 
 public class IonNetworkRefinementTask extends AbstractTask {
   // Logger.
@@ -42,7 +45,7 @@ public class IonNetworkRefinementTask extends AbstractTask {
 
   private int finishedRows;
   private int totalRows;
-  private final FeatureList featureList;
+  private final ModularFeatureList featureList;
 
   private final ParameterSet parameters;
   private final MZmineProject project;
@@ -61,10 +64,11 @@ public class IonNetworkRefinementTask extends AbstractTask {
    * Create the task.
    *
    * @param parameterSet the parameters.
-   * @param list peak list.
    */
   public IonNetworkRefinementTask(final MZmineProject project, final ParameterSet parameterSet,
-      final FeatureList featureLists) {
+      final ModularFeatureList featureLists) {
+    super(featureLists.getMemoryMapStorage());
+
     this.project = project;
     this.featureList = featureLists;
     parameters = parameterSet;
@@ -117,14 +121,12 @@ public class IonNetworkRefinementTask extends AbstractTask {
    * Delete all without monomer or 1 monomer and >=3 multimers. Delete all smaller networks if one
    * network is the best for all
    * 
-   * @param pkl
    * @param trueThreshold
    * @param minNetworkSize
    * @param filterMinSize
    * @param deleteSmallNoMajor
-   * @param deleteXmersOnMSMS
    */
-  public static void refine(FeatureList pkl, boolean deleteSmallerNets, boolean deleteWithoutMonomer,
+  public static void refine(ModularFeatureList pkl, boolean deleteSmallerNets, boolean deleteWithoutMonomer,
       int trueThreshold, boolean deleteSmallNoMajor, boolean filterMinSize, int minNetworkSize,
       boolean keepRowOnlyWithID) {
     // sort
@@ -153,10 +155,10 @@ public class IonNetworkRefinementTask extends AbstractTask {
 
   /**
    * Delete all ion identities of as deleted marked networks
-   * 
+   *
    * @param rows
    */
-  private static void deleteAllIonsOfDeletedNetworks(FeatureListRow[] rows) {
+  private static void deleteAllIonsOfDeletedNetworks(List<FeatureListRow> rows) {
     for (FeatureListRow row : rows) {
       if (row.hasIonIdentity()) {
         for (int i = 0; i < row.getIonIdentities().size(); i++) {
@@ -277,24 +279,20 @@ public class IonNetworkRefinementTask extends AbstractTask {
 
     // remove all rows without ion identity?
     if (deleteRowsWithoutIon)
-      SwingUtilities.invokeLater(() -> {
+      MZmineCore.runLater(() -> {
         for (int i = 0; i < pkl.getNumberOfRows();)
           if (pkl.getRow(i).hasIonIdentity())
             i++;
           else
             pkl.removeRow(i);
       });
-
-    // Repaint the window to reflect the change in the peak list
-    if (MZmineCore.getDesktop().getMainWindow() != null)
-      MZmineCore.getDesktop().getMainWindow().repaint();
   }
 
   private static boolean hasMajorIonID(IonNetwork net) {
     return net.values().stream().map(IonIdentity::getIonType).anyMatch(ion -> {
       return ion.getAdduct().equals(IonModification.H) //
-          || (ion.getAdduct().equals(IonModification.NA) && ion.getModCount() == 0)
-          || ion.getAdduct().equals(IonModification.NH4);
+             || (ion.getAdduct().equals(IonModification.NA) && ion.getModCount() == 0)
+             || ion.getAdduct().equals(IonModification.NH4);
     });
   }
 

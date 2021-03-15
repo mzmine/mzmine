@@ -27,21 +27,17 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionid
 
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceComponent;
+import java.util.List;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * An action to add custom adducts.
- *
  */
 public class CombineESIAdductsAction implements EventHandler<ActionEvent> {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -61,10 +57,11 @@ public class CombineESIAdductsAction implements EventHandler<ActionEvent> {
       // Show dialog.
       CombineIonModificationDialog dialog =
           new CombineIonModificationDialog(parent.getChoices());
-      dialog.setVisible(true);
+      dialog.show();
       List<IonModification> add = dialog.getNewTypes();
-      if (!add.isEmpty())
+      if (!add.isEmpty()) {
         addAll(add);
+      }
     }
   }
 

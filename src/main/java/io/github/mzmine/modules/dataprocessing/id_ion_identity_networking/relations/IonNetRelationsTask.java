@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2015 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,22 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations;
 
+
+import com.google.common.util.concurrent.AtomicDouble;
+import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkHeteroCondensedRelation;
+import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.google.common.util.concurrent.AtomicDouble;
-import io.github.msdk.MSDKRuntimeException;
-import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.datamodel.FeatureList;
-import net.sf.mzmine.datamodel.identities.iontype.IonModification;
-import net.sf.mzmine.datamodel.identities.iontype.IonNetwork;
-import net.sf.mzmine.datamodel.identities.iontype.IonNetworkLogic;
-import net.sf.mzmine.datamodel.identities.iontype.networks.IonNetworkHeteroCondensedRelation;
-import net.sf.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.taskcontrol.AbstractTask;
-import net.sf.mzmine.taskcontrol.TaskStatus;
 
 public class IonNetRelationsTask extends AbstractTask {
 
@@ -41,7 +43,7 @@ public class IonNetRelationsTask extends AbstractTask {
   private static final Logger LOG = Logger.getLogger(IonNetRelationsTask.class.getName());
 
   private AtomicDouble stageProgress = new AtomicDouble(0);
-  private final FeatureList featureList;
+  private final ModularFeatureList featureList;
 
   private final ParameterSet parameters;
   private final MZmineProject project;
@@ -55,10 +57,11 @@ public class IonNetRelationsTask extends AbstractTask {
    * Create the task.
    *
    * @param parameterSet the parameters.
-   * @param list peak list.
    */
   public IonNetRelationsTask(final MZmineProject project, final ParameterSet parameterSet,
-      final FeatureList featureLists) {
+      final ModularFeatureList featureLists) {
+    super(featureLists.getMemoryMapStorage());
+
     this.project = project;
     this.featureList = featureLists;
     parameters = parameterSet;
@@ -79,8 +82,9 @@ public class IonNetRelationsTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Identification of relationships between ion identity networks in " + featureList.getName()
-        + " ";
+    return "Identification of relationships between ion identity networks in " + featureList
+        .getName()
+           + " ";
   }
 
   @Override
@@ -118,7 +122,7 @@ public class IonNetRelationsTask extends AbstractTask {
       if (searchHeteroCondensed) {
         int counter2 = checkForHeteroCondensed(mzTol, mods, nets);
         LOG.info("Found " + counter2
-            + " condensed molecules (hetero - two different neutral molecules)");
+                 + " condensed molecules (hetero - two different neutral molecules)");
       }
 
       // show all as identity
@@ -144,8 +148,9 @@ public class IonNetRelationsTask extends AbstractTask {
     int counter = 0;
     for (int i = 0; i < nets.length - 1; i++) {
       for (int j = i + 1; j < nets.length; j++) {
-        if (checkForModifications(mzTol, mods, nets[i], nets[j]))
+        if (checkForModifications(mzTol, mods, nets[i], nets[j])) {
           counter++;
+        }
       }
     }
     return counter;
@@ -167,8 +172,9 @@ public class IonNetRelationsTask extends AbstractTask {
       a.addRelation(b, rel);
       b.addRelation(a, rel);
       return true;
-    } else
+    } else {
       return false;
+    }
   }
 
   public static IonModification checkForModifications(MZTolerance mzTol, IonModification[] mods,
@@ -181,9 +187,8 @@ public class IonNetRelationsTask extends AbstractTask {
     }
     double diff = Math.abs(b - a);
 
-    for (int i = 0; i < mods.length; i++) {
+    for (IonModification mod : mods) {
       // e.g. -H2O ~ -18
-      IonModification mod = mods[i];
       if (mzTol.checkWithinTolerance(diff, mod.getAbsMass())) {
         return mod;
       }
@@ -196,8 +201,9 @@ public class IonNetRelationsTask extends AbstractTask {
     int counter = 0;
     for (int i = 0; i < nets.length - 1; i++) {
       for (int j = i + 1; j < nets.length; j++) {
-        if (checkForCondensedModifications(mzTol, mods, nets[i], nets[j]))
+        if (checkForCondensedModifications(mzTol, mods, nets[i], nets[j])) {
           counter++;
+        }
       }
     }
     return counter;
@@ -206,7 +212,7 @@ public class IonNetRelationsTask extends AbstractTask {
   /**
    * Search for condensed molecules: e.g., two sugars 2 C6H12O6 --> C12H22O11 + H2O (modifications
    * possible, e.g., when molecules where different (deoxycholic acid + cholic acid: mod= -O)
-   * 
+   *
    * @param mzTol
    * @param mods
    * @param a
@@ -247,14 +253,13 @@ public class IonNetRelationsTask extends AbstractTask {
     double diff = Math.abs(massB - (massA * 2 - water.getAbsMass()));
     // check -H2O -> diff = 0
     if (mzTol.checkWithinTolerance(diff, 0d)) {
-      return new IonModification[] {water};
+      return new IonModification[]{water};
     }
 
-    for (int i = 0; i < mods.length; i++) {
+    for (IonModification mod : mods) {
       // e.g. -H2O ~ -18
-      IonModification mod = mods[i];
       if (mzTol.checkWithinTolerance(diff, mod.getAbsMass())) {
-        return new IonModification[] {water, mod};
+        return new IonModification[]{water, mod};
       }
     }
     return null;
@@ -262,7 +267,7 @@ public class IonNetRelationsTask extends AbstractTask {
 
   /**
    * Checks for any modification of the type X+Y --> XY -H2O (condensation)
-   * 
+   *
    * @param mzTol
    * @param mods
    * @param nets
@@ -274,8 +279,9 @@ public class IonNetRelationsTask extends AbstractTask {
     for (int i = 0; i < nets.length - 2; i++) {
       for (int j = i + 1; j < nets.length - 1; j++) {
         for (int k = j + 1; k < nets.length; k++) {
-          if (checkForHeteroCondensed(mzTol, mods, nets[i], nets[j], nets[k]))
+          if (checkForHeteroCondensed(mzTol, mods, nets[i], nets[j], nets[k])) {
             counter++;
+          }
         }
       }
     }
@@ -284,7 +290,7 @@ public class IonNetRelationsTask extends AbstractTask {
 
   /**
    * Checks for any modification of the type X+Y --> XY -H2O (condensation)
-   * 
+   *
    * @param mzTol
    * @param mods
    * @param a
@@ -344,7 +350,7 @@ public class IonNetRelationsTask extends AbstractTask {
     double diff = Math.abs(massC - (massA + massB - water.getAbsMass()));
     // check -H2O -> diff = 0
     if (mzTol.checkWithinTolerance(diff, 0d)) {
-      return new IonModification[] {water};
+      return new IonModification[]{water};
     }
 
     return null;

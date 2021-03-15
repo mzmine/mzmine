@@ -19,11 +19,15 @@
 package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.List;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -131,7 +135,7 @@ public interface FeatureListRow {
   /**
    * Add a new identity candidate (result of identification method)
    *
-   * @param identity New feature identity
+   * @param identity  New feature identity
    * @param preffered boolean value to define this identity as preferred identity
    */
   public void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
@@ -166,7 +170,7 @@ public interface FeatureListRow {
 
   /**
    * Adds a new FeatureInformation object.
-   *
+   * <p>
    * FeatureInformation is used to keep extra information about features in the form of a map
    * <propertyName, propertyValue>
    *
@@ -228,6 +232,7 @@ public interface FeatureListRow {
 
   /**
    * Correlated features grouped
+   *
    * @param group
    */
   public void setGroup(RowGroup group);
@@ -238,4 +243,119 @@ public interface FeatureListRow {
    * @return
    */
   public RowGroup getGroup();
+
+  /**
+   * The list of ion identities
+   *
+   * @return null or the current list. First element is the "preferred" element
+   */
+  @Nullable
+  List<IonIdentity> getIonIdentities();
+
+  /**
+   * Set the list of ion identities with the first element being the preferred
+   *
+   * @param ions list of ion identities
+   */
+  void setIonIdentities(@Nullable List<IonIdentity> ions);
+
+  /**
+   * Adds the ion identity as the preferred (first element) of the list
+   *
+   * @param ion the preferred ion identity
+   */
+  default void addIonIdentity(IonIdentity ion) {
+    this.addIonIdentity(ion, true);
+  }
+
+  /**
+   * Adds the ion as first or last element of the list.
+   *
+   * @param ion        the ion identity
+   * @param markAsBest true: add as first element; false add as last element
+   */
+  default void addIonIdentity(IonIdentity ion, boolean markAsBest) {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+
+    if (ionIdentities == null) {
+      ionIdentities = FXCollections.observableArrayList();
+      setIonIdentities(ionIdentities);
+    }
+
+    // remove first
+    if (!ionIdentities.isEmpty()) {
+      ionIdentities.remove(ion);
+    }
+
+    if (markAsBest) {
+      ionIdentities.add(0, ion);
+    } else {
+      ionIdentities.add(ion);
+    }
+  }
+
+  /**
+   * Clear all ion identities
+   */
+  default void clearIonIdentites() {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+    if (ionIdentities != null) {
+      ionIdentities.clear();
+    }
+  }
+
+  /**
+   * The first element of {@link #getIonIdentities()}
+   *
+   * @return the preferred (first) element of all ion identities
+   */
+  @Nullable
+  default IonIdentity getBestIonIdentity() {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+    return ionIdentities != null && !ionIdentities.isEmpty() ? ionIdentities.get(0) : null;
+  }
+
+  /**
+   * Has at least one ion identity
+   */
+  default boolean hasIonIdentity() {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+    return ionIdentities != null && !ionIdentities.isEmpty();
+  }
+
+  /**
+   * Set the best ion identity (the first element of the list)
+   *
+   * @param ion the preferred ion
+   */
+  default void setBestIonIdentity(@Nonnull IonIdentity ion) {
+    addIonIdentity(ion, true);
+  }
+
+  /**
+   * Remove ion identity if available
+   *
+   * @param ion the ion to remove
+   */
+  default boolean removeIonIdentity(IonIdentity ion) {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+    if (ionIdentities != null) {
+      return ionIdentities.remove(ion);
+    }
+    return false;
+  }
+
+  /**
+   * Returns the group ID
+   *
+   * @return return the group ID or -1 if not part of a group {@link #getGroup()}
+   */
+  default int getGroupID() {
+    RowGroup g = getGroup();
+    return g == null ? -1 : g.groupID;
+  }
+
+  void setFormulas(List<ResultFormula> formulas);
+
+  List<ResultFormula> getFormulas();
 }

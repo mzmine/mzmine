@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2015 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,24 +22,23 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.check
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.*;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**
  * Refinement to MS annotation
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class IonNetworkMSMSCheckParameters extends SimpleParameterSet {
 
   // NOT INCLUDED in sub
   // General parameters
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
-
-  public static final MassListParameter MASS_LIST =
-      new MassListParameter("Mass lists (MS2)", "MS2 mass lists");
 
   // INCLUDED in sub
   // MZ-tolerance: deisotoping, adducts
@@ -68,8 +67,8 @@ public class IonNetworkMSMSCheckParameters extends SimpleParameterSet {
 
   public IonNetworkMSMSCheckParameters(boolean isSub) {
     super(isSub ? // no peak list and rt tolerance
-        new Parameter[] {MASS_LIST, MZ_TOLERANCE, MIN_HEIGHT, CHECK_MULTIMERS, CHECK_NEUTRALLOSSES}
-        : new Parameter[] {PEAK_LISTS, MASS_LIST, MZ_TOLERANCE, MIN_HEIGHT, CHECK_MULTIMERS,
+        new Parameter[]{MZ_TOLERANCE, MIN_HEIGHT, CHECK_MULTIMERS, CHECK_NEUTRALLOSSES}
+        : new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, MIN_HEIGHT, CHECK_MULTIMERS,
             CHECK_NEUTRALLOSSES});
   }
 }

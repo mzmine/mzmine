@@ -31,7 +31,11 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.FormulaAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.FormulaAnnotationType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
+import io.github.mzmine.datamodel.features.types.IonAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.IonAnnotationType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
@@ -45,7 +49,9 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -76,10 +82,10 @@ import javax.annotation.Nullable;
  * Map of all feature related data.
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *         <p>
- *         TODO: I think the RawFileType should also be in the map and not just accessible via the
- *         key set of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list
- *         creation in the chromatogram builder ~SteffenHeu
+ * <p>
+ * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
+ * of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list creation in the
+ * chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
@@ -279,7 +285,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-          + "row. Create feature with the correct feature list as an argument.");
+                                         + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -399,7 +405,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public ModularFeature getFeature(RawDataFile raw) {
     ModularFeature f = features.get(raw);
-    return f!=null && f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)? null : f;
+    return f != null && f.getFeatureStatus().equals(FeatureStatus.UNKNOWN) ? null : f;
   }
 
   @Override
@@ -430,6 +436,35 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public RowGroup getGroup() {
     return get(FeatureGroupType.class).getValue();
+  }
+
+  /**
+   * The list of ion identities
+   *
+   * @return null or the current list. First element is the "preferred" element
+   */
+  @Override
+  @Nullable
+  public List<IonIdentity> getIonIdentities() {
+    if (get(IonAnnotationType.class) == null) {
+      return null;
+    } else {
+      return get(IonAnnotationType.class).get(IonAnnotationSummaryType.class).getValue();
+    }
+  }
+
+  /**
+   * Set the list of ion identities with the first element being the preferred
+   *
+   * @param ions list of ion identities
+   */
+  @Override
+  public void setIonIdentities(@Nullable List<IonIdentity> ions) {
+    if (get(IonAnnotationType.class) == null) {
+      // add row type if not available
+      flist.addRowType(new IonAnnotationType());
+    }
+    get(IonAnnotationType.class).set(IonAnnotationSummaryType.class, ions);
   }
 
   @Override
@@ -621,6 +656,19 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
 
     return null;
+  }
+
+
+  public void setFormulas(List<ResultFormula> formulas) {
+    if(get(FormulaAnnotationType.class)==null) {
+      flist.addRowType(new FormulaAnnotationType());
+    }
+    get(FormulaAnnotationType.class).set(FormulaAnnotationSummaryType.class, formulas);
+  }
+
+  public List<ResultFormula> getFormulas() {
+    ModularTypeProperty formulaType = get(FormulaAnnotationType.class);
+    return formulaType==null? null : formulaType.get(FormulaAnnotationSummaryType.class).getValue();
   }
 
 }

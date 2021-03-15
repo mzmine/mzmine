@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2018 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -24,8 +24,8 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -47,6 +47,15 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -54,22 +63,13 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private Range<Double> massRange;
   private MolecularFormulaRange elementCounts;
   private MolecularFormulaGenerator generator;
-  private double searchedMass;
-  private FeatureList featureList;
+  private ModularFeatureList featureList;
   private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
   private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters;
   private MZTolerance mzTolerance;
@@ -81,7 +81,6 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
   private double ppmOffset;
   private double isotopeNoiseLevel;
   private double minScore;
-  private String massListName;
   private double minMSMSScore;
   private boolean sortResults;
   private FormulaSortTask sorter;
@@ -90,18 +89,10 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
   private boolean useTopNSignals;
 
   /**
-   *
    * @param parameters
-   * @param peakList
-   * @param peakListRow
-   * @param peak
    */
-  FormulaPredictionIonNetworkTask(FeatureList featureList, ParameterSet parameters) {
-
-    /*
-     * searchedMass = parameters.getParameter(
-     * FormulaPredictionPeakListParameters.neutralMass).getValue();
-     */
+  public FormulaPredictionIonNetworkTask(ModularFeatureList featureList, ParameterSet parameters) {
+    super(featureList.getMemoryMapStorage());
     this.featureList = featureList;
     mzTolerance =
         parameters.getParameter(FormulaPredictionIonNetworkParameters.mzTolerance).getValue();
@@ -109,7 +100,6 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
         parameters.getParameter(FormulaPredictionIonNetworkParameters.elements).getValue();
 
     ppmOffset = parameters.getParameter(FormulaPredictionIonNetworkParameters.ppmOffset).getValue();
-
 
     checkRDBE =
         parameters.getParameter(FormulaPredictionIonNetworkParameters.rdbeRestrictions).getValue();
@@ -126,7 +116,6 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
           parameters.getParameter(FormulaPredictionIonNetworkParameters.elementalRatios)
               .getEmbeddedParameters();
     }
-
 
     checkIsotopes =
         parameters.getParameter(FormulaPredictionIonNetworkParameters.isotopeFilter).getValue();
@@ -145,12 +134,11 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     if (checkMSMS) {
       msmsParameters = parameters.getParameter(FormulaPredictionIonNetworkParameters.msmsFilter)
           .getEmbeddedParameters();
-      massListName = msmsParameters.getParameter(MSMSScoreParameters.massList).getValue();
       minMSMSScore = msmsParameters.getParameter(MSMSScoreParameters.msmsMinScore).getValue();
       // limit to top n signals
-      useTopNSignals = msmsParameters.getParameter(MSMSScoreParameters.maxSignals).getValue();
+      useTopNSignals = msmsParameters.getParameter(MSMSScoreParameters.useTopNSignals).getValue();
       topNSignals = !useTopNSignals ? -1
-          : msmsParameters.getParameter(MSMSScoreParameters.maxSignals).getEmbeddedParameter()
+          : msmsParameters.getParameter(MSMSScoreParameters.useTopNSignals).getEmbeddedParameter()
               .getValue();
     }
 
@@ -166,19 +154,14 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     message = "Formula Prediction (MS annotation networks)";
   }
 
-  /**
-   * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0.0;
+    }
     return finishedNets.get() / (double) totalRows;
   }
 
-  /**
-   * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return message;
@@ -216,15 +199,16 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  public List<MolecularFormulaIdentity> predictFormulasForNetwork(IonNetwork net) {
+  public List<ResultFormula> predictFormulasForNetwork(IonNetwork net) {
     for (Entry<FeatureListRow, IonIdentity> e : net.entrySet()) {
-      FeatureListRow r = e.getKey();
+      FeatureListRow row = e.getKey();
       IonIdentity ion = e.getValue();
       if (!ion.getIonType().isUndefinedAdduct()) {
-        List<MolecularFormulaIdentity> list = predictFormulas(r, ion.getIonType());
+        List<ResultFormula> list = predictFormulas(row, ion.getIonType());
         if (!list.isEmpty()) {
-          if (sortResults && sorter != null)
-            sorter.sort(list, ion.getIonType().getMass(r.getAverageMZ()));
+          if (sortResults && sorter != null) {
+            sorter.sort(list);
+          }
           ion.setMolFormulas(list);
         }
       }
@@ -237,9 +221,9 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     return null;
   }
 
-  private List<MolecularFormulaIdentity> predictFormulas(FeatureListRow row, IonType ion) {
-    List<MolecularFormulaIdentity> resultingFormulas = new ArrayList<>();
-    this.searchedMass = ion.getMass(row.getAverageMZ());
+  private List<ResultFormula> predictFormulas(FeatureListRow row, IonType ion) {
+    List<ResultFormula> resultingFormulas = new ArrayList<>();
+    double searchedMass = ion.getMass(row.getAverageMZ());
     // correct by ppm offset
     searchedMass += searchedMass * ppmOffset / 1E6;
 
@@ -256,7 +240,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
         IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula);
 
         // Mass is ok, so test other constraints
-        checkConstraints(resultingFormulas, cdkFormula, cdkFormulaIon, row, ion);
+        checkConstraints(resultingFormulas, cdkFormula, cdkFormulaIon, row, ion, searchedMass);
       } catch (CloneNotSupportedException e) {
         logger.log(Level.SEVERE, "Cannot copy cdk formula", e);
         throw new MSDKRuntimeException(e);
@@ -266,9 +250,9 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     return resultingFormulas;
   }
 
-  private void checkConstraints(List<MolecularFormulaIdentity> resultingFormulas,
+  private void checkConstraints(List<ResultFormula> resultingFormulas,
       IMolecularFormula cdkFormulaNeutralM, IMolecularFormula cdkFormulaIon,
-      FeatureListRow featureListRow, IonType ionType) {
+      FeatureListRow featureListRow, IonType ionType, double searchedMass) {
     int charge = ionType.getCharge();
 
     // Check elemental ratios
@@ -293,7 +277,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     IsotopePattern predictedIsotopePattern = null;
     Double isotopeScore = null;
     if ((checkIsotopes) && (detectedPattern != null)) {
-      final double detectedPatternHeight = detectedPattern.getHighestDataPoint().getIntensity();
+      final double detectedPatternHeight = detectedPattern.getBasePeakIntensity();
       final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
       predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(cdkFormulaIon,
@@ -309,23 +293,22 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
     // MS/MS evaluation is slowest, so let's do it last
     Double msmsScore = null;
-    Map<DataPoint, String> msmsAnnotations = null;
+    Map<Double, String> msmsAnnotations = null;
 
     // there was a problem in the RoundRobinMoleculaFormulaGenerator (index out of range
     try {
       if (checkMSMS && featureListRow.getBestFragmentation() != null) {
         Scan msmsScan = featureListRow.getBestFragmentation();
-        MassList ms2MassList = msmsScan.getMassList(massListName);
+        MassList ms2MassList = msmsScan.getMassList();
         if (ms2MassList == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("The MS/MS scan #" + msmsScan.getScanNumber() + " in file "
-              + msmsScan.getDataFile().getName() + " does not have a mass list called '"
-              + massListName + "'");
+                          + msmsScan.getDataFile().getName() + " does not have a masslist");
           return;
         }
 
         MSMSScore score =
-            MSMSScoreCalculator.evaluateMSMS(cdkFormulaIon, msmsScan, msmsParameters, topNSignals);
+            MSMSScoreCalculator.evaluateMSMS(cdkFormulaIon, msmsScan, msmsParameters);
 
         if (score != null) {
           msmsScore = score.getScore();
@@ -347,7 +330,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
     // Create a new formula entry
     final ResultFormula resultEntry = new ResultFormula(cdkFormulaNeutralM, predictedIsotopePattern,
-        rdbeValue, isotopeScore, msmsScore, msmsAnnotations);
+        isotopeScore, msmsScore, msmsAnnotations, searchedMass);
 
     // Add the new formula entry
     resultingFormulas.add(resultEntry);

@@ -17,29 +17,29 @@
 
 package io.github.mzmine.datamodel.identities;
 
-import java.util.Map;
-import javax.annotation.Nonnull;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.util.FormulaUtils;
+import javax.annotation.Nonnull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class MolecularFormulaIdentity {
 
-  private final @Nonnull IMolecularFormula cdkFormula;
-  private Double rdbe;
+  @Nonnull
+  protected final IMolecularFormula cdkFormula;
+  protected Double rdbe;
+  protected double searchedNeutralMass;
 
-  public MolecularFormulaIdentity(IMolecularFormula cdkFormula) {
+
+  public MolecularFormulaIdentity(IMolecularFormula cdkFormula, double searchedNeutralMass) {
     this.cdkFormula = cdkFormula;
     rdbe = RDBERestrictionChecker.calculateRDBE(cdkFormula);
+    this.searchedNeutralMass = searchedNeutralMass;
   }
 
-  public MolecularFormulaIdentity(String formula) {
-    this(FormulaUtils.createMajorIsotopeMolFormula(formula));
+  public MolecularFormulaIdentity(String formula, double searchedNeutralMass) {
+    this(FormulaUtils.createMajorIsotopeMolFormula(formula), searchedNeutralMass);
   }
 
   public String getFormulaAsString() {
@@ -69,21 +69,41 @@ public class MolecularFormulaIdentity {
   }
 
   /**
-   * Merged score
-   * 
-   * @param neutralMass
-   * @param ppmMax
-   * @return
+   * The initially searched neutral mass
+   *
+   * @return the neutral mass
    */
-  public double getScore(double neutralMass, double ppmMax) {
-    return getScore(neutralMass, ppmMax, 1, 1);
+  public double getSearchedNeutralMass() {
+    return searchedNeutralMass;
   }
 
   /**
-   * Merged score with weights
-   * 
-   * @param neutralMass
-   * @param ppmMax weight for ppm distance
+   * Merged score
+   *
+   * @param ppmMax
+   * @return
+   */
+  public double getScore(double ppmMax) {
+    return getScore(ppmMax, 1, 1);
+  }
+
+  /**
+   * Merged score with weights. Uses the initial set neutral mass
+   *
+   * @param ppmMax        weight for ppm distance
+   * @param fIsotopeScore
+   * @param fMSMSscore
+   * @return
+   */
+  public double getScore(double ppmMax, double fIsotopeScore, double fMSMSscore) {
+    return this.getScore(searchedNeutralMass, ppmMax, fIsotopeScore, fMSMSscore);
+  }
+
+  /**
+   * Merged score with weights. {@link ResultFormula}
+   *
+   * @param neutralMass   overrides the initally set (searched) neutral mass
+   * @param ppmMax        weight for ppm distance
    * @param fIsotopeScore
    * @param fMSMSscore
    * @return
@@ -95,36 +115,20 @@ public class MolecularFormulaIdentity {
 
   /**
    * Score for ppm distance
-   * 
-   * @param neutralMass
+   *
    * @param ppmMax
    * @return
    */
   public double getPPMScore(double neutralMass, double ppmMax) {
-    if (ppmMax <= 0)
+    if (ppmMax <= 0) {
       ppmMax = 50;
+    }
     return (ppmMax - Math.abs(getPpmDiff(neutralMass))) / ppmMax;
   }
 
   /**
-   * 
-   * @return The isotope score or null
-   */
-  public Double getIsotopeScore() {
-    return null;
-  }
-
-  /**
-   * 
-   * @return the msms score or null
-   */
-  public Double getMSMSScore() {
-    return null;
-  }
-
-  /**
    * Only checks molecular formula as with toString method
-   * 
+   *
    * @param f
    * @return
    */
@@ -136,21 +140,4 @@ public class MolecularFormulaIdentity {
     return rdbe;
   }
 
-  /**
-   * MSMS annotations of MS/MS scans (sub molecular formulas)
-   * 
-   * @return
-   */
-  public Map<DataPoint, String> getMSMSannotation() {
-    return null;
-  }
-
-  /**
-   * The predicted isotopes pattern
-   * 
-   * @return
-   */
-  public IsotopePattern getPredictedIsotopes() {
-    return null;
-  }
 }
