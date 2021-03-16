@@ -75,10 +75,6 @@ public class CenterMeasureParameter
 
   /**
    * 
-   * @param choices
-   * @param avgTransform
-   * @param selected selected center measure
-   * @param selWeighting selected weighting
    */
   public CenterMeasureParameter(String name, String description, CenterMeasure choices[],
       Weighting[] weighting, CenterMeasure selectedMeasure, Weighting selectedWeighting) {
@@ -92,7 +88,6 @@ public class CenterMeasureParameter
   }
 
   /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {
@@ -112,6 +107,10 @@ public class CenterMeasureParameter
   @Override
   public void setValue(CenterFunction value) {
     this.value = value;
+  }
+
+  public void setValue(CenterMeasure value) {
+    this.value = new CenterFunction(value);
   }
 
   @Override

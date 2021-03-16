@@ -32,17 +32,17 @@ public class SubTaskFinishListener implements Consumer<FeatureList> {
 
   private final MZmineProject project;
   private ParameterSet parameters;
-  private ModularFeatureList peakList;
+  private ModularFeatureList originalFeatureList;
   private int tasks;
   private int finished = 0;
   private boolean removeOriginal;
 
-  public SubTaskFinishListener(MZmineProject project, ParameterSet parameters, ModularFeatureList peakList,
+  public SubTaskFinishListener(MZmineProject project, ParameterSet parameters, ModularFeatureList originalFeatureList,
       boolean removeOriginal, int tasks) {
     super();
     this.project = project;
     this.parameters = parameters;
-    this.peakList = peakList;
+    this.originalFeatureList = originalFeatureList;
     this.tasks = tasks;
     this.removeOriginal = removeOriginal;
   }
@@ -66,7 +66,7 @@ public class SubTaskFinishListener implements Consumer<FeatureList> {
 
       // Remove the original peaklist if requested
       if (removeOriginal)
-        project.removeFeatureList(peakList);
+        project.removeFeatureList(originalFeatureList);
 
       logger.info("Completed: Multithreaded gap-filling successfull");
     }

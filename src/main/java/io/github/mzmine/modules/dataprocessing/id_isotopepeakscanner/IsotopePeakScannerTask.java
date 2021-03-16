@@ -247,7 +247,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
     plh.setUp(peakList);
 
     resultPeakList =
-        new ModularFeatureList(peakList.getName() + suffix, getMemoryMapStorage(),
+        new ModularFeatureList(peakList.getName() + " " + suffix, getMemoryMapStorage(),
             peakList.getRawDataFiles());
     PeakListHandler resultMap = new PeakListHandler();
 

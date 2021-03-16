@@ -151,7 +151,7 @@ public class SmoothingTask extends AbstractTask {
     }
 
     final ModularFeatureList smoothedList = flist
-        .createCopy(flist.getName() + suffix, getMemoryMapStorage());
+        .createCopy(flist.getName() + " " + suffix, getMemoryMapStorage());
     final SGIntensitySmoothing smoother = new SGIntensitySmoothing(ZeroHandlingType.KEEP,
         rtWeights);
     // include zeros
