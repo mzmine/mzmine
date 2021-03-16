@@ -115,9 +115,8 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       for (int i = 0; i < mobilities.length; i++) {
         Entry<Range<Double>, Double> entry = mobilityToIntensity.getEntry(mobilities[i]);
         if (entry == null) {
-          mobilityToIntensity.put(Range
-                  .open(mobilities[i] - smallestDelta / 2, mobilities[i] + smallestDelta / 2),
-              mobilities[i]);
+          mobilityToIntensity.put(Range.open(mobilities[i] - smallestDelta / 2,
+              mobilities[i] + smallestDelta / 2), mobilities[i]);
         }
       }
     }
@@ -346,10 +345,22 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   public SummedIntensityMobilitySeries toSummedMobilogram(@Nullable MemoryMapStorage storage) {
-    // todo: maybe remove all but flanking zeros here?
+    int firstNonZero = -1;
+    int lastNonZero = -1;
+
+    for (int i = 0; i < mobilities.length; i++) {
+      if (firstNonZero == -1 && intensities[i] > 0d) {
+        firstNonZero = Math.max(0, i - 1);
+      }
+      if (intensities[i] > 0d) {
+        lastNonZero = i;
+      }
+    }
+    lastNonZero = Math.min(lastNonZero + 1, mobilities.length - 1);
+
     return new SummedIntensityMobilitySeries(storage,
-        Arrays.copyOf(mobilities, mobilities.length),
-        Arrays.copyOf(intensities, intensities.length));
+        Arrays.copyOfRange(mobilities, firstNonZero, lastNonZero),
+        Arrays.copyOfRange(intensities, firstNonZero, lastNonZero));
   }
 
   @Override
