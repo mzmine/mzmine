@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel.data_access;
 
 import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.TreeRangeMap;
 import com.google.common.primitives.Booleans;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -36,14 +38,16 @@ import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.O
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.RangeUtils;
 import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -69,19 +73,23 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       final double binningWidth) {
     this.dataFile = rawDataFile;
     final Double maxTic = rawDataFile.getDataMaxTotalIonCurrent(1);
+
     assert maxTic != null && !maxTic.isNaN();
+
+    final Map<Range<Double>, Frame> uniqueRanges = IonMobilityUtils
+        .getUniqueMobilityRanges(rawDataFile);
 
     // get the then most intense frames, even if empty scans have been removed, we should at least
     // be able to find the smallest mobility data.
-    final List<Frame> frames = rawDataFile.getFrames(1).stream()
-        .filter(frame -> frame.getTIC() >= maxTic * 0.8).limit(10).collect(
-            Collectors.toList());
-
-    double delta = frames.stream()
+//    final List<Frame> frames = rawDataFile.getFrames(1).stream()
+//        .filter(frame -> frame.getTIC() >= maxTic * 0.8).limit(10).collect(
+//            Collectors.toList());
+    double delta = uniqueRanges.values().stream()
         .mapToDouble(IonMobilityUtils::getSmallestMobilityDelta).min().orElse(-1d);
+
     assert Double.compare(-1, delta) != 0;
-    final double smallestDelta = delta /*- delta * 1E-10*/;
-    final Range<Double> mobilityRange = rawDataFile.getDataMobilityRange();
+
+    final double smallestDelta = delta - delta * 1E-10;
 
     if (smallestDelta > binningWidth) {
       logger.info(() ->
@@ -96,19 +104,44 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
               + binWidth + ". (requested: " + binningWidth + ")");
     }
 
-    final int numEntries = (int) Math.ceil(RangeUtils.rangeLength(mobilityRange) / smallestDelta);
+    final RangeMap<Double, Double> mobilityToIntensity = TreeRangeMap.create();
+    final Map<Range<Double>, Double> mapOfRanges;
+
+    // make a range map that contains all mobility values we could find
+    // we need to know how many different mobility values there are to be able to store all
+    // mobilograms later on.
+    for (final Frame frame : uniqueRanges.values()) {
+      double[] mobilities = DataPointUtils.getDoubleBufferAsArray(frame.getMobilities());
+      for (int i = 0; i < mobilities.length; i++) {
+        Entry<Range<Double>, Double> entry = mobilityToIntensity.getEntry(mobilities[i]);
+        if (entry == null) {
+          mobilityToIntensity.put(Range
+                  .open(mobilities[i] - smallestDelta / 2, mobilities[i] + smallestDelta / 2),
+              mobilities[i]);
+        }
+      }
+    }
+
+    mapOfRanges = mobilityToIntensity.asMapOfRanges();
+    final int numEntries = mapOfRanges.size();
+
     // out temp values need to be able to fit the data in any case.
     tempMobilities = new double[numEntries];
     tempIntensities = new double[numEntries];
 
-    final int numBinnedEntries = (int) Math.ceil(RangeUtils.rangeLength(mobilityRange) / binWidth);
-    mobilities = new double[numBinnedEntries];
-    intensities = new double[numBinnedEntries];
-
-    final double first = mobilityRange.lowerEndpoint() + binWidth / 2;
-    for (int i = 0; i < numBinnedEntries; i++) {
-      mobilities[i] = first + i * binWidth;
+    // now bin the mobility values together in the requested width
+    final List<Double> binnedValues = new ArrayList<>();
+    double currentBinLimit = -1E10;
+    for (Entry<Range<Double>, Double> entry : mapOfRanges.entrySet()) {
+      final Double mobility = entry.getValue();
+      if (Double.compare(mobility - this.binWidth / 2, currentBinLimit) == 1) {
+        binnedValues.add(mobility + this.binWidth / 2); // add the center of the new bin
+        currentBinLimit = mobility + this.binWidth / 2;
+      }
     }
+
+    mobilities = binnedValues.stream().mapToDouble(Double::doubleValue).toArray();
+    intensities = new double[mobilities.length];
   }
 
   public static Double getPreviousBinningWith(@Nonnull final ModularFeatureList flist,
@@ -147,7 +180,8 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         break;
       }
 
-      if (method.getModule().equals(MZmineCore.getModuleInstance(MobilogramBinningModule.class))) {
+      if (method.getModule()
+          .equals(MZmineCore.getModuleInstance(MobilogramBinningModule.class))) {
         final ParameterSet parameterSet = method.getParameters();
         binWidth = switch (mt) {
           case TIMS -> parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth)
@@ -245,7 +279,8 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
       // ensure we are below the current upper-binning-limit
       while (rawIndex < numValues &&
-          Double.compare(tempMobilities[rawIndex], mobilities[binnedIndex] + binWidth / 2) == -1) {
+          Double.compare(tempMobilities[rawIndex], mobilities[binnedIndex] + binWidth / 2)
+              == -1) {
         intensities[binnedIndex] += tempIntensities[rawIndex];
         rawIndex++;
       }
@@ -295,9 +330,9 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         while (rawIndex < numValues && rawIndex >= 0
             && Double.compare(tempMobilities[rawIndex], mobilities[binnedIndex] + binWidth / 2)
             == -1) {
-          logger.info("Adding raw mobility " + tempMobilities[rawIndex] + " to range " + (
-              mobilities[binnedIndex] - binWidth / 2) + " to " + (mobilities[binnedIndex]
-              + binWidth / 2));
+//          logger.info("Adding raw mobility " + tempMobilities[rawIndex] + " to range " + (
+//              mobilities[binnedIndex] - binWidth / 2) + " to " + (mobilities[binnedIndex]
+//              + binWidth / 2));
           intensities[binnedIndex] += tempIntensities[rawIndex];
           assigned[rawIndex] = true;
           rawIndex += order;

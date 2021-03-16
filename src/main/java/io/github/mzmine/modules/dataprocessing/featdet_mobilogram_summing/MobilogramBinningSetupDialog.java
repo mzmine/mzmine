@@ -52,21 +52,18 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
   private final SimpleXYChart<SummedMobilogramXYProvider> previewChart;
   private final ColoredXYShapeRenderer processedRenderer;
 
-  private final NumberFormat rtFormat;
   private final NumberFormat intensityFormat;
 
   protected ComboBox<ModularFeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
 
-  protected BinningMobilogramDataAccess rawMobilogramAccess;
   protected BinningMobilogramDataAccess summedMobilogramAccess;
 
   public MobilogramBinningSetupDialog(boolean valueCheckRequired,
       ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
-    rtFormat = MZmineCore.getConfiguration().getRTFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     previewChart = new SimpleXYChart<>("Preview");
@@ -78,7 +75,6 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     previewChart.setMinHeight(400);
     processedRenderer = new ColoredXYShapeRenderer();
 
-    previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
     ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>)
         (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager().getCurrentProject()
