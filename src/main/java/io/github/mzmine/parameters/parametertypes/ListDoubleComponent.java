@@ -18,90 +18,88 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Arrays;
-// import org.apache.commons.lang3.ArrayUtils;
+import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.ArrayUtils;
-import javafx.scene.control.Label;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.text.Text;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 
 public class ListDoubleComponent extends GridPane {
-  private TextField inputField;
-  private Label textField;
+
+  List<TextField> inputFields = new ArrayList<>();
+  private static final int INIT_NUM_OF_FIELDS = 3;
 
   public ListDoubleComponent() {
-    inputField = new TextField();
-    inputField.setPrefColumnCount(16);
 
-    /*
-     * inputField.getDocument().addDocumentListener(new DocumentListener() {
-     * 
-     * @Override public void changedUpdate(DocumentEvent e) { update(); }
-     * 
-     * @Override public void removeUpdate(DocumentEvent e) { update(); }
-     * 
-     * @Override public void insertUpdate(DocumentEvent e) { update(); } });
-     */
+    // Add initial input fields
+    for (int i = 0; i < INIT_NUM_OF_FIELDS; i++) {
+      TextField newInputField = new TextField();
+      newInputField.setPrefColumnCount(3);
+      inputFields.add(newInputField);
 
-    textField = new Label();
-    // textField.setColumns(8);
+      if (i != 0) {
+        add(new Text(", "), i * 2 - 1, 0);
+      }
+      add(newInputField, i * 2, 0);
+    }
 
-    add(inputField, 0, 0);
-    add(textField, 0, 1);
+    // Add button for the new fields addition
+    Button newFieldButton = new Button("  +  ");
+    add(new Text(", "), INIT_NUM_OF_FIELDS * 2 - 1, 0);
+    add(newFieldButton, INIT_NUM_OF_FIELDS * 2, 0);
+    newFieldButton.setOnAction(event -> {
+
+      // Create new text field
+      TextField newInputField = new TextField();
+      newInputField.setPrefColumnCount(3);
+      inputFields.add(newInputField);
+
+      // Add new text field to the grid pane
+      add(new Text(", "), inputFields.size() * 2 - 1, 0);
+      add(newInputField, inputFields.size() * 2 - 2, 0);
+      getChildren().remove(newFieldButton);
+      add(newFieldButton, inputFields.size() * 2, 0);
+    });
   }
 
   public List<Double> getValue() {
-    try {
-      String values = textField.getText().replaceAll("\\s", "");
-      String[] strValues = values.split(",");
-      double[] doubleValues = new double[strValues.length];
-      for (int i = 0; i < strValues.length; i++) {
-        try {
-          doubleValues[i] = Double.parseDouble(strValues[i]);
-        } catch (NumberFormatException nfe) {
-          // The string does not contain a parsable integer.
+    List<Double> doublesList = new ArrayList<>();
+
+    // Get the input from all input fields and collect them to the list
+    for (TextField inputFields : inputFields) {
+      try {
+        if (!inputFields.getText().equals("")) {
+          doublesList.add(Double.parseDouble(inputFields.getText()));
         }
+      } catch (NumberFormatException exception) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle("Input error");
+        alert.setHeaderText("List of doubles must contain only double values");
+        alert.showAndWait();
       }
-      Double[] doubleArray = ArrayUtils.toObject(doubleValues);
-      List<Double> ranges = Arrays.asList(doubleArray);
-      return ranges;
-    } catch (Exception e) {
-      return null;
     }
+
+    return doublesList;
   }
 
-  public void setValue(List<Double> ranges) {
-    String[] strValues = new String[ranges.size()];
-
-    for (int i = 0; i < ranges.size(); i++) {
-      strValues[i] = Double.toString(ranges.get(i));
+  public void setValue(List<Double> doublesList) {
+    if (doublesList.size() > inputFields.size()) {
+      throw new IllegalArgumentException("doublesList.size() > inputFields.size()");
     }
-    String text = String.join(",", strValues);
 
-    // textField.setForeground(Color.black);
-    textField.setText(text);
-    inputField.setText(text);
+    for (int i = 0; i < doublesList.size(); i++) {
+      inputFields.get(i).setText(doublesList.get(i).toString());
+    }
   }
 
   public void setToolTipText(String toolTip) {
-    textField.setTooltip(new Tooltip(toolTip));
-    inputField.setTooltip(new Tooltip(toolTip));
-  }
-
-  private void update() {
-    try {
-      String values = inputField.getText().replaceAll("\\s", "");
-      String[] strValues = values.split(",");
-
-      String text = String.join(",", strValues);
-
-      // textField.setFont(new );.setForeground(Color.black);
-      textField.setText(text);
-    } catch (IllegalArgumentException e) {
-      // textField.setForeground(Color.red);
-      textField.setText(e.getMessage());
+    for (TextField inputField : inputFields) {
+      inputField.setTooltip(new Tooltip(toolTip));
     }
   }
+
 }

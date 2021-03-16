@@ -112,7 +112,7 @@ public class FeatureTableTab extends MZmineTab {
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists) {
-    onFeatureListSelectionChanged(featurelists);
+      Collection<? extends FeatureList> featureLists) {
+    onFeatureListSelectionChanged(featureLists);
   }
 }

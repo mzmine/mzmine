@@ -290,4 +290,11 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     }
 //    }
   }
+
+  // Makes protected method public // TODO: possible alternatives?
+  @Override
+  public void fireDatasetChanged() {
+    super.fireDatasetChanged();
+  }
+
 }

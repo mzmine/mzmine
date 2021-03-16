@@ -94,7 +94,7 @@ public class Fx3DVisualizerTab extends MZmineTab {
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists) {
+      Collection<? extends FeatureList> featureLists) {
 
   }
 }

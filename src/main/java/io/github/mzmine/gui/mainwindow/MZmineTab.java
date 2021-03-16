@@ -95,7 +95,7 @@ public abstract class MZmineTab extends Tab {
       Collection<? extends FeatureList> featureLists);
 
   public abstract void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists);
+      Collection<? extends FeatureList> featureLists);
 
   public boolean isUpdateOnSelection() {
     return cbUpdateOnSelection.isSelected();
