@@ -92,6 +92,7 @@ public class IMSIonTraceHeatmapProvider implements PlotXYZDataProvider,
       if (status.get() == TaskStatus.CANCELED) {
         return;
       }
+      // todo mobilityscandataaccess
       for (MobilityScan scan : frame.getMobilityScans()) {
         DataPoint[] dps =
             ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange);

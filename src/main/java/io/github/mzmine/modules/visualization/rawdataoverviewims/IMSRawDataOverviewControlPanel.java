@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponen
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.text.NumberFormat;
 import java.util.List;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -42,6 +43,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Rectangle;
+import javax.annotation.Nullable;
 
 public class IMSRawDataOverviewControlPanel extends GridPane {
 
@@ -221,6 +223,20 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
   public List<Range<Double>> getMobilogramRangesList() {
     return mobilogramRangesList.getItems();
+  }
+
+  public void addRanges(List<Range<Double>> rangeList) {
+    rangeList.forEach(this::addRange);
+  }
+
+  public void addRange(@Nullable Range<Double> range) {
+    if (range != null) {
+      mobilogramRangesList.getItems().add(range);
+    }
+  }
+
+  public void addSelectedRangeListener(ChangeListener<Range<Double>> listener) {
+    mobilogramRangesList.getSelectionModel().selectedItemProperty().addListener(listener);
   }
 
   public double getFrameNoiseLevel() {
