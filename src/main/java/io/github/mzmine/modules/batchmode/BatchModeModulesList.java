@@ -155,14 +155,6 @@ public class BatchModeModulesList {
 
           /**
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
-           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATA}
-           */
-          ExtractScansModule.class, //
-          ExportScansFromRawFilesModule.class, //
-          MzMLExportModule.class, //
-
-          /**
-           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
            * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAFILTERING}
            */
           AlignScansModule.class, //
@@ -173,24 +165,53 @@ public class BatchModeModulesList {
           ScanSmoothingModule.class, //
 
           /**
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAEXPORT}
+           */
+          ExtractScansModule.class, //
+          ExportScansFromRawFilesModule.class, //
+          MzMLExportModule.class, //
+
+          /**
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#EIC_BUILDING}
            */
           ModularADAPChromatogramBuilderModule.class, //
-          IonMobilityTraceBuilderModule.class, //
           GridMassModule.class, //
+          IonMobilityTraceBuilderModule.class, //
           ImageBuilderModule.class, //
           MsnFeatureDetectionModule.class, //
           TargetedFeatureDetectionModule.class, //
-          SmoothingModule.class, //
-          MinimumSearchFeatureResolverModule.class, //
-          AdapResolverModule.class, //
           ADAPHierarchicalClusteringModule.class, //
           ADAPMultivariateCurveResolutionModule.class, //
           ADAP3DModule.class, //
+
+          /**
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_RESOLVING}
+           */
+          SmoothingModule.class, //
+          AdapResolverModule.class, //
           BaselineFeatureResolverModule.class, //
           CentWaveResolverModule.class, //
+          MinimumSearchFeatureResolverModule.class, //
           NoiseAmplitudeResolverModule.class, //
           SavitzkyGolayResolverModule.class, //
+
+          /**
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#ALIGNMENT}
+           */
+          JoinAlignerModule.class, //
+          ADAP3AlignerModule.class, //
+          HierarAlignerGcModule.class, //
+          PathAlignerModule.class, //
+          RansacAlignerModule.class, //
+
+          /**
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#GAPFILLING}
+           */
           PeakFinderModule.class, //
           MultiThreadPeakFinderModule.class, //
           SameRangeGapFillerModule.class, //
@@ -201,11 +222,6 @@ public class BatchModeModulesList {
           FeatureFilterModule.class, //
           RowsFilterModule.class, //
           IsotopeGrouperModule.class, //
-          JoinAlignerModule.class, //
-          ADAP3AlignerModule.class, //
-          HierarAlignerGcModule.class, //
-          PathAlignerModule.class, //
-          RansacAlignerModule.class, //
           PeakListBlankSubtractionModule.class, //
           DuplicateFilterModule.class, //
           MobilityMzRegionExtractionModule.class, //

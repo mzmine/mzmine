@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineModule;
+import java.util.Objects;
 
 /**
  * A simple wrapper providing the toString() method for adding modules to combo boxes in batch mode.
@@ -40,4 +41,20 @@ public class BatchModuleWrapper {
     return module.getName();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BatchModuleWrapper)) {
+      return false;
+    }
+    BatchModuleWrapper that = (BatchModuleWrapper) o;
+    return getModule().equals(that.getModule());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getModule());
+  }
 }

@@ -148,16 +148,22 @@ public class BatchComponentController implements LastFilesComponent {
       categoryItem.getChildren().add(new TreeItem<>(new BatchModuleWrapper(module)));
     }
 
-    final TreeItem<Object> root = new TreeItem<>("Root");
-    root.getChildren().addAll(mainCategoryItems.values());
-    tvModules.setRoot(root);
+    final TreeItem<Object> originalRoot = new TreeItem<>("Root");
+    originalRoot.getChildren().addAll(mainCategoryItems.values());
+    tvModules.setRoot(originalRoot);
     tvModules.setShowRoot(false);
 
     searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-      for (TreeItem<Object> child : root.getChildren()) {
-        child.setExpanded(hasMatchingChild(child, newValue.toLowerCase()));
+      if (!newValue.isEmpty() && !newValue.isBlank()) {
+        for (TreeItem<Object> child : originalRoot.getChildren()) {
+          child.setExpanded(hasMatchingChild(child, newValue.toLowerCase()));
+        }
+        selectFirstMatch(originalRoot, newValue.toLowerCase());
+      } else {
+        for (TreeItem<Object> child : originalRoot.getChildren()) {
+          child.setExpanded(false);
+        }
       }
-      selectFirstMatch(root, newValue.toLowerCase());
     });
 
     searchField.setOnKeyPressed(event -> {
@@ -194,7 +200,11 @@ public class BatchComponentController implements LastFilesComponent {
       if (filter.isEmpty()) {
         return false;
       }
-      return item.getValue().toString().toLowerCase().contains(filter);
+      boolean contains = item.getValue().toString().toLowerCase().contains(filter);
+//      if (!contains) {
+//        item.getParent().getChildren().remove(item);
+//      }
+      return contains;
     }
     return false;
   }
@@ -284,10 +294,6 @@ public class BatchComponentController implements LastFilesComponent {
     if (parameters != null) {
       parameters.showSetupDialog(false);
     }
-  }
-
-  public void onLastPressed(ActionEvent actionEvent) {
-
   }
 
   public void onLoadPressed(ActionEvent actionEvent) {
@@ -457,6 +463,13 @@ public class BatchComponentController implements LastFilesComponent {
 
     // add to last used files
     addLastUsedFile(file);
+  }
+
+  private TreeItem<Object> cloneTreeItem(TreeItem<Object> item) {
+    // not a deep clone
+    final TreeItem<Object> clone = new TreeItem<>(item.getValue());
+    item.getChildren().forEach(child -> clone.getChildren().add(cloneTreeItem(child)));
+    return item;
   }
 
   // Queue operations.

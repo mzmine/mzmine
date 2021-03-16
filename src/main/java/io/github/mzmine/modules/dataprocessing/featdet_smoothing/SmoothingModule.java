@@ -53,6 +53,6 @@ public class SmoothingModule implements MZmineProcessingModule {
   @Nonnull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATUREDETECTION;
+    return MZmineModuleCategory.FEATURE_RESOLVING;
   }
 }
