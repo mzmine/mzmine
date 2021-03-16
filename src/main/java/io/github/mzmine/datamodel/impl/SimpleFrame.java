@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -74,6 +75,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   public void setDataPoints(double[] newMzValues, double[] newIntensityValues) {
     super.setDataPoints(getDataFile().getMemoryMapStorage(), newMzValues, newIntensityValues);
+    // update afterwards, an assertion might be triggered.
+    ((IMSRawDataFileImpl) getDataFile()).updateMaxRawDataPoints(newIntensityValues.length);
   }
 
   /**

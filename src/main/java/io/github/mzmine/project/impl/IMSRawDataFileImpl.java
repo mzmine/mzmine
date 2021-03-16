@@ -308,4 +308,17 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
         .filter(segmentRange -> segmentRange.contains(frameId)).findFirst().get();
   }
 
+  /**
+   * Method to check if the proposed number of datapoints exceeds the current max number of
+   * datapoints. Used in case the data points of a frame are altered. E.g. when a MZML IMS file is
+   * imported. At that point, no summed frame is available and will have to be created later on.
+   *
+   * @param proposedValue The proposed number of data points.
+   */
+  public void updateMaxRawDataPoints(int proposedValue) {
+    if (proposedValue > getMaxRawDataPoints()) {
+      maxRawDataPoints = proposedValue;
+    }
+  }
+
 }
