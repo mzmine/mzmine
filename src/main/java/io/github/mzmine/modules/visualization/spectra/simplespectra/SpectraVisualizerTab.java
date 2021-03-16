@@ -78,7 +78,7 @@ import javafx.scene.layout.BorderPane;
  */
 public class SpectraVisualizerTab extends MZmineTab {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final Image centroidIcon =
       FxIconUtil.loadImageFromResources("icons/centroidicon.png");
@@ -584,6 +584,14 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   public void addAnnotation(Map<Integer, String> annotation) {
     spectrumDataSet.addAnnotation(annotation);
+  }
+
+  /**
+   * Add annotations for m/z values
+   * @param annotation m/z value and annotation map
+   */
+  public void addMzAnnotation(Map<Double, String> annotation) {
+    spectrumDataSet.addMzAnnotation(annotation);
   }
 
   public SpectraPlot getSpectrumPlot() {

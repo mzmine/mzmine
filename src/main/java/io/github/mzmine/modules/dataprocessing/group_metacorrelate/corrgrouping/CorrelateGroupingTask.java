@@ -299,7 +299,7 @@ public class CorrelateGroupingTask extends AbstractTask {
               // has a minimum number/% of overlapping features in all samples / in at least one
               // groups
               OverlapResult overlap =
-                  minFFilter.filterMinFeaturesOverlap(raws, row, row2, rtTolerance);
+                  minFFilter.filterMinFeaturesOverlap(data, raws, row, row2, rtTolerance);
               if (overlap.equals(OverlapResult.TRUE)) {
                 // correlate if in rt range
                 R2RFullCorrelationData corr =

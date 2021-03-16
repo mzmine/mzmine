@@ -22,6 +22,7 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.RowGroupList;
 import io.github.mzmine.datamodel.features.correlation.MS2SimilarityProviderGroup;
@@ -66,27 +67,24 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
   private Double progress = 0d;
 
-
   private boolean exportAnnotationEdges = true, exportCorrelationEdges = false;
   private boolean exportIinRelationships = false;
   private boolean exportMS2SimilarityEdges = false;
   private boolean exportMS2DiffSimilarityEdges = false;
   private double minR;
-  private final FeatureList[] featureLists;
+  private final ModularFeatureList[] featureLists;
   private File filename;
-
 
   private RowFilter filter;
   private boolean mergeLists = false;
-
-
 
   /**
    * Create the task.
    *
    * @param parameterSet the parameters.
    */
-  public ExportCorrAnnotationTask(final ParameterSet parameterSet, final FeatureList[] featureLists) {
+  public ExportCorrAnnotationTask(final ParameterSet parameterSet, final ModularFeatureList[] featureLists) {
+    super(null);
     this.featureLists = featureLists;
 
     // tolerances
@@ -109,9 +107,10 @@ public class ExportCorrAnnotationTask extends AbstractTask {
    * Create the task.
    *
    */
-  public ExportCorrAnnotationTask(FeatureList[] featureLists, File filename, double minR,
+  public ExportCorrAnnotationTask(ModularFeatureList[] featureLists, File filename, double minR,
       RowFilter filter, boolean exportAnnotationEdges, boolean exportCorrelationEdges,
       boolean exportIinRelationships, boolean mergeLists) {
+    super(null);
     this.featureLists = featureLists;
     this.filename = filename;
     this.minR = minR;
@@ -287,7 +286,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
 
   private String getRowMapKey(FeatureListRow r) {
-    String rawnames = Arrays.stream(r.getRawDataFiles()).map(RawDataFile::getName)
+    String rawnames = r.getRawDataFiles().stream().map(RawDataFile::getName)
         .collect(Collectors.joining(","));
     return rawnames + r.getID();
   }

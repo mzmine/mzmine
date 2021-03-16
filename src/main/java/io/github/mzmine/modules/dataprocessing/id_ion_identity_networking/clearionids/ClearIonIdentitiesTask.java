@@ -23,6 +23,7 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -40,7 +41,7 @@ public class ClearIonIdentitiesTask extends AbstractTask {
 
   private AtomicInteger finishedRows = new AtomicInteger(0);
   private int totalRows;
-  private final FeatureList featureList;
+  private final ModularFeatureList featureList;
   private final ParameterSet parameters;
   private final MZmineProject project;
 
@@ -50,7 +51,8 @@ public class ClearIonIdentitiesTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public ClearIonIdentitiesTask(final MZmineProject project, final ParameterSet parameterSet,
-      final FeatureList featureLists) {
+      final ModularFeatureList featureLists) {
+    super(featureLists.getMemoryMapStorage());
     this.project = project;
     this.featureList = featureLists;
     parameters = parameterSet;
@@ -98,33 +100,7 @@ public class ClearIonIdentitiesTask extends AbstractTask {
   public static void doFiltering(FeatureList pkl, AtomicInteger finishedRows) throws Exception {
     pkl.stream().filter(FeatureListRow::hasIonIdentity).forEach(r -> {
       r.clearIonIdentites();
-      // Notify the GUI about the change in the project
-      MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(r, false);
     });
-    // Repaint the window to reflect the change in the peak list
-    if (MZmineCore.getDesktop().getMainWindow() != null)
-      MZmineCore.getDesktop().getMainWindow().repaint();
-  }
-
-  /**
-   * Create a copy of a peak list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static FeatureListRow copyRow(final FeatureListRow row) {
-    // Copy the peak list row.
-    final FeatureListRow newRow = new SimpleFeatureListRow(row.getID());
-    FeatureUtils.copyFeatureListRowProperties(row, newRow);
-
-    // Copy the peaks.
-    for (final Feature feature : row.getFeatures()) {
-      final Feature newFeature = new SimpleFeature(feature);
-      FeatureUtils.copyFeatureProperties(feature, newFeature);
-      newRow.addFeature(feature.getDataFile(), newFeature);
-    }
-
-    return newRow;
   }
 
 }

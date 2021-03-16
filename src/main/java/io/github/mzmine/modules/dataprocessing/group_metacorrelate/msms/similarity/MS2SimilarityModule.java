@@ -17,6 +17,8 @@
 
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityParameters.Mode;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.msdk.MSDKRuntimeException;
@@ -64,10 +66,10 @@ public class MS2SimilarityModule implements MZmineProcessingModule {
                             @Nonnull final Collection<Task> tasks) {
 
     Mode mode = parameters.getParameter(MS2SimilarityParameters.MODE).getValue();
-    FeatureList[] featureLists = parameters.getParameter(MS2SimilarityParameters.PEAK_LISTS).getValue()
+    ModularFeatureList[] featureLists = parameters.getParameter(MS2SimilarityParameters.PEAK_LISTS).getValue()
         .getMatchingFeatureLists();
     boolean started = false;
-    for (FeatureList pkl : featureLists) {
+    for (ModularFeatureList pkl : featureLists) {
       switch (mode) {
         case GROUPS:
           // run on all group lists

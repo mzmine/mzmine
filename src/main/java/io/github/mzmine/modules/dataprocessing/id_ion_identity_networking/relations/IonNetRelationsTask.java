@@ -139,7 +139,8 @@ public class IonNetRelationsTask extends AbstractTask {
 
   private void showAllIdentities(IonNetwork[] nets) {
     for (IonNetwork net : nets) {
-      net.addRelationsIdentityToRows();
+      // TODO add? show?
+//      net.addRelationsIdentityToRows();
     }
   }
 

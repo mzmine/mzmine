@@ -3,15 +3,16 @@ package io.github.mzmine.parameters.parametertypes;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.PreloadedFeatureDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRelativeInt;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-
-
 import java.util.HashMap;
 import java.util.List;
+import javax.annotation.Nullable;
 
 
 public class MinimumFeatureFilter {
@@ -54,7 +55,7 @@ public class MinimumFeatureFilter {
 
   /**
    * Directly sets up the groups and group sizes
-   * 
+   *
    * @param project
    * @param raw
    * @param groupParam
@@ -63,8 +64,8 @@ public class MinimumFeatureFilter {
    * @param minFeatureHeight
    */
   public MinimumFeatureFilter(MZmineProject project, List<RawDataFile> raw, String groupParam,
-                              AbsoluteNRelativeInt minFInSamples, AbsoluteNRelativeInt minFInGroups,
-                              double minFeatureHeight, double minIPercOverlap, boolean excludeEstimatedFeatures) {
+      AbsoluteNRelativeInt minFInSamples, AbsoluteNRelativeInt minFInGroups,
+      double minFeatureHeight, double minIPercOverlap, boolean excludeEstimatedFeatures) {
     this(minFInSamples, minFInGroups, minFeatureHeight, minIPercOverlap, excludeEstimatedFeatures);
     this.project = project;
     setSampleGroups(project, raw, groupParam);
@@ -82,7 +83,7 @@ public class MinimumFeatureFilter {
   /**
    * only keep rows which contain features in at least X % samples in a set called before starting
    * row processing
-   * 
+   *
    * @param raw
    * @param row
    * @return
@@ -98,13 +99,15 @@ public class MinimumFeatureFilter {
         }
       }
       // stop if <n
-      if (!minFInSamples.checkGreaterEqualMax(raw.size(), n))
+      if (!minFInSamples.checkGreaterEqualMax(raw.size(), n)) {
         return false;
+      }
     }
 
     // short cut
-    if (!filterGroups || sgroupSize == null || !minFInGroups.isGreaterZero())
+    if (!filterGroups || sgroupSize == null || !minFInGroups.isGreaterZero()) {
       return true;
+    }
 
     // is present in X % samples of a sample set?
     // count sample in groups (no feature in a sample group->no occurrence in map)
@@ -127,8 +130,9 @@ public class MinimumFeatureFilter {
     // only go on if feature was present in X % of the samples
     for (MutableInt v : counter.values()) {
       // at least one
-      if (minFInGroups.checkGreaterEqualMax(v.total, v.value))
+      if (minFInGroups.checkGreaterEqualMax(v.total, v.value)) {
         return true;
+      }
     }
     // no fit
     return false;
@@ -140,34 +144,37 @@ public class MinimumFeatureFilter {
 
   private boolean filterEstimated(Feature f) {
     return f != null
-        && (!excludeEstimatedFeatures || !f.getFeatureStatus().equals(FeatureStatus.ESTIMATED));
+           && (!excludeEstimatedFeatures || !f.getFeatureStatus().equals(FeatureStatus.ESTIMATED));
   }
 
   /**
    * Check for overlapping features in two rows (features in the same RawDataFile with
    * height>minHeight)
-   * 
+   *
    * @param raw
    * @param row
    * @param row2
    * @return
    */
-  public OverlapResult filterMinFeaturesOverlap(final List<RawDataFile> raw, FeatureListRow row,
+  public OverlapResult filterMinFeaturesOverlap(@Nullable PreloadedFeatureDataAccess data,
+      final List<RawDataFile> raw, FeatureListRow row,
       FeatureListRow row2) {
-    return filterMinFeaturesOverlap(raw, row, row2, null);
+    return filterMinFeaturesOverlap(data, raw, row, row2, null);
   }
 
   /**
    * Check for overlapping features in two rows (features in the same RawDataFile with
    * height>minHeight and within rtTolerance)
-   * 
+   *
+   * @param data        Optional preloaded feature data for large scale comparison of features
    * @param raw
    * @param row
    * @param row2
    * @param rtTolerance
    * @return
    */
-  public OverlapResult filterMinFeaturesOverlap(final List<RawDataFile> raw, FeatureListRow row,
+  public OverlapResult filterMinFeaturesOverlap(@Nullable PreloadedFeatureDataAccess data,
+      final List<RawDataFile> raw, FeatureListRow row,
       FeatureListRow row2, RTTolerance rtTolerance) {
     OverlapResult result = OverlapResult.TRUE;
     // filter min samples in all
@@ -178,26 +185,30 @@ public class MinimumFeatureFilter {
         Feature b = row2.getFeature(file);
         if (checkFeatureQuality(a) && checkFeatureQuality(b)) {
           if (checkRTTol(rtTolerance, a, b)) {
-            if (checkIntensityOverlap(a, b, minIPercOverlap, minFeatureHeight))
+            if (checkIntensityOverlap(data, a, b, minIPercOverlap, minFeatureHeight)) {
               n++;
-            else
+            } else {
               result = OverlapResult.AntiOverlap;
+            }
           } else {
             result = OverlapResult.OutOfRTRange;
           }
           // directly return on stric rules
-          if (!result.equals(OverlapResult.TRUE) && strictRules)
+          if (!result.equals(OverlapResult.TRUE) && strictRules) {
             return result;
+          }
         }
       }
       // stop if <n
-      if (!minFInSamples.checkGreaterEqualMax(raw.size(), n))
+      if (!minFInSamples.checkGreaterEqualMax(raw.size(), n)) {
         return OverlapResult.BelowMinSamples;
+      }
     }
 
     // short cut
-    if (!filterGroups || sgroupSize == null || !minFInGroups.isGreaterZero())
+    if (!filterGroups || sgroupSize == null || !minFInGroups.isGreaterZero()) {
       return OverlapResult.TRUE;
+    }
 
     // is present in X % samples of a sample set?
     // count sample in groups (no feature in a sample group->no occurrence in map)
@@ -207,7 +218,7 @@ public class MinimumFeatureFilter {
       Feature b = row2.getFeature(file);
       if (checkFeatureQuality(a) && checkFeatureQuality(b)) {
         if (checkRTTol(rtTolerance, a, b)) {
-          if (checkIntensityOverlap(a, b, minIPercOverlap, minFeatureHeight)) {
+          if (checkIntensityOverlap(data, a, b, minIPercOverlap, minFeatureHeight)) {
             String sgroup = sgroupOf(file);
 
             MutableInt count = counter.get(sgroup);
@@ -224,16 +235,18 @@ public class MinimumFeatureFilter {
           result = OverlapResult.OutOfRTRange;
         }
 
-        if (!result.equals(OverlapResult.TRUE) && strictRules)
+        if (!result.equals(OverlapResult.TRUE) && strictRules) {
           return result;
+        }
       }
     }
     // only needs a minimum number of features in at least one sample group
     // only go on if feature was present in X % of the samples
     for (MutableInt v : counter.values()) {
       // at least one
-      if (minFInGroups.checkGreaterEqualMax(v.total, v.value))
+      if (minFInGroups.checkGreaterEqualMax(v.total, v.value)) {
         return OverlapResult.TRUE;
+      }
     }
     // no fit
     return OverlapResult.BelowMinSamples;
@@ -246,22 +259,27 @@ public class MinimumFeatureFilter {
 
   private boolean checkHeight(Feature a, Feature b) {
     return a != null && a.getHeight() >= minFeatureHeight && b != null
-        && b.getHeight() >= minFeatureHeight;
+           && b.getHeight() >= minFeatureHeight;
   }
 
   /**
    * Intensity overlap
-   * 
+   *
+   * @param data            optional preloaded feature data for large scale data access. null to
+   *                        load data directly from features
    * @param a
    * @param b
    * @param minIPercOverlap
    * @param minHeight
    * @return
    */
-  public boolean checkIntensityOverlap(Feature a, Feature b, double minIPercOverlap,
+  public boolean checkIntensityOverlap(
+      PreloadedFeatureDataAccess data, Feature a, Feature b,
+      double minIPercOverlap,
       double minHeight) {
-    if (minIPercOverlap < 0.00001)
+    if (minIPercOverlap < 0.00001) {
       return true;
+    }
     // check more
     Feature small = a;
     Feature big = b;
@@ -269,25 +287,46 @@ public class MinimumFeatureFilter {
       small = b;
       big = a;
     }
-    if (big.getRawDataPointsRTRange().encloses(small.getRawDataPointsRTRange()))
+    if (big.getRawDataPointsRTRange().encloses(small.getRawDataPointsRTRange())) {
       return true;
+    }
 
-    double start = 0, end = 0;
+    double start = -1;
+    double end = 0;
+
+    List<Scan> bigScans = big.getScanNumbers();
+    List<Scan> smallScans = small.getScanNumbers();
+    double[] bigIntensities;
+    double[] smallIntensities;
+    if (data != null) {
+      // get preloaded
+      bigIntensities = data.getIntensityValues(big);
+      smallIntensities = data.getIntensityValues(small);
+    } else {
+      // load from features
+      bigIntensities = big.getFeatureData()
+          .getIntensityValues(new double[big.getNumberOfDataPoints()]);
+      smallIntensities = small.getFeatureData()
+          .getIntensityValues(new double[small.getNumberOfDataPoints()]);
+    }
     // at 5% height
-    for (int sn : big.getScanNumbers()) {
-      double intensity = big.getDataPoint(sn).getIntensity();
+    for (int i = 0; i < big.getNumberOfDataPoints(); i++) {
+      double intensity = bigIntensities[i];
+      Scan sn = bigScans.get(i);
       if (intensity >= big.getHeight() * 0.05 || intensity >= minHeight) {
-        if (start == 0)
-          start = big.getRawDataFile().getScan(sn).getRetentionTime();
-        else
-          end = big.getRawDataFile().getScan(sn).getRetentionTime();
+        if (start <= 0) {
+          start = sn.getRetentionTime();
+        } else {
+          end = sn.getRetentionTime();
+        }
       }
     }
     // check smaller
     double overlap = 0, sum = 0;
-    for (int sn : small.getScanNumbers()) {
-      double rt = small.getRawDataFile().getScan(sn).getRetentionTime();
-      double intensity = small.getDataPoint(sn).getIntensity();
+    for (int i = 0; i < small.getNumberOfDataPoints(); i++) {
+      double intensity = smallIntensities[i];
+      Scan sn = smallScans.get(i);
+      double rt = sn.getRetentionTime();
 
       if (rt >= start && rt <= end) {
         overlap += intensity;
@@ -295,14 +334,15 @@ public class MinimumFeatureFilter {
       sum += intensity;
     }
 
-    if (overlap == 0)
+    if (overlap == 0) {
       return false;
+    }
     return (overlap / sum) >= minIPercOverlap;
   }
 
   /**
    * Checks for any other algorithm.
-   * 
+   *
    * @param all the total of all raw data files
    * @param raw all positive raw data files
    * @return
@@ -310,16 +350,18 @@ public class MinimumFeatureFilter {
   public boolean filterMinFeatures(List<RawDataFile> all, List<RawDataFile> raw) {
     // filter min samples in all
     if (minFInSamples.isGreaterZero()
-        && !minFInSamples.checkGreaterEqualMax(all.size(), raw.size()))
+        && !minFInSamples.checkGreaterEqualMax(all.size(), raw.size())) {
       return false;
+    }
 
     // short cut
-    if (!filterGroups || sgroupSize == null || !minFInGroups.isGreaterZero())
+    if (!filterGroups || sgroupSize == null || !minFInGroups.isGreaterZero()) {
       return true;
+    }
 
     // is present in X % samples of a sample set?
     // count sample in groups (no feature in a sample group->no occurrence in map)
-    HashMap<String, MutableInt> counter = new HashMap<String, MutableInt>();
+    HashMap<String, MutableInt> counter = new HashMap<>();
     for (RawDataFile file : raw) {
       String sgroup = sgroupOf(file);
 
@@ -335,8 +377,9 @@ public class MinimumFeatureFilter {
     // only go on if feature was present in X % of the samples
     for (MutableInt v : counter.values()) {
       // at least one
-      if (minFInGroups.checkGreaterEqualMax(v.total, v.value))
+      if (minFInGroups.checkGreaterEqualMax(v.total, v.value)) {
         return true;
+      }
     }
     // no fit
     return false;
@@ -344,15 +387,15 @@ public class MinimumFeatureFilter {
 
   /**
    * gets called to initialise group variables
-   * 
    */
-  public void setSampleGroups(MZmineProject project, List<RawDataFile> raw, String groupingParameter) {
+  public void setSampleGroups(MZmineProject project, List<RawDataFile> raw,
+      String groupingParameter) {
     this.project = project;
     if (groupingParameter == null || groupingParameter.length() == 0) {
       this.sgroupSize = null;
       setGroupFilterEnabled(false);
     } else {
-      sgroupSize = new HashMap<String, Integer>();
+      sgroupSize = new HashMap<>();
       UserParameter<?, ?> params[] = project.getParameters();
       for (UserParameter<?, ?> p : params) {
         if (groupingParameter.equals(p.getName())) {
@@ -369,8 +412,9 @@ public class MinimumFeatureFilter {
         Integer v = sgroupSize.get(parameterValue);
         int val = v == null ? 0 : v;
         sgroupSize.put(parameterValue, val + 1);
-        if (val + 1 > max)
+        if (val + 1 > max) {
           max = val + 1;
+        }
       }
 
       setGroupFilterEnabled(!sgroupSize.isEmpty());
@@ -378,7 +422,6 @@ public class MinimumFeatureFilter {
   }
 
   /**
-   * 
    * @param file
    * @return sample group value of raw file
    */
@@ -387,6 +430,7 @@ public class MinimumFeatureFilter {
   }
 
   class MutableInt {
+
     int total;
     int value = 1; // note that we start at 1 since we're counting
 
@@ -405,7 +449,7 @@ public class MinimumFeatureFilter {
 
   /**
    * Size map
-   * 
+   *
    * @return
    */
   public HashMap<String, Integer> getGroupSizeMap() {
@@ -414,7 +458,7 @@ public class MinimumFeatureFilter {
 
   /**
    * Group parameter
-   * 
+   *
    * @return
    */
   public UserParameter<?, ?> getGroupParam() {
