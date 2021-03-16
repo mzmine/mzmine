@@ -218,6 +218,9 @@ public class BatchComponentController implements LastFilesComponent {
   public void onAddModulePressed(ActionEvent actionEvent) {
     // Processing module selected?
     final Object selectedItem = tvModules.getSelectionModel().getSelectedItem().getValue();
+    if (selectedItem == null) {
+      return;
+    }
     if (selectedItem instanceof BatchModuleWrapper wrappedModule) {
       // Show method's set-up dialog.
       final MZmineProcessingModule selectedMethod =

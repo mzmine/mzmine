@@ -130,6 +130,7 @@ public class BatchModeModulesList {
 
           /**
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAIMPORT}
            */
           AllSpectralDataImportModule.class, //
           TDFImportModule.class, //
@@ -143,15 +144,31 @@ public class BatchModeModulesList {
           WatersRawImportModule.class, //
           ZipImportModule.class, //
 
+          /**
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATA}
+           */
           MassDetectionModule.class, //
           MassCalibrationModule.class, //
           MobilityScanMergerModule.class, //
-          ShoulderPeaksFilterModule.class, //
+          RawFileMergeModule.class, //
+
+          /**
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATA}
+           */
+          ExtractScansModule.class, //
+          ExportScansFromRawFilesModule.class, //
+          MzMLExportModule.class, //
+
+          /**
+           * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
+           * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAFILTERING}
+           */
           AlignScansModule.class, //
           BaselineCorrectionModule.class, //
           CropFilterModule.class, //
-          ExtractScansModule.class, //
-          RawFileMergeModule.class, //
+          ShoulderPeaksFilterModule.class, //
           ScanFiltersModule.class, //
           ScanSmoothingModule.class, //
 
@@ -233,11 +250,9 @@ public class BatchModeModulesList {
           AdapMgfExportModule.class, //
           GNPSResultsImportModule.class, //
           AdapMspExportModule.class, //
-          MzMLExportModule.class, //
           MzTabExportModule.class, //
           MZTabmExportModule.class, //
           NetCDFExportModule.class, //
-          ExportScansFromRawFilesModule.class, //
           SiriusExportModule.class, //
           MZTabmImportModule.class, //
           MzTabImportModule.class, //
