@@ -16,32 +16,22 @@
  *  USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing;
 
-import io.github.mzmine.datamodel.MobilityType;
-import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+/**
+ * @author Steffen https://github.com/SteffenHeu
+ */
+public enum BinningSource {
+  PREPROCESSED("Preprocessed"), RAW("Raw");
 
-public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType>> {
+  private final String name;
 
-  @Nonnull
-  @Override
-  public String getHeaderString() {
-    return "Mobility unit";
+  BinningSource(String name) {
+    this.name = name;
   }
 
   @Override
-  public SimpleObjectProperty<MobilityType> createProperty() {
-    return new SimpleObjectProperty<>(MobilityType.NONE);
-  }
-
-  @Nonnull
-  @Override
-  public String getFormattedString(@Nullable Object value) {
-    if (value instanceof MobilityType mt) {
-      return mt.getUnit();
-    }
-    return super.getFormattedString(value);
+  public String toString() {
+    return name;
   }
 }

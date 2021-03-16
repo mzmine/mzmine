@@ -2,28 +2,39 @@ package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 public class OptionalImsTraceBuilderParameters extends SimpleParameterSet {
 
-  public static OptionalParameter<IntegerParameter> allowedMissingMobilityScans = new OptionalParameter<>(
-      new IntegerParameter("Allowed missing mobility scans",
-          "Maximum number of consecutively empty mobility scans to be interpolated between.\n"
-              + "If this gap is exceeded, a 0 intensity will be added to the start and the end of that gap.\n"
-              + "The default value is " + IonMobilityTraceBuilderTask.DEFAULT_ALLOWED_MISSING_MOBILITY_SCANS
-              + ".", IonMobilityTraceBuilderTask.DEFAULT_ALLOWED_MISSING_MOBILITY_SCANS));
+  public static final double DEFAULT_TIMS_BIN_WIDTH = 0.0008;
+  public static final double DEFAULT_DTIMS_BIN_WIDTH = 0.005;
+  public static final double DEFAULT_TWIMS_BIN_WIDTH = 0.005;
+  private static final NumberFormat binFormat = new DecimalFormat("0.00000");
 
-  public static OptionalParameter<IntegerParameter> allowedMissingFrames = new OptionalParameter<>(
-      new IntegerParameter("Allowed missing frames",
-          "Maximum number of consecutively empty frames scans to be interpolated between.\n"
-              + "If this gap is exceeded, a 0 intensity will be added to the start and the end of that gap.\n"
-              + "Interpolation does not count towards the number of consecutive frames. However, added "
-              + "trailing and leading 0s do.\nThe default value is "
-              + IonMobilityTraceBuilderTask.DEFAULT_ALLOWED_MISSING_FRAMES + ".",
-          IonMobilityTraceBuilderTask.DEFAULT_ALLOWED_MISSING_FRAMES));
+  public static final OptionalParameter<DoubleParameter> timsBinningWidth = new OptionalParameter<>(
+      new DoubleParameter("Override default TIMS binning width (Vs/cm²)",
+          "The binning width in mobility units of the selected raw data file.\n"
+              + " The default binning width is " + binFormat.format(DEFAULT_TIMS_BIN_WIDTH) + ".",
+          binFormat, DEFAULT_TIMS_BIN_WIDTH, 0.00001, 1E6));
+
+  public static final OptionalParameter<DoubleParameter> twimsBinningWidth = new OptionalParameter(
+      new DoubleParameter(
+          "Travelling wave binning width (ms)",
+          "The binning width in mobility units of the selected raw data file."
+              + "The default binning width is " + binFormat.format(DEFAULT_TWIMS_BIN_WIDTH) + ".",
+          binFormat, DEFAULT_TWIMS_BIN_WIDTH, 0.00001, 1E6));
+
+  public static final OptionalParameter<DoubleParameter> dtimsBinningWidth = new OptionalParameter<>(
+      new DoubleParameter(
+          "Drift tube binning width (ms)",
+          "The binning width in mobility units of the selected raw data file.\n"
+              + "The default binning width is " + binFormat.format(DEFAULT_TIMS_BIN_WIDTH) + ".",
+          binFormat, DEFAULT_DTIMS_BIN_WIDTH, 0.00001, 1E6));
 
   public OptionalImsTraceBuilderParameters() {
-    super(new Parameter[]{allowedMissingMobilityScans, allowedMissingFrames});
+    super(new Parameter[]{timsBinningWidth, dtimsBinningWidth, twimsBinningWidth});
   }
 }

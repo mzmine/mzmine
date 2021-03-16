@@ -54,7 +54,8 @@ public class FeatureDataUtils {
       for (IonMobilitySeries mobilogram : ionTrace.getMobilograms()) {
         for (int i = 0; i < mobilogram.getNumberOfValues(); i++) {
           final double mz = mobilogram.getMZ(i);
-          if (mz < min) {
+          // we add flanking 0 intensities with 0d mz during building, don't count those
+          if (mz < min && Double.compare(mz, 0d) == 1) {
             min = mz;
           }
           if (mz > max) {
@@ -65,7 +66,8 @@ public class FeatureDataUtils {
     } else {
       for (int i = 0; i < series.getNumberOfValues(); i++) {
         final double mz = series.getMZ(i);
-        if (mz < min) {
+        // we add flanking 0 intesities with 0d mz during building, don't count those
+        if (mz < min && Double.compare(mz, 0d) == 1) {
           min = mz;
         }
         if (mz > max) {
@@ -192,7 +194,12 @@ public class FeatureDataUtils {
           mostIntenseMobilityScanIndex = i;
         }
       }
-      feature.setMobility((float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
+      if(Double.compare(intensity, Double.MIN_VALUE) == 0) {
+        logger.info(() -> "Mobility cannot be specified for: " + summedMobilogram.print());
+        feature.setMobility(Float.NaN);
+      } else {
+        feature.setMobility((float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
+      }
     }
     // todo recalc quality parameters
   }
