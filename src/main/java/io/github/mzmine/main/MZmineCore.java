@@ -140,7 +140,7 @@ public final class MZmineCore {
       case FEATURES -> MemoryMapStorage.setStoreFeaturesInRam(true);
       case MASS_LISTS -> MemoryMapStorage.setStoreMassListsInRam(true);
       case RAW_SCANS ->  MemoryMapStorage.setStoreRawFilesInRam(true);
-      case NO_RAW_SCANS -> {
+      case MASSES_AND_FEATURES -> {
         MemoryMapStorage.setStoreMassListsInRam(true);
         MemoryMapStorage.setStoreFeaturesInRam(true);
       }

@@ -28,7 +28,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.fop.layoutmgr.Keep;
 
 /**
  * Parses the command line arguments
@@ -61,7 +60,7 @@ public class MZmineArgumentParser {
     options.addOption(keepRunning);
 
     Option keepInMemory = new Option("m", "memory", true,
-        "keep objects (scan data, features, etc) in memory. Options: all, features, centroids, raw, noraw (noraw for features and centroids)");
+        "keep objects (scan data, features, etc) in memory. Options: all, features, centroids, raw, masses_features (masses_features for features and centroids)");
     keepInMemory.setRequired(false);
     options.addOption(keepInMemory);
 
@@ -133,7 +132,7 @@ public class MZmineArgumentParser {
   }
 
   public enum KeepInRam {
-    NONE, ALL, FEATURES, MASS_LISTS, RAW_SCANS, NO_RAW_SCANS;
+    NONE, ALL, FEATURES, MASS_LISTS, RAW_SCANS, MASSES_AND_FEATURES;
 
     public static KeepInRam parse(String s) {
       s = s.toLowerCase();
@@ -142,7 +141,7 @@ public class MZmineArgumentParser {
         case "features" -> FEATURES;
         case "centroids" -> MASS_LISTS;
         case "raw" -> RAW_SCANS;
-        case "noraw" -> NO_RAW_SCANS;
+        case "masses_features" -> MASSES_AND_FEATURES;
         default -> throw new IllegalStateException("Unexpected value: " + s);
       };
     }
