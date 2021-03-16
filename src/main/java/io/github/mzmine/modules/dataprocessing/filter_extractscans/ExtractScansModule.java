@@ -18,15 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_extractscans;
 
-import java.util.Collection;
-import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 /**
  * Exports scans around a center time
@@ -58,7 +57,7 @@ public class ExtractScansModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATA;
+    return MZmineModuleCategory.RAWDATAEXPORT;
   }
 
   @Override

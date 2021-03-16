@@ -23,6 +23,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import javafx.beans.NamedArg;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -64,6 +65,10 @@ public class LastFilesButton extends Button implements LastFilesComponent {
     init();
   }
 
+  public LastFilesButton(@NamedArg("text") String text) {
+    this(text, null);
+  }
+
   private void init() {
     setTooltip(new Tooltip("Load last files"));
     menu = new ContextMenu();
@@ -87,7 +92,7 @@ public class LastFilesButton extends Button implements LastFilesComponent {
     }
     setDisable(false);
 
-    lastFiles.stream().forEach(file -> {
+    lastFiles.forEach(file -> {
       String name = fileToString(file);
       MenuItem item = new MenuItem(name);
       item.setUserData(file);
@@ -106,8 +111,9 @@ public class LastFilesButton extends Button implements LastFilesComponent {
   }
 
   public void addFile(File f) {
-    if (f == null)
+    if (f == null) {
       return;
+    }
 
     // add to last files if not already inserted
     lastFiles.remove(f);
@@ -115,4 +121,7 @@ public class LastFilesButton extends Button implements LastFilesComponent {
     setLastFiles(lastFiles);
   }
 
+  public void setChangeListener(Consumer<File> changeListener) {
+    this.changeListener = changeListener;
+  }
 }

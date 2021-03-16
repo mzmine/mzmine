@@ -18,22 +18,19 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Collection;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Collection;
 
 /**
- * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
  */
-public class PeakListBlankSubtractionModule implements MZmineRunnableModule {
+public class PeakListBlankSubtractionModule implements MZmineProcessingModule {
 
   public static final String MODULE_NAME = "Peak list blank subtraction";
 

@@ -25,10 +25,9 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-
 import io.github.mzmine.util.MemoryMapStorage;
-import javax.annotation.Nonnull;
 import java.util.Collection;
+import javax.annotation.Nonnull;
 
 public class MassCalibrationModule implements MZmineProcessingModule {
 
@@ -67,7 +66,7 @@ public class MassCalibrationModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATUREDETECTION;
+    return MZmineModuleCategory.RAWDATA;
   }
 
   @Override

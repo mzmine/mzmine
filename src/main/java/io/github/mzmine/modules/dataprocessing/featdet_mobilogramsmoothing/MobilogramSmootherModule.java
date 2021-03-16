@@ -79,7 +79,7 @@ public class MobilogramSmootherModule implements MZmineRunnableModule {
   @Nonnull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATUREDETECTION;
+    return MZmineModuleCategory.EIC_DETECTION;
   }
 
   @Nonnull

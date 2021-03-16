@@ -18,10 +18,6 @@
 
 package io.github.mzmine.modules.io.export_scans;
 
-import java.util.Collection;
-import javax.annotation.Nonnull;
-import org.apache.commons.lang3.ArrayUtils;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -31,6 +27,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.util.Collection;
+import javax.annotation.Nonnull;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Exports scans around a center time
@@ -70,7 +69,7 @@ public class ExportScansFromRawFilesModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATA;
+    return MZmineModuleCategory.RAWDATAEXPORT;
   }
 
   @Override
