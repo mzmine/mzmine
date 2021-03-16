@@ -16,9 +16,10 @@
  *  USA
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ccscalc;
+package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -30,54 +31,48 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Calculates feature specific collision cross section values based on ion mobility values and the
- * charge of a feature. For calculation, a mobility value {@link io.github.mzmine.datamodel.features.types.numbers.MobilityType},
- * the unit of that mobility value {@link io.github.mzmine.datamodel.MobilityType} and the charge
- * {@link io.github.mzmine.datamodel.features.types.numbers.ChargeType} of an ion are necessary.
- *
- * @author https://github.com/SteffenHeu
- * @see CCSCalcTask
- * @see io.github.mzmine.datamodel.features.types.numbers.CCSType
- * @see https://en.wikipedia.org/wiki/Cross_section_(physics)#Collision_among_gas_particles
- * @see https://doi.org/10.1002/jssc.201700919
- * @see https://arxiv.org/ftp/arxiv/papers/1709/1709.02953.pdf
- * @see https://www.waters.com/webassets/cms/library/docs/720005374en.pdf or
- * https://www.sciencedirect.com/science/article/abs/pii/S1367593117301229?via%3Dihub
+ * @author Steffen https://github.com/SteffenHeu
  */
-public class CCSCalcModule implements MZmineProcessingModule {
-
-  public static final String NAME = "CCS calculation module";
+public class MobilogramBinningModule implements MZmineProcessingModule {
 
   @Nonnull
   @Override
   public String getName() {
-    return NAME;
+    return "Mobilogram summing";
   }
 
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return CCSCalcParameters.class;
+    return MobilogramBinningParameters.class;
   }
 
   @Nonnull
   @Override
   public String getDescription() {
-    return "Calculates CCS values for features.";
+    return "Bins intensities within given mobility ranges to correct for noise in mobilograms.";
   }
 
   @Nonnull
   @Override
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    Task task = new CCSCalcTask(project, parameters, MemoryMapStorage.forFeatureList());
-    tasks.add(task);
+
+    final ModularFeatureList[] flists = parameters
+        .getParameter(MobilogramBinningParameters.featureLists).getValue()
+        .getMatchingFeatureLists();
+
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+    for (ModularFeatureList flist : flists) {
+      tasks.add(new MobilogramBinningTask(storage, flist, parameters, project));
+    }
+
     return ExitCode.OK;
   }
 
   @Nonnull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
+    return MZmineModuleCategory.EIC_DETECTION;
   }
 }

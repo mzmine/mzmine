@@ -18,19 +18,22 @@
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,7 +63,7 @@ class IonTimeSeriesTest {
   }
 
   public static IonTimeSeries<Frame> makeIonMobilityTimeSeries() throws IOException {
-    RawDataFile file = new RawDataFileImpl("test", null, Color.BLACK);
+    IMSRawDataFile file = new IMSRawDataFileImpl("test", null, Color.BLACK);
 
     List<Frame> frames = new ArrayList<>();
     SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f, 0, 0,
@@ -80,8 +83,9 @@ class IonTimeSeriesTest {
     SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(null,
         new double[]{1d, 2d}, new double[]{2d, 4d}, frame.getMobilityScans());
 
-    return new SimpleIonMobilogramTimeSeries(null,
-        List.of(ionMobilitySeries));
+    return IonMobilogramTimeSeriesFactory
+        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 0.001));
+
   }
 
   @Test

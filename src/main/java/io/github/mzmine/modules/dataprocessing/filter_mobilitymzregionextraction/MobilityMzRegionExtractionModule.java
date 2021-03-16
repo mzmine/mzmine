@@ -25,7 +25,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.visualization.imsfeaturevisualizer.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -40,7 +40,7 @@ import javax.annotation.Nullable;
 /**
  * @author https://github.com/SteffenHeu
  */
-public class MobilityMzRegionExtractionModule implements MZmineRunnableModule {
+public class MobilityMzRegionExtractionModule implements MZmineProcessingModule {
 
   public static final String NAME = "m/z mobility region extraction";
 

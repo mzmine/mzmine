@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -39,6 +40,9 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
     return getSpectrum(index).getRetentionTime();
   }
 
+  IonMobilogramTimeSeries subSeries(@Nullable MemoryMapStorage storage,
+      @Nonnull List<Frame> subset, @Nonnull BinningMobilogramDataAccess mobilogramBinning);
+
   List<IonMobilitySeries> getMobilograms();
 
   default IonMobilitySeries getMobilogram(int index) {
@@ -48,22 +52,15 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
   SummedIntensityMobilitySeries getSummedMobilogram();
 
   /**
-   * Creates a copy of this series using the same frame list, but with new mz/intensities and new
-   * mobilograms, e.g. after smoothing.
+   * Allows creation of a new {@link IonMobilogramTimeSeries} with processed {@link
+   * SummedIntensityMobilitySeries}.
    *
-   * @param storage                             May be null if data shall be stored in ram
-   * @param newMzValues
-   * @param newIntensityValues
-   * @param newMobilograms
-   * @param smoothedSummedMobilogramIntensities If the summed mobilogram has been smoothed, the
-   *                                            smoothed intensities can be passed here. If null,
-   *                                            the previous intensities will be used.
+   * @param storage
+   * @param summedMobilogram
    * @return
    */
   IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues,
-      @Nonnull List<IonMobilitySeries> newMobilograms,
-      @Nullable double[] smoothedSummedMobilogramIntensities);
+      @Nonnull SummedIntensityMobilitySeries summedMobilogram);
 
   /**
    * @param scan

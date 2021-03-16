@@ -472,7 +472,7 @@ public class TDFUtils {
   }
 
   /**
-   * Creates an array of the given size and populates it with numbers from 0 to size-1
+   * Creates an array of the given size and populates it with numbers from 1 to size
    *
    * @param size The size
    * @return the array
@@ -480,7 +480,7 @@ public class TDFUtils {
   private static int[] createPopulatedArray(final int size) {
     int[] array = new int[size];
     for (int i = 0; i < size; i++) {
-      array[i] = i;
+      array[i] = i + 1; // scannums start at 1
     }
     return array;
   }
