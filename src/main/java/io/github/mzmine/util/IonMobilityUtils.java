@@ -18,7 +18,9 @@
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -26,7 +28,9 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javafx.beans.property.Property;
 import javax.annotation.Nonnull;
 
@@ -46,6 +50,15 @@ public class IonMobilityUtils {
       lastMobility = currentMobility;
     }
     return minDelta;
+  }
+
+  public static Map<Range<Double>, Frame> getUniqueMobilityRanges(
+      @Nonnull final IMSRawDataFile file) {
+    Map<Range<Double>, Frame> ranges = new HashMap<>();
+    for (Frame frame : file.getFrames()) {
+      ranges.putIfAbsent(frame.getMobilityRange(), frame);
+    }
+    return ranges;
   }
 
   public static List<ModularFeature> getFeaturesWithinRegion(Collection<ModularFeature> features,

@@ -16,32 +16,20 @@
  *  USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
-import io.github.mzmine.datamodel.MobilityType;
-import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType>> {
-
-  @Nonnull
-  @Override
-  public String getHeaderString() {
-    return "Mobility unit";
-  }
-
-  @Override
-  public SimpleObjectProperty<MobilityType> createProperty() {
-    return new SimpleObjectProperty<>(MobilityType.NONE);
-  }
-
-  @Nonnull
-  @Override
-  public String getFormattedString(@Nullable Object value) {
-    if (value instanceof MobilityType mt) {
-      return mt.getUnit();
-    }
-    return super.getFormattedString(value);
-  }
+/**
+ * Defines how values that were previously zero shall be handled when returning the smoothed
+ * values.
+ */
+enum ZeroHandlingType {
+  /**
+   * Values that were previously zero will be zero after smoothing.
+   */
+  KEEP, //
+  /**
+   * Values that were previously zero might get an intensity if determined by the smoothing
+   * algorithm.
+   */
+  OVERRIDE
 }
