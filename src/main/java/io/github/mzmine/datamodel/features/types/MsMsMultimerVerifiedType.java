@@ -16,17 +16,18 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import javax.annotation.Nonnull;
 
-public class CosineScoreType extends ScoreType {
+public class MsMsMultimerVerifiedType extends StringType implements AnnotationType {
 
   @Nonnull
   @Override
   public String getHeaderString() {
-    return "Cosine similarity";
+    return "MS/MS multimer";
   }
 
 }

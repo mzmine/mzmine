@@ -18,14 +18,12 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.main.MZmineCore;
 
-import javax.annotation.Nonnull;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import javax.annotation.Nonnull;
 
 public class PrecursorMZType extends DoubleType {
 
@@ -43,6 +41,7 @@ public class PrecursorMZType extends DoubleType {
     }
   }
 
+  @Nonnull
   @Override
   public String getHeaderString() {
     return "Precursor m/z";

@@ -157,7 +157,7 @@ public class AddIonNetworkingTask extends AbstractTask {
       // AtomicInteger finished,
       AtomicInteger compared, AtomicInteger annotPairs) {
     // all networks of this group
-    IonNetwork[] nets = IonNetworkLogic.getAllNetworks(g, false);
+    IonNetwork[] nets = IonNetworkLogic.getAllNetworks(g.getRows(), false);
 
     for (int i = 0; i < g.size(); i++) {
       FeatureListRow row = g.get(i);

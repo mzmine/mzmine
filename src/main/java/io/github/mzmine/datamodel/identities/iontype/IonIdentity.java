@@ -32,8 +32,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 
-public class IonIdentity {
+public class IonIdentity implements Comparable<IonIdentity> {
 
   private NumberFormat netIDForm = new DecimalFormat("#000");
 
@@ -41,7 +42,7 @@ public class IonIdentity {
   // identifier like [M+H]+
   private String adduct;
   // partner rowIDs
-  private ConcurrentHashMap<FeatureListRow, IonIdentity> partner = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<FeatureListRow, IonIdentity> partner = new ConcurrentHashMap<>();
   // network id (number)
   private IonNetwork network;
 
@@ -177,11 +178,11 @@ public class IonIdentity {
 
   public String getIDString() {
     StringBuilder b = new StringBuilder();
-    // if (getNetID() != -1) {
-    // b.append("Net");
-    // b.append(getNetIDString());
-    // b.append(" ");
-    // }
+     if (getNetID() != -1) {
+     b.append("Net");
+     b.append(getNetIDString());
+     b.append(" ");
+     }
     b.append(adduct);
 
     // xmer and multimer
@@ -205,7 +206,7 @@ public class IonIdentity {
 
   @Override
   public String toString() {
-    return getIDString();
+    return adduct;
   }
 
   public boolean equalsAdduct(IonType ion) {
@@ -234,7 +235,7 @@ public class IonIdentity {
   /**
    * Network number
    *
-   * @return
+   * @return -1 if not part of a network
    */
   public int getNetID() {
     return network == null ? -1 : network.getID();
@@ -415,5 +416,10 @@ public class IonIdentity {
       }
       return score;
     }
+  }
+
+  @Override
+  public int compareTo(@Nonnull IonIdentity ion) {
+    return toString().compareTo(ion.toString());
   }
 }

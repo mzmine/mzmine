@@ -2,17 +2,6 @@ package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.correlation.R2RMS2Similarity;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
-import io.github.mzmine.datamodel.features.types.AreaBarType;
-import io.github.mzmine.datamodel.features.types.AreaShareType;
-import io.github.mzmine.datamodel.features.types.FeatureShapeType;
-import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
-import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
-import io.github.mzmine.util.DataTypeUtils;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;

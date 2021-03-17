@@ -225,6 +225,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
   public void addButton(String text, EventHandler<ActionEvent> handler) {
     Button btn = new Button(text);
     btn.setOnAction(handler);
+    buttonBar.getChildren().add(btn);
   }
 
   public CheckListView<T> getCheckListView() {

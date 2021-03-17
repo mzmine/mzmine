@@ -18,19 +18,24 @@
 
 package io.github.mzmine.datamodel.features;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 
-public class RowGroup extends ArrayList<FeatureListRow> {
+public class RowGroup implements Comparable<RowGroup> {
+
   // visualization
   private int lastViewedRow = 0;
   private int lastViewedRawFile = 0;
 
   // running index of groups
   protected int groupID = 0;
+
+  protected List<FeatureListRow> rows;
   // raw files used for Feature list creation
   protected final List<RawDataFile> raw;
   // center RT values for each sample
@@ -40,6 +45,7 @@ public class RowGroup extends ArrayList<FeatureListRow> {
 
   public RowGroup(final List<RawDataFile> raw, int groupID) {
     super();
+    rows = new ArrayList<>();
     this.raw = raw;
     this.groupID = groupID;
     this.min = new float[raw.size()];
@@ -56,10 +62,17 @@ public class RowGroup extends ArrayList<FeatureListRow> {
     this.forEach(r -> r.setGroup(this));
   }
 
+  public void forEach(Consumer<? super FeatureListRow> action) {
+    rows.forEach(action);
+  }
+
+  public List<FeatureListRow> getRows() {
+    return rows;
+  }
+
   /**
    * Insert sort by ascending avg mz
    */
-  @Override
   public synchronized boolean add(FeatureListRow e) {
     for (int i = 0; i < rtSum.length; i++) {
       Feature f = e.getFeature(raw.get(i));
@@ -67,21 +80,31 @@ public class RowGroup extends ArrayList<FeatureListRow> {
         rtSum[i] = (rtSum[i] + f.getRT());
         rtValues[i]++;
         // min max
-        if (f.getRT() < min[i])
+        if (f.getRT() < min[i]) {
           min[i] = f.getRT();
-        if (f.getRT() > max[i])
+        }
+        if (f.getRT() > max[i]) {
           max[i] = f.getRT();
+        }
       }
     }
     // insert sort find position
     for (int i = 0; i < size(); i++) {
       if (e.getAverageMZ() <= get(i).getAverageMZ()) {
-        super.add(i, e);
+        rows.add(i, e);
         return true;
       }
     }
     // last position
-    return super.add(e);
+    return rows.add(e);
+  }
+
+  public int size() {
+    return rows.size();
+  }
+
+  public Stream<FeatureListRow> stream() {
+    return rows.stream();
   }
 
   public List<RawDataFile> getRaw() {
@@ -90,7 +113,7 @@ public class RowGroup extends ArrayList<FeatureListRow> {
 
   /**
    * checks for the same ID
-   * 
+   *
    * @param row
    * @return
    */
@@ -100,60 +123,61 @@ public class RowGroup extends ArrayList<FeatureListRow> {
 
   /**
    * checks for the same ID
-   * 
+   *
    * @param id
    * @return
    */
   public boolean contains(int id) {
-    for (FeatureListRow r : this)
-      if (r.getID() == id)
+    for (FeatureListRow r : rows) {
+      if (r.getID() == id) {
         return true;
+      }
+    }
     return false;
   }
 
   /**
    * Center retention time in raw file[i]
-   * 
+   *
    * @param rawi
    * @return
    */
   public float getCenterRT(int rawi) {
-    if (rtValues[rawi] == 0)
+    if (rtValues[rawi] == 0) {
       return -1;
+    }
     return rtSum[rawi] / rtValues[rawi];
   }
 
   /**
    * center retention time of this group
-   * 
+   *
    * @return
    */
   public double getCenterRT() {
     double center = 0;
     int counter = 0;
-    for (int i = 0; i < rtSum.length; i++)
+    for (int i = 0; i < rtSum.length; i++) {
       if (rtValues[i] > 0) {
         center += rtSum[i] / rtValues[i];
         counter++;
       }
+    }
     return center / counter;
   }
 
   /**
    * checks if a feature is in range either between min and max or in range of avg+-tolerance
-   * 
+   *
    * @return
    */
   public boolean isInRange(int rawi, Feature f, RTTolerance tol) {
     return hasFeature(rawi) && ((f.getRT() >= min[rawi] && f.getRT() <= max[rawi])
-        || (tol.checkWithinTolerance(getCenterRT(rawi), f.getRT())));
+                                || (tol.checkWithinTolerance(getCenterRT(rawi), f.getRT())));
   }
 
   /**
    * checks if this group has a feature in rawfile[i]
-   * 
-   * @param rawi
-   * @return
    */
   public boolean hasFeature(int rawi) {
     return rtValues[rawi] > 0;
@@ -191,31 +215,33 @@ public class RowGroup extends ArrayList<FeatureListRow> {
   }
 
   public void setLastViewedRawFileI(int lastViewedRawFile) {
-    if (lastViewedRawFile < 0)
+    if (lastViewedRawFile < 0) {
       lastViewedRawFile = 0;
-    else if (lastViewedRawFile >= raw.size())
+    } else if (lastViewedRawFile >= raw.size()) {
       lastViewedRawFile = raw.size() - 1;
+    }
     this.lastViewedRawFile = lastViewedRawFile;
   }
 
   /**
    * Not all rows in this group need to be really correlated. Override in specialized RowGroup
    * classes
-   * 
+   *
    * @param i index in group
    * @param k index in group
    * @return
    */
   public boolean isCorrelated(int i, int k) {
-    if (i == -1 || k == -1)
+    if (i == -1 || k == -1) {
       return false;
+    }
     return true;
   }
 
   /**
    * Not all rows in this group need to be really correlated. Override in specialized RowGroup
    * classes
-   * 
+   *
    * @param a
    * @param b
    * @return
@@ -223,8 +249,22 @@ public class RowGroup extends ArrayList<FeatureListRow> {
   public boolean isCorrelated(FeatureListRow a, FeatureListRow b) {
     int ia = indexOf(a);
     int ib = indexOf(b);
-    if (ia == -1 || ib == -1)
+    if (ia == -1 || ib == -1) {
       return false;
+    }
     return isCorrelated(ia, ib);
+  }
+
+  public int indexOf(FeatureListRow row) {
+    return rows.indexOf(row);
+  }
+
+  public FeatureListRow get(int i) {
+    return rows.get(i);
+  }
+
+  @Override
+  public int compareTo(@Nonnull RowGroup g) {
+    return Integer.compare(this.getGroupID(), g.getGroupID());
   }
 }

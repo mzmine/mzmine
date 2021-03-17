@@ -75,26 +75,26 @@ public class IonModificationComponent extends HBox {
 
     adducts = new MultiChoiceComponent<>(choicesAdducts, List.of(IonModification.getDefaultValuesPos()), null,
             IonModification.H, // just any object as a parser
-            true, true, true, false
+        false, true, true, false
     );
     // add top label
-    mods.setTitle("Adducts");
+    adducts.setTitle("Adducts");
     // add buttons
     adducts.addButton("Add", new AddIonModificationAction(adducts));
     adducts.addButton("Combine", new CombineESIAdductsAction(adducts));
-    adducts.addButton("Default Positive", (e) -> adducts.setChoices(IonModification.getDefaultValuesPos()));
-    adducts.addButton("Default Negative", (e) -> adducts.setChoices(IonModification.getDefaultValuesNeg()));
+    adducts.addButton("Reset positive", (e) -> adducts.setChoices(IonModification.getDefaultValuesPos()));
+    adducts.addButton("Reset negative", (e) -> adducts.setChoices(IonModification.getDefaultValuesNeg()));
 
     mods = new MultiChoiceComponent<IonModification>(choicesMods, List.of(IonModification.getDefaultModifications()), null,
             IonModification.H, // just any object as a parser
-            true, true, true, false
+        false, true, true, false
     );
     // add top label
     mods.setTitle("Modifications");
     // add buttons
     mods.addButton("Add", new AddIonModificationAction(adducts));
     mods.addButton("Combine", new CombineESIAdductsAction(adducts));
-    mods.addButton("Default", (e) -> adducts.setChoices(IonModification.getDefaultModifications()));
+    mods.addButton("Reset", (e) -> mods.setChoices(IonModification.getDefaultModifications()));
 
     getChildren().addAll(adducts, mods);
   }

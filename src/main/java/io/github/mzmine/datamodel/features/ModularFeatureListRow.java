@@ -34,8 +34,8 @@ import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.FormulaAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.FormulaAnnotationType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
-import io.github.mzmine.datamodel.features.types.IonAnnotationSummaryType;
-import io.github.mzmine.datamodel.features.types.IonAnnotationType;
+import io.github.mzmine.datamodel.features.types.IonIdentityListType;
+import io.github.mzmine.datamodel.features.types.IonIdentityModularType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
@@ -434,10 +434,10 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   @Nullable
   public List<IonIdentity> getIonIdentities() {
-    if (get(IonAnnotationType.class) == null) {
+    if (get(IonIdentityModularType.class) == null) {
       return null;
     } else {
-      return get(IonAnnotationType.class).get(IonAnnotationSummaryType.class).getValue();
+      return get(IonIdentityModularType.class).get(IonIdentityListType.class).getValue();
     }
   }
 
@@ -448,11 +448,11 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    */
   @Override
   public void setIonIdentities(@Nullable List<IonIdentity> ions) {
-    if (get(IonAnnotationType.class) == null) {
+    if (get(IonIdentityModularType.class) == null) {
       // add row type if not available
-      flist.addRowType(new IonAnnotationType());
+      flist.addRowType(new IonIdentityModularType());
     }
-    get(IonAnnotationType.class).set(IonAnnotationSummaryType.class, ions);
+    get(IonIdentityModularType.class).set(IonIdentityListType.class, ions);
   }
 
   @Override

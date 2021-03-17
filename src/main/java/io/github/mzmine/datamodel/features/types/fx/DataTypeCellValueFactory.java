@@ -20,7 +20,6 @@ package io.github.mzmine.datamodel.features.types.fx;
 
 import java.util.Map;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;

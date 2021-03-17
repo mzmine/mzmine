@@ -48,8 +48,8 @@ public class IonNetworkLogic {
   /**
    * Compare for likelyhood comparison and sorting
    *
-   * @param a
-   * @param b
+   * @param a ion a
+   * @param b ion b
    * @return same as comparable: -1 0 1 if the first argument is less, equal or better
    */
   public static int compareRows(IonIdentity a, IonIdentity b, RowGroup g) {
@@ -74,13 +74,11 @@ public class IonNetworkLogic {
     if (result != 0) {
       return result;
     }
-    if (result == 0) {
       // if a has less nM molecules in cluster
       result = Integer.compare(b.getIonType().getMolecules(), a.getIonType().getMolecules());
       if (result != 0) {
         return result;
       }
-    }
 
     int bLinks = getLinksTo(b, g);
     int aLinks = getLinksTo(a, g);
@@ -134,7 +132,7 @@ public class IonNetworkLogic {
     if (useGrouping && pkl.getGroups() != null) {
       List<IonNetwork> nets = new ArrayList<>();
       for (RowGroup g : pkl.getGroups()) {
-        nets.addAll(createAnnotationNetworks(g, mzTolerance));
+        nets.addAll(createAnnotationNetworks(g.getRows(), mzTolerance));
       }
 
       return nets;
@@ -602,7 +600,7 @@ public class IonNetworkLogic {
   public static IonNetwork getBestNetwork(RowGroup group) {
     return group.stream().filter(FeatureListRow::hasIonIdentity).flatMap(
         r -> r.getIonIdentities().stream().map(IonIdentity::getNetwork).filter(Objects::nonNull))
-        .max(Comparator.reverseOrder()).orElse(null);
+        .min(Comparator.naturalOrder()).orElse(null);
   }
 
 }

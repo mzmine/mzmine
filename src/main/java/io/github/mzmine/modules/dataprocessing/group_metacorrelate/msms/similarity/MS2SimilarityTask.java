@@ -242,7 +242,7 @@ public class MS2SimilarityTask extends AbstractTask {
       MS2SimilarityProviderGroup g, MZTolerance mzTolerance, double minHeight,
       int minDP, int minMatch, int maxDPForDiff, boolean onlyBestMS2Scan) {
     R2RMap<R2RMS2Similarity> map =
-        checkRows(task, stageProgress, g, mzTolerance,
+        checkRows(task, stageProgress, g.getRows(), mzTolerance,
             minHeight, minMatch, minDP, maxDPForDiff, onlyBestMS2Scan);
 
     g.setMS2SimilarityMap(map);

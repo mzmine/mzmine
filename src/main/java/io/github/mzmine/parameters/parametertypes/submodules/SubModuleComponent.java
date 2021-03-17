@@ -31,16 +31,12 @@ public class SubModuleComponent extends FlowPane {
   /**
    * 
    */
-  private static final long serialVersionUID = 1L;
-  private Button setButton;
-  private ParameterSet embeddedParameters;
+  private final Button setButton;
 
   public SubModuleComponent(ParameterSet embeddedParameters) {
     setButton = new Button("Setup..");
-    setButton.setOnAction(e -> {
-      embeddedParameters.showSetupDialog(true);
-    });
-    setButton.setDisable(true);
+    setButton.setOnAction(e -> embeddedParameters.showSetupDialog(true));
+    setButton.setDisable(false);
     getChildren().addAll(setButton);
   }
 

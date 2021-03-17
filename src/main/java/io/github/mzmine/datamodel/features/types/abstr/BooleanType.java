@@ -12,21 +12,22 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types.abstr;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.features.types.DataType;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 
-public class CosineScoreType extends ScoreType {
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public abstract class BooleanType extends DataType<BooleanProperty> {
 
-  @Nonnull
   @Override
-  public String getHeaderString() {
-    return "Cosine similarity";
+  public BooleanProperty createProperty() {
+    return new SimpleBooleanProperty();
   }
-
 }

@@ -19,24 +19,28 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.numbers.IonNetworkIDType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import java.util.List;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javax.annotation.Nonnull;
 
-public class IonAnnotationType extends ModularType implements AnnotationType {
+public class IonIdentityModularType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
   private final List<DataType> subTypes = List
-      .of(new IonAnnotationSummaryType(), new NeutralMassType(),
-          new FormulaType());
+      .of(new IonIdentityListType(), new IonNetworkIDType(), new SizeType(), new NeutralMassType(),
+          new PartnerIdsType(), new MsMsMultimerVerifiedType(), new FormulaAnnotationType());
 
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
+  @Nonnull
   @Override
   public String getHeaderString() {
     return "Ion identities";
@@ -44,10 +48,10 @@ public class IonAnnotationType extends ModularType implements AnnotationType {
 
   @Override
   public ModularTypeProperty createProperty() {
-    ModularTypeProperty property = super.createProperty();
+    final ModularTypeProperty property = super.createProperty();
 
     // add bindings: If first element in summary column changes - update all other columns based on this object
-    property.get(IonAnnotationSummaryType.class)
+    property.get(IonIdentityListType.class)
         .addListener((ListChangeListener<IonIdentity>) change -> {
           ObservableList<? extends IonIdentity> summaryProperty = change.getList();
           boolean firstElementChanged = false;
@@ -66,7 +70,7 @@ public class IonAnnotationType extends ModularType implements AnnotationType {
   /**
    * On change of the first list element, change all the other sub types.
    *
-   * @param data
+   * @param data data property
    * @param ion  the new preferred ion (first element)
    */
   private void setCurrentElement(ModularTypeProperty data, IonIdentity ion) {
@@ -79,9 +83,14 @@ public class IonAnnotationType extends ModularType implements AnnotationType {
     } else {
       // update selected values
       if (ion.getBestMolFormula() != null) {
-        data.set(FormulaType.class, ion.getBestMolFormula().getFormulaAsString());
+        data.get(FormulaAnnotationType.class)
+            .set(FormulaAnnotationSummaryType.class, ion.getMolFormulas());
       }
       data.set(NeutralMassType.class, ion.getNetwork().getNeutralMass());
+      data.set(IonNetworkIDType.class, ion.getNetwork().getID());
+      data.set(SizeType.class, ion.getNetwork().size());
+      data.set(PartnerIdsType.class, ion.getPartnerRows(";"));
+      data.set(MsMsMultimerVerifiedType.class, ion.getMSMSMultimerCount() > 0);
     }
   }
 

@@ -27,24 +27,28 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.RdbeType;
-import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import java.util.List;
+import java.util.Objects;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javax.annotation.Nonnull;
 
 public class FormulaAnnotationType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
   private final List<DataType> subTypes = List
       .of(new FormulaAnnotationSummaryType(), new NeutralMassType(), new RdbeType(),
-          new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(), new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
+          new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
+          new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
 
+  @Nonnull
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
+  @Nonnull
   @Override
   public String getHeaderString() {
     return "Formula";
@@ -55,7 +59,7 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
     ModularTypeProperty property = super.createProperty();
 
     // add bindings: If first element in summary column changes - update all other columns based on this object
-    property.get(FormulaAnnotationSummaryType.class)
+    Objects.requireNonNull(property.get(FormulaAnnotationSummaryType.class))
         .addListener((ListChangeListener<ResultFormula>) change -> {
           ObservableList<? extends ResultFormula> summaryProperty = change.getList();
           boolean firstElementChanged = false;
@@ -74,8 +78,8 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
   /**
    * On change of the first list element, change all the other sub types.
    *
-   * @param data
-   * @param formula  the new preferred formula (first element)
+   * @param data    property
+   * @param formula the new preferred formula (first element)
    */
   private void setCurrentElement(ModularTypeProperty data, ResultFormula formula) {
     if (formula == null) {

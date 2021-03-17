@@ -45,12 +45,12 @@ public class FeatureGroupType extends DataType<ObjectProperty<RowGroup>> {
   @Override
   public String getFormattedString(@Nullable Object value) {
     if (value instanceof RowGroup group) {
-      return String.valueOf(group.size());
+      return String.valueOf(group.getGroupID());
     }
     return super.getFormattedString(value);
   }
 
   public enum GroupType {
-    CORRELATED, ISOTOPES, ION_ADDUCTS;
+    CORRELATED, ISOTOPES, ION_ADDUCTS
   }
 }
