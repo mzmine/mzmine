@@ -274,6 +274,9 @@
       <MenuItem text="Check MS/MS ion identities"
         onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule"/>
+      <MenuItem text="MS/MS similarity"
+        onAction="#runModule"
+      userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule"/>
       <MenuItem text="Clear ion identities"
         onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>

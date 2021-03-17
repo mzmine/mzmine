@@ -39,7 +39,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanMZDiffConverter;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +49,7 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 public class MS2SimilarityTask extends AbstractTask {
+
   // Logger.
   private static final Logger LOG = Logger.getLogger(MS2SimilarityTask.class.getName());
 
@@ -65,7 +66,7 @@ public class MS2SimilarityTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private double minHeight;
 
-  private FeatureListRow[] rows;
+  private List<FeatureListRow> rows;
   private RowGroupList groups;
   private MS2SimilarityProviderGroup group;
   private IonNetwork[] nets;
@@ -76,9 +77,7 @@ public class MS2SimilarityTask extends AbstractTask {
   private ModularFeatureList featureList;
 
 
-
   /**
-   * 
    * @param parameterSet
    */
   public MS2SimilarityTask(final ParameterSet parameterSet, ModularFeatureList featureList) {
@@ -111,7 +110,8 @@ public class MS2SimilarityTask extends AbstractTask {
    *
    * @param parameterSet the parameters.
    */
-  public MS2SimilarityTask(final ParameterSet parameterSet, ModularFeatureList featureList, FeatureListRow[] rows) {
+  public MS2SimilarityTask(final ParameterSet parameterSet, ModularFeatureList featureList,
+      List<FeatureListRow> rows) {
     this(parameterSet, featureList);
     this.rows = rows;
   }
@@ -127,7 +127,8 @@ public class MS2SimilarityTask extends AbstractTask {
     this.group = group;
   }
 
-  public MS2SimilarityTask(ParameterSet parameters, ModularFeatureList featureList, IonNetwork[] nets) {
+  public MS2SimilarityTask(ParameterSet parameters, ModularFeatureList featureList,
+      IonNetwork[] nets) {
     this(parameters, featureList);
     this.nets = nets;
   }
@@ -150,27 +151,29 @@ public class MS2SimilarityTask extends AbstractTask {
   }
 
   public void doCheck() {
-    if (nets != null)
+    if (nets != null) {
       map = checkNetworks(this, stageProgress, featureList, nets, mzTolerance, minHeight,
           minDP, minMatch, maxDPForDiff, onlyBestMS2Scan);
-    else if (group != null)
+    } else if (group != null) {
       map = checkGroup(this, stageProgress, group, mzTolerance, minHeight, minDP,
           minMatch, maxDPForDiff, onlyBestMS2Scan);
-    else if (rows != null) {
+    } else if (rows != null) {
       map = checkRows(this, stageProgress, rows, mzTolerance, minHeight, minDP, minMatch,
           maxDPForDiff, onlyBestMS2Scan);
-    } else if (groups != null)
+    } else if (groups != null) {
       checkGroupList(this, stageProgress, groups, mzTolerance, minHeight, minDP, minMatch,
           maxDPForDiff, onlyBestMS2Scan);
+    }
 
-    if (featureList != null && map != null)
+    if (featureList != null && map != null) {
       featureList.addR2RSimilarity(map);
+    }
   }
 
 
   /**
    * Resulting map
-   * 
+   *
    * @return
    */
   public R2RMap<R2RMS2Similarity> getMap() {
@@ -190,9 +193,10 @@ public class MS2SimilarityTask extends AbstractTask {
     final int size = groups.size();
     groups.parallelStream().forEach(g -> {
       if (!task.isCanceled()) {
-        if (g instanceof MS2SimilarityProviderGroup)
-          checkGroup(task, stageProgress, (MS2SimilarityProviderGroup) g, massList, mzTolerance,
+        if (g instanceof MS2SimilarityProviderGroup) {
+          checkGroup(task, stageProgress, (MS2SimilarityProviderGroup) g, mzTolerance,
               minHeight, minDP, minMatch, maxDPForDiff, onlyBestMS2Scan);
+        }
         stageProgress.addAndGet(1d / size);
       }
     });
@@ -208,16 +212,16 @@ public class MS2SimilarityTask extends AbstractTask {
 
 
   public static R2RMap<R2RMS2Similarity> checkNetworks(AbstractTask task,
-                                                       AtomicDouble stageProgress, FeatureList featureList, IonNetwork[] nets,
-                                                       MZTolerance mzTolerance, double minHeight, int minDP, int minMatch, int maxDPForDiff,
-                                                       boolean onlyBestMS2Scan) {
+      AtomicDouble stageProgress, FeatureList featureList, IonNetwork[] nets,
+      MZTolerance mzTolerance, double minHeight, int minDP, int minMatch, int maxDPForDiff,
+      boolean onlyBestMS2Scan) {
     // get all rows of all networks
     Map<Integer, FeatureListRow> rows = new HashMap<>();
     Arrays.stream(nets).flatMap(n -> n.keySet().stream()).forEach(r -> rows.put(r.getID(), r));
-    FeatureListRow[] allRows = rows.values().toArray(new FeatureListRow[0]);
+    List<FeatureListRow> allRows = new ArrayList <>(rows.values());
 
     // add all to this map
-    R2RMap<R2RMS2Similarity> map = checkRows(task, stageProgress, allRows, massList, mzTolerance,
+    R2RMap<R2RMS2Similarity> map = checkRows(task, stageProgress, allRows, mzTolerance,
         minHeight, minMatch, minDP, maxDPForDiff, onlyBestMS2Scan);
 
     featureList.addR2RSimilarity(map);
@@ -226,10 +230,8 @@ public class MS2SimilarityTask extends AbstractTask {
 
   /**
    * Checks for MS2 similarity of all rows in a group. the resulting map is set to the groups3
-   * 
-   * 
+   *
    * @param g
-   * @param massList
    * @param mzTolerance
    * @param minMatch
    * @param minDP
@@ -240,7 +242,7 @@ public class MS2SimilarityTask extends AbstractTask {
       MS2SimilarityProviderGroup g, MZTolerance mzTolerance, double minHeight,
       int minDP, int minMatch, int maxDPForDiff, boolean onlyBestMS2Scan) {
     R2RMap<R2RMS2Similarity> map =
-        checkRows(task, stageProgress, g.toArray(new FeatureListRow[g.size()]), massList, mzTolerance,
+        checkRows(task, stageProgress, g, mzTolerance,
             minHeight, minMatch, minDP, maxDPForDiff, onlyBestMS2Scan);
 
     g.setMS2SimilarityMap(map);
@@ -249,9 +251,8 @@ public class MS2SimilarityTask extends AbstractTask {
 
   /**
    * Parallel check of all r2r similarities
-   * 
+   *
    * @param rows
-   * @param massList
    * @param mzTolerance
    * @param minHeight
    * @param minDP
@@ -260,31 +261,34 @@ public class MS2SimilarityTask extends AbstractTask {
    * @return
    */
   public static R2RMap<R2RMS2Similarity> checkRows(AbstractTask task, AtomicDouble stageProgress,
-      FeatureListRow[] rows, MZTolerance mzTolerance, double minHeight, int minDP,
+      List<FeatureListRow> rows, MZTolerance mzTolerance, double minHeight, int minDP,
       int minMatch, int maxDPForDiff, boolean onlyBestMS2Scan) {
-    LOG.info("Checking MS2 similarity on " + rows.length + " rows");
+    LOG.info("Checking MS2 similarity on " + rows.size() + " rows");
     R2RMap<R2RMS2Similarity> map = new R2RMap<>();
 
-    IntStream.range(0, rows.length - 1).parallel().forEach(i -> {
+    IntStream.range(0, rows.size() - 1).parallel().forEach(i -> {
       if (task == null || !task.isCanceled()) {
         R2RMap<R2RMS2Similarity> submap = null;
-        for (int j = i + 1; j < rows.length; j++) {
+        for (int j = i + 1; j < rows.size(); j++) {
           if (task == null || !task.isCanceled()) {
-            R2RMS2Similarity r2r = checkR2R(rows[i], rows[j], massList, mzTolerance, minHeight,
+            R2RMS2Similarity r2r = checkR2R(rows.get(i), rows.get(j), mzTolerance, minHeight,
                 minDP, minMatch, maxDPForDiff, onlyBestMS2Scan);
             if (r2r != null) {
-              if (submap == null)
+              if (submap == null) {
                 submap = new R2RMap<>();
-              submap.add(rows[i], rows[j], r2r);
+              }
+              submap.add(rows.get(i), rows.get(j), r2r);
             }
           }
         }
         // bundle to lower synchronizing
-        if (submap != null)
+        if (submap != null) {
           map.putAll(submap);
+        }
       }
-      if (stageProgress != null)
-        stageProgress.getAndAdd(1d / rows.length);
+      if (stageProgress != null) {
+        stageProgress.getAndAdd(1d / rows.size());
+      }
     });
     LOG.info("MS2 similarity check on rows done. R2R similarity=" + map.size());
     return map;
@@ -317,22 +321,24 @@ public class MS2SimilarityTask extends AbstractTask {
             // align and check spectra
             MS2Similarity spectralSim = createMS2Sim(mzTolerance, dpa, dpb, minMatch, SIZE_OVERLAP);
 
-            if (massDiffSim != null)
+            if (massDiffSim != null) {
               r2r.addMassDiffSim(massDiffSim);
-            if (spectralSim != null)
+            }
+            if (spectralSim != null) {
               r2r.addSpectralSim(spectralSim);
+            }
           }
         }
       }
     } else {
       for (Feature fa : a.getFeatures()) {
-        DataPoint[] dpa = getMassList(fa, massList);
+        DataPoint[] dpa = getMassList(fa);
         if (dpa != null && dpa.length >= minDP) {
           // create mass diff array
           DataPoint[] massDiffA =
               ScanMZDiffConverter.getAllMZDiff(dpa, mzTolerance, minHeight, maxDPForDiff);
           for (Feature fb : b.getFeatures()) {
-            DataPoint[] dpb = getMassList(fb, massList);
+            DataPoint[] dpb = getMassList(fb);
             if (dpb != null && dpb.length >= minDP) {
               // align and check spectra
               MS2Similarity spectralSim =
@@ -344,10 +350,12 @@ public class MS2SimilarityTask extends AbstractTask {
               MS2Similarity massDiffSim =
                   createMS2Sim(mzTolerance, massDiffA, massDiffB, minMatch, DIFF_OVERLAP);
 
-              if (massDiffSim != null)
+              if (massDiffSim != null) {
                 r2r.addMassDiffSim(massDiffSim);
-              if (spectralSim != null)
+              }
+              if (spectralSim != null) {
                 r2r.addSpectralSim(spectralSim);
+              }
             }
           }
         }
@@ -357,11 +365,10 @@ public class MS2SimilarityTask extends AbstractTask {
   }
 
   /**
-   * 
    * @param mzTol
    * @param a
    * @param b
-   * @param minMatch minimum overlapping signals in the two mass lists a and b
+   * @param minMatch        minimum overlapping signals in the two mass lists a and b
    * @param overlapFunction different functions to determin the size of overlap
    * @return
    */
@@ -384,8 +391,9 @@ public class MS2SimilarityTask extends AbstractTask {
 
   private static DataPoint[] getMassList(Feature fa) {
     Scan msmsScan = fa.getMostIntenseFragmentScan();
-    if (msmsScan ==null )
+    if (msmsScan == null) {
       return null;
+    }
     return msmsScan.getMassList()
         .getDataPoints();
   }

@@ -291,21 +291,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       throw new IllegalArgumentException("Raw file cannot be null");
     }
     ModularFeature modularFeature = (ModularFeature) feature;
-    /*
-     * if (Objects.equals(modularFeature.getFeatureList(), getFeatureList())) { // features are
-     * final - replace all values for all data types // keep old feature ModularFeature old =
-     * getFilesFeatures().get(raw); for (DataType type : flist.getFeatureTypes().values()) {
-     * old.set(type, modularFeature.get(type).getValue()); } } else { features.put(raw,
-     * modularFeature); }
-     */
-    if (hasFeature(raw)) {
-      ModularFeature old = getFeature(raw);
-      for (DataType<?> type : flist.getFeatureTypes().values()) {
-        old.set(type, modularFeature.get(type).getValue());
-      }
-    } else {
-      features.put(raw, modularFeature);
-    }
+
+    features.put(raw, modularFeature);
     modularFeature.setFeatureList(flist);
   }
 
@@ -374,7 +361,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public boolean hasFeature(RawDataFile rawData) {
-    return features.containsKey(rawData);
+    ModularFeature feature = features.get(rawData);
+    return feature !=null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN);
   }
 
   @Override
