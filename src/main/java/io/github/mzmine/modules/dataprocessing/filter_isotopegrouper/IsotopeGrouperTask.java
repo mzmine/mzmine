@@ -146,6 +146,9 @@ class IsotopeGrouperTask extends AbstractTask {
     // Create a new deisotoped peakList
     ModularFeatureList deisotopedFeatureList = new ModularFeatureList(featureList + " " + suffix,
         getMemoryMapStorage(), featureList.getRawDataFiles());
+    deisotopedFeatureList
+        .setSelectedScans(featureList.getRawDataFile(0), featureList.getSeletedScans(
+            featureList.getRawDataFile(0)));
 
     // Collect all selected charge states
     int[] charges = new int[maximumCharge];
