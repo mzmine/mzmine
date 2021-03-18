@@ -165,9 +165,9 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           @Override
           public int compare(RetentionTimeMobilityDataPoint o1, RetentionTimeMobilityDataPoint o2) {
             if (o1.getIntensity() > o2.getIntensity()) {
-              return 1;
-            } else {
               return -1;
+            } else {
+              return 1;
             }
           }
         });
