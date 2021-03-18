@@ -1,20 +1,25 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
 
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
-import java.util.HashMap;
-import java.util.Map;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
-public class TempTrace {
+public class TempMobilogram {
 
-  private static Logger logger = Logger.getLogger(TempTrace.class.getName());
+  private static Logger logger = Logger.getLogger(TempMobilogram.class.getName());
 
-  protected final Map<Integer, RetentionTimeMobilityDataPoint> datapoints = new HashMap<>();
+  protected final SortedMap<Integer, RetentionTimeMobilityDataPoint> datapoints = new TreeMap<>();
   protected double lowestMz;
   protected double highestMz;
   protected double centerMz;
 
-  public TempTrace() {
+  public TempMobilogram() {
 
   }
 
@@ -96,5 +101,20 @@ public class TempTrace {
       return replaceDataPoint(dp);
     }
     return dp;
+  }
+
+  public BuildingIonMobilitySeries toBuildingSeries(@Nullable MemoryMapStorage storage) {
+    final int numValues = datapoints.size();
+    double[] mzs = new double[numValues];
+    double[] intensities = new double[numValues];
+    List<MobilityScan> scans = new ArrayList<>();
+
+    int i = 0;
+    for (RetentionTimeMobilityDataPoint value : datapoints.values()) {
+      mzs[i] = value.getMZ();
+      intensities[i] = value.getIntensity();
+      scans.add(value.getMobilityScan());
+    }
+    return new BuildingIonMobilitySeries(storage, mzs, intensities, scans);
   }
 }

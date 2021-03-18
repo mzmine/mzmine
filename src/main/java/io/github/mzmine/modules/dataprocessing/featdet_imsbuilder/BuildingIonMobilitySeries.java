@@ -15,6 +15,7 @@ public class BuildingIonMobilitySeries extends SimpleIonMobilitySeries {
 
   protected final double summedIntensity;
   protected final double avgMZ;
+  protected final int frameNumber;
 
   /**
    * @param storage         May be null if forceStoreInRam is true.
@@ -27,6 +28,7 @@ public class BuildingIonMobilitySeries extends SimpleIonMobilitySeries {
       @Nonnull List<MobilityScan> scans) {
     super(storage, mzValues, intensityValues, scans);
 
+    frameNumber = scans.get(0).getFrame().getFrameId();
     summedIntensity = ArrayUtils.sum(intensityValues);
     avgMZ = MathUtils.calcCenter(CenterMeasure.AVG, mzValues, intensityValues, Weighting.LINEAR);
   }
@@ -37,5 +39,9 @@ public class BuildingIonMobilitySeries extends SimpleIonMobilitySeries {
 
   public double getAvgMZ() {
     return avgMZ;
+  }
+
+  public int getFrameNumber() {
+    return frameNumber;
   }
 }
