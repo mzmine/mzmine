@@ -1,11 +1,14 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,7 +37,15 @@ public class IMSBuilderModule implements MZmineProcessingModule {
   @Override
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    return null;
+
+    final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+    for (RawDataFile rawDataFile : parameters
+        .getParameter(IMSBuilderParameters.rawDataFiles).getValue().getMatchingRawDataFiles()) {
+      if (rawDataFile instanceof IMSRawDataFile) {
+        tasks.add(new IMSBuilderTask(storage, (IMSRawDataFile) rawDataFile, parameters, project));
+      }
+    }
+    return ExitCode.OK;
   }
 
   @Nonnull

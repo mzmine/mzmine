@@ -148,22 +148,19 @@ public class MobilityScanDataAccess implements MobilityScan {
   public MobilityScan nextMobilityScan() throws MissingMassListException {
     currentMobilityScanIndex++;
     currentMobilityScan = currentFrame.getMobilityScan(currentMobilityScanIndex);
-    switch (type) {
-      case CENTROID: {
-        final MassList ml = currentMobilityScan.getMassList();
-        if (ml == null) {
-          throw new MissingMassListException("Mobility scan " + currentMobilityScanIndex
-              + " does not contain a mass list.", currentFrame);
-        }
-        currentNumberOfDataPoints = ml.getNumberOfDataPoints();
-        ml.getMzValues(mzs);
-        ml.getIntensityValues(intensities);
+    if (type == MobilityScanDataType.CENTROID) {
+      final MassList ml = currentMobilityScan.getMassList();
+      if (ml == null) {
+        throw new MissingMassListException("Mobility scan " + currentMobilityScanIndex
+            + " does not contain a mass list.", currentFrame);
       }
-      case RAW: {
-        currentNumberOfDataPoints = currentMobilityScan.getNumberOfDataPoints();
-        currentMobilityScan.getMzValues(mzs);
-        currentMobilityScan.getIntensityValues(intensities);
-      }
+      currentNumberOfDataPoints = ml.getNumberOfDataPoints();
+      ml.getMzValues(mzs);
+      ml.getIntensityValues(intensities);
+    } else if (type == MobilityScanDataType.RAW) {
+      currentNumberOfDataPoints = currentMobilityScan.getNumberOfDataPoints();
+      currentMobilityScan.getMzValues(mzs);
+      currentMobilityScan.getIntensityValues(intensities);
     }
     return currentMobilityScan;
   }

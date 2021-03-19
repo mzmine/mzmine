@@ -5,16 +5,23 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -38,22 +45,23 @@ public class IMSBuilderTask extends AbstractTask {
   private final IMSRawDataFile file;
   private final ParameterSet parameters;
   private final ScanSelection scanSelection;
-  private final int steps = 4;
+  private final MZmineProject project;
+  private final int steps = 3;
+  private final MZTolerance tolerance;
+  private final MemoryMapStorage tempStorage = MemoryMapStorage.forFeatureList();
   private int stepProcessed = 0;
   private int stepTotal = 0;
   private int currentStep = 1;
-  private final MZTolerance tolerance;
-  private final MemoryMapStorage tempStorage = MemoryMapStorage.forFeatureList();
 
   public IMSBuilderTask(@Nullable MemoryMapStorage storage, @Nonnull final IMSRawDataFile file,
-      @Nonnull final
-      ParameterSet parameters) {
+      @Nonnull final ParameterSet parameters, MZmineProject project) {
     super(storage);
 
     this.file = file;
     this.parameters = parameters;
     scanSelection = parameters.getParameter(IMSBuilderParameters.scanSelection).getValue();
     tolerance = parameters.getParameter(IMSBuilderParameters.mzTolerance).getValue();
+    this.project = project;
   }
 
   @Override
@@ -133,13 +141,29 @@ public class IMSBuilderTask extends AbstractTask {
 
     final ModularFeatureList flist = new ModularFeatureList(file.getName(), getMemoryMapStorage(),
         file);
-    
-    stepProcessed = 0;
-    final Map<Range<Double>, TempIMTrace> traceMap = ionMobilityTraces.asMapOfRanges();
-    stepTotal = traceMap.size();
-    for (TempIMTrace trace : traceMap.values()) {
 
+    final Map<Range<Double>, TempIMTrace> traceMap = ionMobilityTraces.asMapOfRanges();
+    logger.finest(() -> "Creation BinningMobilogramDataAccess for raw data file " + file.getName());
+    final BinningMobilogramDataAccess binningMobilogramDataAccess = EfficientDataAccess
+        .of(file, 0.008);
+
+    stepProcessed = 0;
+    stepTotal = traceMap.size();
+    currentStep++;
+
+    int id = 0;
+    for (TempIMTrace trace : traceMap.values()) {
+      ModularFeature f = FeatureConvertors
+          .tempIMTraceToModularFeature(trace, file, binningMobilogramDataAccess, flist);
+      flist.addRow(new ModularFeatureListRow(flist, id, f));
+      id++;
+      stepProcessed++;
     }
+
+    flist.getAppliedMethods()
+        .add(new SimpleFeatureListAppliedMethod(IMSBuilderModule.class, parameters));
+    project.addFeatureList(flist);
+    setStatus(TaskStatus.FINISHED);
   }
 
   private RangeMap<Double, TempMobilogram> calcMobilograms(
