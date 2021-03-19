@@ -86,9 +86,11 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
         data.get(FormulaAnnotationType.class)
             .set(FormulaAnnotationSummaryType.class, ion.getMolFormulas());
       }
-      data.set(NeutralMassType.class, ion.getNetwork().getNeutralMass());
-      data.set(IonNetworkIDType.class, ion.getNetwork().getID());
-      data.set(SizeType.class, ion.getNetwork().size());
+      if(ion.getNetwork()!=null) {
+        data.set(NeutralMassType.class, ion.getNetwork().getNeutralMass());
+        data.set(IonNetworkIDType.class, ion.getNetwork().getID());
+        data.set(SizeType.class, ion.getNetwork().size());
+      }
       data.set(PartnerIdsType.class, ion.getPartnerRows(";"));
       data.set(MsMsMultimerVerifiedType.class, ion.getMSMSMultimerCount() > 0);
     }

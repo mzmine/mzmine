@@ -18,11 +18,11 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import javax.annotation.Nonnull;
 
-public class MsMsMultimerVerifiedType extends StringType implements AnnotationType {
+public class MsMsMultimerVerifiedType extends BooleanType implements AnnotationType {
 
   @Nonnull
   @Override

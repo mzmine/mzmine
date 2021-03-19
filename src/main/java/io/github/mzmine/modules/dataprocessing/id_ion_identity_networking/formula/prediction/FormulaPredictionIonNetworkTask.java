@@ -20,13 +20,11 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formu
 
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
@@ -56,6 +54,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -176,18 +175,17 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // get all networks (filter out undefined ion types)
-    IonNetwork[] nets = IonNetworkLogic.streamNetworks(featureList, false)
-        .filter(net -> !net.isUndefined()).toArray(IonNetwork[]::new);
-    totalRows = nets.length;
+    List<IonNetwork> nets = IonNetworkLogic.streamNetworks(featureList, false)
+        .filter(net -> !net.isUndefined()).collect(Collectors.toList());
+    totalRows = nets.size();
     if (totalRows == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("No annotation networks found in this list. Run MS annotation");
-      cancel();
       return;
     }
 
     // parallel
-    Arrays.stream(nets).forEach(net -> {
+    nets.stream().forEach(net -> {
       message = "Formula prediction on network " + net.getID();
       if (!isCanceled()) {
         predictFormulasForNetwork(net);

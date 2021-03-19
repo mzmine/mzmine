@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
+import java.text.MessageFormat;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
 import javafx.beans.value.ObservableValue;
@@ -77,9 +78,10 @@ public class ModularDataTypeCellValueFactory implements
       MapProperty<DataType, Property<?>> parentMap = map.get(modularParentType);
       return (ObservableValue<Object>) parentMap.get(subType);
     }catch (Exception ex) {
-      logger.log(Level.WARNING, "Cannot get sub type of ModularType", ex);
-      return null;
+      logger.log(Level.WARNING, MessageFormat.format("Cannot get sub type {0} of ModularType {1}", subType.getClass().toString(), map.getClass().toString()), ex);
+//      throw ex;
     }
+    return null;
   }
 
 

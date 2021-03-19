@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.RowGroupList;
+import io.github.mzmine.datamodel.features.types.IonIdentityModularType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
@@ -116,6 +117,9 @@ public class IonNetworkingTask extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       // create library
       LOG.info("Creating annotation library");
+      // add types
+      featureList.addRowType(new IonIdentityModularType());
+
       IonLibraryParameterSet p =
           parameters.getParameter(IonNetworkingParameters.LIBRARY).getEmbeddedParameters();
       library = new IonNetworkLibrary(p, mzTolerance);
