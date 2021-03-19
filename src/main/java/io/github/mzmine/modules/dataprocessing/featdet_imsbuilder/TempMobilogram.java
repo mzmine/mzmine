@@ -15,8 +15,8 @@ public class TempMobilogram {
   private static Logger logger = Logger.getLogger(TempMobilogram.class.getName());
 
   protected final SortedMap<Integer, RetentionTimeMobilityDataPoint> datapoints = new TreeMap<>();
-  protected double lowestMz;
-  protected double highestMz;
+  protected double lowestMz = Double.MAX_VALUE;
+  protected double highestMz = Double.MIN_VALUE;
   protected double centerMz;
 
   public TempMobilogram() {
@@ -83,7 +83,7 @@ public class TempMobilogram {
       }
 
       centerMz += mz * intensity;
-      summedIntensities += value.getIntensity();
+      summedIntensities += intensity;
     }
     centerMz /= summedIntensities;
   }
@@ -114,6 +114,7 @@ public class TempMobilogram {
       mzs[i] = value.getMZ();
       intensities[i] = value.getIntensity();
       scans.add(value.getMobilityScan());
+      i++;
     }
     return new BuildingIonMobilitySeries(storage, mzs, intensities, scans);
   }

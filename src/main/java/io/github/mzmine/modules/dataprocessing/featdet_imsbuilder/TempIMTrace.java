@@ -12,8 +12,8 @@ public class TempIMTrace {
   private static Logger logger = Logger.getLogger(TempMobilogram.class.getName());
 
   protected final SortedMap<Integer, BuildingIonMobilitySeries> mobilograms = new TreeMap<>();
-  protected double lowestMz;
-  protected double highestMz;
+  protected double lowestMz = Double.MAX_VALUE;
+  protected double highestMz = Double.MIN_VALUE;
   protected double centerMz;
 
   public TempIMTrace() {

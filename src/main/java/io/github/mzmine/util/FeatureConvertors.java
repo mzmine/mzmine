@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -254,6 +255,7 @@ public class FeatureConvertors {
     modularFeature.set(RawFileType.class, rawDataFile);
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.setMobilityUnit(((IMSRawDataFile) rawDataFile).getMobilityType());
+    modularFeature.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class, false);
 
     MemoryMapStorage storage = flist.getMemoryMapStorage();
     IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory

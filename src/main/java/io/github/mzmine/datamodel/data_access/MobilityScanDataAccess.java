@@ -212,6 +212,9 @@ public class MobilityScanDataAccess implements MobilityScan {
   @Override
   public double getIntensityValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
+    if(intensities[index] > 1E4) {
+      return intensities[index];
+    }
     return intensities[index];
   }
 
@@ -236,6 +239,15 @@ public class MobilityScanDataAccess implements MobilityScan {
           .mapToInt(frame -> ((FrameMassList) frame.getMassList()).getMaxMobilityScanDatapoints())
           .max().orElse(0);
     };
+   /* int forloop = 0;
+    if (type == MobilityScanDataType.CENTROID) {
+      for (Frame frame : frames) {
+        int dp = ((FrameMassList)frame.getMassList()).getMaxMobilityScanDatapoints();
+        if(dp > forloop)
+          forloop = dp;
+      }
+    }
+    return forloop;*/
   }
 
   // ###############################################
@@ -293,7 +305,7 @@ public class MobilityScanDataAccess implements MobilityScan {
   @Nullable
   @Override
   public Double getTIC() {
-   return ArrayUtils.sum(intensities, 0, currentNumberOfDataPoints);
+    return ArrayUtils.sum(intensities, 0, currentNumberOfDataPoints);
   }
 
   @Override
