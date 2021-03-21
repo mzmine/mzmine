@@ -430,15 +430,21 @@
       userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
     <MenuItem text="3D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Ion mobility raw data overview"
-      userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
-    <MenuItem onAction="#runModule" text="Image viewer"
-      userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
     <MenuItem onAction="#runModule" text="MS/MS plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
+
     <SeparatorMenuItem/>
+
+    <MenuItem onAction="#runModule" text="Image viewer"
+      userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
+
     <SeparatorMenuItem/>
+
+    <MenuItem onAction="#runModule" text="Ion mobility raw data overview"
+      userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
+
     <SeparatorMenuItem/>
+
     <MenuItem text="m/z scan histogram" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule"/>
     <SeparatorMenuItem/>
