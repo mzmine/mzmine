@@ -5,7 +5,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.R
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -14,7 +13,7 @@ public class TempMobilogram {
 
   private static Logger logger = Logger.getLogger(TempMobilogram.class.getName());
 
-  protected final SortedMap<Integer, RetentionTimeMobilityDataPoint> datapoints = new TreeMap<>();
+  protected final TreeMap<Integer, RetentionTimeMobilityDataPoint> datapoints = new TreeMap<>();
   protected double lowestMz = Double.MAX_VALUE;
   protected double highestMz = Double.MIN_VALUE;
   protected double centerMz;
@@ -43,6 +42,7 @@ public class TempMobilogram {
    * @return The replaced data point
    */
   public RetentionTimeMobilityDataPoint replaceDataPoint(RetentionTimeMobilityDataPoint dp) {
+
     final RetentionTimeMobilityDataPoint replaced = datapoints
         .put(dp.getMobilityScan().getMobilityScanNumber(), dp);
     if (replaced == null) {
@@ -98,6 +98,11 @@ public class TempMobilogram {
     final double currentDelta = Math.abs(centerMz - current.getMZ());
     final double proposedDelta = Math.abs(centerMz - dp.getMZ());
     if (currentDelta > proposedDelta) {
+//      var ceilingEntry = datapoints.ceilingEntry(dp.getMobilityScan().getMobilityScanNumber());
+//      var floorEntry = datapoints.floorEntry(dp.getMobilityScan().getMobilityScanNumber());
+//      final double ceilingIntensity = ceilingEntry.getValue().getIntensity();
+//      final double floorIntensity = floorEntry.getValue().getIntensity();
+
       return replaceDataPoint(dp);
     }
     return dp;

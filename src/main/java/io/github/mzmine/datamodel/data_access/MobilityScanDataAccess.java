@@ -28,21 +28,21 @@ public class MobilityScanDataAccess implements MobilityScan {
   private final ScanSelection selection;
   protected final int totalFrames;
 
-  protected List<Frame> eligibleFrames;
+  protected final List<Frame> eligibleFrames;
+
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
 
-
   // current data
+
   protected final double[] mzs;
   protected final double[] intensities;
   protected final double[] mobilities;
-
   protected int currentNumberOfDataPoints = -1;
+
   protected int currentNumberOfMobilityScans = -1;
   protected int currentMobilityScanIndex = -1;
   protected int currentFrameIndex = -1;
-
   /**
    * The intended use of this memory access is to loop over all scans and access data points via
    * {@link #getMzValue(int)} and {@link #getIntensityValue(int)}
@@ -252,6 +252,7 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   // ###############################################
   // general MassSpectrum methods
+
   @Override
   public MassSpectrumType getSpectrumType() {
     return switch (type) {
@@ -259,7 +260,6 @@ public class MobilityScanDataAccess implements MobilityScan {
       case CENTROID -> MassSpectrumType.CENTROIDED;
     };
   }
-
   @Nullable
   @Override
   public Double getBasePeakMz() {
@@ -300,6 +300,10 @@ public class MobilityScanDataAccess implements MobilityScan {
       default:
         throw new IllegalStateException("Unexpected value: " + type);
     }
+  }
+
+  public List<Frame> getEligibleFrames() {
+    return eligibleFrames;
   }
 
   @Nullable

@@ -1,9 +1,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
 
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
@@ -11,7 +11,7 @@ public class TempIMTrace {
 
   private static Logger logger = Logger.getLogger(TempMobilogram.class.getName());
 
-  protected final SortedMap<Integer, BuildingIonMobilitySeries> mobilograms = new TreeMap<>();
+  protected final TreeMap<Frame, BuildingIonMobilitySeries> mobilograms = new TreeMap<>();
   protected double lowestMz = Double.MAX_VALUE;
   protected double highestMz = Double.MIN_VALUE;
   protected double centerMz;
@@ -28,7 +28,7 @@ public class TempIMTrace {
    * @return
    */
   public BuildingIonMobilitySeries tryToAddMobilogram(BuildingIonMobilitySeries mobilogram) {
-    var currentValue = mobilograms.putIfAbsent(mobilogram.getFrameNumber(), mobilogram);
+    var currentValue = mobilograms.putIfAbsent(mobilogram.getFrame(), mobilogram);
     if (currentValue == null) {
       updateValues();
     }
@@ -39,9 +39,9 @@ public class TempIMTrace {
    * @param mobilogram
    * @return The replaced data point
    */
-  public BuildingIonMobilitySeries replaceDataPoint(BuildingIonMobilitySeries mobilogram) {
+  public BuildingIonMobilitySeries replaceMobilogram(BuildingIonMobilitySeries mobilogram) {
     final BuildingIonMobilitySeries replaced = mobilograms
-        .put(mobilogram.getFrameNumber(), mobilogram);
+        .put(mobilogram.getFrame(), mobilogram);
     if (replaced == null) {
       logger.fine(() -> "Data point did not replace another data point");
     }
@@ -86,21 +86,62 @@ public class TempIMTrace {
   }
 
   public BuildingIonMobilitySeries keepBetterFittingDataPoint(
-      BuildingIonMobilitySeries dp) {
-    final BuildingIonMobilitySeries current = tryToAddMobilogram(dp);
+      BuildingIonMobilitySeries mob) {
+    final BuildingIonMobilitySeries current = tryToAddMobilogram(mob);
     if (current == null) {
       return null;
     }
 
     final double currentDelta = Math.abs(centerMz - current.getAvgMZ());
-    final double proposedDelta = Math.abs(centerMz - dp.getAvgMZ());
+    final double proposedDelta = Math.abs(centerMz - mob.getAvgMZ());
     if (currentDelta > proposedDelta) {
-      return replaceDataPoint(dp);
+      var ceilingEntry = mobilograms.ceilingEntry(mob.getFrame());
+      var floorEntry = mobilograms.floorEntry(mob.getFrame());
+
+      final double ceilingIntensity = ceilingEntry.getValue().getSummedIntensity();
+      final double floorIntensity = floorEntry.getValue().getSummedIntensity();
+      final double avgIntensity = (ceilingIntensity + floorIntensity) / 2;
+
+      // only replace if the proposed intensity fits better
+      if (Math.abs(avgIntensity - mob.getSummedIntensity()) < Math
+          .abs(avgIntensity - current.getSummedIntensity())) {
+        return replaceMobilogram(mob);
+      }
     }
-    return dp;
+    return mob;
   }
 
   public List<IonMobilitySeries> getMobilograms() {
     return new ArrayList<>(mobilograms.values());
+  }
+
+  public boolean isConsecutive(int reqConsecutive, List<Frame> eligibleFrames) {
+
+    int numConsecutive = 0;
+
+    int index = 0;
+    int prevIndex = 0;
+    for (Frame frame : mobilograms.keySet()) {
+      while (frame != eligibleFrames.get(index)) {
+        index++;
+      }
+
+      if (index - prevIndex <= 1) {
+        numConsecutive++;
+        if (numConsecutive >= reqConsecutive) {
+          return true;
+        }
+      } else {
+        numConsecutive = 0;
+      }
+
+      prevIndex = index;
+    }
+
+    return false;
+  }
+
+  public int getNumberOfDataPoints() {
+    return mobilograms.values().stream().mapToInt(IonMobilitySeries::getNumberOfValues).sum();
   }
 }

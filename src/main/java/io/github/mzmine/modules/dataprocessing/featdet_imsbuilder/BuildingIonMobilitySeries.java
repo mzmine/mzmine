@@ -1,5 +1,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
 
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.util.ArrayUtils;
@@ -15,7 +16,7 @@ public class BuildingIonMobilitySeries extends SimpleIonMobilitySeries {
 
   protected final double summedIntensity;
   protected final double avgMZ;
-  protected final int frameNumber;
+  protected final Frame frame;
 
   /**
    * @param storage         May be null if forceStoreInRam is true.
@@ -28,7 +29,7 @@ public class BuildingIonMobilitySeries extends SimpleIonMobilitySeries {
       @Nonnull List<MobilityScan> scans) {
     super(storage, mzValues, intensityValues, scans);
 
-    frameNumber = scans.get(0).getFrame().getFrameId();
+    frame = scans.get(0).getFrame();
     summedIntensity = ArrayUtils.sum(intensityValues);
     avgMZ = MathUtils.calcCenter(CenterMeasure.AVG, mzValues, intensityValues, Weighting.LINEAR);
   }
@@ -41,7 +42,7 @@ public class BuildingIonMobilitySeries extends SimpleIonMobilitySeries {
     return avgMZ;
   }
 
-  public int getFrameNumber() {
-    return frameNumber;
+  public Frame getFrame() {
+    return frame;
   }
 }
