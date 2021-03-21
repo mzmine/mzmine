@@ -28,36 +28,43 @@ import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import sun.misc.Unsafe;
 
 public class IMSBuilderTask extends AbstractTask {
 
-
   private static final Logger logger = Logger.getLogger(IMSBuilderTask.class.getName());
   private static final int RECURSIVE_THRESHOLD = 50;
+  private static final int STEPS = 4;
 
   private final IMSRawDataFile file;
   private final ParameterSet parameters;
   private final ScanSelection scanSelection;
   private final MZmineProject project;
-  private final int steps = 3;
   private final MZTolerance tolerance;
   private final MemoryMapStorage tempStorage = MemoryMapStorage.forFeatureList();
   private final boolean enableRecursive = true;
-  private int stepProcessed = 0;
+  private final int numConsecutiveFrames = 5;
+  private final int numDataPoints = 50;
+  private AtomicInteger stepProcessed = new AtomicInteger(0);
   private int stepTotal = 0;
   private int currentStep = 0;
 
@@ -72,11 +79,6 @@ public class IMSBuilderTask extends AbstractTask {
     this.project = project;
   }
 
-  @Override
-  public String getTaskDescription() {
-    return "Running feature detection on " + file.getName();
-  }
-
   private static int findMostFrequentMobilityScanNumber(List<IonMobilitySeries> mobilograms) {
     List<MobilityScan> scans = mobilograms.stream().flatMap(mob -> mob.getSpectra().stream())
         .collect(Collectors.toList());
@@ -88,8 +90,13 @@ public class IMSBuilderTask extends AbstractTask {
   }
 
   @Override
+  public String getTaskDescription() {
+    return "Running feature detection on " + file.getName();
+  }
+
+  @Override
   public double getFinishedPercentage() {
-    return ((stepProcessed / (double) stepTotal) / steps + (currentStep / (double) steps));
+    return ((stepProcessed.get() / (double) stepTotal) / STEPS + (currentStep / (double) STEPS));
   }
 
   @Override
@@ -99,7 +106,7 @@ public class IMSBuilderTask extends AbstractTask {
         .of(file, MobilityScanDataType.CENTROID, scanSelection);
 
     logger.finest(() -> "Extracting data points from mobility scans and building mobilograms...");
-    stepProcessed = 0;
+    stepProcessed.set(0);
     stepTotal = access.getNumberOfScans();
 
     // build mobilograms for all frames
@@ -108,7 +115,7 @@ public class IMSBuilderTask extends AbstractTask {
       return;
     }
     currentStep++;
-    stepProcessed = 0;
+    stepProcessed.set(0);
     stepTotal = sortedMobilograms.size();
 
     final Set<TempIMTrace> ionMobilityTraces = createTempIMTraces(
@@ -117,13 +124,12 @@ public class IMSBuilderTask extends AbstractTask {
       return;
     }
 
+    stepProcessed.set(0);
+    currentStep++;
+    stepTotal = ionMobilityTraces.size();
     logger.finest(() -> "Adding leading and trailing zeros...");
-    Date startZeros = new Date();
     addZerosForFrames(ionMobilityTraces, access.getEligibleFrames());
-    Date endZeros = new Date();
-    logger.finest(
-        () -> "Leading and trailing zeros added... " + ((endZeros.getTime() - startZeros.getTime()))
-            + " ms");
+    logger.finest(() -> "Leading and trailing zeros added...");
 
     final ModularFeatureList flist = new ModularFeatureList(file.getName(), getMemoryMapStorage(),
         file);
@@ -134,7 +140,7 @@ public class IMSBuilderTask extends AbstractTask {
         .of(file, 0.0008);
 
     stepTotal = ionMobilityTraces.size();
-    stepProcessed = 0;
+    stepProcessed.set(0);
     currentStep++;
 
     int id = 0;
@@ -143,23 +149,37 @@ public class IMSBuilderTask extends AbstractTask {
         return;
       }
 
-      if (trace.getMobilograms().size() < 5) {
-        stepProcessed++;
+      if (!trace.isConsecutive(numConsecutiveFrames, access.getEligibleFrames())
+          || trace.getNumberOfDataPoints() < numDataPoints) {
+        stepProcessed.getAndIncrement();
         continue;
       }
+
       ModularFeature f = FeatureConvertors
           .tempIMTraceToModularFeature(trace, file, binningMobilogramDataAccess, flist);
       ModularFeatureListRow row = new ModularFeatureListRow(flist, id, f);
       row.set(FeatureShapeMobilogramType.class, false);
       flist.addRow(row);
       id++;
-      stepProcessed++;
+      stepProcessed.getAndIncrement();
     }
 
     flist.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(IMSBuilderModule.class, parameters));
     DataTypeUtils.addDefaultIonMobilityTypeColumns(flist);
     project.addFeatureList(flist);
+
+    final Unsafe theUnsafe = initUnsafe();
+    if (theUnsafe != null && tempStorage != null) {
+      logger.finest(() -> "Clearing temporary files...");
+      try {
+        tempStorage.discard(theUnsafe);
+      } catch (IOException e) {
+        e.printStackTrace();
+        logger.log(Level.WARNING, e, e::getMessage);
+      }
+    }
+
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -178,8 +198,8 @@ public class IMSBuilderTask extends AbstractTask {
 
           }
 
-          Frame[] detected =
-              trace.mobilograms.keySet().toArray(new Frame[0]); // it's a tree map, so it's sorted
+          // it's a tree map, so it's sorted
+          Frame[] detected = trace.mobilograms.keySet().toArray(new Frame[0]);
           int allFramesIndex = 0;
           int lastDetectedIndex = eligibleFrames.indexOf(detected[0]);
           for (final Frame frame : detected) {
@@ -214,6 +234,7 @@ public class IMSBuilderTask extends AbstractTask {
                     List.of(firstZeroFrame.getMobilityScan(
                         Math.min(mostFrequentIndex, firstZeroFrame.getNumberOfMobilityScans())))));
           }
+          stepProcessed.getAndIncrement();
         }
     );
   }
@@ -249,7 +270,7 @@ public class IMSBuilderTask extends AbstractTask {
         final List<BuildingIonMobilitySeries> storedTraces = storeBuldingMobilograms(mobilogramMap);
         buildingTraces.addAll(storedTraces);
 
-        stepProcessed++;
+        stepProcessed.getAndIncrement();
       }
     } catch (MissingMassListException e) {
       e.printStackTrace();
@@ -342,7 +363,7 @@ public class IMSBuilderTask extends AbstractTask {
         leftoverMobilograms.add(previousDp);
       }
 
-      stepProcessed++;
+      stepProcessed.getAndIncrement();
     }
 
     Set<TempIMTrace> traces = new HashSet<>(map.asMapOfRanges().values());
@@ -364,4 +385,31 @@ public class IMSBuilderTask extends AbstractTask {
   }
 
 
+  /**
+   * Taken from https://stackoverflow.com/a/48821002
+   *
+   * @return Instance {@link Unsafe} or null.
+   * @author https://github.com/SteffenHeu
+   */
+  @Nullable
+  private Unsafe initUnsafe() {
+    try {
+      Class unsafeClass = Class.forName("sun.misc.Unsafe");
+//      unsafeClass = Class.forName("jdk.internal.misc.Unsafe");
+      Method clean = unsafeClass.getMethod("invokeCleaner", ByteBuffer.class);
+      clean.setAccessible(true);
+      Field theUnsafeField = unsafeClass.getDeclaredField("theUnsafe");
+      theUnsafeField.setAccessible(true);
+      Object theUnsafe = theUnsafeField.get(null);
+
+      return (Unsafe) theUnsafe;
+
+    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+        NoSuchFieldException | ClassCastException e) {
+      // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
+      // but that method should be added if sun.misc.Unsafe is removed.
+      e.printStackTrace();
+    }
+    return null;
+  }
 }
