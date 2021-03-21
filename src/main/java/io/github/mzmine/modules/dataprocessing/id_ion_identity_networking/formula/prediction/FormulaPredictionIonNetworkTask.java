@@ -47,7 +47,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -202,12 +201,13 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
       FeatureListRow row = e.getKey();
       IonIdentity ion = e.getValue();
       if (!ion.getIonType().isUndefinedAdduct()) {
+        ion.clearMolFormulas();
         List<ResultFormula> list = predictFormulas(row, ion.getIonType());
         if (!list.isEmpty()) {
           if (sortResults && sorter != null) {
             sorter.sort(list);
           }
-          ion.setMolFormulas(list);
+          ion.addMolFormulas(list);
         }
       }
     }

@@ -19,6 +19,7 @@ package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -441,12 +442,7 @@ public class IonNetworkLogic {
     RowGroup group = useGroup ? row.getGroup() : null;
 
     // best is first
-    ident.sort(new Comparator<IonIdentity>() {
-      @Override
-      public int compare(IonIdentity a, IonIdentity b) {
-        return compareRows(a, b, group);
-      }
-    }.reversed());
+    ident.sort(((Comparator<IonIdentity>) (a, b) -> compareRows(a, b, group)).reversed());
     return ident;
   }
 
@@ -603,4 +599,15 @@ public class IonNetworkLogic {
         .min(Comparator.naturalOrder()).orElse(null);
   }
 
+  /**
+   * Renumber all networks in a feature list in ascending order of the retention time (0-based)
+   * @param featureList
+   */
+  public static void renumberNetworks(ModularFeatureList featureList) {
+    AtomicInteger netID = new AtomicInteger(0);
+    IonNetworkLogic
+        .streamNetworks(featureList,
+            new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false)
+        .forEach(n -> n.setID(netID.getAndIncrement()));
+  }
 }

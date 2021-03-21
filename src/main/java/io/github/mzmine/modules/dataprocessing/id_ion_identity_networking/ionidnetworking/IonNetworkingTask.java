@@ -165,9 +165,7 @@ public class IonNetworkingTask extends AbstractTask {
    * @param compared
    * @param annotPairs
    */
-  private void annotateGroup(RowGroup g,
-      // AtomicInteger finished,
-      AtomicInteger compared, AtomicInteger annotPairs) {
+  private void annotateGroup(RowGroup g, AtomicInteger compared, AtomicInteger annotPairs) {
     for (int i = 0; i < g.size() - 1; i++) {
       // check against existing networks
       for (int k = i + 1; k < g.size(); k++) {
@@ -190,14 +188,7 @@ public class IonNetworkingTask extends AbstractTask {
   private void refineAndFinishNetworks() {
     // create network IDs
     LOG.info("Corr: create annotation network numbers");
-    AtomicInteger netID = new AtomicInteger(0);
-    IonNetworkLogic
-        .streamNetworks(featureList,
-            new IonNetworkSorter(SortingProperty.RT, SortingDirection.Ascending), false)
-        .forEach(n -> {
-          n.setMzTolerance(library.getMzTolerance());
-          n.setID(netID.getAndIncrement());
-        });
+    IonNetworkLogic.renumberNetworks(featureList);
 
     // recalc annotation networks
     IonNetworkLogic.recalcAllAnnotationNetworks(featureList, true);

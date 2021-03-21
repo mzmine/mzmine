@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
-import io.github.mzmine.datamodel.features.types.FormulaAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.FormulaSummaryType;
 import io.github.mzmine.datamodel.features.types.FormulaAnnotationType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
 import io.github.mzmine.datamodel.features.types.IonIdentityListType;
@@ -651,12 +651,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     if(get(FormulaAnnotationType.class)==null) {
       flist.addRowType(new FormulaAnnotationType());
     }
-    get(FormulaAnnotationType.class).set(FormulaAnnotationSummaryType.class, formulas);
+    get(FormulaAnnotationType.class).set(FormulaSummaryType.class, formulas);
   }
 
   public List<ResultFormula> getFormulas() {
     ModularTypeProperty formulaType = get(FormulaAnnotationType.class);
-    return formulaType==null? null : formulaType.get(FormulaAnnotationSummaryType.class).getValue();
+    return formulaType==null? null : formulaType.get(FormulaSummaryType.class).getValue();
   }
 
 }

@@ -10,7 +10,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
@@ -19,6 +18,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 public class IonNetworkLibrary {
+
   private static final Logger LOG = Logger.getLogger(IonNetworkLibrary.class.getName());
 
   public enum CheckMode {
@@ -41,7 +41,7 @@ public class IonNetworkLibrary {
 
   /**
    * Set mztolerance later
-   * 
+   *
    * @param parameterSet
    */
   public IonNetworkLibrary(IonLibraryParameterSet parameterSet) {
@@ -50,7 +50,7 @@ public class IonNetworkLibrary {
 
   /**
    * For simple setup
-   * 
+   *
    * @param parameterSet
    */
   public IonNetworkLibrary(IonLibraryParameterSet parameterSet, MZTolerance mzTolerance) {
@@ -69,7 +69,6 @@ public class IonNetworkLibrary {
 
   /**
    * For simple setup
-   * 
    */
   public IonNetworkLibrary(MZTolerance mzTolerance, int maxCharge, boolean isPositive,
       int maxMolecules, IonModification[] selectedAdducts, IonModification[] selectedMods) {
@@ -92,45 +91,48 @@ public class IonNetworkLibrary {
     allAdducts.clear();
     // add all [M+?]c+ as references to neutral loss
     // [M-H2O+?]c+
-    for (int c = 1; c <= maxCharge; c++)
+    for (int c = 1; c <= maxCharge; c++) {
       allAdducts.add(new IonType(1, IonModification.getUndefinedforCharge(positive ? c : -c)));
+    }
 
     for (IonModification a : selectedAdducts) {
       if ((a.getCharge() > 0 && positive) || (a.getCharge() < 0 && !positive)) {
         if (a.getAbsCharge() <= maxCharge) {
-          for (int n = 1; n <= maxMolecules; n++)
+          for (int n = 1; n <= maxMolecules; n++) {
             allAdducts.add(new IonType(n, a));
+          }
         }
       }
     }
 
     addModification();
     // print them out
-    for (IonType a : allAdducts)
+    for (IonType a : allAdducts) {
       LOG.info(a.toString());
+    }
   }
 
   /**
    * Does find all possible adduct combinations
-   * 
    */
   public @Nonnull
   List<IonIdentity[]> findAdducts(final FeatureList featureList, final FeatureListRow row1,
-                                  final FeatureListRow row2, final CheckMode mode, final double minHeight) {
+      final FeatureListRow row2, final CheckMode mode, final double minHeight) {
     return findAdducts(featureList, row1, row2, row1.getRowCharge(), row2.getRowCharge(), mode,
         minHeight);
   }
 
   /**
    * Does find all possible adducts
-   * 
+   *
    * @param row1
    * @param row2
-   * @param z1 -1 or 0 if not set (charge state always positive)
-   * @param z2 -1 or 0 if not set (charge state always positive)
+   * @param z1   -1 or 0 if not set (charge state always positive)
+   * @param z2   -1 or 0 if not set (charge state always positive)
    * @return
    */
-  public @Nonnull List<IonIdentity[]> findAdducts(final FeatureList featureList, final FeatureListRow row1,
+  public @Nonnull
+  List<IonIdentity[]> findAdducts(final FeatureList featureList, final FeatureListRow row1,
       final FeatureListRow row2, int z1, int z2, final CheckMode mode, final double minHeight) {
     z1 = Math.abs(z1);
     z2 = Math.abs(z2);
@@ -138,8 +140,9 @@ public class IonNetworkLibrary {
     // check all combinations of adducts
     for (IonType adduct : allAdducts) {
       for (IonType adduct2 : allAdducts) {
-        if (adduct.equals(adduct2))
+        if (adduct.equals(adduct2)) {
           continue;
+        }
 
         // do not check if MOL = MOL and MOL>1
         // only one can be modified
@@ -156,16 +159,16 @@ public class IonNetworkLibrary {
               IonType mod = adduct2.subtractMods(adduct);
               IonType undefined =
                   new IonType(IonModification.getUndefinedforCharge(adduct.getCharge()));
-              list.add(IonIdentity.addAdductIdentityToRow(row1, undefined, row1, mod));
+              list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, undefined, row1, mod));
             } else if (adduct.isModificationOf(adduct2)) {
               IonType mod = adduct.subtractMods(adduct2);
               IonType undefined =
                   new IonType(IonModification.getUndefinedforCharge(adduct2.getCharge()));
-              list.add(IonIdentity.addAdductIdentityToRow(row1, mod, row2, undefined));
+              list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, mod, row2, undefined));
             } else {
               // Add adduct identity and notify GUI.
               // only if not already present
-              list.add(IonIdentity.addAdductIdentityToRow(row1, adduct, row2, adduct2));
+              list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, adduct, row2, adduct2));
             }
           }
         }
@@ -178,15 +181,16 @@ public class IonNetworkLibrary {
 
   /**
    * Searches for an IonType for row in network
-   * 
+   *
    * @param row
    * @param net for neutral mass
    * @return
    */
   public IonIdentity findAdducts(FeatureListRow row, IonNetwork net) {
     // already contained
-    if (net.containsKey(row))
+    if (net.containsKey(row)) {
       return null;
+    }
 
     int z = Math.abs(row.getBestFeature().getCharge());
     List<IonIdentity> list = new ArrayList<>();
@@ -214,7 +218,7 @@ public class IonNetworkLibrary {
 
   /**
    * Do not allow adduct overlap: Only if both are of type undefined ?
-   * 
+   *
    * @param a
    * @param b
    * @return
@@ -222,29 +226,29 @@ public class IonNetworkLibrary {
   private boolean checkSameAdducts(IonType a, IonType b) {
     // no adduct overlap (with none being undefined) (or both undefined_adduct)
     return (!a.hasAdductOverlap(b)
-        && !a.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT)
-        && !b.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT))
-        // all beeing M+?
-        || (a.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT)
-            && b.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT));
+            && !a.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT)
+            && !b.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT))
+           // all beeing M+?
+           || (a.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT)
+               && b.getAdduct().getType().equals(IonModificationType.UNDEFINED_ADDUCT));
   }
 
   /**
    * [yM+X]+ and [yM+X-H]+ are only different by -H. if any adduct part or modification equals,
    * return false. Charge is different
-   * 
+   *
    * @param a
    * @param b
    * @return only true if charge is different or no modification or adduct sub part equals
    */
   private boolean checkMultiChargeDifference(IonType a, IonType b) {
     return a.getCharge() != b.getCharge()
-        || (!a.hasModificationOverlap(b) && !a.hasAdductOverlap(b));
+           || (!a.hasModificationOverlap(b) && !a.hasAdductOverlap(b));
   }
 
   /**
    * MOL != MOL or MOL==1
-   * 
+   *
    * @param a
    * @param b
    * @return
@@ -255,7 +259,7 @@ public class IonNetworkLibrary {
 
   /**
    * True if a charge state was not detected or if it fits to the adduct
-   * 
+   *
    * @param adduct
    * @param adduct2
    * @param z1
@@ -268,7 +272,7 @@ public class IonNetworkLibrary {
 
   /**
    * Only one adduct can have modifications
-   * 
+   *
    * @param adduct
    * @param adduct2
    * @return
@@ -280,7 +284,7 @@ public class IonNetworkLibrary {
   /**
    * Check if candidate peak is a given type of adduct of given main peak. is not checking retention
    * time (has to be checked before)
-   * 
+   *
    * @param row1
    * @param row2
    * @param adduct
@@ -315,12 +319,14 @@ public class IonNetworkLibrary {
           // short cut
           switch (mode) {
             case ONE_FEATURE:
-              if (sameMZ)
+              if (sameMZ) {
                 return true;
+              }
               break;
             case ALL_FEATURES:
-              if (!sameMZ)
+              if (!sameMZ) {
                 return false;
+              }
               break;
           }
         }
@@ -332,24 +338,25 @@ public class IonNetworkLibrary {
   }
 
 
-
   /**
    * adds modification to the existing adducts
    */
   private void addModification() {
     int size = allAdducts.size();
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < size; i++) {
       for (IonModification a : selectedMods) {
         IonType ion = allAdducts.get(i);
-        if (filter(ion, a))
+        if (filter(ion, a)) {
           allAdducts.add(ion.createModified(a));
+        }
       }
+    }
   }
 
 
   /**
    * Only true if no filter is negative. Filter out -NH3+NH4
-   * 
+   *
    * @param ion
    * @param mod
    * @return
@@ -359,12 +366,13 @@ public class IonNetworkLibrary {
     IonModification modification = ion.getAdduct();
     // specific filters
     boolean bad = (add.contains(IonModification.NH4) && mod.contains(IonModification.NH3))
-        // maximum modifications for adducts filter
-        || (add.hasModificationLimit()
-            && ion.getModCount() + mod.getAdductsCount() > add.getModificationLimit())
-        // max co modification for modifications
-        || (modification != null && modification.hasModificationLimit()
-            && ion.getModCount() + mod.getAdductsCount() > modification.getModificationLimit());
+                  // maximum modifications for adducts filter
+                  || (add.hasModificationLimit()
+                      && ion.getModCount() + mod.getAdductsCount() > add.getModificationLimit())
+                  // max co modification for modifications
+                  || (modification != null && modification.hasModificationLimit()
+                      && ion.getModCount() + mod.getAdductsCount() > modification
+        .getModificationLimit());
 
     return !bad;
   }

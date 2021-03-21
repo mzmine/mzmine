@@ -143,7 +143,7 @@ public class AddIonModificationAction implements  EventHandler<ActionEvent> {
 
     @Override
     public ExitCode showSetupDialog(boolean valueCheckRequired) {
-      return this.showSetupDialog(valueCheckRequired, null);
+      return this.showSetupDialog(valueCheckRequired, (IonModificationType[]) null);
     }
 
     public ExitCode showSetupDialog(boolean valueCheckRequired,

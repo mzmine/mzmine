@@ -38,7 +38,7 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
 
   // Unmodifiable list of all subtypes
   private final List<DataType> subTypes = List
-      .of(new FormulaAnnotationSummaryType(), new NeutralMassType(), new RdbeType(),
+      .of(new FormulaSummaryType(), new NeutralMassType(), new RdbeType(),
           new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
           new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
 
@@ -59,7 +59,7 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
     ModularTypeProperty property = super.createProperty();
 
     // add bindings: If first element in summary column changes - update all other columns based on this object
-    Objects.requireNonNull(property.get(FormulaAnnotationSummaryType.class))
+    Objects.requireNonNull(property.get(FormulaSummaryType.class))
         .addListener((ListChangeListener<ResultFormula>) change -> {
           ObservableList<? extends ResultFormula> summaryProperty = change.getList();
           boolean firstElementChanged = false;
@@ -68,7 +68,8 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
           }
           if (firstElementChanged) {
             // first list elements has changed - set all other fields
-            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0));
+            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0),
+                true);
           }
         });
 
@@ -78,22 +79,31 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
   /**
    * On change of the first list element, change all the other sub types.
    *
-   * @param data    property
-   * @param formula the new preferred formula (first element)
+   * @param data       property
+   * @param formula    the new preferred formula (first element)
+   * @param removeNull remove all entries if formula is null
    */
-  private void setCurrentElement(ModularTypeProperty data, ResultFormula formula) {
+  public static void setCurrentElement(ModularTypeProperty data, ResultFormula formula,
+      boolean removeNull) {
     if (formula == null) {
-      for (DataType type : this.getSubDataTypes()) {
-        if (!(type instanceof SpectralLibMatchSummaryType)) {
-          data.set(type, null);
+      if (removeNull) {
+        for (DataType type : data.getTypes().values()) {
+          if (!(type instanceof FormulaSummaryType)) {
+            data.set(type, null);
+          }
         }
       }
     } else {
       // update selected values
       data.set(NeutralMassType.class, formula.getExactMass());
-      data.set(IsotopePatternScoreType.class, formula.getIsotopeScore());
-      data.set(MsMsScoreType.class, formula.getMSMSScore());
-      data.set(RdbeType.class, formula.getRDBE());
+//      data.set(NeutralMassType.class, formula.getSearchedNeutralMass());
+      data.set(IsotopePatternScoreType.class, formula.getIsotopeScore()==null? null : formula.getIsotopeScore().floatValue());
+      data.set(MsMsScoreType.class, formula.getMSMSScore()==null? null : formula.getMSMSScore().floatValue());
+      data.set(CombinedScoreType.class, (float) formula.getScore(10, 3, 1));
+      data.set(RdbeType.class, formula.getRDBE()==null? null : formula.getRDBE().floatValue());
+      data.set(MzPpmDifferenceType.class, (float) formula.getPpmDiff(formula.getSearchedNeutralMass()));
+      data.set(MzAbsoluteDifferenceType.class,
+          (formula.getSearchedNeutralMass() - formula.getExactMass()));
     }
   }
 

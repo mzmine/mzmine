@@ -291,7 +291,8 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
       mass += e.getValue().getIonType().getMass(e.getKey().getAverageMZ());
       avgRT += e.getKey().getAverageRT();
       // sum of heighest peaks heights
-      heightSum += e.getKey().getBestFeature().getHeight();
+      double height = e.getKey().getMaxDataPointIntensity();
+      heightSum += Double.isNaN(height)? 1 : height;
     }
     avgRT = avgRT / size();
     neutralMass = mass / size();

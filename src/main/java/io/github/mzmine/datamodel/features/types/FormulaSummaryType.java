@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 
-public class FormulaAnnotationSummaryType extends ListDataType<ResultFormula>
+public class FormulaSummaryType extends ListDataType<ResultFormula>
     implements AnnotationType, EditableColumnType {
 
   @Override

@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity.Relatio
 import io.github.mzmine.datamodel.identities.ms2.MSMSMultimerIdentity;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 
 public class IonIdentity implements Comparable<IonIdentity> {
@@ -52,7 +55,8 @@ public class IonIdentity implements Comparable<IonIdentity> {
   private MSMSIdentityList msmsIdent;
 
   // possible formulas for this neutral mass
-  private List<ResultFormula> molFormulas;
+  @Nonnull
+  private final ObservableList<ResultFormula> molFormulas;
 
   // mark as beeing deleted
   private boolean isDeleted;
@@ -66,6 +70,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
     super();
     this.ionType = ionType;
     this.adduct = ionType.toString(false);
+    molFormulas = FXCollections.observableArrayList();
   }
 
 
@@ -75,7 +80,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    * @param row1 row to add the identity to
    * @param row2 identified by this row
    */
-  public static IonIdentity[] addAdductIdentityToRow(FeatureListRow row1, IonType row1ID,
+  public static IonIdentity[] addAdductIdentityToRow(MZTolerance mzTolerance, FeatureListRow row1, IonType row1ID,
       FeatureListRow row2, IonType row2ID) {
     // already added?
     IonIdentity a = getAdductEqualIdentity(row1, row1ID);
@@ -108,7 +113,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
 
     // no network so far
     if (net == null) {
-      net = new IonNetwork(null, -1);
+      net = new IonNetwork(mzTolerance, -1);
     }
 
     net.put(row1, a);
@@ -335,17 +340,29 @@ public class IonIdentity implements Comparable<IonIdentity> {
     return network.size() + (getMSMSMultimerCount() > 0 ? 1 : 0) + (getMSMSModVerify() > 0 ? 1 : 0);
   }
 
+  @Nonnull
   public List<ResultFormula> getMolFormulas() {
     return molFormulas;
   }
 
+  public void clearMolFormulas() {
+    molFormulas.clear();
+  }
   /**
    * The first formula should be the best
    *
    * @param molFormulas
    */
-  public void setMolFormulas(List<ResultFormula> molFormulas) {
-    this.molFormulas = molFormulas;
+  public void addMolFormulas(List<ResultFormula> molFormulas) {
+    this.molFormulas.addAll(molFormulas);
+  }
+  /**
+   * The first formula should be the best
+   *
+   * @param molFormulas
+   */
+  public void addMolFormulas(ResultFormula... molFormulas) {
+    this.molFormulas.addAll(molFormulas);
   }
 
   public void addMolFormula(ResultFormula formula) {
@@ -353,10 +370,6 @@ public class IonIdentity implements Comparable<IonIdentity> {
   }
 
   public void addMolFormula(ResultFormula formula, boolean asBest) {
-    if (molFormulas == null) {
-      molFormulas = new ArrayList<>();
-    }
-
     if (!molFormulas.isEmpty()) {
       molFormulas.remove(formula);
     }
