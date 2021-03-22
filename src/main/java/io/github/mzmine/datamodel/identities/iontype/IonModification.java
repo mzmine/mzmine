@@ -20,14 +20,19 @@ package io.github.mzmine.datamodel.identities.iontype;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.StringMapParser;
-
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class IonModification extends NeutralMolecule implements Comparable<IonModification>, StringMapParser<IonModification> {
+public class IonModification extends NeutralMolecule implements Comparable<IonModification>,
+    StringMapParser<IonModification> {
 
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
   public static final IonModification M_MINUS =
@@ -53,21 +58,21 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       new IonModification(IonModificationType.ADDUCT, "Mg", "Mg", 47.96953482, 2, 1);
   // combined
   public static final IonModification H2plus =
-      new CombinedIonModification(new IonModification[] {H, H});
+      new CombinedIonModification(new IonModification[]{H, H});
   public static final IonModification NA_H =
-      new CombinedIonModification(new IonModification[] {NA, H});
+      new CombinedIonModification(new IonModification[]{NA, H});
   public static final IonModification K_H =
-      new CombinedIonModification(new IonModification[] {K, H});
+      new CombinedIonModification(new IonModification[]{K, H});
   public static final IonModification NH4_H =
-      new CombinedIonModification(new IonModification[] {NH4, H});
+      new CombinedIonModification(new IonModification[]{NH4, H});
   public static final IonModification Hneg_NA2 =
-      new CombinedIonModification(new IonModification[] {NA, NA, H_NEG});
+      new CombinedIonModification(new IonModification[]{NA, NA, H_NEG});
   public static final IonModification Hneg_CA =
-      new CombinedIonModification(new IonModification[] {CA, H_NEG});
+      new CombinedIonModification(new IonModification[]{CA, H_NEG});
   public static final IonModification Hneg_FE =
-      new CombinedIonModification(new IonModification[] {FE, H_NEG});
+      new CombinedIonModification(new IonModification[]{FE, H_NEG});
   public static final IonModification Hneg_MG =
-      new CombinedIonModification(new IonModification[] {MG, H_NEG});
+      new CombinedIonModification(new IonModification[]{MG, H_NEG});
 
   // NEGATIVE
   public static final IonModification CL =
@@ -79,7 +84,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   // combined
   // +Na -2H+]-
   public static final IonModification NA_2H =
-      new CombinedIonModification(new IonModification[] {NA, H_NEG, H_NEG});
+      new CombinedIonModification(new IonModification[]{NA, H_NEG, H_NEG});
 
   // modifications
   public static final IonModification H2 =
@@ -89,7 +94,13 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   public static final IonModification H2O =
       new IonModification(IonModificationType.NEUTRAL_LOSS, "H2O", "H2O", -18.010565, 0);
   public static final IonModification H2O_2 =
-      new CombinedIonModification(new IonModification[] {H2O, H2O});
+      new CombinedIonModification(new IonModification[]{H2O, H2O});
+  public static final IonModification H2O_3 =
+      new CombinedIonModification(new IonModification[]{H2O, H2O, H2O});
+  public static final IonModification H2O_4 =
+      new CombinedIonModification(new IonModification[]{H2O, H2O, H2O, H2O});
+  public static final IonModification H2O_5 =
+      new CombinedIonModification(new IonModification[]{H2O, H2O, H2O, H2O, H2O});
 
   public static final IonModification NH3 =
       new IonModification(IonModificationType.NEUTRAL_LOSS, "NH3", "NH3", -17.026549, 0);
@@ -121,7 +132,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       {M_MINUS, H_NEG, NA_2H, NA, CL, BR, FA};
   // default modifications
   public static final IonModification[] DEFAULT_VALUES_MODIFICATIONS =
-      {H2O, H2O_2, NH3, O, CO, CO2, C2H4, HFA, HAc, MEOH, ACN, ISOPROP};
+      {H2O, H2O_2, H2O_3, H2O_4, H2O_5, NH3, O, CO, CO2, C2H4, HFA, HAc, MEOH, ACN, ISOPROP};
   // isotopes
   public static final IonModification[] DEFAULT_VALUES_ISOTOPES = {C13};
 
@@ -131,9 +142,8 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   protected int charge;
   private int maxModification;
 
-
   /**
-   * 
+   *
    * @param name
    * @param massDifference mass difference (for single charge, Molecule) for example M to M+H+
    *        (1.0072) M to M+Na+ (22.9892)
@@ -142,7 +152,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
    */
   /**
    * copy of adduct
-   * 
+   *
    * @param a
    */
   public IonModification(IonModification a) {
@@ -151,7 +161,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * new raw adduct
-   * 
+   *
    * @param name
    * @param massDifference
    * @param charge
@@ -162,7 +172,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   }
 
   /**
-   * 
    * @param type
    * @param name
    * @param molFormula
@@ -186,14 +195,15 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   public String parseName() {
     String sign = this.getMass() < 0 ? "-" : "+";
     // always +?
-    if (type.equals(IonModificationType.UNDEFINED_ADDUCT))
+    if (type.equals(IonModificationType.UNDEFINED_ADDUCT)) {
       sign = "+";
+    }
     return sign + getName();
   }
 
   /**
    * new raw adduct
-   * 
+   *
    * @param name
    * @param massDifference
    * @param charge
@@ -217,7 +227,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * Specifies whether this object limits further modification
-   * 
+   *
    * @return
    */
   public boolean hasModificationLimit() {
@@ -229,15 +239,13 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   }
 
   /**
-   * 
    * @return array of names
    */
   public String[] getRawNames() {
-    return new String[] {getName()};
+    return new String[]{getName()};
   }
 
   /**
-   * 
    * @return parsed name (f.e. -2H+Na)
    */
   public String getParsedName() {
@@ -251,7 +259,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * checks all sub/raw ESIAdductTypes
-   * 
+   *
    * @param a
    * @return
    */
@@ -268,14 +276,16 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     int absCharge = Math.abs(charge);
     String z = absCharge > 1 ? absCharge + "" : "";
     z += (charge < 0 ? "-" : "+");
-    if (charge == 0)
+    if (charge == 0) {
       z = "";
+    }
     // molecules
-    if (showMass)
+    if (showMass) {
       return MessageFormat.format("[M{0}]{1} ({2})", parsedName, z,
           MZmineCore.getConfiguration().getMZFormat().format(getMass()));
-    else
+    } else {
       return MessageFormat.format("[M{0}]{1}", parsedName, z);
+    }
   }
 
   public String getMassDiffString() {
@@ -284,7 +294,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * Checks mass diff, charge and mol equality
-   * 
+   *
    * @param adduct
    * @return
    */
@@ -294,7 +304,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * Checks mass diff
-   * 
+   *
    * @param adduct
    * @return
    */
@@ -306,8 +316,9 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     return Math.abs(charge);
   }
 
-  public @Nonnull IonModification[] getAdducts() {
-    return new IonModification[] {this};
+  public @Nonnull
+  IonModification[] getAdducts() {
+    return new IonModification[]{this};
   }
 
   public Stream<IonModification> streamAdducts() {
@@ -326,15 +337,16 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     int i = this.getName().compareTo(a.getName());
     if (i == 0) {
       i = Double.compare(getMass(), a.getMass());
-      if (i == 0)
+      if (i == 0) {
         i = Double.compare(getCharge(), a.getCharge());
+      }
     }
     return i;
   }
 
   /**
    * ((mz * charge) - deltaMass) / numberOfMolecules
-   * 
+   *
    * @param mz
    * @return
    */
@@ -345,9 +357,9 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * neutral mass of M to mz of yM+X]charge
-   * 
+   * <p>
    * (mass*mol + deltaMass) /charge
-   * 
+   *
    * @return
    */
   public double getMZ(double neutralmass) {
@@ -362,31 +374,39 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (!obj.getClass().equals(getClass()))
+    }
+    if (!obj.getClass().equals(getClass())) {
       return false;
-    if (!(obj instanceof IonModification))
+    }
+    if (!(obj instanceof IonModification)) {
       return false;
+    }
     IonModification other = (IonModification) obj;
-    if (charge != other.charge)
+    if (charge != other.charge) {
       return false;
+    }
     if (parsedName == null) {
-      if (other.parsedName != null)
+      if (other.parsedName != null) {
         return false;
-    } else if (!parsedName.equals(other.parsedName))
+      }
+    } else if (!parsedName.equals(other.parsedName)) {
       return false;
+    }
 
-    if (!Objects.equals(mass, other.getMass()))
+    if (!Objects.equals(mass, other.getMass())) {
       return false;
+    }
     return true;
   }
 
   /**
    * Creates the opposite modification: -H2O --> +H2O
-   * 
+   *
    * @return
    */
   public IonModification createOpposite() {
@@ -395,7 +415,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
 
   /**
-   * 
    * @return true if no adduct is a duplicate
    */
   public boolean uniqueAdductsTo(IonModification adduct) {
@@ -428,7 +447,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * Undefined adduct for charge
-   * 
+   *
    * @param charge
    * @return
    */
@@ -439,7 +458,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * All sub types of this need to be in parameter b
-   * 
+   *
    * @param b
    * @return
    */
@@ -458,30 +477,34 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
             found = true;
           }
         }
-        if (!found)
+        if (!found) {
           return false;
+        }
       }
       return true;
-    } else
+    } else {
       return false;
+    }
   }
 
   /**
    * Removes all sub types of parameter from this type
-   * 
+   *
    * @param type
    * @return
    */
-  public @Nullable IonModification remove(IonModification type) {
-    if (this.isSubsetOf(type) || this.equals(type))
+  public @Nullable
+  IonModification remove(IonModification type) {
+    if (this.isSubsetOf(type) || this.equals(type)) {
       return null;
-    else
+    } else {
       return this;
+    }
   }
 
   /**
    * this or any sub modification (for combined) equals to mod?
-   * 
+   *
    * @param mod
    * @return
    */
@@ -491,13 +514,12 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   /**
    * Number of sub IonModifications
-   * 
+   *
    * @return
    */
   public int getAdductsCount() {
     return 1;
   }
-
 
 
   @Override
@@ -516,38 +538,38 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   public IonModification parseDataMap(Map<String, String> map) {
     String name = map.get("Name");
     // is combined
-    if(name.split(";").length>1) {
+    if (name.split(";").length > 1) {
       try {
-      List<IonModification> mods = new ArrayList<>();
+        List<IonModification> mods = new ArrayList<>();
 
-      String[] names = name.split(";");
-      String[] massdiffs = map.get("Mass Diff").split(";");
-      String[] charges = map.get("Charge").split(";");
-      String[] formulas = map.get("Formula").split(";");
-      String[] types = map.get("Type").split(";");
-      for(int i=0; i<names.length; i++) {
-        double massdiff = Double.parseDouble(massdiffs[i]);
-        int charge = Integer.parseInt(charges[i]);
-        String formula = formulas[i];
-        IonModificationType type = IonModificationType.valueOf(types[i]);
+        String[] names = name.split(";");
+        String[] massdiffs = map.get("Mass Diff").split(";");
+        String[] charges = map.get("Charge").split(";");
+        String[] formulas = map.get("Formula").split(";");
+        String[] types = map.get("Type").split(";");
+        for (int i = 0; i < names.length; i++) {
+          double massdiff = Double.parseDouble(massdiffs[i]);
+          int charge = Integer.parseInt(charges[i]);
+          String formula = formulas[i];
+          IonModificationType type = IonModificationType.valueOf(types[i]);
 
-        IonModification ion = new IonModification(type, names[i], formula, massdiff, charge);
-        mods.add(ion);
+          IonModification ion = new IonModification(type, names[i], formula, massdiff, charge);
+          mods.add(ion);
+        }
+        return new CombinedIonModification(mods);
+      } catch (Exception ex) {
+        return null;
       }
-      return new CombinedIonModification(mods);
-    }catch(Exception ex) {
-      return null;
-    }
-    }
-    else {new IonModification(IonModificationType.ADDUCT, "NH4", "NH4", 18.033823, 1);
+    } else {
+      new IonModification(IonModificationType.ADDUCT, "NH4", "NH4", 18.033823, 1);
       try {
         double massdiff = Double.parseDouble(map.get("Mass Diff"));
         int charge = Integer.parseInt(map.get("Charge"));
-        int mod  = Integer.parseInt(map.getOrDefault("Max Modification", "-1"));
+        int mod = Integer.parseInt(map.getOrDefault("Max Modification", "-1"));
         String formula = map.getOrDefault("Formula", "");
         IonModificationType type = IonModificationType.valueOf(map.getOrDefault("Type", ""));
         return new IonModification(type, name, formula, massdiff, charge);
-      }catch(Exception ex) {
+      } catch (Exception ex) {
         return null;
       }
     }

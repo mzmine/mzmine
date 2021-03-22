@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CombinedScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.FormulaMassType;
 import io.github.mzmine.datamodel.features.types.numbers.IonNetworkIDType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
@@ -47,7 +48,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
           // list of IIN consensus formulas
           new FormulaConsensusSummaryType(),
           // List of formulas for this row and all related types
-          new FormulaSummaryType(), new NeutralMassType(), new RdbeType(),
+          new FormulaSummaryType(), new FormulaMassType(), new RdbeType(),
           new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
           new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
 
@@ -124,7 +125,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
           data.set(SizeType.class, null);
       }
       data.set(PartnerIdsType.class, ion.getPartnerRows(";"));
-      data.set(MsMsMultimerVerifiedType.class, ion.getMSMSMultimerCount() > 0);
+      data.set(MsMsMultimerVerifiedType.class, ion.getMSMSMultimerCount() > 0? ion.getMSMSMultimerCount() : null);
 
       // set all formulas and update the shown "best" formula
       data.set(FormulaSummaryType.class, ion.getMolFormulas());

@@ -20,12 +20,12 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CombinedScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.FormulaMassType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MsMsScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
-import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.RdbeType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import java.util.List;
@@ -38,7 +38,7 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
 
   // Unmodifiable list of all subtypes
   private final List<DataType> subTypes = List
-      .of(new FormulaSummaryType(), new NeutralMassType(), new RdbeType(),
+      .of(new FormulaSummaryType(), new FormulaMassType(), new RdbeType(),
           new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
           new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
 
@@ -95,13 +95,16 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
       }
     } else {
       // update selected values
-      data.set(NeutralMassType.class, formula.getExactMass());
+      data.set(FormulaMassType.class, formula.getExactMass());
 //      data.set(NeutralMassType.class, formula.getSearchedNeutralMass());
-      data.set(IsotopePatternScoreType.class, formula.getIsotopeScore()==null? null : formula.getIsotopeScore().floatValue());
-      data.set(MsMsScoreType.class, formula.getMSMSScore()==null? null : formula.getMSMSScore().floatValue());
+      data.set(IsotopePatternScoreType.class,
+          formula.getIsotopeScore() == null ? null : formula.getIsotopeScore().floatValue());
+      data.set(MsMsScoreType.class,
+          formula.getMSMSScore() == null ? null : formula.getMSMSScore().floatValue());
       data.set(CombinedScoreType.class, (float) formula.getScore(10, 3, 1));
-      data.set(RdbeType.class, formula.getRDBE()==null? null : formula.getRDBE().floatValue());
-      data.set(MzPpmDifferenceType.class, (float) formula.getPpmDiff(formula.getSearchedNeutralMass()));
+      data.set(RdbeType.class, formula.getRDBE() == null ? null : formula.getRDBE().floatValue());
+      data.set(MzPpmDifferenceType.class,
+          (float) formula.getPpmDiff(formula.getSearchedNeutralMass()));
       data.set(MzAbsoluteDifferenceType.class,
           (formula.getSearchedNeutralMass() - formula.getExactMass()));
     }

@@ -31,7 +31,8 @@ public class MzPpmDifferenceType extends FloatType {
 
   @Override
   public String getHeaderString() {
-    return "Delta ppm";
+    // Delta
+    return "\u0394 ppm";
   }
 
   @Override

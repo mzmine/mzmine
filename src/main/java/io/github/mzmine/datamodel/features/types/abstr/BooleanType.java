@@ -17,17 +17,21 @@
 
 package io.github.mzmine.datamodel.features.types.abstr;
 
+import com.mchange.v2.codegen.bean.SimpleProperty;
 import io.github.mzmine.datamodel.features.types.DataType;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class BooleanType extends DataType<BooleanProperty> {
+public abstract class BooleanType extends DataType<Property<Boolean>> {
 
   @Override
-  public BooleanProperty createProperty() {
-    return new SimpleBooleanProperty();
+  public Property<Boolean> createProperty() {
+    return new SimpleObjectProperty<>();
   }
 }

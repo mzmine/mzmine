@@ -23,9 +23,9 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-public class MzAbsoluteDifferenceType extends DoubleType {
+public class FormulaMassType extends DoubleType {
 
-  public MzAbsoluteDifferenceType() {
+  public FormulaMassType() {
     super(new DecimalFormat("0.0000"));
   }
 
@@ -41,8 +41,7 @@ public class MzAbsoluteDifferenceType extends DoubleType {
 
   @Override
   public String getHeaderString() {
-    // Delta
-    return "\u0394 m/z";
+    return "Formula mass";
   }
 
 }
