@@ -305,10 +305,15 @@ public class IMSBuilderTask extends AbstractTask {
     for (final var dp : dps) {
       TempMobilogram mobilogram = map.get(dp.getMZ());
       if (mobilogram == null) {
-        final Range<Double> mzRange = SpectraMerging
-            .createNewNonOverlappingRange(map, tolerance.getToleranceRange(dp.getMZ()));
-        mobilogram = new TempMobilogram();
-        map.put(mzRange, mobilogram);
+        final Range<Double> proposed = tolerance.getToleranceRange(dp.getMZ());
+        final Range<Double> actual = SpectraMerging.createNewNonOverlappingRange(map, proposed);
+        if(proposed.equals(actual)) {
+          mobilogram = new TempMobilogram();
+          map.put(actual, mobilogram);
+        } else {
+          leftoverDataPoints.add(dp);
+          continue;
+        }
       }
       final RetentionTimeMobilityDataPoint previousDp = mobilogram.keepBetterFittingDataPoint(dp);
       if (previousDp != null) {
