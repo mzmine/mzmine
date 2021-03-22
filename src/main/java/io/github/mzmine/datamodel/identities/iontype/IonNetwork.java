@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javax.annotation.Nonnull;
 
 /**
  * An annotation network full of ions that point to the same neutral molecule (neutral mass)
@@ -62,7 +65,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   private Map<IonNetwork, IonNetworkRelationInterf> relations;
 
   // possible formulas for this neutral mass
-  private List<ResultFormula> molFormulas;
+  private final ObservableList<ResultFormula> molFormulas = FXCollections.observableArrayList();
 
   public IonNetwork(MZTolerance mzTolerance, int id) {
     super();
@@ -92,7 +95,8 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     return id;
   }
 
-  public List<ResultFormula> getMolFormulas() {
+  @Nonnull
+  public ObservableList<ResultFormula> getMolFormulas() {
     return molFormulas;
   }
 
@@ -147,13 +151,26 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     return new IonNetRelationFeatureIdentity(this, name);
   }
 
+  public void clearMolFormulas() {
+    molFormulas.clear();
+  }
   /**
    * The first formula should be the best
    *
    * @param molFormulas
    */
-  public void setMolFormulas(List<ResultFormula> molFormulas) {
-    this.molFormulas = molFormulas;
+  public void addMolFormulas(List<ResultFormula> molFormulas) {
+    this.molFormulas.removeAll(molFormulas);
+    this.molFormulas.addAll(molFormulas);
+  }
+  /**
+   * The first formula should be the best
+   *
+   * @param molFormulas
+   */
+  public void addMolFormulas(ResultFormula... molFormulas) {
+    this.molFormulas.removeAll(molFormulas);
+    this.molFormulas.addAll(molFormulas);
   }
 
   public void addMolFormula(ResultFormula formula) {
@@ -161,10 +178,6 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   }
 
   public void addMolFormula(ResultFormula formula, boolean asBest) {
-    if (molFormulas == null) {
-      molFormulas = new ArrayList<>();
-    }
-
     if (!molFormulas.isEmpty()) {
       molFormulas.remove(formula);
     }

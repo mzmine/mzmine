@@ -161,7 +161,7 @@ public class CreateAvgNetworkFormulasTask extends AbstractTask {
         sorter.sort(results, neutralMass);
       }
       // add to net
-      net.setMolFormulas(results);
+      net.addMolFormulas(results);
     }
     return results;
   }

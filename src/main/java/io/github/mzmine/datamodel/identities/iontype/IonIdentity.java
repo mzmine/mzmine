@@ -354,6 +354,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    * @param molFormulas
    */
   public void addMolFormulas(List<ResultFormula> molFormulas) {
+    this.molFormulas.removeAll(molFormulas);
     this.molFormulas.addAll(molFormulas);
   }
   /**
@@ -362,6 +363,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    * @param molFormulas
    */
   public void addMolFormulas(ResultFormula... molFormulas) {
+    this.molFormulas.removeAll(molFormulas);
     this.molFormulas.addAll(molFormulas);
   }
 
