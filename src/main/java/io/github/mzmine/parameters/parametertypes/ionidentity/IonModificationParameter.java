@@ -60,7 +60,8 @@ public class IonModificationParameter
   private static final String TYPE_ATTRIBUTE = "type";
   private static final String SELECTED_ATTRIBUTE = "selected";
 
-  private MultiChoiceParameter<IonModification> adducts, modification;
+  private final MultiChoiceParameter<IonModification> adducts;
+  private final MultiChoiceParameter<IonModification> modification;
 
   private IonModificationComponent comp;
 

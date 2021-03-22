@@ -62,7 +62,8 @@ import java.util.logging.Level;
  */
 public class IonModificationComponent extends HBox {
 
-  protected MultiChoiceComponent<IonModification> adducts, mods;
+  protected MultiChoiceComponent<IonModification> adducts;
+  protected MultiChoiceComponent<IonModification> mods;
 
   /**
    * Create the component.
@@ -92,8 +93,8 @@ public class IonModificationComponent extends HBox {
     // add top label
     mods.setTitle("Modifications");
     // add buttons
-    mods.addButton("Add", new AddIonModificationAction(adducts));
-    mods.addButton("Combine", new CombineESIAdductsAction(adducts));
+    mods.addButton("Add", new AddIonModificationAction(mods));
+    mods.addButton("Combine", new CombineESIAdductsAction(mods));
     mods.addButton("Reset", (e) -> mods.setChoices(IonModification.getDefaultModifications()));
 
     getChildren().addAll(adducts, mods);

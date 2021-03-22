@@ -57,7 +57,7 @@ public class CombineESIAdductsAction implements EventHandler<ActionEvent> {
       // Show dialog.
       CombineIonModificationDialog dialog =
           new CombineIonModificationDialog(parent.getChoices());
-      dialog.show();
+      dialog.showAndWait();
       List<IonModification> add = dialog.getNewTypes();
       if (!add.isEmpty()) {
         addAll(add);
