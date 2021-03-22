@@ -1,8 +1,10 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
 
+import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.AdvancedImsTraceBuilderParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
@@ -12,15 +14,27 @@ public class IMSBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance", "The m/z tolerance to build ion traces.", 0.01, 30);
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
+      "The m/z tolerance to build ion traces.", 0.01, 30);
 
-  public static final IntegerParameter minNumConsecutive = new IntegerParameter("Minimum consecutive retention time data points", "The minimum number of consecutive detections in frames (retention time dimension).", 5);
+  public static final IntegerParameter minNumConsecutive = new IntegerParameter(
+      "Minimum consecutive retention time data points",
+      "The minimum number of consecutive detections in frames (retention time dimension).", 5);
 
-  public static final IntegerParameter minNumDatapoints = new IntegerParameter("Minimum number of data points", "The minimum number of consecutive detections in frames (retention time dimension).", 100);
+  public static final IntegerParameter minNumDatapoints = new IntegerParameter(
+      "Minimum number of data points",
+      "The minimum number of consecutive detections in frames (retention time dimension).", 100);
+
+  public static final ParameterSetParameter advancedParameters =
+      new ParameterSetParameter("Advanced parameters",
+          "Allows adjustment of internal binning parameters for mobilograms",
+          new AdvancedImsTraceBuilderParameters());
 
   public IMSBuilderParameters() {
-    super(new Parameter[] {rawDataFiles, scanSelection, mzTolerance, minNumConsecutive, minNumDatapoints});
+    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minNumConsecutive,
+        minNumDatapoints, advancedParameters});
   }
 }

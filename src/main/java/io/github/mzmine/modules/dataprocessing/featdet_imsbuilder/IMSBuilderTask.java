@@ -64,6 +64,7 @@ public class IMSBuilderTask extends AbstractTask {
   private final boolean enableRecursive = true;
   private final int numConsecutiveFrames;
   private final int numDataPoints;
+  private final double binWidth;
   private AtomicInteger stepProcessed = new AtomicInteger(0);
   private int stepTotal = 0;
   private int currentStep = 0;
@@ -78,6 +79,31 @@ public class IMSBuilderTask extends AbstractTask {
     tolerance = parameters.getParameter(IMSBuilderParameters.mzTolerance).getValue();
     numConsecutiveFrames = parameters.getParameter(IMSBuilderParameters.minNumConsecutive).getValue();
     numDataPoints = parameters.getParameter(IMSBuilderParameters.minNumDatapoints).getValue();
+
+    final var advancedParam = parameters
+        .getParameter(IMSBuilderParameters.advancedParameters).getValue();
+    binWidth = switch (file.getMobilityType()) {
+      case TIMS ->
+          advancedParam.getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
+              .getValue() ? advancedParam
+              .getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
+              .getEmbeddedParameter().getValue()
+              : AdvancedIMSBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
+      case DRIFT_TUBE ->
+          advancedParam.getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
+              .getValue() ? advancedParam
+              .getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
+              .getEmbeddedParameter().getValue()
+              : AdvancedIMSBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
+      case TRAVELING_WAVE ->
+          advancedParam.getParameter(AdvancedIMSBuilderParameters.twimsBinningWidth)
+              .getValue() ? advancedParam
+              .getParameter(AdvancedIMSBuilderParameters.twimsBinningWidth)
+              .getEmbeddedParameter().getValue()
+              : AdvancedIMSBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
+      default -> 0.0008;
+    };
+
     this.project = project;
   }
 
@@ -139,7 +165,7 @@ public class IMSBuilderTask extends AbstractTask {
 
     logger.finest(() -> "Creation BinningMobilogramDataAccess for raw data file " + file.getName());
     final BinningMobilogramDataAccess binningMobilogramDataAccess = EfficientDataAccess
-        .of(file, 0.0008);
+        .of(file, binWidth);
 
     stepTotal = ionMobilityTraces.size();
     stepProcessed.set(0);

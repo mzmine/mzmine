@@ -58,9 +58,8 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
 
   public static final ParameterSetParameter advancedParameters =
       new ParameterSetParameter("Advanced parameters",
-          "Allows adjustment of internal interpolation parameters in case no data point has "
-              + "been detected in a frame or a mobilogram.",
-          new OptionalImsTraceBuilderParameters());
+          "Allows adjustment of internal binning parameters for mobilograms",
+          new AdvancedImsTraceBuilderParameters());
 
   public IonMobilityTraceBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minDataPointsRt,
