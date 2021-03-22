@@ -62,8 +62,8 @@ public class IMSBuilderTask extends AbstractTask {
   private final MZTolerance tolerance;
   private final MemoryMapStorage tempStorage = MemoryMapStorage.forFeatureList();
   private final boolean enableRecursive = true;
-  private final int numConsecutiveFrames = 5;
-  private final int numDataPoints = 50;
+  private final int numConsecutiveFrames;
+  private final int numDataPoints;
   private AtomicInteger stepProcessed = new AtomicInteger(0);
   private int stepTotal = 0;
   private int currentStep = 0;
@@ -76,6 +76,8 @@ public class IMSBuilderTask extends AbstractTask {
     this.parameters = parameters;
     scanSelection = parameters.getParameter(IMSBuilderParameters.scanSelection).getValue();
     tolerance = parameters.getParameter(IMSBuilderParameters.mzTolerance).getValue();
+    numConsecutiveFrames = parameters.getParameter(IMSBuilderParameters.minNumConsecutive).getValue();
+    numDataPoints = parameters.getParameter(IMSBuilderParameters.minNumDatapoints).getValue();
     this.project = project;
   }
 
@@ -184,7 +186,7 @@ public class IMSBuilderTask extends AbstractTask {
   }
 
   private void addZerosForFrames(Set<TempIMTrace> traces, List<Frame> eligibleFrames) {
-    traces.parallelStream().forEach(trace -> {
+    traces.forEach(trace -> {
           int mostFrequentIndex = // most frequent mobility scan index, corrected by the first scans index.
               findMostFrequentMobilityScanNumber(trace.getMobilograms()) - eligibleFrames.get(0)
                   .getMobilityScans().get(0).getMobilityScanNumber();
@@ -194,12 +196,13 @@ public class IMSBuilderTask extends AbstractTask {
             trace.tryToAddMobilogram(
                 new BuildingIonMobilitySeries(null, new double[]{0d}, new double[]{0d},
                     List.of(eligibleFrames.get(0).getMobilityScan(mostFrequentIndex))));
-
-
           }
 
           // it's a tree map, so it's sorted
-          Frame[] detected = trace.mobilograms.keySet().toArray(new Frame[0]);
+          Frame[] detected = new Frame[trace.getMobilograms().size()];
+          for (int i = 0; i < detected.length; i++) {
+            detected[i] = trace.getMobilograms().get(i).getSpectrum(0).getFrame();
+          }
           int allFramesIndex = 0;
           int lastDetectedIndex = eligibleFrames.indexOf(detected[0]);
           for (final Frame frame : detected) {
@@ -307,7 +310,7 @@ public class IMSBuilderTask extends AbstractTask {
       if (mobilogram == null) {
         final Range<Double> proposed = tolerance.getToleranceRange(dp.getMZ());
         final Range<Double> actual = SpectraMerging.createNewNonOverlappingRange(map, proposed);
-        if(proposed.equals(actual)) {
+        if (proposed.equals(actual)) {
           mobilogram = new TempMobilogram();
           map.put(actual, mobilogram);
         } else {

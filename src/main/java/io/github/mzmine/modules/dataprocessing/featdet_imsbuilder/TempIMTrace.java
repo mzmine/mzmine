@@ -11,7 +11,7 @@ public class TempIMTrace {
 
   private static Logger logger = Logger.getLogger(TempMobilogram.class.getName());
 
-  protected final TreeMap<Frame, BuildingIonMobilitySeries> mobilograms = new TreeMap<>();
+  protected final TreeMap<Integer, BuildingIonMobilitySeries> mobilograms = new TreeMap<>();
   protected double lowestMz = Double.MAX_VALUE;
   protected double highestMz = Double.MIN_VALUE;
   protected double centerMz;
@@ -28,7 +28,7 @@ public class TempIMTrace {
    * @return
    */
   public BuildingIonMobilitySeries tryToAddMobilogram(BuildingIonMobilitySeries mobilogram) {
-    var currentValue = mobilograms.putIfAbsent(mobilogram.getFrame(), mobilogram);
+    var currentValue = mobilograms.putIfAbsent(mobilogram.getFrame().getFrameId(), mobilogram);
     if (currentValue == null) {
       updateValues();
     }
@@ -41,7 +41,7 @@ public class TempIMTrace {
    */
   public BuildingIonMobilitySeries replaceMobilogram(BuildingIonMobilitySeries mobilogram) {
     final BuildingIonMobilitySeries replaced = mobilograms
-        .put(mobilogram.getFrame(), mobilogram);
+        .put(mobilogram.getFrame().getFrameId(), mobilogram);
     if (replaced == null) {
       logger.fine(() -> "Data point did not replace another data point");
     }
@@ -85,8 +85,7 @@ public class TempIMTrace {
     centerMz /= summedIntensities;
   }
 
-  public BuildingIonMobilitySeries keepBetterFittingDataPoint(
-      BuildingIonMobilitySeries mob) {
+  public BuildingIonMobilitySeries keepBetterFittingDataPoint(BuildingIonMobilitySeries mob) {
     final BuildingIonMobilitySeries current = tryToAddMobilogram(mob);
     if (current == null) {
       return null;
@@ -95,17 +94,19 @@ public class TempIMTrace {
     final double currentDelta = Math.abs(centerMz - current.getAvgMZ());
     final double proposedDelta = Math.abs(centerMz - mob.getAvgMZ());
     if (currentDelta > proposedDelta) {
-      var ceilingEntry = mobilograms.ceilingEntry(mob.getFrame());
-      var floorEntry = mobilograms.floorEntry(mob.getFrame());
+      var ceilingEntry = mobilograms.ceilingEntry(mob.getFrame().getFrameId() + 1);
+      var floorEntry = mobilograms.floorEntry(mob.getFrame().getFrameId() - 1);
 
-      final double ceilingIntensity = ceilingEntry.getValue().getSummedIntensity();
-      final double floorIntensity = floorEntry.getValue().getSummedIntensity();
-      final double avgIntensity = (ceilingIntensity + floorIntensity) / 2;
+      if(ceilingEntry != null && floorEntry != null) {
+        final double ceilingIntensity = ceilingEntry.getValue().getSummedIntensity();
+        final double floorIntensity = floorEntry.getValue().getSummedIntensity();
+        final double avgIntensity = (ceilingIntensity + floorIntensity) / 2;
 
-      // only replace if the proposed intensity fits better
-      if (Math.abs(avgIntensity - mob.getSummedIntensity()) < Math
-          .abs(avgIntensity - current.getSummedIntensity())) {
-        return replaceMobilogram(mob);
+        // only replace if the proposed intensity fits better
+        if (Math.abs(avgIntensity - mob.getSummedIntensity()) < Math
+            .abs(avgIntensity - current.getSummedIntensity())) {
+          return replaceMobilogram(mob);
+        }
       }
     }
     return mob;
@@ -121,7 +122,8 @@ public class TempIMTrace {
 
     int index = 0;
     int prevIndex = 0;
-    for (Frame frame : mobilograms.keySet()) {
+    for (IonMobilitySeries mobilogram : mobilograms.values()) {
+      final Frame frame = mobilogram.getSpectrum(0).getFrame();
       while (frame != eligibleFrames.get(index)) {
         index++;
       }

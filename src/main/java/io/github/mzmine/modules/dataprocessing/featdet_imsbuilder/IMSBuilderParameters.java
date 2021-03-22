@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
@@ -15,7 +16,11 @@ public class IMSBuilderParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance", "The m/z tolerance to build ion traces.", 0.01, 30);
 
+  public static final IntegerParameter minNumConsecutive = new IntegerParameter("Minimum consecutive retention time data points", "The minimum number of consecutive detections in frames (retention time dimension).", 5);
+
+  public static final IntegerParameter minNumDatapoints = new IntegerParameter("Minimum number of data points", "The minimum number of consecutive detections in frames (retention time dimension).", 100);
+
   public IMSBuilderParameters() {
-    super(new Parameter[] {rawDataFiles, scanSelection, mzTolerance});
+    super(new Parameter[] {rawDataFiles, scanSelection, mzTolerance, minNumConsecutive, minNumDatapoints});
   }
 }

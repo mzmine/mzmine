@@ -97,14 +97,20 @@ public class TempMobilogram {
 
     final double currentDelta = Math.abs(centerMz - current.getMZ());
     final double proposedDelta = Math.abs(centerMz - dp.getMZ());
-    if (currentDelta > proposedDelta) {
-//      var ceilingEntry = datapoints.ceilingEntry(dp.getMobilityScan().getMobilityScanNumber());
-//      var floorEntry = datapoints.floorEntry(dp.getMobilityScan().getMobilityScanNumber());
-//      final double ceilingIntensity = ceilingEntry.getValue().getIntensity();
-//      final double floorIntensity = floorEntry.getValue().getIntensity();
-
-      return replaceDataPoint(dp);
+    if (currentDelta < proposedDelta) {
+      return dp;
     }
+    var ceilingEntry = datapoints.ceilingEntry(dp.getMobilityScan().getMobilityScanNumber() + 1);
+    var floorEntry = datapoints.floorEntry(dp.getMobilityScan().getMobilityScanNumber() - 1);
+    if (ceilingEntry != null && floorEntry != null) {
+      final double ceilingIntensity = ceilingEntry.getValue().getIntensity();
+      final double floorIntensity = floorEntry.getValue().getIntensity();
+      final double avg = (ceilingIntensity + floorIntensity) / 2;
+      if (Math.abs(avg - dp.getIntensity()) < Math.abs(avg - current.getIntensity())) {
+        return replaceDataPoint(dp);
+      }
+    }
+
     return dp;
   }
 
