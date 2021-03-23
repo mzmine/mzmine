@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
@@ -49,9 +49,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import sun.misc.Unsafe;
 
-public class IMSBuilderTask extends AbstractTask {
+public class RecursiveIMSBuilderTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(IMSBuilderTask.class.getName());
+  private static final Logger logger = Logger.getLogger(RecursiveIMSBuilderTask.class.getName());
   private static final int RECURSIVE_THRESHOLD = 50;
   private static final int STEPS = 4;
 
@@ -69,37 +69,37 @@ public class IMSBuilderTask extends AbstractTask {
   private int stepTotal = 0;
   private int currentStep = 0;
 
-  public IMSBuilderTask(@Nullable MemoryMapStorage storage, @Nonnull final IMSRawDataFile file,
+  public RecursiveIMSBuilderTask(@Nullable MemoryMapStorage storage, @Nonnull final IMSRawDataFile file,
       @Nonnull final ParameterSet parameters, MZmineProject project) {
     super(storage);
 
     this.file = file;
     this.parameters = parameters;
-    scanSelection = parameters.getParameter(IMSBuilderParameters.scanSelection).getValue();
-    tolerance = parameters.getParameter(IMSBuilderParameters.mzTolerance).getValue();
-    numConsecutiveFrames = parameters.getParameter(IMSBuilderParameters.minNumConsecutive)
+    scanSelection = parameters.getParameter(RecursiveIMSBuilderParameters.scanSelection).getValue();
+    tolerance = parameters.getParameter(RecursiveIMSBuilderParameters.mzTolerance).getValue();
+    numConsecutiveFrames = parameters.getParameter(RecursiveIMSBuilderParameters.minNumConsecutive)
         .getValue();
-    numDataPoints = parameters.getParameter(IMSBuilderParameters.minNumDatapoints).getValue();
+    numDataPoints = parameters.getParameter(RecursiveIMSBuilderParameters.minNumDatapoints).getValue();
 
     final var advancedParam = parameters
-        .getParameter(IMSBuilderParameters.advancedParameters).getValue();
+        .getParameter(RecursiveIMSBuilderParameters.advancedParameters).getValue();
     binWidth = switch (file.getMobilityType()) {
-      case TIMS -> advancedParam.getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
+      case TIMS -> advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
           .getValue() ? advancedParam
-          .getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
+          .getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
           .getEmbeddedParameter().getValue()
-          : AdvancedIMSBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
-      case DRIFT_TUBE -> advancedParam.getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
+          : RecursiveIMSBuilderAdvancedParameters.DEFAULT_TIMS_BIN_WIDTH;
+      case DRIFT_TUBE -> advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
           .getValue() ? advancedParam
-          .getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
+          .getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
           .getEmbeddedParameter().getValue()
-          : AdvancedIMSBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
+          : RecursiveIMSBuilderAdvancedParameters.DEFAULT_DTIMS_BIN_WIDTH;
       case TRAVELING_WAVE ->
-          advancedParam.getParameter(AdvancedIMSBuilderParameters.twimsBinningWidth)
+          advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
               .getValue() ? advancedParam
-              .getParameter(AdvancedIMSBuilderParameters.twimsBinningWidth)
+              .getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : AdvancedIMSBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
+              : RecursiveIMSBuilderAdvancedParameters.DEFAULT_TWIMS_BIN_WIDTH;
       default -> 0.0008;
     };
 
@@ -194,7 +194,7 @@ public class IMSBuilderTask extends AbstractTask {
     }
 
     flist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(IMSBuilderModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(RecursiveIMSBuilderModule.class, parameters));
     DataTypeUtils.addDefaultIonMobilityTypeColumns(flist);
     project.addFeatureList(flist);
 

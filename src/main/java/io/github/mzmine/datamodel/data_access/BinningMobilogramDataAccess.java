@@ -32,9 +32,9 @@ import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_imsbuilder.AdvancedIMSBuilderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_imsbuilder.IMSBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_imsbuilder.IMSBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderAdvancedParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.AdvancedImsTraceBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderParameters;
@@ -183,29 +183,29 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       }
 
       if (method.getModule()
-          .equals(MZmineCore.getModuleInstance(IMSBuilderModule.class))) {
+          .equals(MZmineCore.getModuleInstance(RecursiveIMSBuilderModule.class))) {
         final ParameterSet parameterSet = method.getParameters();
         final var advancedParam = parameterSet
-            .getParameter(IMSBuilderParameters.advancedParameters).getValue();
+            .getParameter(RecursiveIMSBuilderParameters.advancedParameters).getValue();
         binWidth = switch (mt) {
           case TIMS ->
-              advancedParam.getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
+              advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
                   .getValue() ? advancedParam
-                  .getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
+                  .getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
                   .getEmbeddedParameter().getValue()
-                  : AdvancedIMSBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
+                  : RecursiveIMSBuilderAdvancedParameters.DEFAULT_TIMS_BIN_WIDTH;
           case DRIFT_TUBE ->
-              advancedParam.getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
+              advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
                   .getValue() ? advancedParam
-                  .getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
+                  .getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
                   .getEmbeddedParameter().getValue()
-                  : AdvancedIMSBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
+                  : RecursiveIMSBuilderAdvancedParameters.DEFAULT_DTIMS_BIN_WIDTH;
           case TRAVELING_WAVE ->
-              advancedParam.getParameter(AdvancedIMSBuilderParameters.twimsBinningWidth)
+              advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
                   .getValue() ? advancedParam
-                  .getParameter(AdvancedIMSBuilderParameters.twimsBinningWidth)
+                  .getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
                   .getEmbeddedParameter().getValue()
-                  : AdvancedIMSBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
+                  : RecursiveIMSBuilderAdvancedParameters.DEFAULT_TWIMS_BIN_WIDTH;
           default -> null;
         };
         break;

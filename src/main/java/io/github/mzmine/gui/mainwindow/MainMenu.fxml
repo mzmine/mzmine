@@ -188,8 +188,8 @@
         text="Ion mobility trace builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>
       <MenuItem onAction="#runModule"
-        text="IMS builder"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_imsbuilder.IMSBuilderModule"/>
+        text="Recursive IMS builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule"/>
     </Menu>
     <Menu text="Imaging">
       <MenuItem onAction="#runModule"

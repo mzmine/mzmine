@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -13,7 +13,7 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class IMSBuilderModule implements MZmineProcessingModule {
+public class RecursiveIMSBuilderModule implements MZmineProcessingModule {
 
   @Nonnull
   @Override
@@ -24,7 +24,7 @@ public class IMSBuilderModule implements MZmineProcessingModule {
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return IMSBuilderParameters.class;
+    return RecursiveIMSBuilderParameters.class;
   }
 
   @Nonnull
@@ -40,9 +40,9 @@ public class IMSBuilderModule implements MZmineProcessingModule {
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile rawDataFile : parameters
-        .getParameter(IMSBuilderParameters.rawDataFiles).getValue().getMatchingRawDataFiles()) {
+        .getParameter(RecursiveIMSBuilderParameters.rawDataFiles).getValue().getMatchingRawDataFiles()) {
       if (rawDataFile instanceof IMSRawDataFile) {
-        tasks.add(new IMSBuilderTask(storage, (IMSRawDataFile) rawDataFile, parameters, project));
+        tasks.add(new RecursiveIMSBuilderTask(storage, (IMSRawDataFile) rawDataFile, parameters, project));
       }
     }
     return ExitCode.OK;

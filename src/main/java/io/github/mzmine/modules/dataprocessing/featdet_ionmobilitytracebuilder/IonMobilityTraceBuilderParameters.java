@@ -40,7 +40,7 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
           new ScanSelection());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.001, 5,
+      "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.005, 10,
       false);
 
   public static final IntegerParameter minDataPointsRt = new IntegerParameter(

@@ -62,7 +62,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.A
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.IImage;
-import io.github.mzmine.modules.dataprocessing.featdet_imsbuilder.TempIMTrace;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.TempIMTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IIonMobilityTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;

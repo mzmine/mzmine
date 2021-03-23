@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;

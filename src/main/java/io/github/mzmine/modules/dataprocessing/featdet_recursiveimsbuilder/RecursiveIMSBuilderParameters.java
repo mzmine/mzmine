@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.AdvancedImsTraceBuilderParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -10,7 +10,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class IMSBuilderParameters extends SimpleParameterSet {
+public class RecursiveIMSBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
@@ -34,7 +34,7 @@ public class IMSBuilderParameters extends SimpleParameterSet {
           "Allows adjustment of internal binning parameters for mobilograms",
           new AdvancedImsTraceBuilderParameters());
 
-  public IMSBuilderParameters() {
+  public RecursiveIMSBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minNumConsecutive,
         minNumDatapoints, advancedParameters});
   }

@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.featdet_imsbuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
