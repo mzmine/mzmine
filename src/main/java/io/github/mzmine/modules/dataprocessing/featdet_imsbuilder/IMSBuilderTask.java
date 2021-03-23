@@ -77,24 +77,23 @@ public class IMSBuilderTask extends AbstractTask {
     this.parameters = parameters;
     scanSelection = parameters.getParameter(IMSBuilderParameters.scanSelection).getValue();
     tolerance = parameters.getParameter(IMSBuilderParameters.mzTolerance).getValue();
-    numConsecutiveFrames = parameters.getParameter(IMSBuilderParameters.minNumConsecutive).getValue();
+    numConsecutiveFrames = parameters.getParameter(IMSBuilderParameters.minNumConsecutive)
+        .getValue();
     numDataPoints = parameters.getParameter(IMSBuilderParameters.minNumDatapoints).getValue();
 
     final var advancedParam = parameters
         .getParameter(IMSBuilderParameters.advancedParameters).getValue();
     binWidth = switch (file.getMobilityType()) {
-      case TIMS ->
-          advancedParam.getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
-              .getValue() ? advancedParam
-              .getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
-              .getEmbeddedParameter().getValue()
-              : AdvancedIMSBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
-      case DRIFT_TUBE ->
-          advancedParam.getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
-              .getValue() ? advancedParam
-              .getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
-              .getEmbeddedParameter().getValue()
-              : AdvancedIMSBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
+      case TIMS -> advancedParam.getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
+          .getValue() ? advancedParam
+          .getParameter(AdvancedIMSBuilderParameters.timsBinningWidth)
+          .getEmbeddedParameter().getValue()
+          : AdvancedIMSBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
+      case DRIFT_TUBE -> advancedParam.getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
+          .getValue() ? advancedParam
+          .getParameter(AdvancedIMSBuilderParameters.dtimsBinningWidth)
+          .getEmbeddedParameter().getValue()
+          : AdvancedIMSBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
       case TRAVELING_WAVE ->
           advancedParam.getParameter(AdvancedIMSBuilderParameters.twimsBinningWidth)
               .getValue() ? advancedParam
@@ -172,7 +171,9 @@ public class IMSBuilderTask extends AbstractTask {
     currentStep++;
 
     int id = 0;
-    for (TempIMTrace trace : ionMobilityTraces) {
+    final List<TempIMTrace> sortedTraces = ionMobilityTraces.stream()
+        .sorted(Comparator.comparingDouble(TempIMTrace::getCenterMz)).collect(Collectors.toList());
+    for (TempIMTrace trace : sortedTraces) {
       if (isCanceled()) {
         return;
       }
@@ -183,9 +184,9 @@ public class IMSBuilderTask extends AbstractTask {
         continue;
       }
 
-      ModularFeature f = FeatureConvertors
+      final ModularFeature f = FeatureConvertors
           .tempIMTraceToModularFeature(trace, file, binningMobilogramDataAccess, flist);
-      ModularFeatureListRow row = new ModularFeatureListRow(flist, id, f);
+      final ModularFeatureListRow row = new ModularFeatureListRow(flist, id, f);
       row.set(FeatureShapeMobilogramType.class, false);
       flist.addRow(row);
       id++;

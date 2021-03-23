@@ -18,7 +18,8 @@ public class IMSBuilderParameters extends SimpleParameterSet {
       new ScanSelection(1));
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "The m/z tolerance to build ion traces.", 0.01, 30);
+      "The m/z tolerance to build ion traces. The tolerance is specified as a +- tolerance. "
+          + "m/z 500.000 with a tolerance of 0.01 will allow m/z 499.99 to 501.01.",0.005, 15);
 
   public static final IntegerParameter minNumConsecutive = new IntegerParameter(
       "Minimum consecutive retention time data points",

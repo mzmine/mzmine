@@ -146,4 +146,8 @@ public class TempIMTrace {
   public int getNumberOfDataPoints() {
     return mobilograms.values().stream().mapToInt(IonMobilitySeries::getNumberOfValues).sum();
   }
+
+  public double getCenterMz() {
+    return centerMz;
+  }
 }
