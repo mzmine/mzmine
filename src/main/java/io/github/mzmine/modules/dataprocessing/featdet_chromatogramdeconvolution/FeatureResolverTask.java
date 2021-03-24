@@ -18,9 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -346,6 +349,10 @@ public class FeatureResolverTask extends AbstractTask {
         .getXYResolver(parameters);
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
+    final BinningMobilogramDataAccess mobilogramBinning =
+        dataFile instanceof IMSRawDataFile ? EfficientDataAccess.of((IMSRawDataFile) dataFile,
+            BinningMobilogramDataAccess.getPreviousBinningWith(originalFeatureList,
+                ((IMSRawDataFile) dataFile).getMobilityType())) : null;
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
@@ -364,7 +371,8 @@ public class FeatureResolverTask extends AbstractTask {
       final IonTimeSeries<? extends Scan> data = originalFeature.getFeatureData();
 
       final List<IonTimeSeries<? extends Scan>> resolvedSeries = ResolvingUtil
-          .resolve(resolver, data, resolvedFeatureList.getMemoryMapStorage(), dimension, seletedScans);
+          .resolve(resolver, data, resolvedFeatureList.getMemoryMapStorage(), dimension,
+              seletedScans, mobilogramBinning);
 
       for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
@@ -388,7 +396,8 @@ public class FeatureResolverTask extends AbstractTask {
       }
       processedRows++;
     }
-    logger.info(c + "/" + resolvedFeatureList.getNumberOfRows() + " have less than 4 scans (frames for IMS data)");
+    logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
+        + " have less than 4 scans (frames for IMS data)");
     QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
@@ -473,7 +482,8 @@ public class FeatureResolverTask extends AbstractTask {
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
     // since we dont create a copy, we have to copy manually
-    originalFeatureList.getAppliedMethods().forEach(m -> resolvedFeatureList.getAppliedMethods().add(m));
+    originalFeatureList.getAppliedMethods()
+        .forEach(m -> resolvedFeatureList.getAppliedMethods().add(m));
     // the new method is added later, since we don't know here which resolver module is used.
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features

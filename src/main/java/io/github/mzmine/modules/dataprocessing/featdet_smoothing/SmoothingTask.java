@@ -21,7 +21,6 @@ import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SGIntensitySmoothing.ZeroHandlingType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -30,13 +29,10 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class SmoothingTask extends AbstractTask {
-
-  private static final Logger logger = Logger.getLogger(SmoothingTask.class.getName());
 
   private final ModularFeatureList flist;
   private final ParameterSet parameters;
@@ -131,7 +127,7 @@ public class SmoothingTask extends AbstractTask {
     originalSeries.getMzValues(originalMzs);
     if (smoothMobility && originalSeries instanceof IonMobilogramTimeSeries) {
       SummedIntensityMobilitySeries smoothedMobilogram = smoothSummedMobilogram(storage,
-          (IonMobilogramTimeSeries) originalSeries, zht, mobilityWeights, feature.getMZ());
+          (IonMobilogramTimeSeries) originalSeries, zht, mobilityWeights);
       return new SimpleIonMobilogramTimeSeries(storage, originalMzs, newIntensities,
           ((SimpleIonMobilogramTimeSeries) originalSeries).getMobilogramsModifiable(),
           ((ModifiableSpectra) originalSeries).getSpectraModifiable(), smoothedMobilogram);
@@ -155,7 +151,7 @@ public class SmoothingTask extends AbstractTask {
     }
 
     final ModularFeatureList smoothedList = flist
-        .createCopy(flist.getName() + suffix, getMemoryMapStorage());
+        .createCopy(flist.getName() + " " + suffix, getMemoryMapStorage());
     final SGIntensitySmoothing smoother = new SGIntensitySmoothing(ZeroHandlingType.KEEP,
         rtWeights);
     // include zeros
@@ -192,7 +188,7 @@ public class SmoothingTask extends AbstractTask {
   public static SummedIntensityMobilitySeries smoothSummedMobilogram(
       @Nullable MemoryMapStorage storage,
       @Nonnull final IonMobilogramTimeSeries originalSeries,
-      @Nonnull final ZeroHandlingType zht, @Nonnull final double[] weights, double mz) {
+      @Nonnull final ZeroHandlingType zht, @Nonnull final double[] weights) {
 
     final double[] mobilities = DataPointUtils.getDoubleBufferAsArray(
         originalSeries.getSummedMobilogram().getMobilityValues());
@@ -201,7 +197,7 @@ public class SmoothingTask extends AbstractTask {
 
     return new SummedIntensityMobilitySeries(
         storage, mobilities,
-        smoothedSummed.smooth(originalSeries.getSummedMobilogram()), mz);
+        smoothedSummed.smooth(originalSeries.getSummedMobilogram()));
   }
 
 

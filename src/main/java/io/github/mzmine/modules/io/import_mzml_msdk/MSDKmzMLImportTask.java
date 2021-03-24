@@ -31,13 +31,10 @@ import io.github.mzmine.datamodel.impl.MsdkScanWrapper;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_all_data_files.AdvancedSpectraImportParameters;
-import io.github.mzmine.modules.io.import_all_data_files.MassDetectionSubParameters;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_mzml_msdk.msdk.data.MzMLMsScan;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -49,7 +46,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
 
 /**
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
@@ -235,7 +231,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
         }
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
-            scan.getRetentionTime() / 60f, 0, 0, new double[]{}, new double[]{},
+            scan.getRetentionTime() / 60f, 0, 0, null, null,
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
             scan.getScanningRange(), mzMLScan.getMobility().mt(), null);

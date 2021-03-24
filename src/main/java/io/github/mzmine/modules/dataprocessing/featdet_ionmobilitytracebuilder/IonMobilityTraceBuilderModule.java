@@ -65,7 +65,7 @@ public class IonMobilityTraceBuilderModule implements MZmineProcessingModule {
   @Nonnull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATUREDETECTION;
+    return MZmineModuleCategory.EIC_DETECTION;
   }
 
   @Nonnull

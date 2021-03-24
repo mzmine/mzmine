@@ -22,28 +22,27 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
  * Stores a summed mobilogram based on the intesities of the frame-specific mobilograms in the
- * constructor.
+ * constructor. It is guaranteed that mobility values are ascending with index.
  *
  * @author https://github.com/SteffenHeu
  */
 public class SummedIntensityMobilitySeries implements IntensitySeries, MobilitySeries {
 
-  final double mz;
   final DoubleBuffer intensityValues;
   final DoubleBuffer mobilityValues;
 
@@ -52,20 +51,14 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    *
    * @param storage     May be null, if values shall be stored in ram.
    * @param mobilograms
-   * @param mz
    */
   public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage,
-      List<IonMobilitySeries> mobilograms,
-      double mz) {
+      @Nonnull List<IonMobilitySeries> mobilograms) {
 
-    this.mz = mz;
     Frame exampleFrame = mobilograms.get(0).getSpectra().get(0).getFrame();
-    double smallestDelta = IonMobilityUtils
-        .getSmallestMobilityDelta(exampleFrame);
+    final double smallestDelta = IonMobilityUtils.getSmallestMobilityDelta(exampleFrame);
 
-    // we want to preserve the order of mobilities as it is ordered in the Frame.
-    boolean ascendingMobility = exampleFrame.getMobilityType() != MobilityType.TIMS;
-    RangeMap<Double, Double> mobilityIntensityValues = TreeRangeMap.create();
+    final RangeMap<Double, Double> mobilityIntensityValues = TreeRangeMap.create();
 
     for (int i = 0; i < mobilograms.size(); i++) {
       IonMobilitySeries mobilogram = mobilograms.get(i);
@@ -83,32 +76,15 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
       }
     }
 
-    // we want to preserve the order of mobilities as it is ordered in the Frame.
-    Map<Range<Double>, Double> mapOfRanges =
-        ascendingMobility ? mobilityIntensityValues.asMapOfRanges()
-            : mobilityIntensityValues.asDescendingMapOfRanges();
+    // this causes tims mobilities to be reordered
+    Map<Range<Double>, Double> mapOfRanges = mobilityIntensityValues.asMapOfRanges();
 
     double[] mobilities = mapOfRanges.keySet().stream()
         .mapToDouble(key -> (key.upperEndpoint() + key.lowerEndpoint()) / 2).toArray();
     double[] intensities = mapOfRanges.values().stream().mapToDouble(Double::doubleValue).toArray();
 
-    DoubleBuffer tempMobility;
-    DoubleBuffer tempIntensities;
-    if (storage != null) {
-      try {
-        tempMobility = storage.storeData(mobilities);
-        tempIntensities = storage.storeData(intensities);
-      } catch (IOException e) {
-        tempMobility = DoubleBuffer.wrap(mobilities);
-        tempIntensities = DoubleBuffer.wrap(intensities);
-        e.printStackTrace();
-      }
-    } else {
-      tempMobility = DoubleBuffer.wrap(mobilities);
-      tempIntensities = DoubleBuffer.wrap(intensities);
-    }
-    mobilityValues = tempMobility;
-    intensityValues = tempIntensities;
+    mobilityValues = StorageUtils.storeValuesToDoubleBuffer(storage, mobilities);
+    intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
 
   /**
@@ -118,28 +94,15 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    * @param storage
    * @param mobilities
    * @param intensities
-   * @param mz
    */
-  public SummedIntensityMobilitySeries(MemoryMapStorage storage, double[] mobilities,
-      double[] intensities, double mz) {
-    this.mz = mz;
-    DoubleBuffer tempMobility;
-    DoubleBuffer tempIntensities;
-    if (storage != null) {
-      try {
-        tempMobility = storage.storeData(mobilities);
-        tempIntensities = storage.storeData(intensities);
-      } catch (IOException e) {
-        tempMobility = DoubleBuffer.wrap(mobilities);
-        tempIntensities = DoubleBuffer.wrap(intensities);
-        e.printStackTrace();
-      }
-    } else {
-      tempMobility = DoubleBuffer.wrap(mobilities);
-      tempIntensities = DoubleBuffer.wrap(intensities);
+  public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage, double[] mobilities,
+      double[] intensities) {
+    if (mobilities.length > 1) {
+      assert mobilities[0] < mobilities[1];
     }
-    this.mobilityValues = tempMobility;
-    this.intensityValues = tempIntensities;
+
+    mobilityValues = StorageUtils.storeValuesToDoubleBuffer(storage, mobilities);
+    intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
 
   public int getNumberOfDataPoints() {
@@ -153,6 +116,8 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
   /**
    * Note: Since this is a summed mobilogram, the data points were summed at a given mobility, not
    * necessarily at the same mobility scan number. Therefore, a list of scans is not provided.
+   * <p></p>
+   * THe mobility values are guaranteed to be ascending.
    *
    * @param index
    * @return
@@ -169,8 +134,34 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     return mobilityValues;
   }
 
-  public double getMZ() {
-    return mz;
+  public double[] getMobilityValues(double[] dst) {
+    if (dst.length < getNumberOfValues()) {
+      dst = new double[getNumberOfValues()];
+    }
+    getMobilityValues().get(0, dst, 0, getNumberOfValues());
+    return dst;
+  }
+
+  public SummedIntensityMobilitySeries copy(@Nullable MemoryMapStorage storage) {
+    return new SummedIntensityMobilitySeries(storage,
+        DataPointUtils.getDoubleBufferAsArray(mobilityValues),
+        DataPointUtils.getDoubleBufferAsArray(intensityValues));
+  }
+
+  public String print() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("Num values: ");
+    builder.append(getNumberOfValues());
+    builder.append("/");
+    builder.append(getNumberOfDataPoints());
+    builder.append(": ");
+    for(int i = 0; i < getNumberOfValues(); i++) {
+      builder.append(String.format("(%2.5f", getMobility(i)));
+      builder.append(", ");
+      builder.append(String.format("(%.1f", getIntensity(i)));
+      builder.append("), ");
+    }
+    return builder.toString();
   }
 
 }

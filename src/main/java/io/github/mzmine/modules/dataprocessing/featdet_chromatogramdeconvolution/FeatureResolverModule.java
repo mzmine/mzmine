@@ -41,7 +41,7 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELISTDETECTION;
+    return MZmineModuleCategory.FEATURE_RESOLVING;
   }
 
   @Override

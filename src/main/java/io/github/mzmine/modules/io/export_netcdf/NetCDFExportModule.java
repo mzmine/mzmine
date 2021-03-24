@@ -18,9 +18,6 @@
 
 package io.github.mzmine.modules.io.export_netcdf;
 
-import java.io.File;
-import java.util.Collection;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -29,6 +26,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 /**
  * Raw data export module
@@ -72,7 +72,7 @@ public class NetCDFExportModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATA;
+    return MZmineModuleCategory.RAWDATAEXPORT;
   }
 
   @Override

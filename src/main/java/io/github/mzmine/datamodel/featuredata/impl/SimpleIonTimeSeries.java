@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.Comparator;
@@ -60,24 +59,8 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
     this.scans = scans;
 
-    DoubleBuffer tempMzs;
-    DoubleBuffer tempIntensities;
-    if (storage != null) {
-      try {
-        tempMzs = storage.storeData(mzValues);
-        tempIntensities = storage.storeData(intensityValues);
-      } catch (IOException e) {
-        e.printStackTrace();
-        tempMzs = DoubleBuffer.wrap(mzValues);
-        tempIntensities = DoubleBuffer.wrap(intensityValues);
-      }
-    } else {
-      tempMzs = DoubleBuffer.wrap(mzValues);
-      tempIntensities = DoubleBuffer.wrap(intensityValues);
-    }
-
-    this.mzValues = tempMzs;
-    this.intensityValues = tempIntensities;
+    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
+    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
   }
 
   @Override

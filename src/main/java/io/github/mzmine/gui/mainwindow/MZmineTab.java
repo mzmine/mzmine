@@ -18,14 +18,13 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.Collection;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.MZmineWindow;
 import io.github.mzmine.main.MZmineCore;
+import java.util.Collection;
+import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
@@ -34,6 +33,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
+import javax.annotation.Nonnull;
 
 
 /**
@@ -95,7 +95,7 @@ public abstract class MZmineTab extends Tab {
       Collection<? extends FeatureList> featureLists);
 
   public abstract void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists);
+      Collection<? extends FeatureList> featureLists);
 
   public boolean isUpdateOnSelection() {
     return cbUpdateOnSelection.isSelected();
