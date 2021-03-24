@@ -244,6 +244,8 @@
     </Menu>
 
     <Menu text="Export feature list">
+      <MenuItem text="Louis' export" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_louis.LouisExportModule"/>
       <MenuItem text="CSV" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"/>
       <MenuItem text="CSV (legacy MZmine 2)" onAction="#runModule"
