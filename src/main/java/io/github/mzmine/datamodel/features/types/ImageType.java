@@ -34,7 +34,7 @@ public class ImageType extends LinkedDataType
       return null;
     }
     ModularFeature feature = row.getFeature(raw);
-    if(feature == null) {
+    if(feature == null || feature.getRawDataFile() == null || feature.getFeatureData() == null) {
       return null;
     }
 

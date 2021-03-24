@@ -9,11 +9,12 @@ import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -55,6 +56,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
   private final ParameterSet parameters;
   private int newRowId = 1;
   private String description;
+  private BinningMobilogramDataAccess access;
 
   public IonMobilityImageExpanderTask(MZmineProject project, ParameterSet parameters,
       ModularFeatureList flist, @Nullable MemoryMapStorage storage) {
@@ -89,6 +91,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
 //    List<List<ModularFeature>> partionedLists = Lists.partition(sortedFeatures, featuresPerStep);
 
     final IMSImagingRawDataFile file = (IMSImagingRawDataFile) flist.getRawDataFile(0);
+    access = new BinningMobilogramDataAccess(file, 0.0008);
 
     description = "Sorting frames";
     List<ImagingFrame> frames = new ArrayList<>((Collection<ImagingFrame>) file.getFrames(1));
@@ -244,8 +247,8 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
       mobilograms.add(new SimpleIonMobilitySeries(null, data[0], data[1],
           scans));
     }
-    IonMobilogramTimeSeries ionMobilogramTimeSeries = new SimpleIonMobilogramTimeSeries(
-        newflist.getMemoryMapStorage(), mobilograms);
+    IonMobilogramTimeSeries ionMobilogramTimeSeries = IonMobilogramTimeSeriesFactory.of(
+        newflist.getMemoryMapStorage(), mobilograms, access);
 
     ModularFeature feature = new ModularFeature(newflist, image.getOriginalFeature());
     feature.set(FeatureDataType.class, ionMobilogramTimeSeries);
