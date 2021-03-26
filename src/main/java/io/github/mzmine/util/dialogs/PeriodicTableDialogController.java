@@ -23,15 +23,12 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Font;
-import javafx.scene.web.WebView;
 import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.tools.periodictable.PeriodicTable;
-
-import java.lang.reflect.Method;
-import java.util.EventObject;
 
 public class PeriodicTableDialogController {
 
@@ -40,6 +37,9 @@ public class PeriodicTableDialogController {
 
   @FXML
   public Label textLabelbottom = new Label();
+
+  @FXML
+  public AnchorPane pnRoot;
 
   private String elementSymbol = new String();
 
@@ -116,5 +116,11 @@ public class PeriodicTableDialogController {
 
   public String getElementSymbol() {
     return elementSymbol;
+  }
+
+  public void handleMousePressed(MouseEvent mouseEvent) {
+    if(mouseEvent.getButton() == MouseButton.PRIMARY) {
+      pnRoot.getScene().getWindow().hide();
+    }
   }
 }

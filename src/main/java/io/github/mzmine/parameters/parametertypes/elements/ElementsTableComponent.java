@@ -17,24 +17,21 @@
  */
 
 package io.github.mzmine.parameters.parametertypes.elements;
-import javafx.beans.binding.Bindings;
+
+import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class ElementsTableComponent extends FlowPane {
 
@@ -86,10 +83,12 @@ public class ElementsTableComponent extends FlowPane {
         t -> {
           PeriodicTableDialog dialog = new PeriodicTableDialog();
           dialog.show();
-          IIsotope chosenIsotope = dialog.getSelectedIsotope();
-          if (chosenIsotope == null) return;
-          ElementsValue elementsValue = new ElementsValue(chosenIsotope, "100", "0");
+          dialog.setOnHiding(e -> {
+            IIsotope chosenIsotope = dialog.getSelectedIsotope();
+            if (chosenIsotope == null) return;
+            ElementsValue elementsValue = new ElementsValue(chosenIsotope, "100", "0");
             elementsValues.add(elementsValue);
+          });
         });
 
     // Remove event
