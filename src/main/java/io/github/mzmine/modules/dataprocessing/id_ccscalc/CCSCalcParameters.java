@@ -25,6 +25,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.mztochargeparameter.MzToChargeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import javax.annotation.Nonnull;
 
 public class CCSCalcParameters extends SimpleParameterSet {
 
@@ -46,6 +47,7 @@ public class CCSCalcParameters extends SimpleParameterSet {
     super(new UserParameter[]{featureLists, assumeChargeStage, createNewFeatureList});
   }
 
+  @Nonnull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;

@@ -20,9 +20,11 @@ package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
 
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import javax.annotation.Nonnull;
 
 public class IMSFeatureVisualizerParameters extends SimpleParameterSet {
 
+  @Nonnull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;
