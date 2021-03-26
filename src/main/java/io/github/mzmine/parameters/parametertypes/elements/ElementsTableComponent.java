@@ -36,8 +36,7 @@ import org.openscience.cdk.interfaces.IIsotope;
 public class ElementsTableComponent extends FlowPane {
 
   private final ObservableList<ElementsValue> elementsValues = FXCollections.observableArrayList();
-  private final TableView<ElementsValue> elementsValueTable = new TableView();
-
+  private final TableView<ElementsValue> elementsValueTable = new TableView<>();
 
   public ElementsTableComponent() {
 
@@ -46,33 +45,31 @@ public class ElementsTableComponent extends FlowPane {
     elementsValueTable.setMaxHeight(200);
     elementsValueTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-
-
 // allows the individual cells to be selected
     elementsValueTable.getSelectionModel().cellSelectionEnabledProperty().set(true);
-    TableColumn<ElementsValue, String> elementCol = new TableColumn("Element");
-    TableColumn<ElementsValue, String> maxCol = new TableColumn("Max");
-    TableColumn<ElementsValue, String> minCol = new TableColumn("Min");
+    TableColumn<ElementsValue, String> elementCol = new TableColumn<>("Element");
+    TableColumn<ElementsValue, String> maxCol = new TableColumn<>("Max");
+    TableColumn<ElementsValue, String> minCol = new TableColumn<>("Min");
 
     // Make Column editable
     maxCol.setCellFactory(TextFieldTableCell.forTableColumn());
     maxCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
-            getRow()).setMax(event.getNewValue()));
+        getRow()).setMax(event.getNewValue()));
     minCol.setCellFactory(TextFieldTableCell.forTableColumn());
     minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
-            getRow()).setMin(event.getNewValue()));
+        getRow()).setMin(event.getNewValue()));
 
-    elementCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope().getSymbol()));
-    maxCol.setCellValueFactory(col-> {
+    elementCol.setCellValueFactory(
+        cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope().getSymbol()));
+    maxCol.setCellValueFactory(col -> {
       String max = String.valueOf(col.getValue().getMax());
       return new ReadOnlyObjectWrapper<>(max);
     });
 
-    minCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
+    minCol.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
 
     minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
-            getRow()).setMin(event.getNewValue()));
-
+        getRow()).setMin(event.getNewValue()));
 
     elementsValueTable.setItems(elementsValues);
 
@@ -85,7 +82,9 @@ public class ElementsTableComponent extends FlowPane {
           dialog.show();
           dialog.setOnHiding(e -> {
             IIsotope chosenIsotope = dialog.getSelectedIsotope();
-            if (chosenIsotope == null) return;
+            if (chosenIsotope == null) {
+              return;
+            }
             ElementsValue elementsValue = new ElementsValue(chosenIsotope, "100", "0");
             elementsValues.add(elementsValue);
           });
@@ -94,7 +93,7 @@ public class ElementsTableComponent extends FlowPane {
     // Remove event
     removeButton.setOnAction(t -> {
       ElementsValue element = elementsValueTable.getSelectionModel().getSelectedItem();
-        elementsValues.remove(element);
+      elementsValues.remove(element);
 
     });
 
@@ -105,25 +104,9 @@ public class ElementsTableComponent extends FlowPane {
     vBox.getChildren().addAll(addButton, removeButton);
     vBox.setSpacing(10);
 
-    this.getChildren().addAll(elementsValueTable,vBox);
+    this.getChildren().addAll(elementsValueTable, vBox);
     this.setHgap(10d);
     this.setAlignment(Pos.BASELINE_RIGHT);
-  }
-
-
-  public void setElements(MolecularFormulaRange elements) {
-
-    if (elements == null)
-      return;
-    elementsValues.clear();
-    for (IIsotope isotope : elements.isotopes()) {
-      int minCount = elements.getIsotopeCountMin(isotope);
-      int maxCount = elements.getIsotopeCountMax(isotope);
-      ElementsValue elementsValue = new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount));
-       elementsValues.add(elementsValue);
-
-    }
-
   }
 
   public MolecularFormulaRange getElements() {
@@ -140,6 +123,23 @@ public class ElementsTableComponent extends FlowPane {
       newValue.addIsotope(isotope, Integer.parseInt(minCount), Integer.parseInt(maxCount));
     }
     return newValue;
+  }
+
+  public void setElements(MolecularFormulaRange elements) {
+
+    if (elements == null) {
+      return;
+    }
+    elementsValues.clear();
+    for (IIsotope isotope : elements.isotopes()) {
+      int minCount = elements.getIsotopeCountMin(isotope);
+      int maxCount = elements.getIsotopeCountMax(isotope);
+      ElementsValue elementsValue = new ElementsValue(isotope, String.valueOf(maxCount),
+          String.valueOf(minCount));
+      elementsValues.add(elementsValue);
+
+    }
+
   }
 
 }
