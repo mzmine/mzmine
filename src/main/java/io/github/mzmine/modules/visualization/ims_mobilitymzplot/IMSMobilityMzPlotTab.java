@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
+package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -26,11 +26,11 @@ import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nonnull;
 
-public class IMSFeatureVisualizerTab extends MZmineTab {
+public class IMSMobilityMzPlotTab extends MZmineTab {
 
-  public IMSFeatureVisualizerTab(Collection<ModularFeature> features, boolean useMobilograms) {
-    super("IMS feature visualizer", false, false);
-    IMSFeaturesVisualizer visualizer = new IMSFeaturesVisualizer();
+  public IMSMobilityMzPlotTab(Collection<ModularFeature> features, boolean useMobilograms) {
+    super("IMS mobility m/z plot", false, false);
+    IMSMobilityMzPlot visualizer = new IMSMobilityMzPlot();
     visualizer.setFeatures(features, useMobilograms, PlotType.MOBILITY);
     setContent(visualizer);
   }
