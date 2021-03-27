@@ -174,7 +174,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
-    notifyDatasetsChangedListeners();
+    notifyDatasetsChan gedListeners();
+
     return nextDataSetNum - 1;
   }
 
