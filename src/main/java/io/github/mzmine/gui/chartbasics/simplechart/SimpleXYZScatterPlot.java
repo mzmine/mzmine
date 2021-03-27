@@ -101,6 +101,12 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   private Canvas legendCanvas;
   private String legendLabel = null;
 
+  /**
+   * Needs to be stored in case a separate legend canvas is used, so we can redraw the legend when
+   * the canvas is resized.
+   */
+  private PaintScaleLegend currentLegend = null;
+
   public SimpleXYZScatterPlot() {
     this("");
   }
@@ -433,8 +439,10 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       chart.clearSubtitles();
       if (legendCanvas != null) {
         drawLegendToSeparateCanvas(legend);
+        currentLegend = legend;
       } else {
         chart.addSubtitle(legend);
+        currentLegend = null;
       }
     }
     MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
@@ -453,6 +461,26 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   public void setLegendCanvas(@Nullable Canvas canvas) {
     this.legendCanvas = canvas;
+
+    widthProperty().addListener(((observable, oldValue, newValue) -> {
+      if (defaultPaintscaleLocation == RectangleEdge.BOTTOM
+          || defaultPaintscaleLocation == RectangleEdge.TOP) {
+        legendCanvas.setWidth(newValue.doubleValue());
+      }
+    }));
+
+    heightProperty().addListener(((observable, oldValue, newValue) -> {
+      if (defaultPaintscaleLocation == RectangleEdge.LEFT
+          || defaultPaintscaleLocation == RectangleEdge.RIGHT) {
+        legendCanvas.setHeight(newValue.doubleValue());
+      }
+    }));
+
+    legendCanvas.widthProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentLegend != null) {
+        drawLegendToSeparateCanvas(currentLegend);
+      }
+    }));
   }
 
   public void setLegendAxisLabel(@Nullable String label) {
@@ -476,7 +504,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
-    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
+    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<>();
 
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataset = plot.getDataset(i);
@@ -517,8 +545,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     newLegend.setAxisOffset(5.0);
     newLegend.setSubdivisionCount(500);
     newLegend.setPosition(defaultPaintscaleLocation);
-//    double h =
-//        newLegend.getHeight() + newLegend.getStripWidth() + newLegend.getAxisOffset() ;
     newLegend.setBackgroundPaint(legendBg);
     return newLegend;
   }

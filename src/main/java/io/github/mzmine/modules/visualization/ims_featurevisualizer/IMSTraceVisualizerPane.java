@@ -37,6 +37,7 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlotRenderer;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import java.awt.Color;
 import java.text.NumberFormat;
+import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
@@ -48,6 +49,8 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.ui.RectangleEdge;
 
 public class IMSTraceVisualizerPane extends BorderPane {
+
+  private static Logger logger = Logger.getLogger(IMSTraceVisualizerPane.class.getName());
 
   private static final int HEATMAP_LEGEND_HEIGHT = 50;
   private static final double MIN_MOBILOGRAM_WIDTH = 250;
@@ -148,7 +151,6 @@ public class IMSTraceVisualizerPane extends BorderPane {
 
   private void updateAxisLabels() {
     String intensityLabel = unitFormat.format("Intensity", "a.u.");
-    String mzLabel = "m/z";
     String mobilityLabel = "Mobility";
     if (featureProperty.get() != null && featureProperty.get()
         .getRawDataFile() instanceof IMSRawDataFile file) {

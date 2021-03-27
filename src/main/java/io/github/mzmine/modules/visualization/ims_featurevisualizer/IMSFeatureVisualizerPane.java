@@ -26,7 +26,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilogramAccessType;
 import io.github.mzmine.datamodel.data_access.MobilogramDataAccess;
-import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -139,7 +138,6 @@ public class IMSFeatureVisualizerPane extends SplitPane {
     }
 
     traceVisualizer.setFeature(newFeature);
-    final IonMobilogramTimeSeries series = (IonMobilogramTimeSeries) getFeature().getFeatureData();
     mzBinComponent.getTextField()
         .setText(
             String.valueOf(RangeUtils.rangeLength(getFeature().getRawDataPointsMZRange()) / 10));
@@ -160,13 +158,13 @@ public class IMSFeatureVisualizerPane extends SplitPane {
       logger.fine(() -> "Invalid number: " + mzBinComponent.getText());
       return;
     }
-
-    final double smallestMzDelta = binWidth;
+    if(binWidth == 0d) {
+      binWidth = Double.MIN_VALUE;
+    }
 
     final MobilogramDataAccess access = EfficientDataAccess
         .of(series, MobilogramAccessType.ONLY_DETECTED);
     while (access.hasNext()) {
-      final IonMobilitySeries mobilogram = access.next();
       for (int i = 0; i < access.getNumberOfValues(); i++) {
         dataPoints.add(new SimpleDataPoint(access.getMZ(i), access.getIntensity(i)));
       }
@@ -178,18 +176,18 @@ public class IMSFeatureVisualizerPane extends SplitPane {
 
     final RangeMap<Double, AtomicDouble> binnedValues = TreeRangeMap.create();
     final Range<Double> firstRange = Range
-        .open(dataPoints.get(0).getMZ(), dataPoints.get(0).getMZ() + smallestMzDelta);
+        .open(dataPoints.get(0).getMZ(), dataPoints.get(0).getMZ() + binWidth);
     double lastMaxBin = firstRange.upperEndpoint();
 
     binnedValues.put(firstRange, new AtomicDouble(0d));
     for (DataPoint dp : dataPoints) {
       var summedIntensity = binnedValues.get(dp.getMZ());
       if (summedIntensity == null) {
-        if(lastMaxBin + smallestMzDelta <= dp.getMZ()) {
+        if(lastMaxBin + binWidth <= dp.getMZ()) {
           lastMaxBin = dp.getMZ();
         }
         Range<Double> newRange = SpectraMerging.createNewNonOverlappingRange(binnedValues,
-            Range.openClosed(lastMaxBin, lastMaxBin + smallestMzDelta));
+            Range.openClosed(lastMaxBin, lastMaxBin + binWidth));
         summedIntensity = new AtomicDouble(0d);
         binnedValues.put(newRange, summedIntensity);
         lastMaxBin = newRange.upperEndpoint();
@@ -212,7 +210,7 @@ public class IMSFeatureVisualizerPane extends SplitPane {
       index++;
     }
 
-    IntervalXYProvider dataset = new IntervalXYProvider(mzs, intensities, smallestMzDelta,
+    IntervalXYProvider dataset = new IntervalXYProvider(mzs, intensities, binWidth,
         getFeature().getRawDataFile().getColorAWT(), "m/z distribution");
 
     mzDistributionChart.removeAllDatasets();
