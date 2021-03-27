@@ -78,6 +78,6 @@ public class CCSCalcModule implements MZmineProcessingModule {
   @Nonnull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELIST;
+    return MZmineModuleCategory.IDENTIFICATION;
   }
 }

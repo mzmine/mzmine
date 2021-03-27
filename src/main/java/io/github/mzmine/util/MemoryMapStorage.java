@@ -340,4 +340,38 @@ public class MemoryMapStorage {
     currentMappedFile = null;
   }
 
+
+  public static boolean isStoreFeaturesInRam() {
+    return storeFeaturesInRam;
+  }
+
+  public static void setStoreFeaturesInRam(boolean storeFeaturesInRam) {
+    MemoryMapStorage.storeFeaturesInRam = storeFeaturesInRam;
+  }
+
+  public static boolean isStoreRawFilesInRam() {
+    return storeRawFilesInRam;
+  }
+
+  public static void setStoreRawFilesInRam(boolean storeRawFilesInRam) {
+    MemoryMapStorage.storeRawFilesInRam = storeRawFilesInRam;
+  }
+
+  public static boolean isStoreMassListsInRam() {
+    return storeMassListsInRam;
+  }
+
+  public static void setStoreMassListsInRam(boolean storeMassListsInRam) {
+    MemoryMapStorage.storeMassListsInRam = storeMassListsInRam;
+  }
+  /**
+   * Store everything in RAM instead of using MemoryMapStorage
+   *
+   * @param state true to keep all objects in RAM
+   */
+  public static void setStoreAllInRam(boolean state) {
+    storeFeaturesInRam = state;
+    storeMassListsInRam = state;
+    storeRawFilesInRam = state;
+  }
 }

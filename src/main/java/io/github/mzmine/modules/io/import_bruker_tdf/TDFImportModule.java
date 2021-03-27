@@ -18,15 +18,6 @@
 
 package io.github.mzmine.modules.io.import_bruker_tdf;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -36,7 +27,16 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 
 /**
  * Raw data import module
@@ -61,7 +61,7 @@ public class TDFImportModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATA;
+    return MZmineModuleCategory.RAWDATAIMPORT;
   }
 
   @Override

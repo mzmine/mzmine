@@ -78,7 +78,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   }
 
-  public IMSRawDataFileImpl(String dataFileName, MemoryMapStorage storage, Color color) throws IOException {
+  public IMSRawDataFileImpl(String dataFileName, MemoryMapStorage storage, Color color)
+      throws IOException {
     super(dataFileName, storage, color);
 
     frameNumbersCache = new Hashtable<>();
@@ -109,7 +110,6 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
           "The mobility type specified in scan (" + newFrame.getMobilityType()
               + ") does not match the mobility type of raw data file (" + getMobilityType() + ")");
     }
-
 
 //    Range<Integer> segmentKey = getSegmentKeyForFrame((newFrame).getScanNumber());
 //    segmentMobilityRange.putIfAbsent(segmentKey, newFrame.getMobilities());
@@ -181,6 +181,22 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Nonnull
   @Override
   public Range<Double> getDataMobilityRange() {
+    mobilityRange = dataMobilityRangeCache.computeIfAbsent(0, level -> {
+      double lower = 1E10;
+      double upper = -1E10;
+      synchronized (frames) {
+        for (Frame e : getFrames()) {
+          if (e.getMobilityRange().lowerEndpoint() < lower) {
+            lower = e.getMobilityRange().lowerEndpoint();
+          }
+          if (e.getMobilityRange().upperEndpoint() > upper) {
+            upper = e.getMobilityRange().upperEndpoint();
+          }
+        }
+      }
+      return Range.closed(lower, upper);
+    });
+
     return mobilityRange;
   }
 
@@ -290,6 +306,19 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   private Range<Integer> getSegmentKeyForFrame(int frameId) {
     return segmentMobilityRange.keySet().stream()
         .filter(segmentRange -> segmentRange.contains(frameId)).findFirst().get();
+  }
+
+  /**
+   * Method to check if the proposed number of datapoints exceeds the current max number of
+   * datapoints. Used in case the data points of a frame are altered. E.g. when a MZML IMS file is
+   * imported. At that point, no summed frame is available and will have to be created later on.
+   *
+   * @param proposedValue The proposed number of data points.
+   */
+  public void updateMaxRawDataPoints(int proposedValue) {
+    if (proposedValue > getMaxRawDataPoints()) {
+      maxRawDataPoints = proposedValue;
+    }
   }
 
 }

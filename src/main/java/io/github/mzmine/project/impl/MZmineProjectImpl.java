@@ -32,6 +32,7 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 /**
  * This class represents a MZmine project. That includes raw data files, feature lists and
@@ -65,6 +66,18 @@ public class MZmineProjectImpl implements MZmineProject {
   public void setProjectParametersAndValues(
       Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
     this.projectParametersAndValues = projectParametersAndValues;
+  }
+
+  @Nullable
+  @Override
+  public FeatureList getFeatureList(String name) {
+    ObservableList<FeatureList> lists = getFeatureLists();
+    // find last with name
+    for (int i = lists.size() - 1; i >= 0; i--) {
+      if(lists.get(i).getName().equals(name))
+        return lists.get(i);
+    }
+    return null;
   }
 
   private File projectFile;

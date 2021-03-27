@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -37,9 +37,8 @@ import javax.annotation.Nullable;
 /**
  * The main task creates sub tasks to perform the PeakFinder algorithm on multiple threads. Each sub
  * task performs gap filling on a number of RawDataFiles.
- * 
- * @author Robin Schmid (robinschmid@wwu.de)
  *
+ * @author Robin Schmid (robinschmid@wwu.de)
  */
 class MultiThreadPeakFinderMainTask extends AbstractTask {
 
@@ -55,10 +54,6 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
   private Collection<Task> batchTasks;
 
   /**
-   * 
-   * @param project
-   * @param peakList
-   * @param parameters
    * @param batchTasks all sub tasks are registered to the batchtasks list
    */
   public MultiThreadPeakFinderMainTask(MZmineProject project, FeatureList peakList,
@@ -91,7 +86,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
     // create consumer of resultpeaklist
     SubTaskFinishListener listener =
-        new SubTaskFinishListener(project, parameters, processedPeakList, removeOriginal, maxRunningThreads);
+        new SubTaskFinishListener(project, parameters, peakList, removeOriginal, maxRunningThreads);
 
     // Submit the tasks to the task controller for processing
     Task[] tasks = createSubTasks(raw, maxRunningThreads, listener);
@@ -106,8 +101,9 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
             // remove listener
             // cancel all
             for (Task t : tasks) {
-              if (t instanceof AbstractTask)
+              if (t instanceof AbstractTask) {
                 ((AbstractTask) t).removeTaskStatusListener(this);
+              }
               t.cancel();
             }
           }
@@ -117,11 +113,13 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
     // add listener to all sub tasks
     for (Task t : tasks) {
-      if (t instanceof AbstractTask)
+      if (t instanceof AbstractTask) {
         ((AbstractTask) t).addTaskStatusListener(list);
+      }
       // add to batchMode collection
-      if (batchTasks != null)
+      if (batchTasks != null) {
         batchTasks.add(t);
+      }
     }
 
     // start
@@ -138,26 +136,23 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     int maxRunningThreads = 1;
     NumOfThreadsParameter parameter =
         MZmineCore.getConfiguration().getPreferences().getParameter(MZminePreferences.numOfThreads);
-    if (parameter.isAutomatic() || (parameter.getValue() == null))
+    if (parameter.isAutomatic() || (parameter.getValue() == null)) {
       maxRunningThreads = Runtime.getRuntime().availableProcessors();
-    else
+    } else {
       maxRunningThreads = parameter.getValue();
+    }
 
     // raw files
     int raw = peakList.getNumberOfRawDataFiles();
     // raw files<?
-    if (raw < maxRunningThreads)
+    if (raw < maxRunningThreads) {
       maxRunningThreads = raw;
+    }
     return maxRunningThreads;
   }
 
   /**
    * Distributes the RawDataFiles on different tasks
-   * 
-   * @param raw
-   * @param maxRunningThreads
-   * @param listener
-   * @return
    */
   private Task[] createSubTasks(int raw, int maxRunningThreads, SubTaskFinishListener listener) {
     int numPerTask = raw / maxRunningThreads;
@@ -172,8 +167,9 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
         endexcl += Math.min(i + 1, rest);
       }
 
-      if (i == maxRunningThreads - 1)
+      if (i == maxRunningThreads - 1) {
         endexcl = raw;
+      }
 
       // create task
       tasks[i] = new MultiThreadPeakFinderTask(project, peakList, processedPeakList, parameters,

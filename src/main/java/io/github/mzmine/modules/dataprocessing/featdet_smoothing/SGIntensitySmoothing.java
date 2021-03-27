@@ -5,22 +5,6 @@ import javax.annotation.Nonnull;
 
 public class SGIntensitySmoothing {
 
-  /**
-   * Defines how values that were previously zero shall be handled when returning the smoothed
-   * values.
-   */
-  enum ZeroHandlingType {
-    /**
-     * Values that were previously zero will be zero after smoothing.
-     */
-    KEEP, //
-    /**
-     * Values that were previously zero might get an intensity if determined by the smoothing
-     * algorithm.
-     */
-    OVERRIDE
-  }
-
   private final ZeroHandlingType zht;
   private final double[] normWeights;
 

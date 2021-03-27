@@ -18,22 +18,26 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
-
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import java.io.IOException;
+import java.util.Collection;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.layout.AnchorPane;
+import org.w3c.dom.Element;
 
 /**
  * Batch queue parameter.
  */
-public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetupComponent> {
+public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane> {
 
   private BatchQueue value;
+
+  private BatchComponentController controller;
 
   /**
    * Create the parameter.
@@ -53,8 +57,17 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetup
   }
 
   @Override
-  public BatchSetupComponent createEditingComponent() {
-    return new BatchSetupComponent();
+  public AnchorPane createEditingComponent() {
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("BatchComponent.fxml"));
+    try {
+      AnchorPane pane = loader.load();
+      controller = loader.getController();
+      return pane;
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    return new AnchorPane();
   }
 
   @Override
@@ -68,13 +81,19 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetup
   }
 
   @Override
-  public void setValueFromComponent(final BatchSetupComponent component) {
-    setValue(component.getValue());
+  public void setValueFromComponent(final AnchorPane component) {
+    if (controller == null) {
+      return;
+    }
+    setValue(controller.getValue());
   }
 
   @Override
-  public void setValueToComponent(final BatchSetupComponent component, final BatchQueue newValue) {
-    component.setValue(newValue);
+  public void setValueToComponent(final AnchorPane component, final BatchQueue newValue) {
+    if (controller == null) {
+      return;
+    }
+    controller.setValue(newValue);
   }
 
   @Override
@@ -130,5 +149,9 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetup
     if (value != null) {
       value.saveToXml(xmlElement);
     }
+  }
+
+  public BatchComponentController getController() {
+    return controller;
   }
 }

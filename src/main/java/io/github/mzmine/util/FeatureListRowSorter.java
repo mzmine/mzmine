@@ -28,6 +28,7 @@ import java.util.Comparator;
  * 
  */
 public class FeatureListRowSorter implements Comparator<FeatureListRow> {
+  public static final FeatureListRowSorter DEFAULT = new FeatureListRowSorter(SortingProperty.RT, SortingDirection.Ascending);
 
   private SortingProperty property;
   private SortingDirection direction;
@@ -73,9 +74,9 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
         double medianHeight = MathUtils.calcQuantile(peakHeights, 0.5);
         return medianHeight;
       case MZ:
-        return row.getAverageMZ();
+        return row.getAverageMZ() + row.getAverageRT() / 10000000.0;
       case RT:
-        return row.getAverageRT();
+        return row.getAverageRT() + row.getAverageMZ() / 10000000.0;
       case ID:
         return row.getID();
     }

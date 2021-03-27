@@ -66,7 +66,7 @@ public class ADAP3DModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATUREDETECTION;
+    return MZmineModuleCategory.EIC_DETECTION;
   }
 
   @Override

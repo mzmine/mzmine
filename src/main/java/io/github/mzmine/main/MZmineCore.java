@@ -78,6 +78,8 @@ public final class MZmineCore {
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
   private static boolean headLessMode = false;
+  // batch exit code is only set if run in headless mode with batch file
+  private static ExitCode batchExitCode = null;
 
   /**
    * Main method
@@ -129,9 +131,24 @@ public final class MZmineCore {
     MZmineArgumentParser argsParser = new MZmineArgumentParser();
     argsParser.parse(args);
 
+    // keep all in memory? (features, scans, ... in RAM instead of MemoryMapStorage
+    switch(argsParser.isKeepInRam()) {
+      case NONE -> {
+        // nothing in RAM
+      }
+      case ALL -> MemoryMapStorage.setStoreAllInRam(true);
+      case FEATURES -> MemoryMapStorage.setStoreFeaturesInRam(true);
+      case MASS_LISTS -> MemoryMapStorage.setStoreMassListsInRam(true);
+      case RAW_SCANS ->  MemoryMapStorage.setStoreRawFilesInRam(true);
+      case MASSES_AND_FEATURES -> {
+        MemoryMapStorage.setStoreMassListsInRam(true);
+        MemoryMapStorage.setStoreFeaturesInRam(true);
+      }
+    }
+
     // override preferences file by command line argument pref
     File prefFile = argsParser.getPreferencesFile();
-    if(prefFile == null) {
+    if (prefFile == null) {
       prefFile = MZmineConfiguration.CONFIG_FILE;
     }
 
@@ -147,10 +164,11 @@ public final class MZmineCore {
 
     // batch mode defined by command line argument
     File batchFile = argsParser.getBatchFile();
+    boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
     headLessMode = false;
     // If we have no arguments, run in GUI mode, otherwise run in batch mode
-    if (batchFile == null) {
+    if (batchFile == null && !keepRunningInHeadless) {
       try {
         logger.info("Starting MZmine GUI");
         Application.launch(MZmineGUI.class, args);
@@ -171,22 +189,37 @@ public final class MZmineCore {
       gatThread.setPriority(Thread.MIN_PRIORITY);
       gatThread.start();
 
-      // load batch
-      if ((!batchFile.exists()) || (!batchFile.canRead())) {
-        logger.severe("Cannot read batch file " + batchFile);
-        System.exit(1);
+      if(batchFile!=null) {
+        // load batch
+        if ((!batchFile.exists()) || (!batchFile.canRead())) {
+          logger.severe("Cannot read batch file " + batchFile);
+          System.exit(1);
+        }
+
+        // run batch file
+        batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
+            batchFile);
       }
 
-      // run batch file
-      ExitCode exitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
-          batchFile);
-      if (exitCode == ExitCode.OK) {
-        System.exit(0);
-      } else {
-        System.exit(1);
+      // option to keep MZmine running after the batch is finished
+      // currently used to test - maybe useful to provide an API to access more data or to run other modules on demand
+      if (!keepRunningInHeadless) {
+        exit();
       }
     }
   }
+
+  /**
+   * Exit MZmine (usually used in headless mode)
+   */
+  public static void exit() {
+    if (batchExitCode == ExitCode.OK || batchExitCode == null) {
+      System.exit(0);
+    } else {
+      System.exit(1);
+    }
+  }
+
 
   @Nonnull
   public static TaskController getTaskController() {
@@ -290,7 +323,15 @@ public final class MZmineCore {
     }
   }
 
-  public static void runMZmineModule(@Nonnull Class<? extends MZmineRunnableModule> moduleClass,
+  /**
+   * Standard method to run modules in MZmine
+   *
+   * @param moduleClass the module class to run
+   * @param parameters  the parameter set
+   * @return a list of created tasks that were added to the controller
+   */
+  public static List<Task> runMZmineModule(
+      @Nonnull Class<? extends MZmineRunnableModule> moduleClass,
       @Nonnull ParameterSet parameters) {
 
     MZmineRunnableModule module = getModuleInstance(moduleClass);
@@ -308,11 +349,11 @@ public final class MZmineCore {
     module.runModule(currentProject, parameters, newTasks);
     taskController.addTasks(newTasks.toArray(new Task[0]));
 
+    return newTasks;
     // Log module run in audit log
     // AuditLogEntry auditLogEntry = new AuditLogEntry(module, parameters,
     // newTasks);
     // currentProject.logProcessingStep(auditLogEntry);
-
   }
 
   private static void setTempDirToPreference() {
@@ -341,7 +382,6 @@ public final class MZmineCore {
   }
 
   /**
-   *
    * @return headless mode or JavaFX GUI
    */
   public static boolean isHeadLessMode() {
@@ -349,14 +389,12 @@ public final class MZmineCore {
   }
 
   /**
-   *
    * @param r runnable to either run directly or on the JavaFX thread
    */
   public static void runLater(Runnable r) {
-    if(isHeadLessMode() || Platform.isFxApplicationThread()) {
+    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
       r.run();
-    }
-    else {
+    } else {
       Platform.runLater(r);
     }
   }

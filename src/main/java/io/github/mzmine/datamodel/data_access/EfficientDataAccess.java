@@ -17,6 +17,7 @@
 
 package io.github.mzmine.datamodel.data_access;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -35,15 +36,16 @@ public class EfficientDataAccess {
    * access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
    * ScanDataAccess#getIntensityValue(int)}
    *
-   * @param dataFile  target data file to loop over all scans or mass lists
-   * @param type      processed or raw data
+   * @param dataFile target data file to loop over all scans or mass lists
+   * @param type     processed or raw data
    */
   public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type) {
     return of(dataFile, type, null);
   }
+
   /**
-   * The intended use of this memory access is to loop over all selected scans in a {@link RawDataFile} and
-   * access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
+   * The intended use of this memory access is to loop over all selected scans in a {@link
+   * RawDataFile} and access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
    * ScanDataAccess#getIntensityValue(int)}
    *
    * @param dataFile  target data file to loop over all scans or mass lists
@@ -88,6 +90,18 @@ public class EfficientDataAccess {
     return new MobilogramDataAccess(ionTrace, accessType);
   }
 
+  /**
+   * Accesses summed mobilogram data for a specific raw data file. The data can be binned to receive
+   * less noisy mobilograms.
+   *
+   * @param dataFile The {@link IMSRawDataFile}.
+   * @param binWidth The bin width (absolute, depends on the {@link io.github.mzmine.datamodel.MobilityType}.
+   * @return
+   */
+  public static BinningMobilogramDataAccess of(final IMSRawDataFile dataFile,
+      final double binWidth) {
+    return new BinningMobilogramDataAccess(dataFile, binWidth);
+  }
 
   /**
    * Different types to handle feature data: {@link #ONLY_DETECTED}: Use only detected data points,

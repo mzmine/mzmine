@@ -29,7 +29,8 @@ import javax.annotation.Nullable;
 public class ModularFeatureList implements FeatureList {
 
   /**
-   * The storage of this feature list. May be null if data points of features shall be stored in ram.
+   * The storage of this feature list. May be null if data points of features shall be stored in
+   * ram.
    */
   @Nullable
   private final MemoryMapStorage memoryMapStorage;
@@ -67,7 +68,8 @@ public class ModularFeatureList implements FeatureList {
     this(name, List.of(dataFiles));
   }*/
 
-  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, @Nonnull RawDataFile... dataFiles) {
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
+      @Nonnull RawDataFile... dataFiles) {
     this(name, storage, List.of(dataFiles));
   }
 
@@ -75,7 +77,8 @@ public class ModularFeatureList implements FeatureList {
     this(name,null, dataFiles);
   }*/
 
-  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage, @Nonnull List<RawDataFile> dataFiles) {
+  public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
+      @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
@@ -270,19 +273,19 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public ObservableList<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange) {
+  public List<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange) {
     Range<Float> all = Range.all();
     return getRowsInsideScanAndMZRange(all, mzRange);
   }
 
   @Override
-  public ObservableList<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange) {
+  public List<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange) {
     Range<Double> all = Range.all();
     return getRowsInsideScanAndMZRange(rtRange, all);
   }
 
   @Override
-  public ObservableList<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
+  public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO handle if mz or rt is not present
     return modularStream().filter(
@@ -322,7 +325,7 @@ public class ModularFeatureList implements FeatureList {
    * @return List of features
    */
   @Override
-  public ObservableList<Feature> getFeaturesInsideScanRange(RawDataFile raw, Range<Float> rtRange) {
+  public List<Feature> getFeaturesInsideScanRange(RawDataFile raw, Range<Float> rtRange) {
     Range<Double> all = Range.all();
     return getFeaturesInsideScanAndMZRange(raw, rtRange, all);
   }
@@ -331,7 +334,7 @@ public class ModularFeatureList implements FeatureList {
    * @see io.github.mzmine.datamodel.features.FeatureList#getFeaturesInsideMZRange
    */
   @Override
-  public ObservableList<Feature> getFeaturesInsideMZRange(RawDataFile raw, Range<Double> mzRange) {
+  public List<Feature> getFeaturesInsideMZRange(RawDataFile raw, Range<Double> mzRange) {
     Range<Float> all = Range.all();
     return getFeaturesInsideScanAndMZRange(raw, all, mzRange);
   }
@@ -340,7 +343,7 @@ public class ModularFeatureList implements FeatureList {
    * @see io.github.mzmine.datamodel.features.FeatureList#getFeaturesInsideScanAndMZRange
    */
   @Override
-  public ObservableList<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw,
+  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw,
       Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO solve with bindings and check for rt or mz presence in row
@@ -509,11 +512,24 @@ public class ModularFeatureList implements FeatureList {
   /**
    * create copy of all feature list rows and features
    *
-   * @param title
+   * @param title the new title
    * @return
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage) {
-    ModularFeatureList flist = new ModularFeatureList(title, storage, this.getRawDataFiles());
+    return createCopy(title, storage, getRawDataFiles());
+  }
+
+
+  /**
+   * create copy of all feature list rows and features. Use a different list of raw data files
+   *
+   * @param title     the new title
+   * @param dataFiles the new list of raw data files
+   * @return
+   */
+  public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
+      List<RawDataFile> dataFiles) {
+    ModularFeatureList flist = new ModularFeatureList(title, storage, dataFiles);
     // copy all rows and features
     this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true))
         .forEach(newRow -> flist.addRow(newRow));
