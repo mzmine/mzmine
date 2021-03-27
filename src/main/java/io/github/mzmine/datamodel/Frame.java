@@ -109,10 +109,4 @@ public interface Frame extends Scan {
     return 0;
   }
 
-
-  // ImmutableList<Mobilogram> getMobilograms();
-
-  // int addMobilogram(Mobilogram mobilogram);
-
-  // void clearMobilograms();
 }
