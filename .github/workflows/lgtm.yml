@@ -1,0 +1,8 @@
+on:
+jobs:
+extraction:
+  java:
+    index:
+      gradle:
+        version: "6.8.2"
+      java_version: "14"
