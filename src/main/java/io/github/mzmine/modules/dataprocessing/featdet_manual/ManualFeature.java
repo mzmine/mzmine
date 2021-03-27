@@ -18,23 +18,23 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.main.MZmineCore;
-import java.text.Format;
-import java.util.Collection;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.text.Format;
+import java.util.Collection;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import javax.annotation.Nonnull;
 
 /**
  * This class represents a manually picked chromatographic feature.
@@ -73,7 +73,7 @@ public class ManualFeature {
    */
   public ManualFeature(RawDataFile dataFile) {
     this.dataFile = dataFile;
-    dataPointMap = new TreeMap<Scan, DataPoint>();
+    dataPointMap = new TreeMap<>();
   }
 
   /**
@@ -121,7 +121,7 @@ public class ManualFeature {
   /**
    * This method returns a representative datapoint of this feature in a given scan
    */
-  public DataPoint getDataPoint(int scanNumber) {
+  public DataPoint getDataPoint(Scan scanNumber) {
     return dataPointMap.get(scanNumber);
   }
 

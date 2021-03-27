@@ -27,7 +27,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.CommentType;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
@@ -549,7 +548,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Nullable
   @Override
   public ModularFeature getBestFeature() {
-    return streamFeatures().filter(f -> !f.get(DetectionType.class).equals(FeatureStatus.UNKNOWN))
+    return streamFeatures().filter(f -> !f.getFeatureStatus().equals(FeatureStatus.UNKNOWN))
         .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
         .orElse(null);
   }

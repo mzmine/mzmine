@@ -60,8 +60,8 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
       return false;
     }
     String version =
-        valueCol.get(keyList.indexOf(Keys.SchemaVersionMajor)) + "."
-            + valueCol.get(keyList.indexOf(Keys.SchemaVersionMinor));
+        valueCol.get(keyList.indexOf(Keys.SchemaVersionMajor.name())) + "."
+            + valueCol.get(keyList.indexOf(Keys.SchemaVersionMinor.name()));
 
     if (!allowedFileVersions.contains(version)) {
       MZmineCore.getDesktop().displayMessage(
@@ -75,7 +75,7 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
   @Override
   public boolean executeQuery(Connection connection) {
     boolean b = super.executeQuery(connection);
-    if (b == false) {
+    if (!b) {
       return false;
     }
 
