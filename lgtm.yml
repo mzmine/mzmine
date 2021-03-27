@@ -1,5 +1,3 @@
-on:
-jobs:
 extraction:
   java:
     index:
