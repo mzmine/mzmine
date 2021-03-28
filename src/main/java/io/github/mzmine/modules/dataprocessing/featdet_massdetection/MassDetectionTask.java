@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
+import com.google.common.collect.Range;
+import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -29,19 +31,30 @@ import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.ArrayUtils;
+import org.openscience.cdk.interfaces.IIsotope;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
+import org.openscience.cdk.config.Isotopes;
 
 // import ucar.ma2.*;
 
@@ -50,6 +63,8 @@ public class MassDetectionTask extends AbstractTask {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
+  private final OptionalModuleParameter isotopesParameters;
+  private MZTolerance mzTolerance;
   // scan counter
   private int processedScans = 0, totalScans = 0;
   // Mass detector
@@ -58,6 +73,8 @@ public class MassDetectionTask extends AbstractTask {
   private File outFilename;
   private boolean saveToCDF;
   private ParameterSet parameters;
+
+  private final List<Double> isotopesDiffs = new ArrayList<>();
 
   /**
    * @param dataFile
@@ -78,7 +95,49 @@ public class MassDetectionTask extends AbstractTask {
 
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
+    this.isotopesParameters = parameters.getParameter(MassDetectionParameters.isotopes);
+
     this.parameters = parameters;
+
+    if (isotopesParameters.getValue()) {
+      mzTolerance = isotopesParameters
+          .getEmbeddedParameters().getParameter(MassDetectionParameters.mzTolerance).getValue();
+    }
+
+    Isotopes isotopes = null;
+    try {
+      isotopes = Isotopes.getInstance();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    // TODO: add parameter for atoms selection
+    // TODO: add min abundance parameter
+    // TODO: add charge parameter
+
+    List<String> elements = Arrays.asList("C", "H", "Br", "N", "O", "S");
+
+    // Collect masses of all isotopes of all elements
+    List<Double> isotopesMasses = new ArrayList<>();
+    for (String element : elements) {
+      IIsotope[] elementIsotopes = isotopes.getIsotopes(element);
+      for (IIsotope elementIsotope : elementIsotopes) {
+        double isotopeMass = elementIsotope.getExactMass();
+        if (Doubles.compare(isotopeMass, 0d) != 0) {
+          isotopesMasses.add(isotopeMass);
+        }
+      }
+    }
+
+    // Compute all pairwise differences of all isotopes masses
+    for (int i = 0; i < isotopesMasses.size(); i++) {
+      for (int j = i + 1; j < isotopesMasses.size(); j++) {
+        isotopesDiffs.add(Math.abs(isotopesMasses.get(i) - isotopesMasses.get(j)));
+      }
+    }
+
+    System.out.println("Total number of isotopes differences: " + isotopesDiffs.size());
+
   }
 
   /**
@@ -149,6 +208,102 @@ public class MassDetectionTask extends AbstractTask {
         // run mass detection on data object
         // [mzs, intensities]
         double[][] mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
+
+        if (isotopesParameters.getValue()) {
+
+          // TODO: remove
+          List<Integer> filteredIndices = new ArrayList<>(mzPeaks[0].length);
+          for (int i = 0; i < data.getNumberOfDataPoints(); i++) {
+            if (ArrayUtils.contains(mzPeaks[0], data.getMzValue(i))) {
+              filteredIndices.add(i);
+            }
+          }
+
+          Range<Double> zeroMzTolerance = mzTolerance.getToleranceRange(0d);
+          Set<Integer> indicesToAdd = new HashSet<>(filteredIndices);
+
+          System.out.println("---------");
+          System.out.println(data.getCurrentScan().getScanNumber());
+          System.out.println(filteredIndices.stream().map(data::getMzValue).collect(Collectors.toList()));
+          System.out.println("Before) indicesToAdd.size(): " + indicesToAdd.size());
+
+          // Iterate over filtered peaks indices
+          for (int i : filteredIndices) {
+
+            double mz = data.getMzValue(i);
+
+            // Iterate over isotopes differences
+            for (double isotopeDiff : isotopesDiffs) {
+
+              // Go left from current peak and search for isotopes mz values
+              for (int j = i - 1; j >= 0; j--) {
+
+                // Calculate difference between filtered peak and current peak
+                double peaksDiff = mz - data.getMzValue(j);
+
+                // Multiplication factor for each isotope difference(generalization of the next 2 blocks)
+                /*
+                if (Doubles.compare(peaksDiff, 3 * (isotopeDiff + zeroMzTolerance.upperEndpoint())) > 0) {
+                  break;
+                }
+
+                if (zeroMzTolerance.contains((peaksDiff % isotopeDiff) / (int) (peaksDiff / isotopeDiff))) {
+                  indicesToAdd.add(j);
+                }
+                */
+
+                // Do not continue, if peaks difference is greater, than current isotopes difference
+                if (Doubles.compare(peaksDiff, isotopeDiff + zeroMzTolerance.upperEndpoint()) > 0) {
+                  break;
+                }
+
+                // Save current index, if it's mz is isotope
+                if (zeroMzTolerance.contains(peaksDiff - isotopeDiff)) {
+                  indicesToAdd.add(j);
+                }
+
+              }
+
+              // Go left from current peak and search for isotopes mz values
+              for (int j = i + 1; j < data.getNumberOfDataPoints(); j++) {
+
+                double peaksDiff = data.getMzValue(j) - mz;
+
+                // Multiplication factor for each isotope difference(generalization of the next 2 blocks)
+                /*
+                if (Doubles.compare(peaksDiff, 3 * (isotopeDiff + zeroMzTolerance.upperEndpoint())) > 0) {
+                  break;
+                }
+
+                if (zeroMzTolerance.contains((peaksDiff % isotopeDiff) / (int) (peaksDiff / isotopeDiff))) {
+                  indicesToAdd.add(j);
+                }
+                */
+
+                if (Doubles.compare(peaksDiff, isotopeDiff + zeroMzTolerance.upperEndpoint()) > 0) {
+                  break;
+                }
+
+                // Save current index, if it's mz is isotope
+                if (zeroMzTolerance.contains(peaksDiff - isotopeDiff)) {
+                  indicesToAdd.add(j);
+                }
+              }
+            }
+          }
+
+          System.out.println("After) indicesToAdd.size(): " + indicesToAdd.size());
+
+          List<Integer> indices = new ArrayList<>(indicesToAdd);
+          Collections.sort(indices);
+
+          mzPeaks = new double[2][indices.size()];
+          for (int i = 0; i < indices.size(); i++) {
+            int index = indices.get(i);
+            mzPeaks[0][i] = data.getMzValue(index);
+            mzPeaks[1][i] = data.getIntensityValue(index);
+          }
+        }
 
         if (scan instanceof Frame) {
           // for ion mobility, detect subscans, too

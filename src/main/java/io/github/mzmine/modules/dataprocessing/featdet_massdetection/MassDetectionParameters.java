@@ -31,6 +31,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.Wav
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -39,6 +40,8 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Optional;
@@ -71,8 +74,19 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public static final OptionalParameter<FileNameParameter> outFilenameOption =
       new OptionalParameter<>(outFilename);
 
+  // TODO: refactor isotopes
+
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+
+  public static final IntegerParameter numOfAtoms = new IntegerParameter("Number of atoms",
+      "", 1);
+
+  public static final OptionalModuleParameter isotopes = new OptionalModuleParameter(
+      "Isotopes", "Masses of isotopes of given atoms will not be filtered",
+      new SimpleParameterSet(new Parameter[]{mzTolerance}));
+
   public MassDetectionParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, massDetector, outFilenameOption});
+    super(new Parameter[]{dataFiles, scanSelection, massDetector, outFilenameOption, isotopes});
   }
 
   @Override
