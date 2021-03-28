@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
 
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
@@ -37,8 +37,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 
 public class DPPParameterValueWrapper {
   DataPointProcessingQueue[] queues;
@@ -149,11 +147,12 @@ public class DPPParameterValueWrapper {
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
+      FileOutputStream os = new FileOutputStream(file);
+      StreamResult res = new StreamResult(os);
       // Write to file and transform.
-      transformer.transform(new DOMSource(document), new StreamResult(new FileOutputStream(file)));
-
-    } catch (ParserConfigurationException | TransformerFactoryConfigurationError
-        | FileNotFoundException | TransformerException e) {
+      transformer.transform(new DOMSource(document), res);
+      os.close();
+    } catch (ParserConfigurationException | TransformerFactoryConfigurationError | TransformerException | IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }

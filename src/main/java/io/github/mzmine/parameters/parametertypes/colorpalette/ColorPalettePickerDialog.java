@@ -77,6 +77,10 @@ public class ColorPalettePickerDialog extends Stage {
 
     pnWrapParam.setPadding(new Insets(10.0));
 
+    if (palette == null) {
+      palette = new SimpleColorPalette();
+    }
+
     setTitle("Editing of color palette " + palette.getName());
 
     Scene scene = new Scene(pnMain);
@@ -86,9 +90,6 @@ public class ColorPalettePickerDialog extends Stage {
 
     exitCode = ExitCode.CANCEL;
 
-    if (palette == null) {
-      palette = new SimpleColorPalette();
-    }
     this.palette = palette;
     selected = 0;
 

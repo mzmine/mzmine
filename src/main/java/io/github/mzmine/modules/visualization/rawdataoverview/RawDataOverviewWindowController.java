@@ -18,7 +18,10 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,10 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
-import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
@@ -40,6 +39,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import javax.annotation.Nonnull;
 
 /*
  * Raw data overview window controller class
@@ -190,11 +190,11 @@ public class RawDataOverviewWindowController {
 
     visualizer.chromPositionProperty().addListener((observable, oldValue, pos) -> {
       RawDataFile selectedRawDataFile = pos.getDataFile();
-      if (selectedRawDataFile instanceof ImagingRawDataFileImpl) {
+      if (selectedRawDataFile == null || selectedRawDataFile instanceof ImagingRawDataFileImpl) {
         return;
       }
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
-      if (con == null || selectedRawDataFile == null) {
+      if (con == null) {
         logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
         return;
       }

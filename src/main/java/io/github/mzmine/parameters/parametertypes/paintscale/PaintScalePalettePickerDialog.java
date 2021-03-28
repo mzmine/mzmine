@@ -76,6 +76,10 @@ public class PaintScalePalettePickerDialog extends Stage {
 
     pnWrapParam.setPadding(new Insets(10.0));
 
+    if (palette == null) {
+      palette = new SimpleColorPalette();
+    }
+
     setTitle("Editing of color palette " + palette.getName());
 
     Scene scene = new Scene(pnMain);
@@ -85,9 +89,6 @@ public class PaintScalePalettePickerDialog extends Stage {
 
     exitCode = ExitCode.CANCEL;
 
-    if (palette == null) {
-      palette = new SimpleColorPalette();
-    }
     this.palette = palette;
     selected = 0;
 
@@ -113,12 +114,6 @@ public class PaintScalePalettePickerDialog extends Stage {
     pnParam.add(colorPickerPalette, 1, 2, 1, 1);
     pnParam.add(btnAddColor, 3, 2);
     pnParam.add(btnRemoveColor, 4, 2);
-
-//    ColumnConstraints columnConstraints = new ColumnConstraints(USE_COMPUTED_SIZE,
-//        USE_COMPUTED_SIZE, USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, true);
-//    pnParam.getColumnConstraints()
-//        .addAll(columnConstraints, columnConstraints, columnConstraints, columnConstraints,
-//            columnConstraints);
 
     pnButtons.getButtons().add(btnCancel);
     pnButtons.getButtons().add(btnAccept);
