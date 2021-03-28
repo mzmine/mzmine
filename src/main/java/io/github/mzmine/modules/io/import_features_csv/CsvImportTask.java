@@ -150,6 +150,7 @@ public class CsvImportTask extends AbstractTask {
       if (isCanceled())
         return;
 
+      fileReader.close();
       project.addFeatureList(newFeatureList);
     } catch (Exception e) {
       e.printStackTrace();

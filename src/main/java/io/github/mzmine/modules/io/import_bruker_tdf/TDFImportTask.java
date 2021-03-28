@@ -128,14 +128,19 @@ public class TDFImportTask extends AbstractTask {
     } else {
       files = getDataFilesFromDir(fileNameToOpen.getParentFile());
     }
+    if(files == null || files[0] == null || files [1] == null) {
+      setErrorMessage("Cannot find or open file " + fileNameToOpen.toString());
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
 
     this.tdf = files[0];
-    this.tdfBin = files[0];
+    this.tdfBin = files[1];
 
-    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead() || !tdfBin.exists()
-        || !tdfBin.canRead()) {
+    if (!tdf.exists() || !tdf.canRead() || !tdfBin.exists() || !tdfBin.canRead()) {
       setErrorMessage("Cannot open sql or bin files: " + tdf.getName() + "; " + tdfBin.getName());
       setStatus(TaskStatus.ERROR);
+      return;
     }
 
     metaDataTable = new TDFMetaDataTable();
