@@ -221,10 +221,10 @@ public class Rsession implements Logger {
       return cat((int[]) o);
     } else if (o instanceof int[][]) {
       return cat((int[][]) o);
-    } else if (o instanceof Object[]) {
-      return cat((Object[]) o);
     } else if (o instanceof Object[][]) {
       return cat((Object[][]) o);
+    } else if (o instanceof Object[]) {
+      return cat((Object[]) o);
     } else if (o instanceof RList) {
       return cat((RList) o);
     } else {

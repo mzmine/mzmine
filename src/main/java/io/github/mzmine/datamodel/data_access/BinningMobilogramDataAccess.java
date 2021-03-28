@@ -21,7 +21,6 @@ package io.github.mzmine.datamodel.data_access;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
-import com.google.common.primitives.Booleans;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
@@ -72,18 +71,10 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   public BinningMobilogramDataAccess(@Nonnull final IMSRawDataFile rawDataFile,
       final double binningWidth) {
     this.dataFile = rawDataFile;
-    final Double maxTic = rawDataFile.getDataMaxTotalIonCurrent(1);
-
-    assert maxTic != null && !maxTic.isNaN();
 
     final Map<Range<Double>, Frame> uniqueRanges = IonMobilityUtils
         .getUniqueMobilityRanges(rawDataFile);
 
-    // get the then most intense frames, even if empty scans have been removed, we should at least
-    // be able to find the smallest mobility data.
-//    final List<Frame> frames = rawDataFile.getFrames(1).stream()
-//        .filter(frame -> frame.getTIC() >= maxTic * 0.8).limit(10).collect(
-//            Collectors.toList());
     double delta = uniqueRanges.values().stream()
         .mapToDouble(IonMobilityUtils::getSmallestMobilityDelta).min().orElse(-1d);
 
@@ -329,17 +320,10 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         while (rawIndex < numValues && rawIndex >= 0
             && Double.compare(tempMobilities[rawIndex], mobilities[binnedIndex] + binWidth / 2)
             == -1) {
-//          logger.info("Adding raw mobility " + tempMobilities[rawIndex] + " to range " + (
-//              mobilities[binnedIndex] - binWidth / 2) + " to " + (mobilities[binnedIndex]
-//              + binWidth / 2));
           intensities[binnedIndex] += tempIntensities[rawIndex];
           assigned[rawIndex] = true;
           rawIndex += order;
         }
-      }
-      long numAssigned = Booleans.asList(assigned).stream().filter(val -> true).count();
-      if (numAssigned != numValues) {
-        logger.info("assiged " + numAssigned + "/" + numValues);
       }
     }
   }

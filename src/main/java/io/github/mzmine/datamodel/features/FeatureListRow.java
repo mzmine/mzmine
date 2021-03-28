@@ -19,8 +19,8 @@
 package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
@@ -91,7 +91,8 @@ public interface FeatureListRow {
   /**
    * Returns average mobility for features on this row
    */
-  float getAverageMobility();
+  @Nullable
+  Float getAverageMobility();
 
   /**
    * Returns average height for features on this row
