@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
@@ -348,17 +349,19 @@ public class FeatureResolverTask extends AbstractTask {
         .getXYResolver(parameters);
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
+
+    final ResolvingDimension dimension = parameters
+        .getParameter(GeneralResolverParameters.dimension).getValue();
     final BinningMobilogramDataAccess mobilogramBinning =
-        dataFile instanceof IMSRawDataFile ? EfficientDataAccess.of((IMSRawDataFile) dataFile,
+        dimension == ResolvingDimension.MOBILITY && dataFile instanceof IMSRawDataFile
+            && originalFeatureList.getFeatureTypes().containsKey(MobilityType.class)
+            ? EfficientDataAccess.of((IMSRawDataFile) dataFile,
             BinningMobilogramDataAccess.getPreviousBinningWith(originalFeatureList,
                 ((IMSRawDataFile) dataFile).getMobilityType())) : null;
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
-
-    ResolvingDimension dimension = parameters.getParameter(GeneralResolverParameters.dimension)
-        .getValue();
 
     final List<? extends Scan> seletedScans = originalFeatureList.getSeletedScans(dataFile);
 
