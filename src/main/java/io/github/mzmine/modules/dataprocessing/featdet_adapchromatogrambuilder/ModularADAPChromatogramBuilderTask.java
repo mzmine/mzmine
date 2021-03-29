@@ -24,9 +24,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
@@ -65,15 +63,13 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   RangeSet<Double> rangeSet = TreeRangeSet.create();
   // After each range is created it does not change so we can map the ranges (which will be uniqe)
   // to the chromatograms
-  HashMap<Range, ADAPChromatogram> rangeToChromMap = new HashMap<Range, ADAPChromatogram>();
+  HashMap<Range<Double>, ADAPChromatogram> rangeToChromMap = new HashMap<>();
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private MZmineProject project;
   private RawDataFile dataFile;
 
-  // scan counter
-  // private int processedPoints = 0, totalPoints;
   private double progress = 0.0;
   private ScanSelection scanSelection;
   private int newFeatureID = 1;
@@ -149,10 +145,10 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
 
-    logger.info("Started chromatogram builder on " + dataFile);
+    logger.info(() -> "Started chromatogram builder on " + dataFile);
 
     scans = scanSelection.getMatchingScans(dataFile);
-    List<Float> rtListForChromCDF = new ArrayList<Float>();
+    List<Float> rtListForChromCDF = new ArrayList<>();
 
     // Check if the scans are properly ordered by RT
     double prevRT = Double.NEGATIVE_INFINITY;
@@ -214,8 +210,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         scan = scanData.nextScan();
       } catch (MissingMassListException e) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-            + " does not have a mass list");
+        setErrorMessage(e.getMessage());
         e.printStackTrace();
         return;
       }
@@ -224,12 +219,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       for (int i=0; i<dps; i++) {
         ExpandedDataPoint curDatP = new ExpandedDataPoint(scanData.getMzValue(i), scanData.getIntensityValue(i), scan);
         allMzValues.add(curDatP);
-        // corespondingScanNum.add(scan.getScanNumber());
       }
     }
-
-    // Integer[] simpleCorespondingScanNums = new Integer[corespondingScanNum.size()];
-    // corespondingScanNum.toArray(simpleCorespondingScanNums );
 
     // sort data points by intensity
     allMzValues.sort(new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
@@ -406,7 +397,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
-    logger.info("Finished chromatogram builder on " + dataFile);
+    logger.info(() -> "Finished chromatogram builder on " + dataFile);
   }
 
 }
