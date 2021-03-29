@@ -314,9 +314,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void initChartLegendPanels() {
-    heatmapLegendCanvas.widthProperty().bind(heatmapChart.widthProperty());
     heatmapLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
-    ionTraceLegendCanvas.widthProperty().bind(ionTraceChart.widthProperty());
     ionTraceLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
     heatmapChart.setLegendCanvas(heatmapLegendCanvas);
     ionTraceChart.setLegendCanvas(ionTraceLegendCanvas);

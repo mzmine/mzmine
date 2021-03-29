@@ -165,6 +165,7 @@ public class IMSFeatureVisualizerPane extends SplitPane {
     final MobilogramDataAccess access = EfficientDataAccess
         .of(series, MobilogramAccessType.ONLY_DETECTED);
     while (access.hasNext()) {
+      access.next();
       for (int i = 0; i < access.getNumberOfValues(); i++) {
         dataPoints.add(new SimpleDataPoint(access.getMZ(i), access.getIntensity(i)));
       }
