@@ -390,18 +390,10 @@ public class TDFImportTask extends AbstractTask {
       return null;
     }
 
-    File tdf = Arrays.stream(files).filter(c -> {
-      if (c.getAbsolutePath().endsWith(".tdf")) {
-        return true;
-      }
-      return false;
-    }).findAny().orElse(null);
-    File tdf_bin = Arrays.stream(files).filter(c -> {
-      if (c.getAbsolutePath().endsWith(".tdf_bin")) {
-        return true;
-      }
-      return false;
-    }).findAny().orElse(null);
+    File tdf = Arrays.stream(files).filter(c -> c.getAbsolutePath().endsWith(".tdf")).findAny()
+        .orElse(null);
+    File tdf_bin = Arrays.stream(files).filter(c -> c.getAbsolutePath().endsWith(".tdf_bin"))
+        .findAny().orElse(null);
 
     return new File[]{tdf, tdf_bin};
   }
