@@ -87,14 +87,14 @@ public class CachedMobilityScan implements MobilityScan {
 
   @Override
   public double[] getMzValues(@Nonnull double[] dst) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
+    System.arraycopy(mzs, 0, dst, 0, mzs.length);
+    return dst;
   }
 
   @Override
   public double[] getIntensityValues(@Nonnull double[] dst) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
+    System.arraycopy(intensities, 0, dst, 0, intensities.length);
+    return dst;
   }
 
   @Override

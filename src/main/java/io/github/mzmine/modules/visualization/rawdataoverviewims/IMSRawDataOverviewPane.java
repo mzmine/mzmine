@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -71,7 +73,7 @@ import org.jfree.chart.ui.RectangleEdge;
 
 public class IMSRawDataOverviewPane extends BorderPane {
 
-  private static final int HEATMAP_LEGEND_HEIGHT = 40;
+  private static final int HEATMAP_LEGEND_HEIGHT = 50;
 
   private final GridPane chartPanel;
   private final IMSRawDataOverviewControlPanel controlsPanel;
@@ -95,11 +97,15 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private final ObjectProperty<Range<Double>> selectedMz;
   private final Stroke markerStroke = new BasicStroke(1.0f);
 
+  // not thread safe, so we need one for building the selected and one for building all the others
+  private BinningMobilogramDataAccess selectedBinningMobilogramDataAccess;
+  private BinningMobilogramDataAccess rangesBinningMobilogramDataAccess;
   private MZTolerance mzTolerance;
   private ScanSelection scanSelection;
   private Frame cachedFrame;
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
+  private double binWidth;
   private Float rtWidth;
 
   private Color markerColor;
@@ -112,11 +118,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
    * Creates a BorderPane layout.
    */
   public IMSRawDataOverviewPane() {
-    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f);
+    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f, 0.0008);
   }
 
   public IMSRawDataOverviewPane(final double frameNoiseLevel, final double mobilityScanNoiseLevel,
-      final MZTolerance mzTolerance, final ScanSelection scanSelection, final Float rtWidth) {
+      final MZTolerance mzTolerance, final ScanSelection scanSelection, final Float rtWidth,
+      final Double binWidth) {
     super();
     super.getStyleClass().add("region-match-chart-bg");
     getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -132,9 +139,10 @@ public class IMSRawDataOverviewPane extends BorderPane {
     this.rtWidth = rtWidth;
     this.frameNoiseLevel = frameNoiseLevel;
     this.mobilityScanNoiseLevel = mobilityScanNoiseLevel;
+    this.binWidth = binWidth;
 
     controlsPanel = new IMSRawDataOverviewControlPanel(this, frameNoiseLevel,
-        mobilityScanNoiseLevel, mzTolerance, scanSelection, rtWidth);
+        mobilityScanNoiseLevel, mzTolerance, scanSelection, rtWidth, binWidth);
     controlsPanel.addSelectedRangeListener((obs, old, newVal) -> selectedMz.set(newVal));
     initChartPanel();
 
@@ -195,7 +203,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
           cachedFrame.getMobilityScan(selectedMobilityScan.get().getMobilityScanNumber())));
     }
     MZmineCore.getTaskController().addTask(new BuildMultipleMobilogramRanges(
-        controlsPanel.getMobilogramRangesList(), Set.of(cachedFrame), rawDataFile, this));
+        controlsPanel.getMobilogramRangesList(), Set.of(cachedFrame), rawDataFile, this,
+        rangesBinningMobilogramDataAccess));
     if (!RangeUtils.isJFreeRangeConnectedToGoogleRange(
         heatmapChart.getXYPlot().getRangeAxis().getRange(),
         selectedFrame.get().getMobilityRange())) {
@@ -215,7 +224,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void updateAxisLabels() {
-    String intensityLabel = unitFormat.format("Intensity", "cps");
+    String intensityLabel = unitFormat.format("Intensity", "a.u.");
     String mzLabel = "m/z";
     String mobilityLabel =
         (rawDataFile != null) ? rawDataFile.getMobilityType().getAxisLabel() : "Mobility";
@@ -314,9 +323,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void initChartLegendPanels() {
-    heatmapLegendCanvas.widthProperty().bind(heatmapChart.widthProperty());
     heatmapLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
-    ionTraceLegendCanvas.widthProperty().bind(ionTraceChart.widthProperty());
     ionTraceLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
     heatmapChart.setLegendCanvas(heatmapLegendCanvas);
     ionTraceChart.setLegendCanvas(ionTraceLegendCanvas);
@@ -372,7 +379,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
       }
       Thread mobilogramCalc =
           new Thread(new BuildSelectedRanges(selectedMz.get(),
-              Set.of(cachedFrame), rawDataFile, scanSelection, this, rtWidth));
+              Set.of(cachedFrame), rawDataFile, scanSelection, this, rtWidth,
+              selectedBinningMobilogramDataAccess));
       mobilogramCalc.start();
       ionTraceChart.setDataset(
           new IMSIonTraceHeatmapProvider(rawDataFile,
@@ -509,6 +517,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
       return;
     }
     this.rawDataFile = (IMSRawDataFile) rawDataFile;
+    rangesBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
+    selectedBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
     updateTicPlot();
     updateAxisLabels();
     setSelectedFrame(((IMSRawDataFile) rawDataFile).getFrames().stream().findFirst().get());
@@ -532,5 +542,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
   public void setRtWidth(Float rtWidth) {
     this.rtWidth = rtWidth;
+  }
+
+  public void setBinWidth(double binWidth) {
+    // check the bin width the pane was set to before, not the actual computed bin width.
+    if (Double.compare(binWidth, this.binWidth) != 0) {
+      this.binWidth = binWidth;
+      rangesBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
+      selectedBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
+    }
   }
 }

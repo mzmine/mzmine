@@ -18,27 +18,27 @@
 
 package io.github.mzmine.util.dialogs;
 
-import java.util.EventObject;
-import org.openscience.cdk.config.IsotopeFactory;
-import org.openscience.cdk.config.Isotopes;
-import org.openscience.cdk.event.ICDKChangeListener;
-import org.openscience.cdk.interfaces.IIsotope;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.interfaces.IIsotope;
 
-public class PeriodicTableDialog extends Stage implements ICDKChangeListener {
+public class PeriodicTableDialog extends Stage /*implements ICDKChangeListener*/ {
 
   private PeriodicTableDialogController periodicTable;
   private IIsotope selectedIsotope;
 
   public PeriodicTableDialog() {
     try {
-      Parent root = FXMLLoader.load(getClass().getResource("PeriodicTableDialog.fxml"));
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("PeriodicTableDialog.fxml"));
+      Parent root = loader.load();
       Scene scene = new Scene(root, 700, 400);
       super.setScene(scene);
       super.setTitle("Choose an element...");
+      periodicTable = loader.getController();
     }
 
     catch (Exception e) {
@@ -46,7 +46,7 @@ public class PeriodicTableDialog extends Stage implements ICDKChangeListener {
     }
   }
 
-  @Override
+/*  @Override
   public void stateChanged(EventObject event) {
 
     if (event.getSource() == periodicTable) {
@@ -58,9 +58,17 @@ public class PeriodicTableDialog extends Stage implements ICDKChangeListener {
       }
       hide();
     }
-  }
+  }*/
 
   public IIsotope getSelectedIsotope() {
+
+    try {
+      IsotopeFactory isoFac = Isotopes.getInstance();
+      selectedIsotope = isoFac.getMajorIsotope(periodicTable.getElementSymbol());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
     return selectedIsotope;
   }
 

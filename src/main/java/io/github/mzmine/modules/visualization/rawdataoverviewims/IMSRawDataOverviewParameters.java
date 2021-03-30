@@ -28,6 +28,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import javax.annotation.Nonnull;
+import java.text.DecimalFormat;
 
 public class IMSRawDataOverviewParameters extends SimpleParameterSet {
 
@@ -51,9 +52,12 @@ public class IMSRawDataOverviewParameters extends SimpleParameterSet {
       IMSRawDataOverviewControlPanel.TOOLTIP_RTRANGE, MZmineCore.getConfiguration().getRTFormat()
       , 2d);
 
+  public static final DoubleParameter binWidth = new DoubleParameter("Mobilogram bin width (abs)",
+      IMSRawDataOverviewControlPanel.TOOLTIP_BINWIDTH, new DecimalFormat("0.0000"), 0.0008d);
+
   public IMSRawDataOverviewParameters() {
     super(new Parameter[]{rawDataFiles, summedFrameNoiseLevel, mobilityScanNoiseLevel,
-        mzTolerance, scanSelection, rtWidth});
+        mzTolerance, scanSelection, rtWidth, binWidth});
   }
 
   @Nonnull

@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
+package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -77,7 +77,7 @@ import org.jfree.chart.plot.ValueMarker;
 /**
  * @author https://github.com/SteffenHeu
  */
-public class IMSFeaturesVisualizer extends BorderPane {
+public class IMSMobilityMzPlot extends BorderPane {
 
   private final SimpleXYChart<IonTimeSeriesToXYProvider> ticChart;
   private final Map<ModularFeature, SingleIMSFeatureVisualiserPane> featureVisualisersMap;
@@ -104,7 +104,7 @@ public class IMSFeaturesVisualizer extends BorderPane {
 
   private Collection<ModularFeature> features;
 
-  public IMSFeaturesVisualizer() {
+  public IMSMobilityMzPlot() {
     super();
     getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     getStyleClass().add(".region-match-chart-bg");

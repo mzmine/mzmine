@@ -111,9 +111,4 @@ public interface Frame extends Scan {
 
   int getMaxMobilityScanDataPoints();
 
-  // ImmutableList<Mobilogram> getMobilograms();
-
-  // int addMobilogram(Mobilogram mobilogram);
-
-  // void clearMobilograms();
 }

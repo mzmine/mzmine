@@ -84,14 +84,24 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     Button btnCancelRegion = new Button("Cancel region");
     Button btnClearRegions = new Button("Clear regions");
 
-    btnStartRegion.setOnAction(e -> node.startRegion());
+    btnStartRegion.setOnAction(e -> {
+      node.startRegion();
+      btnFinishRegion.setDisable(false);
+    });
 
     btnFinishRegion.setOnAction(e -> {
       RegionSelectionListener selection = node.finishPath();
-      finishedRegionSelectionListeners.add(selection);
+      if (selection.buildingPointsProperty().getSize() > 3) {
+        finishedRegionSelectionListeners.add(selection);
+      }
+      btnFinishRegion.setDisable(true);
     });
+    btnFinishRegion.setDisable(true);
 
-    btnCancelRegion.setOnAction(e -> node.finishPath());
+    btnCancelRegion.setOnAction(e -> {
+      node.finishPath();
+      btnFinishRegion.setDisable(true);
+    });
 
     btnClearRegions.setDisable(true);
     btnClearRegions.setOnAction(e -> {
@@ -99,6 +109,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
       new ArrayList<>(annotations)
           .forEach(a -> node.getChart().getXYPlot().removeAnnotation(a, true));
       finishedRegionSelectionListeners.clear();
+      btnFinishRegion.setDisable(true);
     });
 
     finishedRegionSelectionListeners
@@ -115,6 +126,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
                         .get(), roiStroke, roiPaint));
             btnClearRegions.setDisable(false);
           }
+
         });
 
     selectionControls.add(btnStartRegion, 0, 0);
