@@ -73,7 +73,7 @@ import org.jfree.chart.ui.RectangleEdge;
 
 public class IMSRawDataOverviewPane extends BorderPane {
 
-  private static final int HEATMAP_LEGEND_HEIGHT = 40;
+  private static final int HEATMAP_LEGEND_HEIGHT = 50;
 
   private final GridPane chartPanel;
   private final IMSRawDataOverviewControlPanel controlsPanel;
@@ -224,7 +224,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void updateAxisLabels() {
-    String intensityLabel = unitFormat.format("Intensity", "cps");
+    String intensityLabel = unitFormat.format("Intensity", "a.u.");
     String mzLabel = "m/z";
     String mobilityLabel =
         (rawDataFile != null) ? rawDataFile.getMobilityType().getAxisLabel() : "Mobility";
@@ -323,9 +323,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void initChartLegendPanels() {
-    heatmapLegendCanvas.widthProperty().bind(heatmapChart.widthProperty());
     heatmapLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
-    ionTraceLegendCanvas.widthProperty().bind(ionTraceChart.widthProperty());
     ionTraceLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
     heatmapChart.setLegendCanvas(heatmapLegendCanvas);
     ionTraceChart.setLegendCanvas(ionTraceLegendCanvas);

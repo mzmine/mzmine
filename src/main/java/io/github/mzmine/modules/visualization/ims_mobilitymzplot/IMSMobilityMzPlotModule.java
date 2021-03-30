@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
+package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
@@ -27,7 +27,7 @@ import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class IMSFeatureVisualizerModule implements MZmineModule {
+public class IMSMobilityMzPlotModule implements MZmineModule {
 
   public static final String NAME = "Ion mobility feature visualizer";
 
@@ -35,9 +35,9 @@ public class IMSFeatureVisualizerModule implements MZmineModule {
       boolean useMobilograms) {
     if (!Platform.isFxApplicationThread()) {
       Platform.runLater(() -> MZmineCore.getDesktop()
-          .addTab(new IMSFeatureVisualizerTab(features, useMobilograms)));
+          .addTab(new IMSMobilityMzPlotTab(features, useMobilograms)));
     } else {
-      MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(features, useMobilograms));
+      MZmineCore.getDesktop().addTab(new IMSMobilityMzPlotTab(features, useMobilograms));
     }
   }
 
@@ -50,6 +50,6 @@ public class IMSFeatureVisualizerModule implements MZmineModule {
   @Nullable
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return IMSFeatureVisualizerParameters.class;
+    return IMSMobilityMzPlotParameters.class;
   }
 }

@@ -34,8 +34,6 @@ import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -84,7 +82,7 @@ import org.jfree.fx.FXHints;
 public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     EChartViewer implements SimpleChart<T>, AllowsRegionSelection {
 
-  protected static final Logger logger = Logger.getLogger(SimpleXYZScatterPlot.class.getName());
+  protected static final Logger logger = Logger.getLogger(MultiDatasetXYZScatterPlot.class.getName());
 
   protected static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   protected final Color legendBg = new Color(0, 0, 0, 0); // bg is transparent
@@ -103,10 +101,9 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   private Canvas legendCanvas;
   private String legendLabel = null;
   private ObjectProperty<PaintScale> legendPaintScale;
-  private Path2D.Double currentRegion;
-  private List<Point2D> currentPoints;
   private XYShapeAnnotation currentRegionAnnotation;
   private RegionSelectionListener currentRegionListener;
+  private PaintScaleLegend currentLegend;
 
   public MultiDatasetXYZScatterPlot() {
     super(ChartFactory.createScatterPlot("", "x", "y", null,
@@ -125,8 +122,6 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
 
     isDrawingRegion = new SimpleBooleanProperty(false);
     currentRegionListener = null;
-    currentRegion = null;
-    currentPoints = null;
 
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();
@@ -154,7 +149,6 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
 
     if (currentRegionListener != null) {
       removeChartMouseListener(currentRegionListener);
-      currentRegion = null;
     }
     currentRegionListener = new RegionSelectionListener(this);
     currentRegionListener.buildingPathProperty().addListener(((observable, oldValue, newValue) -> {
@@ -461,8 +455,10 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     PaintScaleLegend legend = generateLegend(legendPaintScale.get());
     chart.clearSubtitles();
     if (legendCanvas != null) {
+      currentLegend = legend;
       drawLegendToSeparateCanvas(legend);
     } else {
+      currentLegend = null;
       chart.addSubtitle(legend);
     }
     chart.fireChartChanged();
@@ -474,13 +470,32 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   }
 
   /**
-   * Will draw the legend to a separate canvas on the next dataset changed event. Make sure the
-   * canvas is appropriately sized.
+   * Will draw the legend to a separate canvas on the next dataset changed event.
    *
    * @param canvas The canvas.
    */
   public void setLegendCanvas(@Nullable Canvas canvas) {
     this.legendCanvas = canvas;
+
+    widthProperty().addListener(((observable, oldValue, newValue) -> {
+      if (defaultPaintscaleLocation == RectangleEdge.BOTTOM
+          || defaultPaintscaleLocation == RectangleEdge.TOP) {
+        legendCanvas.setWidth(newValue.doubleValue());
+      }
+    }));
+
+    heightProperty().addListener(((observable, oldValue, newValue) -> {
+      if (defaultPaintscaleLocation == RectangleEdge.LEFT
+          || defaultPaintscaleLocation == RectangleEdge.RIGHT) {
+        legendCanvas.setHeight(newValue.doubleValue());
+      }
+    }));
+
+    legendCanvas.widthProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentLegend != null) {
+        drawLegendToSeparateCanvas(currentLegend);
+      }
+    }));
   }
 
   public void setLegendAxisLabel(@Nullable String label) {
@@ -504,7 +519,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
    */
   @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
-    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
+    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<>();
 
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataset = plot.getDataset(i);
@@ -543,8 +558,6 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     newLegend.setAxisOffset(5.0);
     newLegend.setSubdivisionCount(500);
     newLegend.setPosition(defaultPaintscaleLocation);
-//    double h =
-//        newLegend.getHeight() + newLegend.getStripWidth() + newLegend.getAxisOffset() ;
     newLegend.setBackgroundPaint(legendBg);
     return newLegend;
   }
