@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import javax.annotation.Nonnull;
 import java.text.DecimalFormat;
 
 public class IMSRawDataOverviewParameters extends SimpleParameterSet {
@@ -59,6 +60,7 @@ public class IMSRawDataOverviewParameters extends SimpleParameterSet {
         mzTolerance, scanSelection, rtWidth, binWidth});
   }
 
+  @Nonnull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;

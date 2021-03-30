@@ -16,55 +16,47 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 
+import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.AdvancedImsTraceBuilderParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import javax.annotation.Nonnull;
 
-public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
+public class RecursiveIMSBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter("Scan " + "selection",
-          "Filter scans based on their properties. Different noise levels ( -> mass "
-              + "lists) are recommended for MS1 and MS/MS scans",
-          new ScanSelection());
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.005, 10,
-      false);
+      "The m/z tolerance to build ion traces. The tolerance is specified as a +- tolerance. "
+          + "m/z 500.000 with a tolerance of 0.01 will allow m/z 499.99 to 501.01.",0.005, 15);
 
-  public static final IntegerParameter minDataPointsRt = new IntegerParameter(
+  public static final IntegerParameter minNumConsecutive = new IntegerParameter(
       "Minimum consecutive retention time data points",
-      "Minimum number of consecutive time resolved data points in an ion mobility trace."
-          + " In other words, chromatographic peak width in number of data points",
-      7);
+      "The minimum number of consecutive detections in frames (retention time dimension).", 5);
 
-  public static final IntegerParameter minTotalSignals =
-      new IntegerParameter("Minimum total Signals",
-          "Minimum number of signals (data points) in an ion mobility trace", 200);
-
-  public static final StringParameter suffix = new StringParameter("Suffix",
-      "This string is added to filename as suffix", "ionmobilitytrace");
+  public static final IntegerParameter minNumDatapoints = new IntegerParameter(
+      "Minimum number of data points",
+      "The minimum number of consecutive detections in frames (retention time dimension).", 100);
 
   public static final ParameterSetParameter advancedParameters =
       new ParameterSetParameter("Advanced parameters",
           "Allows adjustment of internal binning parameters for mobilograms",
           new AdvancedImsTraceBuilderParameters());
 
-  public IonMobilityTraceBuilderParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minDataPointsRt,
-        minTotalSignals, suffix, advancedParameters});
+  public RecursiveIMSBuilderParameters() {
+    super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minNumConsecutive,
+        minNumDatapoints, advancedParameters});
   }
 
   @Nonnull

@@ -30,6 +30,24 @@ public class ArrayUtils {
     return -1;
   }
 
+  public static double sum(double[] array, int startIndex, int endIndex) {
+    assert endIndex < array.length;
+    assert startIndex >= 0;
+
+    double sum = 0d;
+    for (int i = startIndex; i < endIndex; i++) {
+      sum += array[i];
+    }
+    return sum;
+  }
+
+  public static double sum(double[] array) {
+    double sum = 0d;
+    for (double v : array) {
+      sum += v;
+    }
+    return sum;
+  }
   /**
    * @see #smallestDelta(double[], int)
    */

@@ -39,6 +39,8 @@ public class FrameMassList extends SimpleMassList {
   protected DoubleBuffer mobilityScanMzBuffer;
   protected DoubleBuffer mobilityScanIntensityBuffer;
 
+  protected int maxMobilityScanDatapoints = -1;
+
   public FrameMassList(@Nonnull MemoryMapStorage storage,
       @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues) {
@@ -146,9 +148,12 @@ public class FrameMassList extends SimpleMassList {
 
     for (int i = 0, mobilityScansSize = mobilityScans.size(); i < mobilityScansSize; i++) {
       MobilityScan mobilityScan = mobilityScans.get(i);
-      mobilityScan.setMassList(
-          new MobilityScanMassList(offsets[i], mobilityScanPeaks.get(i)[0].length,
-              basePeakIndices[i], this));
+      mobilityScan.setMassList(new MobilityScanMassList(offsets[i],
+          mobilityScanPeaks.get(i)[0].length, basePeakIndices[i], this));
+
+      if (mobilityScanPeaks.get(i)[0].length > maxMobilityScanDatapoints) {
+        maxMobilityScanDatapoints = mobilityScanPeaks.get(i)[0].length;
+      }
     }
   }
 
@@ -171,6 +176,14 @@ public class FrameMassList extends SimpleMassList {
   double getMobilityScanIntensityValue(MobilityScanMassList massList, int index) {
     assert index < massList.getNumberOfDataPoints();
     return mobilityScanIntensityBuffer.get(massList.getStorageOffset() + index);
+  }
+
+  /**
+   *
+   * @return The maximum number of data points in a mobility scan mass list
+   */
+  public int getMaxMobilityScanDatapoints() {
+    return maxMobilityScanDatapoints;
   }
 
 }

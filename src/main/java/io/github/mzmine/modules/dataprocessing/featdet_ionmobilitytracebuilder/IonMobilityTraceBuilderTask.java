@@ -108,23 +108,23 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     final ParameterSet advancedParam = parameters
         .getParameter(IonMobilityTraceBuilderParameters.advancedParameters).getValue();
     timsBindWidth =
-        advancedParam.getParameter(OptionalImsTraceBuilderParameters.timsBinningWidth)
+        advancedParam.getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
             .getValue() ? advancedParam
-            .getParameter(OptionalImsTraceBuilderParameters.timsBinningWidth)
+            .getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : OptionalImsTraceBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
+            : AdvancedImsTraceBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
     dtimsBindWidth =
-        advancedParam.getParameter(OptionalImsTraceBuilderParameters.dtimsBinningWidth)
+        advancedParam.getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
             .getValue() ? advancedParam
-            .getParameter(OptionalImsTraceBuilderParameters.dtimsBinningWidth)
+            .getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : OptionalImsTraceBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
+            : AdvancedImsTraceBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
     twimsBindWidth =
-        advancedParam.getParameter(OptionalImsTraceBuilderParameters.twimsBinningWidth)
+        advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
             .getValue() ? advancedParam
-            .getParameter(OptionalImsTraceBuilderParameters.twimsBinningWidth)
+            .getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : OptionalImsTraceBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
+            : AdvancedImsTraceBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
 
     this.parameters = parameters;
     setStatus(TaskStatus.WAITING);

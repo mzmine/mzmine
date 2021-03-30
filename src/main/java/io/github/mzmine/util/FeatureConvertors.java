@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -61,6 +62,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.A
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.IImage;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.TempIMTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IIonMobilityTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
@@ -239,6 +241,41 @@ public class FeatureConvertors {
     }
 
     FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
+
+    return modularFeature;
+  }
+
+  public static ModularFeature tempIMTraceToModularFeature(
+      @Nonnull TempIMTrace ionTrace, RawDataFile rawDataFile,
+      BinningMobilogramDataAccess mobilogramBinner, ModularFeatureList flist) {
+
+    ModularFeature modularFeature = new ModularFeature(flist);
+
+    // TODO
+    modularFeature.set(RawFileType.class, rawDataFile);
+    modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
+    modularFeature.setMobilityUnit(((IMSRawDataFile) rawDataFile).getMobilityType());
+    modularFeature.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class, false);
+
+    MemoryMapStorage storage = flist.getMemoryMapStorage();
+    IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory
+        .of(storage, ionTrace.getMobilograms(), mobilogramBinner);
+    modularFeature.set(FeatureDataType.class, imTimeSeries);
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
+
+    // Quality parameters
+    float fwhm = QualityParameters.calculateFWHM(modularFeature);
+    if (!Float.isNaN(fwhm)) {
+      modularFeature.set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(modularFeature);
+    if (!Float.isNaN(tf)) {
+      modularFeature.set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
+    if (!Float.isNaN(af)) {
+      modularFeature.set(AsymmetryFactorType.class, af);
+    }
 
     return modularFeature;
   }

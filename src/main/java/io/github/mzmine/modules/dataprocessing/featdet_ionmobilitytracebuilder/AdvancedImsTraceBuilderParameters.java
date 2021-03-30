@@ -7,7 +7,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-public class OptionalImsTraceBuilderParameters extends SimpleParameterSet {
+public class AdvancedImsTraceBuilderParameters extends SimpleParameterSet {
 
   public static final double DEFAULT_TIMS_BIN_WIDTH = 0.0008;
   public static final double DEFAULT_DTIMS_BIN_WIDTH = 0.005;
@@ -34,7 +34,7 @@ public class OptionalImsTraceBuilderParameters extends SimpleParameterSet {
               + "The default binning width is " + binFormat.format(DEFAULT_TIMS_BIN_WIDTH) + ".",
           binFormat, DEFAULT_DTIMS_BIN_WIDTH, 0.00001, 1E6));
 
-  public OptionalImsTraceBuilderParameters() {
+  public AdvancedImsTraceBuilderParameters() {
     super(new Parameter[]{timsBinningWidth, dtimsBinningWidth, twimsBinningWidth});
   }
 }
