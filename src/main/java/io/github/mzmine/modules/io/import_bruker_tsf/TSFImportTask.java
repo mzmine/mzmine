@@ -118,7 +118,7 @@ public class TSFImportTask extends AbstractTask {
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
     final MassSpectrumType importSpectrumType =
-        metaDataTable.getHasLineSpectra() == 1 ? MassSpectrumType.CENTROIDED
+        metaDataTable.hasLineSpectra() ? MassSpectrumType.CENTROIDED
             : MassSpectrumType.PROFILE;
 
     for (int i = 0; i < numScans; i++) {
@@ -154,6 +154,8 @@ public class TSFImportTask extends AbstractTask {
   private void readMetadata() {
     setDescription("Initializing SQL...");
 
+    // initialize jdbc driver:
+    // https://stackoverflow.com/questions/6740601/what-does-class-fornameorg-sqlite-jdbc-do/6740632
     try {
       Class.forName("org.sqlite.JDBC");
     } catch (ClassNotFoundException e) {

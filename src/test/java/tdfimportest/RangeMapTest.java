@@ -64,7 +64,4 @@ public class RangeMapTest {
     Assertions.assertEquals(760.634015375, map.getEntry(mz3).getKey().upperEndpoint());
   }
 
-  @Test
-  public void testTreeSet() {
-  }
 }

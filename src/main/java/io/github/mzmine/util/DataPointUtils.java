@@ -170,6 +170,13 @@ public class DataPointUtils {
     return data;
   }
 
+  /**
+   *
+   * @param rawMzs array of mz values
+   * @param rawIntensities array of intensity values
+   * @param mzRange the mz range
+   * @return double[2][n], [0][] being mz values, [1][] being intensity values
+   */
   public static double[][] getDataPointsInMzRange(double[] rawMzs, double[] rawIntensities,
       Range<Double> mzRange) {
     assert rawMzs.length == rawIntensities.length;

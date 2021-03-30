@@ -53,9 +53,9 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
   /**
    * @return -1 if key does not exist, 0 if no line spectra exist, 1 if they do.
    */
-  public int getHasLineSpectra() {
+  public boolean hasLineSpectra() {
     int index = keyCol.indexOf(Keys.HasLineSpectra.name());
-    return index == -1 ? -1 : Integer.parseInt(valueCol.get(index));
+    return index != -1 && Integer.parseInt(valueCol.get(index)) == 1;
   }
 
   public boolean isFileVersionValid() {
@@ -125,9 +125,9 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
   /**
    * @return -1 if key does not exist, 0 if no profile spectra exist, 1 if they do.
    */
-  public int getHasProfileSpectra() {
+  public boolean hasProfileSpectra() {
     int index = keyCol.indexOf(Keys.HasLineSpectra.name());
-    return index == -1 ? -1 : Integer.parseInt(valueCol.get(index));
+    return index != -1 && Integer.parseInt(valueCol.get(index)) == 1;
   }
 
   // we only keep these keys from the metadata table. Add more, if we need anything else.
