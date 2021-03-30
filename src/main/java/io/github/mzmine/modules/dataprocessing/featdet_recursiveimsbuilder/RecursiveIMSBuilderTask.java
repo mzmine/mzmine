@@ -340,6 +340,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     return sortedMobilograms;
   }
 
+  @Nonnull
   private Set<TempMobilogram> calcMobilograms(Collection<RetentionTimeMobilityDataPoint> dps,
       final MZTolerance tolerance) {
     final RangeMap<Double, TempMobilogram> map = TreeRangeMap.create();
@@ -372,7 +373,6 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     Set<TempMobilogram> mobilograms = new HashSet<>(map.asMapOfRanges().values());
 
     if (!leftoverDataPoints.isEmpty()) {
-//      logger.finest(() -> leftoverDataPoints.size() + "/" + dps.size() + " leftover data points");
       if (enableRecursive && leftoverDataPoints.size() > RECURSIVE_THRESHOLD) {
         Set<TempMobilogram> recursiveMobilograms = calcMobilograms(leftoverDataPoints, tolerance);
 //        logger.finest(() -> "Created additional " + recursiveMobilograms.size()
@@ -395,6 +395,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     return storedTraces;
   }
 
+  @Nullable
   private Set<TempIMTrace> createTempIMTraces(
       Collection<BuildingIonMobilitySeries> ionMobilitySeries, MZTolerance tolerance) {
     final RangeMap<Double, TempIMTrace> map = TreeRangeMap.create();
@@ -426,9 +427,9 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
           + " leftover mobilograms");
       if (enableRecursive && leftoverMobilograms.size() > RECURSIVE_THRESHOLD) {
         Set<TempIMTrace> recursiveTraces = createTempIMTraces(leftoverMobilograms, tolerance);
-        logger.finest(() -> "Created additional " + recursiveTraces.size()
-            + " traces recursively from " + leftoverMobilograms.size() + " mobilograms.");
-        if (traces != null) {
+        if (recursiveTraces != null) {
+          logger.finest(() -> "Created additional " + recursiveTraces.size()
+              + " traces recursively from " + leftoverMobilograms.size() + " mobilograms.");
           traces.addAll(recursiveTraces);
         }
       }
