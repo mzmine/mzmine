@@ -43,6 +43,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
+/**
+ * Utility class to load Bruker TSF spectra (Maldi acquired on timsTOF FleX, but without tims
+ * dimension.) In Contrast to {@link TDFUtils} this class needs to be instantiated for usage,
+ * because buffers are reused.
+ */
 public class TSFUtils {
 
   public static final int BUFFER_SIZE_INCREMENT = 50_000;
@@ -65,7 +70,7 @@ public class TSFUtils {
   private double[] profileDeletedZeroIntensities;
 
 
-  TSFUtils() throws IOException, UnsupportedOperationException {
+  public TSFUtils() throws IOException, UnsupportedOperationException {
     try {
       loadLibrary();
     } catch (IOException | UnsupportedOperationException e) {
@@ -335,19 +340,10 @@ public class TSFUtils {
     assert dst.length == uint32t.length / 4;
     final byte zeroByte = 0;
     for (int i = 0; i < uint32t.length / 4; i++) {
-//      dst[i] = Longs.fromBytes(b, b, b, b, uint32t[i * 4], uint32t[i * 4 + 1], uint32t[i * 4 + 2],
-//          uint32t[i * 4 + 3]);
       dst[i] = Longs
           .fromBytes(zeroByte, zeroByte, zeroByte, zeroByte, uint32t[i * 4 + 3], uint32t[i * 4 + 2],
               uint32t[i * 4 + 1],
               uint32t[i * 4]);
-      /*if (dst[i] != 0) {
-        logger
-            .info(String.format("%02X %02X %02X %02X %02X %02X %02X", zeroByte, zeroByte, zeroByte,
-                zeroByte, uint32t[i * 4 + 3], uint32t[i * 4 + 2], uint32t[i * 4 + 1],
-                uint32t[i * 4]));
-        logger.info("" + dst[i]);
-      }*/
     }
   }
 }
