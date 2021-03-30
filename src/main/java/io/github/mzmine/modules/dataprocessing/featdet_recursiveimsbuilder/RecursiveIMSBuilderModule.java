@@ -36,7 +36,7 @@ public class RecursiveIMSBuilderModule implements MZmineProcessingModule {
   @Nonnull
   @Override
   public String getName() {
-    return "IMS Builder";
+    return "Recursive IMS Builder";
   }
 
   @Nullable
