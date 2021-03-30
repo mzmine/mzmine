@@ -1,40 +1,39 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
-package io.github.mzmine.project.impl;
+package io.github.mzmine.datamodel.impl;
 
-import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.import_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
+public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMSImagingRawDataFile {
 
-public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRawDataFile {
-
-  public static final String SAVE_IDENTIFIER = "Imaging Raw data file";
-
-  // imaging parameters
+  //imaging parameters
   private ImagingParameters param;
 
   // scan numbers
@@ -42,18 +41,19 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
   private Scan[][][] xyzScanNumbers;
 
 
-  public ImagingRawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
+  public IMSImagingRawDataFileImpl(String dataFileName, @Nullable MemoryMapStorage storage)
+      throws IOException {
     super(dataFileName, storage);
-  }
-
-  @Override
-  public void setImagingParam(ImagingParameters imagingParameters) {
-    param = imagingParameters;
   }
 
   @Override
   public ImagingParameters getImagingParam() {
     return param;
+  }
+
+  @Override
+  public void setImagingParam(ImagingParameters imagingParameters) {
+    param = imagingParameters;
   }
 
   @Override
@@ -65,10 +65,11 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     int ix = (int) (x / param.getPixelWidth());
 
     if (ix >= 0 && ix < numbers.length && iy >= 0 && iy < numbers[ix].length
-        && numbers[ix][iy][0] != null)
+        && numbers[ix][iy][0] != null) {
       return numbers[ix][iy][0];
-    else
+    } else {
       return null;
+    }
   }
 
   @Override
@@ -93,8 +94,9 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     if (ix >= 0 && ix2 < numbers.length && iy >= 0 && iy2 < numbers[ix2].length) {
       for (int i = ix; i <= ix2; i++) {
         for (int k = iy; k <= iy2; k++) {
-          if (numbers[i][k][0] != null)
+          if (numbers[i][k][0] != null) {
             list.add(numbers[i][k][0]);
+          }
         }
       }
     }
@@ -124,12 +126,12 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
         if (numbers.get(i) instanceof ImagingScan) {
           Coordinates c = ((ImagingScan) numbers.get(i)).getCoordinates();
           if (c.getX() < param.getMaxNumberOfPixelX() && c.getY() < param.getMaxNumberOfPixelY()
-              && c.getZ() < param.getMaxNumberOfPixelZ())
+              && c.getZ() < param.getMaxNumberOfPixelZ()) {
             xyzScanNumbers[c.getX()][c.getY()][c.getZ()] = numbers.get(i);
+          }
         }
       }
     }
     return xyzScanNumbers;
   }
-
 }

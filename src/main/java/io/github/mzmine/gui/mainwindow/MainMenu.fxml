@@ -103,6 +103,8 @@
         userData="io.github.mzmine.modules.io.import_waters_raw.WatersRawImportModule"/>
       <MenuItem onAction="#runModule" text="Bruker TDF"
         userData="io.github.mzmine.modules.io.import_bruker_tdf.TDFImportModule"/>
+      <MenuItem onAction="#runModule" text="Bruker TSF"
+        userData="io.github.mzmine.modules.io.import_bruker_tsf.TSFImportModule"/>
       <MenuItem onAction="#runModule" text="ZIP / gzip"
         userData="io.github.mzmine.modules.io.import_zip.ZipImportModule"/>
 
@@ -188,6 +190,9 @@
       <MenuItem onAction="#runModule"
         text="Image builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
+      <MenuItem onAction="#runModule"
+        text="Ion mobility image expander"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_imsmsi.IonMobilityImageExpanderModule"/>
     </Menu>
     <Menu text="MSn">
       <MenuItem onAction="#runModule"

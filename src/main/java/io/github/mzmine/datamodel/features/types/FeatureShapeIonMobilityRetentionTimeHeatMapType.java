@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -51,7 +52,8 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
       TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)) {
+    if (row == null || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)
+        || raw instanceof ImagingRawDataFile) {
       return null;
     }
     ModularFeature feature = row.getFeature(raw);
