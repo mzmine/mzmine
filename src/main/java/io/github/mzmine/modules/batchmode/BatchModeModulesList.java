@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
@@ -179,6 +180,7 @@ public class BatchModeModulesList {
           ModularADAPChromatogramBuilderModule.class, //
           GridMassModule.class, //
           IonMobilityTraceBuilderModule.class, //
+          RecursiveIMSBuilderModule.class, //
           ImageBuilderModule.class, //
           MsnFeatureDetectionModule.class, //
           TargetedFeatureDetectionModule.class, //

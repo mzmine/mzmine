@@ -17,30 +17,26 @@
  */
 
 package io.github.mzmine.parameters.parametertypes.elements;
-import javafx.beans.binding.Bindings;
+
+import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class ElementsTableComponent extends FlowPane {
 
   private final ObservableList<ElementsValue> elementsValues = FXCollections.observableArrayList();
-  private final TableView<ElementsValue> elementsValueTable = new TableView();
-
+  private final TableView<ElementsValue> elementsValueTable = new TableView<>();
 
   public ElementsTableComponent() {
 
@@ -49,33 +45,31 @@ public class ElementsTableComponent extends FlowPane {
     elementsValueTable.setMaxHeight(200);
     elementsValueTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-
-
 // allows the individual cells to be selected
     elementsValueTable.getSelectionModel().cellSelectionEnabledProperty().set(true);
-    TableColumn<ElementsValue, String> elementCol = new TableColumn("Element");
-    TableColumn<ElementsValue, String> maxCol = new TableColumn("Max");
-    TableColumn<ElementsValue, String> minCol = new TableColumn("Min");
+    TableColumn<ElementsValue, String> elementCol = new TableColumn<>("Element");
+    TableColumn<ElementsValue, String> maxCol = new TableColumn<>("Max");
+    TableColumn<ElementsValue, String> minCol = new TableColumn<>("Min");
 
     // Make Column editable
     maxCol.setCellFactory(TextFieldTableCell.forTableColumn());
     maxCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
-            getRow()).setMax(event.getNewValue()));
+        getRow()).setMax(event.getNewValue()));
     minCol.setCellFactory(TextFieldTableCell.forTableColumn());
     minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
-            getRow()).setMin(event.getNewValue()));
+        getRow()).setMin(event.getNewValue()));
 
-    elementCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope().getSymbol()));
-    maxCol.setCellValueFactory(col-> {
+    elementCol.setCellValueFactory(
+        cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope().getSymbol()));
+    maxCol.setCellValueFactory(col -> {
       String max = String.valueOf(col.getValue().getMax());
       return new ReadOnlyObjectWrapper<>(max);
     });
 
-    minCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
+    minCol.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
 
     minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
-            getRow()).setMin(event.getNewValue()));
-
+        getRow()).setMin(event.getNewValue()));
 
     elementsValueTable.setItems(elementsValues);
 
@@ -86,16 +80,20 @@ public class ElementsTableComponent extends FlowPane {
         t -> {
           PeriodicTableDialog dialog = new PeriodicTableDialog();
           dialog.show();
-          IIsotope chosenIsotope = dialog.getSelectedIsotope();
-          if (chosenIsotope == null) return;
-          ElementsValue elementsValue = new ElementsValue(chosenIsotope, "100", "0");
+          dialog.setOnHiding(e -> {
+            IIsotope chosenIsotope = dialog.getSelectedIsotope();
+            if (chosenIsotope == null) {
+              return;
+            }
+            ElementsValue elementsValue = new ElementsValue(chosenIsotope, "100", "0");
             elementsValues.add(elementsValue);
+          });
         });
 
     // Remove event
     removeButton.setOnAction(t -> {
       ElementsValue element = elementsValueTable.getSelectionModel().getSelectedItem();
-        elementsValues.remove(element);
+      elementsValues.remove(element);
 
     });
 
@@ -106,25 +104,9 @@ public class ElementsTableComponent extends FlowPane {
     vBox.getChildren().addAll(addButton, removeButton);
     vBox.setSpacing(10);
 
-    this.getChildren().addAll(elementsValueTable,vBox);
+    this.getChildren().addAll(elementsValueTable, vBox);
     this.setHgap(10d);
     this.setAlignment(Pos.BASELINE_RIGHT);
-  }
-
-
-  public void setElements(MolecularFormulaRange elements) {
-
-    if (elements == null)
-      return;
-    elementsValues.clear();
-    for (IIsotope isotope : elements.isotopes()) {
-      int minCount = elements.getIsotopeCountMin(isotope);
-      int maxCount = elements.getIsotopeCountMax(isotope);
-      ElementsValue elementsValue = new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount));
-       elementsValues.add(elementsValue);
-
-    }
-
   }
 
   public MolecularFormulaRange getElements() {
@@ -141,6 +123,23 @@ public class ElementsTableComponent extends FlowPane {
       newValue.addIsotope(isotope, Integer.parseInt(minCount), Integer.parseInt(maxCount));
     }
     return newValue;
+  }
+
+  public void setElements(MolecularFormulaRange elements) {
+
+    if (elements == null) {
+      return;
+    }
+    elementsValues.clear();
+    for (IIsotope isotope : elements.isotopes()) {
+      int minCount = elements.getIsotopeCountMin(isotope);
+      int maxCount = elements.getIsotopeCountMax(isotope);
+      ElementsValue elementsValue = new ElementsValue(isotope, String.valueOf(maxCount),
+          String.valueOf(minCount));
+      elementsValues.add(elementsValue);
+
+    }
+
   }
 
 }

@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -254,7 +255,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
             && flist.getNumberOfRawDataFiles() == 1) {
           col.setVisible(false);
         } else {
-          applyVisibilityParameterToColumn(col);
+          recursivelyApplyVisibilityParameterToColumn(col);
         }
       }
     }
@@ -393,9 +394,18 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     applyVisibilityParametersToAllColumns();
   }
 
-  private void applyVisibilityParameterToColumn(TreeTableColumn column) {
+  /**
+   * Applies visibility settings to the column and it's child columns.
+   *
+   * @param column
+   */
+  private void recursivelyApplyVisibilityParameterToColumn(TreeTableColumn column) {
     ColumnID id = newColumnMap.get(column);
     if (id == null) {
+      if (!column.getColumns().isEmpty()) {
+        column.getColumns()
+            .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
+      }
       return;
     }
 
@@ -407,7 +417,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   }
 
   private void applyVisibilityParametersToAllColumns() {
-    this.getColumns().forEach(this::applyVisibilityParameterToColumn);
+    this.getColumns().forEach(this::recursivelyApplyVisibilityParameterToColumn);
   }
 
   private void addFeaturesColumns() {
@@ -419,7 +429,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       // Add raw data file label
       Label headerLabel = new Label(dataFile.getName());
       headerLabel.setTextFill(dataFile.getColor());
-      headerLabel.setGraphic(new ImageView("icons/fileicon.png"));
+      headerLabel.setGraphic(new ImageView(FxIconUtil.getFileIcon(dataFile.getColor())));
       sampleCol.setGraphic(headerLabel);
 
       // Add sub columns of feature
@@ -432,7 +442,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
           sampleCol.getColumns().add(subCol);
           newColumnMap.put(subCol, new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile));
           if (!(ftype instanceof ExpandableType)) {
-            applyVisibilityParameterToColumn(subCol);
+            recursivelyApplyVisibilityParameterToColumn(subCol);
           }
         }
       }

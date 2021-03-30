@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.imsfeaturevisualizer;
+package io.github.mzmine.modules.visualization.ims_featurevisualizer;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -25,14 +25,15 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class IMSFeatureVisualizerTab extends MZmineTab {
 
-  public IMSFeatureVisualizerTab(Collection<ModularFeature> features, boolean useMobilograms) {
+  public IMSFeatureVisualizerTab(@Nullable ModularFeature feature) {
     super("IMS feature visualizer", false, false);
-    IMSFeaturesVisualizer visualizer = new IMSFeaturesVisualizer();
-    visualizer.setFeatures(features, useMobilograms, PlotType.MOBILITY);
-    setContent(visualizer);
+    IMSFeatureVisualizerPane pane = new IMSFeatureVisualizerPane();
+    pane.setFeature(feature);
+    setContent(pane);
   }
 
   @Nonnull

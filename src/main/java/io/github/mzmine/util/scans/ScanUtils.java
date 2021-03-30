@@ -157,6 +157,39 @@ public class ScanUtils {
   }
 
   /**
+   *
+   * @param mzs
+   * @param intensities
+   * @param mzRange
+   * @param numValues The number of values to be scanned.
+   * @return The base peak or null
+   */
+  @Nullable
+  public static DataPoint findBasePeak(@Nonnull double[] mzs, @Nonnull double[] intensities,
+      @Nonnull Range<Double> mzRange, final int numValues) {
+
+    assert mzs.length == intensities.length;
+    assert numValues <= mzs.length;
+
+    double baseMz = 0d;
+    double baseIntensity = 0d;
+    for (int i = 0; i < numValues; i++) {
+      final double mz = mzs[i];
+      if (mz < mzRange.lowerEndpoint()) {
+        continue;
+      } else if (mz > mzRange.upperEndpoint()) {
+        break;
+      }
+      final double intensity = intensities[i];
+      if (intensity > baseIntensity) {
+        baseIntensity = intensity;
+        baseMz = mz;
+      }
+    }
+    return Double.compare(baseMz, 0d) != 0 ? new SimpleDataPoint(baseMz, baseIntensity) : null;
+  }
+
+  /**
    * Calculate the total ion count of a scan within a given mass range.
    *
    * @param scan    the scan.
@@ -170,6 +203,36 @@ public class ScanUtils {
       tic += dataPoint.getIntensity();
     }
     return tic;
+  }
+
+  /**
+   *
+   * @param mzs
+   * @param intensities
+   * @param mzRange
+   * @param numValues The number of values to be scanned.
+   * @return
+   */
+  @Nullable
+  public static double calculateTIC(@Nonnull double[] mzs, @Nonnull double[] intensities,
+      @Nonnull Range<Double> mzRange, final int numValues) {
+
+    assert mzs.length == intensities.length;
+    assert numValues <= mzs.length;
+
+    double totalIntensity = 0d;
+
+    for (int i = 0; i < numValues; i++) {
+      final double mz = mzs[i];
+      if (mz < mzRange.lowerEndpoint()) {
+        continue;
+      } else if (mz > mzRange.upperEndpoint()) {
+        break;
+      }
+      totalIntensity += intensities[i];
+    }
+
+    return totalIntensity;
   }
 
   /**

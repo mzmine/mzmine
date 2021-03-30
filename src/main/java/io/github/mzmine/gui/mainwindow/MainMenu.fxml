@@ -164,13 +164,6 @@
       text="Mobility scan merging"
       userData="io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule"/>
 
-    <!--    <Menu text="Mobilogram detection">
-          <MenuItem text="Mobilogram builder" onAction="#runModule"
-            userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilogramBuilderModule"/>
-          <MenuItem onAction="#runModule" text="Mobilogram smoothing"
-            userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramSmootherModule"/>
-        </Menu>-->
-
   </Menu>
 
 
@@ -189,6 +182,9 @@
       <MenuItem onAction="#runModule"
         text="Ion mobility trace builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>
+      <MenuItem onAction="#runModule"
+        text="Recursive IMS builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule"/>
     </Menu>
     <Menu text="Imaging">
       <MenuItem onAction="#runModule"

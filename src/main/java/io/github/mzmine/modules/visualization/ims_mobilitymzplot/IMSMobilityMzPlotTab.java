@@ -16,61 +16,46 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.rawdataoverviewims;
+package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.parameters.ParameterSet;
 import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nonnull;
 
-public class IMSRawDataOverviewTab extends MZmineTab {
+public class IMSMobilityMzPlotTab extends MZmineTab {
 
-  private final IMSRawDataOverviewPane pane;
-
-  public IMSRawDataOverviewTab() {
-    super("Ion mobility raw data overview", true, false);
-    pane = new IMSRawDataOverviewPane();
-    setContent(pane);
-  }
-
-  public IMSRawDataOverviewTab(ParameterSet parameterSet) {
-    super("Ion mobility raw data overview", true, false);
-    pane = new IMSRawDataOverviewPane(
-        parameterSet.getParameter(IMSRawDataOverviewParameters.summedFrameNoiseLevel)
-            .getValue(),
-        parameterSet.getParameter(IMSRawDataOverviewParameters.mobilityScanNoiseLevel)
-            .getValue(),
-        parameterSet.getParameter(IMSRawDataOverviewParameters.mzTolerance).getValue(),
-        parameterSet.getParameter(IMSRawDataOverviewParameters.scanSelection).getValue(),
-        parameterSet.getParameter(IMSRawDataOverviewParameters.rtWidth).getValue().floatValue(),
-        parameterSet.getParameter(IMSRawDataOverviewParameters.binWidth).getValue().doubleValue());
-    setContent(pane);
+  public IMSMobilityMzPlotTab(Collection<ModularFeature> features, boolean useMobilograms) {
+    super("IMS mobility m/z plot", false, false);
+    IMSMobilityMzPlot visualizer = new IMSMobilityMzPlot();
+    visualizer.setFeatures(features, useMobilograms, PlotType.MOBILITY);
+    setContent(visualizer);
   }
 
   @Nonnull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return Collections.emptySet();
+    return Collections.emptyList();
   }
 
   @Nonnull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
-    return Collections.emptySet();
+    return Collections.emptyList();
   }
 
   @Nonnull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.emptySet();
+    return Collections.emptyList();
   }
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    pane.setRawDataFile(rawDataFiles.stream().findFirst().get());
+
   }
 
   @Override
