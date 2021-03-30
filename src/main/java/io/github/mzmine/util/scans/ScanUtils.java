@@ -162,10 +162,10 @@ public class ScanUtils {
    * @param intensities
    * @param mzRange
    * @param numValues The number of values to be scanned.
-   * @return
+   * @return The base peak or null
    */
   @Nullable
-  public static double[] findBasePeak(@Nonnull double[] mzs, @Nonnull double[] intensities,
+  public static DataPoint findBasePeak(@Nonnull double[] mzs, @Nonnull double[] intensities,
       @Nonnull Range<Double> mzRange, final int numValues) {
 
     assert mzs.length == intensities.length;
@@ -186,7 +186,7 @@ public class ScanUtils {
         baseMz = mz;
       }
     }
-    return new double[] {baseMz, baseIntensity};
+    return Double.compare(baseMz, 0d) != 0 ? new SimpleDataPoint(baseMz, baseIntensity) : null;
   }
 
   /**

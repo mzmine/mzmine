@@ -19,6 +19,7 @@
 package io.github.mzmine.util;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -147,10 +148,12 @@ public class IonMobilityUtils {
       scan.getIntensityValues(intensitiesBuffer);
 
       if (type == MobilogramType.BASE_PEAK) {
-        double[] bp = ScanUtils
+        DataPoint bp = ScanUtils
             .findBasePeak(mzsBuffer, intensitiesBuffer, mzRange, scan.getNumberOfDataPoints());
-        mzs[i] = bp[0];
-        intensities[i] = bp[1];
+        if(bp != null) {
+          mzs[i] = bp.getMZ();
+          intensities[i] = bp.getIntensity();
+        }
       } else if (type == MobilogramType.TIC) {
         mzs[i] = rangeCenter;
         intensities[i] = ScanUtils
