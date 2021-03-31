@@ -15,8 +15,9 @@
  deriving most of the colors off the default one makes it easy to get uniform looking themes **/
 {
   -pane-bg-match: derive(-fx-base, 30%);
-  -control-bg: derive(-fx-base, 15%);
+  -control-bg: derive(-fx-base, 10%);
   -control-bg-hovered: derive(-control-bg, 25%);
+  -divider-bg: derive(-fx-base, 15%);
 
   -default-border-color: -fx-base;
 
@@ -28,8 +29,8 @@
 
   -selection-unfocused: derive(-fx-base, 10%);
 
-  -cell-even-bg: derive(-control-bg, 5%);
-  -cell-odd-bg: derive(-control-bg, 10%);
+  -cell-even-bg: derive(-control-bg, 4%);
+  -cell-odd-bg: derive(-control-bg, 8%);
   -cell-selected-bg: derive(-control-bg, 20%);
 
   -text-color: lightgray;
@@ -76,35 +77,20 @@
 
 .table-row-cell:even,
 .list-cell:even,
-.tree-table-row-cell:even{
+.tree-table-row-cell:even,
+.tree-cell:even{
   -fx-control-inner-background: -cell-even-bg;
   -fx-text-fill: -text-color;
 }
 
 .table-row-cell:odd,
 .list-cell:odd,
-.tree-table-row-cell:odd{
+.tree-table-row-cell:odd,
+.tree-cell:odd{
   -fx-control-inner-background: -cell-odd-bg;
   -fx-text-fill: -text-color;
 }
 
-/** TreeTableView **/
-
-.tree-table-view {
-  -fx-background-color: -control-bg;
-  -fx-selection-bar-non-focused: -selection-unfocused;
-  -fx-selection-bar-focused: -highlight;
-  -fx-selection-outline-color: -selection-highlight-outline;
-}
-
-/** TableView **/
-
-.table-view {
-  -fx-background-color: -control-bg;
-  -fx-selection-bar-non-focused: -selection-unfocused;
-  -fx-selection-bar-focused: -highlight;
-  -fx-selection-outline-color: -selection-highlight-outline;
-}
   /** also counts for TreeTableView **/
 .column-header {
   -fx-alignment: CENTER;
@@ -113,9 +99,11 @@
 }
 
 /** List view **/
-
-.list-view {
-  -fx-background-color: -control-bg;
+/** TableView **/
+/** TreeTableView **/
+/** TreeView **/
+.list-view, .table-view, .tree-table-view, .tree-view {
+  -fx-background-color: -cell-odd-bg;
   -fx-selection-outline-color: -selection-highlight-outline;
   -fx-selection-bar: -highlight;
   -fx-selection-bar-non-focused: -selection-unfocused;
@@ -130,13 +118,13 @@
 
 /** Split pane **/
 .split-pane:horizontal > .split-pane-divider {
-  -fx-background-color: -control-bg;
+  -fx-background-color: -divider-bg;
   -fx-border-color: -default-border-color;
   -fx-border-insets: 0;
 }
 
 .split-pane:vertical > .split-pane-divider {
-  -fx-background-color: -control-bg;
+  -fx-background-color: -divider-bg;
   -fx-border-color: -default-border-color;
   -fx-border-insets: 0;
 }
