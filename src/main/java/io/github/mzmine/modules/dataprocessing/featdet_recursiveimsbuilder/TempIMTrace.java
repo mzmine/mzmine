@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -133,33 +132,6 @@ public class TempIMTrace {
 
   public List<IonMobilitySeries> getMobilograms() {
     return new ArrayList<>(mobilograms.values());
-  }
-
-  public boolean isConsecutive(int reqConsecutive, List<Frame> eligibleFrames) {
-
-    int numConsecutive = 0;
-
-    int index = 0;
-    int prevIndex = 0;
-    for (IonMobilitySeries mobilogram : mobilograms.values()) {
-      final Frame frame = mobilogram.getSpectrum(0).getFrame();
-      while (frame != eligibleFrames.get(index)) {
-        index++;
-      }
-
-      if (index - prevIndex <= 1) {
-        numConsecutive++;
-        if (numConsecutive >= reqConsecutive) {
-          return true;
-        }
-      } else {
-        numConsecutive = 0;
-      }
-
-      prevIndex = index;
-    }
-
-    return false;
   }
 
   public int getNumberOfDataPoints() {
