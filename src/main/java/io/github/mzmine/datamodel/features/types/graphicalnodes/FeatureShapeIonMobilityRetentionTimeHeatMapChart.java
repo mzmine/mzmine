@@ -49,7 +49,6 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> chart = new SimpleXYZScatterPlot<>();
     ColoredXYZDataset dataset = new FastColoredXYZDataset(
         new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(f));
-    chart.setDataset(dataset);
     MobilityType mt = ((IMSRawDataFile) f.getRawDataFile()).getMobilityType();
     UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     chart.setRangeAxisLabel(mt.getAxisLabel());
@@ -65,7 +64,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH + 50);
-
+    chart.setDataset(dataset);
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     BufferedImage img = chart.getChart()
         .createBufferedImage(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH + 50,
