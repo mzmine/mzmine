@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -167,5 +168,9 @@ public class TempIMTrace {
 
   public double getCenterMz() {
     return centerMz;
+  }
+
+  public void removeMobilograms(Collection<IonMobilitySeries> mobs) {
+    mobs.forEach(m -> mobilograms.remove(m.getSpectrum(0).getFrame().getFrameId()));
   }
 }
