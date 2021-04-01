@@ -30,8 +30,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRende
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
-import java.awt.Color;
-import java.awt.Paint;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +40,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.NamedArg;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -56,7 +56,6 @@ import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
-import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -78,16 +77,20 @@ import org.jfree.data.xy.XYDataset;
 public class SimpleXYChart<T extends PlotXYDataProvider> extends
     EChartViewer implements SimpleChart<T> {
 
-  private static final double AXIS_MARGINS = 0.001;
+  private static final double AXIS_MARGINS = 0.01;
   private static Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
 
   protected final JFreeChart chart;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+  protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(true);
+  protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
 
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
-  private final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
+  private final ObjectProperty<PlotCursorPosition> cursorPositionProperty = new SimpleObjectProperty<>(
+      new PlotCursorPosition(0, 0, -1, null));
+
   private final List<DatasetsChangedListener> datasetListeners;
   protected EStandardChartTheme theme;
   protected SimpleXYLabelGenerator defaultLabelGenerator;
@@ -96,7 +99,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   protected ColoredXYShapeRenderer defaultShapeRenderer;
 
   private int nextDataSetNum;
-  private int labelsVisible;
 
   public SimpleXYChart() {
     this("x", "y");
@@ -133,23 +135,23 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     setCursor(Cursor.DEFAULT);
 
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(this);
+
     nextDataSetNum = 0;
-    labelsVisible = 1;
 
     final NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
     xAxis.setUpperMargin(AXIS_MARGINS);
     xAxis.setLowerMargin(AXIS_MARGINS);
 
-    cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();
+    initLabelListeners();
 
     ZoomHistory history = getZoomHistory();
     if (history != null) {
       history.clear();
     }
 
-    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
     defaultLabelGenerator = new SimpleXYLabelGenerator(this);
     defaultToolTipGenerator = new SimpleToolTipGenerator();
     defaultShapeRenderer = new ColoredXYShapeRenderer();
@@ -170,8 +172,42 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     datasetListeners = new ArrayList<>();
   }
 
+  private void initLabelListeners() {
+    // automatically update label visibility
+    itemLabelsVisible.addListener((obs, old, newVal) -> {
+      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if(renderer != null) {
+          renderer.setDefaultItemLabelsVisible(newVal, false);
+        }
+      }
+      getChart().fireChartChanged();
+    });
+
+    legendItemsVisible.addListener((obs, old, newVal) -> {
+      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if(renderer != null) {
+          renderer.setDefaultSeriesVisibleInLegend(newVal, false);
+        }
+      }
+      final LegendTitle legend = getChart().getLegend();
+      if(legend != null) {
+        legend.setVisible(newVal);
+      }
+      getChart().fireChartChanged();
+    });
+  }
+
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
     assert Platform.isFxApplicationThread();
+    // jfreechart renderers dont check if the value actually changed and notify either way
+    if(renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
+    }
+    if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isLegendItemsVisible());
+    }
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
@@ -294,37 +330,16 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   @Override
-  public void switchLegendVisible() {
-    // Toggle legend visibility.
-    final LegendTitle legend = getChart().getLegend();
-    legend.setVisible(!legend.isVisible());
+  public void setLegendItemsVisible(boolean visible) {
+    legendItemsVisible.set(visible);
   }
 
-  @Override
-  public void switchItemLabelsVisible() {
-    labelsVisible = (labelsVisible == 1) ? 0 : 1;
-    final int dataSetCount = plot.getDatasetCount();
-    for (int i = 0; i < dataSetCount; i++) {
-      final XYItemRenderer renderer = plot.getRenderer(i);
-      renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
-    }
+  public boolean isLegendItemsVisible() {
+    return legendItemsVisible.get();
   }
 
-  @Override
-  public void switchBackground() {
-    // Toggle background color
-    final Paint color = getChart().getPlot().getBackgroundPaint();
-    Color bgColor, liColor;
-    if (color.equals(Color.darkGray)) {
-      bgColor = Color.white;
-      liColor = Color.darkGray;
-    } else {
-      bgColor = Color.darkGray;
-      liColor = Color.white;
-    }
-    getChart().getPlot().setBackgroundPaint(bgColor);
-    getChart().getXYPlot().setDomainGridlinePaint(liColor);
-    getChart().getXYPlot().setRangeGridlinePaint(liColor);
+  public BooleanProperty legendItemsVisibleProperty() {
+    return legendItemsVisible;
   }
 
   @Override
@@ -334,11 +349,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   public XYPlot getXYPlot() {
-    return plot;
-  }
-
-  @Override
-  public Plot getPlot() {
     return plot;
   }
 
@@ -443,5 +453,17 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     for (DatasetsChangedListener listener : datasetListeners) {
       listener.datasetsChanged(datasets);
     }
+  }
+
+  public boolean isItemLabelsVisible() {
+    return itemLabelsVisible.get();
+  }
+
+  public BooleanProperty itemLabelsVisibleProperty() {
+    return itemLabelsVisible;
+  }
+
+  public void setItemLabelsVisible(boolean itemLabelsVisible) {
+    this.itemLabelsVisible.set(itemLabelsVisible);
   }
 }

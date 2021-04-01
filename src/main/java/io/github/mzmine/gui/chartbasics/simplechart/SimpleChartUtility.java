@@ -86,7 +86,8 @@ public class SimpleChartUtility {
 
       // Check Y range..
       final double intensity = dataset.getYValue(series, index);
-      if (yMin <= intensity && intensity <= yMax && isLocalMaximum(dataset, series, index)) {
+      if (yMin <= intensity && intensity <= yMax && ((ColoredXYDataset) dataset)
+          .isLocalMaximum(index)) {
         indices.add(index);
       }
     }
