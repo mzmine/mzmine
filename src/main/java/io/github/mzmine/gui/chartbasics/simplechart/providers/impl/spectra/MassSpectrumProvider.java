@@ -22,10 +22,12 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
   private final String seriesKey;
   private final MassSpectrum spectrum;
   private final Color color;
+  private final NumberFormat intensityFormat;
 
   public MassSpectrumProvider(MassSpectrum spectrum, String seriesKey, Color color) {
     this.spectrum = spectrum;
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     this.seriesKey = seriesKey;
     this.color = color;
   }
@@ -111,6 +113,7 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
     };
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     this.seriesKey = seriesKey;
   }
 
@@ -141,7 +144,9 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
   @Nullable
   @Override
   public String getToolTipText(int itemIndex) {
-    return null;
+    return "m/z: " + mzFormat
+        .format(spectrum.getMzValue(itemIndex)) + "\nIntensity: " + intensityFormat
+        .format(spectrum.getIntensityValue(itemIndex));
   }
 
   @Override

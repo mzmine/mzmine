@@ -30,7 +30,10 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMob
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
@@ -46,6 +49,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> chart = new SimpleXYZScatterPlot<>();
     ColoredXYZDataset dataset = new FastColoredXYZDataset(
         new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(f));
+    chart.setDataset(dataset);
     MobilityType mt = ((IMSRawDataFile) f.getRawDataFile()).getMobilityType();
     UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     chart.setRangeAxisLabel(mt.getAxisLabel());
@@ -60,14 +64,25 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
+    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH + 50);
 
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
+    BufferedImage img = chart.getChart()
+        .createBufferedImage(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH + 50,
+            GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
 
-    chart.addDatasetsChangedListener(
-        (e) -> Platform.runLater(() -> chart.getXYPlot().getRangeAxis().setAutoRange(true)));
-    getChildren().add(chart);
+    ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
+    view.setOnMouseClicked(e -> MZmineCore.runLater(() -> {
+      getChildren().remove(view);
+      getChildren().add(chart);
+    }));
 
-    Platform.runLater(() -> chart.setDataset(dataset));
+    Platform.runLater(() -> getChildren().add(view));
+
+
+//    chart.addDatasetsChangedListener(
+//        (e) -> Platform.runLater(() -> chart.getXYPlot().getRangeAxis().setAutoRange(true)));
+//    getChildren().add(chart);
+//    Platform.runLater(() -> chart.setDataset(dataset));
   }
 }

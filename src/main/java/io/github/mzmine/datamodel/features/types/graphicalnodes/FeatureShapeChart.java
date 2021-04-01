@@ -50,7 +50,7 @@ public class FeatureShapeChart extends StackPane {
         uf.format("Intensity", "cps"));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
-    chart.switchLegendVisible();
+    chart.setLegendItemsVisible(false);
 
     Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
     int size = row.getFilesFeatures().size();
@@ -70,7 +70,9 @@ public class FeatureShapeChart extends StackPane {
     chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    getChildren().add(chart);
-    Platform.runLater(() -> chart.addDatasets(datasets));
+    Platform.runLater(() -> {
+      getChildren().add(chart);
+      chart.addDatasets(datasets);
+    });
   }
 }
