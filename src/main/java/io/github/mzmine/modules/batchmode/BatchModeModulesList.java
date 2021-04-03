@@ -36,18 +36,18 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
-import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.PeakListBlankSubtractionModule;
+import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.FeatureListClearAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
@@ -224,7 +224,7 @@ public class BatchModeModulesList {
           FeatureFilterModule.class, //
           RowsFilterModule.class, //
           IsotopeGrouperModule.class, //
-          PeakListBlankSubtractionModule.class, //
+          FeatureListBlankSubtractionModule.class, //
           DuplicateFilterModule.class, //
           MobilityMzRegionExtractionModule.class, //
           NeutralLossFilterModule.class, //

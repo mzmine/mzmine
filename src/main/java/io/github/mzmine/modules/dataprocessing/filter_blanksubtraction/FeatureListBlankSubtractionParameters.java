@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,10 +23,11 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
-public class PeakListBlankSubtractionParameters extends SimpleParameterSet {
+public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter alignedPeakList =
       new FeatureListsParameter("Aligned peak list", 1, 1);
@@ -44,8 +45,11 @@ public class PeakListBlankSubtractionParameters extends SimpleParameterSet {
               + " filtered increases more than the given percentage to the blank, it will not be deleted from "
               + "the feature list.",
           3.0, 1.0, 1E5));
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "The suffix for the new feature list.", "subtracted");
 
-  public PeakListBlankSubtractionParameters() {
-    super(new Parameter[] {alignedPeakList, blankRawDataFiles, minBlanks, foldChange});
-  };
+  public FeatureListBlankSubtractionParameters() {
+    super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, foldChange, suffix});
+  }
+
 }
