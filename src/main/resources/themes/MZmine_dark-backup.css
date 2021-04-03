@@ -2,11 +2,10 @@
 /* dark mode stuff */
 
 .root {
-    -fx-base: #EFEFEF;
+    -fx-base: derive(black, 10%);
 
-    -fx-accent: derive(#009e73,30%);
+    -fx-accent: derive(-fx-base, 40%);
     -fx-focus-color: -fx-accent;
-    -fx-font-color: black;
 
     /*-fx-control-inner-background: -fx-base;*/
     /*-fx-control-inner-background-alt: -fx-control-inner-background ;*/
@@ -15,41 +14,31 @@
 /** declare colors here
  deriving most of the colors off the default one makes it easy to get uniform looking themes **/
 {
-  -pane-bg-match: -fx-base;
-
-  /** control bg -> button, checkbox...**/
-  -control-bg: #D0D0D0;
-  -control-bg-hovered: #D5D5D5;
-  -menu-bg: -fx-base;
+  -pane-bg-match: derive(-fx-base, 30%);
+  -control-bg: #202020;
+  -control-bg-hovered: #252525;
   -divider-bg: -control-bg;
-  -list-bg: -fx-base;
-
-  -column-header-bg: -control-bg;
-  -scroll-bar-bg: derive(-fx-base, 15%);
-
-  -highlight: #009e73;
-  -selection-highlight-outline: -highlight;
-
-  /** **/
 
   -default-border-color: derive(-fx-base, 10%);
 
+  -column-header-bg: derive(-fx-base, 15%);
+  -scroll-bar-bg: derive(-fx-base, 15%);
+
+  -highlight: #56b4e9;
+  -selection-highlight-outline: -highlight;
+
   -selection-unfocused: derive(-fx-base, 10%);
 
-  -cell-odd-bg: -list-bg;
-  -cell-even-bg: derive(-list-bg, 5%);
+  -cell-even-bg: derive(-control-bg, 4%);
+  -cell-odd-bg: derive(-control-bg, 8%);
   -cell-selected-bg: derive(-control-bg, 20%);
 
-  -text-color: -fx-font-color;
+  -text-color: lightgray;
 }
 /** All panes **/
-/*.grid-pane, .anchor-pane, .border-pane, .split-pane, .stack-pane, .flow-pane, .v-box, .h-box, .region-match-chart-bg  {
-  -fx-background-color: -pane-bg;
+/*.grid-pane, .anchor-pane, .border-pane, .split-pane, .tab-pane, .v-box, .h-box, .region-match-chart-bg  {
+  -fx-background-color: -pane-bg-match;
 }*/
-
-GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
-  -background-color: -fx-base;
-}
 
 .region-match-chart-bg, .tool-bar, .status-bar {
   -fx-background-color: -pane-bg-match;
@@ -84,7 +73,7 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
 .table-row-cell:even,
 .list-cell:even,
 .tree-table-row-cell:even,
-.tree-cell:even {
+.tree-cell:even{
   -fx-control-inner-background: -cell-even-bg;
   -fx-text-fill: -text-color;
 }
@@ -92,13 +81,13 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
 .table-row-cell:odd,
 .list-cell:odd,
 .tree-table-row-cell:odd,
-.tree-cell:odd {
+.tree-cell:odd{
   -fx-control-inner-background: -cell-odd-bg;
   -fx-text-fill: -text-color;
 }
 
   /** also counts for TreeTableView **/
-.column-header, .filler {
+.column-header {
   -fx-border-color: -default-border-color;
   -fx-background-color: -column-header-bg;
 }
@@ -108,7 +97,7 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
 /** TreeTableView **/
 /** TreeView **/
 .list-view, .table-view, .tree-table-view, .tree-view {
-  -fx-background-color: -list-bg;
+  -fx-background-color: -cell-odd-bg;
   -fx-selection-outline-color: -selection-highlight-outline;
   -fx-selection-bar: -highlight;
   -fx-selection-bar-non-focused: -selection-unfocused;
@@ -116,8 +105,8 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
 
 /** Menu Bar **/
 .menu-bar {
-  -fx-background-color: -menu-bg;
-  -fx-control-inner-background: -menu-bg;
+  -fx-background-color: -control-bg;
+  -fx-control-inner-background: -control-bg;
 }
 
 
@@ -133,11 +122,9 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
 }
 
 /** TabPane **/
-.tab-pane {
-  -fx-background-color: -pane-bg-match;
-}
 .tab {
-  -fx-background-color: derive(-control-bg, 10%);
+  -fx-background-color: derive(-control-bg, 20%);
+  -fx-border-color: -default-border-color;
   -fx-border-style: solid solid hidden solid;
 }
 
@@ -145,6 +132,10 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
   -fx-background-color: -control-bg;
   -fx-focus-color: -selection-highlight-outline;
   -fx-border-color: -selection-highlight-outline;
+  -fx-border-style: solid solid hidden solid;
+
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
 }
 
 /** ScrollPane **/
@@ -166,24 +157,3 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
   -fx-background-color: -highlight;
   -fx-box-border: -highlight;
 }
-
-
-/* Some useful CSS properties: */
-/* 
-:focused {
-    /*  -fx-font-size: 11pt; 
-    -fx-base: rgb(132, 145, 47);
-    -fx-font-family: "Segoe UI Semibold";
-    -fx-text-fill: blue; 
-    -fx-fill: linear-gradient(from 0% 0% to 100% 200%, repeat, aqua 0%, red 50%);
-    -fx-stroke-width: 1;
-    -fx-stroke: black;
-    -fx-border-color: red;
-    -fx-background-color: #333333;
-    -fx-alignment: CENTER;
-    -fx-effect: dropshadow( one-pass-box , black , 8 , 0.0 , 2 , 0 );
-    -fx-font: bold italic 20pt "Arial"; 
-    -fx-opacity: 0.6;
-}
-*/
-
