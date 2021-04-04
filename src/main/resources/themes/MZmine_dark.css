@@ -37,7 +37,7 @@
   -selection-unfocused: derive(-fx-base, 10%);
 
   -cell-odd-bg: -list-bg;
-  -cell-even-bg: -list-bg;
+  -cell-even-bg: derive(-list-bg, 2%);
   -cell-selected-bg: derive(-control-bg, 20%);
 
   -text-color: -fx-font-color;

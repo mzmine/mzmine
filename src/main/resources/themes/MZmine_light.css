@@ -2,7 +2,7 @@
 /* dark mode stuff */
 
 .root {
-    -fx-base: #EFEFEF;
+    -fx-base: #F8F8F8;
 
     -fx-accent: derive(#009e73,30%);
     -fx-focus-color: -fx-accent;
@@ -37,7 +37,7 @@
   -selection-unfocused: derive(-fx-base, 10%);
 
   -cell-odd-bg: -list-bg;
-  -cell-even-bg: derive(-list-bg, 5%);
+  -cell-even-bg: derive(-list-bg, 2%);
   -cell-selected-bg: derive(-control-bg, 20%);
 
   -text-color: -fx-font-color;
@@ -47,6 +47,7 @@
   -fx-background-color: -pane-bg;
 }*/
 
+/** In light mode we want everything to be white, so we have to set it manually**/
 GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
   -background-color: -fx-base;
 }

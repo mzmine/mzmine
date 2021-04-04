@@ -24,7 +24,6 @@
 }
 
 
-
 /** Split pane **/
 .split-pane:horizontal > .split-pane-divider {
   -fx-border-insets: 0;
@@ -35,15 +34,15 @@
 
 /** TabPane **/
 .tab {
-  -fx-padding: 3, 3, 5, 5;
+  -fx-padding: 1;
   -fx-background-radius: 2, 0;
   -fx-border-radius: 0;
   -fx-border-insets: 1;
   -fx-border-color:transparent;
 }
 .tab-pane>*.tab-header-area>*.headers-region>*.tab:selected:top{
-	-fx-padding : 3,3,1,1;
-	-fx-border-width: 4;
+	-fx-padding : 1;
+	-fx-border-width: 3;
 
 	-fx-focus-color: transparent;
   -fx-faint-focus-color: transparent;
@@ -53,7 +52,7 @@
 	-fx-font-size : 13.0;
 }
 .tab-pane>*.tab-header-area>*.headers-region>*.tab:top{
-	-fx-padding : 4,4,4,4;
+	-fx-padding : 1;
 }
 
 /** ScrollPane **/
@@ -61,8 +60,6 @@
 .scroll-bar:vertical .thumb {
   -fx-background-radius: 5em;
 }
-
-
 
 .table-column {
     -fx-alignment: CENTER-LEFT;
