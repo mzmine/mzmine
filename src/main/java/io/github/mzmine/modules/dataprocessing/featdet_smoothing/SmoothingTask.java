@@ -50,6 +50,7 @@ public class SmoothingTask extends AbstractTask {
   private final String suffix;
   private final boolean smoothMobility;
   private final boolean smoothRt;
+  private final boolean removeOriginal;
 
   public SmoothingTask(@Nonnull MZmineProject project, @Nonnull ModularFeatureList flist,
       @Nullable MemoryMapStorage storage, @Nonnull ParameterSet parameters) {
@@ -69,6 +70,7 @@ public class SmoothingTask extends AbstractTask {
     smoothMobility = parameters.getParameter(SmoothingParameters.mobilitySmoothing).getValue();
     mobilityFilterWidth = parameters.getParameter(SmoothingParameters.mobilitySmoothing)
         .getEmbeddedParameter().getValue();
+    removeOriginal = parameters.getParameter(SmoothingParameters.removeOriginal).getValue();
     rtWeights = SavitzkyGolayFilter.getNormalizedWeights(rtFilterWidth);
     mobilityWeights = SavitzkyGolayFilter.getNormalizedWeights(mobilityFilterWidth);
   }
@@ -181,6 +183,10 @@ public class SmoothingTask extends AbstractTask {
     smoothedList.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters));
     project.addFeatureList(smoothedList);
+
+    if(removeOriginal) {
+      project.removeFeatureList(flist);
+    }
 
     setStatus(TaskStatus.FINISHED);
   }
