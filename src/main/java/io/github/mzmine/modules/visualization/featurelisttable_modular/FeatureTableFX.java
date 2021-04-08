@@ -36,7 +36,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.TreeViewUtils;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,6 +52,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
@@ -205,6 +208,27 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     }
 
     rowItems.addAll(root.getChildren());
+
+    // reflect the changes to the feature list in the table
+    flist.getRows().addListener(
+        (ListChangeListener<FeatureListRow>) change -> {
+          // find which list we have active
+          ObservableList<TreeItem<ModularFeatureListRow>> activeList =
+              root.getChildren().size() == rowItems.size() ? rowItems : filteredRowItems;
+
+          change.next();
+          if (change.wasAdded()) {
+            change.getAddedSubList()
+                .forEach(row -> rowItems.add(new TreeItem<>((ModularFeatureListRow) row)));
+          }
+          if (change.wasRemoved()) {
+            rowItems.removeAll(TreeViewUtils
+                .getTreeItemsByValue((Collection<ModularFeatureListRow>) change.getRemoved(),
+                    rowItems));
+          }
+          root.getChildren().clear();
+          root.getChildren().addAll(activeList);
+        });
   }
 
   /**
