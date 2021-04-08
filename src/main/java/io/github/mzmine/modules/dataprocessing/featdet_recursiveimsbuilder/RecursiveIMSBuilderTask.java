@@ -52,7 +52,6 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -171,7 +170,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     currentStep++;
     stepProcessed.set(0);
     stepTotal = sortedMobilograms.size();
-    final Set<TempIMTrace> ionMobilityTraces = createTempIMTraces(
+    final List<TempIMTrace> ionMobilityTraces = createTempIMTraces(
         sortedMobilograms, tolerance);
     if (isCanceled()) {
       return;
@@ -182,14 +181,12 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     currentStep++;
     stepTotal = ionMobilityTraces.size();
     logger.finest(() -> "Removing noise from traces...");
-    final Set<TempIMTrace> validTraces = Collections.synchronizedSet(new HashSet<>());
-    ionMobilityTraces.parallelStream().forEach(trace -> {
-      if (checkConsecutiveRemoveNoise(trace, access.getEligibleFrames(), numConsecutiveFrames,
-          numDataPoints)) {
-        validTraces.add(trace);
-      }
+    final List<TempIMTrace> validTraces = ionMobilityTraces.parallelStream().filter(trace -> {
       stepProcessed.getAndIncrement();
-    });
+      return checkConsecutiveRemoveNoise(trace, access.getEligibleFrames(), numConsecutiveFrames,
+          numDataPoints);
+    }).collect(Collectors.toList());
+
     logger.finest(() -> "Noise removed.");
     if (isCanceled()) {
       return;
@@ -313,7 +310,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     return isConsecutive && trace.getNumberOfDataPoints() >= numDataPoints;
   }
 
-  private void addZerosForFrames(Set<TempIMTrace> traces, List<Frame> eligibleFrames) {
+  private void addZerosForFrames(Collection<TempIMTrace> traces, List<Frame> eligibleFrames) {
     traces.parallelStream().forEach(trace -> {
           int mostFrequentIndex = // most frequent mobility scan index, corrected by the first scans index.
               findMostFrequentMobilityScanNumber(trace.getMobilograms()) - eligibleFrames.get(0)
@@ -479,7 +476,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
   }
 
   @Nullable
-  private Set<TempIMTrace> createTempIMTraces(
+  private List<TempIMTrace> createTempIMTraces(
       Collection<BuildingIonMobilitySeries> ionMobilitySeries, MZTolerance tolerance) {
     final RangeMap<Double, TempIMTrace> map = TreeRangeMap.create();
     Set<BuildingIonMobilitySeries> leftoverMobilograms = new HashSet<>();
@@ -503,13 +500,13 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
       stepProcessed.getAndIncrement();
     }
 
-    Set<TempIMTrace> traces = new HashSet<>(map.asMapOfRanges().values());
+    List<TempIMTrace> traces = new ArrayList<>(map.asMapOfRanges().values());
 
     if (!leftoverMobilograms.isEmpty()) {
       logger.finest(() -> leftoverMobilograms.size() + "/" + ionMobilitySeries.size()
           + " leftover mobilograms");
       if (enableRecursive && leftoverMobilograms.size() > RECURSIVE_THRESHOLD) {
-        Set<TempIMTrace> recursiveTraces = createTempIMTraces(leftoverMobilograms, tolerance);
+        List<TempIMTrace> recursiveTraces = createTempIMTraces(leftoverMobilograms, tolerance);
         if (recursiveTraces != null) {
           logger.finest(() -> "Created additional " + recursiveTraces.size()
               + " traces recursively from " + leftoverMobilograms.size() + " mobilograms.");

@@ -173,8 +173,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     if (((GeneralResolverParameters) parameterSet).getXYResolver(parameterSet) != null) {
       XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameterSet)
           .getXYResolver(parameterSet);
-      if (mobilogramBinning == null || mobilogramBinning.getDataFile() != newValue
-          .getRawDataFile()) {
+      if ((mobilogramBinning == null || mobilogramBinning.getDataFile() != newValue
+          .getRawDataFile()) && dimension == ResolvingDimension.MOBILITY) {
         mobilogramBinning = EfficientDataAccess.of((IMSRawDataFile) newValue.getRawDataFile(),
             BinningMobilogramDataAccess
                 .getPreviousBinningWith(flistBox.getValue(), newValue.getMobilityUnit()));

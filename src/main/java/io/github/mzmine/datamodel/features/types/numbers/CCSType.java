@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 public class CCSType extends FloatType {
 
   private final String headerString = MZmineCore.getConfiguration().getUnitFormat()
-      .format("CCS", "A^2");
+      .format("CCS", "\u212B\u00B2");
 
   public CCSType() {
     super(new DecimalFormat("0.0"));

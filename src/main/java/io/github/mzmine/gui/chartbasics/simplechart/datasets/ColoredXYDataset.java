@@ -206,8 +206,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   public int getValueIndex(final double domainValue, final double rangeValue) {
     // todo binary search somehow here
     for (int i = 0; i < computedItemCount; i++) {
-      if (Double.compare(domainValue, getXValue(0, i)) == 0) {
-//          && Double.compare(rangeValue, getYValue(0, i)) == 0) {
+      if (Double.compare(domainValue, getXValue(0, i)) == 0
+          && Double.compare(rangeValue, getYValue(0, i)) == 0) {
         return i;
       }
     }

@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.chromatogram;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -125,6 +126,9 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     for (ModularFeatureListRow row : rows) {
       for (final Feature f : row.getFeatures()) {
         final ModularFeature feature = (ModularFeature) f;
+        if(feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          continue;
+        }
         if (mzRange == null) {
           mzRange = feature.getRawDataPointsMZRange();
           double upper = mzRange.upperEndpoint();
