@@ -63,21 +63,26 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH + 50);
+    setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
     chart.setDataset(dataset);
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
+
+    // todo: save min/max values of dataset in dataset iself so jfreechart does not have to loop
+    //  over all data points (also means the renderers have to support it)
+    chart.getXYPlot().getRangeAxis().setAutoRange(true);
+    chart.getXYPlot().getDomainAxis().setAutoRange(true);
     BufferedImage img = chart.getChart()
-        .createBufferedImage(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH + 50,
+        .createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
             GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
 
     ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
     view.setOnMouseClicked(e -> MZmineCore.runLater(() -> {
+      // change buffered image to buffered chart on mouse click
       getChildren().remove(view);
       getChildren().add(chart);
     }));
 
     Platform.runLater(() -> getChildren().add(view));
-
 
 //    chart.addDatasetsChangedListener(
 //        (e) -> Platform.runLater(() -> chart.getXYPlot().getRangeAxis().setAutoRange(true)));

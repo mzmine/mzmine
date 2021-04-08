@@ -75,8 +75,10 @@ public class ImageChart extends StackPane {
     setPrefWidth(200);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
+    chart.getXYPlot().getRangeAxis().setAutoRange(true);
+    chart.getXYPlot().getDomainAxis().setAutoRange(true);
     BufferedImage img = chart.getChart()
-        .createBufferedImage(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH + 50,
+        .createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
             GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
 
     ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
