@@ -24,7 +24,7 @@ import java.util.LinkedHashMap;
 import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
@@ -47,13 +47,9 @@ public interface SimpleChart<T extends PlotXYDataProvider> {
 
   public void setRangeAxisNumberFormatOverride(NumberFormat format);
 
-  public void switchLegendVisible();
+  public void setLegendItemsVisible(boolean visible);
 
-  public void switchItemLabelsVisible();
-
-  public void switchBackground();
-
-  public Plot getPlot();
+  public XYPlot getXYPlot();
 
   public int addDataset(T datasetProvider);
 
@@ -66,6 +62,8 @@ public interface SimpleChart<T extends PlotXYDataProvider> {
   public ObjectProperty<XYItemRenderer> defaultRendererProperty();
 
   public void setShowCrosshair(boolean show);
+
+  public void setItemLabelsVisible(boolean visible);
 
   /**
    * @return current cursor position or null

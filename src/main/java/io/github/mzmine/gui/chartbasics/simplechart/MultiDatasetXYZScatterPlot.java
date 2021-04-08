@@ -62,7 +62,6 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
-import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
@@ -91,6 +90,8 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
   protected final List<DatasetsChangedListener> datasetListeners;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+  protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(false);
+  protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
@@ -119,12 +120,15 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     defaultRenderer = new SimpleObjectProperty<>(new ColoredXYSmallBlockRenderer());
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
+    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(this);
 
     isDrawingRegion = new SimpleBooleanProperty(false);
     currentRegionListener = null;
 
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();
+    initLabelListeners();
     datasetListeners = new ArrayList<>();
 
     plot.setRenderer(defaultRenderer.get());
@@ -135,8 +139,33 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     legendPaintScale
         .addListener((observable, oldValue, newValue) -> onPaintScaleChanged(newValue));
 
-    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
+  }
+
+  private void initLabelListeners() {
+    // automatically update label visibility
+    itemLabelsVisible.addListener((obs, old, newVal) -> {
+      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if(renderer != null) {
+          renderer.setDefaultItemLabelsVisible(newVal, false);
+        }
+      }
+      getChart().fireChartChanged();
+    });
+
+    legendItemsVisible.addListener((obs, old, newVal) -> {
+      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if(renderer != null) {
+          renderer.setDefaultSeriesVisibleInLegend(newVal, false);
+        }
+      }
+      final LegendTitle legend = getChart().getLegend();
+      if(legend != null) {
+        legend.setVisible(newVal);
+      }
+      getChart().fireChartChanged();
+    });
   }
 
   /**
@@ -204,6 +233,13 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
       }
     }
 
+    // jfreechart renderers dont check if the value actually changed and notify either way
+    if(renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
+    }
+    if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isLegendItemsVisible());
+    }
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
@@ -215,7 +251,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
 
   @Override
   public int addDataset(T datasetProvider) {
-    throw new UnsupportedOperationException("This operation is not supported by this plot.");
+    throw new UnsupportedOperationException("This operation is not supported by this plot. A renderer must be specified.");
   }
 
   public void addDatasetsAndRenderers(
@@ -243,35 +279,6 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     chart.setNotify(true);
     chart.fireChartChanged();
     notifyDatasetsChangedListeners();
-  }
-
-  @Override
-  public void switchLegendVisible() {
-    // Toggle legend visibility.
-    final LegendTitle legend = getChart().getLegend();
-    legend.setVisible(!legend.isVisible());
-  }
-
-  @Override
-  public void switchItemLabelsVisible() {
-    // no items in standard xyz plot.
-  }
-
-  @Override
-  public void switchBackground() {
-    // Toggle background color
-    final Paint color = getChart().getPlot().getBackgroundPaint();
-    Color bgColor, liColor;
-    if (color.equals(Color.darkGray)) {
-      bgColor = Color.white;
-      liColor = Color.darkGray;
-    } else {
-      bgColor = Color.darkGray;
-      liColor = Color.white;
-    }
-    getChart().getPlot().setBackgroundPaint(bgColor);
-    getChart().getXYPlot().setDomainGridlinePaint(liColor);
-    getChart().getXYPlot().setRangeGridlinePaint(liColor);
   }
 
   @Override
@@ -363,11 +370,6 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
             plot.getDataset(datasetIndex)) :
         new PlotCursorPosition(domainValue,
             rangeValue, index, null);
-  }
-
-  @Override
-  public Plot getPlot() {
-    return plot;
   }
 
   public XYPlot getXYPlot() {
@@ -531,7 +533,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   }
 
   /**
-   * @param scale
+   * @param scale The paint scale
    * @return Legend based on the {@link LookupPaintScale}.
    */
   private PaintScaleLegend generateLegend(@Nonnull PaintScale scale) {
@@ -572,5 +574,29 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
 
   public ObjectProperty<PaintScale> legendPaintScaleProperty() {
     return legendPaintScale;
+  }
+
+  public boolean isItemLabelsVisible() {
+    return itemLabelsVisible.get();
+  }
+
+  public BooleanProperty itemLabelsVisibleProperty() {
+    return itemLabelsVisible;
+  }
+
+  public void setItemLabelsVisible(boolean itemLabelsVisible) {
+    this.itemLabelsVisible.set(itemLabelsVisible);
+  }
+
+  public boolean isLegendItemsVisible() {
+    return legendItemsVisible.get();
+  }
+
+  public BooleanProperty legendItemsVisibleProperty() {
+    return legendItemsVisible;
+  }
+
+  public void setLegendItemsVisible(boolean legendItemsVisible) {
+    this.legendItemsVisible.set(legendItemsVisible);
   }
 }

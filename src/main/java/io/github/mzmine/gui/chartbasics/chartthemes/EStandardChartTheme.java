@@ -19,6 +19,8 @@
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -173,6 +175,14 @@ public class EStandardChartTheme extends StandardChartTheme {
     applyToTitles(chart);
     applyToLegend(chart);
 
+  }
+
+  public void apply(@Nonnull EChartViewer chartViewer) {
+    apply(chartViewer.getChart());
+
+    if(chartViewer instanceof SimpleChart simpleChart) {
+      simpleChart.setLegendItemsVisible(isShowLegend());
+    }
   }
 
 

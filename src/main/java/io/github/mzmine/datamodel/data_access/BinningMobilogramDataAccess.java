@@ -32,14 +32,14 @@ import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderAdvancedParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.AdvancedImsTraceBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderAdvancedParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
@@ -388,6 +388,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         lastNonZero = i;
       }
     }
+    firstNonZero = Math.max(firstNonZero, 0);
     lastNonZero = Math.min(lastNonZero + 1, mobilities.length - 1);
 
     return new SummedIntensityMobilitySeries(storage,

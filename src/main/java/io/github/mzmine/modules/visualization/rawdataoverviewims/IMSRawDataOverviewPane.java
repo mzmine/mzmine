@@ -267,7 +267,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // mobilogramChart.getXYPlot().setOrientation(PlotOrientation.HORIZONTAL);
     mobilogramChart.getXYPlot().getDomainAxis().setInverted(true);
     mobilogramChart.setShowCrosshair(false);
-    mobilogramChart.switchLegendVisible();
+    mobilogramChart.setLegendItemsVisible(false);
     NumberAxis axis = (NumberAxis) mobilogramChart.getXYPlot().getRangeAxis();
     axis.setAutoRangeMinimumSize(0.2);
     axis.setAutoRangeIncludesZero(false);
