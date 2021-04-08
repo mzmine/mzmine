@@ -308,6 +308,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule"/>
       <MenuItem onAction="#runModule" text="Assign MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
+      <MenuItem text="Feature list blank subtraction" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule"/>
     </Menu>
 
     <Menu text="Alignment">

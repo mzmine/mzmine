@@ -30,9 +30,9 @@ import java.util.Collection;
 /**
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
-public class PeakListBlankSubtractionModule implements MZmineProcessingModule {
+public class FeatureListBlankSubtractionModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Peak list blank subtraction";
+  public static final String MODULE_NAME = "Feature list blank subtraction";
 
   @Override
   public String getName() {
@@ -41,20 +41,20 @@ public class PeakListBlankSubtractionModule implements MZmineProcessingModule {
 
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return PeakListBlankSubtractionParameters.class;
+    return FeatureListBlankSubtractionParameters.class;
   }
 
   @Override
   public String getDescription() {
-    return "Subtracts a blank measurements peak list from another peak list.";
+    return "Subtracts features appearing in (procedural) blank measurements feature list from an aligned feature list.";
   }
 
   @Override
   public ExitCode runModule(MZmineProject project, ParameterSet parameters,
       Collection<Task> tasks) {
 
-    Task task = new PeakListBlankSubtractionMasterTask(project,
-        (PeakListBlankSubtractionParameters) parameters, MemoryMapStorage.forFeatureList());
+    Task task = new FeatureListBlankSubtractionTask(project,
+        (FeatureListBlankSubtractionParameters) parameters, MemoryMapStorage.forFeatureList());
 
     tasks.add(task);
 
