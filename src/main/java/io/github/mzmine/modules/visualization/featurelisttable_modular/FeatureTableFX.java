@@ -216,6 +216,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
           ObservableList<TreeItem<ModularFeatureListRow>> activeList =
               root.getChildren().size() == rowItems.size() ? rowItems : filteredRowItems;
 
+          // remove/add from row items, as the filtered lists wraps rowItems.
           change.next();
           if (change.wasAdded()) {
             change.getAddedSubList()
@@ -228,6 +229,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
           }
           root.getChildren().clear();
           root.getChildren().addAll(activeList);
+          this.sort();
         });
   }
 
@@ -589,4 +591,5 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     }
     return null;
   }
+
 }
