@@ -132,7 +132,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
+    theme.apply(this);
 
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();

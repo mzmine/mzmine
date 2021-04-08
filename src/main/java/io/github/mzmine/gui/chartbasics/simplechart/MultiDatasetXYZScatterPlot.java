@@ -121,7 +121,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
+    theme.apply(this);
 
     isDrawingRegion = new SimpleBooleanProperty(false);
     currentRegionListener = null;
