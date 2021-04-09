@@ -21,7 +21,9 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
@@ -31,10 +33,12 @@ import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
@@ -42,6 +46,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.util.StringConverter;
 
 public class FeatureTableFXMLTabAnchorPaneController {
 
@@ -59,6 +64,8 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
   private TextField mzSearchField;
   private TextField rtSearchField;
+  private TextField anySearchField;
+  private ComboBox<DataType> typeComboBox;
 
   public void initialize() {
     param = MZmineCore.getConfiguration()
@@ -88,6 +95,30 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
     filtersRow.getChildren().addAll(filterIcon, mzFilter, separator, rtFilter);
 
+    typeComboBox = new ComboBox<>();
+    typeComboBox.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(DataType object) {
+        return object.getHeaderString();
+      }
+
+      @Override
+      public DataType fromString(String string) {
+        return null;
+      }
+    });
+    featureTable.featureListProperty().addListener(((observable, oldValue, newValue) -> {
+      typeComboBox.setItems(
+          FXCollections.observableArrayList(newValue.getRowTypes().values()));
+      if (!typeComboBox.getItems().isEmpty()) {
+        typeComboBox.setValue(typeComboBox.getItems().get(0));
+      }
+    }));
+    anySearchField = new TextField();
+    anySearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
+    filtersRow.getChildren()
+        .addAll(new Separator(Orientation.VERTICAL), typeComboBox, new Label(": "), anySearchField);
+
     pnFilters.getItems().add(filtersRow);
 
     featureTable.getSelectionModel().selectedItemProperty()
@@ -104,10 +135,17 @@ public class FeatureTableFXMLTabAnchorPaneController {
       return;
     }
 
+    final String anyFilterString =
+        anySearchField.getText().isBlank() ? null : anySearchField.getText().toLowerCase().trim();
+    DataType<?> type = typeComboBox.getValue();
+
     // Filter rows
     featureTable.getFilteredRowItems().setPredicate(item -> {
-      FeatureListRow row = item.getValue();
-      return mzFilter.contains(row.getAverageMZ()) && rtFilter.contains((double) row.getAverageRT());
+      ModularFeatureListRow row = item.getValue();
+      return mzFilter.contains(row.getAverageMZ())
+          && rtFilter.contains((double) row.getAverageRT())
+          && (anyFilterString == null || (anyFilterString != null && type != null && type
+          .getFormattedString(row.get(type)).toLowerCase().trim().contains(anyFilterString)));
     });
 
     // Update rows in feature table
@@ -116,20 +154,19 @@ public class FeatureTableFXMLTabAnchorPaneController {
   }
 
   /**
-   * Parses string of the given filter text field and returns a range of values satisfying the filter.
-   * Examples:
-   *  "5.34" -> [5.34 - epsilon, 5.34 + epsilon]
-   *  "2.37 - 6" -> [2.37 - epsilon, 6.00 + epsilon]
+   * Parses string of the given filter text field and returns a range of values satisfying the
+   * filter. Examples: "5.34" -> [5.34 - epsilon, 5.34 + epsilon] "2.37 - 6" -> [2.37 - epsilon,
+   * 6.00 + epsilon]
    *
    * @param textField Text field
-   * @param epsilon Precision of the filter
+   * @param epsilon   Precision of the filter
    * @return Range of values satisfying the filter or RangeUtils.DOUBLE_NAN_RANGE if the filter
    * string is invalid
    */
   private Range<Double> parseNumericFilter(TextField textField, double epsilon) {
     textField.setStyle("-fx-control-inner-background: #ffffff;");
     String filterStr = textField.getText();
-    filterStr = filterStr.replace(" ","");
+    filterStr = filterStr.replace(" ", "");
 
     if (filterStr.isEmpty()) { // Empty filter
       textField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
@@ -137,7 +174,8 @@ public class FeatureTableFXMLTabAnchorPaneController {
     } else if (filterStr.contains("-")) { // Filter by range
       try {
         Range<Double> parsedRange = RangeUtils.parseDoubleRange(filterStr);
-        return Range.closed(parsedRange.lowerEndpoint() - epsilon, parsedRange.upperEndpoint() + epsilon);
+        return Range
+            .closed(parsedRange.lowerEndpoint() - epsilon, parsedRange.upperEndpoint() + epsilon);
       } catch (Exception exception) {
         textField.setStyle("-fx-control-inner-background: #ffcccb;");
         return RangeUtils.DOUBLE_NAN_RANGE;
@@ -173,25 +211,26 @@ public class FeatureTableFXMLTabAnchorPaneController {
   }
 
   public void setFeatureList(FeatureList featureList) {
-    featureTable.addData(featureList);
-
-    if(featureList==null) {
+    if (!(featureList instanceof ModularFeatureList flist)) {
       return;
     }
+    featureTable.addData(flist);
+
     try {
       // Fill filters text fields with a prompt values
       NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
       Range<Double> mzRange = featureList.getRowsMZRange();
-      if(mzRange!=null)
+      if (mzRange != null) {
         mzSearchField.setPromptText(mzFormat.format(mzRange.lowerEndpoint()) + " - "
-                + mzFormat.format(mzRange.upperEndpoint()));
+            + mzFormat.format(mzRange.upperEndpoint()));
+      }
       mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
 
       NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
       Range<Float> rtRange = featureList.getRowsRTRange();
-      if(rtRange!=null) {
+      if (rtRange != null) {
         rtSearchField.setPromptText(rtFormat.format(rtRange.lowerEndpoint()) + " - "
-                + rtFormat.format(rtRange.upperEndpoint()));
+            + rtFormat.format(rtRange.upperEndpoint()));
       }
       rtSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
     } catch (Exception ex) {
