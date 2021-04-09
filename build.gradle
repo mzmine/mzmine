@@ -12,8 +12,8 @@ version = "3.0"
 description = "MZmine"
 
 // JDK 14+ is needed for jpackage
-sourceCompatibility = "14"
-targetCompatibility = "14"
+sourceCompatibility = "16"
+targetCompatibility = "16"
 defaultTasks "jpackage"
 
 // Check the OS
@@ -180,7 +180,7 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "15.0.1"
+    version = "16"
     modules = ["javafx.controls",
                "javafx.swing",
                "javafx.fxml",
