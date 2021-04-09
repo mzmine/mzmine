@@ -28,33 +28,22 @@ println "OS detected as " + project.ext.osSuffix
 
 
 repositories {
-    maven {
-        url = "file://" + projectDir + "/src/main/lib"
-    }
-    maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
-        url = "https://dl.bintray.com/lifs/maven/"
-    }
-    maven { // For jmzml, etc.
-        url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/"
-    }
-    maven {
-        url = "https://repo.maven.apache.org/maven2"
-    }
-    maven { // For SIRIUS ID modules
-        url = "https://bio.informatik.uni-jena.de/repository/libs-oss/"
-    }
-    maven {
-        url = "https://jitpack.io"
-    }
-    maven {
-        url = "https://www.xypron.de/repository/"
-    }
-    maven { // For cpdetector
-        url = "https://nexus.nuiton.org/nexus/content/groups/releases/"
-    }
-    maven { // For jimzml
-        url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser"
-    }
+    // TODO change to mavenCentral()
+    maven { url = "https://repo.maven.apache.org/maven2" }
+    // local libraries
+    maven { url = "file://" + projectDir + "/src/main/lib" }
+    // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
+    maven { url = "https://dl.bintray.com/lifs/maven/" }
+    // For jmzml, etc.
+    maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
+    // For SIRIUS ID modules
+    maven { url = "https://bio.informatik.uni-jena.de/repository/libs-oss/" }
+    maven { url = "https://jitpack.io" }
+    maven { url = "https://www.xypron.de/repository/" }
+    // For cpdetector
+    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
+    // For jimzml
+    maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 }
 
 ext {
@@ -164,7 +153,6 @@ dependencies {
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     implementation "com.alanmrace:jimzmlparser:1.0.5"
-    // https://mvnrepository.com/artifact/commons-cli/commons-cli
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
 
