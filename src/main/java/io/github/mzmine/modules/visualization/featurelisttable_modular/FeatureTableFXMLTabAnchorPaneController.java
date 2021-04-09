@@ -33,6 +33,7 @@ import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -99,6 +100,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
     typeComboBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(DataType object) {
+        if(object == null) {
+          return "";
+        }
         return object.getHeaderString();
       }
 
@@ -107,6 +111,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
         return null;
       }
     });
+    typeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> filterRows());
     featureTable.featureListProperty().addListener(((observable, oldValue, newValue) -> {
       typeComboBox.setItems(
           FXCollections.observableArrayList(newValue.getRowTypes().values()));
@@ -142,10 +147,17 @@ public class FeatureTableFXMLTabAnchorPaneController {
     // Filter rows
     featureTable.getFilteredRowItems().setPredicate(item -> {
       ModularFeatureListRow row = item.getValue();
+      boolean anyFilterOk = true;
+      if (anyFilterString != null && type != null) {
+        Property<?> property = row.get(type);
+        anyFilterOk =
+            property != null && type.getFormattedString(property.getValue()).toLowerCase().trim()
+                .contains(anyFilterString);
+      }
+
       return mzFilter.contains(row.getAverageMZ())
           && rtFilter.contains((double) row.getAverageRT())
-          && (anyFilterString == null || (anyFilterString != null && type != null && type
-          .getFormattedString(row.get(type)).toLowerCase().trim().contains(anyFilterString)));
+          && anyFilterOk;
     });
 
     // Update rows in feature table
@@ -214,7 +226,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
     if (!(featureList instanceof ModularFeatureList flist)) {
       return;
     }
-    featureTable.addData(flist);
+    featureTable.setFeatureList(flist);
 
     try {
       // Fill filters text fields with a prompt values

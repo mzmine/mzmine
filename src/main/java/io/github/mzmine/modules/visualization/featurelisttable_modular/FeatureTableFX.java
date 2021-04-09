@@ -92,6 +92,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   Random rand = new Random(System.currentTimeMillis());
   private Logger logger = Logger.getLogger(this.getClass().getName());
+  private ListChangeListener<FeatureListRow> changeListener;
 
   // lists
 
@@ -111,6 +112,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
         int io = getRoot().getChildren().indexOf(oldValue);
         int in = getRoot().getChildren().indexOf(newValue);
     });*/
+
+    initFeatureListListener();
 
     parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
     rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
@@ -182,56 +185,27 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   }
 
 
-  /**
-   * add row data and columns of first row
-   *
-   * @param flist
-   */
-  public void addData(ModularFeatureList flist) {
-    if (flist.isEmpty()) {
-      return;
-    }
+  @Nonnull
+  private ListChangeListener<FeatureListRow> getRowListChangeListener(
+      TreeItem<ModularFeatureListRow> root) {
+    return change -> {
+      // find which list we have active
+      ObservableList<TreeItem<ModularFeatureListRow>> activeList =
+          root.getChildren().size() == rowItems.size() ? rowItems : filteredRowItems;
 
-    // Clear old rows
-    getRoot().getChildren().clear();
-    // Clear old columns
-    getColumns().clear();
-
-    this.featureList.set(flist);
-
-    addColumns(flist);
-
-    // add rows
-    TreeItem<ModularFeatureListRow> root = getRoot();
-//    logger.info("Add rows");
-    for (FeatureListRow row : flist.getRows()) {
-      ModularFeatureListRow mrow = (ModularFeatureListRow) row;
-//      logger.info("Add row with id: " + row.getID());
-      root.getChildren().add(new TreeItem<>(mrow));
-    }
-
-    rowItems.addAll(root.getChildren());
-
-    // reflect the changes to the feature list in the table
-    flist.getRows().addListener(
-        (ListChangeListener<FeatureListRow>) change -> {
-          // find which list we have active
-          ObservableList<TreeItem<ModularFeatureListRow>> activeList =
-              root.getChildren().size() == rowItems.size() ? rowItems : filteredRowItems;
-
-          change.next();
-          if (change.wasAdded()) {
-            change.getAddedSubList()
-                .forEach(row -> rowItems.add(new TreeItem<>((ModularFeatureListRow) row)));
-          }
-          if (change.wasRemoved()) {
-            rowItems.removeAll(TreeViewUtils
-                .getTreeItemsByValue((Collection<ModularFeatureListRow>) change.getRemoved(),
-                    rowItems));
-          }
-          root.getChildren().clear();
-          root.getChildren().addAll(activeList);
-        });
+      change.next();
+      if (change.wasAdded()) {
+        change.getAddedSubList()
+            .forEach(row -> rowItems.add(new TreeItem<>((ModularFeatureListRow) row)));
+      }
+      if (change.wasRemoved()) {
+        rowItems.removeAll(TreeViewUtils
+            .getTreeItemsByValue((Collection<ModularFeatureListRow>) change.getRemoved(),
+                rowItems));
+      }
+      root.getChildren().clear();
+      root.getChildren().addAll(activeList);
+    };
   }
 
   /**
@@ -610,6 +584,38 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   }
 
   public void setFeatureList(ModularFeatureList featureList) {
+    if (featureList.isEmpty()) {
+      return;
+    }
     this.featureList.set(featureList);
+  }
+
+  private void initFeatureListListener() {
+    featureListProperty().addListener((observable, oldValue, newValue) -> {
+      // Clear old rows and old columns
+      getRoot().getChildren().clear();
+      getColumns().clear();
+      rowItems.clear();
+
+      // remove the old listener
+      if(changeListener != null && getFeatureList() != null) {
+        getFeatureList().getRows().removeListener(changeListener);
+      }
+
+      addColumns(newValue);
+
+      // add rows
+      TreeItem<ModularFeatureListRow> root = getRoot();
+      for (FeatureListRow row : newValue.getRows()) {
+        ModularFeatureListRow mrow = (ModularFeatureListRow) row;
+        root.getChildren().add(new TreeItem<>(mrow));
+      }
+
+      rowItems.addAll(root.getChildren());
+
+      // reflect the changes to the feature list in the table
+      changeListener = getRowListChangeListener(root);
+      newValue.getRows().addListener(changeListener);
+    });
   }
 }
