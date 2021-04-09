@@ -332,8 +332,7 @@ public class FeatureFindingTest {
       assertEquals(fa.getNumberOfDataPoints(), fb.getNumberOfDataPoints());
       assertEquals(fa.getScanNumbers().size(), fb.getScanNumbers().size());
       // retention time might actually resonably change by a lot - therefore no test
-      assertTrue(Precision.equals(a.getAverageMZ(), b.getAverageMZ(), 0.0002),
-          "mz change is too high");
+      assertEquals(a.getAverageMZ(), b.getAverageMZ(), 0.005, "mz change to high");
 
       // area change is greater than 25 % for some features
 //      assertTrue(Precision.equals(a.getAverageArea(), b.getAverageArea(), 0, maxRelAreaChange),
@@ -351,8 +350,7 @@ public class FeatureFindingTest {
       assertEquals(fa.getNumberOfDataPoints(), fb.getNumberOfDataPoints());
       assertEquals(fa.getScanNumbers().size(), fb.getScanNumbers().size());
       // retention time might actually resonably change by a lot - therefore no test
-      assertTrue(Precision.equals(a.getAverageMZ(), b.getAverageMZ(), 0.0002),
-          "mz change is too high");
+      assertEquals(a.getAverageMZ(), b.getAverageMZ(), 0.005, "mz change to high");
 
       // area change is greater than 25 % for some features
 //      assertTrue(Precision.equals(a.getAverageArea(), b.getAverageArea(), 0, maxRelAreaChange),
