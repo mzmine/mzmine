@@ -18,6 +18,16 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.plot.XYPlot;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -27,14 +37,6 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -47,8 +49,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.plot.XYPlot;
 
 /**
  * Window to show all MS/MS scans of a feature list row
@@ -79,7 +79,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
   public MultiSpectraVisualizerPane(FeatureListRow row, RawDataFile raw) {
     getStyleClass().add("region-match-chart-bg");
 
-//    setExtendedState(JFrame.MAXIMIZED_BOTH);
+    // setExtendedState(JFrame.MAXIMIZED_BOTH);
     setMinSize(800, 600);
 
     pnGrid = new GridPane();
@@ -87,8 +87,8 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     colCon.setFillWidth(true);
     pnGrid.getColumnConstraints().add(colCon);
     // any number of rows
-//    pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
-//    pnGrid.setAutoscrolls(true);
+    // pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
+    // pnGrid.setAutoscrolls(true);
     pnGrid.setVgap(25);
 
     ScrollPane scrollPane = new ScrollPane(pnGrid);
@@ -124,7 +124,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     // add charts
     setData(row, raw);
 
-//    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    // setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setVisible(true);
   }
 
@@ -191,11 +191,11 @@ public class MultiSpectraVisualizerPane extends BorderPane {
 
     int n = indexOfRaw(raw);
     lbRaw.setText(n + ": " + raw.getName());
-    logger.finest("All MS/MS scans window: Added " + numbers.size()
-        + " spectra of raw file " + n + ": " + raw.getName());
+    logger.finest("All MS/MS scans window: Added " + numbers.size() + " spectra of raw file " + n
+        + ": " + raw.getName());
     // show
-//    pnGrid.revalidate();
-//    pnGrid.repaint();
+    // pnGrid.revalidate();
+    // pnGrid.repaint();
     return true;
   }
 
@@ -221,17 +221,12 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     // mz range
     Range<Double> mzRange = null;
     mzRange = peak.getRawDataPointsMZRange();
-    // optimize output by extending the range
-    double upper = mzRange.upperEndpoint();
-    double lower = mzRange.lowerEndpoint();
-    double fiveppm = (upper * 5E-6);
-    mzRange = Range.closed(lower - fiveppm, upper + fiveppm);
 
     // labels
     labelsMap.put(peak, peak.toString());
 
     // get EIC window
-    TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{activeRaw}, // raw
+    TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[] {activeRaw}, // raw
         TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
         mzRange, // mz range
@@ -252,10 +247,10 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
     plot.addDomainMarker(marker);
     bottomPane.getItems().add(ticPlot);
-//    bottomPane.setResizeWeight(0.5);
-//    bottomPane.setEnabled(true);
-//    bottomPane.setDividerSize(5);
-//    bottomPane.setDividerLocation(200);
+    // bottomPane.setResizeWeight(0.5);
+    // bottomPane.setEnabled(true);
+    // bottomPane.setDividerSize(5);
+    // bottomPane.setDividerLocation(200);
 
     SplitPane spectrumPane = new SplitPane();
     spectrumPane.setOrientation(Orientation.HORIZONTAL);
@@ -270,12 +265,12 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     // spectrumPlot.setPreferredSize(new Dimension(600, 400));
     spectrumPane.getItems().add(spectrumPlot);
     spectrumPane.getItems().add(spectraTab.getToolBar());
-//    spectrumPane.setResizeWeight(1);
-//    spectrumPane.setEnabled(false);
-//    spectrumPane.setDividerSize(0);
+    // spectrumPane.setResizeWeight(1);
+    // spectrumPane.setEnabled(false);
+    // spectrumPane.setDividerSize(0);
     bottomPane.getItems().add(spectrumPane);
     panel.setCenter(bottomPane);
-//    panel.setBorder(BorderFactory.createLineBorder(Color.black));
+    // panel.setBorder(BorderFactory.createLineBorder(Color.black));
     return panel;
   }
 }

@@ -18,6 +18,17 @@
 
 package io.github.mzmine.datamodel.features;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
@@ -31,6 +42,8 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
+import io.github.mzmine.datamodel.features.types.LipidAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.LipidAnnotationType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
@@ -45,19 +58,11 @@ import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.stream.Stream;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
@@ -68,8 +73,6 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Map of all feature related data.
@@ -184,7 +187,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * Constructor for row with a specific id.
    *
    * @param flist Feature list
-   * @param id    ID
+   * @param id ID
    */
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id) {
     this(flist);
@@ -221,8 +224,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
     //
     if (tclass.equals(FeaturesType.class)) {
-      get(FeaturesType.class).addListener(
-          (MapChangeListener<RawDataFile, ModularFeature>) change -> {
+      get(FeaturesType.class)
+          .addListener((MapChangeListener<RawDataFile, ModularFeature>) change -> {
             flist.getRowBindings().forEach(b -> b.apply(this));
           });
     }
@@ -464,8 +467,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       return manual.get(IdentityType.class).getValue();
     } else {
       ListProperty<FeatureIdentity> prop = get(IdentityType.class);
-      return prop == null || prop.getValue() == null ? null :
-          FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
+      return prop == null || prop.getValue() == null ? null
+          : FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
     }
   }
 
@@ -542,8 +545,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public double getMaxDataPointIntensity() {
     ObjectProperty<Range<Float>> rangeObjectProperty = get(IntensityRangeType.class);
-    return rangeObjectProperty != null && rangeObjectProperty.getValue() != null ?
-        rangeObjectProperty.getValue().upperEndpoint() : Double.NaN;
+    return rangeObjectProperty != null && rangeObjectProperty.getValue() != null
+        ? rangeObjectProperty.getValue().upperEndpoint()
+        : Double.NaN;
   }
 
   @Nullable
@@ -609,6 +613,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
 
     return null;
+  }
+
+  @Override
+  public void addLipidAnnotation(MatchedLipid matchedLipid) {
+    // add column first if needed
+    get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).add(matchedLipid);
   }
 
 }

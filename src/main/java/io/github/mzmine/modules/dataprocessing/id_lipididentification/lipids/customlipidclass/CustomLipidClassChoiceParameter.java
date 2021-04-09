@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,14 +28,13 @@ import org.w3c.dom.NodeList;
 
 import io.github.mzmine.parameters.UserParameter;
 
-public class LipidModificationChoiceParameter
-    implements UserParameter<LipidModification[], LipidModificationChoiceComponent> {
+public class CustomLipidClassChoiceParameter
+		implements UserParameter<CustomLipidClass[], CustomLipidClassChoiceComponent> {
 
 	private final String name;
 	private final String description;
-  private final LipidModification[] choices;
-
-  private LipidModification[] values;
+	private CustomLipidClass[] choices;
+	private CustomLipidClass[] values;
 
   /**
    * Create the parameter.
@@ -43,8 +42,8 @@ public class LipidModificationChoiceParameter
    * @param name name of the parameter.
    * @param description description of the parameter.
    */
-  public LipidModificationChoiceParameter(String name, String description,
-      LipidModification[] choices) {
+  public CustomLipidClassChoiceParameter(String name, String description,
+			CustomLipidClass[] choices) {
     this.name = name;
     this.description = description;
     this.choices = choices;
@@ -52,26 +51,27 @@ public class LipidModificationChoiceParameter
   }
 
   @Override
-  public LipidModificationChoiceComponent createEditingComponent() {
-    return new LipidModificationChoiceComponent(choices);
+  public CustomLipidClassChoiceComponent createEditingComponent() {
+    return new CustomLipidClassChoiceComponent(choices);
   }
 
   @Override
-  public void setValueFromComponent(final LipidModificationChoiceComponent component) {
-    values = component.getValue().toArray(new LipidModification[component.getValue().size()]);
+  public void setValueFromComponent(final CustomLipidClassChoiceComponent component) {
+		values = component.getValue().toArray(new CustomLipidClass[component.getValue().size()]);
+		choices = component.getChoices().toArray(new CustomLipidClass[component.getChoices().size()]);
   }
 
   @Override
-  public void setValueToComponent(LipidModificationChoiceComponent component,
-      LipidModification[] newValue) {
-    component.setValue(Arrays.asList(newValue));
+  public void setValueToComponent(CustomLipidClassChoiceComponent component,
+			CustomLipidClass[] newValue) {
+		component.setValue(Arrays.asList(newValue));
   }
 
   @Override
-  public LipidModificationChoiceParameter cloneParameter() {
+  public CustomLipidClassChoiceParameter cloneParameter() {
 
-    final LipidModificationChoiceParameter copy =
-        new LipidModificationChoiceParameter(name, description, choices);
+    final CustomLipidClassChoiceParameter copy =
+        new CustomLipidClassChoiceParameter(name, description, choices);
     copy.setValue(values);
     return copy;
   }
@@ -87,16 +87,16 @@ public class LipidModificationChoiceParameter
   }
 
   @Override
-  public LipidModification[] getValue() {
+	public CustomLipidClass[] getValue() {
     return values;
   }
 
-  public LipidModification[] getChoices() {
+	public CustomLipidClass[] getChoices() {
     return choices;
   }
 
   @Override
-  public void setValue(LipidModification[] newValue) {
+	public void setValue(CustomLipidClass[] newValue) {
     this.values = newValue;
   }
 
@@ -108,16 +108,16 @@ public class LipidModificationChoiceParameter
   @Override
   public void loadValueFromXML(Element xmlElement) {
     NodeList items = xmlElement.getElementsByTagName("item");
-    ArrayList<LipidModification> newValues = new ArrayList<>();
+	ArrayList<CustomLipidClass> newValues = new ArrayList<>();
     for (int i = 0; i < items.getLength(); i++) {
       String itemString = items.item(i).getTextContent();
-      for (int j = 0; j < choices.length; j++) {
-        if (choices[j].toString().equals(itemString)) {
-          newValues.add(choices[j]);
+		for (int j = 0; j < choices.length; j++) {
+			if (choices[j].toString().equals(itemString)) {
+				newValues.add(choices[j]);
         }
       }
     }
-    this.values = newValues.toArray(new LipidModification[0]);
+	this.values = newValues.toArray(new CustomLipidClass[0]);
   }
 
   @Override
@@ -125,12 +125,11 @@ public class LipidModificationChoiceParameter
     if (values == null)
       return;
     Document parentDocument = xmlElement.getOwnerDocument();
-    for (LipidModification item : values) {
+	for (CustomLipidClass item : values) {
       Element newElement = parentDocument.createElement("item");
       newElement.setTextContent(item.toString());
       xmlElement.appendChild(newElement);
     }
   }
-
 
 }

@@ -31,11 +31,10 @@ public class LipidClassDescription {
   private String info;
   private String status;
   private String msmsFragmentsPos;
-  private String msmsFragmentsNeg;
 
   public LipidClassDescription(String id, String lipidCoreClass, String lipidMainClass, String lipidClass,
       String molecularFormula, String abbreviation, String ionization, String exactMass,
-      String info, String status, String msmsFragmentsPos, String msmsFragmentsNeg) {
+			String info, String status, String msmsFragmentsPos) {
 
     this.id = id;
     this.lipidCoreClass = lipidCoreClass;
@@ -48,7 +47,6 @@ public class LipidClassDescription {
     this.info = info;
     this.status = status;
     this.msmsFragmentsPos = msmsFragmentsPos;
-    this.msmsFragmentsNeg = msmsFragmentsNeg;
   }
 
   public String getId() {
@@ -129,14 +127,6 @@ public class LipidClassDescription {
 
   public void setStatus(String status) {
     this.status = status;
-  }
-
-  public String getMsmsFragmentsNeg() {
-    return msmsFragmentsNeg;
-  }
-
-  public void setMsmsFragmentsNeg(String msmsFragmentsNeg) {
-    this.msmsFragmentsNeg = msmsFragmentsNeg;
   }
 
   public String getMsmsFragmentsPos() {

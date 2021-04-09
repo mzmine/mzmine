@@ -18,15 +18,16 @@
 
 package io.github.mzmine.datamodel.features;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.FeatureInformation;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import javafx.collections.ObservableList;
 
 /**
  * Interface representing feature list row
@@ -225,5 +226,7 @@ public interface FeatureListRow {
   default void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
     addFeatureIdentity(id, false);
   }
+
+  void addLipidAnnotation(MatchedLipid matchedLipid);
 
 }

@@ -18,11 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
-import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -55,11 +54,11 @@ public class LipidSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    FeatureList featureLists[] =
-        parameters.getParameter(LipidSearchParameters.peakLists).getValue().getMatchingFeatureLists();
+    ModularFeatureList[] featurelists = parameters.getParameter(LipidSearchParameters.featureLists)
+        .getValue().getMatchingFeatureLists();
 
-    for (FeatureList featureList : featureLists) {
-      Task newTask = new LipidSearchTask(parameters, featureList);
+    for (ModularFeatureList featurelist : featurelists) {
+      Task newTask = new LipidSearchTask(parameters, featurelist);
       tasks.add(newTask);
     }
 

@@ -21,6 +21,8 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.AllLipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClassParameter;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClassChoiceParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModificationChoiceParameter;
 import io.github.mzmine.parameters.Parameter;
@@ -40,7 +42,7 @@ import io.github.mzmine.util.ExitCode;
  */
 public class LipidSearchParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<Object>(
       "Lipid classes", "Selection of lipid backbones", AllLipidClasses.getList().toArray());
@@ -65,15 +67,20 @@ public class LipidSearchParameters extends SimpleParameterSet {
           "Search for lipid class specific fragments in MS/MS spectra",
           new LipidSearchMSMSParameters());
 
+  public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses =
+      new OptionalParameter<CustomLipidClassChoiceParameter>(
+          new CustomLipidClassChoiceParameter("Search for custom lipid class",
+              "If checked the algorithm searches for custom, by the user defined lipid classes",
+              new CustomLipidClass[0]));
+
   public static final OptionalParameter<LipidModificationChoiceParameter> searchForModifications =
       new OptionalParameter<LipidModificationChoiceParameter>(new LipidModificationChoiceParameter(
           "Search for lipid modification",
           "If checked the algorithm searches for lipid modifications", new LipidModification[0]));
 
   public LipidSearchParameters() {
-    super(new Parameter[] {peakLists, lipidClasses, chainLength, doubleBonds, ionizationMethod,
-        mzTolerance, searchForMSMSFragments, searchForModifications});
-
+    super(new Parameter[] {featureLists, lipidClasses, chainLength, doubleBonds, ionizationMethod,
+        mzTolerance, searchForMSMSFragments, customLipidClasses, searchForModifications});
   }
 
   @Override

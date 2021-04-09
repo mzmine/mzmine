@@ -21,7 +21,9 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.controlsfx.control.CheckTreeView;
+
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBoxTreeItem;
@@ -35,99 +37,98 @@ import javafx.scene.layout.FlowPane;
  */
 public class LipidClassComponent extends BorderPane {
 
-  private final CheckBoxTreeItem<Object> rootItem = new CheckBoxTreeItem<>("Root");
+	private final CheckBoxTreeItem<Object> rootItem = new CheckBoxTreeItem<>("Root");
 
-  private final CheckTreeView<Object> lipidChoices = new CheckTreeView<>(rootItem);
-  private final Map<LipidClasses, CheckBoxTreeItem<Object>> classToItemMap = new HashMap<>();
+	private final CheckTreeView<Object> lipidChoices = new CheckTreeView<>(rootItem);
+	private final Map<LipidClasses, CheckBoxTreeItem<Object>> classToItemMap = new HashMap<>();
 
-  private final Button selectAllButton = new Button("All");
-  private final Button selectNoneButton = new Button("Clear");
-  private final FlowPane buttonsPanel = new FlowPane(Orientation.VERTICAL);
+	private final Button selectAllButton = new Button("All");
+	private final Button selectNoneButton = new Button("Clear");
+	private final FlowPane buttonsPanel = new FlowPane(Orientation.VERTICAL);
 
-  /**
-   * Create the component.
-   *
-   * @param theChoices the choices available to the user.
-   */
-  public LipidClassComponent(final Object[] theChoices) {
+	/**
+	 * Create the component.
+	 *
+	 * @param theChoices the choices available to the user.
+	 */
+	public LipidClassComponent(final Object[] theChoices) {
 
-    // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+		// setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    // Don't show the root item
-    lipidChoices.setShowRoot(false);
+		// Don't show the root item
+		lipidChoices.setShowRoot(false);
+		lipidChoices.setMinWidth(500);
+		lipidChoices.setMinHeight(200);
+		// Load all lipid classes
+		LipidCategories coreClass = null;
+		LipidMainClasses mainClass = null;
+		CheckBoxTreeItem<Object> coreClassItem = null;
+		CheckBoxTreeItem<Object> mainClassItem = null;
+		CheckBoxTreeItem<Object> classItem = null;
 
-    // Load all lipid classes
-    LipidCoreClasses coreClass = null;
-    LipidMainClasses mainClass = null;
-    CheckBoxTreeItem<Object> coreClassItem = null;
-    CheckBoxTreeItem<Object> mainClassItem = null;
-    CheckBoxTreeItem<Object> classItem = null;
+		for (LipidClasses lipidClass : LipidClasses.values()) {
+			if (lipidClass.getCoreClass() != coreClass) {
+				coreClassItem = new CheckBoxTreeItem<>(lipidClass.getCoreClass());
+				coreClassItem.setExpanded(true);
+				coreClass = lipidClass.getCoreClass();
+				rootItem.getChildren().add(coreClassItem);
+			}
 
-    for (LipidClasses lipidClass : LipidClasses.values()) {
-      if (lipidClass.getCoreClass() != coreClass) {
-        coreClassItem = new CheckBoxTreeItem<>(lipidClass.getCoreClass());
-        coreClassItem.setExpanded(true);
-        coreClass = lipidClass.getCoreClass();
-        rootItem.getChildren().add(coreClassItem);
-      }
+			if (lipidClass.getMainClass() != mainClass) {
+				mainClassItem = new CheckBoxTreeItem<>(lipidClass.getMainClass());
+				mainClassItem.setExpanded(true);
+				mainClass = lipidClass.getMainClass();
+				coreClassItem.getChildren().add(mainClassItem);
+			}
 
-      if (lipidClass.getMainClass() != mainClass) {
-        mainClassItem = new CheckBoxTreeItem<>(lipidClass.getMainClass());
-        mainClassItem.setExpanded(true);
-        mainClass = lipidClass.getMainClass();
-        coreClassItem.getChildren().add(mainClassItem);
-      }
+			classItem = new CheckBoxTreeItem<>(lipidClass);
+			classToItemMap.put(lipidClass, classItem);
+			mainClassItem.getChildren().add(classItem);
 
-      classItem = new CheckBoxTreeItem<>(lipidClass);
-      classToItemMap.put(lipidClass, classItem);
-      mainClassItem.getChildren().add(classItem);
+		}
 
-    }
+		setLeft(lipidChoices);
 
-    setLeft(lipidChoices);
+		// Add buttons.
+		buttonsPanel.getChildren().addAll(selectAllButton, selectNoneButton);
+		setCenter(buttonsPanel);
+		selectAllButton.setTooltip(new Tooltip("Select all choices"));
+		selectAllButton.setOnAction(e -> {
+			lipidChoices.getCheckModel().checkAll();
+		});
+		selectNoneButton.setTooltip(new Tooltip("Clear all selections"));
+		selectNoneButton.setOnAction(e -> {
+			lipidChoices.getCheckModel().clearChecks();
+		});
 
-    // Add buttons.
-    buttonsPanel.getChildren().addAll(selectAllButton, selectNoneButton);
-    setCenter(buttonsPanel);
-    selectAllButton.setTooltip(new Tooltip("Select all choices"));
-    selectAllButton.setOnAction(e -> {
-      lipidChoices.getSelectionModel().selectAll();
-    });
-    selectNoneButton.setTooltip(new Tooltip("Clear all selections"));
-    selectNoneButton.setOnAction(e -> {
-      lipidChoices.getSelectionModel().clearSelection();
-    });
+	}
 
-  }
+	/**
+	 * Get the users selections.
+	 *
+	 * @return the selected choices.
+	 */
+	public Object[] getValue() {
 
-  /**
-   * Get the users selections.
-   *
-   * @return the selected choices.
-   */
-  public Object[] getValue() {
+		var checkedItems = lipidChoices.getCheckModel().getCheckedItems();
+		return checkedItems.stream().filter(item -> item.getValue() instanceof LipidClasses)
+				.map(item -> item.getValue()).collect(Collectors.toList()).toArray();
 
-    var checkedItems = lipidChoices.getCheckModel().getCheckedItems();
-    Object[] checkedLipidClasses =
-        checkedItems.stream().filter(item -> item.getValue() instanceof LipidClasses)
-            .map(item -> item.getValue()).collect(Collectors.toList()).toArray();
+	}
 
-    return checkedLipidClasses;
-  }
+	/**
+	 * Set the selections.
+	 *
+	 * @param values the selected objects.
+	 */
+	public void setValue(final Object[] values) {
 
-  /**
-   * Set the selections.
-   *
-   * @param values the selected objects.
-   */
-  public void setValue(final Object[] values) {
+		lipidChoices.getCheckModel().clearChecks();
 
-    lipidChoices.getCheckModel().clearChecks();
-
-    for (Object lipidClass : values) {
-      CheckBoxTreeItem<Object> item = classToItemMap.get(lipidClass);
-      lipidChoices.getCheckModel().check(item);
-    }
-  }
+		for (Object lipidClass : values) {
+			CheckBoxTreeItem<Object> item = classToItemMap.get(lipidClass);
+			lipidChoices.getCheckModel().check(item);
+		}
+	}
 
 }

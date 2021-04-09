@@ -26,9 +26,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.controlsfx.control.CheckListView;
+
 import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.CSVPrinter;
+
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -67,7 +70,7 @@ public class LipidModificationChoiceComponent extends BorderPane {
 
     checkList.setItems(choicesList);
     setCenter(checkList);
-
+	setMaxHeight(100);
     addButton.setOnAction(e -> {
       final ParameterSet parameters = new AddLipidModificationParameters();
       if (parameters.showSetupDialog(true) != ExitCode.OK)
@@ -194,7 +197,5 @@ public class LipidModificationChoiceComponent extends BorderPane {
       super(new Parameter[] {lipidModification, lipidModificationLabel});
     }
   }
-
-
 
 }

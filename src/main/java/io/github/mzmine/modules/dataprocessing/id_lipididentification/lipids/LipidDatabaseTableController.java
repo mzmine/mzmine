@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
-import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.javafx.FxColorUtil;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.List;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -29,18 +29,21 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidIdentity;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.color.Colors;
 import io.github.mzmine.util.color.ColorsFX;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -92,9 +95,6 @@ public class LipidDatabaseTableController {
   private TableColumn<LipidClassDescription, String> fragmentsPosColumn;
 
   @FXML
-  private TableColumn<LipidClassDescription, String> fragmentsNegColumn;
-
-  @FXML
   private BorderPane kendrickPlotPanelCH2;
 
   @FXML
@@ -114,6 +114,8 @@ public class LipidDatabaseTableController {
 
   ObservableList<LipidClassDescription> tableData = FXCollections.observableArrayList();
 
+  private static final LipidFactory LIPID_FACTORY = new LipidFactory();
+
   private int minChainLength;
   private int maxChainLength;
   private int minDoubleBonds;
@@ -122,6 +124,8 @@ public class LipidDatabaseTableController {
   private boolean useModification;
   private LipidModification[] lipidModification;
   private MZTolerance mzTolerance;
+  private boolean searchForCustomLipidClasses;
+  private CustomLipidClass[] customLipidClasses;
 
   private Color noInterFX;
   private Color possibleInterFX;
@@ -148,14 +152,19 @@ public class LipidDatabaseTableController {
       this.lipidModification = parameters.getParameter(LipidSearchParameters.searchForModifications)
           .getEmbeddedParameter().getValue();
     }
+    this.searchForCustomLipidClasses =
+        parameters.getParameter(LipidSearchParameters.customLipidClasses).getValue();
+    if (searchForCustomLipidClasses) {
+      this.customLipidClasses = parameters.getParameter(LipidSearchParameters.customLipidClasses)
+          .getEmbeddedParameter().getChoices();
+    }
+
     this.mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
 
     NumberFormat numberFormat = MZmineCore.getConfiguration().getMZFormat();
     int id = 1;
 
     for (int i = 0; i < selectedLipids.length; i++) {
-      int numberOfAcylChains = selectedLipids[i].getNumberOfAcylChains();
-      int numberOfAlkylChains = selectedLipids[i].getNumberofAlkyChains();
       for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
         for (int chainDoubleBonds =
             minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
@@ -172,54 +181,120 @@ public class LipidDatabaseTableController {
             continue;
           }
           // Prepare a lipid instance
-          LipidIdentity lipidChain = new LipidIdentity(selectedLipids[i], chainLength,
-              chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains);
-
+          SpeciesLevelAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(selectedLipids[i],
+              chainLength, chainDoubleBonds);
+          List<LipidFragmentationRule> fragmentationRules =
+              Arrays.asList(selectedLipids[i].getFragmentationRules());
+          StringBuilder fragmentationRuleSB = new StringBuilder();
+          fragmentationRules.stream().forEach(rule -> {
+            fragmentationRuleSB.append(rule.toString());
+          });
+          double lipidIonMass = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
+              AtomContainerManipulator.MonoIsotopic) + ionizationType.getAddedMass();
           tableData.add(new LipidClassDescription(String.valueOf(id), // id
               selectedLipids[i].getCoreClass().getName(), // core class
               selectedLipids[i].getMainClass().getName(), // main class
               selectedLipids[i].getName(), // lipid class
-              lipidChain.getFormula(), // molecular formula
-              selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")",
+              MolecularFormulaManipulator.getString(lipid.getMolecularFormula()), // molecular
+                                                                                  // formula
+              lipid.getAnnotation(),
               // abbr
               ionizationType.toString(), // ionization type
-              numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass()), // exact
+              numberFormat.format(lipidIonMass), // exact
               // mass
               "", // info
               "", // status
-              String.join(", ", selectedLipids[i].getMsmsFragmentsPositiveIonization()), // msms
-              // fragments
-              // postive
-              String.join(", ", selectedLipids[i].getMsmsFragmentsNegativeIonization()))); // msms
-          // fragments
-          // negative
+              fragmentationRuleSB.toString())); // msms fragments
           id++;
-          if (useModification) {
-            for (int j = 0; j < lipidModification.length; j++) {
-              tableData.add(new LipidClassDescription(String.valueOf(id), // id
-                  selectedLipids[i].getCoreClass().getName(), // core class
-                  selectedLipids[i].getMainClass().getName(), // main class
-                  selectedLipids[i].getName() + " " + lipidModification[j].toString(), // lipid
-                  // class
-                  lipidChain.getFormula() + lipidModification[j].getLipidModificatio(), // sum
-                  // formula
-                  selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")"
-// abbr
-                      + lipidModification[j].getLipidModificatio(),
-                  ionizationType.toString(), // ionization type
-                  numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass() // exact
-                      // mass
-                      + lipidModification[j].getModificationMass()),
-                  "", // info
-                  "", // status
-                  "", // msms fragments postive
-                  "")); // msms fragments negative
-              id++;
-            }
-          }
+          // if (useModification) {
+          // for (int j = 0; j < lipidModification.length; j++) {
+          // tableData.add(new LipidClassDescription(String.valueOf(id), // id
+          // selectedLipids[i].getCoreClass().getName(), // core class
+          // selectedLipids[i].getMainClass().getName(), // main class
+          // selectedLipids[i].getName() + " " + lipidModification[j].toString(), // lipid
+          // // class
+          // lipidChain.getFormula() + lipidModification[j].getLipidModificatio(), // sum
+          // // formula
+          // selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")"
+          // + lipidModification[j].getLipidModificatio(),
+          // ionizationType.toString(), // ionization type
+          // numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass() // exact
+          // // mass
+          // + lipidModification[j].getModificationMass()),
+          // "", // info
+          // "", // status
+          // "" // msms fragments postive
+          // ));
+          // id++;
+          // }
+          // }
         }
       }
     }
+    // for (int i = 0; i < customLipidClasses.length; i++) {
+    // LipidChainType[] chainTypes = customLipidClasses[i].getChainTypes();
+    // for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
+    // for (int chainDoubleBonds =
+    // minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
+    // // If we have non-zero fatty acid, which is shorter
+    // // than minimal length, skip this lipid
+    // if (((chainLength > 0) && (chainLength < minChainLength))) {
+    // continue;
+    // }
+    //
+    // // If we have more double bonds than carbons, it
+    // // doesn't make sense, so let's skip such lipids
+    // if (((chainDoubleBonds > 0) && (chainDoubleBonds > chainLength - 1))) {
+    // continue;
+    // }
+    // // Prepare a lipid instance
+    // LipidFeatureIdentity lipidChain = new LipidFeatureIdentity(customLipidClasses[i],
+    // chainLength, chainDoubleBonds, null, chainTypes, LipidClassType.CUSTOM_LIPID_CLASS);
+    // List<LipidFragmentationRule> fragmentationRules =
+    // Arrays.asList(customLipidClasses[i].getFragmentationRules());
+    // StringBuilder fragmentationRuleSB = new StringBuilder();
+    // fragmentationRules.stream().forEach(rule -> {
+    // fragmentationRuleSB.append(rule.toString());
+    // });
+    // tableData.add(new LipidClassDescription(String.valueOf(id), // id
+    // "", // core class
+    // "", // main class
+    // customLipidClasses[i].getName(), // lipid class
+    // lipidChain.getFormula(), // molecular formula
+    // customLipidClasses[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")", // abbr
+    // ionizationType.toString(), // ionization type
+    // numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass()), // exact
+    // // mass
+    // "", // info
+    // "", // status
+    // fragmentationRuleSB.toString())); // msms fragments
+    // id++;
+    // if (useModification) {
+    // for (int j = 0; j < lipidModification.length; j++) {
+    // tableData.add(new LipidClassDescription(String.valueOf(id), // id
+    // "", // core class
+    // "", // main class
+    // customLipidClasses[i].getName() + " " + lipidModification[j].toString(), // lipid
+    // // class
+    // lipidChain.getFormula() + lipidModification[j].getLipidModificatio(), // sum
+    // // formula
+    // customLipidClasses[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds
+    // + ")"// abbr
+    // + lipidModification[j].getLipidModificatio(),
+    // ionizationType.toString(), // ionization type
+    // numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass() // exact
+    // // mass
+    // + lipidModification[j].getModificationMass()),
+    // "", // info
+    // "", // status
+    // "" // msms fragments postive
+    // ));
+    // id++;
+    // }
+    // }
+    // }
+    // }
+    // }
 
     idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
     lipidCoreClassColumn.setCellValueFactory(new PropertyValueFactory<>("lipidCoreClass"));
@@ -232,16 +307,14 @@ public class LipidDatabaseTableController {
     infoColumn.setCellValueFactory(new PropertyValueFactory<>("info"));
     statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
     fragmentsPosColumn.setCellValueFactory(new PropertyValueFactory<>("msmsFragmentsPos"));
-    fragmentsNegColumn.setCellValueFactory(new PropertyValueFactory<>("msmsFragmentsNeg"));
 
     // check for interferences
     checkInterferences();
 
     // set colors depending on colors
-    SimpleColorPalette palette =
-        (MZmineCore.getConfiguration().getDefaultColorPalette() != null) ? MZmineCore
-            .getConfiguration()
-            .getDefaultColorPalette() : SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
+    SimpleColorPalette palette = (MZmineCore.getConfiguration().getDefaultColorPalette() != null)
+        ? MZmineCore.getConfiguration().getDefaultColorPalette()
+        : SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
 
     // fx colors
     noInterFX = palette.getPositiveColor();
@@ -261,11 +334,11 @@ public class LipidDatabaseTableController {
         super.updateItem(item, empty);
         if (getIndex() >= 0) {
           if (tableData.get(getIndex()).getInfo().toString().contains("Possible interference")) {
-            this.setStyle("-fx-background-color: " + ColorsFX.toHexString(possibleInterFX));
+            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(possibleInterFX));
           } else if (tableData.get(getIndex()).getInfo().contains("Interference")) {
-            this.setStyle("-fx-background-color: " + ColorsFX.toHexString(interFX));
+            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(interFX));
           } else {
-            this.setStyle("-fx-background-color: " + ColorsFX.toHexString(noInterFX));
+            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(noInterFX));
           }
         }
       }
@@ -283,9 +356,9 @@ public class LipidDatabaseTableController {
 
     // legend
     statusLabel.setStyle("-fx-font-weight: bold");
-    noInterLabel.setStyle("-fx-background-color: " + ColorsFX.toHexString(noInterFX));
-    possibleInterLabel.setStyle("-fx-background-color: " + ColorsFX.toHexString(possibleInterFX));
-    interLabel.setStyle("-fx-background-color: " + ColorsFX.toHexString(interFX));
+    noInterLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(noInterFX));
+    possibleInterLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(possibleInterFX));
+    interLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(interFX));
   }
 
   /**
