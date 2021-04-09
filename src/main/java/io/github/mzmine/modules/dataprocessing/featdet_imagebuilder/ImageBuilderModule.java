@@ -23,7 +23,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -67,7 +66,7 @@ public class ImageBuilderModule implements MZmineProcessingModule {
         continue;
       }
       ImageBuilderTask task = new ImageBuilderTask(project, file, parameters, storage);
-      MZmineCore.getTaskController().addTask(task);
+      tasks.add(task);
     }
 
     return ExitCode.OK;

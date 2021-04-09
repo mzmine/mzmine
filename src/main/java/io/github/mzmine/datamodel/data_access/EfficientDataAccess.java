@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * A factory to get efficient data access to scans in RawDataFile and features in FeatureList.
@@ -103,6 +105,11 @@ public class EfficientDataAccess {
     return new BinningMobilogramDataAccess(dataFile, binWidth);
   }
 
+  public static MobilityScanDataAccess of(@Nonnull final IMSRawDataFile file,
+      @Nonnull final MobilityScanDataType type, @Nullable final ScanSelection selection) {
+    return new MobilityScanDataAccess(file, type, selection);
+  }
+
   /**
    * Different types to handle feature data: {@link #ONLY_DETECTED}: Use only detected data points,
    * currently assigned to the feature. Features might include leading and/or trailing zeros
@@ -119,6 +126,15 @@ public class EfficientDataAccess {
    * Use processed centroid data ({@link MassList}
    */
   public enum ScanDataType {
+    RAW, CENTROID
+  }
+
+  /**
+   * Different types to handle mobility scan data: {@link #RAW}: Use raw data as imported; {@link
+   * #CENTROID}: Use processed centroid data ({@link MassList}
+   */
+  public enum MobilityScanDataType {
+    // basically just a copy of ScanDataType, but useful to distinguish the factory methods
     RAW, CENTROID
   }
 

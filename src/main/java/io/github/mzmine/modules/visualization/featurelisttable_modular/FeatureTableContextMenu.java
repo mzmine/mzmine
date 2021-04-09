@@ -39,7 +39,8 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
-import io.github.mzmine.modules.visualization.imsfeaturevisualizer.IMSFeatureVisualizerModule;
+import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
+import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
@@ -230,6 +231,12 @@ public class FeatureTableContextMenu extends ContextMenu {
     showXICSetupItem.setOnAction(e -> ChromatogramVisualizerModule
         .setUpVisualiserFromFeatures(selectedRows, selectedFeature.getRawDataFile()));
 
+    final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
+        () -> !selectedRows.isEmpty() && selectedFeature != null && selectedFeature
+            .getRawDataFile() instanceof IMSRawDataFile);
+    showIMSFeatureItem.setOnAction(
+        e -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedFeature)));
+
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
         () -> selectedFeature != null);
     show2DItem.setOnAction(
@@ -257,9 +264,9 @@ public class FeatureTableContextMenu extends ContextMenu {
     showInIMSRawDataOverviewItem.setOnAction(e -> IMSRawDataOverviewModule
         .openIMSVisualizerTabWithFeatures(getFeaturesFromSelectedRaw(selectedFeatures)));
 
-    final MenuItem showInIMSFeatureVisualizerItem = new ConditionalMenuItem(
-        "Visualize ion mobility features", () -> !selectedFeatures.isEmpty());
-    showInIMSFeatureVisualizerItem.setOnAction(e -> {
+    final MenuItem showInMobilityMzVisualizerItem = new ConditionalMenuItem(
+        "Plot mobility/CCS vs. m/z", () -> !selectedFeatures.isEmpty());
+    showInMobilityMzVisualizerItem.setOnAction(e -> {
       boolean useMobilograms = true;
       if (selectedFeatures.size() > 1000) {
         useMobilograms = MZmineCore.getDesktop()
@@ -268,7 +275,7 @@ public class FeatureTableContextMenu extends ContextMenu {
                     + "visualize points instead of mobilograms for features?", ButtonType.YES,
                 ButtonType.NO) == ButtonType.NO;
       }
-      IMSFeatureVisualizerModule.visualizeFeaturesInNewTab(selectedFeatures, useMobilograms);
+      IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedFeatures, useMobilograms);
     });
 
     final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
@@ -320,8 +327,9 @@ public class FeatureTableContextMenu extends ContextMenu {
         /*!selectedRows.isEmpty()*/ false); // todo, not implemented yet
 
     showMenu.getItems()
-        .addAll(showXICItem, showXICSetupItem, new SeparatorMenuItem(), show2DItem, show3DItem,
-            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInIMSFeatureVisualizerItem,
+        .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, new SeparatorMenuItem(),
+            show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
+            showInMobilityMzVisualizerItem,
             new SeparatorMenuItem(),
             showSpectrumItem, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,

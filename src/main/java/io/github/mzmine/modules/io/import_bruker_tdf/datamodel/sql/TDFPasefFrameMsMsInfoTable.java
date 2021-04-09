@@ -18,11 +18,7 @@
 
 package io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql;
 
-import java.sql.Connection;
 import java.util.Arrays;
-import java.util.List;
-import javafx.collections.FXCollections;
-import javafx.collections.transformation.FilteredList;
 
 /**
  * This table describes PASEF frames. For every PASEF frame, it represents a list of non-overlapping

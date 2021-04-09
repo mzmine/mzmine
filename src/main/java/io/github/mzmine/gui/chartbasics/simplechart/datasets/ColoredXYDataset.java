@@ -22,6 +22,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.IntervalWidthProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider;
@@ -57,6 +58,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   protected final LabelTextProvider labelTextProvider;
   protected final ToolTipTextProvider toolTipTextProvider;
+  protected final IntervalWidthProvider intervalWidthProvider;
   protected final boolean autocompute;
 
   // dataset stuff
@@ -87,6 +89,11 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     this.seriesKeyProvider = seriesKeyProvider;
     this.labelTextProvider = labelTextProvider;
     this.toolTipTextProvider = toolTipTextProvider;
+    if (xyValueProvider instanceof IntervalWidthProvider) {
+      this.intervalWidthProvider = (IntervalWidthProvider) xyValueProvider;
+    } else {
+      intervalWidthProvider = null;
+    }
     this.fxColor = new SimpleObjectProperty<>(colorProvider.getFXColor());
 
     minRangeValue = Double.MAX_VALUE;
@@ -199,8 +206,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   public int getValueIndex(final double domainValue, final double rangeValue) {
     // todo binary search somehow here
     for (int i = 0; i < computedItemCount; i++) {
-      if (Double.compare(domainValue, getXValue(0, i)) == 0) {
-//          && Double.compare(rangeValue, getYValue(0, i)) == 0) {
+      if (Double.compare(domainValue, getXValue(0, i)) == 0
+          && Double.compare(rangeValue, getYValue(0, i)) == 0) {
         return i;
       }
     }
@@ -324,22 +331,26 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
 
   @Override
   public Number getStartX(int series, int item) {
-    return getX(series, item);
+    return intervalWidthProvider != null ? getXValue(series, item)
+        - intervalWidthProvider.getIntervalWidth() / 2 : getX(series, item);
   }
 
   @Override
   public double getStartXValue(int series, int item) {
-    return getX(series, item).doubleValue();
+    return intervalWidthProvider != null ? getXValue(series, item)
+        - intervalWidthProvider.getIntervalWidth() / 2 : getXValue(series, item);
   }
 
   @Override
   public Number getEndX(int series, int item) {
-    return getX(series, item);
+    return intervalWidthProvider != null ? getXValue(series, item)
+        + intervalWidthProvider.getIntervalWidth() / 2 : getXValue(series, item);
   }
 
   @Override
   public double getEndXValue(int series, int item) {
-    return getX(series, item).doubleValue();
+    return intervalWidthProvider != null ? getXValue(series, item)
+        + intervalWidthProvider.getIntervalWidth() / 2 : getXValue(series, item);
   }
 
   @Override

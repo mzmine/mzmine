@@ -113,6 +113,7 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
         searchMinY = (checkedDataSet.getMinimumRangeValue() + 0.0001) * THRESHOLD_FOR_ANNOTATION;
       }
 
+
       // Do search
       for (int seriesIndex = 0; seriesIndex < checkedDataSet.getSeriesCount(); seriesIndex++) {
         int foundLocalMaxima[] = SimpleChartUtility

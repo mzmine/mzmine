@@ -39,10 +39,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 # build with gradlew
-    - name: Build with Gradle
+    - name: Execution permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew
+      run: ./gradlew build
       
     - name: Upload builds
       if: matrix.os == 'windows-latest'

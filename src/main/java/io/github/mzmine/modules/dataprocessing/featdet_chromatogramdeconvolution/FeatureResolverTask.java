@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
@@ -382,6 +383,9 @@ public class FeatureResolverTask extends AbstractTask {
         f.set(DetectionType.class, originalFeature.get(DetectionType.class));
         if (originalFeature.getMobilityUnit() != null) {
           f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
+        }
+        if(originalFeature.get(ImageType.class) != null) {
+          f.set(ImageType.class, true);
         }
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
         newRow.addFeature(originalFeature.getRawDataFile(), f);

@@ -42,11 +42,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -76,6 +77,7 @@ public class ImageBuilderTask extends AbstractTask {
   private double progress = 0.0;
   private String taskDescription = "";
   private final ParameterSet parameterSet;
+  private final ModularFeatureList featureList;
 
   public ImageBuilderTask(MZmineProject project, RawDataFile rawDataFile, ParameterSet parameters,
       @Nullable
@@ -92,8 +94,10 @@ public class ImageBuilderTask extends AbstractTask {
     this.paintScaleParameter =
         parameters.getParameter(ImageBuilderParameters.paintScale).getValue();
     this.suffix = parameters.getParameter(ImageBuilderParameters.suffix).getValue();
-    setStatus(TaskStatus.WAITING);
     this.parameterSet = parameters;
+    featureList = new ModularFeatureList(rawDataFile + " " + suffix, getMemoryMapStorage(),
+        rawDataFile);
+    setStatus(TaskStatus.WAITING);
   }
 
   @Override
@@ -149,7 +153,8 @@ public class ImageBuilderTask extends AbstractTask {
       }
       if (scan.getMassList() == null) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Scan #" + scan.getScanNumber() + " does not have a mass list. Run mass detection ");
+        setErrorMessage(
+            "Scan #" + scan.getScanNumber() + " does not have a mass list. Run mass detection ");
       } else {
         Arrays.stream(scan.getMassList().getDataPoints())
             .forEach(dp -> allDataPoints.add(new ImageDataPoint(dp.getMZ(), dp.getIntensity(),
@@ -159,7 +164,9 @@ public class ImageBuilderTask extends AbstractTask {
       }
       progress = (processedScans / (double) scans.length) / 4;
       processedScans++;
+      featureList.setSelectedScans(rawDataFile, List.of(scans));
     }
+
     logger.info("Extracted " + allDataPoints.size() + " ims data points");
     return allDataPoints;
   }
@@ -174,6 +181,7 @@ public class ImageBuilderTask extends AbstractTask {
       }
       Range<Double> containsDataPointRange = rangeSet.rangeContaining(imageDataPoint.getMZ());
       Range<Double> toleranceRange = mzTolerance.getToleranceRange(imageDataPoint.getMZ());
+
       if (containsDataPointRange == null) {
         // look +- mz tolerance to see if ther is a range near by.
         // If there is use the proper boundry of that range for the
@@ -211,7 +219,7 @@ public class ImageBuilderTask extends AbstractTask {
           Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
           IImage newImage = new Image(imageDataPoint.getMZ(), imagingParameters,
               paintScaleParameter, imageDataPoint.getIntensity(), newRange);
-          LinkedHashSet<ImageDataPoint> dataPointsSetForImage = new LinkedHashSet<ImageDataPoint>();
+          List<ImageDataPoint> dataPointsSetForImage = new ArrayList<ImageDataPoint>();
           dataPointsSetForImage.add(imageDataPoint);
           newImage.setDataPoints(dataPointsSetForImage);
           rangeToImageMap.put(newRange, newImage);
@@ -219,9 +227,10 @@ public class ImageBuilderTask extends AbstractTask {
         } else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
           IImage currentImage = rangeToImageMap.get(plusRange);
           currentImage.getDataPoints().add(imageDataPoint);
-        } else
+        } else {
           throw new IllegalStateException(String.format("Incorrect range [%f, %f] for m/z %f",
               toBeLowerBound, toBeUpperBound, imageDataPoint.getMZ()));
+        }
 
       } else {
         // In this case we do not need to update the rangeSet
@@ -270,7 +279,7 @@ public class ImageBuilderTask extends AbstractTask {
   private IImage finishImage(IImage image) {
     Range<Double> rawDataPointsIntensityRange = null;
     Range<Double> rawDataPointsMZRange = null;
-    LinkedHashSet<Scan> scanNumbers = new LinkedHashSet<>();
+    List<Scan> scanNumbers = new ArrayList<>();
     SortedSet<ImageDataPoint> sortedRetentionTimeMobilityDataPoints =
         new TreeSet<>(new Comparator<ImageDataPoint>() {
           @Override
@@ -305,46 +314,13 @@ public class ImageBuilderTask extends AbstractTask {
 
     }
 
+    image.setDataPoints(new ArrayList<>(sortedRetentionTimeMobilityDataPoints));
+
     // TODO think about representative scan
     image.setScanNumbers(scanNumbers);
     image.setMzRange(rawDataPointsMZRange);
     image.setIntensityRange(rawDataPointsIntensityRange);
     image.setMaximumIntensity(maximumIntensity);
-    // logger.info("Ion Trace results:\n" + "Scan numbers: " + ionTrace.getScanNumbers() + "\n" + //
-    // "Mobility range: " + ionTrace.getMobilityRange() + "\n" + //
-    // "m/z range: " + ionTrace.getMzRange() + "\n" + //
-    // "rt range: " + ionTrace.getRetentionTimeRange() + "\n" + //
-    // "intensity range: " + ionTrace.getIntensityRange() + "\n" + //
-    // "Max intensity : " + ionTrace.getMaximumIntensity() + "\n" + //
-    // "Retention time : " + ionTrace.getRetentionTime() + "\n" + //
-    // "Mobility : " + ionTrace.getMobility()//
-    // );
-    // TODO calc area
-    // Update area
-    // double area = 0;
-    // for (int i = 1; i < allScanNumbers.length; i++) {
-    // // For area calculation, we use retention time in seconds
-    // double previousRT = dataFile.getScan(allScanNumbers[i - 1]).getRetentionTime() * 60d;
-    // double currentRT = dataFile.getScan(allScanNumbers[i]).getRetentionTime() * 60d;
-    // double previousHeight = dataPointsMap.get(allScanNumbers[i - 1]).getIntensity();
-    // double currentHeight = dataPointsMap.get(allScanNumbers[i]).getIntensity();
-    // area += (currentRT - previousRT) * (currentHeight + previousHeight) / 2;
-    // }
-
-    // TODO
-    // Update fragment scan
-    // fragmentScan =
-    // ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
-
-    // allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile,
-    // dataFile.getDataRTRange(1), rawDataPointsMZRange);
-
-    // if (fragmentScan > 0) {
-    // Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-    // int precursorCharge = fragmentScanObject.getPrecursorCharge();
-    // if (precursorCharge > 0)
-    // this.charge = precursorCharge;
-    // }
 
     return image;
   }
@@ -352,25 +328,13 @@ public class ImageBuilderTask extends AbstractTask {
 
   private void buildModularFeatureList(SortedSet<IImage> images) {
     taskDescription = "Build feature list";
-    ModularFeatureList featureList =
-        new ModularFeatureList(rawDataFile + " " + suffix, getMemoryMapStorage(), rawDataFile);
-    // featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeType());
-    // featureList.addRowType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
-    // featureList.addRowType(new FeatureShapeMobilogramType());
-    // featureList.addRowType(new MobilityType());
-    featureList.addRowType(new ImageType());
+    featureList.addFeatureType(new ImageType());
     int featureId = 1;
     for (IImage image : images) {
       image.setFeatureList(featureList);
       ModularFeature modular = FeatureConvertors.ImageToModularFeature(image, rawDataFile);
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
-      newRow.set(ImageType.class, newRow.getFeaturesProperty());
-      // newRow.set(MobilityType.class, image.getMobility());
-      // newRow.set(FeatureShapeIonMobilityRetentionTimeType.class, newRow.getFeaturesProperty());
-      // newRow.set(FeatureShapeMobilogramType.class, newRow.getFeaturesProperty());
-      // newRow.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class,
-      // newRow.getFeaturesProperty());
       featureList.addRow(newRow);
       featureId++;
     }

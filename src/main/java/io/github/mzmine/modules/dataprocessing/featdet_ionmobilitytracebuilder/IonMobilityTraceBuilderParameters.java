@@ -28,6 +28,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import javax.annotation.Nonnull;
 
 public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
 
@@ -40,7 +41,7 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
           new ScanSelection());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.001, 5,
+      "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.005, 10,
       false);
 
   public static final IntegerParameter minDataPointsRt = new IntegerParameter(
@@ -58,15 +59,15 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
 
   public static final ParameterSetParameter advancedParameters =
       new ParameterSetParameter("Advanced parameters",
-          "Allows adjustment of internal interpolation parameters in case no data point has "
-              + "been detected in a frame or a mobilogram.",
-          new OptionalImsTraceBuilderParameters());
+          "Allows adjustment of internal binning parameters for mobilograms",
+          new AdvancedImsTraceBuilderParameters());
 
   public IonMobilityTraceBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minDataPointsRt,
         minTotalSignals, suffix, advancedParameters});
   }
 
+  @Nonnull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;

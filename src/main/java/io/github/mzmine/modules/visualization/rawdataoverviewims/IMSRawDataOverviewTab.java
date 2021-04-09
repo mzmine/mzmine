@@ -45,7 +45,8 @@ public class IMSRawDataOverviewTab extends MZmineTab {
             .getValue(),
         parameterSet.getParameter(IMSRawDataOverviewParameters.mzTolerance).getValue(),
         parameterSet.getParameter(IMSRawDataOverviewParameters.scanSelection).getValue(),
-        parameterSet.getParameter(IMSRawDataOverviewParameters.rtWidth).getValue().floatValue());
+        parameterSet.getParameter(IMSRawDataOverviewParameters.rtWidth).getValue().floatValue(),
+        parameterSet.getParameter(IMSRawDataOverviewParameters.binWidth).getValue().doubleValue());
     setContent(pane);
   }
 

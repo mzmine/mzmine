@@ -103,6 +103,8 @@
         userData="io.github.mzmine.modules.io.import_waters_raw.WatersRawImportModule"/>
       <MenuItem onAction="#runModule" text="Bruker TDF"
         userData="io.github.mzmine.modules.io.import_bruker_tdf.TDFImportModule"/>
+      <MenuItem onAction="#runModule" text="Bruker TSF"
+        userData="io.github.mzmine.modules.io.import_bruker_tsf.TSFImportModule"/>
       <MenuItem onAction="#runModule" text="ZIP / gzip"
         userData="io.github.mzmine.modules.io.import_zip.ZipImportModule"/>
 
@@ -162,13 +164,6 @@
       text="Mobility scan merging"
       userData="io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule"/>
 
-    <!--    <Menu text="Mobilogram detection">
-          <MenuItem text="Mobilogram builder" onAction="#runModule"
-            userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogrambuilder.MobilogramBuilderModule"/>
-          <MenuItem onAction="#runModule" text="Mobilogram smoothing"
-            userData="io.github.mzmine.modules.dataprocessing.featdet_mobilogramsmoothing.MobilogramSmootherModule"/>
-        </Menu>-->
-
   </Menu>
 
 
@@ -187,11 +182,17 @@
       <MenuItem onAction="#runModule"
         text="Ion mobility trace builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>
+      <MenuItem onAction="#runModule"
+        text="Recursive IMS builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule"/>
     </Menu>
     <Menu text="Imaging">
       <MenuItem onAction="#runModule"
         text="Image builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
+      <MenuItem onAction="#runModule"
+        text="Ion mobility image expander"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_imsmsi.IonMobilityImageExpanderModule"/>
     </Menu>
     <Menu text="MSn">
       <MenuItem onAction="#runModule"
@@ -307,6 +308,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule"/>
       <MenuItem onAction="#runModule" text="Assign MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
+      <MenuItem text="Feature list blank subtraction" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule"/>
     </Menu>
 
     <Menu text="Alignment">

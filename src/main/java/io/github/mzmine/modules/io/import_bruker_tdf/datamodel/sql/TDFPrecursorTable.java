@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql;
 
-import com.google.common.collect.Range;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;

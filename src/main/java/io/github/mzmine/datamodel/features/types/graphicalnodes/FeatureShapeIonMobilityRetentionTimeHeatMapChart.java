@@ -30,7 +30,10 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMob
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
@@ -60,14 +63,30 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
-
+    setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
+    chart.setDataset(dataset);
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
-    chart.addDatasetsChangedListener(
-        (e) -> Platform.runLater(() -> chart.getXYPlot().getRangeAxis().setAutoRange(true)));
-    getChildren().add(chart);
+    // todo: save min/max values of dataset in dataset iself so jfreechart does not have to loop
+    //  over all data points (also means the renderers have to support it)
+    chart.getXYPlot().getRangeAxis().setAutoRange(true);
+    chart.getXYPlot().getDomainAxis().setAutoRange(true);
+    BufferedImage img = chart.getChart()
+        .createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
+            GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
 
-    Platform.runLater(() -> chart.setDataset(dataset));
+    ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
+    view.setOnMouseClicked(e -> MZmineCore.runLater(() -> {
+      // change buffered image to buffered chart on mouse click
+      getChildren().remove(view);
+      getChildren().add(chart);
+    }));
+
+    Platform.runLater(() -> getChildren().add(view));
+
+//    chart.addDatasetsChangedListener(
+//        (e) -> Platform.runLater(() -> chart.getXYPlot().getRangeAxis().setAutoRange(true)));
+//    getChildren().add(chart);
+//    Platform.runLater(() -> chart.setDataset(dataset));
   }
 }

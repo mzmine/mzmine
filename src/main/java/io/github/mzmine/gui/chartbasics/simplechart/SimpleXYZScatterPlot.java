@@ -39,7 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -56,7 +58,6 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
-import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
@@ -87,19 +88,28 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   protected final JFreeChart chart;
 
   protected final Color legendBg = new Color(0, 0, 0, 0); // bg is transparent
-
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
   protected final List<DatasetsChangedListener> datasetListeners;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+  protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(false);
+  protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
+
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
+
   protected RectangleEdge defaultPaintscaleLocation = RectangleEdge.RIGHT;
   protected ColoredXYSmallBlockRenderer blockRenderer;
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
   private Canvas legendCanvas;
   private String legendLabel = null;
+
+  /**
+   * Needs to be stored in case a separate legend canvas is used, so we can redraw the legend when
+   * the canvas is resized.
+   */
+  private PaintScaleLegend currentLegend = null;
 
   public SimpleXYZScatterPlot() {
     this("");
@@ -121,24 +131,53 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     defaultRenderer = new SimpleObjectProperty<>(blockRenderer);
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
+    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(this);
 
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();
+    initLabelListeners();
+
     datasetListeners = new ArrayList<>();
 
     plot.setRenderer(defaultRenderer.get());
     initializePlot();
     nextDataSetNum = 0;
 
-    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
+  }
+
+  private void initLabelListeners() {
+    // automatically update label visibility
+    itemLabelsVisible.addListener((obs, old, newVal) -> {
+      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if(renderer != null) {
+          renderer.setDefaultItemLabelsVisible(newVal, false);
+        }
+      }
+      getChart().fireChartChanged();
+    });
+
+    legendItemsVisible.addListener((obs, old, newVal) -> {
+      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if(renderer != null) {
+          renderer.setDefaultSeriesVisibleInLegend(newVal, false);
+        }
+      }
+      final LegendTitle legend = getChart().getLegend();
+      if(legend != null) {
+        legend.setVisible(newVal);
+      }
+      getChart().fireChartChanged();
+    });
   }
 
   /**
    * @param dataset the dataset. null to clear the plot. Removes all other datasets.
    */
   public void setDataset(@Nullable ColoredXYZDataset dataset) {
-    assert Platform.isFxApplicationThread();
+//    assert Platform.isFxApplicationThread();
 
     removeAllDatasets();
     plot.setDataset(dataset);
@@ -150,6 +189,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     if (nextDataSetNum == 0) {
       nextDataSetNum++;
     }
+
     notifyDatasetsChangedListeners();
   }
 
@@ -164,13 +204,17 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   /**
-   * @param dataset
-   * @param renderer
    * @return The dataset index.
    */
   public synchronized int addDataset(XYZDataset dataset, XYItemRenderer renderer) {
     assert Platform.isFxApplicationThread();
-
+    // jfreechart renderers dont check if the value actually changed and notify either way
+    if(renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
+    }
+    if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isLegendItemsVisible());
+    }
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
@@ -195,7 +239,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   public synchronized void removeAllDatasets() {
-    assert Platform.isFxApplicationThread();
+//    assert Platform.isFxApplicationThread();
 
     chart.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
@@ -209,35 +253,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     chart.setNotify(true);
     chart.fireChartChanged();
     notifyDatasetsChangedListeners();
-  }
-
-  @Override
-  public void switchLegendVisible() {
-    // Toggle legend visibility.
-    final LegendTitle legend = getChart().getLegend();
-    legend.setVisible(!legend.isVisible());
-  }
-
-  @Override
-  public void switchItemLabelsVisible() {
-    // no items in standard xyz plot.
-  }
-
-  @Override
-  public void switchBackground() {
-    // Toggle background color
-    final Paint color = getChart().getPlot().getBackgroundPaint();
-    Color bgColor, liColor;
-    if (color.equals(Color.darkGray)) {
-      bgColor = Color.white;
-      liColor = Color.darkGray;
-    } else {
-      bgColor = Color.darkGray;
-      liColor = Color.white;
-    }
-    getChart().getPlot().setBackgroundPaint(bgColor);
-    getChart().getXYPlot().setDomainGridlinePaint(liColor);
-    getChart().getXYPlot().setRangeGridlinePaint(liColor);
   }
 
   @Override
@@ -329,11 +344,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
             plot.getDataset(datasetIndex)) :
         new PlotCursorPosition(domainValue,
             rangeValue, index, null);
-  }
-
-  @Override
-  public Plot getPlot() {
-    return plot;
   }
 
   public XYPlot getXYPlot() {
@@ -433,8 +443,10 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       chart.clearSubtitles();
       if (legendCanvas != null) {
         drawLegendToSeparateCanvas(legend);
+        currentLegend = legend;
       } else {
         chart.addSubtitle(legend);
+        currentLegend = null;
       }
     }
     MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
@@ -453,6 +465,26 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   public void setLegendCanvas(@Nullable Canvas canvas) {
     this.legendCanvas = canvas;
+
+    widthProperty().addListener(((observable, oldValue, newValue) -> {
+      if (defaultPaintscaleLocation == RectangleEdge.BOTTOM
+          || defaultPaintscaleLocation == RectangleEdge.TOP) {
+        legendCanvas.setWidth(newValue.doubleValue());
+      }
+    }));
+
+    heightProperty().addListener(((observable, oldValue, newValue) -> {
+      if (defaultPaintscaleLocation == RectangleEdge.LEFT
+          || defaultPaintscaleLocation == RectangleEdge.RIGHT) {
+        legendCanvas.setHeight(newValue.doubleValue());
+      }
+    }));
+
+    legendCanvas.widthProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentLegend != null) {
+        drawLegendToSeparateCanvas(currentLegend);
+      }
+    }));
   }
 
   public void setLegendAxisLabel(@Nullable String label) {
@@ -476,7 +508,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
-    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
+    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<>();
 
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataset = plot.getDataset(i);
@@ -517,8 +549,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     newLegend.setAxisOffset(5.0);
     newLegend.setSubdivisionCount(500);
     newLegend.setPosition(defaultPaintscaleLocation);
-//    double h =
-//        newLegend.getHeight() + newLegend.getStripWidth() + newLegend.getAxisOffset() ;
     newLegend.setBackgroundPaint(legendBg);
     return newLegend;
   }
@@ -554,5 +584,28 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     this.defaultPaintscaleLocation = defaultPaintscaleLocation;
   }
 
+  public boolean isItemLabelsVisible() {
+    return itemLabelsVisible.get();
+  }
 
+  public void setItemLabelsVisible(boolean itemLabelsVisible) {
+    this.itemLabelsVisible.set(itemLabelsVisible);
+  }
+
+  public BooleanProperty itemLabelsVisibleProperty() {
+    return itemLabelsVisible;
+  }
+
+  @Override
+  public void setLegendItemsVisible(boolean visible) {
+    legendItemsVisible.set(visible);
+  }
+
+  public boolean isLegendItemsVisible() {
+    return legendItemsVisible.get();
+  }
+
+  public BooleanProperty legendItemsVisibleProperty() {
+    return legendItemsVisible;
+  }
 }

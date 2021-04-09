@@ -114,10 +114,12 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
 
   /**
    * Creates a new {@code XYBlockRenderer} instance with default attributes.
+   * Item labels are disabled by default.
    */
   public ColoredXYSmallBlockRenderer() {
     updateOffsets();
     this.paintScale = new LookupPaintScale();
+    setDefaultItemLabelsVisible(false);
   }
 
   /**

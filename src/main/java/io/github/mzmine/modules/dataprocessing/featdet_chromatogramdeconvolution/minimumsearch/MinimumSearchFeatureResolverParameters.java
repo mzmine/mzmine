@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class MinimumSearchFeatureResolverParameters extends GeneralResolverParameters {
@@ -91,6 +92,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
     return new MinimumSearchFeatureResolver(parameters);
   }
 
+  @Nonnull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

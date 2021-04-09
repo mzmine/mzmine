@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
@@ -194,7 +195,7 @@ public class FeatureDataUtils {
           mostIntenseMobilityScanIndex = i;
         }
       }
-      if(Double.compare(intensity, Double.MIN_VALUE) == 0) {
+      if (Double.compare(intensity, Double.MIN_VALUE) == 0) {
         logger.info(() -> "Mobility cannot be specified for: " + summedMobilogram.print());
         feature.setMobility(Float.NaN);
       } else {
@@ -203,4 +204,30 @@ public class FeatureDataUtils {
     }
     // todo recalc quality parameters
   }
+
+  public static double getSmallestMzDelta(MzSeries series) {
+    double smallestDelta = Double.POSITIVE_INFINITY;
+
+    if (series instanceof IonMobilogramTimeSeries ims) {
+      int maxValues = ims.getMobilograms().stream().mapToInt(IonMobilitySeries::getNumberOfValues)
+          .max().orElse(0);
+
+      double[] mzBuffer = new double[maxValues];
+      for(IonMobilitySeries mobilogram : ims.getMobilograms()) {
+        mobilogram.getMzValues(mzBuffer);
+        final double delta = ArrayUtils.smallestDelta(mzBuffer, mobilogram.getNumberOfValues());
+        if(delta < smallestDelta) {
+          smallestDelta = delta;
+        }
+      }
+    } else {
+      double[] mzBuffer = new double[series.getNumberOfValues()];
+      series.getMzValues(mzBuffer);
+      smallestDelta = ArrayUtils.smallestDelta(mzBuffer);
+    }
+
+    return smallestDelta;
+  }
+
+
 }
