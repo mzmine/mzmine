@@ -51,6 +51,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -90,9 +92,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   Random rand = new Random(System.currentTimeMillis());
   private Logger logger = Logger.getLogger(this.getClass().getName());
-  // lists
-  private FeatureList flist;
+  private ListChangeListener<FeatureListRow> changeListener;
 
+  // lists
+
+  private final ObjectProperty<ModularFeatureList> featureList = new SimpleObjectProperty<>();
   public FeatureTableFX() {
     // add dummy root
     TreeItem<ModularFeatureListRow> root = new TreeItem<>();
@@ -108,6 +112,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
         int io = getRoot().getChildren().indexOf(oldValue);
         int in = getRoot().getChildren().indexOf(newValue);
     });*/
+
+    initFeatureListListener();
 
     parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
     rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
@@ -179,42 +185,13 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   }
 
 
-  /**
-   * add row data and columns of first row
-   *
-   * @param flist
-   */
-  public void addData(FeatureList flist) {
-    if (flist.isEmpty()) {
-      return;
-    }
-
-    // Clear old rows
-    getRoot().getChildren().clear();
-    // Clear old columns
-    getColumns().clear();
-
-    this.flist = flist;
-
-    addColumns(flist);
-
-    // add rows
-    TreeItem<ModularFeatureListRow> root = getRoot();
-//    logger.info("Add rows");
-    for (FeatureListRow row : flist.getRows()) {
-      ModularFeatureListRow mrow = (ModularFeatureListRow) row;
-//      logger.info("Add row with id: " + row.getID());
-      root.getChildren().add(new TreeItem<>(mrow));
-    }
-
-    rowItems.addAll(root.getChildren());
-
-    // reflect the changes to the feature list in the table
-    flist.getRows().addListener(
-        (ListChangeListener<FeatureListRow>) change -> {
-          // find which list we have active
-          ObservableList<TreeItem<ModularFeatureListRow>> activeList =
-              root.getChildren().size() == rowItems.size() ? rowItems : filteredRowItems;
+  @Nonnull
+  private ListChangeListener<FeatureListRow> getRowListChangeListener(
+      TreeItem<ModularFeatureListRow> root) {
+    return change -> {
+      // find which list we have active
+      ObservableList<TreeItem<ModularFeatureListRow>> activeList =
+          root.getChildren().size() == rowItems.size() ? rowItems : filteredRowItems;
 
           // remove/add from row items, as the filtered lists wraps rowItems.
           change.next();
@@ -230,7 +207,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
           root.getChildren().clear();
           root.getChildren().addAll(activeList);
           this.sort();
-        });
+        };
   }
 
   /**
@@ -258,6 +235,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    * @param dataType
    */
   public void addColumn(DataType dataType) {
+    if(getFeatureList() == null) {
+      return;
+    }
+
     // Is feature type?
     if (dataType.getClass().equals(FeaturesType.class)) {
       addFeaturesColumns();
@@ -278,7 +259,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       if (!(dataType instanceof ExpandableType)) {
         // Hide area bars and area share columns, if there is only one raw data file in the feature list
         if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
-            && flist.getNumberOfRawDataFiles() == 1) {
+            && getFeatureList().getNumberOfRawDataFiles() == 1) {
           col.setVisible(false);
         } else {
           recursivelyApplyVisibilityParameterToColumn(col);
@@ -392,11 +373,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     // Clipboard.getSystemClipboard().setContent(clipboardContent);
   }
 
-  @Nullable
-  public FeatureList getFeatureList() {
-    return flist;
-  }
-
   @Nonnull
   public FilteredList<TreeItem<ModularFeatureListRow>> getFilteredRowItems() {
     return filteredRowItems;
@@ -410,7 +386,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    */
   protected void updateColumnsVisibilityParameters(Map<String, Boolean> rowVisibilityMap,
       Map<String, Boolean> featureVisibilityMap) {
-    if (flist == null) {
+    if (featureList == null) {
       return;
     }
 
@@ -447,8 +423,12 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   }
 
   private void addFeaturesColumns() {
+    if(getFeatureList() == null) {
+      return;
+    }
+
     // Add feature columns for each raw file
-    for (RawDataFile dataFile : flist.getRawDataFiles()) {
+    for (RawDataFile dataFile : getFeatureList().getRawDataFiles()) {
       TreeTableColumn<ModularFeatureListRow, String> sampleCol =
           new TreeTableColumn<>();
 
@@ -459,7 +439,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       sampleCol.setGraphic(headerLabel);
 
       // Add sub columns of feature
-      for (DataType ftype : ((ModularFeatureList) flist).getFeatureTypes().values()) {
+      for (DataType ftype : getFeatureList().getFeatureTypes().values()) {
         TreeTableColumn<ModularFeatureListRow, ?> subCol = ftype.createColumn(dataFile, null);
         if (subCol != null) {
           if (ftype instanceof ExpandableType) {
@@ -481,6 +461,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   private void initHandleDoubleClicks() {
     this.setOnMouseClicked(e -> {
       if (e.getClickCount() >= 2 && e.getButton() == MouseButton.PRIMARY) {
+        if(getFeatureList() == null) {
+          return;
+        }
+
         e.consume();
         logger.finest(() -> "Double click on " + e.getSource());
 
@@ -592,4 +576,48 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     return null;
   }
 
+  @Nullable
+  public ModularFeatureList getFeatureList() {
+    return featureList.get();
+  }
+
+  public ObjectProperty<ModularFeatureList> featureListProperty() {
+    return featureList;
+  }
+
+  public void setFeatureList(ModularFeatureList featureList) {
+    if (featureList.isEmpty()) {
+      return;
+    }
+    this.featureList.set(featureList);
+  }
+
+  private void initFeatureListListener() {
+    featureListProperty().addListener((observable, oldValue, newValue) -> {
+      // Clear old rows and old columns
+      getRoot().getChildren().clear();
+      getColumns().clear();
+      rowItems.clear();
+
+      // remove the old listener
+      if(changeListener != null && getFeatureList() != null) {
+        getFeatureList().getRows().removeListener(changeListener);
+      }
+
+      addColumns(newValue);
+
+      // add rows
+      TreeItem<ModularFeatureListRow> root = getRoot();
+      for (FeatureListRow row : newValue.getRows()) {
+        ModularFeatureListRow mrow = (ModularFeatureListRow) row;
+        root.getChildren().add(new TreeItem<>(mrow));
+      }
+
+      rowItems.addAll(root.getChildren());
+
+      // reflect the changes to the feature list in the table
+      changeListener = getRowListChangeListener(root);
+      newValue.getRows().addListener(changeListener);
+    });
+  }
 }
