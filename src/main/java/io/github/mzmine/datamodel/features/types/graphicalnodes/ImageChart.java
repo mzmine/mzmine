@@ -60,6 +60,7 @@ public class ImageChart extends StackPane {
     chart.setDomainAxisLabel("µm");
     ImagingRawDataFile imagingFile = (ImagingRawDataFile) f.getRawDataFile();
     NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
+    chart.setDataset(ds);
     axis.setInverted(true);
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeIncludesZero(false);
