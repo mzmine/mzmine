@@ -21,28 +21,21 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 public class LipidClassDescription {
 
   private String id;
-  private String lipidCoreClass;
-  private String lipidMainClass;
   private String lipidClass;
   private String molecularFormula;
   private String abbreviation;
-  private String ionization;
   private String exactMass;
   private String info;
   private String status;
   private String msmsFragmentsPos;
 
-  public LipidClassDescription(String id, String lipidCoreClass, String lipidMainClass, String lipidClass,
-      String molecularFormula, String abbreviation, String ionization, String exactMass,
-			String info, String status, String msmsFragmentsPos) {
+  public LipidClassDescription(String id, String lipidClass, String molecularFormula,
+      String abbreviation, String exactMass, String info, String status, String msmsFragmentsPos) {
 
     this.id = id;
-    this.lipidCoreClass = lipidCoreClass;
-    this.lipidMainClass = lipidMainClass;
     this.lipidClass = lipidClass;
     this.molecularFormula = molecularFormula;
     this.abbreviation = abbreviation;
-    this.ionization = ionization;
     this.exactMass = exactMass;
     this.info = info;
     this.status = status;
@@ -55,22 +48,6 @@ public class LipidClassDescription {
 
   public void setId(String id) {
     this.id = id;
-  }
-
-  public String getLipidCoreClass() {
-    return lipidCoreClass;
-  }
-
-  public void setLipidCoreClass(String lipidCoreClass) {
-    this.lipidCoreClass = lipidCoreClass;
-  }
-
-  public String getLipidMainClass() {
-    return lipidMainClass;
-  }
-
-  public void setLipidMainClass(String lipidMainClass) {
-    this.lipidMainClass = lipidMainClass;
   }
 
   public String getLipidClass() {
@@ -95,14 +72,6 @@ public class LipidClassDescription {
 
   public void setAbbreviation(String abbreviation) {
     this.abbreviation = abbreviation;
-  }
-
-  public String getIonization() {
-    return ionization;
-  }
-
-  public void setIonization(String ionization) {
-    this.ionization = ionization;
   }
 
   public String getExactMass() {

@@ -6,54 +6,64 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.Lip
 
 public class LipidFragmentationRule {
 
-	private PolarityType polarityType;
-	private IonizationType ionizationType;
-	private LipidFragmentationRuleType lipidFragmentationRuleType;
-	private LipidAnnotationLevel lipidFragmentInformationLevelType;
-	private String molecularFormula;
+  private PolarityType polarityType;
+  private IonizationType ionizationType;
+  private LipidFragmentationRuleType lipidFragmentationRuleType;
+  private LipidAnnotationLevel lipidFragmentInformationLevelType;
+  private String molecularFormula;
 
-	public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType,
-			LipidFragmentationRuleType lipidFragmentationRuleType,
-			LipidAnnotationLevel lipidFragmentInformationLevelType) {
-		this.polarityType = polarityType;
-		this.ionizationType = ionizationType;
-		this.lipidFragmentationRuleType = lipidFragmentationRuleType;
-		this.lipidFragmentInformationLevelType = lipidFragmentInformationLevelType;
-		this.molecularFormula = "";
-	}
+  public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType) {
+    this.polarityType = polarityType;
+    this.ionizationType = ionizationType;
+    this.molecularFormula = "";
+  }
 
-	public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType,
-			LipidFragmentationRuleType lipidFragmentationRuleType,
-			LipidAnnotationLevel lipidFragmentInformationLevelType, String molecularFormula) {
-		this.polarityType = polarityType;
-		this.ionizationType = ionizationType;
-		this.lipidFragmentationRuleType = lipidFragmentationRuleType;
-		this.lipidFragmentInformationLevelType = lipidFragmentInformationLevelType;
-		this.molecularFormula = molecularFormula;
-	}
+  public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType,
+      LipidFragmentationRuleType lipidFragmentationRuleType,
+      LipidAnnotationLevel lipidFragmentInformationLevelType) {
+    this.polarityType = polarityType;
+    this.ionizationType = ionizationType;
+    this.lipidFragmentationRuleType = lipidFragmentationRuleType;
+    this.lipidFragmentInformationLevelType = lipidFragmentInformationLevelType;
+    this.molecularFormula = "";
+  }
 
-	public PolarityType getPolarityType() {
-		return polarityType;
-	}
+  public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType,
+      LipidFragmentationRuleType lipidFragmentationRuleType,
+      LipidAnnotationLevel lipidFragmentInformationLevelType, String molecularFormula) {
+    this.polarityType = polarityType;
+    this.ionizationType = ionizationType;
+    this.lipidFragmentationRuleType = lipidFragmentationRuleType;
+    this.lipidFragmentInformationLevelType = lipidFragmentInformationLevelType;
+    this.molecularFormula = molecularFormula;
+  }
 
-	public IonizationType getIonizationType() {
-		return ionizationType;
-	}
+  public PolarityType getPolarityType() {
+    return polarityType;
+  }
 
-	public LipidFragmentationRuleType getLipidFragmentationRuleType() {
-		return lipidFragmentationRuleType;
-	}
+  public IonizationType getIonizationType() {
+    return ionizationType;
+  }
 
-	public LipidAnnotationLevel getLipidFragmentInformationLevelType() {
-		return lipidFragmentInformationLevelType;
-	}
+  public LipidFragmentationRuleType getLipidFragmentationRuleType() {
+    return lipidFragmentationRuleType;
+  }
 
-	public String getMolecularFormula() {
-		return molecularFormula;
-	}
+  public LipidAnnotationLevel getLipidFragmentInformationLevelType() {
+    return lipidFragmentInformationLevelType;
+  }
 
-	@Override
-	public String toString() {
-		return ionizationType + ", " + lipidFragmentationRuleType + " " + molecularFormula;
-	}
+  public String getMolecularFormula() {
+    return molecularFormula;
+  }
+
+  @Override
+  public String toString() {
+    if (lipidFragmentationRuleType != null) {
+      return ionizationType + ", " + lipidFragmentationRuleType + " " + molecularFormula;
+    } else {
+      return ionizationType.getAdductName();
+    }
+  }
 }

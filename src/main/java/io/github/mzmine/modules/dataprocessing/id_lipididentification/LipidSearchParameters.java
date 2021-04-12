@@ -18,16 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
-import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.AllLipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClassParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClassChoiceParameter;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModificationChoiceParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -44,7 +40,7 @@ public class LipidSearchParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<Object>(
+  public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<>(
       "Lipid classes", "Selection of lipid backbones", AllLipidClasses.getList().toArray());
 
   public static final IntRangeParameter chainLength =
@@ -57,30 +53,19 @@ public class LipidSearchParameters extends SimpleParameterSet {
       new MZToleranceParameter("m/z tolerance MS1 level:",
           "Enter m/z tolerance for exact mass database matching on MS1 level");
 
-  public static final ComboParameter<IonizationType> ionizationMethod =
-      new ComboParameter<IonizationType>("Ionization method",
-          "Type of ion used to calculate the ionized mass", IonizationType.values());
-
   public static final OptionalModuleParameter<LipidSearchMSMSParameters> searchForMSMSFragments =
-      new OptionalModuleParameter<LipidSearchMSMSParameters>(
-          "Search for lipid class specific fragments in MS/MS spectra",
+      new OptionalModuleParameter<>("Search for lipid class specific fragments in MS/MS spectra",
           "Search for lipid class specific fragments in MS/MS spectra",
           new LipidSearchMSMSParameters());
 
   public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses =
-      new OptionalParameter<CustomLipidClassChoiceParameter>(
-          new CustomLipidClassChoiceParameter("Search for custom lipid class",
-              "If checked the algorithm searches for custom, by the user defined lipid classes",
-              new CustomLipidClass[0]));
-
-  public static final OptionalParameter<LipidModificationChoiceParameter> searchForModifications =
-      new OptionalParameter<LipidModificationChoiceParameter>(new LipidModificationChoiceParameter(
-          "Search for lipid modification",
-          "If checked the algorithm searches for lipid modifications", new LipidModification[0]));
+      new OptionalParameter<>(new CustomLipidClassChoiceParameter("Search for custom lipid class",
+          "If checked the algorithm searches for custom, by the user defined lipid classes",
+          new CustomLipidClass[0]));
 
   public LipidSearchParameters() {
-    super(new Parameter[] {featureLists, lipidClasses, chainLength, doubleBonds, ionizationMethod,
-        mzTolerance, searchForMSMSFragments, customLipidClasses, searchForModifications});
+    super(new Parameter[] {featureLists, lipidClasses, chainLength, doubleBonds, mzTolerance,
+        searchForMSMSFragments, customLipidClasses});
   }
 
   @Override

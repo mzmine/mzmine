@@ -1,6 +1,7 @@
 package io.github.mzmine.datamodel.features.types;
 
 import java.util.List;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -14,6 +15,7 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
       new IonAdductType(), //
       new FormulaType(), //
       new CommentType(), //
+      new LipidMsOneErrorType(), //
       new LipidAnnotationMsMsScoreType(), //
       new LipidSpectrumType());
 
@@ -42,7 +44,8 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
           }
           if (firstElementChanged) {
             // first list elements has changed - set all other fields
-            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0));
+            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0),
+                summaryProperty.size());
           }
         });
 
@@ -55,7 +58,8 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
    * @param data
    * @param match
    */
-  private void setCurrentElement(ModularTypeProperty data, MatchedLipid match) {
+  private void setCurrentElement(ModularTypeProperty data, MatchedLipid match,
+      int numberOfAnnotations) {
     if (match == null) {
       for (DataType type : this.getSubDataTypes()) {
         if (!(type instanceof LipidAnnotationSummaryType)) {
@@ -71,16 +75,14 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
       if (match.getComment() != null) {
         data.set(CommentType.class, match.getComment());
       }
+      // Calc rel mass deviation;
+      double exactMass =
+          MolecularFormulaManipulator.getMass(match.getLipidAnnotation().getMolecularFormula(),
+              AtomContainerManipulator.MonoIsotopic) + match.getIonizationType().getAddedMass();
+      double relMassDev = ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
+      data.set(LipidMsOneErrorType.class, relMassDev);
       data.set(LipidAnnotationMsMsScoreType.class, match.getMsMsScore());
-      // data.set(LipidSpectrumType.class, msMsScanNumber);
-      // data.set(SmilesStructureType.class, entry.getField(DBEntryField.SMILES).orElse(""));
-      // data.set(InChIStructureType.class, entry.getField(DBEntryField.INCHI).orElse(""));
-      // data.set(CosineScoreType.class, score.getScore());
-      // data.set(MatchingSignalsType.class, score.getOverlap());
-      // if (entry.getField(DBEntryField.MZ).isPresent())
-      // data.set(PrecursorMZType.class, entry.getField(DBEntryField.MZ).get());
-      // if (entry.getField(DBEntryField.EXACT_MASS).isPresent())
-      // data.set(NeutralMassType.class, entry.getField(DBEntryField.EXACT_MASS).get());
+      data.set(LipidSpectrumType.class, null);// ??????
     }
   }
 }

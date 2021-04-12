@@ -102,7 +102,6 @@ public class LipidAnnotationTest {
     checkLipidAnnotation(testSpectrum);
   }
 
-
   private void checkLipidAnnotation(LipidAnnotationMsMsTestResource testSpectrum) {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
     ILipidAnnotation lipidAnnotation = testSpectrum.getTestLipid();

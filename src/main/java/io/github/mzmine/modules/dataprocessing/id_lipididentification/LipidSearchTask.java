@@ -38,10 +38,10 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidident
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
@@ -74,13 +74,8 @@ public class LipidSearchTask extends AbstractTask {
   private int minDoubleBonds;
   private MZTolerance mzTolerance;
   private MZTolerance mzToleranceMS2;
-  private IonizationType ionizationType;
   private Boolean searchForMSMSFragments;
-  private Boolean ionizationAutoSearch;
   private Boolean keepUnconfirmedAnnotations;
-  private Boolean searchForModifications;
-  private double[] lipidModificationMasses;
-  private LipidModification[] lipidModification;
   private double minMsMsScore;
 
   private ParameterSet parameters;
@@ -104,23 +99,12 @@ public class LipidSearchTask extends AbstractTask {
         parameters.getParameter(LipidSearchParameters.doubleBonds).getValue().upperEndpoint();
     this.mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
     this.selectedObjects = parameters.getParameter(LipidSearchParameters.lipidClasses).getValue();
-    this.ionizationType =
-        parameters.getParameter(LipidSearchParameters.ionizationMethod).getValue();
     this.searchForMSMSFragments =
         parameters.getParameter(LipidSearchParameters.searchForMSMSFragments).getValue();
-    this.searchForModifications =
-        parameters.getParameter(LipidSearchParameters.searchForModifications).getValue();
-    if (searchForModifications.booleanValue()) {
-      this.lipidModification =
-          LipidSearchParameters.searchForModifications.getEmbeddedParameter().getValue();
-    }
     if (searchForMSMSFragments.booleanValue()) {
       this.mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)
           .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.mzToleranceMS2)
           .getValue();
-      this.ionizationAutoSearch = parameters
-          .getParameter(LipidSearchParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .getParameter(LipidSearchMSMSParameters.ionizationAutoSearch).getValue();
       this.keepUnconfirmedAnnotations = parameters
           .getParameter(LipidSearchParameters.searchForMSMSFragments).getEmbeddedParameters()
           .getParameter(LipidSearchMSMSParameters.keepUnconfirmedAnnotations).getValue();
@@ -128,7 +112,6 @@ public class LipidSearchTask extends AbstractTask {
           .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.minimumMsMsScore)
           .getValue();
     } else {
-      this.ionizationAutoSearch = false;
       this.keepUnconfirmedAnnotations = true;
     }
     this.searchForCustomLipidClasses =
@@ -171,12 +154,6 @@ public class LipidSearchTask extends AbstractTask {
 
     List<FeatureListRow> rows = featureList.getRows();
     featureList.addRowType(new LipidAnnotationType());
-
-    // Check if lipids should be modified
-    // TODO maybe remove this complety, just use custom lipid classes
-    if (searchForModifications.booleanValue()) {
-      extractLipidModificationMasses(lipidModification);
-    }
 
     totalSteps = rows.size();
 
@@ -257,13 +234,9 @@ public class LipidSearchTask extends AbstractTask {
     }
     Set<MatchedLipid> possibleRowAnnotations = new HashSet<>();
     Set<IonizationType> ionizationTypeList = new HashSet<>();
-    if (ionizationAutoSearch.booleanValue()) {
-      LipidFragmentationRule[] fragmentationRules = lipid.getLipidClass().getFragmentationRules();
-      for (int i = 0; i < fragmentationRules.length; i++) {
-        ionizationTypeList.add(fragmentationRules[i].getIonizationType());
-      }
-    } else {
-      ionizationTypeList.add(ionizationType);
+    LipidFragmentationRule[] fragmentationRules = lipid.getLipidClass().getFragmentationRules();
+    for (int i = 0; i < fragmentationRules.length; i++) {
+      ionizationTypeList.add(fragmentationRules[i].getIonizationType());
     }
     for (IonizationType ionization : ionizationTypeList) {
       if (!row.getBestFeature().getRepresentativeScan().getPolarity()
@@ -290,23 +263,14 @@ public class LipidSearchTask extends AbstractTask {
 
     }
     addAnnotationsToFeatureList(row, possibleRowAnnotations);
-
-    // TODO maybe just use custom lipid classes fot this
-    // If search for modifications is selected search for modifications
-    // in MS1
-    // if (searchForModifications.booleanValue()) {
-    // searchModifications(row, lipidIonMass, lipid, lipidModificationMasses, mzTolRange12C);
-    // }
   }
 
   private void addAnnotationsToFeatureList(FeatureListRow row,
       Set<MatchedLipid> possibleRowAnnotations) {
 
-    if (!possibleRowAnnotations.isEmpty()) {
-      for (MatchedLipid matchedLipid : possibleRowAnnotations) {
-        if (matchedLipid != null) {
-          row.addLipidAnnotation(matchedLipid);
-        }
+    for (MatchedLipid matchedLipid : possibleRowAnnotations) {
+      if (matchedLipid != null) {
+        row.addLipidAnnotation(matchedLipid);
       }
     }
   }
@@ -347,48 +311,85 @@ public class LipidSearchTask extends AbstractTask {
         if (!annotatedFragments.isEmpty()) {
 
           // check for class specific fragments like head group fragment
-          matchedLipids.add(msmsLipidTools.confirmSpeciesLevelAnnotation(row.getAverageMZ(), lipid,
-              annotatedFragments, massList, minMsMsScore, mzToleranceMS2, ionization));
+          MatchedLipid matchedLipid =
+              msmsLipidTools.confirmSpeciesLevelAnnotation(row.getAverageMZ(), lipid,
+                  annotatedFragments, massList, minMsMsScore, mzToleranceMS2, ionization);
+          addUniqueMatchedLipid(matchedLipid, matchedLipids);
 
           // predict molecular species level annotations
-          matchedLipids
-              .addAll(msmsLipidTools.predictMolecularSpeciesLevelAnnotation(annotatedFragments,
-                  lipid, row.getAverageMZ(), massList, minMsMsScore, mzToleranceMS2, ionization));
+          Set<MatchedLipid> molecularSpeciesLevelMatchedLipids =
+              msmsLipidTools.predictMolecularSpeciesLevelAnnotation(annotatedFragments, lipid,
+                  row.getAverageMZ(), massList, minMsMsScore, mzToleranceMS2, ionization);
+          if (matchedLipid != null && molecularSpeciesLevelMatchedLipids != null
+              && !molecularSpeciesLevelMatchedLipids.isEmpty()) {
+            combineMsMsScores(matchedLipid, molecularSpeciesLevelMatchedLipids);
+          }
+
+          for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
+            addUniqueMatchedLipid(molecularSpeciesLevelMatchedLipid, matchedLipids);
+          }
         }
       }
       if (keepUnconfirmedAnnotations.booleanValue() && matchedLipids.isEmpty()) {
-        matchedLipids.add(new MatchedLipid(lipid, row.getAverageMZ(), ionization, null, 0.0));
+        MatchedLipid unconfirmedMatchedLipid =
+            new MatchedLipid(lipid, row.getAverageMZ(), ionization, null, 0.0);
+        unconfirmedMatchedLipid
+            .setComment("Warning, this annotation is based on MS1 mass accurracy only!");
+        matchedLipids.add(unconfirmedMatchedLipid);
       }
 
     }
     return matchedLipids;
   }
 
-  // private void searchModifications(FeatureListRow rows, double lipidIonMass,
-  // LipidFeatureIdentity lipid, double[] lipidModificationMasses,
-  // Range<Double> mzTolModification) {
-  // for (int j = 0; j < lipidModificationMasses.length; j++) {
-  // if (mzTolModification.contains(lipidIonMass + (lipidModificationMasses[j]))) {
-  //
-  // // Calc relativ mass deviation
-  // double relMassDev = ((lipidIonMass + (lipidModificationMasses[j]) - rows.getAverageMZ())
-  // / (lipidIonMass + lipidModificationMasses[j])) * 1000000;
-  //
-  // // Add row identity
-  // rows.addLipidAnnotation(
-  // new LipidFeatureIdentity(lipid + " " + lipidModification[j], lipid.getName()), true);
-  // rows.setComment(rows.getComment() + " Ionization: " + ionizationType.getAdductName()
-  // + " Warning: Lipid Annotation was not confirmed by MS/MS and needs to be checked manually!"
-  // + lipidModification[j] + ", Δ " + NumberFormat.getInstance().format(relMassDev)
-  // + " ppm");
-  // logger.info(
-  // " Warning: Lipid Annotation was not confirmed by MS/MS and needs to be checked manually! Found
-  // modified lipid: "
-  // + lipid.getName() + " " + lipidModification[j] + ", Δ "
-  // + NumberFormat.getInstance().format(relMassDev) + " ppm");
-  // }
-  // }
-  // }
+  /*
+   * Add MS/MS score from species level annotaiton to molecular species level annotation
+   */
+  private void combineMsMsScores(MatchedLipid speciesLevelMatchedLipid,
+      Set<MatchedLipid> molecularSpeciesLevelMatchedLipids) {
+    for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
+      if (speciesLevelMatchedLipid != null && molecularSpeciesLevelMatchedLipid != null
+          && speciesLevelMatchedLipid.getLipidAnnotation().getLipidAnnotationLevel()
+              .equals(LipidAnnotationLevel.SPECIES_LEVEL)
+          && molecularSpeciesLevelMatchedLipid.getLipidAnnotation().getLipidAnnotationLevel()
+              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)
+          && molecularSpeciesLevelMatchedLipid.getLipidAnnotation().getLipidClass()
+              .equals(speciesLevelMatchedLipid.getLipidAnnotation().getLipidClass())
+          && molecularSpeciesLevelMatchedLipid.getLipidAnnotation().getMolecularFormula()
+              .equals(speciesLevelMatchedLipid.getLipidAnnotation().getMolecularFormula())) {
+        molecularSpeciesLevelMatchedLipid.getMatchedFragments()
+            .addAll(speciesLevelMatchedLipid.getMatchedFragments());
+        molecularSpeciesLevelMatchedLipid
+            .setMsMsScore(molecularSpeciesLevelMatchedLipid.getMsMsScore()
+                + speciesLevelMatchedLipid.getMsMsScore());
+      }
+    }
+  }
+
+  private void addUniqueMatchedLipid(MatchedLipid matchedLipid, Set<MatchedLipid> matchedLipids) {
+    if (matchedLipid != null) {
+      if (matchedLipids.isEmpty()) {
+        matchedLipids.add(matchedLipid);
+      } else {
+        Set<MatchedLipid> lipidsToAdd = new HashSet<>();
+        Set<MatchedLipid> lipidsToRemove = new HashSet<>();
+        for (MatchedLipid matchedLipid2 : matchedLipids) {
+          if (matchedLipid2 != null && !(matchedLipid.getLipidAnnotation().getAnnotation()
+              .equals(matchedLipid2.getLipidAnnotation().getAnnotation()))) {
+            lipidsToAdd.add(matchedLipid);
+          } else if (matchedLipid2 != null
+              && matchedLipid.getLipidAnnotation().getAnnotation()
+                  .equals(matchedLipid2.getLipidAnnotation().getAnnotation())
+              && matchedLipid.getMsMsScore() > matchedLipid2.getMsMsScore()) {
+            lipidsToRemove.add(matchedLipid2);
+            lipidsToAdd.add(matchedLipid);
+          }
+        }
+        matchedLipids.removeAll(lipidsToRemove);
+        matchedLipids.addAll(lipidsToAdd);
+      }
+    }
+  }
 
   private DataPoint[] deisotopeMassList(DataPoint[] massList) {
     MassListDeisotoperParameters massListDeisotoperParameters = new MassListDeisotoperParameters();
@@ -397,13 +398,6 @@ public class LipidSearchTask extends AbstractTask {
     massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.mzTolerance,
         mzToleranceMS2);
     return MassListDeisotoper.filterIsotopes(massList, massListDeisotoperParameters);
-  }
-
-  private void extractLipidModificationMasses(LipidModification[] lipidModification) {
-    lipidModificationMasses = new double[lipidModification.length];
-    for (int i = 0; i < lipidModification.length; i++) {
-      lipidModificationMasses[i] = lipidModification[i].getModificationMass();
-    }
   }
 
 }

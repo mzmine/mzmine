@@ -159,10 +159,6 @@ public class LipidClassParameter<ValueType>
       errorMessages.add(name + " is not set properly");
       return false;
     }
-    if (values.length < minNumber) {
-      errorMessages.add("At least " + minNumber + " option(s) must be selected for " + name);
-      return false;
-    }
     return true;
   }
 
