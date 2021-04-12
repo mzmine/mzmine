@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -118,7 +117,7 @@ public class NistMspParser extends SpectralDBParser {
     // comment possible as mz intensity"
     String[] dataAndComment = line.split("\"");
     // split by space
-    String[] data = dataAndComment[0].split(" ");
+    String[] data = dataAndComment[0].split(" |\t");
     if (data.length == 2) {
       try {
         return new SimpleDataPoint(Double.parseDouble(data[0]), Double.parseDouble(data[1]));
