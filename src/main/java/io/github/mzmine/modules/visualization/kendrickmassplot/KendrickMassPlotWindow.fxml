@@ -52,7 +52,8 @@
                                           <Image url="icons/bgicon.png" />
                                        </image>
                                     </ImageView>
-                                 </graphic></Button>
+                                 </graphic>
+                              </Button>
                               <Button fx:id="gridButton" mnemonicParsing="false" onAction="#toggleGrid" GridPane.columnIndex="1" GridPane.halignment="CENTER">
                                  <graphic>
                                     <ImageView pickOnBounds="true">
@@ -60,7 +61,8 @@
                                           <Image url="icons/gridicon.png" />
                                        </image>
                                     </ImageView>
-                                 </graphic></Button>
+                                 </graphic>
+                              </Button> 
                               <Button fx:id="annotationButton" mnemonicParsing="false" onAction="#toggleAnnotation" GridPane.columnIndex="2" GridPane.halignment="CENTER">
                                  <graphic>
                                     <ImageView pickOnBounds="true">

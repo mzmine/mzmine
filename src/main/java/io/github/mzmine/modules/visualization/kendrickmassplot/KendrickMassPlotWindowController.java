@@ -26,7 +26,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.PaintScaleLegend;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -46,7 +45,7 @@ public class KendrickMassPlotWindowController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private PeakListRow selectedRows[];
+  private PeakListRow[] selectedRows;
   private PeakList featureList;
   private String xAxisKMBase;
   private String zAxisKMBase;
@@ -76,9 +75,6 @@ public class KendrickMassPlotWindowController {
 
   @FXML
   private BorderPane plotPane;
-
-  @FXML
-  private Button blockSizeButton;
 
   @FXML
   private Button backgroundButton;
@@ -292,24 +288,6 @@ public class KendrickMassPlotWindowController {
     } else {
       plot.setBackgroundPaint(Color.WHITE);
     }
-  }
-
-  @FXML
-  void toggleBolckSize(ActionEvent event) {
-    logger.finest("Toggle block size");
-    XYPlot plot = getChart().getXYPlot();
-    XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot.getRenderer();
-    int height = (int) renderer.getBlockHeightPixel();
-
-    if (height == 1) {
-      height++;
-    } else if (height == 5) {
-      height = 1;
-    } else if (height < 5 && height != 1) {
-      height++;
-    }
-    renderer.setBlockHeightPixel(height);
-    renderer.setBlockWidthPixel(height);
   }
 
   @FXML
@@ -576,14 +554,6 @@ public class KendrickMassPlotWindowController {
 
   public void setPlotPane(BorderPane plotPane) {
     this.plotPane = plotPane;
-  }
-
-  public Button getBlockSizeButton() {
-    return blockSizeButton;
-  }
-
-  public void setBlockSizeButton(Button blockSizeButton) {
-    this.blockSizeButton = blockSizeButton;
   }
 
   public Button getBackgroundButton() {
