@@ -19,6 +19,13 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.data.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -27,17 +34,10 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
 import io.github.mzmine.main.MZmineCore;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
-import org.jfree.chart.axis.AxisLocation;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.data.Range;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -45,9 +45,9 @@ import org.jfree.data.Range;
 public class ImageChart extends StackPane {
 
   private static Logger logger = Logger.getLogger(ImageChart.class.getName());
-//  private Double dataPointWidth;
-//  private Double dataPointHeight;
-//  private PaintScale paintScaleParameter;
+  // private Double dataPointWidth;
+  // private Double dataPointHeight;
+  // private PaintScale paintScaleParameter;
 
   public ImageChart(@Nonnull ModularFeature f, AtomicDouble progress) {
 
@@ -60,6 +60,7 @@ public class ImageChart extends StackPane {
     chart.setDomainAxisLabel("µm");
     ImagingRawDataFile imagingFile = (ImagingRawDataFile) f.getRawDataFile();
     NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
+    chart.setDataset(ds);
     axis.setInverted(true);
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeIncludesZero(false);
@@ -77,8 +78,8 @@ public class ImageChart extends StackPane {
 
     chart.getXYPlot().getRangeAxis().setAutoRange(true);
     chart.getXYPlot().getDomainAxis().setAutoRange(true);
-    BufferedImage img = chart.getChart()
-        .createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
+    BufferedImage img =
+        chart.getChart().createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
             GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
 
     ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
@@ -89,10 +90,9 @@ public class ImageChart extends StackPane {
 
     Platform.runLater(() -> getChildren().add(view));
 
-    /*Platform.runLater(() -> {
-      getChildren().add(chart);
-      chart.setDataset(ds);
-    });*/
+    /*
+     * Platform.runLater(() -> { getChildren().add(chart); chart.setDataset(ds); });
+     */
 
   }
 
