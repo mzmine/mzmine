@@ -352,8 +352,7 @@ public class FeatureResolverTask extends AbstractTask {
 
     final ResolvingDimension dimension = parameters
         .getParameter(GeneralResolverParameters.dimension).getValue();
-    final BinningMobilogramDataAccess mobilogramBinning =
-        dimension == ResolvingDimension.MOBILITY && dataFile instanceof IMSRawDataFile
+    final BinningMobilogramDataAccess mobilogramBinning = dataFile instanceof IMSRawDataFile
             && originalFeatureList.getFeatureTypes().containsKey(MobilityType.class)
             ? EfficientDataAccess.of((IMSRawDataFile) dataFile,
             BinningMobilogramDataAccess.getPreviousBinningWith(originalFeatureList,
