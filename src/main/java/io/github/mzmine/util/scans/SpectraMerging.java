@@ -23,11 +23,16 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -38,13 +43,14 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
-import io.github.mzmine.util.maths.Weighting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -241,12 +247,12 @@ public class SpectraMerging {
       return null;
     }
 
-    CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
+    CenterFunction cf = new CenterFunction(CenterMeasure.AVG, CenterFunction.DEFAULT_MZ_WEIGHTING);
 
     Optional<MassList> firstSet = mobilityScans.stream().map(MobilityScan::getMassList)
         .filter(Objects::nonNull).findFirst();
 
-    if(firstSet.isEmpty()) {
+    if (firstSet.isEmpty()) {
       return null;
     }
 
@@ -262,6 +268,82 @@ public class SpectraMerging {
     MassList newMl = new SimpleMassList(storage, merged[0], merged[1]);
     mergedSpectrum.addMassList(newMl);
     return mergedSpectrum;
+  }
+
+  public static Frame getMergedFrame(Collection<Frame> frames, MZTolerance tolerance,
+      MemoryMapStorage storage, int mobilityScanBin) {
+    if (frames.isEmpty()) {
+      throw new IllegalStateException("No frames in collection to be merged.");
+    }
+
+    final int maxNumScans = frames.stream().mapToInt(f -> f.getNumberOfMobilityScans()).max()
+        .orElseThrow(
+            () -> new IllegalArgumentException(
+                "Maximum number of mobility scans could not be determined."));
+
+    final Frame aFrame = frames.stream().findAny().get();
+    final int msLevel = aFrame.getMSLevel();
+    final PolarityType polarityType = aFrame.getPolarity();
+    float lowestRt = Float.MAX_VALUE;
+    float highestRt = Float.MIN_VALUE;
+    Range<Double> scanMzRange = aFrame.getScanningMZRange();
+
+    // map all mobility scans that shall be merged together into the same list
+    final Map<Integer, List<MobilityScan>> scanMap = new HashMap<>();
+    for (final Frame frame : frames) {
+      for (final MobilityScan mobilityScan : frame.getMobilityScans()) {
+        final List<MobilityScan> mobilityScans = scanMap.computeIfAbsent(
+            mobilityScan.getMobilityScanNumber() / mobilityScanBin,
+            i -> new ArrayList<>());
+        mobilityScans.add(mobilityScan);
+      }
+
+      if (frame.getRetentionTime() < lowestRt) {
+        lowestRt = frame.getRetentionTime();
+      }
+      if (frame.getRetentionTime() > highestRt) {
+        highestRt = frame.getRetentionTime();
+      }
+      if (!scanMzRange.equals(frame.getScanningMZRange()) && !scanMzRange
+          .encloses(frame.getScanningMZRange())) {
+        scanMzRange = scanMzRange.span(frame.getScanningMZRange());
+      }
+
+      if (msLevel != frame.getMSLevel()) {
+        throw new AssertionError("Cannot merge frames of different MS levels");
+      }
+      if (polarityType != frame.getPolarity()) {
+        throw new AssertionError("Cannot merge frames of different polarities");
+      }
+    }
+
+    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG,
+        CenterFunction.DEFAULT_MZ_WEIGHTING);
+    final IMSRawDataFile file = (IMSRawDataFile) frames.stream().findAny().get().getDataFile();
+
+    final SimpleFrame frame = new SimpleFrame(file, -1, msLevel, (highestRt + lowestRt) / 2, 0d, 0,
+        null, null, MassSpectrumType.CENTROIDED, polarityType,
+        "Merged frame (" + frames.stream() + ")", scanMzRange, aFrame.getMobilityType(), null);
+
+    // create a merged spectrum for each mobility scan bin
+    final List<BuildingMobilityScan> buildingMobilityScans = scanMap.entrySet().parallelStream()
+        .map(entry -> {
+          // todo: do this from the mass list
+          double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(), 100,
+              tolerance,
+              MergingType.SUMMED, cf);
+
+          return new BuildingMobilityScan(
+              entry.getKey() * mobilityScanBin - (mobilityScanBin / 2), mzIntensities[0],
+              mzIntensities[1]);
+        }).sorted(Comparator.comparingInt(BuildingMobilityScan::getMobilityScanNumber))
+        .collect(Collectors.toList());
+
+    frame.setMobilityScans(buildingMobilityScans);
+    double[][] mergedSpectrum = calculatedMergedMzsAndIntensities(buildingMobilityScans, 100,
+        tolerance, MergingType.SUMMED, cf);
+    frame.setDataPoints(mergedSpectrum[0], mergedSpectrum[1]);
+    return frame;
   }
 
   public enum MergingType {
