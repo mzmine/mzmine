@@ -1,5 +1,6 @@
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.features.correlation.R2RCorrMap;
 import io.github.mzmine.datamodel.features.correlation.R2RMS2Similarity;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import com.google.common.collect.Range;
@@ -18,6 +19,7 @@ import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -544,14 +546,40 @@ public class ModularFeatureList implements FeatureList {
    * @return
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage) {
-    ModularFeatureList flist = new ModularFeatureList(title, storage, this.getRawDataFiles());
+    return createCopy(title, storage, this.getRawDataFiles());
+  }
+  /**
+   * create copy of all feature list rows and features
+   *
+   * @param title
+   * @return
+   */
+  public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage, List<RawDataFile> dataFiles) {
+    ModularFeatureList flist = new ModularFeatureList(title, storage, dataFiles);
+
+    // key is original row and value is copied row
+    Map<FeatureListRow, ModularFeatureListRow> mapCopied = new HashMap<>();
     // copy all rows and features
-    this.stream().map(row -> new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true))
-        .forEach(newRow -> flist.addRow(newRow));
+    for(FeatureListRow row : this.getRows()) {
+      ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true);
+      flist.addRow(copyRow);
+      mapCopied.put(row, copyRow);
+    }
 
     // Load previous applied methods
     for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
       flist.addDescriptionOfAppliedTask(proc);
+    }
+
+    // copy grouping
+    R2RMap<R2RMS2Similarity> oldMap = this.getR2RSimilarityMap();
+    if(oldMap!=null) {
+      R2RMap<R2RMS2Similarity> r2rMap = new R2RMap<>();
+      for(var entry : oldMap.entrySet()) {
+        var similarity= entry.getValue();
+
+        r2rMap.add()
+      }
     }
 
     selectedScans.forEach(flist::setSelectedScans);
