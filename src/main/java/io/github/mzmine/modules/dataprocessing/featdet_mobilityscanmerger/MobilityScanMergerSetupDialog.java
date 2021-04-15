@@ -115,9 +115,9 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
 
     logger.info("Start calc");
     double[][] merged = SpectraMerging
-        .calculatedMergedMzsAndIntensities(frameComboBox.getValue().getMobilityScans(), noiseLevel,
+        .calculatedMergedMzsAndIntensities(frameComboBox.getValue().getMobilityScans(),
             mzTolerance, mergingType, new CenterFunction(
-                CenterMeasure.AVG, weighting));
+                CenterMeasure.AVG, weighting), noiseLevel);
     logger.info("End calc");
 
     if (merged == null) {
