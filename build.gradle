@@ -12,8 +12,8 @@ version = "3.0"
 description = "MZmine"
 
 // JDK 14+ is needed for jpackage
-sourceCompatibility = "14"
-targetCompatibility = "14"
+sourceCompatibility = "16"
+targetCompatibility = "16"
 defaultTasks "jpackage"
 
 // Check the OS
@@ -180,7 +180,7 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "15.0.1"
+    version = "16"
     modules = ["javafx.controls",
                "javafx.swing",
                "javafx.fxml",
@@ -191,15 +191,15 @@ javafx {
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
-    options.compilerArgs += ['--enable-preview']
+    /*options.compilerArgs += ['--enable-preview']*/
 }
 
 tasks.withType(Test) {
-    jvmArgs += "--enable-preview"
+    /*jvmArgs += "--enable-preview"*/
 }
 
 tasks.withType(JavaExec) {
-    jvmArgs += '--enable-preview'
+    /*jvmArgs += '--enable-preview'*/
 }
 
 /*
@@ -275,8 +275,8 @@ runtime {
                    "-XX:MinRAMPercentage=80",
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
-                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
-                   "--enable-preview"
+                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
+                   /*"--enable-preview"*/
         ]
     }
 }
