@@ -58,8 +58,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterMeasure;
-import io.github.mzmine.util.maths.Precision;
 import java.io.File;
 import java.util.Comparator;
 import java.util.Objects;
@@ -112,6 +112,7 @@ public class FeatureFindingTest {
     MZmineCore.main(new String[]{"-r", "-m", "all"});
     logger.info("Getting project");
     project = MZmineCore.getProjectManager().getCurrentProject();
+    MemoryMapStorage.setStoreAllInRam(true);
   }
 
 
