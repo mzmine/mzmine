@@ -74,6 +74,7 @@ public class ImageChart extends StackPane {
 
     setPrefHeight(200);
     setPrefWidth(200);
+    chart.setDataset(ds);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
     chart.getXYPlot().getRangeAxis().setAutoRange(true);
