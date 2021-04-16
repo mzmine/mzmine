@@ -531,6 +531,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     Font axisTickLabelFont = getXYPlot().getDomainAxis().getTickLabelFont();
 
     NumberAxis scaleAxis = new NumberAxis(null);
+    max = Math.max(min + 1E-10, max);
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(axisPaint);
     scaleAxis.setTickMarkPaint(axisPaint);

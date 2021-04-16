@@ -121,14 +121,14 @@ public class BuildingMobilityScan implements MobilityScan {
 
   @Override
   public double[] getMzValues(@Nonnull double[] dst) {
-    // we store arrays anyway, so no point in making the user allocate a new one
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
+    System.arraycopy(mzValues, 0, dst, 0, mzValues.length);
+    return dst;
   }
 
   @Override
   public double[] getIntensityValues(@Nonnull double[] dst) {
-    // we store arrays anyway, so no point in making the user allocate a new one
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
+    System.arraycopy(intensityValues, 0, dst, 0, intensityValues.length);
+    return dst;
   }
 
   @Override

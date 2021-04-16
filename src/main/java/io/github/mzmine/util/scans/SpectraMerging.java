@@ -281,16 +281,13 @@ public class SpectraMerging {
     return mergedSpectrum;
   }
 
-  public static Frame getMergedFrame(@Nonnull final Collection<Frame> frames, @Nonnull final MZTolerance tolerance,
-      @Nullable final MemoryMapStorage storage, final int mobilityScanBin, @Nonnull final AtomicDouble progress) {
+  public static Frame getMergedFrame(@Nonnull final Collection<Frame> frames,
+      @Nonnull final MZTolerance tolerance,
+      @Nullable final MemoryMapStorage storage, final int mobilityScanBin,
+      @Nonnull final AtomicDouble progress) {
     if (frames.isEmpty()) {
       throw new IllegalStateException("No frames in collection to be merged.");
     }
-
-    final int maxNumScans = frames.stream().mapToInt(f -> f.getNumberOfMobilityScans()).max()
-        .orElseThrow(
-            () -> new IllegalArgumentException(
-                "Maximum number of mobility scans could not be determined."));
 
     final Frame aFrame = frames.stream().findAny().get();
     final int msLevel = aFrame.getMSLevel();
@@ -344,8 +341,9 @@ public class SpectraMerging {
         .map(entry -> {
           final List<MassList> massLists = entry.getValue().stream().map(MobilityScan::getMassList)
               .collect(Collectors.toList());
-          if(massLists.size() != entry.getValue().size()) {
-            throw new IllegalArgumentException("Not all mobility scans contain a mass list. Cannot merge Frames.");
+          if (massLists.size() != entry.getValue().size()) {
+            throw new IllegalArgumentException(
+                "Not all mobility scans contain a mass list. Cannot merge Frames.");
           }
           double[][] mzIntensities = calculatedMergedMzsAndIntensities(massLists, tolerance,
               MergingType.SUMMED, cf, null);
@@ -353,13 +351,20 @@ public class SpectraMerging {
           processed.getAndIncrement();
           progress.set(processed.get() / totalFrames);
 
-          return new BuildingMobilityScan(
-              entry.getKey() * mobilityScanBin - (mobilityScanBin / 2), mzIntensities[0],
-              mzIntensities[1]);
+          return new BuildingMobilityScan(entry.getKey(), mzIntensities[0], mzIntensities[1]);
         }).sorted(Comparator.comparingInt(BuildingMobilityScan::getMobilityScanNumber))
         .collect(Collectors.toList());
 
+    final double[] mobilities = new double[scanMap.size()];
+    int i = 0;
+    for (Integer num : scanMap.keySet()) {
+      mobilities[i] = aFrame.getMobilityScan(Math.min(num * mobilityScanBin + (mobilityScanBin / 2),
+          aFrame.getNumberOfMobilityScans() - 1)).getMobility();
+      i++;
+    }
+
     frame.setMobilityScans(buildingMobilityScans);
+    frame.setMobilities(mobilities);
     double[][] mergedSpectrum = calculatedMergedMzsAndIntensities(buildingMobilityScans,
         tolerance, MergingType.SUMMED, cf, null);
     frame.setDataPoints(mergedSpectrum[0], mergedSpectrum[1]);

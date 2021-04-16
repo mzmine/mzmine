@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.SpectralLibraryMatchType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -340,6 +341,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public float getAverageMobility() {
     Property<Float> v = get(MobilityType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+  }
+
+  @Override
+  public Float getAverageCCS() {
+    Property<Float> v = get(CCSType.class);
     return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 

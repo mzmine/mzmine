@@ -195,6 +195,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public double getMobilityForMobilityScan(MobilityScan scan) {
+    // todo think about this again, i feel like this is a relict of scan numbers
     // correct the index with an offset in case there is one.
     int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScanNumber();
     if (index >= 0) {

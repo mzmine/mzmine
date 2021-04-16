@@ -40,7 +40,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.export.Is
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
-import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
+import io.github.mzmine.modules.visualization.ims_mobilitymzplot2.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
@@ -265,7 +265,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         .openIMSVisualizerTabWithFeatures(getFeaturesFromSelectedRaw(selectedFeatures)));
 
     final MenuItem showInMobilityMzVisualizerItem = new ConditionalMenuItem(
-        "Plot mobility/CCS vs. m/z", () -> !selectedFeatures.isEmpty());
+        "Plot mobility/CCS vs. m/z", () -> !selectedRows.isEmpty());
     showInMobilityMzVisualizerItem.setOnAction(e -> {
       boolean useMobilograms = true;
       if (selectedFeatures.size() > 1000) {
@@ -275,7 +275,7 @@ public class FeatureTableContextMenu extends ContextMenu {
                     + "visualize points instead of mobilograms for features?", ButtonType.YES,
                 ButtonType.NO) == ButtonType.NO;
       }
-      IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedFeatures, useMobilograms);
+      IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedRows, useMobilograms);
     });
 
     final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
