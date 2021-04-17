@@ -67,6 +67,7 @@ public class ModularFeatureList implements FeatureList {
   // grouping
   private R2RMap<R2RMS2Similarity> ms2SimilarityMap;
   private RowGroupList groups;
+  private R2RCorrMap correlationMap;
 
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
@@ -328,7 +329,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.features.FeatureList#getFeaturesInsideMZRange
+   * @see FeatureList#getFeaturesInsideMZRange
    */
   @Override
   public ObservableList<Feature> getFeaturesInsideMZRange(RawDataFile raw, Range<Double> mzRange) {
@@ -337,7 +338,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.features.FeatureList#getFeaturesInsideScanAndMZRange
+   * @see FeatureList#getFeaturesInsideScanAndMZRange
    */
   @Override
   public ObservableList<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw,
@@ -352,7 +353,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.features.FeatureList#removeRow(FeatureListRow)
+   * @see FeatureList#removeRow(FeatureListRow)
    */
   @Override
   public void removeRow(FeatureListRow row) {
@@ -361,7 +362,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.features.FeatureList#removeRow(FeatureListRow)
+   * @see FeatureList#removeRow(FeatureListRow)
    */
   @Override
   public void removeRow(int rowNum) {
@@ -411,7 +412,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.features.FeatureList#getFeatureListRowNum(Feature)
+   * @see FeatureList#getFeatureListRowNum(Feature)
    */
   @Override
   public int getFeatureListRowNum(Feature feature) {
@@ -424,7 +425,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.features.FeatureList#getDataPointMaxIntensity()
+   * @see FeatureList#getDataPointMaxIntensity()
    */
   @Override
   public double getDataPointMaxIntensity() {
@@ -571,17 +572,6 @@ public class ModularFeatureList implements FeatureList {
       flist.addDescriptionOfAppliedTask(proc);
     }
 
-    // copy grouping
-    R2RMap<R2RMS2Similarity> oldMap = this.getR2RSimilarityMap();
-    if(oldMap!=null) {
-      R2RMap<R2RMS2Similarity> r2rMap = new R2RMap<>();
-      for(var entry : oldMap.entrySet()) {
-        var similarity= entry.getValue();
-
-        r2rMap.add()
-      }
-    }
-
     selectedScans.forEach(flist::setSelectedScans);
     return flist;
   }
@@ -595,4 +585,11 @@ public class ModularFeatureList implements FeatureList {
     return memoryMapStorage;
   }
 
+  public void setCorrelationMap(R2RCorrMap correlationMap) {
+    this.correlationMap = correlationMap;
+  }
+
+  public R2RCorrMap getCorrelationMap() {
+    return correlationMap;
+  }
 }

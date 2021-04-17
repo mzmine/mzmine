@@ -93,16 +93,16 @@ public class IonNetworkLogic {
 
   /**
    * @param g   can be null. can be used to limit the number of links
-   * @return
+   * @return number of links to an ion identity
    */
-  public static int getLinksTo(IonIdentity esi, RowGroup g) {
+  public static int getLinksTo(IonIdentity ion, RowGroup g) {
     // TODO change to real links after refinement
     if (g == null) {
-      return esi.getPartnerRowsID().length;
+      return ion.getPartnerRows().size();
     } else {
       int c = 0;
-      for (int id : esi.getPartnerRowsID()) {
-        if (g.contains(id)) {
+      for (FeatureListRow row : ion.getPartnerRows()) {
+        if (g.contains(row)) {
           c++;
         }
       }

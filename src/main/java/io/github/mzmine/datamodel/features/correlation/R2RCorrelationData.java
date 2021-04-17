@@ -42,7 +42,8 @@ public class R2RCorrelationData {
 
   // correlation of a to b
   // id A < id B
-  private FeatureListRow a, b;
+  private final FeatureListRow a;
+  private final FeatureListRow b;
 
   // ANTI CORRELATION MARKERS
   // to be used to exclude rows from beeing grouped
@@ -71,7 +72,7 @@ public class R2RCorrelationData {
         .map(g -> ((CorrelationRowGroup) g).getCorr()).flatMap(Arrays::stream) // R2GCorr
         .flatMap(r2g -> r2g.getCorr() == null ? null
             : r2g.getCorr().stream() //
-                .filter(r2r -> r2r.getIDA() == r2g.getRow().getID())); // a is always the lower id
+                .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 
   public static Stream<R2RFullCorrelationData> streamFrom(FeatureListRow[] rows) {
@@ -80,7 +81,7 @@ public class R2RCorrelationData {
         .flatMap(Arrays::stream) // R2GCorr
         .flatMap(r2g -> r2g.getCorr() == null ? null
             : r2g.getCorr().stream() //
-                .filter(r2r -> r2r.getIDA() == r2g.getRow().getID())); // a is always the lower id
+                .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 
   /**
@@ -112,14 +113,6 @@ public class R2RCorrelationData {
 
   public FeatureListRow getRowB() {
     return b;
-  }
-
-  public int getIDA() {
-    return a == null ? 0 : a.getID();
-  }
-
-  public int getIDB() {
-    return b == null ? 0 : b.getID();
   }
 
   public boolean hasFeatureShapeCorrelation() {

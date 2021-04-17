@@ -250,7 +250,7 @@ public class IonNetworkRefinementTask extends AbstractTask {
   }
 
   private static int getLinks(IonIdentity best) {
-    int links = best.getPartnerRowsID().length;
+    int links = best.getPartnerRows().size();
     if (best.getMSMSMultimerCount() > 0)
       links++;
     return links;

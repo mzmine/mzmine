@@ -28,6 +28,35 @@ import java.util.stream.DoubleStream;
  */
 public class MathUtils {
 
+
+  /**
+   * Cantor pairing function for integers >= 0 to produce unique ids for a pair. The result of a and
+   * b is undirected so the arguments of a and b can be switched
+   *
+   * @param a >=0
+   * @param b >=0
+   * @return unique undirected pairing ID
+   */
+  public static int undirectedPairing(int a, int b) {
+    if (a > b) {
+      return directedPairing(b, a);
+    } else {
+      return directedPairing(a, b);
+    }
+  }
+
+  /**
+   * Cantor pairing function for integers >= 0 to produce unique ids for a pair. The result of a and
+   * b is directed so changing the argument order will change the result.
+   *
+   * @param a >=0
+   * @param b >=0
+   * @return unique directed pairing ID
+   */
+  public static int directedPairing(int a, int b) {
+    return ((a + b) * (a + b + 1) / 2) + a;
+  }
+
   /**
    * median or non-weighted average
    *

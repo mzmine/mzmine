@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
@@ -160,15 +161,15 @@ public class IonIdentity implements Comparable<IonIdentity> {
    *
    * @return
    */
-  public String getPartnerRows() {
-    return getPartnerRows(",");
+  public String getPartnerRowsString() {
+    return getPartnerRowsString(",");
   }
 
   /**
    * @param delimiter
    * @return
    */
-  public String getPartnerRows(String delimiter) {
+  public String getPartnerRowsString(String delimiter) {
     return partner.keySet().stream().map(FeatureListRow::getID).map(String::valueOf)
         .collect(Collectors.joining(delimiter));
   }
@@ -218,12 +219,8 @@ public class IonIdentity implements Comparable<IonIdentity> {
     return ion.equals(this.ionType);
   }
 
-  public int[] getPartnerRowsID() {
-    if (partner.isEmpty()) {
-      return new int[0];
-    }
-
-    return partner.keySet().stream().mapToInt(FeatureListRow::getID).toArray();
+  public Set<FeatureListRow> getPartnerRows() {
+    return partner.keySet();
   }
 
   public ConcurrentHashMap<FeatureListRow, IonIdentity> getPartner() {
@@ -254,11 +251,9 @@ public class IonIdentity implements Comparable<IonIdentity> {
   /**
    * Checks whether partner ids contain a certain id
    *
-   * @param id
-   * @return
    */
-  public boolean hasPartnerID(int id) {
-    return Arrays.stream(getPartnerRowsID()).anyMatch(pid -> pid == id);
+  public boolean hasPartnerRow(FeatureListRow row) {
+    return getPartnerRows().stream().anyMatch(r -> r == row);
   }
 
   public void setMSMSIdentities(MSMSIdentityList msmsIdent) {

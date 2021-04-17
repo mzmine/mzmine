@@ -1,61 +1,51 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.MathUtils;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
  * Map an object to two rows
- * 
- * @author Robin Schmid
  *
+ * @author Robin Schmid
  */
-public class R2RMap<T> extends ConcurrentHashMap<String, T> {
+public class R2RMap<T> extends ConcurrentHashMap<Integer, T> {
+
   private static final Logger LOG = Logger.getLogger(R2RMap.class.getName());
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
-  public R2RMap() {}
+  public R2RMap() {
+  }
 
   /**
    * Redirects to Map.put
-   * 
-   * @param row
-   * @param row2
+   *
+   * @param a
+   * @param b
    * @param value
    */
-  public void add(FeatureListRow row, FeatureListRow row2, T value) {
-    this.put(toKey(row, row2), value);
+  public void add(FeatureListRow a, FeatureListRow b, T value) {
+    this.put(toKey(a, b), value);
   }
 
-  public T get(FeatureListRow row, FeatureListRow row2) {
-    return get(toKey(row, row2));
-  }
-
-  /**
-   * Key as lowID,highID
-   * 
-   * @param row
-   * @param row2
-   * @return
-   */
-  public static String toKey(FeatureListRow row, FeatureListRow row2) {
-    int id = row.getID();
-    int id2 = row2.getID();
-    return Math.min(id, id2) + "," + Math.max(id, id2);
+  public T get(FeatureListRow a, FeatureListRow b) {
+    return get(toKey(a, b));
   }
 
   /**
-   * The two row IDs the first is always the lower one
-   * 
-   * @param key
-   * @return
+   * A unique undirected key is computed from the two row.getIDs
+   *
+   * @param a Feature list row with getID >=0
+   * @param b Feature list row with getID >=0
+   * @return unique undirected ID
    */
-  public static int[] toKeyIDs(String key) {
-    return Arrays.stream(key.split(",")).mapToInt(Integer::parseInt).toArray();
+  public static int toKey(FeatureListRow a, FeatureListRow b) {
+    return MathUtils.undirectedPairing(a.getID(), b.getID());
   }
 
 }

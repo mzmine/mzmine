@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping;
+package io.github.mzmine.modules.dataprocessing.group_metacorrelate.across_samples;
 
 
 import com.google.common.util.concurrent.AtomicDouble;
@@ -36,9 +36,7 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.F
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
-import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter.OverlapResult;
-import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -47,15 +45,16 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
-public class CorrelateGroupingTask extends AbstractTask {
+public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(CorrelateGroupingTask.class.getName());
+  private static final Logger LOG = Logger
+      .getLogger(AcrossSamplesCorrelateGroupingTask.class.getName());
 
   private AtomicDouble stageProgress = new AtomicDouble(0);
   private int totalRows;
@@ -69,12 +68,7 @@ public class CorrelateGroupingTask extends AbstractTask {
   protected String suffix;
 
   // GROUP and MIN SAMPLES FILTER
-  protected boolean useGroups;
   protected String groupingParameter;
-  /**
-   * Minimum percentage of samples (in group if useGroup) that have to contain a feature
-   */
-  protected MinimumFeatureFilter minFFilter;
   // min adduct height and feature height for minFFilter
   protected double minHeight;
 
@@ -95,10 +89,9 @@ public class CorrelateGroupingTask extends AbstractTask {
   protected double minHeightCorr;
   protected int minDPHeightCorr;
 
-  // output
-  protected ModularFeatureList groupedPKL;
-
   private RowGroupList groups;
+  // group param
+  private UserParameter<?, ?> groupParam;
 
 
   /**
@@ -107,7 +100,8 @@ public class CorrelateGroupingTask extends AbstractTask {
    * @param parameterSet the parameters.
    * @param featureList  feature list.
    */
-  public CorrelateGroupingTask(final MZmineProject project, final ParameterSet parameterSet,
+  public AcrossSamplesCorrelateGroupingTask(final MZmineProject project,
+      final ParameterSet parameterSet,
       final ModularFeatureList featureList) {
     super(featureList.getMemoryMapStorage());
     this.project = project;
@@ -117,30 +111,27 @@ public class CorrelateGroupingTask extends AbstractTask {
     totalRows = 0;
 
     // sample groups parameter
-    useGroups = parameters.getParameter(CorrelateGroupingParameters.GROUPSPARAMETER).getValue();
     groupingParameter =
-        (String) parameters.getParameter(CorrelateGroupingParameters.GROUPSPARAMETER)
-            .getEmbeddedParameter().getValue();
+        (String) parameters.getParameter(
+            AcrossSamplesCorrelateGroupingParameters.GROUPSPARAMETER).getValue();
 
     // height and noise
-    noiseLevelCorr = parameters.getParameter(CorrelateGroupingParameters.NOISE_LEVEL).getValue();
-    minHeight = parameters.getParameter(CorrelateGroupingParameters.MIN_HEIGHT).getValue();
-
-    // by min percentage of samples in a sample set that contain this feature MIN_SAMPLES
-    MinimumFeaturesFilterParameters minS = parameterSet
-        .getParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER).getEmbeddedParameters();
-    minFFilter = minS
-        .createFilterWithGroups(project, featureList.getRawDataFiles(), groupingParameter,
-            minHeight);
+    noiseLevelCorr = parameters.getParameter(
+        AcrossSamplesCorrelateGroupingParameters.NOISE_LEVEL).getValue();
+    minHeight = parameters.getParameter(
+        AcrossSamplesCorrelateGroupingParameters.MIN_HEIGHT).getValue();
 
     // tolerances
-    rtTolerance = parameterSet.getParameter(CorrelateGroupingParameters.RT_TOLERANCE).getValue();
+    rtTolerance = parameterSet.getParameter(
+        AcrossSamplesCorrelateGroupingParameters.RT_TOLERANCE).getValue();
 
     // FEATURE SHAPE CORRELATION
     groupByFShapeCorr =
-        parameterSet.getParameter(CorrelateGroupingParameters.FSHAPE_CORRELATION).getValue();
+        parameterSet.getParameter(
+            AcrossSamplesCorrelateGroupingParameters.FSHAPE_CORRELATION).getValue();
     FeatureShapeCorrelationParameters corrp = parameterSet
-        .getParameter(CorrelateGroupingParameters.FSHAPE_CORRELATION).getEmbeddedParameters();
+        .getParameter(
+            AcrossSamplesCorrelateGroupingParameters.FSHAPE_CORRELATION).getEmbeddedParameters();
     // filter
     // start with high abundant features >= mainPeakIntensity
     // In this way we directly filter out groups with no abundant features
@@ -161,30 +152,32 @@ public class CorrelateGroupingTask extends AbstractTask {
 
     // intensity correlation across samples
     useHeightCorrFilter =
-        parameterSet.getParameter(CorrelateGroupingParameters.IMAX_CORRELATION).getValue();
-    minHeightCorr = parameterSet.getParameter(CorrelateGroupingParameters.IMAX_CORRELATION)
+        parameterSet.getParameter(
+            AcrossSamplesCorrelateGroupingParameters.IMAX_CORRELATION).getValue();
+    minHeightCorr = parameterSet.getParameter(
+        AcrossSamplesCorrelateGroupingParameters.IMAX_CORRELATION)
         .getEmbeddedParameters().getParameter(InterSampleHeightCorrParameters.MIN_CORRELATION)
         .getValue();
-    minDPHeightCorr = parameterSet.getParameter(CorrelateGroupingParameters.IMAX_CORRELATION)
+    minDPHeightCorr = parameterSet.getParameter(
+        AcrossSamplesCorrelateGroupingParameters.IMAX_CORRELATION)
         .getEmbeddedParameters().getParameter(InterSampleHeightCorrParameters.MIN_DP).getValue();
 
-    heightSimMeasure = parameterSet.getParameter(CorrelateGroupingParameters.IMAX_CORRELATION)
+    heightSimMeasure = parameterSet.getParameter(
+        AcrossSamplesCorrelateGroupingParameters.IMAX_CORRELATION)
         .getEmbeddedParameters().getParameter(InterSampleHeightCorrParameters.MEASURE).getValue();
 
     // suffix
-    autoSuffix = !parameters.getParameter(CorrelateGroupingParameters.SUFFIX).getValue();
+    autoSuffix = !parameters.getParameter(
+        AcrossSamplesCorrelateGroupingParameters.SUFFIX).getValue();
 
     if (autoSuffix) {
       suffix = MessageFormat.format("corr {2} r>={0} dp>={1}", minShapeCorrR,
           minCorrelatedDataPoints, shapeSimMeasure);
     } else {
-      suffix = parameters.getParameter(CorrelateGroupingParameters.SUFFIX).getEmbeddedParameter()
+      suffix = parameters.getParameter(AcrossSamplesCorrelateGroupingParameters.SUFFIX)
+          .getEmbeddedParameter()
           .getValue();
     }
-  }
-
-  public ModularFeatureList getGroupedPKL() {
-    return groupedPKL;
   }
 
   public RowGroupList getGroups() {
@@ -203,28 +196,42 @@ public class CorrelateGroupingTask extends AbstractTask {
 
   @Override
   public void run() {
+    groups = featureList.getGroups();
+    if (groups == null || groups.isEmpty()) {
+      setStatus(TaskStatus.FINISHED);
+      LOG.warning("Cannot run metaCorrelate grouping on feature list (" + featureList.getName()
+                  + ") with no groups. Make sure to run any row grouping method before (e.g., the standard metaCorrelate). Maybe there are just no groups. Then do not mind this message.");
+      return;
+    }
+
+    groupParam = project
+        .getParameterByName(groupingParameter);
+    if (groupParam == null) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Cannot find project paramter with name " + groupingParameter
+                      + "  (Make sure to set the grouping parameter)");
+      return;
+    }
+
     setStatus(TaskStatus.PROCESSING);
-    LOG.info("Starting metaCorrelation search in " + featureList.getName() + " peaklists");
+    LOG.info("Starting metaCorrelation (across samples) search in " + featureList.getName()
+             + " feature list");
     try {
       if (isCanceled()) {
         return;
       }
 
-      // create new feature list for grouping
-      groupedPKL = featureList
-          .createCopy(featureList.getName() + " " + suffix, getMemoryMapStorage());
-
       // create correlation map
       // do R2R comparison correlation
       // might also do annotation if selected
-      R2RCorrMap corrMap = new R2RCorrMap(rtTolerance, minFFilter);
-      doR2RComparison(groupedPKL, corrMap);
+      R2RCorrMap corrMap = featureList.getCorrelationMap();
+      doR2RComparison(featureList, groups, corrMap);
       if (isCanceled()) {
         return;
       }
 
       LOG.info("Corr: Starting to group by correlation");
-      groups = corrMap.createCorrGroups(groupedPKL, stageProgress);
+      groups = corrMap.createCorrGroups(featureList, stageProgress);
 
       if (isCanceled()) {
         return;
@@ -233,23 +240,20 @@ public class CorrelateGroupingTask extends AbstractTask {
       // filter by avg correlation in group
       // delete single connections between sub networks
       if (groups != null) {
-        groupedPKL.setCorrelationMap(corrMap);
         // set groups to pkl
         groups.stream().map(g -> (CorrelationRowGroup) g)
             .forEach(g -> g.recalcGroupCorrelation(corrMap));
-        groupedPKL.setGroups(groups);
+        featureList.setGroups(groups);
         groups.setGroupsToAllRows();
 
         if (isCanceled()) {
           return;
         }
 
-        // add to project
-        project.addFeatureList(groupedPKL);
-
         // Add task description to peakList.
-        groupedPKL.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters));
+        featureList.addDescriptionOfAppliedTask(
+            new SimpleFeatureListAppliedMethod(AcrossSamplesCorrelateGroupingModule.class,
+                parameters));
 
         // Done.
         setStatus(TaskStatus.FINISHED);
@@ -270,57 +274,67 @@ public class CorrelateGroupingTask extends AbstractTask {
    *
    * @return
    */
-  private void doR2RComparison(ModularFeatureList featureList, R2RCorrMap map) {
+  private void doR2RComparison(ModularFeatureList featureList,
+      RowGroupList groups, R2RCorrMap map) {
+
+    // sort all rows into two groups
+    List<FeatureListRow> rowsMethodA = new ArrayList<>();
+    List<FeatureListRow> rowsMethodB = new ArrayList<>();
+    Object valueA = null;
+    Object valueB = null;
+    for (FeatureListRow row : featureList.getRows()) {
+      Object value = project
+          .getParameterValue(groupParam, row.getBestFeature().getRawDataFile());
+      if (value == null || value.toString().isEmpty()) {
+        continue;
+      }
+      if (valueA == null || valueA.equals(value)) {
+        rowsMethodA.add(row);
+        valueA = value;
+      } else if (valueB == null || valueB.equals(value)) {
+        rowsMethodB.add(row);
+        valueB = value;
+      } else {
+        throw new IllegalArgumentException(MessageFormat
+            .format("Provided project sample group ({0}) with more than 2 values. {1}, {2}, {3}",
+                groupingParameter, valueA, valueB, value));
+      }
+    }
+
     LOG.info("Corr: Creating row2row correlation map");
-    List<FeatureListRow> rows = featureList.getRows();
-    totalRows = rows.size();
+    totalRows = rowsMethodA.size() + rowsMethodB.size();
     final List<RawDataFile> raws = featureList.getRawDataFiles();
 
     // sort by avgRT (should actually be already sorted)
-    rows.sort(new FeatureListRowSorter(SortingProperty.RT, SortingDirection.Ascending));
+    rowsMethodA.sort(new FeatureListRowSorter(SortingProperty.RT, SortingDirection.Ascending));
+    rowsMethodB.sort(new FeatureListRowSorter(SortingProperty.RT, SortingDirection.Ascending));
 
     PreloadedFeatureDataAccess data = new PreloadedFeatureDataAccess(featureList);
     data.loadIntensityValues();
 
     // for all rows - do in parallel
-    IntStream.range(0, rows.size() - 1).parallel().forEach(i -> {
+    rowsMethodA.stream().parallel().forEach(row -> {
       if (!isCanceled()) {
         try {
-          FeatureListRow row = rows.get(i);
-          // has a minimum number/% of features in all samples / in at least one groups
-          if (minFFilter.filterMinFeatures(raws, row)) {
-            // compare to the rest of rows
-            for (int x = i + 1; x < totalRows; x++) {
-              if (isCanceled()) {
-                break;
-              }
+          // compare to rows of other method
+          for (FeatureListRow row2 : rowsMethodB) {
+            if (isCanceled()) {
+              break;
+            }
 
-              FeatureListRow row2 = rows.get(x);
+            // correlate if in rt range
+            R2RCorrelationData corr =
+                FeatureCorrelationUtil.corrR2RAcrossSamples(data, row, row2,
+                    minCorrelatedDataPoints, minCorrDPOnFeatureEdge, noiseLevelCorr);
 
-              // has a minimum number/% of overlapping features in all samples / in at least one
-              // groups
-              OverlapResult overlap =
-                  minFFilter.filterMinFeaturesOverlap(data, raws, row, row2, rtTolerance);
-              if (overlap.equals(OverlapResult.TRUE)) {
-                // correlate if in rt range
-                R2RFullCorrelationData corr =
-                    FeatureCorrelationUtil.corrR2R(data, raws, row, row2, groupByFShapeCorr,
-                        minCorrelatedDataPoints, minCorrDPOnFeatureEdge, minDPHeightCorr, minHeight,
-                        noiseLevelCorr, useHeightCorrFilter, heightSimMeasure, minHeightCorr);
-
-                // corr is even present if only grouping by retention time
-                // corr is only null if heightCorrelation was not met
-                if (corr != null && //
-                    (!groupByFShapeCorr || FeatureCorrelationUtil.checkFShapeCorr(groupedPKL,
-                        minFFilter, corr, useTotalShapeCorrFilter, minTotalShapeCorrR,
-                        minShapeCorrR,
-                        shapeSimMeasure))) {
-                  // add to map
-                  // can be because of any combination of
-                  // retention time, shape correlation, non-negative height correlation
-                  map.add(row, row2, corr);
-                }
-              }
+            // corr is even present if only grouping by retention time
+            // corr is only null if heightCorrelation was not met
+            if (corr != null &&
+                (!groupByFShapeCorr || corr.getAvgShapeR() >= minShapeCorrR)) {
+              // add to map
+              // can be because of any combination of
+              // retention time, shape correlation, non-negative height correlation
+              map.add(row, row2, corr);
             }
           }
           stageProgress.addAndGet(1d / totalRows);

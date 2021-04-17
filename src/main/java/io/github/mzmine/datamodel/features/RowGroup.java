@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.features;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -70,6 +71,18 @@ public class RowGroup implements Comparable<RowGroup> {
     return rows;
   }
 
+  public synchronized void addAll(FeatureListRow... rows) {
+    for(FeatureListRow row : rows) {
+      add(row);
+    }
+  }
+
+  public synchronized void addAll(Collection<FeatureListRow> rows) {
+    for(FeatureListRow row : rows) {
+      add(row);
+    }
+  }
+
   /**
    * Insert sort by ascending avg mz
    */
@@ -86,13 +99,6 @@ public class RowGroup implements Comparable<RowGroup> {
         if (f.getRT() > max[i]) {
           max[i] = f.getRT();
         }
-      }
-    }
-    // insert sort find position
-    for (int i = 0; i < size(); i++) {
-      if (e.getAverageMZ() <= get(i).getAverageMZ()) {
-        rows.add(i, e);
-        return true;
       }
     }
     // last position
@@ -118,23 +124,15 @@ public class RowGroup implements Comparable<RowGroup> {
    * @return
    */
   public boolean contains(FeatureListRow row) {
-    return contains(row.getID());
-  }
-
-  /**
-   * checks for the same ID
-   *
-   * @param id
-   * @return
-   */
-  public boolean contains(int id) {
     for (FeatureListRow r : rows) {
-      if (r.getID() == id) {
+      // needs to be the same instance
+      if (r == row) {
         return true;
       }
     }
     return false;
   }
+
 
   /**
    * Center retention time in raw file[i]

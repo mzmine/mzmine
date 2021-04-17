@@ -25,6 +25,8 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.CorrelationData;
+import io.github.mzmine.datamodel.features.correlation.R2RCorrelationAcrossSamplesData;
+import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
 import io.github.mzmine.util.maths.similarity.Similarity;
@@ -89,13 +91,43 @@ public class FeatureCorrelationUtil {
         raw.add(e.getKey());
       }
     }
-    boolean hasCorrInSamples = minFFilter.filterMinFeatures(featureList.getRawDataFiles(), raw);
-    if (!hasCorrInSamples) {
+    if (minFFilter != null && minFFilter.filterMinFeatures(featureList.getRawDataFiles(), raw)) {
       // delete corr peak shape
       corr.setCorrFeatureShape(null);
     }
   }
 
+
+  /**
+   * Feature height correlation (used as a filter), feature shape correlation used to group
+   *
+   * @param data                option to preload data or keep data in memory for large scale row 2
+   *                            row correlation (null will access data directly from features)
+   * @param testRow
+   * @param row
+   * @return R2R correlation, returns null if it was filtered by height correlation. Check for
+   * validity on result
+   */
+  public static R2RCorrelationData corrR2RAcrossSamples(
+      PreloadedFeatureDataAccess data,
+      FeatureListRow testRow,
+      FeatureListRow row, int minCorrelatedDataPoints,
+      int minCorrDPOnFeatureEdge, double noiseLevelShapeCorr) {
+
+    // compare best features
+    Feature featureA = testRow.getBestFeature();
+    Feature FeatureB = row.getBestFeature();
+
+    // feature shape correlation
+    CorrelationData correlationData = corrFeatureShape(data, featureA, FeatureB, false,
+        minCorrelatedDataPoints, minCorrDPOnFeatureEdge, noiseLevelShapeCorr);
+
+    // enough data points
+    if (correlationData != null && correlationData.getDPCount() >= minCorrelatedDataPoints) {
+      return new R2RCorrelationAcrossSamplesData(testRow, row, correlationData);
+    }
+    return null;
+  }
 
   /**
    * Feature height correlation (used as a filter), feature shape correlation used to group
@@ -205,64 +237,54 @@ public class FeatureCorrelationUtil {
       PreloadedFeatureDataAccess data, Feature f1,
       Feature f2, boolean sameRawFile,
       int minCorrelatedDataPoints, int minCorrDPOnFeatureEdge, double noiseLevelShapeCorr) {
-    // Range<Double> rt1 = f1.getRawDataPointsRTRange();
-    // Range<Double> rt2 = f2.getRawDataPointsRTRange();
+    // f1 should be the higher feature
+    if (f1.getHeight() < f2.getHeight()) {
+      Feature tmp = f1;
+      f1 = f2;
+      f2 = tmp;
+    }
+
+    List<Scan> scansA = f1.getScanNumbers();
+    List<Scan> scansB = f2.getScanNumbers();
+
+    if (scansA.size() < minCorrelatedDataPoints || scansB.size() < minCorrelatedDataPoints) {
+      return null;
+    }
+
+    // access data from features or preloaded data access
+    final double[] intensities1;
+    final double[] intensities2;
+    if (data == null) {
+      intensities1 = f1.getFeatureData()
+          .getIntensityValues(new double[f1.getNumberOfDataPoints()]);
+      intensities2 = f2.getFeatureData()
+          .getIntensityValues(new double[f2.getNumberOfDataPoints()]);
+    } else {
+      intensities1 = data.getIntensityValues(f1);
+      intensities2 = data.getIntensityValues(f2);
+    }
+
+    // find array index of max intensity for feature1 sn1
+    int maxIndexOfA = indexOfMax(intensities1);
+
     if (sameRawFile) {
-      // f1 should be the higher feature
-      if (f1.getHeight() < f2.getHeight()) {
-        Feature tmp = f1;
-        f1 = f2;
-        f2 = tmp;
-      }
-
-      List<Scan> sn1 = f1.getScanNumbers();
-      List<Scan> sn2 = f2.getScanNumbers();
-
-      if (sn1.size() < minCorrelatedDataPoints || sn2.size() < minCorrelatedDataPoints) {
-        return null;
-      }
-
-      // access data from features or preloaded data access
-      final double[] intensities1;
-      final double[] intensities2;
-      if (data == null) {
-        intensities1 = f1.getFeatureData()
-            .getIntensityValues(new double[f1.getNumberOfDataPoints()]);
-        intensities2 = f2.getFeatureData()
-            .getIntensityValues(new double[f2.getNumberOfDataPoints()]);
-      } else {
-        intensities1 = data.getIntensityValues(f1);
-        intensities2 = data.getIntensityValues(f2);
-      }
-
-      // find array index of max intensity for feature1 sn1
-      int maxIndex = 0;
-      double max = 0;
-      for (int i = 0; i < sn1.size(); i++) {
-        double val = intensities1[i];
-        if (val > max) {
-          maxIndex = i;
-          max = val;
-        }
-      }
-
       // index offset between f1 and f2 data arrays (not all features are based on the same scans)
-      int offsetIndex2 = sn2.indexOf(sn1.get(maxIndex));
+      int maxIndexInB = scansB.indexOf(scansA.get(maxIndexOfA));
 
       // save max and min of intensity of val1(x)
       List<double[]> corrData = new ArrayList<>();
 
       // add all data points <=max
-      int i1 = maxIndex;
-      int i2 = offsetIndex2;
+      int i1 = maxIndexOfA;
+      int i2 = maxIndexInB;
       while (i1 >= 0 && i2 >= 0) {
-        Scan s1 = sn1.get(i1);
-        Scan s2 = sn2.get(i2);
+        Scan s1 = scansA.get(i1);
+        Scan s2 = scansB.get(i2);
         // add point, if not break
-        if (s1 == s2 && intensities1[i1] >= noiseLevelShapeCorr && intensities2[i2] >= noiseLevelShapeCorr) {
-            corrData.add(new double[]{intensities1[i1], intensities2[i2]});
-        }
-        else {
+        if (s1 == s2 && intensities1[i1] >= noiseLevelShapeCorr
+            && intensities2[i2] >= noiseLevelShapeCorr) {
+          corrData.add(new double[]{intensities1[i1], intensities2[i2]});
+        } else {
           // end of feature found
           break;
         }
@@ -277,16 +299,16 @@ public class FeatureCorrelationUtil {
       }
 
       // add all dp>max
-      i1 = maxIndex + 1;
-      i2 = offsetIndex2 + 1;
-      while (i1 < sn1.size() && i2 < sn2.size()) {
-        Scan s1 = sn1.get(i1);
-        Scan s2 = sn2.get(i2);
+      i1 = maxIndexOfA + 1;
+      i2 = maxIndexInB + 1;
+      while (i1 < scansA.size() && i2 < scansB.size()) {
+        Scan s1 = scansA.get(i1);
+        Scan s2 = scansB.get(i2);
         // add point, if not break
-        if (s1 == s2 && intensities1[i1] >= noiseLevelShapeCorr && intensities2[i2] >= noiseLevelShapeCorr) {
+        if (s1 == s2 && intensities1[i1] >= noiseLevelShapeCorr
+            && intensities2[i2] >= noiseLevelShapeCorr) {
           corrData.add(new double[]{intensities1[i1], intensities2[i2]});
-        }
-        else {
+        } else {
           // end of peak found
           break;
         }
@@ -302,8 +324,46 @@ public class FeatureCorrelationUtil {
     } else {
       // TODO if different raw file search for same rt
       // impute rt/I values if between 2 data points
+      int indexLeftA = 0;
+      int indexLeftB = 0;
+
+      // find first data points
+      for(;indexLeftA<intensities1.length; indexLeftA++) {
+        if(intensities1[indexLeftA]>=noiseLevelShapeCorr) {
+          break;
+        }
+      }
+      for(;indexLeftB<intensities2.length; indexLeftB++) {
+        if(intensities2[indexLeftB]>=noiseLevelShapeCorr) {
+          break;
+        }
+      }
+
+      float rtLeftA = scansA.get(indexLeftA).getRetentionTime();
+      float rtLeftB = scansB.get(indexLeftB).getRetentionTime();
+      while(true) {
+//        if()
+          break;
+      }
+
     }
     return null;
+  }
+
+  /**
+   * Find index of maximum value
+   */
+  public static int indexOfMax(double[] values) {
+    int maxIndex = 0;
+    double max = 0;
+    for (int i = 0; i < values.length; i++) {
+      double val = values[i];
+      if (val > max) {
+        maxIndex = i;
+        max = val;
+      }
+    }
+    return maxIndex;
   }
 
   /**

@@ -467,8 +467,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
           if (g instanceof MS2SimilarityProviderGroup) {
             R2RMap<R2RMS2Similarity> map = ((MS2SimilarityProviderGroup) g).getMS2SimilarityMap();
-            for (Map.Entry<String, R2RMS2Similarity> e : map.entrySet()) {
-              R2RMS2Similarity r2r = e.getValue();
+            for (R2RMS2Similarity r2r : map.values()) {
               if (r2r.getDiffAvgCosine() == 0 && r2r.getDiffMaxOverlap() == 0)
                 continue;
               FeatureListRow a = r2r.getA();
@@ -524,8 +523,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
           if (g instanceof MS2SimilarityProviderGroup) {
             R2RMap<R2RMS2Similarity> map = ((MS2SimilarityProviderGroup) g).getMS2SimilarityMap();
-            for (Map.Entry<String, R2RMS2Similarity> e : map.entrySet()) {
-              R2RMS2Similarity r2r = e.getValue();
+            for (R2RMS2Similarity r2r : map.values()) {
               if (r2r.getSpectralAvgCosine() == 0 && r2r.getSpectralMaxOverlap() == 0)
                 continue;
               FeatureListRow a = r2r.getA();

@@ -219,21 +219,6 @@ public class R2GroupCorrelationData {
   }
 
 
-  /**
-   * 
-   * @param rowI
-   * @return the correlation data of this row to row[rowI]
-   */
-  public R2RFullCorrelationData getCorrelationToRowID(int rowI) {
-    if (row.getID() == rowI)
-      return null;
-    for (R2RFullCorrelationData c : corr) {
-      if (c.getIDA() == rowI || c.getIDB() == rowI)
-        return c;
-    }
-    return null;
-  }
-
   public FeatureListRow getRow() {
     return row;
   }
@@ -244,7 +229,13 @@ public class R2GroupCorrelationData {
    * @throws Exception
    */
   public R2RFullCorrelationData getCorrelationToRow(FeatureListRow row) {
-    return getCorrelationToRowID(row.getID());
+    if (row != row)
+      return null;
+    for (R2RFullCorrelationData c : corr) {
+      if (c.getRowA() == row || c.getRowB() == row)
+        return c;
+    }
+    return null;
   }
 
 }

@@ -124,7 +124,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
           data.set(IonNetworkIDType.class, null);
           data.set(SizeType.class, null);
       }
-      data.set(PartnerIdsType.class, ion.getPartnerRows(";"));
+      data.set(PartnerIdsType.class, ion.getPartnerRowsString(";"));
       data.set(MsMsMultimerVerifiedType.class, ion.getMSMSMultimerCount() > 0? ion.getMSMSMultimerCount() : null);
 
       // set all formulas and update the shown "best" formula
