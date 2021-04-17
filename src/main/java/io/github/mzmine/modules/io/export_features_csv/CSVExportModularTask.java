@@ -108,7 +108,8 @@ public class CSVExportModularTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to CSV file(s) (new format)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists)
+           + " to CSV file(s) (new format)";
   }
 
   @Override
@@ -208,7 +209,7 @@ public class CSVExportModularTask extends AbstractTask {
 
   public boolean filterType(DataType type) {
     return !(type instanceof NoTextColumn || type instanceof NullColumnType
-        || type instanceof LinkedDataType);
+             || type instanceof LinkedDataType);
   }
 
   private String joinRowData(ModularFeatureListRow row,
@@ -219,9 +220,38 @@ public class CSVExportModularTask extends AbstractTask {
     // add feature types
     for (RawDataFile raw : raws) {
       ModularFeature feature = row.getFeature(raw);
-      joinData(b, feature, featureTypes);
+      if (feature != null) {
+        joinData(b, feature, featureTypes);
+      } else {
+        joinEmptyCells(b, featureTypes);
+      }
     }
     return b.toString();
+  }
+
+  /**
+   * Fills in empty cells for all data types and their sub types
+   *
+   * @param b         the string builder
+   * @param dataTypes the list of types (with sub types) that are empty
+   */
+  private void joinEmptyCells(StringBuilder b, List<DataType> dataTypes) {
+    for (DataType t : dataTypes) {
+      if (t instanceof ModularType) {
+        ModularType modType = (ModularType) t;
+        // join all the sub headers
+        List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
+            .filter(this::filterType).collect(Collectors.toList());
+        joinEmptyCells(b, filteredSubTypes);
+      } else if (t instanceof SubColumnsFactory subCols) {
+        int numberOfSub = subCols.getNumberOfSubColumns();
+        for (int i = 0; i < numberOfSub; i++) {
+            b.append(fieldSeparator);
+        }
+      } else {
+          b.append(fieldSeparator);
+      }
+    }
   }
 
   /**
@@ -242,7 +272,7 @@ public class CSVExportModularTask extends AbstractTask {
         joinData(b, modProp, filteredSubTypes);
       } else if (type instanceof SubColumnsFactory subCols) {
         Property property = data.get(type);
-        Object value = property == null? null : property.getValue();
+        Object value = property == null ? null : property.getValue();
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
           String field = subCols.getFormattedSubColValue(i, null, null, value, null);
