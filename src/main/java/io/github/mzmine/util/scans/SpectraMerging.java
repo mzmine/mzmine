@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -228,7 +229,7 @@ public class SpectraMerging {
    * @return A {@link MergedMsMsSpectrum}.
    */
   public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@Nonnull final ImsMsMsInfo info,
-      @Nonnull final double noiseLevel, @Nonnull final MZTolerance tolerance,
+      final double noiseLevel, @Nonnull final MZTolerance tolerance,
       @Nonnull final MergingType mergingType, @Nullable final MemoryMapStorage storage) {
 
     if (info == null) {
@@ -287,12 +288,12 @@ public class SpectraMerging {
 
     final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
 
-    List<MergedMsMsSpectrum> mergedSpectra = new ArrayList<>();
+    final List<MergedMsMsSpectrum> mergedSpectra = new ArrayList<>();
     // group spectra with the same CE into the same list
-    var grouped = spectra.stream()
+    final Map<Float, List<MergedMsMsSpectrum>> grouped = spectra.stream()
         .collect(Collectors.groupingBy(spectrum -> spectrum.getCollisionEnergy()));
 
-    for (var entry : grouped.entrySet()) {
+    for (final Entry<Float, List<MergedMsMsSpectrum>> entry : grouped.entrySet()) {
       final MergedMsMsSpectrum spectrum = entry.getValue().get(0);
       final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(), 0d,
           tolerance,
