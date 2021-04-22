@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -68,6 +67,7 @@ public class GroupMS2Task extends AbstractTask {
   private RTTolerance rtTol;
   private MZTolerance mzTol;
   private boolean limitRTByFeature;
+  private final boolean combineTimsMS2;
 
   /**
    * Create the task.
@@ -85,6 +85,7 @@ public class GroupMS2Task extends AbstractTask {
     rtTol = parameters.getParameter(GroupMS2Parameters.rtTol).getValue();
     mzTol = parameters.getParameter(GroupMS2Parameters.mzTol).getValue();
     limitRTByFeature = parameters.getParameter(GroupMS2Parameters.limitRTByFeature).getValue();
+    combineTimsMS2 = parameterSet.getParameter(GroupMS2Parameters.combineTimsMsMs).getValue();
     this.list = list;
     processedRows = 0;
     totalRows = 0;
@@ -142,8 +143,7 @@ public class GroupMS2Task extends AbstractTask {
       if (f instanceof ModularFeature && ((ModularFeature) f).getMobilityUnit()
           == io.github.mzmine.datamodel.MobilityType.TIMS) {
         processTimsFeature((ModularFeature) f);
-      }
-      else if(!f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
+      } else if (!f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
         RawDataFile raw = f.getRawDataFile();
         float frt = f.getRT();
         double fmz = f.getMZ();
@@ -220,10 +220,19 @@ public class GroupMS2Task extends AbstractTask {
     }
 
     if (!msmsSpectra.isEmpty()) {
-      feature.setAllMS2FragmentScans(
-          (ObservableList<Scan>) (ObservableList<? extends Scan>) msmsSpectra);
-      MergedMsMsSpectrum best = msmsSpectra.stream()
-          .max(Comparator.comparingDouble(MergedMsMsSpectrum::getTIC)).orElse(null);
+      if (combineTimsMS2) {
+        ObservableList<MergedMsMsSpectrum> sameCEMerged = FXCollections.observableArrayList(
+            SpectraMerging.mergeMsMsSpectra(msmsSpectra, mergeTol, MergingType.SUMMED,
+                ((ModularFeatureList) list).getMemoryMapStorage()));
+        feature.setAllMS2FragmentScans(
+            (ObservableList<Scan>) (ObservableList<? extends Scan>) sameCEMerged);
+
+      } else {
+        feature.setAllMS2FragmentScans(
+            (ObservableList<Scan>) (ObservableList<? extends Scan>) msmsSpectra);
+      }
+      Scan best = feature.getAllMS2FragmentScans().stream()
+          .max(Comparator.comparingDouble(Scan::getTIC)).orElse(null);
       feature.setFragmentScan(best);
     }
 
