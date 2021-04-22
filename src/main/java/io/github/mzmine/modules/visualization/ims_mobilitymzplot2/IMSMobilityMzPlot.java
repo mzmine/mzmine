@@ -326,7 +326,8 @@ public class IMSMobilityMzPlot extends BorderPane {
             if (!isCtrlPressed) {
               clearRightSide();
             }
-            addFeatureToRightSide(row.getBestFeature());
+            var f = row.getBestFeature();
+            addFeatureToRightSide(f);
           }
         }
         // if the mz + mobility of a feature was used to generate the plot

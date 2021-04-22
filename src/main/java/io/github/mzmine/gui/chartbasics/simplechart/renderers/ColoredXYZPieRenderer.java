@@ -4,6 +4,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDatase
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
@@ -117,25 +118,25 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
 
     final double x = dataset.getXValue(series, item);
     final double y = dataset.getYValue(series, item);
-    final double z = pieDataset.getZValue(series, item);
+    final double z = pieDataset.getZValue(item);
     final double pieWidth = pieDataset.getPieWidth(item);
 
     double cx = domainAxis.valueToJava2D(x, dataArea,
-        plot.getDomainAxisEdge());
+        plot.getDomainAxisEdge()) - pieWidth / 2;
     double cy = rangeAxis.valueToJava2D(y, dataArea,
-        plot.getRangeAxisEdge());
+        plot.getRangeAxisEdge()) - pieWidth / 2;
 
     int startAngle = 0;
-    for (int seriesIndex = 0; seriesIndex < pieDataset.getSeriesCount(); seriesIndex++) {
+    for (int seriesIndex = 0; seriesIndex < dataset.getSeriesCount(); seriesIndex++) {
       try {
+        final double value = pieDataset.getZValue(seriesIndex, item);
+        final int endAngle = (int) (value * 360 / z);
+
         g2.setPaint(pieDataset.getSliceColor(seriesIndex));
-        int endAngle = (int) (startAngle + pieDataset.getZValue(seriesIndex, item) * 360 / z);
-        g2.fillArc((int) (cx - pieWidth / 2), (int) (cy - pieWidth / 2), (int) pieWidth,
-            (int) pieDataset.getPieWidth(item), startAngle, endAngle);
-        g2.setPaint(Color.BLACK);
-        g2.drawArc((int) (cx - pieWidth / 2), (int) (cy - pieWidth / 2), (int) pieWidth,
-            (int) pieDataset.getPieWidth(item), startAngle, endAngle);
-        startAngle = endAngle;
+        g2.fill(new Arc2D.Double(cx, cy, pieWidth,
+            pieDataset.getPieWidth(item), startAngle, endAngle, Arc2D.PIE));
+        startAngle += endAngle;
+
       } catch (ClassCastException e) {
         e.printStackTrace();
         logger.log(Level.WARNING, e,
@@ -143,6 +144,10 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
         return;
       }
     }
+
+    g2.setPaint(Color.BLACK);
+    g2.draw(new Arc2D.Double(cx, cy, pieWidth,
+        pieWidth, 0, 360, Arc2D.OPEN));
 
     final PlotOrientation orientation = plot.getOrientation();
 
@@ -161,7 +166,7 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
 
     EntityCollection entities = state.getEntityCollection();
     if (entities != null) {
-      addEntity(entities, new Ellipse2D.Double(cx, cy, pieWidth, pieWidth), dataset, series, item,
+      addEntity(entities, new Ellipse2D.Double(cx - pieWidth / 2, cy - pieWidth / 2, pieWidth, pieWidth), dataset, series, item,
           cx, cy);
     }
 
@@ -203,29 +208,6 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
     return clone;
   }
 
-  /*@Override
-  public LegendItemCollection getLegendItems() {
-    final XYPlot plot = getPlot();
-    if (plot == null) {
-      return new LegendItemCollection();
-    }
-    final int index = plot.getIndexOf(this);
-    final XYDataset dataset = plot.getDataset(index);
-    if (!(dataset instanceof ColoredXYZPieDataset)) {
-      return super.getLegendItems();
-    }
-
-    final LegendItemCollection result = new LegendItemCollection();
-    final ColoredXYZPieDataset<?> ds = (ColoredXYZPieDataset<?>) dataset;
-    for (int series = 0; series < ds.getSeriesCount(); series++) {
-      final LegendItem item = getLegendItemForSlice(index, series);
-      if (item != null) {
-        result.add(item);
-      }
-    }
-    return result;
-  }*/
-
   @Override
   public LegendItem getLegendItem(int datasetIndex, int series) {
     XYDataset dataset = getPlot().getDataset(datasetIndex);
@@ -233,47 +215,6 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
       currentDataset = ds;
     }
     return super.getLegendItem(datasetIndex, series);
-
-    /*final String label = ds.getSeriesKey(series).toString();
-    String toolTipText = null;
-    if (getLegendItemToolTipGenerator() != null) {
-      toolTipText = getLegendItemToolTipGenerator().generateLabel(
-          ds, series);
-    }
-    String urlText = null;
-    if (getLegendItemURLGenerator() != null) {
-      urlText = getLegendItemURLGenerator().generateLabel(ds,
-          series);
-    }
-
-    Shape shape = lookupLegendShape(series);
-    Paint paint = lookupSeriesPaint(series);
-    LegendItem item = new LegendItem(label, paint);
-    item.setToolTipText(toolTipText);
-    item.setURLText(urlText);
-    item.setLabelFont(lookupLegendTextFont(series));
-    Paint labelPaint = lookupLegendTextPaint(series);
-    if (labelPaint != null) {
-      item.setLabelPaint(labelPaint);
-    }
-    item.setSeriesKey(ds.getSeriesKey(series));
-    item.setSeriesIndex(series);
-    item.setDataset(ds);
-    item.setDatasetIndex(datasetIndex);
-
-    if (getTreatLegendShapeAsLine()) {
-      item.setLineVisible(true);
-      item.setLine(shape);
-      item.setLinePaint(paint);
-      item.setShapeVisible(false);
-    }
-    else {
-      Paint outlinePaint = lookupSeriesOutlinePaint(series);
-      Stroke outlineStroke = lookupSeriesOutlineStroke(series);
-      item.setOutlinePaint(outlinePaint);
-      item.setOutlineStroke(outlineStroke);
-    }
-    return item;*/
   }
 
   @Override

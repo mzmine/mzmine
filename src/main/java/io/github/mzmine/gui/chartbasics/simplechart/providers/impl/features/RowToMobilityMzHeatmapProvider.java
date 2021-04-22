@@ -44,7 +44,7 @@ public class RowToMobilityMzHeatmapProvider implements
   private final NumberFormat intensityFormat;
   private final NumberFormat mobilityFormat;
   private final List<ModularFeatureListRow> rows;
-  private final double pieDiameter = 7d;
+  private final double pieDiameter = 20;
   private final double[] summedValues;
   private final IMSRawDataFile[] files;
 
