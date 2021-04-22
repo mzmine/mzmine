@@ -37,12 +37,12 @@ import org.jfree.data.xy.XYZDataset;
 public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZDataset {
 
   private final PieXYZDataProvider<T> pieDataProvider;
-  protected final boolean autocompute;
   protected Double minZValue;
   protected Double maxZValue;
   protected AbstractXYItemRenderer renderer;
   protected boolean useAlphaInPaintscale;
   protected double[] summedZValues;
+  protected T[] sliceIdentifiers;
 
   public ColoredXYZPieDataset(@Nonnull PieXYZDataProvider<T> dataProvider) {
     this(dataProvider, true);
@@ -55,7 +55,6 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
     minZValue = Double.MAX_VALUE;
     maxZValue = Double.MIN_VALUE;
     renderer = new XYBlockPixelSizeRenderer();
-    this.autocompute = autocompute;
     if(autocompute) {
       MZmineCore.getTaskController().addTask(this);
     }
@@ -73,16 +72,31 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
     return pieDataProvider.getZValue(item);
   }
 
-  @Override
-  public double getZValue(int series, int item) {
+  public double getZValue(int item) {
     if (!valuesComputed) {
       return 0.0;
     }
     return pieDataProvider.getZValue(item);
   }
 
-  public double getZValue(int index, Object obj) {
-    return pieDataProvider.getZValue(index, (T)obj);
+  @Override
+  public double getZValue(int series, int item) {
+    return pieDataProvider.getZValue(series, item);
+  }
+
+  @Override
+  public int getSeriesCount() {
+    return sliceIdentifiers.length;
+  }
+
+  @Override
+  public Comparable<?> getSeriesKey() {
+    return "Pie data set";
+  }
+
+  @Override
+  public Comparable<?> getSeriesKey(int series) {
+    return pieDataProvider.getLabelForSeries(series);
   }
 
   public double getMinZValue() {
@@ -94,9 +108,10 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
   }
 
   public double getPieWidth(int index) {
-    return pieDataProvider.getPieSize(index);
+    return pieDataProvider.getPieDiameter(index);
   }
 
+  @Override
   public int getValueIndex(final double domainValue, final double rangeValue) {
     for (int i = 0; i < computedItemCount; i++) {
       if (Double.compare(domainValue, getX(0, i).doubleValue()) == 0
@@ -107,8 +122,8 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
     return -1;
   }
 
-  public Color getSliceColor(Object sliceIdentifier) {
-    return pieDataProvider.getSliceColor((T)sliceIdentifier);
+  public Color getSliceColor(int series) {
+    return pieDataProvider.getSliceColor(series);
   }
 
   @Override
@@ -121,7 +136,9 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
     }
 
     computedItemCount = xyValueProvider.getValueCount();
+    sliceIdentifiers = pieDataProvider.getSliceIdentifiers();
     valuesComputed = true;
+    summedZValues = new double[computedItemCount];
 
     for (int i = 0; i < computedItemCount; i++) {
       if (minRangeValue.doubleValue() < xyValueProvider.getRangeValue(i)) {
@@ -132,6 +149,10 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
       }
       if (pieDataProvider.getZValue(i) > maxZValue) {
         maxZValue = pieDataProvider.getZValue(i);
+      }
+
+      for(int j = 0; j < sliceIdentifiers.length; j++) {
+        summedZValues[i] += getZValue(j, i);
       }
     }
 

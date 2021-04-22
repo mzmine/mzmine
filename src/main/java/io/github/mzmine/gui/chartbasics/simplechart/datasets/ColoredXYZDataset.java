@@ -20,10 +20,9 @@ package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYZValueProvider;
 import io.github.mzmine.main.MZmineCore;
@@ -48,16 +47,10 @@ import org.jfree.data.xy.XYZDataset;
  */
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
-  protected final static PaintScaleColorStyle FALLBACK_PS_STYLE = PaintScaleColorStyle.RAINBOW;
-  protected final static PaintScaleBoundStyle FALLBACK_PS_BOUND = PaintScaleBoundStyle.LOWER_AND_UPPER_BOUND;
-
   private final XYZValueProvider xyzValueProvider;
-  protected final boolean autocompute;
   protected Double minZValue;
   protected Double maxZValue;
   protected PaintScale paintScale;
-  protected PaintScaleColorStyle defaultPaintScaleColorStyle;
-  protected PaintScaleBoundStyle defaultPaintScaleBoundStyle;
   protected Double boxWidth;
   protected Double boxHeight;
   protected AbstractXYItemRenderer renderer;
@@ -69,29 +62,26 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
   public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
       final boolean useAlphaInPaintscale) {
-    this(dataProvider, useAlphaInPaintscale, FALLBACK_PS_STYLE, FALLBACK_PS_BOUND);
+    this(dataProvider, useAlphaInPaintscale, true);
   }
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale, PaintScaleColorStyle paintScaleColorStyle,
-      PaintScaleBoundStyle paintScaleBoundStyle) {
-    this(dataProvider, useAlphaInPaintscale, FALLBACK_PS_STYLE, FALLBACK_PS_BOUND, true);
-  }
 
   ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale, PaintScaleColorStyle paintScaleColorStyle,
-      PaintScaleBoundStyle paintScaleBoundStyle, boolean autocompute) {
+      final boolean useAlphaInPaintscale, boolean autocompute) {
     super(dataProvider, false);
+
+    if (dataProvider instanceof PieXYZDataProvider) {
+      throw new IllegalArgumentException(
+          "PieXYZDataProviders can only be used with ColoredXYPieDatasets");
+    }
+
     this.xyzValueProvider = dataProvider;
-    this.defaultPaintScaleColorStyle = paintScaleColorStyle;
-    this.defaultPaintScaleBoundStyle = paintScaleBoundStyle;
     this.useAlphaInPaintscale = useAlphaInPaintscale;
     minZValue = Double.MAX_VALUE;
     maxZValue = Double.MIN_VALUE;
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
-    this.autocompute = autocompute;
-    if(autocompute) {
+    if (autocompute) {
       MZmineCore.getTaskController().addTask(this);
     }
   }
@@ -110,10 +100,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
   @Override
   public Number getZ(int series, int item) {
-    if (!valuesComputed) {
-      return 0.0;
-    }
-    return xyzValueProvider.getZValue(item);
+    return getZValue(series, item);
   }
 
   @Override
@@ -147,24 +134,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 //    this.paintScale = paintScale;
 //  }
 
-  public PaintScaleColorStyle getDefaultPaintScaleColorStyle() {
-    return defaultPaintScaleColorStyle;
-  }
-
-  public void setDefaultPaintScaleColorStyle(
-      PaintScaleColorStyle defaultPaintScaleColorStyle) {
-    this.defaultPaintScaleColorStyle = defaultPaintScaleColorStyle;
-  }
-
-  public PaintScaleBoundStyle getDefaultPaintScaleBoundStyle() {
-    return defaultPaintScaleBoundStyle;
-  }
-
-  public void setDefaultPaintScaleBoundStyle(
-      PaintScaleBoundStyle defaultPaintScaleBoundStyle) {
-    this.defaultPaintScaleBoundStyle = defaultPaintScaleBoundStyle;
-  }
-
   public Double getBoxWidth() {
     return boxWidth;
   }
@@ -181,6 +150,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     this.boxHeight = boxHeight;
   }
 
+  @Override
   public int getValueIndex(final double domainValue, final double rangeValue) {
     for (int i = 0; i < computedItemCount; i++) {
       if (Double.compare(domainValue, getX(0, i).doubleValue()) == 0
@@ -282,13 +252,12 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
     computed = true;
     status.set(TaskStatus.FINISHED);
-//    if (!this.autocompute) {
+
     if (Platform.isFxApplicationThread()) {
       fireDatasetChanged();
     } else {
       Platform.runLater(this::fireDatasetChanged);
     }
-//    }
   }
 
   // Makes protected method public // TODO: possible alternatives?

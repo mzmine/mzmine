@@ -32,7 +32,7 @@ public class IMSMobilityMzPlotTab extends MZmineTab {
   public IMSMobilityMzPlotTab(Collection<ModularFeatureListRow> rows, boolean useMobilograms) {
     super("IMS mobility m/z plot", false, false);
     IMSMobilityMzPlot visualizer = new IMSMobilityMzPlot();
-    visualizer.setFeatures(rows, useMobilograms, PlotType.MOBILITY);
+    visualizer.setFeatures(rows, PlotType.MOBILITY);
     setContent(visualizer);
   }
 
@@ -56,16 +56,16 @@ public class IMSMobilityMzPlotTab extends MZmineTab {
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
+    // nothing
   }
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
+    // nothing
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
+    // nothing
   }
 }

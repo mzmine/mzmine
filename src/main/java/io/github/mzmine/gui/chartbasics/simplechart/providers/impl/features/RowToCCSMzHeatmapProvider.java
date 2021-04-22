@@ -16,44 +16,51 @@
  *  USA
  */
 
-package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features;
 
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
-import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.jfree.chart.renderer.PaintScale;
 
-public class RowToCCSMzHeatmapProvider implements PlotXYZDataProvider {
+public class RowToCCSMzHeatmapProvider implements
+    PieXYZDataProvider<IMSRawDataFile> {
 
   private final String seriesKey;
   private final NumberFormat rtFormat;
   private final NumberFormat mzFormat;
   private final NumberFormat intensityFormat;
   private final NumberFormat ccsFormat;
-  private final UnitFormat unitFormat;
   private final List<ModularFeatureListRow> rows;
-  private double boxWidth;
-  private double boxHeight;
+  private final double pieDiameter = 7d;
+  private final double[] summedValues;
+  private final IMSRawDataFile[] files;
 
   public RowToCCSMzHeatmapProvider(@Nonnull final Collection<ModularFeatureListRow> f) {
-    rows = f.stream().filter(row -> row.getAverageCCS() != null).collect(Collectors.toList());
-    seriesKey = (rows.isEmpty()) ? "No features found" : rows.get(0).getFeatureList().getName();
+    // copy the list, so we don't run into problems in case the flist is modified
+    rows = new ArrayList<>(f);
+    seriesKey = (f.isEmpty()) ? "No features found" : rows.get(0).getFeatureList().getName();
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     ccsFormat = MZmineCore.getConfiguration().getCCSFormat();
-    unitFormat = MZmineCore.getConfiguration().getUnitFormat();
+    intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    summedValues = new double[rows.size()];
+    // to set first to remove duplicates
+    files = rows.stream().flatMap(row -> row.getRawDataFiles().stream())
+        .filter(file -> file instanceof IMSRawDataFile).distinct().toArray(IMSRawDataFile[]::new);
   }
 
   @Nonnull
@@ -71,13 +78,14 @@ public class RowToCCSMzHeatmapProvider implements PlotXYZDataProvider {
   @Nullable
   @Override
   public String getLabel(int index) {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PaintScale getPaintScale() {
-    return null;
+    ModularFeatureListRow f = rows.get(index);
+    StringBuilder sb = new StringBuilder();
+    sb.append("m/z:");
+    sb.append(mzFormat.format(f.getAverageMZ()));
+    sb.append("\n");
+    sb.append("CCS: ");
+    sb.append(ccsFormat.format(f.getAverageCCS()));
+    return sb.toString();
   }
 
   @Nonnull
@@ -97,32 +105,43 @@ public class RowToCCSMzHeatmapProvider implements PlotXYZDataProvider {
     sb.append(" - ");
     sb.append(mzFormat.format(f.getMZRange().upperEndpoint()));
     sb.append("\n");
-    sb.append(unitFormat.format("Retention time", "min"));
+    sb.append("Height: ");
+    sb.append(intensityFormat.format(f.getHeight()));
+    sb.append("\n");
+    sb.append("Retention time");
     sb.append(": ");
     sb.append(rtFormat.format(f.getAverageRT()));
-    sb.append("\n");
+    sb.append(" min\n");
     sb.append("CCS: ");
     sb.append(ccsFormat.format(f.getAverageCCS()));
-    sb.append("\nHeight: ");
-    sb.append(intensityFormat.format(f.getHeight()));
     return sb.toString();
   }
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    boxWidth = 0.01;
-    boxHeight = 4d;
+    for (int i = 0; i < rows.size(); i++) {
+      final ModularFeatureListRow row = rows.get(i);
+      for(final IMSRawDataFile file : files) {
+        final ModularFeature feature = row.getFeature(file);
+        if(feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+          summedValues[i] += feature.getHeight();
+        }
+
+        if(status.get() == TaskStatus.CANCELED) {
+          return;
+        }
+      }
+    }
   }
 
   @Override
   public double getDomainValue(int index) {
-    ModularFeatureListRow f = rows.get(index);
-    return f.getAverageMZ() * f.getRowCharge();
+    return rows.get(index).getAverageMZ() * rows.get(index).getRowCharge();
   }
 
   @Override
   public double getRangeValue(int index) {
-    return rows.get(index).getAverageCCS();
+    return Objects.requireNonNullElse(rows.get(index).getAverageCCS(), 0f).doubleValue();
   }
 
   @Override
@@ -136,25 +155,43 @@ public class RowToCCSMzHeatmapProvider implements PlotXYZDataProvider {
   }
 
   @Override
+  public IMSRawDataFile[] getSliceIdentifiers() {
+    return files;
+  }
+
+  @Override
   public double getZValue(int index) {
-    return rows.get(index).getHeight();
+    return summedValues[index];
   }
 
-  @Nullable
   @Override
-  public Double getBoxHeight() {
-    return boxHeight;
+  public double getZValue(int series, int item) {
+    final ModularFeatureListRow row = rows.get(item);
+    final ModularFeature f = row.getFeature(files[series]);
+    if (f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+      return f.getHeight();
+    }
+    return 0d;
   }
 
-  @Nullable
+  @Nonnull
   @Override
-  public Double getBoxWidth() {
-    return boxWidth;
+  public Color getSliceColor(int series) {
+    return files[series].getColorAWT();
+  }
+
+  @Override
+  public double getPieDiameter(int index) {
+    return pieDiameter;
+  }
+
+  @Override
+  public String getLabelForSeries(int series) {
+    return files[series].getName();
   }
 
   @Nullable
   public List<ModularFeatureListRow> getSourceRows() {
     return rows;
   }
-
 }

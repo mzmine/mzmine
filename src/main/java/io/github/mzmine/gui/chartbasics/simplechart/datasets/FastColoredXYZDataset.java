@@ -18,8 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import javax.annotation.Nonnull;
 
@@ -37,13 +35,7 @@ public class FastColoredXYZDataset extends ColoredXYZDataset {
 
   public FastColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
       final boolean useAlphaInPaintscale) {
-    this(dataProvider, useAlphaInPaintscale, FALLBACK_PS_STYLE, FALLBACK_PS_BOUND);
-  }
-
-  public FastColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale, PaintScaleColorStyle paintScaleColorStyle,
-      PaintScaleBoundStyle paintScaleBoundStyle) {
-    super(dataProvider, false, paintScaleColorStyle, paintScaleBoundStyle, false);
+    super(dataProvider, useAlphaInPaintscale, false);
     run();
   }
 

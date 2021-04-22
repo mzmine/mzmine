@@ -70,6 +70,7 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.title.Title;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.general.DatasetChangeListener;
@@ -95,16 +96,17 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
-  private final BooleanProperty isDrawingRegion;
   protected RectangleEdge defaultPaintscaleLocation = RectangleEdge.RIGHT;
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
   private Canvas legendCanvas;
   private String legendLabel = null;
   private ObjectProperty<PaintScale> legendPaintScale;
-  private XYShapeAnnotation currentRegionAnnotation;
-  private RegionSelectionListener currentRegionListener;
+
+  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
+  private RegionSelectionListener currentRegionListener = null;
   private PaintScaleLegend currentLegend;
+  private XYShapeAnnotation currentRegionAnnotation;
 
   public MultiDatasetXYZScatterPlot() {
     super(ChartFactory.createScatterPlot("", "x", "y", null,
@@ -122,9 +124,6 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     setCursor(Cursor.DEFAULT);
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(this);
-
-    isDrawingRegion = new SimpleBooleanProperty(false);
-    currentRegionListener = null;
 
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();
@@ -196,11 +195,11 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
    * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
    * from the listener object.
    *
-   * @return
+   * @return The finished listener
    */
   @Override
   public RegionSelectionListener finishPath() {
-    if (isDrawingRegion.get() == false) {
+    if (!isDrawingRegion.get()) {
       return null;
     }
     if (currentRegionAnnotation != null) {
@@ -218,8 +217,8 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   }
 
   /**
-   * @param dataset
-   * @param renderer
+   * @param dataset The dataset.
+   * @param renderer The renderer.
    * @return The dataset index.
    */
   public synchronized int addDataset(XYZDataset dataset, XYItemRenderer renderer) {
@@ -257,7 +256,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   public void addDatasetsAndRenderers(
       Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> datasetsAndRenderers) {
     getChart().setNotify(false);
-    datasetsAndRenderers.entrySet().forEach(e -> addDataset(e.getKey(), e.getValue()));
+    datasetsAndRenderers.forEach(this::addDataset);
     getChart().setNotify(true);
     getChart().fireChartChanged();
   }
@@ -504,10 +503,11 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     legendLabel = label;
   }
 
-  private void drawLegendToSeparateCanvas(PaintScaleLegend legend) {
+  private void drawLegendToSeparateCanvas(Title legend) {
+    assert legendCanvas != null;
     GraphicsContext gc = legendCanvas.getGraphicsContext2D();
-    gc.clearRect(0, 0, legendCanvas.getWidth(), legendCanvas.getHeight()); // clear canvas
     FXGraphics2D g2 = new FXGraphics2D(gc);
+    gc.clearRect(0, 0, legendCanvas.getWidth(), legendCanvas.getHeight()); // clear canvas
     g2.setRenderingHint(FXHints.KEY_USE_FX_FONT_METRICS, true);
     g2.setZeroStrokeWidth(0.1);
     g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
@@ -542,7 +542,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     Font axisTickLabelFont = getXYPlot().getDomainAxis().getTickLabelFont();
 
     NumberAxis scaleAxis = new NumberAxis(null);
-    scaleAxis.setRange(scale.getLowerBound(), scale.getUpperBound());
+    scaleAxis.setRange(scale.getLowerBound(), Math.max(scale.getUpperBound(), scale.getUpperBound() * 1E-10));
     scaleAxis.setAxisLinePaint(axisPaint);
     scaleAxis.setTickMarkPaint(axisPaint);
     scaleAxis.setNumberFormatOverride(legendAxisFormat);
