@@ -56,7 +56,7 @@ ext {
     slf4jVersion = "1.7.30"
     poiVersion = "4.1.0"
     batikVersion = "1.11"
-    controlsfxVersion = "11.0.3"
+    controlsfxVersion = "11.1.0"
     jmzTabmVersion = "1.0.6"
     jnaVersion = "5.6.0"
     junitversion = "5.7.0"
@@ -114,7 +114,7 @@ dependencies {
     implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
     implementation "org.xerial:sqlite-jdbc:3.8.11.2"
     implementation "org.du-lab.adap:adap:4.1.4"
-    implementation "gnf:clustering:20130919"
+    implementation "gnf:clustering:20210422"
     implementation "it.unimi.dsi:fastutil:8.2.2"
     implementation "com.itextpdf:itextpdf:5.5.13.1"
     implementation "org.apache.xmlgraphics:xmlgraphics-commons:2.3"
@@ -155,7 +155,6 @@ dependencies {
     implementation "com.alanmrace:jimzmlparser:1.0.5"
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
-
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitversion"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitversion"
 }
@@ -173,6 +172,8 @@ configurations.all {
     exclude group: "ch.qos.logback", module: "logback-classic"
     exclude group: "gurobi", module: "gurobi-linux64"
     exclude group: "cplex", module: "cplex"
+    exclude group: "org.checkerframework", module: "checker-qual"
+    exclude group: "javax.annotation", module: "javax.annotation-api"
 }
 
 
