@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
@@ -80,7 +79,7 @@ import javax.annotation.Nullable;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
+public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> implements ListChangeListener<FeatureListRow> {
 
   private final FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
   private final ObservableList<TreeItem<ModularFeatureListRow>> rowItems;
@@ -90,8 +89,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   private final DataTypeCheckListParameter featureTypesParameter;
   // column map to keep track of columns
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
-  private final ObjectProperty<ModularFeatureList> featureList = new SimpleObjectProperty<>();
-  Random rand = new Random(System.currentTimeMillis());
+  private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private ListChangeListener<FeatureListRow> changeListener;
@@ -128,31 +126,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     // enable copy on selection
     final KeyCodeCombination keyCodeCopy =
         new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
-    final KeyCodeCombination keyCodeRandomComment =
-        new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_ANY);
-    final KeyCodeCombination keyCodeRandomMZ =
-        new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_ANY);
 
     this.setOnKeyPressed(event -> {
       if (keyCodeCopy.match(event)) {
         copySelectionToClipboard(this, true);
       }
-      /* TODO:
-      if (keyCodeRandomComment.match(event)) {
-        this.getSelectionModel().getSelectedItem().getValue().set(CommentType.class,
-            ("Random" + rand.nextInt(100)));
-        this.getSelectionModel().getSelectedItem().getValue().getFeatures().stream()
-            .forEach(f -> f.set(CommentType.class, ("Random" + rand.nextInt(100))));
-      }
-      */
-      if (keyCodeRandomMZ.match(event)) {
-        assert this.getSelectionModel().getSelectedItem()
-            .getValue() instanceof ModularFeatureListRow;
-        ModularFeatureListRow modularRow = this.getSelectionModel().getSelectedItem().getValue();
-        modularRow.set(MZType.class, (rand.nextDouble() * 200d));
-        modularRow.streamFeatures().forEach(f -> f.setMZ(rand.nextDouble() * 200d));
-      }
-
       if (event.getCode().isLetterKey() || event.getCode().isDigitKey()) {
         editFocusedCell();
       } else if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.TAB) {
@@ -179,34 +157,35 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
 
   /**
-   * Creates a listener to update the table if a row is added/removed to/from the feature list.
-   *
-   * @param root The root of the tree table view
-   * @return The listener
+   * Listens to update the table if a row is added/removed to/from the feature list.
    */
-  @Nonnull
-  private ListChangeListener<FeatureListRow> getRowListChangeListener(
-      TreeItem<ModularFeatureListRow> root) {
-    return change -> {
+  @Override
+  public void onChanged(final Change<? extends FeatureListRow> c) {
+    MZmineCore.runLater(() -> {
+      TreeItem<ModularFeatureListRow> root = this.getRoot();
       // find which list we have active
-      ObservableList<TreeItem<ModularFeatureListRow>> activeList =
-          root.getChildren().size() == rowItems.size() ? rowItems : filteredRowItems;
+//      ObservableList<TreeItem<ModularFeatureListRow>> activeList =
+//          root.getChildren().size() == rowItems.size() ? rowItems : filteredRowItems;
 
       // remove/add from row items, as the filtered lists wraps rowItems.
-      change.next();
-      if (change.wasAdded()) {
-        change.getAddedSubList()
+      c.next();
+      if (c.wasAdded()) {
+        c.getAddedSubList()
             .forEach(row -> rowItems.add(new TreeItem<>((ModularFeatureListRow) row)));
       }
-      if (change.wasRemoved()) {
-        rowItems.removeAll(TreeViewUtils
-            .getTreeItemsByValue((Collection<ModularFeatureListRow>) change.getRemoved(),
-                rowItems));
+      if (c.wasRemoved()) {
+        List<TreeItem<io.github.mzmine.datamodel.features.ModularFeatureListRow>> removedItems = TreeViewUtils
+            .getTreeItemsByValue((Collection<ModularFeatureListRow>) c.getRemoved(),
+                rowItems);
+        if (removedItems.contains(getSelectionModel().getSelectedItem())) {
+          getSelectionModel().clearSelection();
+        }
+        rowItems.removeAll(removedItems);
       }
       root.getChildren().clear();
-      root.getChildren().addAll(activeList);
+      root.getChildren().addAll(filteredRowItems);
       this.sort();
-    };
+    });
   }
 
   /**
@@ -469,6 +448,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
         TreeTablePosition<ModularFeatureListRow, ?> focusedCell = getFocusModel().getFocusedCell();
         TreeTableColumn<ModularFeatureListRow, ?> tableColumn = focusedCell.getTableColumn();
+        if(tableColumn == null) {
+          // double click on header (happens when sorting)
+          return;
+        }
         Object userData = tableColumn.getUserData();
 
         if (userData instanceof DataType<?>) {
@@ -578,18 +561,15 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
   @Nullable
   public ModularFeatureList getFeatureList() {
-    return featureList.get();
+    return featureListProperty.get();
   }
 
   public void setFeatureList(ModularFeatureList featureList) {
-    if (featureList.isEmpty()) {
-      return;
-    }
-    this.featureList.set(featureList);
+    this.featureListProperty.set(featureList);
   }
 
   public ObjectProperty<ModularFeatureList> featureListProperty() {
-    return featureList;
+    return featureListProperty;
   }
 
   /**
@@ -598,30 +578,30 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    */
   private void initFeatureListListener() {
     featureListProperty().addListener((observable, oldValue, newValue) -> {
-      // Clear old rows and old columns
-      getRoot().getChildren().clear();
-      getColumns().clear();
-      rowItems.clear();
+      MZmineCore.runLater(() -> {
+        // Clear old rows and old columns
+        getRoot().getChildren().clear();
+        getColumns().clear();
+        rowItems.clear();
 
-      // remove the old listener
-      if (changeListener != null && getFeatureList() != null) {
-        getFeatureList().getRows().removeListener(changeListener);
-      }
+        // remove the old listener
+        if (changeListener != null && oldValue != null) {
+          oldValue.getRows().removeListener(this);
+        }
 
-      addColumns(newValue);
+        addColumns(newValue);
 
-      // add rows
-      TreeItem<ModularFeatureListRow> root = getRoot();
-      for (FeatureListRow row : newValue.getRows()) {
-        ModularFeatureListRow mrow = (ModularFeatureListRow) row;
-        root.getChildren().add(new TreeItem<>(mrow));
-      }
+        // add rows
+        for (FeatureListRow row : newValue.getRows()) {
+          ModularFeatureListRow mrow = (ModularFeatureListRow) row;
+          rowItems.add(new TreeItem<ModularFeatureListRow>(mrow));
+        }
 
-      rowItems.addAll(root.getChildren());
-
-      // reflect the changes to the feature list in the table
-      changeListener = getRowListChangeListener(root);
-      newValue.getRows().addListener(changeListener);
+        TreeItem<ModularFeatureListRow> root = getRoot();
+        root.getChildren().addAll(filteredRowItems);
+        // reflect the changes to the feature list in the table
+        newValue.getRows().addListener(this);
+      });
     });
   }
 }
