@@ -100,7 +100,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
     typeComboBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(DataType object) {
-        if(object == null) {
+        if (object == null) {
           return "";
         }
         return object.getHeaderString();
@@ -183,7 +183,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
     if (filterStr.isEmpty()) { // Empty filter
       textField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
       return RangeUtils.DOUBLE_INFINITE_RANGE;
-    } else if (filterStr.contains("-")) { // Filter by range
+    } else if (filterStr.contains("-") && filterStr.indexOf("-") > 0) { // Filter by range
       try {
         Range<Double> parsedRange = RangeUtils.parseDoubleRange(filterStr);
         return Range
@@ -194,8 +194,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
       }
     } else { // Filter by single value
       try {
-        double filterValue = Double.parseDouble(filterStr);
-        return Range.closed(filterValue - epsilon, filterValue + epsilon);
+        return RangeUtils.getRangeToCeilDecimal(filterStr);
       } catch (Exception exception) {
         textField.setStyle("-fx-control-inner-background: #ffcccb;");
         return RangeUtils.DOUBLE_NAN_RANGE;
