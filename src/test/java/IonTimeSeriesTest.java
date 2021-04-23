@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class IonTimeSeriesTest {
@@ -88,6 +89,7 @@ class IonTimeSeriesTest {
 
   }
 
+  @Disabled
   @Test
   void testCasting() {
 
