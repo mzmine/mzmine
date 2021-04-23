@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -113,8 +114,8 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
   private PaintScale paintScale;
 
   /**
-   * Creates a new {@code XYBlockRenderer} instance with default attributes.
-   * Item labels are disabled by default.
+   * Creates a new {@code XYBlockRenderer} instance with default attributes. Item labels are
+   * disabled by default.
    */
   public ColoredXYSmallBlockRenderer() {
     updateOffsets();
@@ -140,9 +141,15 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
    * @see #getBlockWidth()
    */
   public void setBlockWidth(double width) {
+    setBlockWidth(width, true);
+  }
+
+  public void setBlockWidth(double width, boolean notify) {
     this.blockWidth = width;
     updateOffsets();
-    fireChangeEvent();
+    if (notify) {
+      fireChangeEvent();
+    }
   }
 
   /**
@@ -155,6 +162,15 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     return this.blockHeight;
   }
 
+
+  public void setBlockHeight(double height, boolean notify) {
+    this.blockHeight = height;
+    updateOffsets();
+    if (notify) {
+      fireChangeEvent();
+    }
+  }
+
   /**
    * Sets the height of the blocks used to represent each data item and sends a {@link
    * RendererChangeEvent} to all registered listeners.
@@ -163,9 +179,7 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
    * @see #getBlockHeight()
    */
   public void setBlockHeight(double height) {
-    this.blockHeight = height;
-    updateOffsets();
-    fireChangeEvent();
+    setBlockHeight(height, true);
   }
 
   /**
@@ -173,27 +187,9 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
    * {@link RectangleAnchor#CENTER}.
    *
    * @return The anchor point (never {@code null}).
-   * @see #setBlockAnchor(RectangleAnchor)
    */
   public RectangleAnchor getBlockAnchor() {
     return this.blockAnchor;
-  }
-
-  /**
-   * Sets the anchor point used to align a block at its (x, y) location and sends a {@link
-   * RendererChangeEvent} to all registered listeners.
-   *
-   * @param anchor the anchor.
-   * @see #getBlockAnchor()
-   */
-  public void setBlockAnchor(RectangleAnchor anchor) {
-    Args.nullNotPermitted(anchor, "anchor");
-    if (this.blockAnchor.equals(anchor)) {
-      return; // no change
-    }
-    this.blockAnchor = anchor;
-    updateOffsets();
-    fireChangeEvent();
   }
 
   /**
@@ -327,6 +323,12 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     }
 
     Paint p = this.paintScale.getPaint(z);
+    if(dataset instanceof ColoredXYZDataset) {
+      p = ((ColoredXYZDataset) dataset).getPaintScale().getPaint(z);
+      setBlockWidth(((ColoredXYZDataset) dataset).getBoxWidth(), false);
+      setBlockHeight(((ColoredXYZDataset) dataset).getBoxHeight(), false);
+    }
+
     double xx0 = domainAxis.valueToJava2D(x + this.xOffset, dataArea, plot.getDomainAxisEdge());
     double yy0 = rangeAxis.valueToJava2D(y + this.yOffset, dataArea, plot.getRangeAxisEdge());
     double xx1 = domainAxis.valueToJava2D(x + this.blockWidth + this.xOffset, dataArea,
@@ -410,6 +412,8 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
   @Override
   public Object clone() throws CloneNotSupportedException {
     ColoredXYSmallBlockRenderer clone = (ColoredXYSmallBlockRenderer) super.clone();
+    clone.setBlockHeight(this.blockHeight);
+    clone.setBlockWidth(this.blockWidth);
     if (this.paintScale instanceof PublicCloneable) {
       PublicCloneable pc = (PublicCloneable) this.paintScale;
       clone.paintScale = (PaintScale) pc.clone();

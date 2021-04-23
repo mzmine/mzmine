@@ -22,6 +22,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
@@ -93,6 +94,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(false);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
+
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
@@ -143,9 +145,9 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   private void initLabelListeners() {
     // automatically update label visibility
     itemLabelsVisible.addListener((obs, old, newVal) -> {
-      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+      for (int i = 0; i < getXYPlot().getRendererCount(); i++) {
         XYItemRenderer renderer = getXYPlot().getRenderer(i);
-        if(renderer != null) {
+        if (renderer != null) {
           renderer.setDefaultItemLabelsVisible(newVal, false);
         }
       }
@@ -153,63 +155,18 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     });
 
     legendItemsVisible.addListener((obs, old, newVal) -> {
-      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+      for (int i = 0; i < getXYPlot().getRendererCount(); i++) {
         XYItemRenderer renderer = getXYPlot().getRenderer(i);
-        if(renderer != null) {
+        if (renderer != null) {
           renderer.setDefaultSeriesVisibleInLegend(newVal, false);
         }
       }
       final LegendTitle legend = getChart().getLegend();
-      if(legend != null) {
+      if (legend != null) {
         legend.setVisible(newVal);
       }
       getChart().fireChartChanged();
     });
-  }
-
-  /**
-   * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
-   * added to a region. Region selection can be finished by {@link MultiDatasetXYZScatterPlot#finishPath()}.
-   */
-  @Override
-  public void startRegion() {
-    isDrawingRegion.set(true);
-
-    if (currentRegionListener != null) {
-      removeChartMouseListener(currentRegionListener);
-    }
-    currentRegionListener = new RegionSelectionListener(this);
-    currentRegionListener.buildingPathProperty().addListener(((observable, oldValue, newValue) -> {
-      if (currentRegionAnnotation != null) {
-        getXYPlot().removeAnnotation(currentRegionAnnotation, false);
-      }
-      Color regionColor = new Color(0.6f, 0.6f, 0.6f, 0.4f);
-      currentRegionAnnotation = new XYShapeAnnotation(newValue, new BasicStroke(1f), regionColor,
-          regionColor);
-      getXYPlot().addAnnotation(currentRegionAnnotation, true);
-    }));
-    addChartMouseListener(currentRegionListener);
-  }
-
-  /**
-   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
-   * from the listener object.
-   *
-   * @return The finished listener
-   */
-  @Override
-  public RegionSelectionListener finishPath() {
-    if (!isDrawingRegion.get()) {
-      return null;
-    }
-    if (currentRegionAnnotation != null) {
-      getXYPlot().removeAnnotation(currentRegionAnnotation);
-    }
-    isDrawingRegion.set(false);
-    removeChartMouseListener(currentRegionListener);
-    RegionSelectionListener tempRegionListener = currentRegionListener;
-    currentRegionListener = null;
-    return tempRegionListener;
   }
 
   private void onPaintScaleChanged(PaintScale newValue) {
@@ -344,6 +301,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   /**
    * @return current cursor position or null
    */
+  @Nonnull
   private PlotCursorPosition getCurrentCursorPosition() {
     final double domainValue = getXYPlot().getDomainCrosshairValue();
     final double rangeValue = getXYPlot().getRangeCrosshairValue();
@@ -356,10 +314,14 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
       XYDataset dataset = plot.getDataset(i);
       if (dataset instanceof ColoredXYZDataset) {
         index = ((ColoredXYZDataset) dataset).getValueIndex(domainValue, rangeValue);
+      } else if (dataset instanceof ColoredXYZPieDataset) {
+        index = ((ColoredXYZPieDataset) dataset).getValueIndex(domainValue, rangeValue);
       }
       if (index != -1) {
         datasetIndex = i;
-        zValue = ((ColoredXYZDataset) dataset).getZValue(0, index);
+        if (dataset instanceof ColoredXYZDataset) {
+          zValue = ((ColoredXYZDataset) dataset).getZValue(0, index);
+        }
         break;
       }
     }
@@ -542,7 +504,8 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     Font axisTickLabelFont = getXYPlot().getDomainAxis().getTickLabelFont();
 
     NumberAxis scaleAxis = new NumberAxis(null);
-    scaleAxis.setRange(scale.getLowerBound(), Math.max(scale.getUpperBound(), scale.getUpperBound() * 1E-10));
+    scaleAxis.setRange(scale.getLowerBound(),
+        Math.max(scale.getUpperBound(), scale.getUpperBound() * 1E-10));
     scaleAxis.setAxisLinePaint(axisPaint);
     scaleAxis.setTickMarkPaint(axisPaint);
     scaleAxis.setNumberFormatOverride(legendAxisFormat);
@@ -598,5 +561,50 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
 
   public void setLegendItemsVisible(boolean legendItemsVisible) {
     this.legendItemsVisible.set(legendItemsVisible);
+  }
+
+  /**
+   * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
+   * added to a region. Region selection can be finished by {@link MultiDatasetXYZScatterPlot#finishPath()}.
+   */
+  @Override
+  public void startRegion() {
+    isDrawingRegion.set(true);
+
+    if (currentRegionListener != null) {
+      removeChartMouseListener(currentRegionListener);
+    }
+    currentRegionListener = new RegionSelectionListener(this);
+    currentRegionListener.buildingPathProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentRegionAnnotation != null) {
+        getXYPlot().removeAnnotation(currentRegionAnnotation, false);
+      }
+      Color regionColor = new Color(0.6f, 0.6f, 0.6f, 0.4f);
+      currentRegionAnnotation = new XYShapeAnnotation(newValue, new BasicStroke(1f), regionColor,
+          regionColor);
+      getXYPlot().addAnnotation(currentRegionAnnotation, true);
+    }));
+    addChartMouseListener(currentRegionListener);
+  }
+
+  /**
+   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
+   * from the listener object.
+   *
+   * @return The finished listener
+   */
+  @Override
+  public RegionSelectionListener finishPath() {
+    if (!isDrawingRegion.get()) {
+      return null;
+    }
+    if (currentRegionAnnotation != null) {
+      getXYPlot().removeAnnotation(currentRegionAnnotation);
+    }
+    isDrawingRegion.set(false);
+    removeChartMouseListener(currentRegionListener);
+    RegionSelectionListener tempRegionListener = currentRegionListener;
+    currentRegionListener = null;
+    return tempRegionListener;
   }
 }

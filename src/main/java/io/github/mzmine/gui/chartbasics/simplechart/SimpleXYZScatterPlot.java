@@ -74,6 +74,7 @@ import org.jfree.chart.title.Title;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import org.jfree.fx.FXGraphics2D;
@@ -103,13 +104,13 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
-  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
   protected RectangleEdge defaultPaintscaleLocation = RectangleEdge.RIGHT;
-  protected ColoredXYSmallBlockRenderer blockRenderer;
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
   private Canvas legendCanvas;
   private String legendLabel = null;
+
+  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
   private RegionSelectionListener currentRegionListener = null;
   private XYShapeAnnotation currentRegionAnnotation;
 
@@ -135,8 +136,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     chart.addSubtitle(chartSubTitle);
     plot = chart.getXYPlot();
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
-    blockRenderer = new ColoredXYSmallBlockRenderer();
-    defaultRenderer = new SimpleObjectProperty<>(blockRenderer);
+    defaultRenderer = new SimpleObjectProperty<>(new ColoredXYSmallBlockRenderer());
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
@@ -226,7 +226,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
-    notifyDatasetsChangedListeners();
+    if (chart.isNotify()) {
+      notifyDatasetsChangedListeners();
+    }
     return nextDataSetNum - 1;
   }
 
@@ -240,7 +242,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     assert Platform.isFxApplicationThread();
 
     if (datasetProvider instanceof XYZDataset) {
-      return addDataset((XYZDataset) datasetProvider, plot.getRenderer());
+      return addDataset((XYZDataset) datasetProvider, defaultRenderer.get());
     }
     ColoredXYZDataset dataset = new ColoredXYZDataset(datasetProvider);
     return addDataset(dataset, defaultRenderer.get());
@@ -350,7 +352,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
         if (dataset instanceof ColoredXYZDataset) {
           zValue = ((ColoredXYZDataset) dataset).getZValue(0, index);
         }
-
         break;
       }
     }
@@ -438,7 +439,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     if (!(dataset instanceof ColoredXYZDataset xyz)
         || ((ColoredXYZDataset) dataset).getPaintScale() == null
         || ((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
-      return new LookupPaintScale(0, 10000, Color.BLACK);
+      org.jfree.data.Range range = DatasetUtils.findZBounds(dataset);
+      return new LookupPaintScale(range.getLowerBound(), range.getUpperBound(), Color.BLACK);
     } else {
       return xyz.getPaintScale();
     }
@@ -452,7 +454,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       return;
     }
     PaintScale paintScale = makePaintScale(dataset);
-    updateRenderer(paintScale);
+//    updateRenderer(paintScale);
     if (dataset instanceof ColoredXYZDataset
         && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
       PaintScaleLegend legend = generateLegend(paintScale);
@@ -567,28 +569,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     newLegend.setPosition(defaultPaintscaleLocation);
     newLegend.setBackgroundPaint(legendBg);
     return newLegend;
-  }
-
-  /**
-   * updates the renderer to the block sizes & paint scale provided by the dataset.
-   *
-   * @param paintScale The paint scale
-   */
-  private void updateRenderer(PaintScale paintScale) {
-    XYDataset dataset = plot.getDataset();
-    if (!(dataset instanceof XYZDataset)) {
-      // maybe add a case for that later
-      return;
-    }
-    if (!(dataset instanceof ColoredXYZDataset xyz)) {
-      return;
-    }
-    if (((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
-      return;
-    }
-    blockRenderer.setBlockHeight(xyz.getBoxHeight());
-    blockRenderer.setBlockWidth(xyz.getBoxWidth());
-    blockRenderer.setPaintScale(paintScale);
   }
 
   public RectangleEdge getDefaultPaintscaleLocation() {
