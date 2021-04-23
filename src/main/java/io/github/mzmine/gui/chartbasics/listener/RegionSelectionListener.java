@@ -27,6 +27,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.scene.input.MouseButton;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
@@ -42,6 +43,10 @@ public class RegionSelectionListener implements ChartMouseListenerFX {
     this.chart = chart;
     points = new SimpleListProperty<>(FXCollections.observableArrayList());
     buildingPath = new SimpleObjectProperty<>();
+    points.addListener((ListChangeListener<Point2D>) c -> {
+      c.next();
+      buildingPath.set(getShape());
+    });
   }
 
   @Override
@@ -55,7 +60,7 @@ public class RegionSelectionListener implements ChartMouseListenerFX {
         .mouseXYToPlotXY(chart, event.getTrigger().getX(), event.getTrigger().getY());
 
     points.get().add(p);
-    buildingPath.set(getShape());
+//    buildingPath.set(getShape());
   }
 
   @Override
