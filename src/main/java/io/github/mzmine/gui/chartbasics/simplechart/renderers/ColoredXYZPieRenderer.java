@@ -166,8 +166,8 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
 
     EntityCollection entities = state.getEntityCollection();
     if (entities != null) {
-      addEntity(entities, new Ellipse2D.Double(cx - pieWidth / 2, cy - pieWidth / 2, pieWidth, pieWidth), dataset, series, item,
-          cx, cy);
+      addEntity(entities, new Ellipse2D.Double(cx, cy, pieWidth, pieWidth), dataset, series, item,
+          cx + pieWidth / 2, cy + pieWidth / 2);
     }
 
   }
