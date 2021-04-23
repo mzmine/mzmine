@@ -39,7 +39,7 @@ public class TreeViewUtils {
   public static <T> TreeItem<T> getTreeItemByValue(T value,
       List<TreeItem<T>> treeItems) {
     for (var item : treeItems) {
-      if (item.getValue() == value) {
+      if (item.getValue().equals(value)) {
         return item;
       }
     }
