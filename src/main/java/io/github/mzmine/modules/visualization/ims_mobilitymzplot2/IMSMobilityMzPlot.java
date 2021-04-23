@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
@@ -158,7 +159,8 @@ public class IMSMobilityMzPlot extends BorderPane {
     /*heatmap.setLegendAxisLabel(unitFormat.format("Intensity", "counts"));
     heatmap.setLegendNumberFormatOverride(intensityFormat);*/
     heatmap.setDefaultRenderer(new ColoredXYZPieRenderer());
-//    heatmap.getXYPlot().setBackgroundPaint(Color.BLACK);
+    heatmap.getXYPlot()
+        .setBackgroundPaint(MZmineCore.getConfiguration().isDarkMode() ? Color.BLACK : Color.WHITE);
     heatmap.getXYPlot().setDomainCrosshairPaint(Color.LIGHT_GRAY);
     heatmap.getXYPlot().setRangeCrosshairPaint(Color.LIGHT_GRAY);
     ticChart.setDomainAxisLabel(unitFormat.format("Retention time", "min"));
@@ -222,40 +224,42 @@ public class IMSMobilityMzPlot extends BorderPane {
       this.features = Collections.emptyList();
       return;
     }
+    this.features = features;
 
-    if (!features.isEmpty()) {
-      RawDataFile file = features.stream().findFirst().get().getBestFeature().getRawDataFile();
-      if (!(file instanceof IMSRawDataFile)) {
-        throw new IllegalArgumentException(
-            "Cannot visualize non-ion mobility spectrometry files in an IMS visualizer");
-      }
-      if ((plotType == PlotType.MOBILITY)) {
-        heatmap.setRangeAxisLabel(((IMSRawDataFile) file).getMobilityType().getAxisLabel());
-        heatmap.setRangeAxisNumberFormatOverride(mobilityFormat);
-        heatmap.setDomainAxisLabel("m/z");
+    boolean anyNonIms = features.stream().flatMap(row -> row.getRawDataFiles().stream()).distinct()
+        .anyMatch(f -> !(f instanceof IMSRawDataFile));
+    if (anyNonIms) {
+      throw new IllegalArgumentException(
+          "Cannot visualize non-ion mobility spectrometry files in an IMS visualizer");
+    }
+    final IMSRawDataFile file = (IMSRawDataFile) features.stream().findFirst().get().getBestFeature()
+        .getRawDataFile();
+    if ((plotType == PlotType.MOBILITY)) {
+      heatmap.setRangeAxisLabel(((IMSRawDataFile) file).getMobilityType().getAxisLabel());
+      heatmap.setRangeAxisNumberFormatOverride(mobilityFormat);
+      heatmap.setDomainAxisLabel("m/z");
 
-        /*if (numFiles == 1) {
-          Set<? extends Scan> frames = features.stream()
-              .flatMap(row -> row.getBestFeature().getScanNumbers().stream())
-              .collect(Collectors.toSet());
-          final ColoredXYZDataset frameDataSet = new ColoredXYZDataset(
-              new MergedFrameHeatmapProvider((Collection<Frame>) frames, new MZTolerance(0.008, 13),
-                  5));
-          frameDataSet.statusProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue == TaskStatus.FINISHED) {
-              ColoredXYSmallBlockRenderer renderer = new ColoredXYSmallBlockRenderer();
-              renderer.setBlockHeight(frameDataSet.getBoxHeight());
-              renderer.setBlockWidth(frameDataSet.getBoxWidth());
-              renderer.setPaintScale(frameDataSet.getPaintScale());
-              Platform.runLater(() -> heatmap.addDataset(frameDataSet, renderer));
-            }
-          });
-        }*/
-      } else {
-        heatmap.setRangeAxisLabel(unitFormat.format("CCS", "A^2"));
-        heatmap.setRangeAxisNumberFormatOverride(ccsFormat);
-        heatmap.setDomainAxisLabel("Da");
-      }
+      /*if (numFiles == 1) {
+        Set<? extends Scan> frames = features.stream()
+            .flatMap(row -> row.getBestFeature().getScanNumbers().stream())
+            .collect(Collectors.toSet());
+        final ColoredXYZDataset frameDataSet = new ColoredXYZDataset(
+            new MergedFrameHeatmapProvider((Collection<Frame>) frames, new MZTolerance(0.008, 13),
+                5));
+        frameDataSet.statusProperty().addListener((observable, oldValue, newValue) -> {
+          if(newValue == TaskStatus.FINISHED) {
+            ColoredXYSmallBlockRenderer renderer = new ColoredXYSmallBlockRenderer();
+            renderer.setBlockHeight(frameDataSet.getBoxHeight());
+            renderer.setBlockWidth(frameDataSet.getBoxWidth());
+            renderer.setPaintScale(frameDataSet.getPaintScale());
+            Platform.runLater(() -> heatmap.addDataset(frameDataSet, renderer));
+          }
+        });
+      }*/
+    } else {
+      heatmap.setRangeAxisLabel(new CCSType().getHeaderString());
+      heatmap.setRangeAxisNumberFormatOverride(ccsFormat);
+      heatmap.setDomainAxisLabel("Da");
     }
 
     final ColoredXYZPieDataset<IMSRawDataFile> featureDataSet =
@@ -287,7 +291,7 @@ public class IMSMobilityMzPlot extends BorderPane {
     featureVisualiserPane.getHeatmapChart().cursorPositionProperty()
         .addListener((observable, oldValue, newValue) -> {
           if (newValue.getDataset() instanceof ColoredXYDataset dataset) {
-            if (dataset.getValueProvider() instanceof MassSpectrumProvider spectrumProvider) {
+            if (dataset.getValueProvider() instanceof MassSpectrumProvider<?> spectrumProvider) {
               MassSpectrum spectrum = spectrumProvider.getSpectrum(newValue.getValueIndex());
               if (spectrum instanceof Scan) {
                 selectedScan.set((Scan) spectrum);

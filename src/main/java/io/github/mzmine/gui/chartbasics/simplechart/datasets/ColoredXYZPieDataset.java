@@ -107,7 +107,7 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
     return maxZValue;
   }
 
-  public double getPieWidth(int index) {
+  public double getPieDiameter(int index) {
     return pieDataProvider.getPieDiameter(index);
   }
 

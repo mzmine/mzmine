@@ -35,8 +35,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class RowToMobilityMzHeatmapProvider implements
-    PieXYZDataProvider<IMSRawDataFile> {
+public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRawDataFile> {
 
   private final String seriesKey;
   private final NumberFormat rtFormat;
@@ -44,9 +43,15 @@ public class RowToMobilityMzHeatmapProvider implements
   private final NumberFormat intensityFormat;
   private final NumberFormat mobilityFormat;
   private final List<ModularFeatureListRow> rows;
-  private final double pieDiameter = 20;
   private final double[] summedValues;
   private final IMSRawDataFile[] files;
+
+  private double maxValue = Double.NEGATIVE_INFINITY;
+  private double minValue = Double.POSITIVE_INFINITY;
+  private double maxDiameter = 30d;
+  private double minDiameter = 10d;
+  private double deltaDiameter = 1d;
+  private double deltaValue = 1d;
 
   public RowToMobilityMzHeatmapProvider(@Nonnull final Collection<ModularFeatureListRow> f) {
     // copy the list, so we don't run into problems in case the flist is modified
@@ -121,17 +126,21 @@ public class RowToMobilityMzHeatmapProvider implements
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     for (int i = 0; i < rows.size(); i++) {
       final ModularFeatureListRow row = rows.get(i);
-      for(final IMSRawDataFile file : files) {
+      for (final IMSRawDataFile file : files) {
         final ModularFeature feature = row.getFeature(file);
-        if(feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+        if (feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
           summedValues[i] += feature.getHeight();
         }
+        minValue = Math.min(summedValues[i], minValue);
+        maxValue = Math.max(summedValues[i], maxValue);
 
-        if(status.get() == TaskStatus.CANCELED) {
+        if (status.get() == TaskStatus.CANCELED) {
           return;
         }
       }
     }
+    deltaDiameter = maxDiameter - minDiameter;
+    deltaValue = maxValue - minValue;
   }
 
   @Override
@@ -182,7 +191,7 @@ public class RowToMobilityMzHeatmapProvider implements
 
   @Override
   public double getPieDiameter(int index) {
-    return pieDiameter;
+    return (getZValue(index) - minValue)/deltaValue * deltaDiameter + minDiameter;
   }
 
   @Override

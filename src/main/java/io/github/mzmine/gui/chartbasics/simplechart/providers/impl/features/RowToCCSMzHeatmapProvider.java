@@ -48,6 +48,13 @@ public class RowToCCSMzHeatmapProvider implements
   private final double[] summedValues;
   private final IMSRawDataFile[] files;
 
+  private double maxValue = Double.NEGATIVE_INFINITY;
+  private double minValue = Double.POSITIVE_INFINITY;
+  private double maxDiameter = 30d;
+  private double minDiameter = 10d;
+  private double deltaDiameter = 1d;
+  private double deltaValue = 1d;
+
   public RowToCCSMzHeatmapProvider(@Nonnull final Collection<ModularFeatureListRow> f) {
     // copy the list, so we don't run into problems in case the flist is modified
     rows = new ArrayList<>(f);
@@ -126,12 +133,16 @@ public class RowToCCSMzHeatmapProvider implements
         if(feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
           summedValues[i] += feature.getHeight();
         }
+        minValue = Math.min(summedValues[i], minValue);
+        maxValue = Math.max(summedValues[i], maxValue);
 
         if(status.get() == TaskStatus.CANCELED) {
           return;
         }
       }
     }
+    deltaDiameter = maxDiameter - minDiameter;
+    deltaValue = maxValue - minValue;
   }
 
   @Override
@@ -182,7 +193,7 @@ public class RowToCCSMzHeatmapProvider implements
 
   @Override
   public double getPieDiameter(int index) {
-    return pieDiameter;
+    return (getZValue(index) - minValue)/deltaValue * deltaDiameter + minDiameter;
   }
 
   @Override

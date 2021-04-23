@@ -27,7 +27,9 @@ import org.jfree.data.xy.XYDataset;
 
 /**
  * Copied from {@link org.jfree.chart.renderer.xy.XYBlockRenderer}. Modified to use the data set
- * color and draw pie charts.
+ * color and draw pie charts based on {@link io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider}s.
+ *
+ * @author https://github.com/SteffenHeu
  */
 public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
     implements XYItemRenderer, Cloneable, PublicCloneable, Serializable {
@@ -79,8 +81,7 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
       if (r == null) {
         return null;
       } else {
-        return new Range(r.getLowerBound(),
-            r.getUpperBound());
+        return new Range(r.getLowerBound(), r.getUpperBound());
       }
     } else {
       return null;
@@ -119,12 +120,12 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
     final double x = dataset.getXValue(series, item);
     final double y = dataset.getYValue(series, item);
     final double z = pieDataset.getZValue(item);
-    final double pieWidth = pieDataset.getPieWidth(item);
+    final double pieDiameter = pieDataset.getPieDiameter(item);
 
     double cx = domainAxis.valueToJava2D(x, dataArea,
-        plot.getDomainAxisEdge()) - pieWidth / 2;
+        plot.getDomainAxisEdge()) - pieDiameter / 2;
     double cy = rangeAxis.valueToJava2D(y, dataArea,
-        plot.getRangeAxisEdge()) - pieWidth / 2;
+        plot.getRangeAxisEdge()) - pieDiameter / 2;
 
     int startAngle = 0;
     for (int seriesIndex = 0; seriesIndex < dataset.getSeriesCount(); seriesIndex++) {
@@ -133,8 +134,8 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
         final int endAngle = (int) (value * 360 / z);
 
         g2.setPaint(pieDataset.getSliceColor(seriesIndex));
-        g2.fill(new Arc2D.Double(cx, cy, pieWidth,
-            pieDataset.getPieWidth(item), startAngle, endAngle, Arc2D.PIE));
+        g2.fill(new Arc2D.Double(cx, cy, pieDiameter,
+            pieDataset.getPieDiameter(item), startAngle, endAngle, Arc2D.PIE));
         startAngle += endAngle;
 
       } catch (ClassCastException e) {
@@ -146,14 +147,14 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
     }
 
     g2.setPaint(Color.BLACK);
-    g2.draw(new Arc2D.Double(cx, cy, pieWidth,
-        pieWidth, 0, 360, Arc2D.OPEN));
+    g2.draw(new Arc2D.Double(cx, cy, pieDiameter,
+        pieDiameter, 0, 360, Arc2D.OPEN));
 
     final PlotOrientation orientation = plot.getOrientation();
 
     if (isItemLabelVisible(series, item)) {
       drawItemLabel(g2, orientation, dataset, series, item,
-          cx, y + pieWidth, y < 0.0);
+          cx, y + pieDiameter, y < 0.0);
     }
 
     int datasetIndex = plot.indexOf(dataset);
@@ -166,8 +167,8 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
 
     EntityCollection entities = state.getEntityCollection();
     if (entities != null) {
-      addEntity(entities, new Ellipse2D.Double(cx, cy, pieWidth, pieWidth), dataset, series, item,
-          cx + pieWidth / 2, cy + pieWidth / 2);
+      addEntity(entities, new Ellipse2D.Double(cx, cy, pieDiameter, pieDiameter), dataset, series, item,
+          cx + pieDiameter / 2, cy + pieDiameter / 2);
     }
 
   }
@@ -211,7 +212,7 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
   @Override
   public LegendItem getLegendItem(int datasetIndex, int series) {
     XYDataset dataset = getPlot().getDataset(datasetIndex);
-    if((dataset instanceof ColoredXYZPieDataset<?> ds)) {
+    if ((dataset instanceof ColoredXYZPieDataset<?> ds)) {
       currentDataset = ds;
     }
     return super.getLegendItem(datasetIndex, series);
@@ -219,7 +220,7 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
 
   @Override
   public Paint lookupSeriesPaint(int series) {
-    if(currentDataset != null) {
+    if (currentDataset != null) {
       return currentDataset.getSliceColor(series);
     }
     return super.lookupSeriesPaint(series);
