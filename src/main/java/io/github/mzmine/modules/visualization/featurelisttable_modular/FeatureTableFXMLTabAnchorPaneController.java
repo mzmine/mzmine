@@ -47,7 +47,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.util.StringConverter;
 
 public class FeatureTableFXMLTabAnchorPaneController {
 
@@ -97,7 +96,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
     filtersRow.getChildren().addAll(filterIcon, mzFilter, separator, rtFilter);
 
     typeComboBox = new ComboBox<>();
-    typeComboBox.setConverter(new StringConverter<>() {
+    /*typeComboBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(DataType object) {
         if (object == null) {
@@ -110,7 +109,8 @@ public class FeatureTableFXMLTabAnchorPaneController {
       public DataType fromString(String string) {
         return null;
       }
-    });
+    });*/
+
     typeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> filterRows());
     featureTable.featureListProperty().addListener(((observable, oldValue, newValue) -> {
       typeComboBox.setItems(
