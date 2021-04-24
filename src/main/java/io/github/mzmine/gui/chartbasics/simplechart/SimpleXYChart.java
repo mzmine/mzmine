@@ -61,6 +61,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
@@ -91,7 +92,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   private final ObjectProperty<PlotCursorPosition> cursorPositionProperty = new SimpleObjectProperty<>(
       new PlotCursorPosition(0, 0, -1, null));
 
-  private final List<DatasetsChangedListener> datasetListeners;
+  private final List<DatasetChangeListener> datasetListeners;
   protected EStandardChartTheme theme;
   protected SimpleXYLabelGenerator defaultLabelGenerator;
   protected SimpleToolTipGenerator defaultToolTipGenerator;
@@ -211,7 +212,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
-    notifyDatasetsChangedListeners();
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
     return nextDataSetNum - 1;
   }
 
@@ -241,7 +242,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     }
     plot.setDataset(index, null);
     plot.setRenderer(index, null);
-    notifyDatasetsChangedListeners();
+//    notifyDatasetChangeListeners();
     return ds;
   }
 
@@ -258,7 +259,8 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     }
     chart.setNotify(true);
     chart.fireChartChanged();
-    notifyDatasetsChangedListeners();
+    // todo maybe notify for each dataset
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
     return map;
   }
 
@@ -275,7 +277,8 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     }
     chart.setNotify(true);
     chart.fireChartChanged();
-    notifyDatasetsChangedListeners();
+    // todo maybe notify for each dataset
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
     return map;
   }
 
@@ -292,7 +295,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     }
     chart.setNotify(true);
     chart.fireChartChanged();
-    notifyDatasetsChangedListeners();
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
     nextDataSetNum = 0;
   }
 
@@ -433,25 +436,23 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   @Override
-  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void addDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.add(listener);
   }
 
   @Override
-  public void removeDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void removeDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.remove(listener);
   }
 
   @Override
-  public void clearDatasetsChangedListeners(DatasetChangeListener listener) {
+  public void clearDatasetChangeListeners() {
     datasetListeners.clear();
   }
 
-  private void notifyDatasetsChangedListeners() {
-    Map<Integer, XYDataset> datasets = getAllDatasets();
-
-    for (DatasetsChangedListener listener : datasetListeners) {
-      listener.datasetsChanged(datasets);
+  public void notifyDatasetChangeListeners(DatasetChangeEvent event) {
+    for (DatasetChangeListener listener : datasetListeners) {
+      listener.datasetChanged(event);
     }
   }
 

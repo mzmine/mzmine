@@ -182,7 +182,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
     mobilogramChart.setMinHeight(300);
     mobilogramChart.setMinWidth(MIN_MOBILOGRAM_WIDTH);
 
-    mobilogramChart.addDatasetsChangedListener(e -> {
+    mobilogramChart.addDatasetChangeListener(e -> {
       mobilogramChart.getXYPlot().getRangeAxis().setAutoRange(true);
       mobilogramChart.getXYPlot().getDomainAxis().setAutoRange(true);
     });
@@ -196,7 +196,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
     traceLegendCanvas.setWidth(500);
     traceChart.setLegendCanvas(traceLegendCanvas);
     BorderPane.setAlignment(traceLegendCanvas, Pos.TOP_RIGHT);
-    traceChart.addDatasetsChangedListener(e -> {
+    traceChart.addDatasetChangeListener(e -> {
       traceChart.getXYPlot().getRangeAxis().setAutoRange(true);
       traceChart.getXYPlot().getDomainAxis().setAutoRange(true);
     });
@@ -205,7 +205,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
     ticChart.getXYPlot().setRangeCrosshairVisible(false);
     ticChart.setMinHeight(200);
 
-    ticChart.addDatasetsChangedListener(e -> {
+    ticChart.addDatasetChangeListener(e -> {
       ticChart.getXYPlot().getRangeAxis().setAutoRange(true);
       ticChart.getXYPlot().getDomainAxis().setAutoRange(true);
     });

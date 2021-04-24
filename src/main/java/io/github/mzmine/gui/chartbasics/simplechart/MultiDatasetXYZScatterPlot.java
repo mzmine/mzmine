@@ -74,6 +74,7 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.title.Title;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
@@ -90,7 +91,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
   protected final JFreeChart chart;
 
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
-  protected final List<DatasetsChangedListener> datasetListeners;
+  protected final List<DatasetChangeListener> datasetListeners;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(false);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
@@ -200,7 +201,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
     if (chart.isNotify()) {
-      notifyDatasetsChangedListeners();
+      notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
     }
     return nextDataSetNum - 1;
   }
@@ -234,7 +235,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     plot.setNotify(true);
     chart.setNotify(true);
     chart.fireChartChanged();
-    notifyDatasetsChangedListeners();
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
   }
 
   @Override
@@ -369,28 +370,29 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
 
 
   @Override
-  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void addDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.add(listener);
   }
 
   @Override
-  public void removeDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void removeDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.remove(listener);
   }
 
   @Override
-  public void clearDatasetsChangedListeners(DatasetChangeListener listener) {
+  public void clearDatasetChangeListeners() {
     datasetListeners.clear();
   }
 
-  private void notifyDatasetsChangedListeners() {
+  @Override
+  public void notifyDatasetChangeListeners(DatasetChangeEvent event) {
     if (!chart.isNotify()) {
       return;
     }
 
     Map<Integer, XYDataset> datasets = getAllDatasets();
-    for (DatasetsChangedListener listener : datasetListeners) {
-      listener.datasetsChanged(datasets);
+    for (DatasetChangeListener listener : datasetListeners) {
+      listener.datasetChanged(event);
     }
   }
 

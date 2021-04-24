@@ -19,6 +19,7 @@
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -114,6 +115,11 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
   private PaintScale paintScale;
 
   /**
+   * In some case a single paint scall shall be used for multiple datasets.
+   */
+  private boolean useDatasetPaintScale = true;
+
+  /**
    * Creates a new {@code XYBlockRenderer} instance with default attributes. Item labels are
    * disabled by default.
    */
@@ -162,15 +168,6 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     return this.blockHeight;
   }
 
-
-  public void setBlockHeight(double height, boolean notify) {
-    this.blockHeight = height;
-    updateOffsets();
-    if (notify) {
-      fireChangeEvent();
-    }
-  }
-
   /**
    * Sets the height of the blocks used to represent each data item and sends a {@link
    * RendererChangeEvent} to all registered listeners.
@@ -180,6 +177,14 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
    */
   public void setBlockHeight(double height) {
     setBlockHeight(height, true);
+  }
+
+  public void setBlockHeight(double height, boolean notify) {
+    this.blockHeight = height;
+    updateOffsets();
+    if (notify) {
+      fireChangeEvent();
+    }
   }
 
   /**
@@ -323,7 +328,8 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     }
 
     Paint p = this.paintScale.getPaint(z);
-    if(dataset instanceof ColoredXYZDataset) {
+    if (dataset instanceof ColoredXYZDataset && isUseDatasetPaintScale()
+        && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
       p = ((ColoredXYZDataset) dataset).getPaintScale().getPaint(z);
       setBlockWidth(((ColoredXYZDataset) dataset).getBoxWidth(), false);
       setBlockHeight(((ColoredXYZDataset) dataset).getBoxHeight(), false);
@@ -401,6 +407,14 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
       return false;
     }
     return super.equals(obj);
+  }
+
+  public boolean isUseDatasetPaintScale() {
+    return useDatasetPaintScale;
+  }
+
+  public void setUseDatasetPaintScale(boolean useDatasetPaintScale) {
+    this.useDatasetPaintScale = useDatasetPaintScale;
   }
 
   /**

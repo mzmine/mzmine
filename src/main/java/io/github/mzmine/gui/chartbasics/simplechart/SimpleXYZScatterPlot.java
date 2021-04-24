@@ -39,7 +39,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -73,6 +72,7 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.title.Title;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
@@ -96,7 +96,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   protected final JFreeChart chart;
 
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
-  protected final List<DatasetsChangedListener> datasetListeners;
+  protected final List<DatasetChangeListener> datasetListeners;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
   protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(false);
   protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
@@ -104,13 +104,12 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
+  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
   protected RectangleEdge defaultPaintscaleLocation = RectangleEdge.RIGHT;
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
   private Canvas legendCanvas;
   private String legendLabel = null;
-
-  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
   private RegionSelectionListener currentRegionListener = null;
   private XYShapeAnnotation currentRegionAnnotation;
 
@@ -182,23 +181,28 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   /**
-   * @param dataset the dataset. null to clear the plot. Removes all other datasets.
+   * @param dataset the main dataset. null to clear the plot. Removes all other datasets.
    */
   public void setDataset(@Nullable ColoredXYZDataset dataset) {
 //    assert Platform.isFxApplicationThread();
 
     removeAllDatasets();
+    if (dataset == null) {
+      return;
+    }
+
     plot.setDataset(dataset);
     plot.setRenderer(defaultRenderer.get());
-    onDatasetChanged(dataset);
-    if (dataset != null) {
-      dataset.addChangeListener(event -> onDatasetChanged((XYZDataset) event.getSource()));
+    if (dataset.getStatus() == TaskStatus.FINISHED) {
+      datasetChanged(new DatasetChangeEvent(this, dataset));
     }
+    dataset.addChangeListener(
+        event -> datasetChanged(new DatasetChangeEvent(this, event.getDataset())));
     if (nextDataSetNum == 0) {
       nextDataSetNum++;
     }
 
-    notifyDatasetsChangedListeners();
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
   }
 
   /**
@@ -227,7 +231,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
     if (chart.isNotify()) {
-      notifyDatasetsChangedListeners();
+      notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
     }
     return nextDataSetNum - 1;
   }
@@ -264,7 +268,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot.setNotify(true);
     chart.setNotify(true);
     chart.fireChartChanged();
-    notifyDatasetsChangedListeners();
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
   }
 
   @Override
@@ -389,7 +393,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   public void setLegendNumberFormatOverride(NumberFormat format) {
     this.legendAxisFormat = format;
-    onDatasetChanged((XYZDataset) getXYPlot().getDataset());
+    datasetChanged(new DatasetChangeEvent(this, getXYPlot().getDataset()));
   }
 
   @Override
@@ -399,28 +403,28 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
 
   @Override
-  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void addDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.add(listener);
   }
 
   @Override
-  public void removeDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void removeDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.remove(listener);
   }
 
   @Override
-  public void clearDatasetsChangedListeners(DatasetChangeListener listener) {
+  public void clearDatasetChangeListeners() {
     datasetListeners.clear();
   }
 
-  private void notifyDatasetsChangedListeners() {
+  public void notifyDatasetChangeListeners(DatasetChangeEvent event) {
     if (!chart.isNotify()) {
       return;
     }
 
-    Map<Integer, XYDataset> datasets = getAllDatasets();
-    for (DatasetsChangedListener listener : datasetListeners) {
-      listener.datasetsChanged(datasets);
+//    Map<Integer, XYDataset> datasets = getAllDatasets();
+    for (DatasetChangeListener listener : datasetListeners) {
+      listener.datasetChanged(event);
     }
   }
 
@@ -447,12 +451,17 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   /**
-   * @param dataset Called when the dataset is changed, e.g. when the calculation finished.
+   * @param event Called when the dataset is changed, e.g. when the calculation finished.
    */
-  private void onDatasetChanged(XYZDataset dataset) {
-    if (dataset == null) {
+  @Override
+  public void datasetChanged(DatasetChangeEvent event) {
+    super.datasetChanged(event);
+
+    if (!(event.getDataset() instanceof XYZDataset dataset)
+        || getXYPlot().indexOf(dataset) != 0) {
       return;
     }
+
     PaintScale paintScale = makePaintScale(dataset);
 //    updateRenderer(paintScale);
     if (dataset instanceof ColoredXYZDataset
@@ -469,6 +478,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     }
     MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
     chart.fireChartChanged();
+
+    notifyDatasetChangeListeners(event);
   }
 
   public Canvas getLegendCanvas() {

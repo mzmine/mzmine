@@ -154,7 +154,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     mobilogramChart.getXYPlot().getDomainAxis().setInverted(true);
     mobilogramChart.setShowCrosshair(false);
     mobilogramChart.setLegendItemsVisible(false);
-    mobilogramChart.addDatasetsChangedListener(l -> {
+    mobilogramChart.addDatasetChangeListener(l -> {
       Platform.runLater(() -> {
         NumberAxis a = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
         a.setAutoRangeIncludesZero(false);
