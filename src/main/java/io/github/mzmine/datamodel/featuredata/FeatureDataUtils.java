@@ -35,6 +35,7 @@ import io.github.mzmine.util.maths.Weighting;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class FeatureDataUtils {
@@ -152,18 +153,20 @@ public class FeatureDataUtils {
     return area;
   }
 
-  public static double calculateMz(IonSeries series, CenterMeasure cm) {
+  public static double calculateMz(@Nonnull final IonSeries series,
+      @Nonnull final CenterMeasure cm) {
     CenterFunction cf = new CenterFunction(cm, Weighting.LINEAR);
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
     return cf.calcCenter(data[0], data[1]);
   }
 
-  public static void recalculateIonSeriesDependingTypes(ModularFeature feature) {
+  public static void recalculateIonSeriesDependingTypes(@Nonnull final ModularFeature feature) {
     recalculateIonSeriesDependingTypes(feature, CenterMeasure.AVG);
   }
 
-  public static void recalculateIonSeriesDependingTypes(ModularFeature feature, CenterMeasure cm) {
+  public static void recalculateIonSeriesDependingTypes(@Nonnull final ModularFeature feature,
+      @Nonnull final CenterMeasure cm) {
     IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
     Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
     Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
@@ -183,29 +186,32 @@ public class FeatureDataUtils {
     if (featureData instanceof IonMobilogramTimeSeries) {
       SummedIntensityMobilitySeries summedMobilogram = ((IonMobilogramTimeSeries) featureData)
           .getSummedMobilogram();
-      Range<Float> mobilityRange = getMobilityRange(summedMobilogram);
-      feature.setMobilityRange(mobilityRange);
-
-      int mostIntenseMobilityScanIndex = -1;
-      double intensity = Double.MIN_VALUE;
-      for (int i = 0; i < summedMobilogram.getNumberOfValues(); i++) {
-        double currentIntensity = summedMobilogram.getIntensity(i);
-        if (currentIntensity > intensity) {
-          intensity = currentIntensity;
-          mostIntenseMobilityScanIndex = i;
-        }
-      }
-      if (Double.compare(intensity, Double.MIN_VALUE) == 0) {
-        logger.info(() -> "Mobility cannot be specified for: " + summedMobilogram.print());
-        feature.setMobility(Float.NaN);
-      } else {
-        feature.setMobility((float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
-      }
+      feature.setMobilityRange(getMobilityRange(summedMobilogram));
+      feature.setMobility(calculateMobility(summedMobilogram));
     }
     // todo recalc quality parameters
   }
 
-  public static double getSmallestMzDelta(MzSeries series) {
+  public static <T extends IntensitySeries & MobilitySeries> float calculateMobility(T series) {
+    int mostIntenseMobilityScanIndex = -1;
+    double intensity = Double.NEGATIVE_INFINITY;
+    for (int i = 0; i < series.getNumberOfValues(); i++) {
+      double currentIntensity = series.getIntensity(i);
+      if (currentIntensity > intensity) {
+        intensity = currentIntensity;
+        mostIntenseMobilityScanIndex = i;
+      }
+    }
+
+    if (Double.compare(intensity, Double.MIN_VALUE) == 0) {
+      logger.info(() -> "Mobility cannot be specified for: " + series);
+      return Float.NaN;
+    } else {
+      return (float) series.getMobility(mostIntenseMobilityScanIndex);
+    }
+  }
+
+  public static double getSmallestMzDelta(@Nonnull final MzSeries series) {
     double smallestDelta = Double.POSITIVE_INFINITY;
 
     if (series instanceof IonMobilogramTimeSeries ims) {
@@ -213,10 +219,10 @@ public class FeatureDataUtils {
           .max().orElse(0);
 
       double[] mzBuffer = new double[maxValues];
-      for(IonMobilitySeries mobilogram : ims.getMobilograms()) {
+      for (IonMobilitySeries mobilogram : ims.getMobilograms()) {
         mobilogram.getMzValues(mzBuffer);
         final double delta = ArrayUtils.smallestDelta(mzBuffer, mobilogram.getNumberOfValues());
-        if(delta < smallestDelta) {
+        if (delta < smallestDelta) {
           smallestDelta = delta;
         }
       }
