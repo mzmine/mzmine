@@ -161,7 +161,7 @@ public class TDFImportTask extends AbstractTask {
         newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
             newMZmineFile.getMemoryMapStorage());
         ((IMSImagingRawDataFile) newMZmineFile)
-            .setImagingParam(new ImagingParameters(maldiFrameInfoTable));
+            .setImagingParam(new ImagingParameters(metaDataTable, maldiFrameInfoTable));
       } catch (IOException e) {
         e.printStackTrace();
         return;

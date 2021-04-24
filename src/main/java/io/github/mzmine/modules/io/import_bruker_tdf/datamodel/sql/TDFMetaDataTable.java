@@ -131,10 +131,15 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
   }
 
   // we only keep these keys from the metadata table. Add more, if we need anything else.
-  private enum Keys {
+  public enum Keys {
     SchemaType, SchemaVersionMajor, SchemaVersionMinor, MzAcqRangeLower, MzAcqRangeUpper,
     OneOverK0AcqRangeLower, OneOverK0AcqRangeUpper, AcquisitionSoftwareVersion, InstrumentName,
-    Description, SampleName, MethodName, HasProfileSpectra, HasLineSpectra;
+    Description, SampleName, MethodName, HasProfileSpectra, HasLineSpectra, ImagingAreaMinXIndexPos,
+    ImagingAreaMaxXIndexPos, ImagingAreaMinYIndexPos, ImagingAreaMaxYIndexPos;
   }
 
+  public String getValueForKey(Keys key) {
+    int index = keyCol.indexOf(key.toString());
+    return index != -1 ? valueCol.get(index) : "";
+  }
 }

@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
@@ -33,6 +34,7 @@ import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
+import io.github.mzmine.modules.io.export_image_to_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.export_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -180,9 +182,14 @@ public class FeatureTableContextMenu extends ContextMenu {
       window.setVisible(true);
     }));
 
+    final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
+        () -> !selectedRows.isEmpty() && selectedRows.get(0).getBestFeature().getMap()
+            .containsKey(new ImageType()));
+    exportImageToCsv.setOnAction(e -> ImageToCsvExportModule.exportRows(selectedRows));
+
     exportMenu.getItems()
         .addAll(exportIsotopesItem, exportMSMSItem, exportToSirius, new SeparatorMenuItem(),
-            exportMS1Library, exportMSMSLibrary);
+            exportMS1Library, exportMSMSLibrary, new SeparatorMenuItem(), exportImageToCsv);
   }
 
   private void initSearchMenu() {

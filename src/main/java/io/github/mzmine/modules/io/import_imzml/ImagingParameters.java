@@ -23,10 +23,8 @@ import com.alanmrace.jimzmlparser.mzml.CVParam;
 import com.alanmrace.jimzmlparser.mzml.ScanSettings;
 import com.alanmrace.jimzmlparser.mzml.ScanSettingsList;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable.Keys;
 
 /*
  * <scanSettingsList count="1"> <scanSettings id="scansettings1"> <cvParam cvRef="IMS"
@@ -66,18 +64,14 @@ public class ImagingParameters {
   private ScanDirection scanDirection;
 
 
-  public ImagingParameters(TDFMaldiFrameInfoTable maldiFrameInfoTable) {
-    Map<Integer, Long> count = maldiFrameInfoTable.getyIndexPosColumn().stream().collect(Collectors
-        .groupingBy(Long::intValue, Collectors.counting()));
-    Entry<Integer, Long> mostFrequent = count.entrySet().stream().max(
-        Comparator.comparingLong(Entry::getValue)).get();
-    maxNumberOfPixelX = mostFrequent.getValue().intValue();
-
-    count = maldiFrameInfoTable.getxIndexPosColumn().stream().collect(Collectors
-        .groupingBy(Long::intValue, Collectors.counting()));
-    mostFrequent = count.entrySet().stream().max(
-        Comparator.comparingLong(Entry::getValue)).get();
-    maxNumberOfPixelY = mostFrequent.getValue().intValue();
+  public ImagingParameters(TDFMetaDataTable metaDataTable,
+      TDFMaldiFrameInfoTable maldiFrameInfoTable) {
+    maxNumberOfPixelX =
+        Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxXIndexPos)) - Integer
+            .parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinXIndexPos)) + 1;
+    maxNumberOfPixelY =
+        Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxYIndexPos)) - Integer
+            .parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinYIndexPos)) + 1;
     maxNumberOfPixelZ = 1;
     spectraPerPixel = 1;
 

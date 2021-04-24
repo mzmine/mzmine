@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.io.FilenameUtils;
 
@@ -78,6 +79,18 @@ public class FileAndPathUtil {
    */
   public static String getRealFileName(File name, String format) {
     return getRealFileName(name.getAbsolutePath(), format);
+  }
+
+  /**
+   * @param f
+   * @return The file extension or null.
+   */
+  public static String getExtension(File f) {
+    int lastDot = f.getName().lastIndexOf(".");
+    if (lastDot != -1) {
+      return f.getName().substring(lastDot + 1);
+    }
+    return null;
   }
 
   /**
@@ -273,16 +286,18 @@ public class FileAndPathUtil {
 
   public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter) {
     String ext = fileFilter.getExtensions().get(0);
-    if(ext.startsWith("*."))
+    if (ext.startsWith("*.")) {
       ext = ext.substring(2);
+    }
     return findFilesInDir(dir, new FileNameExtFilter("", ext), true, false);
   }
 
   public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter,
       boolean searchSubdir) {
     String ext = fileFilter.getExtensions().get(0);
-    if(ext.startsWith("*."))
+    if (ext.startsWith("*.")) {
       ext = ext.substring(2);
+    }
     return findFilesInDir(dir, new FileNameExtFilter("", ext), searchSubdir, false);
   }
 
@@ -413,5 +428,31 @@ public class FileAndPathUtil {
     } catch (Exception ex) {
       return new File("");
     }
+  }
+
+  public static File getUniqueFilename(final File parent, final String fileName) {
+    final File dir = parent.isDirectory() ? parent : parent.getParentFile();
+    final File file = new File(dir + File.separator + fileName);
+
+    if (!file.exists()) {
+      return file;
+    }
+
+    final String extension = getExtension(file);
+    final File noExtension = eraseFormat(file);
+
+    int i = 1;
+    File uniqueFile = new File(
+        noExtension.getAbsolutePath() + " (" + i + ")." + extension);
+    while (uniqueFile.exists()) {
+      i++;
+      uniqueFile = new File(
+          noExtension.getAbsolutePath() + " (" + i + ")." + extension);
+      if(i > 50) {
+        Random r = new Random(System.currentTimeMillis());
+        i = r.nextInt();
+      }
+    }
+    return uniqueFile;
   }
 }
