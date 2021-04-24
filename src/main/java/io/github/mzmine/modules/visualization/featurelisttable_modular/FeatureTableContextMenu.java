@@ -20,8 +20,10 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -51,6 +53,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
@@ -291,6 +294,12 @@ public class FeatureTableContextMenu extends ContextMenu {
         e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(),
             selectedFeature.getRepresentativeScan(), selectedFeature));
 
+    final MenuItem showBestMobilityScanItem = new ConditionalMenuItem("Best mobility scan",
+        () -> selectedFeature != null && selectedFeature.getRepresentativeScan() instanceof Frame
+            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+    showBestMobilityScanItem.setOnAction(e -> SpectraVisualizerModule.addNewSpectrumTab(
+        IonMobilityUtils.getBestMobilityScan(selectedFeature)));
+
     // TODO this should display selected features instead of rows. MultiMSMSWindow does not support that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
         () -> getNumberOfRowsWithFragmentScans(selectedRows) >= 1 && selectedFeature != null);
@@ -338,7 +347,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
             showInMobilityMzVisualizerItem,
             new SeparatorMenuItem(),
-            showSpectrumItem, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
+            showSpectrumItem, showBestMobilityScanItem, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
             new SeparatorMenuItem(), showPeakRowSummaryItem);
   }

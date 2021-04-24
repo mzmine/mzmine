@@ -23,7 +23,10 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -150,7 +153,7 @@ public class IonMobilityUtils {
       if (type == MobilogramType.BASE_PEAK) {
         DataPoint bp = ScanUtils
             .findBasePeak(mzsBuffer, intensitiesBuffer, mzRange, scan.getNumberOfDataPoints());
-        if(bp != null) {
+        if (bp != null) {
           mzs[i] = bp.getMZ();
           intensities[i] = bp.getIntensity();
         }
@@ -164,7 +167,42 @@ public class IonMobilityUtils {
     return new SimpleIonMobilitySeries(storage, mzs, intensities, mobilityScans);
   }
 
+  /**
+   * Extracts the mobility scan with the highest intensity this feature was detected in.
+   *
+   * @param f The feature.
+   * @return The mobility scan. Null if this feature does not possess a mobility dimension.
+   */
+  @Nullable
+  public static MobilityScan getBestMobilityScan(@Nonnull final ModularFeature f) {
+    Scan bestScan = f.getRepresentativeScan();
+    if(!(bestScan instanceof Frame bestFrame)) {
+      return null;
+    }
+
+    final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
+    if(!(featureData instanceof IonMobilogramTimeSeries trace)) {
+      return null;
+    }
+
+    final IonMobilitySeries bestMobilogram = trace.getMobilogram(bestFrame);
+    if(bestMobilogram == null) {
+      return null;
+    }
+
+    MobilityScan bestMobilityScan = null;
+    double maxIntensity = 0d;
+    for(int i = 0; i < bestMobilogram.getNumberOfValues(); i++) {
+      if(bestMobilogram.getIntensity(i) > maxIntensity) {
+        maxIntensity = bestMobilogram.getIntensity(i);
+        bestMobilityScan = bestMobilogram.getSpectrum(i);
+      }
+    }
+    return bestMobilityScan;
+  }
+
   public enum MobilogramType {
     BASE_PEAK, TIC
   }
+
 }
