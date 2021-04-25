@@ -97,25 +97,24 @@ public class FeatureDataUtils {
     return Range.closed((float) min, (float) max);
   }
 
+  /**
+   * @param series The series. Ascending or descending mobility.
+   * @return The mobility range.
+   */
   public static Range<Float> getMobilityRange(MobilitySeries series) {
-    double min = Double.MAX_VALUE;
-    double max = Double.MIN_VALUE;
-
-    for (int i = 0; i < series.getNumberOfValues(); i++) {
-      final double mz = series.getMobility(i);
-      if (mz < min) {
-        min = mz;
-      }
-      if (mz > max) {
-        max = mz;
-      }
+    if (series.getNumberOfValues() == 0) {
+      return Range.singleton(Float.NaN);
     }
-    return Range.closed((float) min, (float) max);
+    return Range.singleton((float) series.getMobility(0))
+        .span(Range.singleton((float) series.getMobility(series.getNumberOfValues() - 1)));
   }
 
-  @Nullable
-  public static MassSpectrum getMostIntenseSpectrum(
-      IonSpectrumSeries<? extends MassSpectrum> series) {
+  /**
+   * @param series The series.
+   * @return The index of the highest intensity. May be -1 if no intensity could be foudn (-> series
+   * empty).
+   */
+  public static int getMostIntenseIndex(IntensitySeries series) {
     int maxIndex = -1;
     double maxIntensity = Double.MIN_VALUE;
 
@@ -126,9 +125,22 @@ public class FeatureDataUtils {
         maxIntensity = intensity;
       }
     }
+    return maxIndex;
+  }
+
+  /**
+   * @return The most intense spectrum in the series or null.
+   */
+  @Nullable
+  public static MassSpectrum getMostIntenseSpectrum(
+      IonSpectrumSeries<? extends MassSpectrum> series) {
+    final int maxIndex = getMostIntenseIndex(series);
     return maxIndex != -1 ? series.getSpectrum(maxIndex) : null;
   }
 
+  /**
+   * @return The most intense scan in the series or null.
+   */
   @Nullable
   public static Scan getMostIntenseScan(IonTimeSeries<? extends Scan> series) {
     return (Scan) getMostIntenseSpectrum(series);

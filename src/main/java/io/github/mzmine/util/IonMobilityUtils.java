@@ -24,9 +24,12 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -38,11 +41,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class IonMobilityUtils {
+
+  private static Logger logger = Logger.getLogger(IonMobilityUtils.class.getName());
 
   public static double getSmallestMobilityDelta(Frame frame) {
     double minDelta = Double.MAX_VALUE;
@@ -176,29 +182,77 @@ public class IonMobilityUtils {
   @Nullable
   public static MobilityScan getBestMobilityScan(@Nonnull final ModularFeature f) {
     Scan bestScan = f.getRepresentativeScan();
-    if(!(bestScan instanceof Frame bestFrame)) {
+    if (!(bestScan instanceof Frame bestFrame)) {
       return null;
     }
 
     final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
-    if(!(featureData instanceof IonMobilogramTimeSeries trace)) {
+    if (!(featureData instanceof IonMobilogramTimeSeries trace)) {
       return null;
     }
 
     final IonMobilitySeries bestMobilogram = trace.getMobilogram(bestFrame);
-    if(bestMobilogram == null) {
+    if (bestMobilogram == null) {
       return null;
     }
 
     MobilityScan bestMobilityScan = null;
     double maxIntensity = 0d;
-    for(int i = 0; i < bestMobilogram.getNumberOfValues(); i++) {
-      if(bestMobilogram.getIntensity(i) > maxIntensity) {
+    for (int i = 0; i < bestMobilogram.getNumberOfValues(); i++) {
+      if (bestMobilogram.getIntensity(i) > maxIntensity) {
         maxIntensity = bestMobilogram.getIntensity(i);
         bestMobilityScan = bestMobilogram.getSpectrum(i);
       }
     }
     return bestMobilityScan;
+  }
+
+  /**
+   * @param series The series. Sorted by ascending mobility. Note that raw {@link IonMobilitySeries}
+   *               from {@link io.github.mzmine.datamodel.MobilityType#TIMS} measurements can be
+   *               sorted by descending mobility. {@link io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries}
+   *               are guaranteed to be sorted by ascending mobility.
+   * @return The FWHM range or null.
+   */
+  public static <T extends IntensitySeries & MobilitySeries> Range<Float> getMobilityFWHM(
+      T series) {
+    final int mostIntenseIndex = FeatureDataUtils.getMostIntenseIndex(series);
+    if (mostIntenseIndex == -1) {
+      return null;
+    }
+
+    final double maxIntensity = series.getIntensity(mostIntenseIndex);
+    final double halfIntensity = maxIntensity / 2;
+
+    int before = 0;
+    int after = series.getNumberOfValues() - 1;
+
+    for (int i = 0; i < mostIntenseIndex; i++) {
+      if (series.getIntensity(i) > halfIntensity) {
+        before = Math.max(0, i - 1);
+        break;
+      }
+    }
+
+    for (int i = mostIntenseIndex; i < series.getNumberOfValues(); i++) {
+      if (series.getIntensity(i) < halfIntensity) {
+        after = i;
+        break;
+      }
+    }
+
+    final double startMobility = MathUtils
+        .twoPointGetXForY(series.getMobility(before), series.getIntensity(before),
+            series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
+            series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)), halfIntensity);
+
+    final double endMobility = MathUtils
+        .twoPointGetXForY(series.getMobility(Math.max(after - 1, 0)),
+            series.getIntensity(Math.max(after - 1, 0)),
+            series.getMobility(after), series.getIntensity(after), halfIntensity);
+
+//    logger.finest(() -> "Determined FWHM from " + startMobility + " to " + endMobility);
+    return Range.closed((float) startMobility, (float) endMobility);
   }
 
   public enum MobilogramType {
