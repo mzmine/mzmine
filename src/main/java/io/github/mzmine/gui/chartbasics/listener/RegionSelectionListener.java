@@ -34,7 +34,6 @@ import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 
 public class RegionSelectionListener implements ChartMouseListenerFX {
 
-
   private final ObjectProperty<java.awt.geom.Path2D> buildingPath;
   private final ListProperty<Point2D> points;
   private final EChartViewer chart;
