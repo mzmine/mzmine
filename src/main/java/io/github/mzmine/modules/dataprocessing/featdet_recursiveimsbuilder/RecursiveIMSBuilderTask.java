@@ -250,7 +250,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
   private boolean checkConsecutiveRemoveNoise(TempIMTrace trace, List<Frame> eligibleFrames,
       int reqConsecutive, int numDataPoints) {
 
-    if (trace.getNumberOfDataPoints() < numDataPoints) {
+    if (trace.getNumberOfDataPoints() < numDataPoints || trace.getMobilograms().size() < reqConsecutive) {
       return false;
     }
 

@@ -223,4 +223,8 @@ public abstract class DataType<T extends Property<?>> {
     return null;
   }
 
+  @Override
+  public String toString() {
+    return getHeaderString();
+  }
 }

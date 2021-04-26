@@ -70,7 +70,6 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 
   /**
-   *
    * @param parameters
    * @param peakListRow =
    */
@@ -112,8 +111,9 @@ public class SingleRowPredictionTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (generator == null)
+    if (generator == null) {
       return 0;
+    }
     return generator.getFinishedPercentage();
   }
 
@@ -151,7 +151,6 @@ public class SingleRowPredictionTask extends AbstractTask {
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
-
     try {
 
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
@@ -162,8 +161,9 @@ public class SingleRowPredictionTask extends AbstractTask {
       IMolecularFormula cdkFormula;
       while ((cdkFormula = generator.getNextFormula()) != null) {
 
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         // Mass is ok, so test other constraints
         checkConstraints(cdkFormula);
@@ -171,8 +171,9 @@ public class SingleRowPredictionTask extends AbstractTask {
 
       }
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
           + " formulas");
@@ -196,14 +197,14 @@ public class SingleRowPredictionTask extends AbstractTask {
   }
 
 
-
   private void checkConstraints(IMolecularFormula cdkFormula) {
 
     // Check elemental ratios
     if (checkRatios) {
       boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, ratiosParameters);
-      if (!check)
+      if (!check) {
         return;
+      }
     }
 
     Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
@@ -211,8 +212,9 @@ public class SingleRowPredictionTask extends AbstractTask {
     // Check RDBE condition
     if (checkRDBE && (rdbeValue != null)) {
       boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue, rdbeParameters);
-      if (!check)
+      if (!check) {
         return;
+      }
     }
 
     // Calculate isotope similarity score
@@ -237,8 +239,9 @@ public class SingleRowPredictionTask extends AbstractTask {
       final double minScore = isotopeParameters
           .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
 
-      if (isotopeScore < minScore)
+      if (isotopeScore < minScore) {
         return;
+      }
 
     }
 
@@ -268,8 +271,9 @@ public class SingleRowPredictionTask extends AbstractTask {
         msmsAnnotations = score.getAnnotation();
 
         // Check the MS/MS condition
-        if (msmsScore < minMSMSScore)
+        if (msmsScore < minMSMSScore) {
           return;
+        }
       }
 
     }
@@ -279,7 +283,8 @@ public class SingleRowPredictionTask extends AbstractTask {
         rdbeValue, isotopeScore, msmsScore, msmsAnnotations);
 
     // Add the new formula entry
-    resultWindowFX.addNewListItem(resultEntry);
+    // Need to execute in runLater because result window might not have been created due to earlier runLater.
+    MZmineCore.runLater(() -> resultWindowFX.addNewListItem(resultEntry));
 
     foundFormulas++;
 
@@ -291,8 +296,9 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     // We need to cancel the formula generator, because searching for next
     // candidate formula may take a looong time
-    if (generator != null)
+    if (generator != null) {
       generator.cancel();
+    }
 
   }
 

@@ -18,8 +18,8 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Arrays;
 import io.github.mzmine.util.javafx.DraggableListCell;
+import java.util.Arrays;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ListView;
 
@@ -35,7 +35,15 @@ public class OrderComponent<ValueType> extends ListView<ValueType> {
     // Border border = BorderFactory.createEtchedBorder();
     // setBorder(border);
 
-    setCellFactory(param -> new DraggableListCell<ValueType>());
+    setCellFactory(param -> new DraggableListCell<>() {
+      @Override
+      protected void updateItem(ValueType item, boolean empty) {
+        super.updateItem(item, empty);
+        if(!empty && item != null) {
+          setText(item.toString());
+        }
+      }
+    });
 
     // Adjust the size of the component
     setPrefWidth(150);
