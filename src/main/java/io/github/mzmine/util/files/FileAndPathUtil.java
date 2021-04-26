@@ -443,11 +443,11 @@ public class FileAndPathUtil {
 
     int i = 1;
     File uniqueFile = new File(
-        noExtension.getAbsolutePath() + " (" + i + ")." + extension);
+        noExtension.getAbsolutePath() + "(" + i + ")." + extension);
     while (uniqueFile.exists()) {
       i++;
       uniqueFile = new File(
-          noExtension.getAbsolutePath() + " (" + i + ")." + extension);
+          noExtension.getAbsolutePath() + "(" + i + ")." + extension);
       if(i > 50) {
         Random r = new Random(System.currentTimeMillis());
         i = r.nextInt();

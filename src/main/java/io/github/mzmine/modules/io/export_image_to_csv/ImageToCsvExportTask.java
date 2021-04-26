@@ -150,11 +150,12 @@ public class ImageToCsvExportTask extends AbstractTask {
     flDir.mkdirs();
 
     String newFilename =
-        f.getRawDataFile().getName() + " mz-" + mzFormat.format(f.getMZ());
+        f.getRawDataFile().getName() + "_mz-" + mzFormat.format(f.getMZ());
     if(f.getMobility() != null && Float.compare(f.getMobility(), 0f) != 0) {
-      newFilename += " mobility-" + mobilityFormat.format(f.getMobility());
+      newFilename += "_mobility-" + mobilityFormat.format(f.getMobility());
     }
-    newFilename += " " + getImageParamString((ImagingRawDataFile) f.getRawDataFile());
+    newFilename += "_" + getImageParamString((ImagingRawDataFile) f.getRawDataFile());
+    newFilename = newFilename.replace(".", "i");
     newFilename += ".csv";
 
     final File file = FileAndPathUtil.getUniqueFilename(flDir, newFilename);
@@ -165,7 +166,9 @@ public class ImageToCsvExportTask extends AbstractTask {
       for(int y = 0; y < dataMatrix.length; y++) {
         StringBuilder b = new StringBuilder();
         for (int x = 0; x < dataMatrix[y].length; x++) {
-          b.append(dataMatrix[y][x]);
+          if(Double.compare(dataMatrix[y][x], 0d) != 0) {
+            b.append(dataMatrix[y][x]);
+          }
           b.append(", ");
         }
         writer.append(b.substring(0, b.length() - 2));
