@@ -90,7 +90,7 @@ public class SpectraMerging {
     }
 
     final List<IndexedDataPoint> dataPoints = new ArrayList<>();
-    // extract all data points in the mass list
+    // extract all data points in the mass spectrum
     final int numDp = source.stream().mapToInt(MassSpectrum::getNumberOfDataPoints).max()
         .getAsInt();
     final double[] rawMzs = new double[numDp];
@@ -237,8 +237,14 @@ public class SpectraMerging {
         Range.range(lowerBound, lowerBoundType, upperBound, upperBoundType));
   }
 
-  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(ImsMsMsInfo info,
-      MZTolerance tolerance, MergingType mergingType, MemoryMapStorage storage) {
+  /**
+   * Creates a merged MS/MS spectrum for a PASEF {@link ImsMsMsInfo}.
+   *
+   * @return A {@link MergedMsMsSpectrum}.
+   */
+  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@Nonnull final ImsMsMsInfo info,
+      @Nonnull final MZTolerance tolerance, @Nonnull final MergingType mergingType,
+      @Nullable final MemoryMapStorage storage) {
 
     if (info == null) {
       return null;
@@ -279,6 +285,44 @@ public class SpectraMerging {
     MassList newMl = new SimpleMassList(storage, merged[0], merged[1]);
     mergedSpectrum.addMassList(newMl);
     return mergedSpectrum;
+  }
+
+  /**
+   * Merges Multiple MS/MS spectra with the same collision energy into a single MS/MS spectrum.
+   *
+   * @param spectra     The source spectra
+   * @param tolerance   The mz tolerance to merch peaks in a spectrum
+   * @param mergingType Specifies the way to treat intensities (sum, avg, max)
+   * @param storage     The storage to use.
+   * @return A list of all merged spectra (Spectra with the same collision energy have been merged).
+   */
+  public static List<MergedMsMsSpectrum> mergeMsMsSpectra(
+      @Nonnull final Collection<MergedMsMsSpectrum> spectra,
+      @Nonnull final MZTolerance tolerance, @Nonnull final MergingType mergingType,
+      @Nullable final MemoryMapStorage storage) {
+
+    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
+
+    final List<MergedMsMsSpectrum> mergedSpectra = new ArrayList<>();
+    // group spectra with the same CE into the same list
+    final Map<Float, List<MergedMsMsSpectrum>> grouped = spectra.stream()
+        .collect(Collectors.groupingBy(spectrum -> spectrum.getCollisionEnergy()));
+
+    for (final Entry<Float, List<MergedMsMsSpectrum>> entry : grouped.entrySet()) {
+      final MergedMsMsSpectrum spectrum = entry.getValue().get(0);
+      final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(),
+          tolerance, mergingType, cf, 0d);
+      final List<MassSpectrum> sourceSpectra = entry.getValue().stream()
+          .flatMap(s -> s.getSourceSpectra().stream()).collect(Collectors.toList());
+
+      final MergedMsMsSpectrum mergedMsMsSpectrum = new SimpleMergedMsMsSpectrum(storage,
+          mzIntensities[0], mzIntensities[1],
+          spectrum.getPrecursorMZ(), spectrum.getCollisionEnergy(), spectrum.getMSLevel(),
+          sourceSpectra, mergingType, cf);
+      mergedSpectra.add(mergedMsMsSpectrum);
+    }
+
+    return mergedSpectra;
   }
 
   public static Frame getMergedFrame(@Nonnull final Collection<Frame> frames,
