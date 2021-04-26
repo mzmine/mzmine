@@ -2,5 +2,5 @@ extraction:
   java:
     index:
       gradle:
-        version: "7.0"
+        version: "7"
       java_version: "16"
