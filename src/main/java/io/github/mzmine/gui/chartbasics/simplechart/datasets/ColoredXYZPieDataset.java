@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
 import io.github.mzmine.main.MZmineCore;
@@ -37,12 +38,10 @@ import org.jfree.data.xy.XYZDataset;
 public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZDataset {
 
   private final PieXYZDataProvider<T> pieDataProvider;
-  protected Double minZValue;
-  protected Double maxZValue;
   protected AbstractXYItemRenderer renderer;
-  protected boolean useAlphaInPaintscale;
   protected double[] summedZValues;
   protected T[] sliceIdentifiers;
+  private Range<Double> zRange;
 
   public ColoredXYZPieDataset(@Nonnull PieXYZDataProvider<T> dataProvider) {
     this(dataProvider, true);
@@ -52,8 +51,6 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
       final boolean autocompute) {
     super(dataProvider, false);
     this.pieDataProvider = dataProvider;
-    minZValue = Double.MAX_VALUE;
-    maxZValue = Double.MIN_VALUE;
     renderer = new XYBlockPixelSizeRenderer();
     if(autocompute) {
       MZmineCore.getTaskController().addTask(this);
@@ -86,7 +83,7 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
 
   @Override
   public int getSeriesCount() {
-    return sliceIdentifiers.length;
+    return sliceIdentifiers != null ? sliceIdentifiers.length : 0;
   }
 
   @Override
@@ -97,14 +94,6 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
   @Override
   public Comparable<?> getSeriesKey(int series) {
     return pieDataProvider.getLabelForSeries(series);
-  }
-
-  public double getMinZValue() {
-    return minZValue;
-  }
-
-  public double getMaxZValue() {
-    return maxZValue;
   }
 
   public double getPieDiameter(int index) {
@@ -140,34 +129,53 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
     valuesComputed = true;
     summedZValues = new double[computedItemCount];
 
+    double minDomain = Double.POSITIVE_INFINITY;
+    double maxDomain = Double.NEGATIVE_INFINITY;
+    double minRange = Double.POSITIVE_INFINITY;
+    double maxRange = Double.NEGATIVE_INFINITY;
+    double minZ = Double.POSITIVE_INFINITY;
+    double maxZ = Double.NEGATIVE_INFINITY;
+
     for (int i = 0; i < computedItemCount; i++) {
-      if (minRangeValue.doubleValue() < xyValueProvider.getRangeValue(i)) {
-        minRangeValue = xyValueProvider.getRangeValue(i);
-      }
-      if (pieDataProvider.getZValue(i) < minZValue) {
-        minZValue = pieDataProvider.getZValue(i);
-      }
-      if (pieDataProvider.getZValue(i) > maxZValue) {
-        maxZValue = pieDataProvider.getZValue(i);
-      }
+      final double rangeValue = xyValueProvider.getRangeValue(i);
+      final double domainValue = xyValueProvider.getDomainValue(i);
+      final double zValue = pieDataProvider.getZValue(i);
+
+      minDomain = Math.min(domainValue, minDomain);
+      maxDomain = Math.max(domainValue, maxDomain);
+      minRange = Math.min(rangeValue, minRange);
+      maxRange = Math.max(rangeValue, maxRange);
+      minZ = Math.min(zValue, minZ);
+      maxZ = Math.max(zValue, maxZ);
 
       for(int j = 0; j < sliceIdentifiers.length; j++) {
         summedZValues[i] += getZValue(j, i);
       }
     }
 
+    domainRange = Range.closed(minDomain, maxDomain);
+    rangeRange = Range.closed(minRange, maxRange);
+    zRange = Range.closed(minZ, maxZ);
+
     computed = true;
     status.set(TaskStatus.FINISHED);
-    if (Platform.isFxApplicationThread()) {
-      fireDatasetChanged();
-    } else {
-      Platform.runLater(this::fireDatasetChanged);
+
+    if(!(this instanceof FastColoredXYZPieDataset)) { // no need to notify then, dataset will be up to date
+      if (Platform.isFxApplicationThread()) {
+        fireDatasetChanged();
+      } else {
+        Platform.runLater(this::fireDatasetChanged);
+      }
     }
+  }
+
+  public Range<Double> getZValueRange() {
+    return zRange;
   }
 
   // Makes protected method public // TODO: possible alternatives?
   @Override
-  public void fireDatasetChanged() {
+  protected void fireDatasetChanged() {
     super.fireDatasetChanged();
   }
 

@@ -285,6 +285,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   public synchronized void removeAllDatasets() {
     assert Platform.isFxApplicationThread();
     chart.setNotify(false);
+    plot.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset ds = plot.getDataset(i);
       if (ds instanceof Task) {
@@ -293,6 +294,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
     }
+    plot.setNotify(true);
     chart.setNotify(true);
     chart.fireChartChanged();
     notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));

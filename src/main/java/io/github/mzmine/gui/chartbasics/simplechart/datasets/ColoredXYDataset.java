@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
@@ -64,7 +65,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   // dataset stuff
   private final int seriesCount = 1;
   protected ObjectProperty<javafx.scene.paint.Color> fxColor;
-  protected Double minRangeValue;
 
   // task stuff
   protected SimpleObjectProperty<TaskStatus> status;
@@ -73,6 +73,9 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected int computedItemCount;
   protected boolean[] isLocalMaximum;
   protected boolean valuesComputed;
+
+  protected Range<Double> domainRange;
+  protected Range<Double> rangeRange;
 
   private ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
@@ -96,7 +99,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     }
     this.fxColor = new SimpleObjectProperty<>(colorProvider.getFXColor());
 
-    minRangeValue = Double.MAX_VALUE;
     this.computedItemCount = 0;
 
     fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
@@ -244,7 +246,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   }
 
   public Double getMinimumRangeValue() {
-    return minRangeValue;
+    return rangeRange != null ? rangeRange.lowerEndpoint() : 0;
   }
 
   /**
@@ -269,22 +271,35 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     isLocalMaximum = new boolean[computedItemCount];
     valuesComputed = true;
 
-    for (int i = 0; i < xyValueProvider.getValueCount(); i++) {
-      if (xyValueProvider.getRangeValue(i) < minRangeValue.doubleValue()) {
-        minRangeValue = xyValueProvider.getRangeValue(i);
-      }
+    double minDomain = Double.POSITIVE_INFINITY;
+    double maxDomain = Double.NEGATIVE_INFINITY;
+    double minRange = Double.POSITIVE_INFINITY;
+    double maxRange = Double.NEGATIVE_INFINITY;
+
+    for (int i = 0; i < computedItemCount; i++) {
+      final double rangeValue = xyValueProvider.getRangeValue(i);
+      final double domainValue = xyValueProvider.getDomainValue(i);
+
+      minDomain = Math.min(domainValue, minDomain);
+      maxDomain = Math.max(domainValue, maxDomain);
+      minRange = Math.min(rangeValue, minRange);
+      maxRange = Math.max(rangeValue, maxRange);
+
       isLocalMaximum[i] = SimpleChartUtility.isLocalMaximum(this, 0, i);
     }
 
+    domainRange = Range.closed(minDomain, maxDomain);
+    rangeRange = Range.closed(minRange, maxRange);
+
     computed = true;
     status.set(TaskStatus.FINISHED);
-//    if (!autocompute) {
-    if (Platform.isFxApplicationThread()) {
-      fireDatasetChanged();
-    } else {
-      Platform.runLater(this::fireDatasetChanged);
+    if (!(this instanceof FastColoredXYDataset)) {  // no need to notify then, dataset will be up to date
+      if (Platform.isFxApplicationThread()) {
+        fireDatasetChanged();
+      } else {
+        Platform.runLater(this::fireDatasetChanged);
+      }
     }
-//    }
   }
 
   @Override
@@ -378,5 +393,19 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
       return false;
     }
     return isLocalMaximum[item];
+  }
+
+  /**
+   * @return The domain value range. Null if called before the computation has been finished.
+   */
+  public Range<Double> getDomainValueRange() {
+    return domainRange;
+  }
+
+  /**
+   * @return The range value range. Null if called before the computation has been finished.
+   */
+  public Range<Double> getRangeValueRange() {
+    return rangeRange;
   }
 }

@@ -25,9 +25,9 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
-import io.github.mzmine.gui.chartbasics.simplechart.MultiDatasetXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
@@ -81,8 +81,8 @@ public class IMSMobilityMzPlot extends BorderPane {
 
   private final SimpleXYChart<IonTimeSeriesToXYProvider> ticChart;
   private final Map<ModularFeature, SingleIMSFeatureVisualiserPane> featureVisualisersMap;
-  private final MultiDatasetXYZScatterPlot<SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider> heatmap;
-  private final RegionSelectionWrapper<MultiDatasetXYZScatterPlot<?>> selectionWrapper;
+  private final SimpleXYZScatterPlot<SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider> heatmap;
+  private final RegionSelectionWrapper<SimpleXYZScatterPlot<?>> selectionWrapper;
   private final ScrollPane scrollPane;
   private final VBox content;
 
@@ -110,7 +110,7 @@ public class IMSMobilityMzPlot extends BorderPane {
     getStyleClass().add(".region-match-chart-bg");
 
     ticChart = new SimpleXYChart<>();
-    heatmap = new MultiDatasetXYZScatterPlot<>();
+    heatmap = new SimpleXYZScatterPlot<>();
     featureVisualisersMap = new LinkedHashMap<>();
     rawDataFiles = new ArrayList<>();
     useCCS = new SimpleBooleanProperty();

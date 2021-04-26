@@ -41,7 +41,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.DocumentBuilder;
@@ -77,7 +77,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
 
   final GridPane selectionControls;
   final FlowPane importExportControls;
-  final HBox bottomWrap;
+  final VBox bottomWrap;
   private final T node;
   private final ObservableList<RegionSelectionListener> finishedRegionSelectionListeners;
   private final Stroke roiStroke = new BasicStroke(1f);
@@ -99,7 +99,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     importExportControls.setHgap(5);
     importExportControls.setAlignment(Pos.TOP_CENTER);
 
-    bottomWrap = new HBox();
+    bottomWrap = new VBox();
     bottomWrap.getChildren().addAll(selectionControls, importExportControls);
     setBottom(bottomWrap);
     bottomWrap.setAlignment(Pos.TOP_CENTER);

@@ -23,7 +23,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
@@ -164,24 +164,38 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   public void updateLegend() {
     final XYDataset dataset = getXYPlot().getDataset(0);
-    final PaintScale paintScale;
-    getChart().clearSubtitles();
-
-    if (this.legendPaintScale.get() != null) {
-      paintScale = legendPaintScale.get();
-    } else if (dataset instanceof XYZDataset) {
-      paintScale = makePaintScale((XYZDataset) dataset);
-    } else {
+    if(dataset == null) {
       return;
     }
+    getChart().clearSubtitles();
 
-    PaintScaleLegend legend = generateLegend(paintScale);
-    if (legendCanvas != null) {
-      drawLegendToSeparateCanvas(legend);
-      currentLegend = legend;
+    if(dataset instanceof PaintScaleProvider) {
+      final PaintScale paintScale;
+      if (this.legendPaintScale.get() != null) {
+        paintScale = legendPaintScale.get();
+      } else if (dataset instanceof XYZDataset) {
+        paintScale = makePaintScale((XYZDataset) dataset);
+      } else {
+        return;
+      }
+
+      PaintScaleLegend legend = generateLegend(paintScale);
+      if (legendCanvas != null) {
+        drawLegendToSeparateCanvas(legend);
+        currentLegend = legend;
+      } else {
+        getChart().addSubtitle(legend);
+        currentLegend = null;
+      }
     } else {
-      getChart().addSubtitle(legend);
-      currentLegend = null;
+      LegendTitle legend = new LegendTitle(getChart().getXYPlot());
+      legend.setPosition(RectangleEdge.BOTTOM);
+      final EStandardChartTheme theme = MZmineCore.getConfiguration()
+          .getDefaultChartTheme();
+      legend.setBackgroundPaint(legendBg);
+      legend.setItemFont(theme.getRegularFont());
+      legend.setItemPaint(theme.getLegendItemPaint());
+      getChart().addLegend(legend);
     }
   }
 
@@ -291,9 +305,11 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   public void addDatasetsAndRenderers(
-      Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> datasetsAndRenderers) {
+      Map<XYZDataset, XYItemRenderer> datasetsAndRenderers) {
     getChart().setNotify(false);
+    getXYPlot().setNotify(false);
     datasetsAndRenderers.forEach(this::addDataset);
+    getXYPlot().setNotify(true);
     getChart().setNotify(true);
     getChart().fireChartChanged();
   }

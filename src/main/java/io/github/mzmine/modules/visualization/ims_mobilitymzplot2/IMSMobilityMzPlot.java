@@ -30,15 +30,17 @@ import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYZValueProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.ScanBPCProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.RowToCCSMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.RowToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZPieRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
@@ -107,6 +109,8 @@ public class IMSMobilityMzPlot extends BorderPane {
   private final List<RawDataFile> rawDataFiles; // raw data files in the ticChart
   private boolean isCtrlPressed = false;
 
+  private boolean useMobilograms = false;
+
   private Collection<ModularFeatureListRow> features;
 
   public IMSMobilityMzPlot() {
@@ -156,8 +160,8 @@ public class IMSMobilityMzPlot extends BorderPane {
     heatmap.setDomainAxisNumberFormatOverride(mzFormat);
     heatmap.setRangeAxisLabel("Mobility");
     heatmap.setRangeAxisNumberFormatOverride(mobilityFormat);
-    /*heatmap.setLegendAxisLabel(unitFormat.format("Intensity", "counts"));
-    heatmap.setLegendNumberFormatOverride(intensityFormat);*/
+    heatmap.setLegendAxisLabel(unitFormat.format("Intensity", "a.u."));
+    heatmap.setLegendNumberFormatOverride(intensityFormat);
     heatmap.setDefaultRenderer(new ColoredXYZPieRenderer());
     heatmap.getXYPlot()
         .setBackgroundPaint(MZmineCore.getConfiguration().isDarkMode() ? Color.BLACK : Color.WHITE);
@@ -173,11 +177,11 @@ public class IMSMobilityMzPlot extends BorderPane {
   }
 
   private void initSelectionPane() {
-    Button btnExtractRegions = new Button("Extract regions");
-    TextField tfSuffix = new TextField();
+    final Button btnExtractRegions = new Button("Extract regions");
+    final TextField tfSuffix = new TextField();
     tfSuffix.setPromptText("suffix");
 
-    GridPane selectionControls = selectionWrapper.getSelectionControls();
+    final GridPane selectionControls = selectionWrapper.getSelectionControls();
 
     btnExtractRegions.setDisable(true);
     btnExtractRegions
@@ -198,7 +202,7 @@ public class IMSMobilityMzPlot extends BorderPane {
     selectionControls.add(btnExtractRegions, 4, 0);
     selectionControls.add(tfSuffix, 5, 0);
 
-    ComboBox<PlotType> cbPlotType = new ComboBox<>(
+    final ComboBox<PlotType> cbPlotType = new ComboBox<>(
         FXCollections.observableList(List.of(PlotType.values())));
     cbPlotType.setValue(useCCS.get() ? PlotType.CCS : PlotType.MOBILITY);
     cbPlotType.valueProperty()
@@ -208,13 +212,15 @@ public class IMSMobilityMzPlot extends BorderPane {
     useCCS.addListener((observable, oldValue, newValue) -> {
       if (features != null && !features.isEmpty()) {
         heatmap.removeAllDatasets();
-        setFeatures(features, cbPlotType.getValue());
+        setFeatures(features, cbPlotType.getValue(), useMobilograms);
       }
     });
   }
 
-  public void setFeatures(@Nullable Collection<ModularFeatureListRow> features, PlotType plotType) {
+  public void setFeatures(@Nullable Collection<ModularFeatureListRow> features, PlotType plotType,
+      boolean useMobilograms) {
     assert Platform.isFxApplicationThread();
+    this.useMobilograms = useMobilograms;
 
     featureVisualisersMap.clear();
     content.getChildren().clear();
@@ -232,10 +238,11 @@ public class IMSMobilityMzPlot extends BorderPane {
       throw new IllegalArgumentException(
           "Cannot visualize non-ion mobility spectrometry files in an IMS visualizer");
     }
-    final IMSRawDataFile file = (IMSRawDataFile) features.stream().findFirst().get().getBestFeature()
+    final IMSRawDataFile file = (IMSRawDataFile) features.iterator().next().getBestFeature()
         .getRawDataFile();
+
     if ((plotType == PlotType.MOBILITY)) {
-      heatmap.setRangeAxisLabel(((IMSRawDataFile) file).getMobilityType().getAxisLabel());
+      heatmap.setRangeAxisLabel(file.getMobilityType().getAxisLabel());
       heatmap.setRangeAxisNumberFormatOverride(mobilityFormat);
       heatmap.setDomainAxisLabel("m/z");
 
@@ -262,14 +269,18 @@ public class IMSMobilityMzPlot extends BorderPane {
       heatmap.setDomainAxisLabel("Da");
     }
 
-    final ColoredXYZPieDataset<IMSRawDataFile> featureDataSet =
-        useCCS.get() ? new ColoredXYZPieDataset<>(new RowToCCSMzHeatmapProvider(features))
-            : new ColoredXYZPieDataset<>(new RowToMobilityMzHeatmapProvider(features));
-    featureDataSet.statusProperty().addListener(((observable, oldValue, newValue) -> {
-      if (newValue == TaskStatus.FINISHED) {
-        ColoredXYZPieRenderer renderer = new ColoredXYZPieRenderer();
-        renderer.setDefaultToolTipGenerator(new SimpleToolTipGenerator());
-        Platform.runLater(() -> heatmap.addDataset(featureDataSet, renderer));
+    final CalculateDatasetsTask calc = new CalculateDatasetsTask(features, plotType,
+        useMobilograms);
+    MZmineCore.getTaskController().addTask(calc);
+    calc.addTaskStatusListener(((task, newStatus, oldStatus) -> {
+      if (newStatus == TaskStatus.FINISHED) {
+        MZmineCore.runLater(() ->{
+          heatmap.addDatasetsAndRenderers(calc.getDatasetsRenderers());
+          if(calc.getDatasetsRenderers().size() > 1) {
+            heatmap.setLegendPaintScale(calc.getPaintScale());
+          }
+          heatmap.updateLegend();
+        });
       }
     }));
   }
@@ -322,11 +333,11 @@ public class IMSMobilityMzPlot extends BorderPane {
     heatmap.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue.getDataset() instanceof ColoredXYZPieDataset<?> ds) {
         final PieXYZDataProvider<?> prov = ds.getPieDataProvider();
-        // if mobilograms were shown
+        // if the mz + mobility of a feature was used to generate the plot
         if (prov instanceof RowToMobilityMzHeatmapProvider) {
           final ModularFeatureListRow row = ((RowToMobilityMzHeatmapProvider) prov).getSourceRows()
               .get(newValue.getValueIndex());
-          if (row != null) {
+          if (row != null && row.getBestFeature() != null) {
             if (!isCtrlPressed) {
               clearRightSide();
             }
@@ -334,15 +345,30 @@ public class IMSMobilityMzPlot extends BorderPane {
             addFeatureToRightSide(f);
           }
         }
-        // if the mz + mobility of a feature was used to generate the plot
-        if (prov instanceof RowToCCSMzHeatmapProvider) {
-          ModularFeatureListRow f = ((RowToCCSMzHeatmapProvider) prov).getSourceRows().get(
+        // if the mz + css of a feature was used to generate the plot
+        else if (prov instanceof RowToCCSMzHeatmapProvider) {
+          ModularFeatureListRow row = ((RowToCCSMzHeatmapProvider) prov).getSourceRows().get(
               newValue.getValueIndex());
+          if (row != null && row.getBestFeature() != null) {
+            if (!isCtrlPressed) {
+              clearRightSide();
+            }
+            addFeatureToRightSide(row.getBestFeature());
+          }
+        }
+      }
+      // if mobilograms were used to generate the plot
+      else if (newValue.getDataset() instanceof ColoredXYDataset) {
+        XYZValueProvider prov = ((ColoredXYZDataset) newValue.getDataset()).getXyzValueProvider();
+        // if mobilograms were shown
+        if (prov instanceof SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider) {
+          ModularFeature f = ((SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider) prov)
+              .getSourceFeature();
           if (f != null) {
             if (!isCtrlPressed) {
               clearRightSide();
             }
-            addFeatureToRightSide(f.getBestFeature());
+            addFeatureToRightSide(f);
           }
         }
       }

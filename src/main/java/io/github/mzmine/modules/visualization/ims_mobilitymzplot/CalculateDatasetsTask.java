@@ -25,6 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.jfree.chart.renderer.PaintScale;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.xy.XYZDataset;
 
 public class CalculateDatasetsTask extends AbstractTask {
 
@@ -38,7 +40,7 @@ public class CalculateDatasetsTask extends AbstractTask {
   private PaintScaleBoundStyle defaultPaintScaleBoundStyle;
   private PaintScale paintScale;
   private String description;
-  private Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> datasetsRenderers;
+  private Map<XYZDataset, XYItemRenderer> datasetsRenderers;
 
   public CalculateDatasetsTask(Collection<ModularFeature> features, boolean useMobilograms,
       PlotType plotType) {
@@ -53,7 +55,7 @@ public class CalculateDatasetsTask extends AbstractTask {
     progress = 0d;
   }
 
-  public Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> getDatasetsRenderers() {
+  public Map<XYZDataset, XYItemRenderer> getDatasetsRenderers() {
     return datasetsRenderers;
   }
 
@@ -159,6 +161,7 @@ public class CalculateDatasetsTask extends AbstractTask {
       newRenderer.setBlockHeight(dataset.getBoxHeight());
       newRenderer.setBlockWidth(dataset.getBoxWidth());
       newRenderer.setPaintScale(paintScale);
+      newRenderer.setUseDatasetPaintScale(false);
       newRenderer.setDefaultToolTipGenerator(tt);
       datasetsRenderers.put(dataset, newRenderer);
 

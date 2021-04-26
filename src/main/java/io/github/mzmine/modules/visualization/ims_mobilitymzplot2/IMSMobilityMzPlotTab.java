@@ -32,7 +32,7 @@ public class IMSMobilityMzPlotTab extends MZmineTab {
   public IMSMobilityMzPlotTab(Collection<ModularFeatureListRow> rows, boolean useMobilograms) {
     super("IMS mobility m/z plot", false, false);
     IMSMobilityMzPlot visualizer = new IMSMobilityMzPlot();
-    visualizer.setFeatures(rows, PlotType.MOBILITY);
+    visualizer.setFeatures(rows, PlotType.MOBILITY, useMobilograms);
     setContent(visualizer);
   }
 

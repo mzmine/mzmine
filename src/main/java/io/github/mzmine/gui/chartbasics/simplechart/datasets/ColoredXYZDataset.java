@@ -48,14 +48,12 @@ import org.jfree.data.xy.XYZDataset;
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
   private final XYZValueProvider xyzValueProvider;
-  protected Range<Double> rangeRange;
-  protected Range<Double> domainRange;
-  protected Range<Double> zRange;
   protected PaintScale paintScale;
   protected Double boxWidth;
   protected Double boxHeight;
   protected AbstractXYItemRenderer renderer;
   protected boolean useAlphaInPaintscale;
+  protected Range<Double> zRange;
 
   public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider) {
     this(dataProvider, true);
@@ -110,23 +108,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return xyzValueProvider.getZValue(item);
   }
 
-  public double getMinZValue() {
-    return zRange.lowerEndpoint();
-  }
-
-  public double getMaxZValue() {
-    return zRange.upperEndpoint();
-  }
-
-  public Range<Double> getDomainValueRange() {
-    return domainRange;
-  }
-
-  public Range<Double> getRangeValueRange() {
-    return rangeRange;
-  }
-
-  public Range<Double> getZValueRang() {
+  public Range<Double> getZValueRange() {
     return zRange;
   }
 
@@ -237,6 +219,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
     double minDomain = Double.POSITIVE_INFINITY;
     double maxDomain = Double.NEGATIVE_INFINITY;
+    double minRange = Double.POSITIVE_INFINITY;
     double maxRange = Double.NEGATIVE_INFINITY;
     double minZ = Double.POSITIVE_INFINITY;
     double maxZ = Double.NEGATIVE_INFINITY;
@@ -248,14 +231,14 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
       minDomain = Math.min(domainValue, minDomain);
       maxDomain = Math.max(domainValue, maxDomain);
-      minRangeValue = Math.min(rangeValue, minRangeValue);
+      minRange = Math.min(rangeValue, minRange);
       maxRange = Math.max(rangeValue, maxRange);
       minZ = Math.min(zValue, minZ);
       maxZ = Math.max(zValue, maxZ);
     }
 
     domainRange = Range.closed(minDomain, maxDomain);
-    rangeRange = Range.closed(minRangeValue, maxRange);
+    rangeRange = Range.closed(minRange, maxRange);
     zRange = Range.closed(minZ, maxZ);
 
     boxHeight = xyzValueProvider.getBoxHeight();
@@ -276,10 +259,12 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     computed = true;
     status.set(TaskStatus.FINISHED);
 
-    if (Platform.isFxApplicationThread()) {
-      fireDatasetChanged();
-    } else {
-      Platform.runLater(this::fireDatasetChanged);
+    if (!(this instanceof FastColoredXYZDataset)) { // no need to notify then, dataset will be up to date
+      if (Platform.isFxApplicationThread()) {
+        fireDatasetChanged();
+      } else {
+        Platform.runLater(this::fireDatasetChanged);
+      }
     }
   }
 

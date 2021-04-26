@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.BasicStroke;
@@ -25,6 +26,7 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
+import org.jfree.chart.LegendItem;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.event.RendererChangeEvent;
@@ -268,7 +270,7 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     if (dataset == null) {
       return null;
     }
-    if (dataset instanceof ColoredXYZDataset ds
+    if (dataset instanceof ColoredXYDataset ds
         && ds.getStatus() == TaskStatus.FINISHED) {
       return new Range(ds.getDomainValueRange().lowerEndpoint() + this.xOffset,
           ds.getDomainValueRange().upperEndpoint() + this.blockWidth + this.xOffset);
@@ -445,4 +447,9 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     return clone;
   }
 
+  @Override
+  public LegendItem getLegendItem(int datasetIndex, int series) {
+    return null;
+//    return super.getLegendItem(datasetIndex, series);
+  }
 }

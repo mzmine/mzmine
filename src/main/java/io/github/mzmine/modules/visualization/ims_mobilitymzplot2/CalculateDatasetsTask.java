@@ -20,53 +20,61 @@ package io.github.mzmine.modules.visualization.ims_mobilitymzplot2;
 
 import com.google.common.collect.Range;
 import com.google.common.math.Quantiles;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.FeaturesToCCSMzHeatmapProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.FeaturesToMobilityMzHeatmapProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.RowToCCSMzHeatmapProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.RowToMobilityMzHeatmapProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZPieRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.PlotType;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.xy.XYZDataset;
 
 public class CalculateDatasetsTask extends AbstractTask {
 
-  private final Collection<ModularFeature> features;
+  private final Collection<ModularFeatureListRow> rows;
   private final PlotType plotType;
+  private final boolean useMobilograms;
   private double progress;
   private double minZ = Double.MAX_VALUE;
   private double maxZ = Double.MIN_VALUE;
-  private PaintScaleColorStyle defaultPaintScaleColorStyle;
-  private PaintScaleBoundStyle defaultPaintScaleBoundStyle;
   private PaintScale paintScale;
   private String description;
-  private Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> datasetsRenderers;
+  private Map<XYZDataset, XYItemRenderer> datasetsRenderers;
 
-  public CalculateDatasetsTask(Collection<ModularFeature> features,
-      PlotType plotType) {
+  public CalculateDatasetsTask(Collection<ModularFeatureListRow> rows,
+      PlotType plotType, boolean useMobilograms) {
     super(null); // no new data stored -> null
-    this.features = features;
+    this.rows = rows;
     this.plotType = plotType;
+    this.useMobilograms = useMobilograms;
     description = "IMS Feature Visualizer: Waiting";
+    datasetsRenderers = new HashMap<>();
 
-    defaultPaintScaleColorStyle = PaintScaleColorStyle.RAINBOW;
-    defaultPaintScaleBoundStyle = PaintScaleBoundStyle.LOWER_AND_UPPER_BOUND;
     progress = 0d;
   }
 
-  public Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> getDatasetsRenderers() {
+  public Map<XYZDataset, XYItemRenderer> getDatasetsRenderers() {
     return datasetsRenderers;
   }
 
@@ -84,69 +92,23 @@ public class CalculateDatasetsTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    final FastColoredXYZDataset featureDataSet;
-
-    if (plotType == PlotType.CCS) {
-      if (features instanceof List) {
-        featureDataSet = new FastColoredXYZDataset(
-            new FeaturesToCCSMzHeatmapProvider((List<ModularFeature>) features));
-      } else {
-        featureDataSet = new FastColoredXYZDataset(
-            new FeaturesToCCSMzHeatmapProvider(
-                new ArrayList<>(features)));
+    if (plotType == PlotType.MOBILITY && useMobilograms) {
+      var result = calculateMobilogramDatasets();
+      if (result != null) {
+        datasetsRenderers.putAll(result);
       }
-      for (ModularFeature f : features) {
-        float height = f.getHeight();
-        if (height < minZ) {
-          minZ = height;
-        }
-        if (height > maxZ) {
-          maxZ = height;
-        }
-      }
-    } else {
-      if (features instanceof List) {
-        featureDataSet = new FastColoredXYZDataset(
-            new FeaturesToMobilityMzHeatmapProvider((List<ModularFeature>) features));
-      } else {
-        featureDataSet = new FastColoredXYZDataset(
-            new FeaturesToMobilityMzHeatmapProvider(
-                new ArrayList<>(features)));
-      }
-      for (ModularFeature f : features) {
-        float height = f.getHeight();
-        if (height < minZ) {
-          minZ = height;
-        }
-        if (height > maxZ) {
-          maxZ = height;
-        }
-      }
-    }
-
-    description = "IMS Feature Visualizer: Creating paint scale.";
-
-    Map<Integer, Double> percentile = Quantiles.percentiles().indexes(5, 95)
-        .compute(features.stream().mapToDouble(Feature::getHeight).toArray());
-    paintScale = makePaintScale(percentile.get(5), percentile.get(95));
-
-    List<FastColoredXYZDataset> datasets = new ArrayList<>();
-    datasets.add(featureDataSet);
-    datasetsRenderers = new LinkedHashMap<>();
-    for (FastColoredXYZDataset dataset : datasets) {
-      description = "IMS Feature Visualizer: Creating renderer " + datasetsRenderers.size()
-          + "/" + datasets.size();
-      ColoredXYSmallBlockRenderer newRenderer = new ColoredXYSmallBlockRenderer();
-      SimpleToolTipGenerator tt = new SimpleToolTipGenerator();
-      newRenderer.setBlockHeight(dataset.getBoxHeight());
-      newRenderer.setBlockWidth(dataset.getBoxWidth());
-      newRenderer.setPaintScale(paintScale);
-      newRenderer.setDefaultToolTipGenerator(tt);
-      datasetsRenderers.put(dataset, newRenderer);
-
-      if (isCanceled()) {
-        return;
-      }
+    } else if (plotType == PlotType.MOBILITY && !useMobilograms) {
+      final ColoredXYZPieDataset<IMSRawDataFile> featureDataSet = new ColoredXYZPieDataset<>(
+          new RowToMobilityMzHeatmapProvider(rows));
+      ColoredXYZPieRenderer renderer = new ColoredXYZPieRenderer();
+      renderer.setDefaultToolTipGenerator(new SimpleToolTipGenerator());
+      datasetsRenderers.put(featureDataSet, renderer);
+    } else if (plotType == PlotType.CCS) {
+      final ColoredXYZPieDataset<IMSRawDataFile> featureDataSet = new ColoredXYZPieDataset<>(
+          new RowToCCSMzHeatmapProvider(rows));
+      ColoredXYZPieRenderer renderer = new ColoredXYZPieRenderer();
+      renderer.setDefaultToolTipGenerator(new SimpleToolTipGenerator());
+      datasetsRenderers.put(featureDataSet, renderer);
     }
 
     description = "IMS Feature Visualizer: Finished";
@@ -166,5 +128,70 @@ public class CalculateDatasetsTask extends AbstractTask {
 
   public PaintScale getPaintScale() {
     return paintScale;
+  }
+
+  @Nullable
+  private Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> calculateMobilogramDatasets() {
+
+    final List<ModularFeature> features = rows.stream()
+        .<ModularFeature>mapMulti((row, c) -> {
+          for (Feature feature : row.getFeatures()) {
+            if (feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+              c.accept((ModularFeature) feature);
+            }
+          }
+        }).toList();
+
+    final Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> results = new HashMap<>();
+
+    for (ModularFeature feature : features) {
+      description =
+          "IMS Feature Visualizer: Calculating dataset " + results.size() + "/" + features
+              .size();
+
+      FastColoredXYZDataset dataset = new FastColoredXYZDataset(
+          new SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(feature));
+
+      SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) feature
+          .getFeatureData()).getSummedMobilogram();
+      Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(mobilogram);
+
+      if (intensityRange.lowerEndpoint().doubleValue() < minZ) {
+        minZ = intensityRange.lowerEndpoint().doubleValue();
+      }
+      if (intensityRange.upperEndpoint().doubleValue() > maxZ) {
+        maxZ = intensityRange.upperEndpoint().doubleValue();
+      }
+      results.put(dataset, null);
+      progress = results.size() / (double) features.size();
+
+      if (isCanceled()) {
+        return null;
+      }
+    }
+
+    description = "IMS Feature Visualizer: Creating paint scale.";
+
+    Map<Integer, Double> percentile = Quantiles.percentiles().indexes(5, 95)
+        .compute(features.stream().mapToDouble(Feature::getHeight).toArray());
+    paintScale = makePaintScale(percentile.get(5), percentile.get(95));
+
+    for (FastColoredXYZDataset dataset : results.keySet()) {
+      description = "IMS Feature Visualizer: Creating renderer " + results.size()
+          + "/" + results.size();
+      ColoredXYSmallBlockRenderer newRenderer = new ColoredXYSmallBlockRenderer();
+      SimpleToolTipGenerator tt = new SimpleToolTipGenerator();
+      newRenderer.setBlockHeight(dataset.getBoxHeight());
+      newRenderer.setBlockWidth(dataset.getBoxWidth());
+      newRenderer.setUseDatasetPaintScale(false);
+      newRenderer.setPaintScale(paintScale);
+      newRenderer.setDefaultToolTipGenerator(tt);
+      results.put(dataset, newRenderer);
+
+      if (isCanceled()) {
+        return null;
+      }
+    }
+    return results;
   }
 }
