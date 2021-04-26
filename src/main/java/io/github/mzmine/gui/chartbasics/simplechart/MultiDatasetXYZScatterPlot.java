@@ -542,7 +542,7 @@ public class MultiDatasetXYZScatterPlot<T extends PlotXYZDataProvider> extends
     Font axisTickLabelFont = getXYPlot().getDomainAxis().getTickLabelFont();
 
     NumberAxis scaleAxis = new NumberAxis(null);
-    scaleAxis.setRange(scale.getLowerBound(), scale.getUpperBound());
+    scaleAxis.setRange(scale.getLowerBound(), Math.max(scale.getUpperBound(), scale.getLowerBound() + 1E-10));
     scaleAxis.setAxisLinePaint(axisPaint);
     scaleAxis.setTickMarkPaint(axisPaint);
     scaleAxis.setNumberFormatOverride(legendAxisFormat);
