@@ -25,6 +25,7 @@ import com.alanmrace.jimzmlparser.mzml.ScanSettingsList;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable.Keys;
+import java.util.logging.Logger;
 
 /*
  * <scanSettingsList count="1"> <scanSettings id="scansettings1"> <cvParam cvRef="IMS"
@@ -43,6 +44,8 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTa
  */
 
 public class ImagingParameters {
+
+  private static final Logger logger = Logger.getLogger(ImagingParameters.class.getName());
 
   private double minMZ, maxMZ;
   /**
@@ -66,12 +69,20 @@ public class ImagingParameters {
 
   public ImagingParameters(TDFMetaDataTable metaDataTable,
       TDFMaldiFrameInfoTable maldiFrameInfoTable) {
-    maxNumberOfPixelX =
-        Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxXIndexPos)) - Integer
-            .parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinXIndexPos)) + 1;
-    maxNumberOfPixelY =
-        Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxYIndexPos)) - Integer
-            .parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinYIndexPos)) + 1;
+    try {
+      maxNumberOfPixelX =
+          Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxXIndexPos)) - Integer
+              .parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinXIndexPos)) + 1;
+      maxNumberOfPixelY =
+          Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxYIndexPos)) - Integer
+              .parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMinYIndexPos)) + 1;
+    } catch (NumberFormatException e) {
+      logger.info(() -> "Number format exception during tdf maldi import.");
+      maxNumberOfPixelX = (int) (maldiFrameInfoTable.getxIndexPosColumn().stream().max(Long::compare).get()
+                - maldiFrameInfoTable.getxIndexPosColumn().stream().min(Long::compare).get());
+      maxNumberOfPixelY = (int) (maldiFrameInfoTable.getyIndexPosColumn().stream().max(Long::compare).get()
+          - maldiFrameInfoTable.getyIndexPosColumn().stream().min(Long::compare).get());
+    }
     maxNumberOfPixelZ = 1;
     spectraPerPixel = 1;
 
