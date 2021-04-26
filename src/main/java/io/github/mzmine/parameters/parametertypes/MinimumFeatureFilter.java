@@ -344,8 +344,8 @@ public class MinimumFeatureFilter {
    * Checks for any other algorithm.
    *
    * @param all the total of all raw data files
-   * @param raw all positive raw data files
-   * @return
+   * @param raw all positive raw data files (with feature)
+   * @return true if all criteria are met, false otherwise
    */
   public boolean filterMinFeatures(List<RawDataFile> all, List<RawDataFile> raw) {
     // filter min samples in all

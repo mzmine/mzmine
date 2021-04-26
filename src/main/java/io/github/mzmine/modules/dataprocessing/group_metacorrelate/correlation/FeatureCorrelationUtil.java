@@ -91,7 +91,9 @@ public class FeatureCorrelationUtil {
         raw.add(e.getKey());
       }
     }
-    if (minFFilter != null && minFFilter.filterMinFeatures(featureList.getRawDataFiles(), raw)) {
+    boolean hasMinimumFeatures =
+        minFFilter == null || minFFilter.filterMinFeatures(featureList.getRawDataFiles(), raw);
+    if (!hasMinimumFeatures) {
       // delete corr peak shape
       corr.setCorrFeatureShape(null);
     }
@@ -101,8 +103,8 @@ public class FeatureCorrelationUtil {
   /**
    * Feature height correlation (used as a filter), feature shape correlation used to group
    *
-   * @param data                option to preload data or keep data in memory for large scale row 2
-   *                            row correlation (null will access data directly from features)
+   * @param data    option to preload data or keep data in memory for large scale row 2 row
+   *                correlation (null will access data directly from features)
    * @param testRow
    * @param row
    * @return R2R correlation, returns null if it was filtered by height correlation. Check for
@@ -328,22 +330,22 @@ public class FeatureCorrelationUtil {
       int indexLeftB = 0;
 
       // find first data points
-      for(;indexLeftA<intensities1.length; indexLeftA++) {
-        if(intensities1[indexLeftA]>=noiseLevelShapeCorr) {
+      for (; indexLeftA < intensities1.length; indexLeftA++) {
+        if (intensities1[indexLeftA] >= noiseLevelShapeCorr) {
           break;
         }
       }
-      for(;indexLeftB<intensities2.length; indexLeftB++) {
-        if(intensities2[indexLeftB]>=noiseLevelShapeCorr) {
+      for (; indexLeftB < intensities2.length; indexLeftB++) {
+        if (intensities2[indexLeftB] >= noiseLevelShapeCorr) {
           break;
         }
       }
 
       float rtLeftA = scansA.get(indexLeftA).getRetentionTime();
       float rtLeftB = scansB.get(indexLeftB).getRetentionTime();
-      while(true) {
+      while (true) {
 //        if()
-          break;
+        break;
       }
 
     }

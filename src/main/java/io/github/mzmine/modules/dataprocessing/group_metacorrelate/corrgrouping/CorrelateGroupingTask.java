@@ -344,8 +344,8 @@ public class CorrelateGroupingTask extends AbstractTask {
     }
 
     LOG.info(MessageFormat.format(
-        "Corr: Correlations done with {0} R2R correlations and {1} F2F correlations", nR2Rcorr,
-        nF2F));
+        "Corr: {2} row-2-row correlations done with {0} R2R correlations based on {1} F2F correlations", nR2Rcorr,
+        nF2F, map.size()));
   }
 
   /**
