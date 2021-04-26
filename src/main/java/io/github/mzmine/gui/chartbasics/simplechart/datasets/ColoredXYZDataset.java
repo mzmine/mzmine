@@ -48,8 +48,9 @@ import org.jfree.data.xy.XYZDataset;
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
   private final XYZValueProvider xyzValueProvider;
-  protected Double minZValue;
-  protected Double maxZValue;
+  protected Range<Double> rangeRange;
+  protected Range<Double> domainRange;
+  protected Range<Double> zRange;
   protected PaintScale paintScale;
   protected Double boxWidth;
   protected Double boxHeight;
@@ -77,8 +78,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
     this.xyzValueProvider = dataProvider;
     this.useAlphaInPaintscale = useAlphaInPaintscale;
-    minZValue = Double.MAX_VALUE;
-    maxZValue = Double.MIN_VALUE;
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
     if (autocompute) {
@@ -112,11 +111,23 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   }
 
   public double getMinZValue() {
-    return minZValue;
+    return zRange.lowerEndpoint();
   }
 
   public double getMaxZValue() {
-    return maxZValue;
+    return zRange.upperEndpoint();
+  }
+
+  public Range<Double> getDomainValueRange() {
+    return domainRange;
+  }
+
+  public Range<Double> getRangeValueRange() {
+    return rangeRange;
+  }
+
+  public Range<Double> getZValueRang() {
+    return zRange;
   }
 
   /**
@@ -217,24 +228,35 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     status.set(TaskStatus.PROCESSING);
     xyValueProvider.computeValues(status);
 
-    if (status.get() != TaskStatus.PROCESSING) {
+    if (status.get() == TaskStatus.CANCELED || status.get() == TaskStatus.ERROR) {
       return;
     }
 
     computedItemCount = xyValueProvider.getValueCount();
     valuesComputed = true;
 
+    double minDomain = Double.POSITIVE_INFINITY;
+    double maxDomain = Double.NEGATIVE_INFINITY;
+    double maxRange = Double.NEGATIVE_INFINITY;
+    double minZ = Double.POSITIVE_INFINITY;
+    double maxZ = Double.NEGATIVE_INFINITY;
+
     for (int i = 0; i < computedItemCount; i++) {
-      if (minRangeValue.doubleValue() < xyValueProvider.getRangeValue(i)) {
-        minRangeValue = xyValueProvider.getRangeValue(i);
-      }
-      if (xyzValueProvider.getZValue(i) < minZValue) {
-        minZValue = xyzValueProvider.getZValue(i);
-      }
-      if (xyzValueProvider.getZValue(i) > maxZValue) {
-        maxZValue = xyzValueProvider.getZValue(i);
-      }
+      final double rangeValue = xyValueProvider.getRangeValue(i);
+      final double domainValue = xyValueProvider.getDomainValue(i);
+      final double zValue = xyzValueProvider.getZValue(i);
+
+      minDomain = Math.min(domainValue, minDomain);
+      maxDomain = Math.max(domainValue, maxDomain);
+      minRangeValue = Math.min(rangeValue, minRangeValue);
+      maxRange = Math.max(rangeValue, maxRange);
+      minZ = Math.min(zValue, minZ);
+      maxZ = Math.max(zValue, maxZ);
     }
+
+    domainRange = Range.closed(minDomain, maxDomain);
+    rangeRange = Range.closed(minRangeValue, maxRange);
+    zRange = Range.closed(minZ, maxZ);
 
     boxHeight = xyzValueProvider.getBoxHeight();
     boxWidth = xyzValueProvider.getBoxWidth();
@@ -248,7 +270,8 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     if (xyzValueProvider instanceof PaintScaleProvider) {
       paintScale = ((PaintScaleProvider) xyzValueProvider).getPaintScale();
     }
-    paintScale = (paintScale != null) ? paintScale : createDefaultPaintScale(minZValue, maxZValue);
+    paintScale = (paintScale != null) ? paintScale
+        : createDefaultPaintScale(zRange.lowerEndpoint(), zRange.upperEndpoint());
 
     computed = true;
     status.set(TaskStatus.FINISHED);

@@ -23,6 +23,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
@@ -39,6 +40,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -118,6 +120,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * the canvas is resized.
    */
   private Title currentLegend = null;
+  @Nullable
+  private final ObjectProperty<PaintScale> legendPaintScale = new SimpleObjectProperty<>(null);
 
   public SimpleXYZScatterPlot() {
     this("");
@@ -151,6 +155,34 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     initializePlot();
     nextDataSetNum = 0;
 
+    legendPaintScale.addListener(((observable, oldValue, newValue) -> updateLegend()));
+  }
+
+  /**
+   * Updates the legend to the paint scale currently set via {@link #setLegendPaintScale(PaintScale)}
+   * or the paint scale from data set with index 0. If neither is set, the legend is removed.
+   */
+  public void updateLegend() {
+    final XYDataset dataset = getXYPlot().getDataset(0);
+    final PaintScale paintScale;
+    getChart().clearSubtitles();
+
+    if (this.legendPaintScale.get() != null) {
+      paintScale = legendPaintScale.get();
+    } else if (dataset instanceof XYZDataset) {
+      paintScale = makePaintScale((XYZDataset) dataset);
+    } else {
+      return;
+    }
+
+    PaintScaleLegend legend = generateLegend(paintScale);
+    if (legendCanvas != null) {
+      drawLegendToSeparateCanvas(legend);
+      currentLegend = legend;
+    } else {
+      getChart().addSubtitle(legend);
+      currentLegend = null;
+    }
   }
 
   private void initLabelListeners() {
@@ -220,6 +252,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   public synchronized int addDataset(XYZDataset dataset, XYItemRenderer renderer) {
     assert Platform.isFxApplicationThread();
+
     // jfreechart renderers dont check if the value actually changed and notify either way
     if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
       renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
@@ -230,9 +263,14 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
+
     if (chart.isNotify()) {
       notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
     }
+    if (dataset instanceof ColoredXYZDataset) {
+      dataset.addChangeListener(e -> datasetChanged(new DatasetChangeEvent(this, e.getDataset())));
+    }
+
     return nextDataSetNum - 1;
   }
 
@@ -252,6 +290,14 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     return addDataset(dataset, defaultRenderer.get());
   }
 
+  public void addDatasetsAndRenderers(
+      Map<FastColoredXYZDataset, ColoredXYSmallBlockRenderer> datasetsAndRenderers) {
+    getChart().setNotify(false);
+    datasetsAndRenderers.forEach(this::addDataset);
+    getChart().setNotify(true);
+    getChart().fireChartChanged();
+  }
+
   public synchronized void removeAllDatasets() {
 //    assert Platform.isFxApplicationThread();
 
@@ -269,6 +315,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     chart.setNotify(true);
     chart.fireChartChanged();
     notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
+    nextDataSetNum = 0;
   }
 
   @Override
@@ -401,7 +448,6 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     addMenuItem(getContextMenu(), title, ai);
   }
 
-
   @Override
   public void addDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.add(listener);
@@ -457,27 +503,18 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   public void datasetChanged(DatasetChangeEvent event) {
     super.datasetChanged(event);
 
-    if (!(event.getDataset() instanceof XYZDataset dataset)
-        || getXYPlot().indexOf(dataset) != 0) {
+    if (!(event.getDataset() instanceof XYZDataset dataset)) {
       return;
     }
 
-    PaintScale paintScale = makePaintScale(dataset);
-//    updateRenderer(paintScale);
-    if (dataset instanceof ColoredXYZDataset
-        && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
-      PaintScaleLegend legend = generateLegend(paintScale);
-      chart.clearSubtitles();
-      if (legendCanvas != null) {
-        drawLegendToSeparateCanvas(legend);
-        currentLegend = legend;
-      } else {
-        chart.addSubtitle(legend);
-        currentLegend = null;
-      }
+    if(getXYPlot().indexOf((XYDataset) event.getDataset()) == 0) {
+      updateLegend();
     }
+
     MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
-    chart.fireChartChanged();
+    if (chart.isNotify()) {
+      chart.fireChartChanged();
+    }
 
     notifyDatasetChangeListeners(event);
   }
@@ -580,6 +617,18 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     newLegend.setPosition(defaultPaintscaleLocation);
     newLegend.setBackgroundPaint(legendBg);
     return newLegend;
+  }
+
+  public PaintScale getLegendPaintScale() {
+    return legendPaintScale.get();
+  }
+
+  public void setLegendPaintScale(PaintScale legendPaintScale) {
+    this.legendPaintScale.set(legendPaintScale);
+  }
+
+  public ObjectProperty<PaintScale> legendPaintScaleProperty() {
+    return legendPaintScale;
   }
 
   public RectangleEdge getDefaultPaintscaleLocation() {

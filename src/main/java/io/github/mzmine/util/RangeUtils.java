@@ -185,4 +185,9 @@ public class RangeUtils {
     return jfreeRange.contains(googleRange.lowerEndpoint().doubleValue()) || jfreeRange
         .contains(googleRange.upperEndpoint().doubleValue());
   }
+
+  public static org.jfree.data.Range googleToJFree(Range<? extends Number> range) {
+    return new org.jfree.data.Range(range.lowerEndpoint().doubleValue(),
+        range.upperEndpoint().doubleValue());
+  }
 }

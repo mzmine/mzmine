@@ -268,6 +268,11 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     if (dataset == null) {
       return null;
     }
+    if (dataset instanceof ColoredXYZDataset ds
+        && ds.getStatus() == TaskStatus.FINISHED) {
+      return new Range(ds.getDomainValueRange().lowerEndpoint() + this.xOffset,
+          ds.getDomainValueRange().upperEndpoint() + this.blockWidth + this.xOffset);
+    }
     Range r = DatasetUtils.findDomainBounds(dataset, false);
     if (r == null) {
       return null;
@@ -287,6 +292,11 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
   @Override
   public Range findRangeBounds(XYDataset dataset) {
     if (dataset != null) {
+      if (dataset instanceof ColoredXYZDataset ds
+          && ds.getStatus() == TaskStatus.FINISHED) {
+        return new Range(ds.getRangeValueRange().lowerEndpoint() + this.yOffset,
+            ds.getRangeValueRange().upperEndpoint() + this.blockHeight + this.yOffset);
+      }
       Range r = DatasetUtils.findRangeBounds(dataset, false);
       if (r == null) {
         return null;

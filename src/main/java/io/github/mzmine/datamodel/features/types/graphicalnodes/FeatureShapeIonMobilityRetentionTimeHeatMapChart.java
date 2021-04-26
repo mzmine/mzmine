@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDatas
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMobilogramTimeSeriesToRtMobilityHeatmapProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import javafx.application.Platform;
@@ -58,19 +59,21 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     chart.setLegendNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
     NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
+    chart.setDataset(dataset);
     axis.setAutoRange(true);
     axis.setAutoRangeIncludesZero(false);
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
-    chart.setDataset(dataset);
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
     // todo: save min/max values of dataset in dataset iself so jfreechart does not have to loop
     //  over all data points (also means the renderers have to support it)
-    chart.getXYPlot().getRangeAxis().setAutoRange(true);
-    chart.getXYPlot().getDomainAxis().setAutoRange(true);
+    chart.getXYPlot().getDomainAxis()
+        .setRange(RangeUtils.googleToJFree(dataset.getDomainValueRange()), false, true);
+    chart.getXYPlot().getRangeAxis()
+        .setRange(RangeUtils.googleToJFree(dataset.getRangeValueRange()), false, true);
     BufferedImage img = chart.getChart()
         .createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
             GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);

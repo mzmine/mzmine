@@ -27,6 +27,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
@@ -72,13 +73,15 @@ public class ImageChart extends StackPane {
     chart.getXYPlot().setDomainAxisLocation(AxisLocation.TOP_OR_RIGHT);
     axis.setRange(new Range(0, imagingFile.getImagingParam().getLateralWidth()));
 
-    setPrefHeight(200);
-    setPrefWidth(200);
+    setPrefHeight(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
+    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     chart.setDataset(ds);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
-    chart.getXYPlot().getRangeAxis().setAutoRange(true);
-    chart.getXYPlot().getDomainAxis().setAutoRange(true);
+    chart.getXYPlot().getDomainAxis()
+        .setRange(RangeUtils.googleToJFree(ds.getDomainValueRange()), false, true);
+    chart.getXYPlot().getRangeAxis()
+        .setRange(RangeUtils.googleToJFree(ds.getRangeValueRange()), false, true);
     BufferedImage img = chart.getChart()
         .createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
             GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);

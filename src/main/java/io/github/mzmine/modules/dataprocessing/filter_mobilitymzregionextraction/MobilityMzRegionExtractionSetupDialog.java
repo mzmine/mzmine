@@ -23,8 +23,8 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
-import io.github.mzmine.gui.chartbasics.simplechart.MultiDatasetXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.CalculateDatasetsTask;
@@ -50,8 +50,8 @@ import javafx.scene.layout.FlowPane;
  */
 public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogWithPreview {
 
-  private final MultiDatasetXYZScatterPlot heatmap;
-  private final RegionSelectionWrapper<MultiDatasetXYZScatterPlot> wrapper;
+  private final SimpleXYZScatterPlot heatmap;
+  private final RegionSelectionWrapper<SimpleXYZScatterPlot> wrapper;
 
   private final NumberFormat rtFormat;
   private final NumberFormat mzFormat;
@@ -76,7 +76,7 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     ccsFormat = MZmineCore.getConfiguration().getCCSFormat();
 
-    heatmap = new MultiDatasetXYZScatterPlot<>();
+    heatmap = new SimpleXYZScatterPlot<>();
     heatmap.setDomainAxisLabel("m/z");
     heatmap.setDomainAxisNumberFormatOverride(mzFormat);
     heatmap.setRangeAxisLabel("Mobility");
