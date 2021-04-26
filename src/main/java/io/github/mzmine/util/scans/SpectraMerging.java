@@ -43,6 +43,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
+import io.github.mzmine.util.maths.Weighting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
