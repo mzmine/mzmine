@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.modules.visualization.ims_mobilitymzplot.PlotType;
 import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nonnull;

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction;
 
-import io.github.mzmine.modules.visualization.ims_mobilitymzplot.PlotType;
+import io.github.mzmine.modules.visualization.ims_mobilitymzplot2.PlotType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;

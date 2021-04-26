@@ -16,17 +16,8 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
+package io.github.mzmine.modules.visualization.ims_mobilitymzplot2;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import javax.annotation.Nonnull;
-
-public class IMSMobilityMzPlotParameters extends SimpleParameterSet {
-
-  @Nonnull
-  @Override
-  public IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.ONLY;
-  }
+public enum PlotType {
+  CCS, MOBILITY
 }
