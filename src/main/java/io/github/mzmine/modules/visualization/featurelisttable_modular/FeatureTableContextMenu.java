@@ -241,9 +241,9 @@ public class FeatureTableContextMenu extends ContextMenu {
         .setOnAction(e -> ChromatogramVisualizerModule.visualizeFeatureListRows(selectedRows));
 
     final MenuItem showXICSetupItem = new ConditionalMenuItem("XIC (dialog)",
-        () -> !selectedRows.isEmpty() && selectedFeature != null);
+        () -> !selectedRows.isEmpty());
     showXICSetupItem.setOnAction(e -> ChromatogramVisualizerModule
-        .setUpVisualiserFromFeatures(selectedRows, selectedFeature.getRawDataFile()));
+        .setUpVisualiserFromFeatures(selectedRows, selectedFeature != null ? selectedFeature.getRawDataFile() : null));
 
     final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
         () -> !selectedRows.isEmpty() && selectedFeature != null && selectedFeature
