@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.ims_mobilitymzplot2;
+package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
 import com.google.common.collect.Range;
 import com.google.common.math.Quantiles;

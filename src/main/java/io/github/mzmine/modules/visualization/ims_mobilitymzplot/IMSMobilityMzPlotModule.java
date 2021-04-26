@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.ims_mobilitymzplot2;
+package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.MZmineCore;

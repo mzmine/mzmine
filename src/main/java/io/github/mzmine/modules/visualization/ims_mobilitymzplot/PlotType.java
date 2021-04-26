@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.visualization.ims_mobilitymzplot2;
+package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
 public enum PlotType {
   CCS, MOBILITY
