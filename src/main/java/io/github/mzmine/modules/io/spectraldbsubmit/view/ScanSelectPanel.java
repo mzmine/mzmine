@@ -170,7 +170,7 @@ public class ScanSelectPanel extends BorderPane {
 //    pnButtons.setLayout(new MigLayout("", "[40px]", "[grow][40px][40px][40px][40px][40px][grow]"));
 
     // TODO: uncomment all and change to JavaFX
-    btnToggleUse = new ToggleButton(/*iconCross*/);
+    btnToggleUse = new ToggleButton(null, new ImageView(iconCross));
     //btnToggleUse.setSelectedIcon(iconAccept);
     btnToggleUse.setTooltip(new Tooltip(
         "Export this entry (checked) or exclude from export (X). Useful when multiple ions (adducts) of the same compound are exported at once."));
@@ -210,7 +210,7 @@ public class ScanSelectPanel extends BorderPane {
 
     btnSignals = new ToggleButton(null, new ImageView(iconSignalsFalse));
     btnSignals.setTooltip(new Tooltip("Change sorting to max number of signals"));
-    //btnSignals.setSelectedIcon(iconSignals);
+//    btnSignals.setSelectedIcon(iconSignals);
     btnSignals.setPrefSize(SIZE, SIZE);
     btnSignals.setMaxSize(SIZE, SIZE);
     btnSignals.selectedProperty().addListener((o, ol, ne) -> {
