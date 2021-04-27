@@ -79,7 +79,6 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -143,7 +142,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
     main = new BorderPane();
     SplitPane split = new SplitPane();
     split.setOrientation(Orientation.HORIZONTAL);
-    main.setCenter(split);
+//    main.setCenter(split);
 
     main.setMinSize(754, 519);
 
@@ -152,7 +151,8 @@ public class MSMSLibrarySubmissionWindow extends Stage {
 
     contentPane = new BorderPane();
     contentPane.setPadding(new Insets(5));
-    split.getItems().add(contentPane);
+    main.setCenter(contentPane);
+//    split.getItems().add(contentPane);
 
     txtResults = new ResultsTextPane();
     txtResults.setEditable(false);
@@ -162,7 +162,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
     ScrollPane scrollResults = new ScrollPane(resultsNode);
     scrollResults.setFitToWidth(true);
     scrollResults.setVbarPolicy(ScrollBarPolicy.ALWAYS);
-    split.getItems().add(scrollResults);
+//    split.getItems().add(scrollResults);
 //    split.setResizeWeight(0.92);
 
     // load parameter
@@ -226,8 +226,8 @@ public class MSMSLibrarySubmissionWindow extends Stage {
     contentPane.setCenter(scrollCharts);
 
     pnCharts = new GridPane();
-    final ColumnConstraints constraints = new ColumnConstraints(400);
-    pnCharts.getColumnConstraints().add(constraints);
+//    final ColumnConstraints constraints = new ColumnConstraints(400);
+//    pnCharts.getColumnConstraints().add(constraints);
     scrollCharts.setContent(pnCharts);
 
     addMenu();
