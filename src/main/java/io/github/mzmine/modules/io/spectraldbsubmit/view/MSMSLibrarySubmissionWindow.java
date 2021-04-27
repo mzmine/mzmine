@@ -147,6 +147,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
     main.setMinSize(754, 519);
 
     final Scene scene = new Scene(main);
+    scene.getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(scene);
 
     contentPane = new BorderPane();
