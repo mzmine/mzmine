@@ -23,6 +23,7 @@ import com.alanmrace.jimzmlparser.mzml.CVParam;
 import com.alanmrace.jimzmlparser.mzml.ScanSettings;
 import com.alanmrace.jimzmlparser.mzml.ScanSettingsList;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable.Keys;
 import java.util.logging.Logger;
@@ -66,9 +67,8 @@ public class ImagingParameters {
   private Pattern pattern;
   private ScanDirection scanDirection;
 
-
   public ImagingParameters(TDFMetaDataTable metaDataTable,
-      TDFMaldiFrameInfoTable maldiFrameInfoTable) {
+      TDFMaldiFrameInfoTable maldiFrameInfoTable, TDFMaldiFrameLaserInfoTable laserInfoTable) {
     try {
       maxNumberOfPixelX =
           Integer.parseInt(metaDataTable.getValueForKey(Keys.ImagingAreaMaxXIndexPos)) - Integer
@@ -99,8 +99,10 @@ public class ImagingParameters {
         .abs(maldiFrameInfoTable.getMotorPositionYColumn().stream().min(Double::compare).get()
             - maldiFrameInfoTable.getMotorPositionYColumn().stream().max(Double::compare).get());
 
-    pixelWidth = getLateralWidth() / getMaxNumberOfPixelX();
-    pixelHeight = getLateralHeight() / getMaxNumberOfPixelY();
+    /*pixelWidth = getLateralWidth() / getMaxNumberOfPixelX();
+    pixelHeight = getLateralHeight() / getMaxNumberOfPixelY();*/
+    pixelWidth = laserInfoTable.getSpotSizeColumn().get(0);
+    pixelHeight = laserInfoTable.getSpotSizeColumn().get(0);
   }
 
   public ImagingParameters(ImzML imz) {

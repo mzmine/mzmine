@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -41,6 +42,7 @@ public class TSFImportTask extends AbstractTask {
 
   private final TDFMetaDataTable metaDataTable;
   private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
+  private final TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private final TSFFrameTable frameTable;
   private final MZmineProject project;
   private final File dirPath;
@@ -64,6 +66,7 @@ public class TSFImportTask extends AbstractTask {
     metaDataTable = new TDFMetaDataTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     frameTable = new TSFFrameTable();
+    maldiFrameLaserInfoTable = new TDFMaldiFrameLaserInfoTable();
 
     setDescription("Importing " + rawDataFileName + ": Waiting.");
   }
@@ -145,7 +148,8 @@ public class TSFImportTask extends AbstractTask {
       processedScans++;
     }
 
-    newMZmineFile.setImagingParam(new ImagingParameters(metaDataTable, maldiFrameInfoTable));
+    newMZmineFile.setImagingParam(
+        new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
 
     project.addFile(newMZmineFile);
     setStatus(TaskStatus.FINISHED);
@@ -187,6 +191,7 @@ public class TSFImportTask extends AbstractTask {
         setDescription("MALDI info for " + tsf.getName());
         maldiFrameInfoTable.executeQuery(connection);
         maldiFrameInfoTable.process();
+        maldiFrameLaserInfoTable.executeQuery(connection);
       }
 
       connection.close();

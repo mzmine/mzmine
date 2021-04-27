@@ -35,6 +35,7 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.FramePrecurso
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
+import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFPrecursorTable;
@@ -73,6 +74,7 @@ public class TDFImportTask extends AbstractTask {
   private TDFFrameMsMsInfoTable frameMsMsInfoTable;
   private FramePrecursorTable framePrecursorTable;
   private TDFMaldiFrameInfoTable maldiFrameInfoTable;
+  private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private IMSRawDataFile newMZmineFile;
   private boolean isMaldi;
 
@@ -153,6 +155,7 @@ public class TDFImportTask extends AbstractTask {
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
     framePrecursorTable = new FramePrecursorTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
+    maldiFrameLaserInfoTable = new TDFMaldiFrameLaserInfoTable();
     isMaldi = false;
 
     readMetadata();
@@ -161,7 +164,8 @@ public class TDFImportTask extends AbstractTask {
         newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
             newMZmineFile.getMemoryMapStorage());
         ((IMSImagingRawDataFile) newMZmineFile)
-            .setImagingParam(new ImagingParameters(metaDataTable, maldiFrameInfoTable));
+            .setImagingParam(new ImagingParameters(metaDataTable, maldiFrameInfoTable,
+                maldiFrameLaserInfoTable));
       } catch (IOException e) {
         e.printStackTrace();
         return;
@@ -292,6 +296,7 @@ public class TDFImportTask extends AbstractTask {
         setDescription("MALDI info for " + tdf.getName());
         maldiFrameInfoTable.executeQuery(connection);
         maldiFrameInfoTable.process();
+        maldiFrameLaserInfoTable.executeQuery(connection);
         // maldiFrameInfoTable.print();
       }
 
