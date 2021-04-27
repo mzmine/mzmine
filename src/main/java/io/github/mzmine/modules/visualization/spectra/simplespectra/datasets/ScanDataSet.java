@@ -39,7 +39,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   private final String label;
   private final Scan scan;
   private final Map<Integer, String> annotation = new Hashtable<>();
-  private Map<Double, String> mzAnnotationMap;
+  private final Map<Double, String> mzAnnotationMap = new Hashtable<>();
 
   /*
    * Save a local copy of m/z and intensity values, because accessing the scan every time may cause
