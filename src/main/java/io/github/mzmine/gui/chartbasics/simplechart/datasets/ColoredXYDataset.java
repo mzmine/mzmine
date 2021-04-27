@@ -344,6 +344,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     status.set(TaskStatus.CANCELED);
   }
 
+
+
   @Override
   public Number getStartX(int series, int item) {
     return intervalWidthProvider != null ? getXValue(series, item)

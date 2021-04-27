@@ -75,7 +75,6 @@ public class ImageChart extends StackPane {
 
     setPrefHeight(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
     setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    chart.setDataset(ds);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
     chart.getXYPlot().getDomainAxis()
