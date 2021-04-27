@@ -76,7 +76,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.swing.SwingUtilities;
 
 /**
  * Conditions should be chosen in a way that exceptions are impossible when the item is clicked. On
@@ -173,20 +172,20 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem exportMS1Library = new ConditionalMenuItem("Export to MS1 library (Swing)",
         () -> !selectedRows.isEmpty());
-    exportMS1Library.setOnAction(e -> SwingUtilities.invokeLater(() -> {
+    exportMS1Library.setOnAction(e -> MZmineCore.runLater(() -> {
       MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
       window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
           SortingDirection.Ascending, false);
-      window.setVisible(true);
+      window.show();
     }));
 
     final MenuItem exportMSMSLibrary = new ConditionalMenuItem("Export to MS/MS library (Swing)",
         () -> !selectedRows.isEmpty());
-    exportMSMSLibrary.setOnAction(e -> SwingUtilities.invokeLater(() -> {
+    exportMSMSLibrary.setOnAction(e -> MZmineCore.runLater(() -> {
       MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
       window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
           SortingDirection.Ascending, true);
-      window.setVisible(true);
+      window.show();
     }));
 
     final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
