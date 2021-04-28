@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -27,13 +28,16 @@ import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeIonM
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeatureGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import java.util.List;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataType
     implements GraphicalColumType<Boolean> {
@@ -48,11 +52,12 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
       TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)) {
+    if (row == null || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)
+        || raw instanceof ImagingRawDataFile) {
       return null;
     }
     ModularFeature feature = row.getFeature(raw);
-    if(feature == null || !(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
+    if (feature == null || !(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       return null;
     }
 
@@ -78,4 +83,11 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
     return DEFAULT_GRAPHICAL_CELL_WIDTH + 50;
   }
 
+  @Nullable
+  @Override
+  public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
+      @Nonnull List<RawDataFile> file) {
+    return () -> MZmineCore.getDesktop()
+        .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0))));
+  }
 }

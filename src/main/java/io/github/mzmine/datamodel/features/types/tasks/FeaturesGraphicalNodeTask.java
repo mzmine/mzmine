@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
@@ -31,6 +33,8 @@ import javafx.scene.layout.StackPane;
  * Task for creating graphical nodes, having (ModularFeatureListRow row, AtomicDouble progress) constructor
  */
 public class FeaturesGraphicalNodeTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(FeaturesGraphicalNodeTask.class.getName());
 
   Class<? extends Node> nodeClass;
   private StackPane pane;
@@ -59,17 +63,23 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
       // create instance of nodeClass node with (ModularFeatureListRow, AtomicDouble) constructor
       n = nodeClass.getConstructor(new Class[]{ModularFeatureListRow.class, AtomicDouble.class})
           .newInstance(row, progress);
+
+      if(n != null) {
+        final Node node = n;
+        // save chart for later
+        row.addBufferedColChart(collHeader, n);
+
+        Platform.runLater(() -> {
+          pane.getChildren().add(node);
+        });
+      }
     } catch (NoSuchMethodException | IllegalAccessException | InstantiationException
         | InvocationTargetException e) {
-      e.printStackTrace();
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      setStatus(TaskStatus.ERROR);
+      return;
     }
-    final Node node = n;
-    // save chart for later
-    row.addBufferedColChart(collHeader, n);
 
-    Platform.runLater(() -> {
-      pane.getChildren().add(node);
-    });
     setStatus(TaskStatus.FINISHED);
     progress.set(1d);
   }

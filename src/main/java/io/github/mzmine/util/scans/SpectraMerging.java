@@ -45,12 +45,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class SpectraMerging {
 
@@ -163,28 +166,6 @@ public class SpectraMerging {
     return data;
   }
 
-  /*private static Range<Double> createNewNonOverlappingRange(RangeMap<Double, ?> rangeMap,
-      Range<Double> proposedRange) {
-
-    Entry<Range<Double>, ?> lowerEntry = rangeMap.getEntry(proposedRange.lowerEndpoint());
-    Entry<Range<Double>, ?> upperEntry = rangeMap.getEntry(proposedRange.upperEndpoint());
-
-    double lowerBound =
-        (lowerEntry == null) ? proposedRange.lowerEndpoint() : lowerEntry.getKey().upperEndpoint();
-    double upperBound =
-        (upperEntry == null) ? proposedRange.upperEndpoint() : upperEntry.getKey().lowerEndpoint();
-
-    if (lowerEntry == null && upperEntry == null) {
-      return Range.closed(lowerBound, upperBound);
-    } else if (lowerEntry != null && upperEntry == null) {
-      return Range.openClosed(lowerBound, upperBound);
-    } else if (lowerEntry == null && upperEntry != null) {
-      return Range.closedOpen(lowerBound, upperBound);
-    } else {
-      return Range.open(lowerBound, upperBound);
-    }
-  }*/
-
   /**
    * Creates a new non overlapping range for this range map. Ranges are created seamless, therefore
    * no gaps are introduced during this process.
@@ -243,8 +224,13 @@ public class SpectraMerging {
         Range.range(lowerBound, lowerBoundType, upperBound, upperBoundType));
   }
 
-  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(ImsMsMsInfo info,
-      double noiseLevel, MZTolerance tolerance, MergingType mergingType, MemoryMapStorage storage) {
+  /**
+   * Creates a merged MS/MS spectrum for a PASEF {@link ImsMsMsInfo}.
+   * @return A {@link MergedMsMsSpectrum}.
+   */
+  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@Nonnull final ImsMsMsInfo info,
+      final double noiseLevel, @Nonnull final MZTolerance tolerance,
+      @Nonnull final MergingType mergingType, @Nullable final MemoryMapStorage storage) {
 
     if (info == null) {
       return null;
@@ -268,7 +254,7 @@ public class SpectraMerging {
     Optional<MassList> firstSet = mobilityScans.stream().map(MobilityScan::getMassList)
         .filter(Objects::nonNull).findFirst();
 
-    if(firstSet.isEmpty()) {
+    if (firstSet.isEmpty()) {
       return null;
     }
 
@@ -284,6 +270,45 @@ public class SpectraMerging {
     MassList newMl = new SimpleMassList(storage, merged[0], merged[1]);
     mergedSpectrum.addMassList(newMl);
     return mergedSpectrum;
+  }
+
+  /**
+   * Merges Multiple MS/MS spectra with the same collision energy into a single MS/MS spectrum.
+   *
+   * @param spectra     The source spectra
+   * @param tolerance   The mz tolerance to merch peaks in a spectrum
+   * @param mergingType Specifies the way to treat intensities (sum, avg, max)
+   * @param storage     The storage to use.
+   * @return A list of all merged spectra (Spectra with the same collision energy have been merged).
+   */
+  public static List<MergedMsMsSpectrum> mergeMsMsSpectra(
+      @Nonnull final Collection<MergedMsMsSpectrum> spectra,
+      @Nonnull final MZTolerance tolerance, @Nonnull final MergingType mergingType,
+      @Nullable final MemoryMapStorage storage) {
+
+    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
+
+    final List<MergedMsMsSpectrum> mergedSpectra = new ArrayList<>();
+    // group spectra with the same CE into the same list
+    final Map<Float, List<MergedMsMsSpectrum>> grouped = spectra.stream()
+        .collect(Collectors.groupingBy(spectrum -> spectrum.getCollisionEnergy()));
+
+    for (final Entry<Float, List<MergedMsMsSpectrum>> entry : grouped.entrySet()) {
+      final MergedMsMsSpectrum spectrum = entry.getValue().get(0);
+      final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(), 0d,
+          tolerance,
+          mergingType, cf);
+      final List<MassSpectrum> sourceSpectra = entry.getValue().stream()
+          .flatMap(s -> s.getSourceSpectra().stream()).collect(Collectors.toList());
+
+      final MergedMsMsSpectrum mergedMsMsSpectrum = new SimpleMergedMsMsSpectrum(storage,
+          mzIntensities[0], mzIntensities[1],
+          spectrum.getPrecursorMZ(), spectrum.getCollisionEnergy(), spectrum.getMSLevel(),
+          sourceSpectra, mergingType, cf);
+      mergedSpectra.add(mergedMsMsSpectrum);
+    }
+
+    return mergedSpectra;
   }
 
   public enum MergingType {

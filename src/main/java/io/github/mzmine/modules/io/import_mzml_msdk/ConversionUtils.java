@@ -26,24 +26,43 @@ public class ConversionUtils {
 
   private static Logger logger = Logger.getLogger(ConversionUtils.class.getName());
 
-  public static double[] convertFloatsToDoubles(float[] input) {
+  public static double[] convertFloatsToDoubles(float[] input, int length) {
     if (input == null) {
       return null; // Or throw an exception - your choice
     }
-    double[] output = new double[input.length];
-    for (int i = 0; i < input.length; i++) {
+    double[] output = new double[length];
+    for (int i = 0; i < length; i++) {
       output[i] = input[i];
     }
     return output;
   }
 
+  public static double[] convertFloatsToDoubles(float[] input) {
+    return convertFloatsToDoubles(input, input.length);
+  }
+
   public static double[] convertIntsToDoubles(int[] input) {
+    return convertIntsToDoubles(input, input.length);
+  }
+
+  public static double[] convertIntsToDoubles(int[] input, int length) {
     if (input == null) {
       return null; // Or throw an exception - your choice
     }
-    double[] output = new double[input.length];
-    for (int i = 0; i < input.length; i++) {
+    double[] output = new double[length];
+    for (int i = 0; i < length; i++) {
       output[i] = input[i];
+    }
+    return output;
+  }
+
+  public static double[] convertLongsToDoubles(long[] input, int length) {
+    if (input == null) {
+      return null; // Or throw an exception - your choice
+    }
+    double[] output = new double[length];
+    for (int i = 0; i < length; i++) {
+      output[i] = (double) input[i];
     }
     return output;
   }

@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -57,6 +58,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private DoubleBuffer mobilityScanIntensityBuffer;
   private DoubleBuffer mobilityScanMzBuffer;
 
+  protected int maxMobilityScanDataPoints = -1;
+
   public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge, @Nullable double[] mzValues,
       @Nullable double[] intensityValues, MassSpectrumType spectrumType, PolarityType polarity,
@@ -74,6 +77,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   public void setDataPoints(double[] newMzValues, double[] newIntensityValues) {
     super.setDataPoints(getDataFile().getMemoryMapStorage(), newMzValues, newIntensityValues);
+    // update afterwards, an assertion might be triggered.
+    ((IMSRawDataFileImpl) getDataFile()).updateMaxRawDataPoints(newIntensityValues.length);
   }
 
   /**
@@ -130,9 +135,13 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
     offsets[0] = 0;
     for (int i = 1; i < offsets.length; i++) {
-      int oldOffset = offsets[i - 1];
-      int numPoints = originalMobilityScans.get(i - 1).getNumberOfDataPoints();
+      final int oldOffset = offsets[i - 1];
+      final int numPoints = originalMobilityScans.get(i - 1).getNumberOfDataPoints();
       offsets[i] = oldOffset + numPoints;
+
+      if (numPoints > maxMobilityScanDataPoints) {
+        maxMobilityScanDataPoints = numPoints;
+      }
     }
 
     // now create a big array that contains all m/z and intensity values so we can store it in a single buffer
@@ -152,8 +161,9 @@ public class SimpleFrame extends SimpleScan implements Frame {
       }
     }
 
-    mobilityScanIntensityBuffer = StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(), data);
-    if(getDataFile().getMemoryMapStorage() == null) {
+    mobilityScanIntensityBuffer = StorageUtils
+        .storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(), data);
+    if (getDataFile().getMemoryMapStorage() == null) {
       data = new double[numDatapoints]; // cannot reuse the same array then
     }
     // same for mzs
@@ -252,6 +262,15 @@ public class SimpleFrame extends SimpleScan implements Frame {
   double getMobilityScanIntensityValue(SimpleMobilityScan scan, int index) {
     assert index < scan.getNumberOfDataPoints();
     return mobilityScanIntensityBuffer.get(scan.getStorageOffset() + index);
+  }
+
+  /**
+   * @return The maximum number of data points in a mobility scan in this frame. -1 If no mobility
+   * scans have been added.
+   */
+  @Override
+  public int getMaxMobilityScanDataPoints() {
+    return maxMobilityScanDataPoints;
   }
 
 }

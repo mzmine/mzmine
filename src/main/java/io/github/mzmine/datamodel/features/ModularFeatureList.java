@@ -271,19 +271,19 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public ObservableList<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange) {
+  public List<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange) {
     Range<Float> all = Range.all();
     return getRowsInsideScanAndMZRange(all, mzRange);
   }
 
   @Override
-  public ObservableList<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange) {
+  public List<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange) {
     Range<Double> all = Range.all();
     return getRowsInsideScanAndMZRange(rtRange, all);
   }
 
   @Override
-  public ObservableList<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
+  public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO handle if mz or rt is not present
     return modularStream().filter(
@@ -323,7 +323,7 @@ public class ModularFeatureList implements FeatureList {
    * @return List of features
    */
   @Override
-  public ObservableList<Feature> getFeaturesInsideScanRange(RawDataFile raw, Range<Float> rtRange) {
+  public List<Feature> getFeaturesInsideScanRange(RawDataFile raw, Range<Float> rtRange) {
     Range<Double> all = Range.all();
     return getFeaturesInsideScanAndMZRange(raw, rtRange, all);
   }
@@ -332,7 +332,7 @@ public class ModularFeatureList implements FeatureList {
    * @see FeatureList#getFeaturesInsideMZRange
    */
   @Override
-  public ObservableList<Feature> getFeaturesInsideMZRange(RawDataFile raw, Range<Double> mzRange) {
+  public List<Feature> getFeaturesInsideMZRange(RawDataFile raw, Range<Double> mzRange) {
     Range<Float> all = Range.all();
     return getFeaturesInsideScanAndMZRange(raw, all, mzRange);
   }
@@ -341,7 +341,7 @@ public class ModularFeatureList implements FeatureList {
    * @see FeatureList#getFeaturesInsideScanAndMZRange
    */
   @Override
-  public ObservableList<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw,
+  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw,
       Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO solve with bindings and check for rt or mz presence in row
@@ -543,19 +543,23 @@ public class ModularFeatureList implements FeatureList {
   /**
    * create copy of all feature list rows and features
    *
-   * @param title
+   * @param title the new title
    * @return
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage) {
-    return createCopy(title, storage, this.getRawDataFiles());
+    return createCopy(title, storage, getRawDataFiles());
   }
+
+
   /**
-   * create copy of all feature list rows and features
+   * create copy of all feature list rows and features. Use a different list of raw data files
    *
-   * @param title
+   * @param title     the new title
+   * @param dataFiles the new list of raw data files
    * @return
    */
-  public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage, List<RawDataFile> dataFiles) {
+  public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
+      List<RawDataFile> dataFiles) {
     ModularFeatureList flist = new ModularFeatureList(title, storage, dataFiles);
 
     // key is original row and value is copied row

@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
@@ -50,13 +51,29 @@ public class FeatureDataUtils {
     double min = Double.MAX_VALUE;
     double max = Double.MIN_VALUE;
 
-    for (int i = 0; i < series.getNumberOfValues(); i++) {
-      final double mz = series.getMZ(i);
-      if (mz < min) {
-        min = mz;
+    if (series instanceof IonMobilogramTimeSeries ionTrace) {
+      for (IonMobilitySeries mobilogram : ionTrace.getMobilograms()) {
+        for (int i = 0; i < mobilogram.getNumberOfValues(); i++) {
+          final double mz = mobilogram.getMZ(i);
+          // we add flanking 0 intensities with 0d mz during building, don't count those
+          if (mz < min && Double.compare(mz, 0d) == 1) {
+            min = mz;
+          }
+          if (mz > max) {
+            max = mz;
+          }
+        }
       }
-      if (mz > max) {
-        max = mz;
+    } else {
+      for (int i = 0; i < series.getNumberOfValues(); i++) {
+        final double mz = series.getMZ(i);
+        // we add flanking 0 intesities with 0d mz during building, don't count those
+        if (mz < min && Double.compare(mz, 0d) == 1) {
+          min = mz;
+        }
+        if (mz > max) {
+          max = mz;
+        }
       }
     }
     return Range.closed(min, max);
@@ -178,8 +195,39 @@ public class FeatureDataUtils {
           mostIntenseMobilityScanIndex = i;
         }
       }
-      feature.setMobility((float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
+      if (Double.compare(intensity, Double.MIN_VALUE) == 0) {
+        logger.info(() -> "Mobility cannot be specified for: " + summedMobilogram.print());
+        feature.setMobility(Float.NaN);
+      } else {
+        feature.setMobility((float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
+      }
     }
     // todo recalc quality parameters
   }
+
+  public static double getSmallestMzDelta(MzSeries series) {
+    double smallestDelta = Double.POSITIVE_INFINITY;
+
+    if (series instanceof IonMobilogramTimeSeries ims) {
+      int maxValues = ims.getMobilograms().stream().mapToInt(IonMobilitySeries::getNumberOfValues)
+          .max().orElse(0);
+
+      double[] mzBuffer = new double[maxValues];
+      for(IonMobilitySeries mobilogram : ims.getMobilograms()) {
+        mobilogram.getMzValues(mzBuffer);
+        final double delta = ArrayUtils.smallestDelta(mzBuffer, mobilogram.getNumberOfValues());
+        if(delta < smallestDelta) {
+          smallestDelta = delta;
+        }
+      }
+    } else {
+      double[] mzBuffer = new double[series.getNumberOfValues()];
+      series.getMzValues(mzBuffer);
+      smallestDelta = ArrayUtils.smallestDelta(mzBuffer);
+    }
+
+    return smallestDelta;
+  }
+
+
 }

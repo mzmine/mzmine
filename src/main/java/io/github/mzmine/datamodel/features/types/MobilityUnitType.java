@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.MobilityType;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType>> {
 
@@ -33,5 +34,14 @@ public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType
   @Override
   public SimpleObjectProperty<MobilityType> createProperty() {
     return new SimpleObjectProperty<>(MobilityType.NONE);
+  }
+
+  @Nonnull
+  @Override
+  public String getFormattedString(@Nullable Object value) {
+    if (value instanceof MobilityType mt) {
+      return mt.getUnit();
+    }
+    return super.getFormattedString(value);
   }
 }

@@ -33,6 +33,23 @@ public class FeatureListsSelection implements Cloneable {
   private String namePattern;
   private ModularFeatureList batchLastFeatureLists[];
 
+
+  /**
+   * Uses specific feature lists
+   * @param flists specific feature lists
+   */
+  public FeatureListsSelection(ModularFeatureList... flists) {
+    this();
+    specificFeatureLists = flists;
+    selectionType = FeatureListsSelectionType.SPECIFIC_FEATURELISTS;
+  }
+  public FeatureListsSelection(FeatureListsSelectionType selectionType) {
+    this();
+    this.selectionType = selectionType;
+  }
+  public FeatureListsSelection() {
+  }
+
   public ModularFeatureList[] getMatchingFeatureLists() {
 
     switch (selectionType) {

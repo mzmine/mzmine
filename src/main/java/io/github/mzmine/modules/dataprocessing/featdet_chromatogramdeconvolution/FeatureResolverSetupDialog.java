@@ -20,6 +20,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -66,6 +68,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected ComboBox<ModularFeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
+  protected BinningMobilogramDataAccess mobilogramBinning;
 
   public FeatureResolverSetupDialog(boolean valueCheckRequired,
       ParameterSet parameters, String message) {
@@ -170,10 +173,18 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     if (((GeneralResolverParameters) parameterSet).getXYResolver(parameterSet) != null) {
       XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameterSet)
           .getXYResolver(parameterSet);
-      if(newValue.getFeatureList() instanceof ModularFeatureList flist) {
+      if ((mobilogramBinning == null || mobilogramBinning.getDataFile() != newValue
+          .getRawDataFile()) && dimension == ResolvingDimension.MOBILITY) {
+        mobilogramBinning = EfficientDataAccess.of((IMSRawDataFile) newValue.getRawDataFile(),
+            BinningMobilogramDataAccess
+                .getPreviousBinningWith(flistBox.getValue(), newValue.getMobilityUnit()));
+      }
+
+      if (newValue.getFeatureList() instanceof ModularFeatureList flist) {
         List<? extends Scan> selectedScans = flist.getSeletedScans(newValue.getRawDataFile());
         List<IonTimeSeries<? extends Scan>> resolved = ResolvingUtil
-            .resolve(resolver, newValue.getFeatureData(), null, dimension, selectedScans);
+            .resolve(resolver, newValue.getFeatureData(), null, dimension, selectedScans,
+                mobilogramBinning);
         if (resolved.isEmpty()) {
           return;
         }

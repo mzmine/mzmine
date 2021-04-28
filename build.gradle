@@ -12,8 +12,8 @@ version = "3.0"
 description = "MZmine"
 
 // JDK 14+ is needed for jpackage
-sourceCompatibility = "14"
-targetCompatibility = "14"
+sourceCompatibility = "16"
+targetCompatibility = "16"
 defaultTasks "jpackage"
 
 // Check the OS
@@ -28,33 +28,22 @@ println "OS detected as " + project.ext.osSuffix
 
 
 repositories {
-    maven {
-        url = "file://" + projectDir + "/src/main/lib"
-    }
-    maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
-        url = "https://dl.bintray.com/lifs/maven/"
-    }
-    maven { // For jmzml, etc.
-        url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/"
-    }
-    maven {
-        url = "https://repo.maven.apache.org/maven2"
-    }
-    maven { // For SIRIUS ID modules
-        url = "https://bio.informatik.uni-jena.de/repository/libs-oss/"
-    }
-    maven {
-        url = "https://jitpack.io"
-    }
-    maven {
-        url = "https://www.xypron.de/repository/"
-    }
-    maven { // For cpdetector
-        url = "https://nexus.nuiton.org/nexus/content/groups/releases/"
-    }
-    maven { // For jimzml
-        url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser"
-    }
+    // TODO change to mavenCentral()
+    maven { url = "https://repo.maven.apache.org/maven2" }
+    // local libraries
+    maven { url = "file://" + projectDir + "/src/main/lib" }
+    // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
+    maven { url = "https://lifstools.jfrog.io/artifactory/ebi-tools/" }
+    // For jmzml, etc.
+    maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
+    // For SIRIUS ID modules
+    maven { url = "https://bio.informatik.uni-jena.de/repository/libs-oss/" }
+    maven { url = "https://jitpack.io" }
+    maven { url = "https://www.xypron.de/repository/" }
+    // For cpdetector
+    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
+    // For jimzml
+    maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 }
 
 ext {
@@ -67,7 +56,7 @@ ext {
     slf4jVersion = "1.7.30"
     poiVersion = "4.1.0"
     batikVersion = "1.11"
-    controlsfxVersion = "11.0.3"
+    controlsfxVersion = "11.1.0"
     jmzTabmVersion = "1.0.6"
     jnaVersion = "5.6.0"
     junitversion = "5.7.0"
@@ -127,7 +116,7 @@ dependencies {
     implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
     implementation "org.xerial:sqlite-jdbc:3.8.11.2"
     implementation "org.du-lab.adap:adap:4.1.4"
-    implementation "gnf:clustering:20130919"
+    implementation "gnf:clustering:20210422"
     implementation "it.unimi.dsi:fastutil:8.2.2"
     implementation "com.itextpdf:itextpdf:5.5.13.1"
     implementation "org.apache.xmlgraphics:xmlgraphics-commons:2.3"
@@ -166,7 +155,6 @@ dependencies {
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     implementation "com.alanmrace:jimzmlparser:1.0.5"
-    // https://mvnrepository.com/artifact/commons-cli/commons-cli
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitversion"
@@ -188,6 +176,8 @@ configurations.all {
     exclude group: "ch.qos.logback", module: "logback-classic"
     exclude group: "gurobi", module: "gurobi-linux64"
     exclude group: "cplex", module: "cplex"
+    exclude group: "org.checkerframework", module: "checker-qual"
+    exclude group: "javax.annotation", module: "javax.annotation-api"
 }
 
 
@@ -195,7 +185,7 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "15.0.1"
+    version = "16"
     modules = ["javafx.controls",
                "javafx.swing",
                "javafx.fxml",
@@ -206,15 +196,15 @@ javafx {
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
-    options.compilerArgs += ['--enable-preview']
+    /*options.compilerArgs += ['--enable-preview']*/
 }
 
 tasks.withType(Test) {
-    jvmArgs += "--enable-preview"
+    /*jvmArgs += "--enable-preview"*/
 }
 
 tasks.withType(JavaExec) {
-    jvmArgs += '--enable-preview'
+    /*jvmArgs += '--enable-preview'*/
 }
 
 /*
@@ -290,8 +280,8 @@ runtime {
                    "-XX:MinRAMPercentage=80",
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
-                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
-                   "--enable-preview"
+                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
+                   /*"--enable-preview"*/
         ]
     }
 }

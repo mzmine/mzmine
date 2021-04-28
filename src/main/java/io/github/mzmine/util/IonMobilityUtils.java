@@ -18,17 +18,26 @@
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javafx.beans.property.Property;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class IonMobilityUtils {
 
@@ -46,6 +55,15 @@ public class IonMobilityUtils {
       lastMobility = currentMobility;
     }
     return minDelta;
+  }
+
+  public static Map<Range<Double>, Frame> getUniqueMobilityRanges(
+      @Nonnull final IMSRawDataFile file) {
+    Map<Range<Double>, Frame> ranges = new HashMap<>();
+    for (Frame frame : file.getFrames()) {
+      ranges.putIfAbsent(frame.getMobilityRange(), frame);
+    }
+    return ranges;
   }
 
   public static List<ModularFeature> getFeaturesWithinRegion(Collection<ModularFeature> features,
@@ -91,5 +109,62 @@ public class IonMobilityUtils {
       }
     }
     return false;
+  }
+
+  /**
+   * Builds a mobilogram for the given mz range in the frame. Should only be used for previews and
+   * visualisations, less perfomant than a ims feature detector.
+   *
+   * @param frame
+   * @param mzRange
+   * @param type
+   * @param storage
+   * @return
+   */
+  public static IonMobilitySeries buildMobilogramForMzRange(@Nonnull final Frame frame,
+      @Nonnull final Range<Double> mzRange, @Nonnull final MobilogramType type,
+      @Nullable final MemoryMapStorage storage) {
+
+    final int numScans = frame.getNumberOfMobilityScans();
+    final double rangeCenter = RangeUtils.rangeCenter(mzRange);
+
+    final double[] intensities = new double[frame.getNumberOfMobilityScans()];
+    final double[] mzs = new double[frame.getNumberOfMobilityScans()];
+    final double[] mobilities = new double[frame.getNumberOfMobilityScans()];
+    frame.getMobilities().get(0, mobilities, 0, mobilities.length);
+
+    final List<MobilityScan> mobilityScans = frame.getMobilityScans();
+
+    // todo replace with method introduced in PR mzmine3#238
+    final int maxNumDataPoints = mobilityScans.stream()
+        .mapToInt(MobilityScan::getNumberOfDataPoints).max().orElse(0);
+
+    final double[] intensitiesBuffer = new double[maxNumDataPoints];
+    final double[] mzsBuffer = new double[maxNumDataPoints];
+
+    for (int i = 0; i < numScans; i++) {
+      final MobilityScan scan = mobilityScans.get(i);
+      scan.getMzValues(mzsBuffer);
+      scan.getIntensityValues(intensitiesBuffer);
+
+      if (type == MobilogramType.BASE_PEAK) {
+        DataPoint bp = ScanUtils
+            .findBasePeak(mzsBuffer, intensitiesBuffer, mzRange, scan.getNumberOfDataPoints());
+        if(bp != null) {
+          mzs[i] = bp.getMZ();
+          intensities[i] = bp.getIntensity();
+        }
+      } else if (type == MobilogramType.TIC) {
+        mzs[i] = rangeCenter;
+        intensities[i] = ScanUtils
+            .calculateTIC(mzsBuffer, intensitiesBuffer, mzRange, scan.getNumberOfDataPoints());
+      }
+    }
+
+    return new SimpleIonMobilitySeries(storage, mzs, intensities, mobilityScans);
+  }
+
+  public enum MobilogramType {
+    BASE_PEAK, TIC
   }
 }

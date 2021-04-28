@@ -80,7 +80,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   @Nonnull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATA;
+    return MZmineModuleCategory.RAWDATAIMPORT;
   }
 
   @Nonnull

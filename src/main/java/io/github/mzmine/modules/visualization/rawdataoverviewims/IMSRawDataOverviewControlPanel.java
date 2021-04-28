@@ -27,8 +27,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionCompone
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -42,6 +44,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Rectangle;
+import javax.annotation.Nullable;
 
 public class IMSRawDataOverviewControlPanel extends GridPane {
 
@@ -61,15 +64,20 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
   public static final String TOOLTIP_RTRANGE = "Retention time range around the selected m/z to "
       + "build EICs and ion traces.";
 
+  public static final String TOOLTIP_BINWIDTH = "Bin width in for mobility dimension to build "
+      + "mobilograms.\nAutomatically set to a multiple of the actual acquisition step size.";
+
 
   private final IMSRawDataOverviewPane pane;
   private final NumberFormat mzFormat;
   private final NumberFormat intensityFormat;
   private final NumberFormat rtFormat;
+  private final NumberFormat mobilityFormat;
 
   private MZTolerance mzTolerance;
   private ScanSelection scanSelection;
   private Float rtWidth;
+  private Double binWidth;
   private ListView<Range<Double>> mobilogramRangesList;
 
   private double frameNoiseLevel;
@@ -77,16 +85,18 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
   IMSRawDataOverviewControlPanel(IMSRawDataOverviewPane pane, double frameNoiseLevel,
       double mobilityScanNoiseLevel, MZTolerance mzTolerance, ScanSelection scanSelection,
-      Float rtWidth) {
+      Float rtWidth, Double binWidth) {
     this.pane = pane;
     this.frameNoiseLevel = frameNoiseLevel;
     this.mobilityScanNoiseLevel = mobilityScanNoiseLevel;
     this.mzTolerance = mzTolerance;
     this.scanSelection = scanSelection;
     this.rtWidth = rtWidth;
+    this.binWidth = binWidth;
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
+    mobilityFormat = new DecimalFormat("0.0000");
     initControlPanel();
   }
 
@@ -103,6 +113,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
         2d);
     ScanSelectionComponent scanSelectionComponent = new ScanSelectionComponent();
     scanSelectionComponent.setValue(scanSelection);
+    DoubleComponent binWidthComponent = new DoubleComponent(100, 0d, 10d, mobilityFormat, 0.0008d);
 
     setPadding(new Insets(5));
     setVgap(5);
@@ -128,6 +139,10 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     lblRtRange.setTooltip(new Tooltip(TOOLTIP_RTRANGE));
     add(lblRtRange, 0, 4);
     add(rtWidthComponent, 1, 4);
+    Label lblBinWidth = new Label("Mobilogram bin width (abs)");
+    lblBinWidth.setTooltip(new Tooltip(TOOLTIP_BINWIDTH));
+    add(lblBinWidth, 0, 5);
+    add(binWidthComponent, 1, 5);
 
     DoubleRangeComponent mobilogramRangeComp = new DoubleRangeComponent(mzFormat);
     mobilogramRangesList = new ListView<>(
@@ -179,11 +194,14 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
         rtWidthComponent.setText(rtFormat.format(rtWidth));
         scanSelection = scanSelectionComponent.getValue();
         mzTolerance = mzToleranceComponent.getValue();
+        binWidth = Double.parseDouble(binWidthComponent.getText());
+
         pane.setMzTolerance(mzTolerance);
         pane.setScanSelection(scanSelection);
         pane.setFrameNoiseLevel(frameNoiseLevel);
         pane.setMobilityScanNoiseLevel(mobilityScanNoiseLevel);
         pane.setRtWidth(rtWidth);
+        pane.setBinWidth(binWidth);
 
         pane.updateTicPlot();
         pane.onSelectedFrameChanged();
@@ -192,14 +210,14 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
       }
     });
 
-    add(new Label("EIC/Mobilogram ranges"), 0, 5);
-    add(mobilogramRangesList, 1, 5, 1, 1);
-    add(new Label("Range:"), 0, 6);
-    add(mobilogramRangeComp, 1, 6);
+    add(new Label("EIC/Mobilogram ranges"), 0, 10);
+    add(mobilogramRangesList, 1, 10, 1, 1);
+    add(new Label("Range:"), 0, 11);
+    add(mobilogramRangeComp, 1, 11);
     FlowPane buttons = new FlowPane(addMzRange, removeMzRange, update);
     buttons.setHgap(5);
     buttons.setAlignment(Pos.CENTER);
-    add(buttons, 0, 7, 2, 1);
+    add(buttons, 0, 12, 2, 1);
   }
 
   public MZTolerance getMzTolerance() {
@@ -221,6 +239,20 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
   public List<Range<Double>> getMobilogramRangesList() {
     return mobilogramRangesList.getItems();
+  }
+
+  public void addRanges(List<Range<Double>> rangeList) {
+    rangeList.forEach(this::addRange);
+  }
+
+  public void addRange(@Nullable Range<Double> range) {
+    if (range != null) {
+      mobilogramRangesList.getItems().add(range);
+    }
+  }
+
+  public void addSelectedRangeListener(ChangeListener<Range<Double>> listener) {
+    mobilogramRangesList.getSelectionModel().selectedItemProperty().addListener(listener);
   }
 
   public double getFrameNoiseLevel() {

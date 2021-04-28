@@ -18,14 +18,6 @@
 
 package io.github.mzmine.modules.visualization.image;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import javax.annotation.Nonnull;
-import org.jfree.chart.fx.interaction.ChartMouseEventFX;
-import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -41,6 +33,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.PaintScaleComponent;
 import io.github.mzmine.parameters.parametertypes.PaintScaleParameter;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
@@ -50,6 +45,11 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javax.annotation.Nonnull;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.xy.XYZDataset;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -204,16 +204,18 @@ public class ImageVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featurelists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
+  @Nonnull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     // TODO Auto-generated method stub
     return null;
   }
 
+  @Nonnull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     // TODO Auto-generated method stub

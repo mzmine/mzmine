@@ -310,7 +310,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public int getNumberOfFeatures() {
-    return features.size();
+    return (int) features.values().stream()
+        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).count();
   }
 
   @Override

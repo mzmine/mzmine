@@ -83,7 +83,7 @@ public class MultiSpectraVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featurelists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 }

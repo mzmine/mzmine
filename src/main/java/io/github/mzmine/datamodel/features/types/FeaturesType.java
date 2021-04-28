@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-// TODO: remove implements SubColumnsFactory...
 public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeature>>
     implements NoTextColumn {
 

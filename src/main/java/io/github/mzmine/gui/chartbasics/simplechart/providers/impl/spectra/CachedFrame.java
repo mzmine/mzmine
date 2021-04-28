@@ -277,4 +277,9 @@ public class CachedFrame implements Frame {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
+
+  @Override
+  public int getMaxMobilityScanDataPoints() {
+    return originalFrame.getMaxMobilityScanDataPoints();
+  }
 }

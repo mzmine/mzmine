@@ -18,10 +18,13 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -54,9 +57,7 @@ import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.BorderPane;
@@ -72,7 +73,7 @@ import org.jfree.chart.ui.RectangleEdge;
 
 public class IMSRawDataOverviewPane extends BorderPane {
 
-  private static final int HEATMAP_LEGEND_HEIGHT = 40;
+  private static final int HEATMAP_LEGEND_HEIGHT = 50;
 
   private final GridPane chartPanel;
   private final IMSRawDataOverviewControlPanel controlsPanel;
@@ -93,14 +94,18 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
   private final ObjectProperty<Frame> selectedFrame;
   private final ObjectProperty<MobilityScan> selectedMobilityScan;
-  private final DoubleProperty selectedMz;
+  private final ObjectProperty<Range<Double>> selectedMz;
   private final Stroke markerStroke = new BasicStroke(1.0f);
 
+  // not thread safe, so we need one for building the selected and one for building all the others
+  private BinningMobilogramDataAccess selectedBinningMobilogramDataAccess;
+  private BinningMobilogramDataAccess rangesBinningMobilogramDataAccess;
   private MZTolerance mzTolerance;
   private ScanSelection scanSelection;
   private Frame cachedFrame;
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
+  private double binWidth;
   private Float rtWidth;
 
   private Color markerColor;
@@ -113,11 +118,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
    * Creates a BorderPane layout.
    */
   public IMSRawDataOverviewPane() {
-    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f);
+    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f, 0.0008);
   }
 
   public IMSRawDataOverviewPane(final double frameNoiseLevel, final double mobilityScanNoiseLevel,
-      final MZTolerance mzTolerance, final ScanSelection scanSelection, final Float rtWidth) {
+      final MZTolerance mzTolerance, final ScanSelection scanSelection, final Float rtWidth,
+      final Double binWidth) {
     super();
     super.getStyleClass().add("region-match-chart-bg");
     getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -125,14 +131,19 @@ public class IMSRawDataOverviewPane extends BorderPane {
     selectedMobilogramDatasetIndex = -1;
     selectedChromatogramDatasetIndex = -1;
     mzRangeTicDatasetIndices = new HashSet<>();
+    selectedMz = new SimpleObjectProperty<>();
+    selectedMobilityScan = new SimpleObjectProperty<>();
+
     this.mzTolerance = mzTolerance;
     this.scanSelection = scanSelection;
     this.rtWidth = rtWidth;
     this.frameNoiseLevel = frameNoiseLevel;
     this.mobilityScanNoiseLevel = mobilityScanNoiseLevel;
+    this.binWidth = binWidth;
 
     controlsPanel = new IMSRawDataOverviewControlPanel(this, frameNoiseLevel,
-        mobilityScanNoiseLevel, mzTolerance, scanSelection, rtWidth);
+        mobilityScanNoiseLevel, mzTolerance, scanSelection, rtWidth, binWidth);
+    controlsPanel.addSelectedRangeListener((obs, old, newVal) -> selectedMz.set(newVal));
     initChartPanel();
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -170,8 +181,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
         2, 1, 1, 1);
     chartPanel.add(controlsPanel, 3, 1);
 
-    selectedMz = new SimpleDoubleProperty();
-    selectedMobilityScan = new SimpleObjectProperty<>();
     markerColor = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
     initChartListeners();
     initSelectedValueListeners();
@@ -194,7 +203,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
           cachedFrame.getMobilityScan(selectedMobilityScan.get().getMobilityScanNumber())));
     }
     MZmineCore.getTaskController().addTask(new BuildMultipleMobilogramRanges(
-        controlsPanel.getMobilogramRangesList(), Set.of(cachedFrame), rawDataFile, this));
+        controlsPanel.getMobilogramRangesList(), Set.of(cachedFrame), rawDataFile, this,
+        rangesBinningMobilogramDataAccess));
     if (!RangeUtils.isJFreeRangeConnectedToGoogleRange(
         heatmapChart.getXYPlot().getRangeAxis().getRange(),
         selectedFrame.get().getMobilityRange())) {
@@ -214,7 +224,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void updateAxisLabels() {
-    String intensityLabel = unitFormat.format("Intensity", "cps");
+    String intensityLabel = unitFormat.format("Intensity", "a.u.");
     String mzLabel = "m/z";
     String mobilityLabel =
         (rawDataFile != null) ? rawDataFile.getMobilityType().getAxisLabel() : "Mobility";
@@ -234,6 +244,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     heatmapChart.setDomainAxisNumberFormatOverride(mzFormat);
     heatmapChart.setRangeAxisLabel(mobilityLabel);
     heatmapChart.setRangeAxisNumberFormatOverride(mobilityFormat);
+    heatmapChart.setLegendNumberFormatOverride(intensityFormat);
     ionTraceChart.setDomainAxisLabel(unitFormat.format("Retention time", "min"));
     ionTraceChart.setRangeAxisLabel(mobilityLabel);
     ionTraceChart.setDomainAxisNumberFormatOverride(rtFormat);
@@ -256,7 +267,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // mobilogramChart.getXYPlot().setOrientation(PlotOrientation.HORIZONTAL);
     mobilogramChart.getXYPlot().getDomainAxis().setInverted(true);
     mobilogramChart.setShowCrosshair(false);
-    mobilogramChart.switchLegendVisible();
+    mobilogramChart.setLegendItemsVisible(false);
     NumberAxis axis = (NumberAxis) mobilogramChart.getXYPlot().getRangeAxis();
     axis.setAutoRangeMinimumSize(0.2);
     axis.setAutoRangeIncludesZero(false);
@@ -312,24 +323,27 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   private void initChartLegendPanels() {
-    heatmapLegendCanvas.widthProperty().bind(heatmapChart.widthProperty());
     heatmapLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
-    ionTraceLegendCanvas.widthProperty().bind(ionTraceChart.widthProperty());
     ionTraceLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
     heatmapChart.setLegendCanvas(heatmapLegendCanvas);
     ionTraceChart.setLegendCanvas(ionTraceLegendCanvas);
   }
 
   private void initChartListeners() {
-    mobilogramChart.cursorPositionProperty()
-        .addListener(((observable, oldValue, newValue) -> selectedMobilityScan
-            .set(cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex()))));
+    mobilogramChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
+      if (newValue.getValueIndex() != -1) {
+        selectedMobilityScan
+            .set(cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex()));
+      }
+    }));
     singleSpectrumChart.cursorPositionProperty().addListener(
-        ((observable, oldValue, newValue) -> selectedMz.set(newValue.getDomainValue())));
+        ((observable, oldValue, newValue) -> selectedMz
+            .set(mzTolerance.getToleranceRange(newValue.getDomainValue()))));
     summedSpectrumChart.cursorPositionProperty().addListener(
-        ((observable, oldValue, newValue) -> selectedMz.set(newValue.getDomainValue())));
+        ((observable, oldValue, newValue) -> selectedMz
+            .set(mzTolerance.getToleranceRange(newValue.getDomainValue()))));
     heatmapChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
-      selectedMz.set(newValue.getDomainValue());
+      selectedMz.set(mzTolerance.getToleranceRange(newValue.getDomainValue()));
       if (newValue.getDataset() != null) {
         selectedMobilityScan.set(((FrameHeatmapProvider) ((ColoredXYZDataset) newValue.getDataset())
             .getXyzValueProvider()).getMobilityScanAtValueIndex(newValue.getValueIndex()));
@@ -338,6 +352,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
     ticChart.cursorPositionProperty().addListener(
         ((observable, oldValue, newValue) -> setSelectedFrame((Frame) newValue.getScan())));
     ionTraceChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
+      if (newValue.getDataset() == null || newValue.getValueIndex() == -1) {
+        return;
+      }
       MobilityScan selectedScan =
           ((IMSIonTraceHeatmapProvider) ((ColoredXYZDataset) newValue.getDataset())
               .getXyzValueProvider())
@@ -361,13 +378,13 @@ public class IMSRawDataOverviewPane extends BorderPane {
         mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex);
       }
       Thread mobilogramCalc =
-          new Thread(new BuildSelectedRanges(mzTolerance.getToleranceRange(selectedMz.get()),
-              Set.of(cachedFrame), rawDataFile, scanSelection, this, rtWidth));
+          new Thread(new BuildSelectedRanges(selectedMz.get(),
+              Set.of(cachedFrame), rawDataFile, scanSelection, this, rtWidth,
+              selectedBinningMobilogramDataAccess));
       mobilogramCalc.start();
       ionTraceChart.setDataset(
           new IMSIonTraceHeatmapProvider(rawDataFile,
-              mzTolerance.getToleranceRange(selectedMz.get()),
-              rawDataFile.getDataRTRange(1), mobilityScanNoiseLevel));
+              selectedMz.get(), rawDataFile.getDataRTRange(1), mobilityScanNoiseLevel));
       updateValueMarkers();
     }));
   }
@@ -419,13 +436,16 @@ public class IMSRawDataOverviewPane extends BorderPane {
     if (selectedMz.getValue() != null) {
       summedSpectrumChart.getXYPlot().clearDomainMarkers();
       summedSpectrumChart.getXYPlot().addDomainMarker(
-          new ValueMarker(selectedMz.get(), markerColor, markerStroke), Layer.FOREGROUND);
+          new ValueMarker(RangeUtils.rangeCenter(selectedMz.get()), markerColor, markerStroke),
+          Layer.FOREGROUND);
       singleSpectrumChart.getXYPlot().clearDomainMarkers();
       singleSpectrumChart.getXYPlot().addDomainMarker(
-          new ValueMarker(selectedMz.get(), markerColor, markerStroke), Layer.FOREGROUND);
+          new ValueMarker(RangeUtils.rangeCenter(selectedMz.get()), markerColor, markerStroke),
+          Layer.FOREGROUND);
       heatmapChart.getXYPlot().clearDomainMarkers();
       heatmapChart.getXYPlot().addDomainMarker(
-          new ValueMarker(selectedMz.get(), markerColor, markerStroke), Layer.FOREGROUND);
+          new ValueMarker(RangeUtils.rangeCenter(selectedMz.get()), markerColor, markerStroke),
+          Layer.FOREGROUND);
     }
     if (selectedFrame.get() != null) {
       ticChart.getXYPlot().clearDomainMarkers();
@@ -454,6 +474,11 @@ public class IMSRawDataOverviewPane extends BorderPane {
       ticChart.getXYPlot().getDomainAxis().setRange(rawDataFile.getDataRTRange().lowerEndpoint(),
           rawDataFile.getDataRTRange().upperEndpoint());
     }
+  }
+
+  public void addRanges(List<Range<Double>> ranges) {
+    controlsPanel.addRanges(ranges);
+    updateTicPlot();
   }
 
   private void clearAllCharts() {
@@ -492,6 +517,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
       return;
     }
     this.rawDataFile = (IMSRawDataFile) rawDataFile;
+    rangesBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
+    selectedBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
     updateTicPlot();
     updateAxisLabels();
     setSelectedFrame(((IMSRawDataFile) rawDataFile).getFrames().stream().findFirst().get());
@@ -515,5 +542,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
   public void setRtWidth(Float rtWidth) {
     this.rtWidth = rtWidth;
+  }
+
+  public void setBinWidth(double binWidth) {
+    // check the bin width the pane was set to before, not the actual computed bin width.
+    if (Double.compare(binWidth, this.binWidth) != 0) {
+      this.binWidth = binWidth;
+      rangesBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
+      selectedBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
+    }
   }
 }

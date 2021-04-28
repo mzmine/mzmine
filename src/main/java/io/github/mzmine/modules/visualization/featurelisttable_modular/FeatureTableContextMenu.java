@@ -20,6 +20,7 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -38,8 +39,10 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
-import io.github.mzmine.modules.visualization.imsfeaturevisualizer.IMSFeatureVisualizerModule;
+import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
+import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMsMsTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -51,6 +54,7 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,6 +65,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.SwingUtilities;
 
@@ -222,9 +227,15 @@ public class FeatureTableContextMenu extends ContextMenu {
         .setOnAction(e -> ChromatogramVisualizerModule.visualizeFeatureListRows(selectedRows));
 
     final MenuItem showXICSetupItem = new ConditionalMenuItem("XIC (dialog)",
-        () -> !selectedRows.isEmpty() && selectedFeature != null);
+        () -> !selectedRows.isEmpty());
     showXICSetupItem.setOnAction(e -> ChromatogramVisualizerModule
-        .setUpVisualiserFromFeatures(selectedRows, selectedFeature.getRawDataFile()));
+        .setUpVisualiserFromFeatures(selectedRows, selectedFeature != null ? selectedFeature.getRawDataFile() : null));
+
+    final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
+        () -> !selectedRows.isEmpty() && selectedFeature != null && selectedFeature
+            .getRawDataFile() instanceof IMSRawDataFile);
+    showIMSFeatureItem.setOnAction(
+        e -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedFeature)));
 
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
         () -> selectedFeature != null);
@@ -241,14 +252,21 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
         "Plot using Intensity plot module",
-        () -> !selectedRows.isEmpty());
+        () -> !selectedRows.isEmpty() && selectedFeature != null);
     showIntensityPlotItem.setOnAction(e ->
         IntensityPlotModule.showIntensityPlot(MZmineCore.getProjectManager().getCurrentProject(),
             selectedFeature.getFeatureList(), selectedRows.toArray(new ModularFeatureListRow[0])));
 
-    final MenuItem showInIMSFeatureVisualizerItem = new ConditionalMenuItem(
-        "Visualize ion mobility features", () -> !selectedFeatures.isEmpty());
-    showInIMSFeatureVisualizerItem.setOnAction(e -> {
+    final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(
+        "Show m/z ranges in IMS raw data overview",
+        () -> selectedFeature != null && selectedFeature
+            .getRawDataFile() instanceof IMSRawDataFile && !selectedFeatures.isEmpty());
+    showInIMSRawDataOverviewItem.setOnAction(e -> IMSRawDataOverviewModule
+        .openIMSVisualizerTabWithFeatures(getFeaturesFromSelectedRaw(selectedFeatures)));
+
+    final MenuItem showInMobilityMzVisualizerItem = new ConditionalMenuItem(
+        "Plot mobility/CCS vs. m/z", () -> !selectedFeatures.isEmpty());
+    showInMobilityMzVisualizerItem.setOnAction(e -> {
       boolean useMobilograms = true;
       if (selectedFeatures.size() > 1000) {
         useMobilograms = MZmineCore.getDesktop()
@@ -257,19 +275,20 @@ public class FeatureTableContextMenu extends ContextMenu {
                     + "visualize points instead of mobilograms for features?", ButtonType.YES,
                 ButtonType.NO) == ButtonType.NO;
       }
-      IMSFeatureVisualizerModule.visualizeFeaturesInNewTab(selectedFeatures, useMobilograms);
+      IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedFeatures, useMobilograms);
     });
 
     final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
         () -> selectedFeature != null && selectedFeature.getRepresentativeScan() != null);
     showSpectrumItem.setOnAction(
-        e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRepresentativeScan()));
+        e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(),
+            selectedFeature.getRepresentativeScan(), selectedFeature));
 
     // TODO this should display selected features instead of rows. MultiMSMSWindow does not support that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
-        () -> allRowsHaveFragmentScans(selectedRows) /*&& selectedRows.size() > 1*/);
+        () -> getNumberOfRowsWithFragmentScans(selectedRows) >= 1 && selectedFeature != null);
     showMSMSItem.setOnAction(e -> {
-      if (selectedRows.size() > 1) {
+      if (getNumberOfRowsWithFragmentScans(selectedRows) > 1) {
         MultiMsMsTab multi = new MultiMsMsTab(selectedRows,
             table.getFeatureList().getRawDataFiles(), selectedRows.get(0).getRawDataFiles().get(0));
         MZmineCore.getDesktop().addTab(multi);
@@ -279,7 +298,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
-        () -> selectedRows.size() == 2 && allRowsHaveFragmentScans(selectedRows));
+        () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
     showMSMSMirrorItem.setOnAction(e -> {
       MirrorScanWindowFX mirrorScanTab = new MirrorScanWindowFX();
       mirrorScanTab.setScans(selectedRows.get(0).getBestFragmentation(),
@@ -308,8 +327,10 @@ public class FeatureTableContextMenu extends ContextMenu {
         /*!selectedRows.isEmpty()*/ false); // todo, not implemented yet
 
     showMenu.getItems()
-        .addAll(showXICItem, showXICSetupItem, new SeparatorMenuItem(), show2DItem, show3DItem,
-            showIntensityPlotItem, showInIMSFeatureVisualizerItem, new SeparatorMenuItem(),
+        .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, new SeparatorMenuItem(),
+            show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
+            showInMobilityMzVisualizerItem,
+            new SeparatorMenuItem(),
             showSpectrumItem, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
             new SeparatorMenuItem(), showPeakRowSummaryItem);
@@ -336,31 +357,39 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void updateItem(MenuItem item) {
-    if (item instanceof ConditionalMenuItem) {
-      ConditionalMenuItem conditionalMenuItem = (ConditionalMenuItem) item;
+    if (item instanceof ConditionalMenuItem conditionalMenuItem) {
       conditionalMenuItem.updateVisibility();
     }
-    if (item instanceof Menu) {
-      Menu menu = (Menu) item;
+    if (item instanceof Menu menu) {
       menu.getItems().forEach(this::updateItem);
     }
   }
 
-  private boolean allRowsHaveFragmentScans(Collection<ModularFeatureListRow> rows) {
+  private int getNumberOfRowsWithFragmentScans(Collection<ModularFeatureListRow> rows) {
     if (rows.isEmpty()) {
-      return false;
+      return 0;
     }
+    int numFragmentScans = 0;
     for (ModularFeatureListRow row : rows) {
-      if (row.getBestFragmentation() == null) {
-        return false;
+      if (row.getBestFragmentation() != null) {
+        numFragmentScans++;
       }
     }
-    return true;
+    return numFragmentScans;
   }
 
   private boolean rowHasSpectralDBMatchResults(ModularFeatureListRow row) {
     return row.getPeakIdentities().stream()
         .filter(pi -> pi instanceof SpectralDBFeatureIdentity)
-        .map(pi -> ((SpectralDBFeatureIdentity) pi)).collect(Collectors.toList()).size() > 0;
+        .map(pi -> ((SpectralDBFeatureIdentity) pi)).count() > 0;
+  }
+
+  @Nonnull
+  private List<ModularFeature> getFeaturesFromSelectedRaw(Collection<ModularFeature> features) {
+    if (selectedFeature == null || selectedFeature.getRawDataFile() == null) {
+      return Collections.emptyList();
+    }
+    final RawDataFile file = selectedFeature.getRawDataFile();
+    return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
   }
 }

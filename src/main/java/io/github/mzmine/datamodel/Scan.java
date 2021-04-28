@@ -68,7 +68,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   PolarityType getPolarity();
 
   /**
-   * @return Precursor charge or 0 if this is not MSn scan or charge is unknown
+   * @return Precursor charge, 0 if this is not MSn scan, -1 if charge is unknown
    */
   int getPrecursorCharge();
 

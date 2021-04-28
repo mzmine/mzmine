@@ -25,7 +25,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.modules.visualization.imsfeaturevisualizer.PlotType;
+import io.github.mzmine.modules.visualization.ims_mobilitymzplot.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -96,9 +96,9 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
     pointsLists.forEach(list -> regions.add(getShape(list)));
 
     ModularFeatureList newFeatureList = originalFeatureList
-        .createCopy(originalFeatureList.getName() + suffix, getMemoryMapStorage());
+        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage());
 
-    final double numberOfRows = (double) newFeatureList.getNumberOfRows();
+    final double numberOfRows = newFeatureList.getNumberOfRows();
     int processedFeatures = 0;
 
     for (FeatureListRow r : newFeatureList.getRows()) {

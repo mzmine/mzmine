@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.UserParameter;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -41,7 +42,6 @@ import javafx.collections.ObservableList;
  * </ul>
  *
  * @see UserParameter
- * @see ParameterValue
  * @see RawDataFile
  * @see FeatureList
  *
@@ -141,6 +141,13 @@ public interface MZmineProject {
   void setProjectParametersAndValues(
       Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues);
 
+  /**
+   * Feature list for name
+   * @param name the exact name of the feature list
+   * @return the last feature list with that name or null
+   */
+  @Nullable
+  FeatureList getFeatureList(String name);
 
   // void notifyObjectChanged(Object object, boolean structureChanged);
 

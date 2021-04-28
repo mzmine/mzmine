@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.text.DecimalFormat;
+import javax.annotation.Nonnull;
 
 public class JoinAlignerParameters extends SimpleParameterSet {
 
@@ -52,27 +53,27 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance =
       new OptionalParameter<>(new MobilityToleranceParameter("Mobility tolerance",
-          "If checked, mobility of features will be compared for alignment. This parameter then specifies the tolerance range for matching mobility values"));
+          "If checked, mobility of features will be compared for alignment. This parameter then specifies the tolerance range for matching mobility values"), false);
 
   public static final DoubleParameter mobilityWeight = new DoubleParameter("Mobility weight",
       "Score for perfectly matching mobility values. Only taken into account if \"Mobility tolerance\" is activated.",
       new DecimalFormat("0.000"), 1d);
 
   public static final BooleanParameter SameChargeRequired = new BooleanParameter(
-      "Require same charge state", "If checked, only rows having same charge state can be aligned");
+      "Require same charge state", "If checked, only rows having same charge state can be aligned", false);
 
   public static final BooleanParameter SameIDRequired = new BooleanParameter("Require same ID",
-      "If checked, only rows having same compound identities (or no identities) can be aligned");
+      "If checked, only rows having same compound identities (or no identities) can be aligned", false);
 
   public static final OptionalModuleParameter compareIsotopePattern =
       new OptionalModuleParameter("Compare isotope pattern",
           "If both peaks represent an isotope pattern, add isotope pattern score to match score",
-          new IsotopePatternScoreParameters());
+          new IsotopePatternScoreParameters(), false);
 
   public static final OptionalModuleParameter compareSpectraSimilarity =
       new OptionalModuleParameter("Compare spectra similarity",
           "Compare MS1 or MS2 spectra similarity",
-          new JoinAlignerSpectraSimilarityScoreParameters());
+          new JoinAlignerSpectraSimilarityScoreParameters(), false);
 
   public JoinAlignerParameters() {
     super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
@@ -81,6 +82,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
         compareSpectraSimilarity});
   }
 
+  @Nonnull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
-import java.util.LinkedHashSet;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -58,14 +58,14 @@ public interface IImage {
 
   void setIntensityRange(Range<Double> intensityRange);
 
-  LinkedHashSet<ImageDataPoint> getDataPoints();
+  List<ImageDataPoint> getDataPoints();
 
-  void setDataPoints(LinkedHashSet<ImageDataPoint> dataPoints);
+  void setDataPoints(List<ImageDataPoint> dataPoints);
 
   @Nonnull
-  LinkedHashSet<Scan> getScanNumbers();
+  List<Scan> getScanNumbers();
 
-  void setScanNumbers(LinkedHashSet<Scan> scanNumbers);
+  void setScanNumbers(List<Scan> scanNumbers);
 
   String getRepresentativeString();
 

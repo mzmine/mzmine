@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,47 +20,76 @@ package io.github.mzmine.modules.visualization.msms;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboFieldValue;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.ListDoubleParameter;
+import io.github.mzmine.parameters.parametertypes.ComboFieldParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-/**
- * MS/MS visualizer parameter set
- */
 public class MsMsParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
+  // Basic parameters
 
-  public static final RTRangeParameter retentionTimeRange = new RTRangeParameter();
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final MZRangeParameter mzRange = new MZRangeParameter();
+  public static final RTRangeParameter rtRange = new RTRangeParameter();
 
-  public static final ComboParameter<IntensityType> intensityType =
-      new ComboParameter<IntensityType>("Intensity",
-          "The intensity of the data points can calculated based on either\n- Total intensity of the MS/MS scan\n- Intensity of the precursor ion in the MS scan",
-          IntensityType.values());
+  public static final MZRangeParameter mzRange =
+      new MZRangeParameter("Product m/z", "Range of product m/z values");
 
-  public static final ComboParameter<NormalizationType> normalizationType =
-      new ComboParameter<NormalizationType>("Normalize by",
-          "The color of the data points can normalized based on either\n- All data points\n- Data points with a m/z within 10ppm.",
-          NormalizationType.values());
+  public static final ComboParameter<MsMsXYAxisType> xAxisType =
+      new ComboParameter<>("X axis", "X axis type", MsMsXYAxisType
+          .values(), MsMsXYAxisType.RETENTION_TIME);
 
-  public static final DoubleParameter minFeatureInt = new DoubleParameter("Min. MS/MS peak intensity",
-      "The minimum intensity of a single MS/MS ion which has to be present in the\nMS/MS spectrum for it to be included in the MS/MS visualizer.\nSet to 0 to show all.");
+  public static final ComboParameter<MsMsXYAxisType> yAxisType =
+      new ComboParameter<>("Y axis", "Y axis type", MsMsXYAxisType
+          .values(), MsMsXYAxisType.NEUTRAL_LOSS);
 
-  public static final FeatureThresholdParameter featureThresholdSettings = new FeatureThresholdParameter();
+  public static final ComboParameter<MsMsZAxisType> zAxisType =
+      new ComboParameter<>("Z axis", "Z axis type", MsMsZAxisType
+          .values(), MsMsZAxisType.PRECURSOR_INTENSITY);
 
-  /**
-   * Windows size and position
-   */
+  public static final IntegerParameter msLevel = new IntegerParameter("MS level",
+      "Scans MS level, must be greater than 1", 2, 2, 1000);
+
+  // Most intense fragments filtering
+
+  public static final OptionalParameter<ComboFieldParameter<IntensityFilteringType>> intensityFiltering
+      = new OptionalParameter<>(new ComboFieldParameter<>("Intensities filtering",
+      "Plot only ions with highest intensity values, see \"Help\" for detailed description of the options",
+      IntensityFilteringType.class, false,
+      new ComboFieldValue<>("95", IntensityFilteringType.BASE_PEAK_PERCENT)));
+
+  // Diagnostic fragmentation filtering
+
+  public static final ListDoubleParameter targetedMZ_List =
+      new ListDoubleParameter("Diagnostic product ions (m/z)",
+          "Scans not containing any ion with all input m/z values will not be plotted",
+          false, null);
+
+  public static final ListDoubleParameter targetedNF_List =
+      new ListDoubleParameter("Diagnostic neutral loss values (Da)",
+          "Scans not containing any ion with all input neutral loss values will not be plotted",
+          false, null);
+
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+
+  public static final OptionalModuleParameter dffParameters = new OptionalModuleParameter(
+      "Diagnostic fragmentation filtering", "See \"Help\" for detailed information",
+      new SimpleParameterSet(new Parameter[]{targetedMZ_List, targetedNF_List}));
+
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public MsMsParameters() {
-    super(new Parameter[] {dataFiles, retentionTimeRange, mzRange, intensityType, normalizationType,
-        minFeatureInt, featureThresholdSettings, windowSettings});
+    super(new Parameter[]{dataFiles, xAxisType, yAxisType, zAxisType, msLevel, rtRange,
+        mzRange, mzTolerance, intensityFiltering, dffParameters, windowSettings});
   }
 
 }

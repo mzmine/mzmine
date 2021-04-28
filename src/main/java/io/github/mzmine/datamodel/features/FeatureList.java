@@ -186,14 +186,14 @@ public interface FeatureList {
    *
    * @param rtRange Retention time range
    */
-  public ObservableList<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange);
+  public List<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange);
 
   /**
    * Returns all rows with average m/z within given range
    *
    * @param mzRange m/z range
    */
-  public ObservableList<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange);
+  public List<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange);
 
   /**
    * Returns all rows with average m/z and retention time within given range
@@ -201,7 +201,7 @@ public interface FeatureList {
    * @param rtRange Retention time range
    * @param mzRange m/z range
    */
-  public ObservableList<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
+  public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange);
 
   /**
@@ -210,7 +210,7 @@ public interface FeatureList {
    * @param file    Raw data file
    * @param rtRange Retention time range
    */
-  public ObservableList<Feature> getFeaturesInsideScanRange(RawDataFile file, Range<Float> rtRange);
+  public List<Feature> getFeaturesInsideScanRange(RawDataFile file, Range<Float> rtRange);
 
   /**
    * Returns all features in a given m/z range
@@ -218,7 +218,7 @@ public interface FeatureList {
    * @param file    Raw data file
    * @param mzRange m/z range
    */
-  public ObservableList<Feature> getFeaturesInsideMZRange(RawDataFile file, Range<Double> mzRange);
+  public List<Feature> getFeaturesInsideMZRange(RawDataFile file, Range<Double> mzRange);
 
   /**
    * Returns all features in a given m/z & retention time ranges
@@ -227,7 +227,7 @@ public interface FeatureList {
    * @param rtRange Retention time range
    * @param mzRange m/z range
    */
-  public ObservableList<Feature> getFeaturesInsideScanAndMZRange(RawDataFile file,
+  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile file,
       Range<Float> rtRange,
       Range<Double> mzRange);
 

@@ -286,7 +286,8 @@ public class SingleRowPredictionTask extends AbstractTask {
         isotopeScore, msmsScore, msmsAnnotations, searchedMass);
 
     // Add the new formula entry
-    resultWindowFX.addNewListItem(resultEntry);
+    // Need to execute in runLater because result window might not have been created due to earlier runLater.
+    MZmineCore.runLater(() -> resultWindowFX.addNewListItem(resultEntry));
 
     foundFormulas++;
 

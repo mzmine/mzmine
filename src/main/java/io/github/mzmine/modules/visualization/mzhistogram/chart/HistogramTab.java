@@ -422,7 +422,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featurelists) {
+      Collection<? extends FeatureList> featureLists) {
 
   }
 }

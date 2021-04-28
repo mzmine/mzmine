@@ -30,7 +30,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -59,7 +58,7 @@ public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implement
   private MassList massList = null;
   private final String scanDefinition;
 
-  public SimpleMergedMsMsSpectrum(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
+  public SimpleMergedMsMsSpectrum(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, double precursorMz,
       float collisionEnergy, int msLevel, @Nonnull List<? extends MassSpectrum> sourceSpectra,
       @Nonnull MergingType mergingType, @Nonnull CenterFunction centerFunction) {

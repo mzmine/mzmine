@@ -20,10 +20,12 @@ package io.github.mzmine.modules.io.import_bruker_tdf;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
@@ -36,6 +38,7 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMaldiFrame
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql.TDFPrecursorTable;
+import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -129,11 +132,16 @@ public class TDFImportTask extends AbstractTask {
       files = getDataFilesFromDir(fileNameToOpen.getParentFile());
     }
 
-    this.tdf = files[0];
-    this.tdfBin = files[0];
+    if (files == null || files.length != 2 || files[0] == null || files[1] == null) {
+      setErrorMessage("Could not find .tdf and .tdf_bin in " + fileNameToOpen.getAbsolutePath());
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
 
-    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead() || !tdfBin.exists()
-        || !tdfBin.canRead()) {
+    this.tdf = files[0];
+    this.tdfBin = files[1];
+
+    if (!tdf.exists() || !tdf.canRead() || !tdfBin.exists() || !tdfBin.canRead()) {
       setErrorMessage("Cannot open sql or bin files: " + tdf.getName() + "; " + tdfBin.getName());
       setStatus(TaskStatus.ERROR);
     }
@@ -143,12 +151,12 @@ public class TDFImportTask extends AbstractTask {
     precursorTable = new TDFPrecursorTable();
     pasefFrameMsMsInfoTable = new TDFPasefFrameMsMsInfoTable();
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
-    framePrecursorTable = new FramePrecursorTable(frameTable);
+    framePrecursorTable = new FramePrecursorTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     isMaldi = false;
 
     readMetadata();
-    /*if (isMaldi) {
+    if (isMaldi) {
       try {
         newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
             newMZmineFile.getMemoryMapStorage());
@@ -158,7 +166,7 @@ public class TDFImportTask extends AbstractTask {
         e.printStackTrace();
         return;
       }
-    }*/
+    }
 
     rawDataFileName = tdfBin.getParentFile().getName();
 
@@ -171,15 +179,13 @@ public class TDFImportTask extends AbstractTask {
     logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
     final long handle = TDFUtils.openFile(tdfBin);
     newMZmineFile.setName(rawDataFileName);
-
-    loadedFrames = 0;
-
-    if (handle == 0l) {
+    if (handle == 0L) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
       return;
     }
 
+    loadedFrames = 0;
     final int numFrames = frameTable.getFrameIdColumn().size();
 
     Date start = new Date();
@@ -198,8 +204,8 @@ public class TDFImportTask extends AbstractTask {
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
         SimpleFrame frame = TDFUtils
-            .exctractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
-                metaDataTable, frameTable, framePrecursorTable/*, maldiFrameInfoTable*/);
+            .extractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
+                metaDataTable, frameTable, framePrecursorTable, maldiFrameInfoTable);
         newMZmineFile.addScan(frame);
         frames.add(frame);
         loadedFrames++;
@@ -211,16 +217,9 @@ public class TDFImportTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    // if (!isMaldi) {
+
+    // extract mobility scans
     appendScansFromTimsSegment(handle, frameTable, frames);
-
-//    logger.info("num dp (import): " + TDFUtils.numDP);
-//    logger.info("num dp (stored): " + SimpleFrame.numDp);
-
-    // } else {
-    // appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
-    // metaDataTable, maldiFrameInfoTable);
-    // }
 
     // now assign MS/MS infos
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
@@ -292,7 +291,7 @@ public class TDFImportTask extends AbstractTask {
       } else {
         setDescription("MALDI info for " + tdf.getName());
         maldiFrameInfoTable.executeQuery(connection);
-        /*maldiFrameInfoTable.process();*/
+        maldiFrameInfoTable.process();
         // maldiFrameInfoTable.print();
       }
 
@@ -391,18 +390,10 @@ public class TDFImportTask extends AbstractTask {
       return null;
     }
 
-    File tdf = Arrays.stream(files).filter(c -> {
-      if (c.getAbsolutePath().endsWith(".tdf")) {
-        return true;
-      }
-      return false;
-    }).findAny().get();
-    File tdf_bin = Arrays.stream(files).filter(c -> {
-      if (c.getAbsolutePath().endsWith(".tdf_bin")) {
-        return true;
-      }
-      return false;
-    }).findAny().get();
+    File tdf = Arrays.stream(files).filter(c -> c.getAbsolutePath().endsWith(".tdf")).findAny()
+        .orElse(null);
+    File tdf_bin = Arrays.stream(files).filter(c -> c.getAbsolutePath().endsWith(".tdf_bin"))
+        .findAny().orElse(null);
 
     return new File[]{tdf, tdf_bin};
   }
