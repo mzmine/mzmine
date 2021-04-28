@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
@@ -351,8 +352,11 @@ public class SpectraMerging {
     final double merged[][] = calculatedMergedMzsAndIntensities(scans, 10, tolerance,
         MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
 
-    return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans, MergingType.SUMMED,
+    var scan = new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans, MergingType.SUMMED,
         DEFAULT_CENTER_FUNCTION);
+    scan.addMassList(new ScanPointerMassList(scan));
+
+    return scan;
   }
 
   public enum MergingType {
