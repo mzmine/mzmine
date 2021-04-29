@@ -63,12 +63,12 @@ public enum MZmineModuleCategory {
       case RAWDATAIMPORT, RAWDATAEXPORT, RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
       case EIC_DETECTION, FEATURELIST, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT -> MainCategory.FEATURE_DETECTION;
       case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> MainCategory.FEATURE_FILTERING;
-      case NORMALIZATION, IDENTIFICATION, DATAANALYSIS -> MainCategory.FEATURE_PROCESSING;
+      case NORMALIZATION, IDENTIFICATION, DATAANALYSIS,FEATURE_GROUPING, ION_IDENTITY_NETWORKS -> MainCategory.FEATURE_PROCESSING;
       case FEATURELISTEXPORT, FEATURELISTIMPORT -> MainCategory.FEATURE_IO;
       case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST -> MainCategory.VISUALIZATION;
       // no main category
       case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
-      default -> throw new IllegalArgumentException("Category " + this + " has no main category.");
+      // no default so that the compiler marks missing cases
     };
   }
 
