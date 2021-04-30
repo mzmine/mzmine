@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -31,16 +32,14 @@ public class SpectraIdentificationResultsModule implements MZmineModule {
 
   public static final String MODULE_NAME = "Local spectral database search results";
 
-  public static void showNewTab(ModularFeatureListRow row) {
+  public static void showNewTab(List<ModularFeatureListRow> rows) {
     List<SpectralDBFeatureIdentity> spectralID =
-        row.getPeakIdentities().stream()
-            .filter(pi -> pi instanceof SpectralDBFeatureIdentity)
-            .map(pi -> ((SpectralDBFeatureIdentity) pi)).collect(Collectors.toList());
+        rows.stream().flatMap(row -> row.getSpectralLibraryMatches().stream()).toList();
     if (!spectralID.isEmpty()) {
       SpectraIdentificationResultsWindowFX window = new SpectraIdentificationResultsWindowFX();
       window.addMatches(spectralID);
-      window.setTitle("Matched " + spectralID.size() + " compounds for feature list row"
-          + row.getID());
+      window.setTitle("Matched " + spectralID.size() + " compounds for feature list rows "
+          + rows.stream().map(row -> String.valueOf(row.getID())).collect(Collectors.joining(", ")));
       window.show();
     }
   }

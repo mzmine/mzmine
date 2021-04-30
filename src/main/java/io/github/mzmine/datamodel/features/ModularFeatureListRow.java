@@ -75,10 +75,10 @@ import javax.annotation.Nullable;
  * Map of all feature related data.
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *         <p>
- *         TODO: I think the RawFileType should also be in the map and not just accessible via the
- *         key set of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list
- *         creation in the chromatogram builder ~SteffenHeu
+ * <p>
+ * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
+ * of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list creation in the
+ * chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
@@ -278,7 +278,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-          + "row. Create feature with the correct feature list as an argument.");
+                                         + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -369,7 +369,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public boolean hasFeature(RawDataFile rawData) {
     return features.containsKey(rawData)
-        && features.get(rawData).getFeatureStatus() != FeatureStatus.UNKNOWN;
+           && features.get(rawData).getFeatureStatus() != FeatureStatus.UNKNOWN;
   }
 
   @Override
@@ -506,10 +506,22 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
   }
 
+
   @Override
   public void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
     // add column first if needed
     get(SpectralLibraryMatchType.class).get(SpectralLibMatchSummaryType.class).add(id);
+  }
+
+  @Override
+  @Nonnull
+  public List<SpectralDBFeatureIdentity> getSpectralLibraryMatches() {
+    ModularTypeProperty matchProperty = get(SpectralLibraryMatchType.class);
+    if (matchProperty != null) {
+      return matchProperty.get(SpectralLibMatchSummaryType.class).getValue();
+    } else {
+      return FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
+    }
   }
 
   @Override

@@ -19,11 +19,12 @@
 package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.List;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -131,7 +132,7 @@ public interface FeatureListRow {
   /**
    * Add a new identity candidate (result of identification method)
    *
-   * @param identity New feature identity
+   * @param identity  New feature identity
    * @param preffered boolean value to define this identity as preferred identity
    */
   public void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
@@ -166,7 +167,7 @@ public interface FeatureListRow {
 
   /**
    * Adds a new FeatureInformation object.
-   *
+   * <p>
    * FeatureInformation is used to keep extra information about features in the form of a map
    * <propertyName, propertyValue>
    *
@@ -225,5 +226,13 @@ public interface FeatureListRow {
   default void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
     addFeatureIdentity(id, false);
   }
+
+  /**
+   * List of library matches sorted from best (index 0) to last match
+   *
+   * @return list of library matches or an empty list
+   */
+  @Nonnull
+  List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
 
 }

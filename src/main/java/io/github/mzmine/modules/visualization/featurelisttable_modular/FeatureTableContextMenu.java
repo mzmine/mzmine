@@ -52,7 +52,6 @@ import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -319,9 +318,9 @@ public class FeatureTableContextMenu extends ContextMenu {
             selectedFeature.getRepresentativeScan(), selectedFeature.getIsotopePattern()));
 
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
-        () -> !selectedRows.isEmpty() && rowHasSpectralDBMatchResults(selectedRows.get(0)));
+        () -> !selectedRows.isEmpty() && rowHasSpectralLibraryMatches(selectedRows));
     showSpectralDBResults
-        .setOnAction(e -> SpectraIdentificationResultsModule.showNewTab(selectedRows.get(0)));
+        .setOnAction(e -> SpectraIdentificationResultsModule.showNewTab(selectedRows));
 
     final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
         /*!selectedRows.isEmpty()*/ false); // todo, not implemented yet
@@ -378,10 +377,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     return numFragmentScans;
   }
 
-  private boolean rowHasSpectralDBMatchResults(ModularFeatureListRow row) {
-    return row.getPeakIdentities().stream()
-        .filter(pi -> pi instanceof SpectralDBFeatureIdentity)
-        .map(pi -> ((SpectralDBFeatureIdentity) pi)).count() > 0;
+  private boolean rowHasSpectralLibraryMatches(List<ModularFeatureListRow> rows) {
+    for(ModularFeatureListRow row : rows) {
+      if(!row.getSpectralLibraryMatches().isEmpty()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Nonnull
