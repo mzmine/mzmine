@@ -42,7 +42,7 @@ jobs:
     - name: Execution permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew
       
     - name: Upload builds
       if: matrix.os == 'windows-latest'
@@ -69,7 +69,7 @@ jobs:
         retention-days: 7  # store for 7 days
        
        
-    - name: Update Automatic Release
+    - name: Update Automatic Release Ubuntu
       if: matrix.os == 'ubuntu-latest'
       uses: marvinpinto/action-automatic-releases@latest
       with:
@@ -78,6 +78,28 @@ jobs:
         prerelease: true
         title: "Ubuntu Development Build"
         files: build/jpackage/*.deb
+
+
+    - name: Update Automatic Release Window
+      if: matrix.os == 'windows-latest'
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN}}"
+        automatic_release_tag: "Windows-latest"
+        prerelease: true
+        title: "Windows Development Build"
+        files: build/jpackage/
+
+
+    - name: Update Automatic Release MacOS
+      if: matrix.os == 'macos-latest'
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN}}"
+        automatic_release_tag: "MacOS-latest"
+        prerelease: true
+        title: "MacOS Development Build"
+        files: build/jpackage/MZmine.app
 
 # clean cache important but DOES NOT WORK on windows - -f not allowed 
 
