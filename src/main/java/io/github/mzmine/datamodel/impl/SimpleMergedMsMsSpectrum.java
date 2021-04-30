@@ -31,7 +31,9 @@ import javax.annotation.Nullable;
 
 /**
  * Represents a merged spectrum from scans of the same raw data file. If a merged spectrum across
- * multiple raw data files is needed, implementations have to check for compatibility.
+ * multiple raw data files is needed, implementations have to check for compatibility. {@link
+ * SimpleMergedMsMsSpectrum#getScanNumber()} will return -1 to represent the artificial state of
+ * this spectrum.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -43,7 +45,6 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
   protected final float collisionEnergy;
   protected final double precursorMz;
   protected final int precursorCharge;
-
 
   public SimpleMergedMsMsSpectrum(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
       @Nonnull double[] intensityValues, double precursorMz, int precursorCharge,

@@ -35,6 +35,11 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Represents a spectrum based on multiple individual mass spectra. Compatible with the {@link Scan}
+ * interface. {@link SimpleMergedMassSpectrum#getScanNumber()} will return -1 to represent
+ * the artificial state of this spectrum.
+ */
 public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implements
     MergedMassSpectrum {
 
@@ -116,11 +121,6 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   @Override
   public RawDataFile getDataFile() {
     return rawDataFile;
-  }
-
-  @Override
-  public int getScanNumber() {
-    return -1;
   }
 
   @Nonnull

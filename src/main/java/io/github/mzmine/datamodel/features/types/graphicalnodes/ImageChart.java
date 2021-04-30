@@ -33,7 +33,6 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
@@ -106,13 +105,7 @@ public class ImageChart extends StackPane {
       getChildren().add(chart);
     }));
 
-    Platform.runLater(() -> getChildren().add(view));
-
-    /*Platform.runLater(() -> {
-      getChildren().add(chart);
-      chart.setDataset(ds);
-    });*/
-
+    MZmineCore.runLater(() -> getChildren().add(view));
   }
 
 }

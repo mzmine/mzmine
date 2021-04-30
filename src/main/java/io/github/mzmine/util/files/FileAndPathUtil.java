@@ -450,7 +450,7 @@ public class FileAndPathUtil {
           noExtension.getAbsolutePath() + "(" + i + ")." + extension);
       if(i > 50) {
         Random r = new Random(System.currentTimeMillis());
-        i = r.nextInt();
+        i = r.ints().filter(number -> number > 50).findFirst().orElse(0);
       }
     }
     return uniqueFile;

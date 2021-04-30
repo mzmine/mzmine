@@ -38,4 +38,14 @@ public interface MergedMassSpectrum extends Scan {
    * @return The center function used to create this merged spectrum.
    */
   CenterFunction getCenterFunction();
+
+
+  /**
+   *
+   * @return -1 to represent the artificial state of this spectrum.
+   */
+  @Override
+  default int getScanNumber() {
+    return -1;
+  }
 }

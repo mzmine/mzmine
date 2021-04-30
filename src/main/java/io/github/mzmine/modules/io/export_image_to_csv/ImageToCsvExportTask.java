@@ -20,7 +20,6 @@ package io.github.mzmine.modules.io.export_image_to_csv;
 
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -43,6 +42,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Exports imaging data from a {@link io.github.mzmine.datamodel.featuredata.IonTimeSeries<ImagingScan>}
+ * to a csv file in a matrix format. Column indices represent the x-axis, row indices represent the
+ * y-axis. The value matrix represents the intensity at the given spot.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class ImageToCsvExportTask extends AbstractTask {
 
   private static Logger logger = Logger.getLogger(ImageToCsvExportTask.class.getName());
@@ -87,10 +93,10 @@ public class ImageToCsvExportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     logger.fine(() -> "Determining maximum export dimensions...");
-    final List<ImagingRawDataFile> distinctFiles =
-        (List<ImagingRawDataFile>) (List<? extends RawDataFile>) features
-            .stream().map(ModularFeature::getRawDataFile).distinct()
-            .filter(file -> file instanceof ImagingRawDataFile).toList();
+    final List<ImagingRawDataFile> distinctFiles = features
+        .stream().map(ModularFeature::getRawDataFile).distinct()
+        .filter(file -> file instanceof ImagingRawDataFile).map(file -> (ImagingRawDataFile) file)
+        .toList();
 
     // create a buffer with maximum dimensions
     final int absMaxX = distinctFiles.stream()
@@ -99,10 +105,7 @@ public class ImageToCsvExportTask extends AbstractTask {
         .mapToInt(file -> file.getImagingParam().getMaxNumberOfPixelY()).max().orElse(0) + 1;
 
     // invert x and y so we can easily loop while saving
-    final double[][] dataMatrix = new double[absMaxY][];
-    for (int i = 0; i < dataMatrix.length; i++) {
-      dataMatrix[i] = new double[absMaxX];
-    }
+    final double[][] dataMatrix = new double[absMaxY][absMaxX];
 
     for (ModularFeature f : features) {
       if (isCanceled()) {
@@ -131,7 +134,7 @@ public class ImageToCsvExportTask extends AbstractTask {
             .getIntensity(i);
       }
 
-      if(!writeImageToCsv(dataMatrix, f, dir)) {
+      if (!writeImageToCsv(dataMatrix, f, dir)) {
         return;
       }
       processed++;
@@ -151,7 +154,7 @@ public class ImageToCsvExportTask extends AbstractTask {
 
     String newFilename =
         f.getRawDataFile().getName() + "_mz-" + mzFormat.format(f.getMZ());
-    if(f.getMobility() != null && Float.compare(f.getMobility(), 0f) != 0) {
+    if (f.getMobility() != null && Float.compare(f.getMobility(), 0f) != 0) {
       newFilename += "_mobility-" + mobilityFormat.format(f.getMobility());
     }
     newFilename += "_" + getImageParamString((ImagingRawDataFile) f.getRawDataFile());
@@ -163,15 +166,17 @@ public class ImageToCsvExportTask extends AbstractTask {
     try (BufferedWriter writer = Files
         .newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
 
-      for(int y = 0; y < dataMatrix.length; y++) {
+      for (int y = 0; y < dataMatrix.length; y++) {
         StringBuilder b = new StringBuilder();
         for (int x = 0; x < dataMatrix[y].length; x++) {
-          if(Double.compare(dataMatrix[y][x], 0d) != 0) {
+          if (Double.compare(dataMatrix[y][x], 0d) != 0) {
             b.append(dataMatrix[y][x]);
           }
-          b.append(", ");
+          if(x < dataMatrix[y].length) {
+            b.append(sep);
+          }
         }
-        writer.append(b.substring(0, b.length() - 2));
+        writer.append(b.toString());
         writer.newLine();
       }
 
@@ -186,11 +191,11 @@ public class ImageToCsvExportTask extends AbstractTask {
 
   public static String getImageParamString(ImagingRawDataFile file) {
     StringBuilder b = new StringBuilder();
-    b.append((int)file.getImagingParam().getLateralWidth());
+    b.append((int) file.getImagingParam().getLateralWidth());
     b.append("um(");
     b.append(file.getImagingParam().getMaxNumberOfPixelX());
     b.append("px) x ");
-    b.append((int)file.getImagingParam().getLateralHeight());
+    b.append((int) file.getImagingParam().getLateralHeight());
     b.append("um(");
     b.append(file.getImagingParam().getMaxNumberOfPixelY());
     b.append("px)");
