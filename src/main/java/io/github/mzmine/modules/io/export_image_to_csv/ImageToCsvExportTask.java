@@ -172,7 +172,7 @@ public class ImageToCsvExportTask extends AbstractTask {
           if (Double.compare(dataMatrix[y][x], 0d) != 0) {
             b.append(dataMatrix[y][x]);
           }
-          if(x < dataMatrix[y].length) {
+          if(x < dataMatrix[y].length-1) {
             b.append(sep);
           }
         }
