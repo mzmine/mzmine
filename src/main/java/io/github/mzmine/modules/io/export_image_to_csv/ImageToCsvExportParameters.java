@@ -16,36 +16,22 @@
  *  USA
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.modules.io.export_image_to_csv;
 
-import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.scans.SpectraMerging.MergingType;
-import java.util.List;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 
-public interface MergedMassSpectrum extends Scan {
+public class ImageToCsvExportParameters extends SimpleParameterSet {
 
-  /**
-   * @return A list of spectra used to create this merged spectrum
-   */
-  List<MassSpectrum> getSourceSpectra();
+  public static final DirectoryParameter dir = new DirectoryParameter("Export directory",
+      "The directory to save the files in.");
 
-  /**
-   * @return The merging type this spectrum is based on.
-   */
-  MergingType getMergingType();
+  public static final StringParameter delimiter = new StringParameter("Delimiter",
+      "The delimiter.", ",");
 
-  /**
-   * @return The center function used to create this merged spectrum.
-   */
-  CenterFunction getCenterFunction();
-
-
-  /**
-   *
-   * @return -1 to represent the artificial state of this spectrum.
-   */
-  @Override
-  default int getScanNumber() {
-    return -1;
+  public ImageToCsvExportParameters() {
+    super(new Parameter[]{dir, delimiter});
   }
 }

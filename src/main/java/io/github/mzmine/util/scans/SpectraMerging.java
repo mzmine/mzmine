@@ -26,13 +26,19 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -55,21 +61,34 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Utility methods to merge multiple spectra. Data points are sorted by intensity and grouped,
+ * similar to ADAP chromatogram building {@link io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask}.
+ * Merging of data points from the same spectrum is prevented by indexing the data points prior to
+ * sorting.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class SpectraMerging {
 
   public static final double EPSILON = 1E-15;
+
+  public static final CenterMeasure DEFAULT_CENTER_MEASURE = CenterMeasure.AVG;
+  public static final Weighting DEFAULT_WEIGHTING = Weighting.LINEAR;
+  public static final CenterFunction DEFAULT_CENTER_FUNCTION = new CenterFunction(
+      DEFAULT_CENTER_MEASURE, DEFAULT_WEIGHTING);
 
   private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Intensity,
       SortingDirection.Descending);
 
   /**
-   * @param source
-   * @param noiseLevel
-   * @param tolerance
-   * @param mergingType
-   * @param mzCenterFunction
-   * @param <T>
-   * @return double[2][] array, [0][] being the mzs, [1] being the intensities.
+   * @param source           The source spectra.
+   * @param noiseLevel       An additional noise level.
+   * @param tolerance        The mz tolerance.  Merging of data points from the same spectrum is
+   *                         prevented by indexing the data points prior to sorting.
+   * @param mergingType      the method intensity values shall be calculated.
+   * @param mzCenterFunction Method to center the data point's m/z values.
+   * @return double[2][] array, [0][] being the mzs, [1][] being the intensities.
    */
   public static <T extends MassSpectrum> double[][] calculatedMergedMzsAndIntensities(
       Collection<T> source, double noiseLevel, MZTolerance tolerance, MergingType mergingType,
@@ -226,6 +245,7 @@ public class SpectraMerging {
 
   /**
    * Creates a merged MS/MS spectrum for a PASEF {@link ImsMsMsInfo}.
+   *
    * @return A {@link MergedMsMsSpectrum}.
    */
   public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@Nonnull final ImsMsMsInfo info,
@@ -264,8 +284,8 @@ public class SpectraMerging {
         mergingType, cf);
 
     MergedMsMsSpectrum mergedSpectrum = new SimpleMergedMsMsSpectrum(storage, merged[0],
-        merged[1], precursorMz, collisionEnergy, frame.getMSLevel(), mobilityScans,
-        mergingType, cf);
+        merged[1], precursorMz, info.getPrecursorCharge(), collisionEnergy, frame.getMSLevel(),
+        mobilityScans, mergingType, cf);
 
     MassList newMl = new SimpleMassList(storage, merged[0], merged[1]);
     mergedSpectrum.addMassList(newMl);
@@ -303,12 +323,40 @@ public class SpectraMerging {
 
       final MergedMsMsSpectrum mergedMsMsSpectrum = new SimpleMergedMsMsSpectrum(storage,
           mzIntensities[0], mzIntensities[1],
-          spectrum.getPrecursorMZ(), spectrum.getCollisionEnergy(), spectrum.getMSLevel(),
-          sourceSpectra, mergingType, cf);
+          spectrum.getPrecursorMZ(), spectrum.getPrecursorCharge(), spectrum.getCollisionEnergy(),
+          spectrum.getMSLevel(), sourceSpectra, mergingType, cf);
       mergedSpectra.add(mergedMsMsSpectrum);
     }
 
     return mergedSpectra;
+  }
+
+  public static MergedMassSpectrum extractSummedMobilityScan(@Nonnull final ModularFeature f,
+      @Nonnull final MZTolerance tolerance, @Nonnull final Range<Float> mobilityRange,
+      @Nullable final MemoryMapStorage storage) {
+    final MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(f);
+
+    if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
+      return null;
+    }
+
+    final List<MobilityScan> scans = series.getMobilograms().stream()
+        .<MobilityScan>mapMulti((s, c) -> {
+          for (var spectrum : s.getSpectra()) {
+            if (mobilityRange.contains((float) spectrum.getMobility())) {
+              c.accept(spectrum);
+            }
+          }
+        }).toList();
+
+    final double merged[][] = calculatedMergedMzsAndIntensities(scans, 10, tolerance,
+        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
+
+    var scan = new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans, MergingType.SUMMED,
+        DEFAULT_CENTER_FUNCTION);
+    scan.addMassList(new ScanPointerMassList(scan));
+
+    return scan;
   }
 
   public enum MergingType {
