@@ -27,11 +27,12 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXModule;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
@@ -60,30 +61,43 @@ public class ImageChart extends StackPane {
     chart.setRangeAxisLabel("µm");
     chart.setDomainAxisLabel("µm");
     ImagingRawDataFile imagingFile = (ImagingRawDataFile) f.getRawDataFile();
+
+    final boolean hideAxes = MZmineCore.getConfiguration()
+        .getModuleParameters(FeatureTableFXModule.class).getParameter(
+            FeatureTableFXParameters.hideImageAxes).getValue();
+
     NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
     chart.setDataset(ds);
     axis.setInverted(true);
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeIncludesZero(false);
     axis.setRange(new Range(0, imagingFile.getImagingParam().getLateralHeight()));
+    axis.setVisible(!hideAxes);
 
     axis = (NumberAxis) chart.getXYPlot().getDomainAxis();
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeIncludesZero(false);
     chart.getXYPlot().setDomainAxisLocation(AxisLocation.TOP_OR_RIGHT);
     axis.setRange(new Range(0, imagingFile.getImagingParam().getLateralWidth()));
+    axis.setVisible(!hideAxes);
 
-    setPrefHeight(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
-    setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+    final boolean lockOnAspectRatio = MZmineCore.getConfiguration()
+        .getModuleParameters(FeatureTableFXModule.class).getParameter(
+            FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
+    ImagingParameters param = imagingFile.getImagingParam();
+
+    final double width = lockOnAspectRatio ?
+        Math.min(
+            GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT / (float) param.getMaxNumberOfPixelY()
+                * param.getMaxNumberOfPixelX(), GraphicalColumType.MAXIMUM_GRAPHICAL_CELL_WIDTH)
+        : GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
+    final double height = GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT;
+
+    setPrefHeight(height);
+    setPrefWidth(width);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
-    chart.getXYPlot().getDomainAxis()
-        .setRange(RangeUtils.googleToJFree(ds.getDomainValueRange()), false, true);
-    chart.getXYPlot().getRangeAxis()
-        .setRange(RangeUtils.googleToJFree(ds.getRangeValueRange()), false, true);
-    BufferedImage img = chart.getChart()
-        .createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
-            GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+    BufferedImage img = chart.getChart().createBufferedImage((int) width, (int) height);
 
     ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
     view.setOnMouseClicked(e -> MZmineCore.runLater(() -> {
@@ -91,13 +105,7 @@ public class ImageChart extends StackPane {
       getChildren().add(chart);
     }));
 
-    Platform.runLater(() -> getChildren().add(view));
-
-    /*Platform.runLater(() -> {
-      getChildren().add(chart);
-      chart.setDataset(ds);
-    });*/
-
+    MZmineCore.runLater(() -> getChildren().add(view));
   }
 
 }

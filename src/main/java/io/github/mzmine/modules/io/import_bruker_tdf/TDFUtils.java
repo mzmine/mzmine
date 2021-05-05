@@ -343,8 +343,8 @@ public class TDFUtils {
           0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
           MobilityType.TIMS, null);
       Coordinates coords = new Coordinates(
-          maldiFrameInfoTable.getTransformedXIndexPos((int) (frameId - 1)),
-          maldiFrameInfoTable.getTransformedYIndexPos((int) (frameId - 1)), 0);
+          maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
+          maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
       ((SimpleImagingFrame) frame).setCoordinates(coords);
     }
 

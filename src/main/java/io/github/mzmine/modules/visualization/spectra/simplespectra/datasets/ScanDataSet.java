@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Hashtable;
 import java.util.Map;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Spectra visualizer data set for scan data points
@@ -157,7 +157,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   }
 
   public void addAnnotation(Map<Integer, String> annotation) {
-    this.annotation.putAll(annotation);;
+    this.annotation.putAll(annotation);
   }
 
   public String getAnnotation(int item) {

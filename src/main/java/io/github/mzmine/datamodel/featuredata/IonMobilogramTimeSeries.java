@@ -49,6 +49,17 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
     return getMobilograms().get(index);
   }
 
+  /**
+   * @param frame The frame
+   * @return The {@link IonMobilitySeries} for the given frame, null if there is no series for the
+   * given frame.
+   */
+  @Nullable
+  default IonMobilitySeries getMobilogram(@Nullable final Frame frame) {
+    final int index = getSpectra().indexOf(frame);
+    return index != -1 ? getMobilogram(index) : null;
+  }
+
   SummedIntensityMobilitySeries getSummedMobilogram();
 
   /**

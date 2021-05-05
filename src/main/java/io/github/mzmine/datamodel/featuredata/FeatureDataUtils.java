@@ -35,18 +35,38 @@ import io.github.mzmine.util.maths.Weighting;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Used to uniformly calculate feature describing values by the series stored in {@link
+ * ModularFeature#getFeatureData()} (and it's super/extending classes).
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class FeatureDataUtils {
 
   private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
 
+  /**
+   * The Rt range of the series.
+   *
+   * @param series The series, sorted ascending.
+   * @return The RT range or null, if there are no scans in the series.
+   */
+  @Nullable
   public static Range<Float> getRtRange(IonTimeSeries<? extends Scan> series) {
     final List<? extends Scan> scans = series.getSpectra();
-    return Range
+    return scans.isEmpty() ? null : Range
         .closed(scans.get(0).getRetentionTime(), scans.get(scans.size() - 1).getRetentionTime());
   }
 
+  /**
+   * @param series The m/z series
+   * @return m/z range of the given series. For {@link IonMobilogramTimeSeries}, the underlying
+   * {@link IonMobilitySeries} are investigated. Null if no range can be specified.
+   */
+  @Nullable
   public static Range<Double> getMzRange(MzSeries series) {
     double min = Double.MAX_VALUE;
     double max = Double.MIN_VALUE;
@@ -65,6 +85,10 @@ public class FeatureDataUtils {
         }
       }
     } else {
+      if (series.getNumberOfValues() == 1) {
+        return Range.singleton(series.getMZ(0));
+      }
+
       for (int i = 0; i < series.getNumberOfValues(); i++) {
         final double mz = series.getMZ(i);
         // we add flanking 0 intesities with 0d mz during building, don't count those
@@ -76,12 +100,20 @@ public class FeatureDataUtils {
         }
       }
     }
-    return Range.closed(min, max);
+    return min < max ? Range.closed(min, max) : null;
   }
 
+  /**
+   * @param series The intensity series.
+   * @return The intensity range of the series. Null if no range can be specified.
+   */
   public static Range<Float> getIntensityRange(IntensitySeries series) {
     double min = Double.MAX_VALUE;
     double max = Double.MIN_VALUE;
+
+    if (series.getNumberOfValues() == 1) {
+      return Range.singleton((float) series.getIntensity(0));
+    }
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
       final double intensity = series.getIntensity(i);
@@ -93,28 +125,28 @@ public class FeatureDataUtils {
         max = intensity;
       }
     }
-    return Range.closed((float) min, (float) max);
+    return min < max ? Range.closed((float) min, (float) max) : null;
   }
 
-  public static Range<Float> getMobilityRange(MobilitySeries series) {
-    double min = Double.MAX_VALUE;
-    double max = Double.MIN_VALUE;
-
-    for (int i = 0; i < series.getNumberOfValues(); i++) {
-      final double mz = series.getMobility(i);
-      if (mz < min) {
-        min = mz;
-      }
-      if (mz > max) {
-        max = mz;
-      }
-    }
-    return Range.closed((float) min, (float) max);
-  }
-
+  /**
+   * @param series The series. Ascending or descending mobility.
+   * @return The mobility range. Null if no range can be specified.
+   */
   @Nullable
-  public static MassSpectrum getMostIntenseSpectrum(
-      IonSpectrumSeries<? extends MassSpectrum> series) {
+  public static Range<Float> getMobilityRange(MobilitySeries series) {
+    if (series.getNumberOfValues() == 0) {
+      return null;
+    }
+    return Range.singleton((float) series.getMobility(0))
+        .span(Range.singleton((float) series.getMobility(series.getNumberOfValues() - 1)));
+  }
+
+  /**
+   * @param series The series.
+   * @return The index of the highest intensity. May be -1 if no intensity could be found (-> series
+   * empty).
+   */
+  public static int getMostIntenseIndex(IntensitySeries series) {
     int maxIndex = -1;
     double maxIntensity = Double.MIN_VALUE;
 
@@ -125,14 +157,32 @@ public class FeatureDataUtils {
         maxIntensity = intensity;
       }
     }
+    return maxIndex;
+  }
+
+  /**
+   * @return The most intense spectrum in the series or null.
+   */
+  @Nullable
+  public static MassSpectrum getMostIntenseSpectrum(
+      IonSpectrumSeries<? extends MassSpectrum> series) {
+    final int maxIndex = getMostIntenseIndex(series);
     return maxIndex != -1 ? series.getSpectrum(maxIndex) : null;
   }
 
+  /**
+   * @return The most intense scan in the series or null.
+   */
   @Nullable
   public static Scan getMostIntenseScan(IonTimeSeries<? extends Scan> series) {
     return (Scan) getMostIntenseSpectrum(series);
   }
 
+  /**
+   * @param series The series.
+   * @return The area of the given series in retention time dimension (= for {@link
+   * IonMobilogramTimeSeries}, the intensities in one frame are summed.).
+   */
   public static float calculateArea(IonTimeSeries<? extends Scan> series) {
     if (series.getNumberOfValues() <= 1) {
       return 0f;
@@ -152,60 +202,86 @@ public class FeatureDataUtils {
     return area;
   }
 
-  public static double calculateMz(IonSeries series, CenterMeasure cm) {
+  /**
+   * Calculates the m/z of the given series.
+   *
+   * @param series The series.
+   * @param cm     The center measure ({{@link CenterMeasure#AVG} default}
+   * @return The m/z value
+   */
+  public static double calculateMz(@Nonnull final IonSeries series,
+      @Nonnull final CenterMeasure cm) {
     CenterFunction cf = new CenterFunction(cm, Weighting.LINEAR);
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
     return cf.calcCenter(data[0], data[1]);
   }
 
-  public static void recalculateIonSeriesDependingTypes(ModularFeature feature) {
+  /**
+   * Calculates the all feature for the given feature.
+   *
+   * @param feature The feature.
+   */
+  public static void recalculateIonSeriesDependingTypes(@Nonnull final ModularFeature feature) {
     recalculateIonSeriesDependingTypes(feature, CenterMeasure.AVG);
   }
 
-  public static void recalculateIonSeriesDependingTypes(ModularFeature feature, CenterMeasure cm) {
-    IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
-    Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
-    Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
-    Range<Float> rtRange = FeatureDataUtils.getRtRange(featureData);
-    Scan mostIntenseSpectrum = FeatureDataUtils.getMostIntenseScan(featureData);
-    float area = FeatureDataUtils.calculateArea(featureData);
+  /**
+   * @param feature The feature
+   * @param cm      Center measure for m/z calculation. Defualt = {@link CenterMeasure#AVG}
+   */
+  public static void recalculateIonSeriesDependingTypes(@Nonnull final ModularFeature feature,
+      @Nonnull final CenterMeasure cm) {
+    final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+    final Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
+    final Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
+    final Range<Float> rtRange = FeatureDataUtils.getRtRange(featureData);
+    final Scan mostIntenseSpectrum = FeatureDataUtils.getMostIntenseScan(featureData);
+    final float area = FeatureDataUtils.calculateArea(featureData);
 
     feature.set(AreaType.class, area);
     feature.set(MZRangeType.class, mzRange);
     feature.set(RTRangeType.class, rtRange);
     feature.set(IntensityRangeType.class, intensityRange);
     feature.setRepresentativeScan(mostIntenseSpectrum);
-    feature.setHeight(intensityRange.upperEndpoint());
-    feature.setRT(mostIntenseSpectrum.getRetentionTime());
+    feature.setHeight(intensityRange != null ? intensityRange.upperEndpoint() : 0f);
+    feature.setRT(mostIntenseSpectrum != null ? mostIntenseSpectrum.getRetentionTime() : Float.NaN);
     feature.setMZ(calculateMz(featureData, cm));
 
     if (featureData instanceof IonMobilogramTimeSeries) {
-      SummedIntensityMobilitySeries summedMobilogram = ((IonMobilogramTimeSeries) featureData)
+      final SummedIntensityMobilitySeries summedMobilogram = ((IonMobilogramTimeSeries) featureData)
           .getSummedMobilogram();
-      Range<Float> mobilityRange = getMobilityRange(summedMobilogram);
-      feature.setMobilityRange(mobilityRange);
-
-      int mostIntenseMobilityScanIndex = -1;
-      double intensity = Double.MIN_VALUE;
-      for (int i = 0; i < summedMobilogram.getNumberOfValues(); i++) {
-        double currentIntensity = summedMobilogram.getIntensity(i);
-        if (currentIntensity > intensity) {
-          intensity = currentIntensity;
-          mostIntenseMobilityScanIndex = i;
-        }
-      }
-      if (Double.compare(intensity, Double.MIN_VALUE) == 0) {
-        logger.info(() -> "Mobility cannot be specified for: " + summedMobilogram.print());
-        feature.setMobility(Float.NaN);
-      } else {
-        feature.setMobility((float) summedMobilogram.getMobility(mostIntenseMobilityScanIndex));
-      }
+      feature.setMobilityRange(getMobilityRange(summedMobilogram));
+      feature.setMobility(calculateMobility(summedMobilogram));
     }
     // todo recalc quality parameters
   }
 
-  public static double getSmallestMzDelta(MzSeries series) {
+  /**
+   * @param series the series
+   * @param <T> Any series extending {@link IntensitySeries} and {@link MobilitySeries}.
+   * @return The mobility value (highest intensity).
+   */
+  public static <T extends IntensitySeries & MobilitySeries> float calculateMobility(T series) {
+    int mostIntenseMobilityScanIndex = -1;
+    double intensity = Double.NEGATIVE_INFINITY;
+    for (int i = 0; i < series.getNumberOfValues(); i++) {
+      double currentIntensity = series.getIntensity(i);
+      if (currentIntensity > intensity) {
+        intensity = currentIntensity;
+        mostIntenseMobilityScanIndex = i;
+      }
+    }
+
+    if (Double.compare(intensity, Double.MIN_VALUE) == 0) {
+      logger.info(() -> "Mobility cannot be specified for: " + series);
+      return Float.NaN;
+    } else {
+      return (float) series.getMobility(mostIntenseMobilityScanIndex);
+    }
+  }
+
+  public static double getSmallestMzDelta(@Nonnull final MzSeries series) {
     double smallestDelta = Double.POSITIVE_INFINITY;
 
     if (series instanceof IonMobilogramTimeSeries ims) {
@@ -213,10 +289,10 @@ public class FeatureDataUtils {
           .max().orElse(0);
 
       double[] mzBuffer = new double[maxValues];
-      for(IonMobilitySeries mobilogram : ims.getMobilograms()) {
+      for (IonMobilitySeries mobilogram : ims.getMobilograms()) {
         mobilogram.getMzValues(mzBuffer);
         final double delta = ArrayUtils.smallestDelta(mzBuffer, mobilogram.getNumberOfValues());
-        if(delta < smallestDelta) {
+        if (delta < smallestDelta) {
           smallestDelta = delta;
         }
       }

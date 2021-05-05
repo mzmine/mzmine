@@ -1,0 +1,742 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Namotion.Reflection</name>
+    </assembly>
+    <members>
+        <member name="T:Namotion.Reflection.CachedType">
+            <summary>
+            A cached type object without context.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.CachedType.ClearCache">
+            <summary>
+            Clears the cache.
+            </summary>
+        </member>
+        <member name="F:Namotion.Reflection.CachedType._genericArguments">
+            <summary>
+            Internal generic arguments.
+            </summary>
+        </member>
+        <member name="F:Namotion.Reflection.CachedType._originalGenericArguments">
+            <summary>
+            Internal original generic arguments.
+            </summary>
+        </member>
+        <member name="F:Namotion.Reflection.CachedType._elementType">
+            <summary>
+            Internal element type.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.CachedType.op_Implicit(Namotion.Reflection.CachedType)~System.Type">
+            <summary>
+            Unwraps the OriginalType as <see cref="P:Namotion.Reflection.CachedType.Type"/> from the context type.
+            </summary>
+            <param name="type">The contextual type</param>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.OriginalType">
+            <summary>
+            Gets the original type (i.e. without unwrapping Nullable{T}).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.Attributes">
+            <summary>
+            Gets all type attributes.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.TypeName">
+            <summary>
+            Gets the type name.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.TypeInfo">
+            <summary>
+            Gest the original's type info.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.TypeAttributes">
+            <summary>
+            Gets the type's associated attributes of the type (inherited).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.Type">
+            <summary>
+            Gets the actual unwrapped type (e.g. gets T of a Nullable{T} type).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.IsNullableType">
+            <summary>
+            Gets a value indicating whether this type is wrapped with Nullable{T}.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.GenericArguments">
+            <summary>
+            Gets the type's generic arguments (Nullable{T} is unwrapped).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.OriginalGenericArguments">
+            <summary>
+            Gets the type's original generic arguments (Nullable{T} is not unwrapped).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.CachedType.ElementType">
+            <summary>
+            Gets the type's element type (i.e. array type).
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.CachedType.GetTypeAttribute``1">
+            <summary>
+            Gets an attribute of the given type which is defined on the type.
+            </summary>
+            <typeparam name="T">The attribute type.</typeparam>
+            <returns>The attribute or null.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.CachedType.GetTypeAttributes``1">
+            <summary>
+            Gets the attributes of the given type which are defined on the type.
+            </summary>
+            <typeparam name="T">The attribute type.</typeparam>
+            <returns>The attributes.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.CachedType.ToString">
+            <inheritdocs />
+        </member>
+        <member name="M:Namotion.Reflection.CachedType.GetCachedType(System.Type,System.Int32@)">
+            <summary>Gets the cached type for the given type and nullable flags index.</summary>
+            <param name="type">The type.</param>
+            <param name="nullableFlagsIndex">The flags.</param>
+            <returns>The cached type.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.CachedType.UpdateOriginalGenericArguments">
+            <summary>
+            Updates the original generic arguments.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.CachedType.UpdateOriginalGenericArguments(System.Int32@)">
+            <summary>
+            Updates the original generic arguments.
+            </summary>
+        </member>
+        <member name="T:Namotion.Reflection.ContextualFieldInfo">
+            <summary>
+            A field info with contextual information.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualFieldInfo.FieldInfo">
+            <summary>
+            Gets the type context's field info.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualFieldInfo.MemberInfo">
+            <summary>
+            Gets the type context's member info.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualFieldInfo.Name">
+            <summary>
+            Gets the cached field name.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualFieldInfo.GetValue(System.Object)">
+            <summary>
+            Returns the value of a field supported by a given object.
+            </summary>
+            <param name="obj">The object.</param>
+            <returns>The value.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualFieldInfo.SetValue(System.Object,System.Object)">
+            <summary>
+            Sets the value of the field supported by the given object.
+            </summary>
+            <param name="obj">The object.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="T:Namotion.Reflection.ContextualMemberInfo">
+            <summary>
+            A member info with contextual information.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualMemberInfo.MemberInfo">
+            <summary>
+            Gets the type context's member info.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualMemberInfo.Name">
+            <summary>
+            Gets the name of the cached member name (property or parameter name).
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualMemberInfo.GetValue(System.Object)">
+            <summary>
+            Returns the value of a field supported by a given object.
+            </summary>
+            <param name="obj">The object.</param>
+            <returns>The value.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualMemberInfo.SetValue(System.Object,System.Object)">
+            <summary>
+            Sets the value of the field supported by the given object.
+            </summary>
+            <param name="obj">The object.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualMemberInfo.ToString">
+            <inheritdocs />
+        </member>
+        <member name="T:Namotion.Reflection.ContextualParameterInfo">
+            <summary>
+            A parameter info with contextual information.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualParameterInfo.ParameterInfo">
+            <summary>
+            Gets the type context's parameter info.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualParameterInfo.Name">
+            <summary>
+            Gets the cached parameter name.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualParameterInfo.ToString">
+            <inheritdocs />
+        </member>
+        <member name="T:Namotion.Reflection.ContextualPropertyInfo">
+            <summary>
+            A property info with contextual information.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualPropertyInfo.PropertyInfo">
+            <summary>
+            Gets the type context's property info.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualPropertyInfo.Name">
+            <summary>
+            Gets the cached field name.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualPropertyInfo.MemberInfo">
+            <summary>
+            Gets the type context's member info.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualPropertyInfo.IsValueType">
+            <summary>
+            Gets a value indicating whether the System.Type is a value type.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualPropertyInfo.CanWrite">
+            <summary>
+            Gets a value indicating whether the property can be written to.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualPropertyInfo.CanRead">
+            <summary>
+            Gets a value indicating whether the property can be read from.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualPropertyInfo.GetValue(System.Object)">
+            <summary>
+            Returns the value of a field supported by a given object.
+            </summary>
+            <param name="obj">The object.</param>
+            <returns>The value.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualPropertyInfo.SetValue(System.Object,System.Object)">
+            <summary>
+            Sets the value of the field supported by the given object.
+            </summary>
+            <param name="obj">The object.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="T:Namotion.Reflection.ContextualType">
+            <summary>
+            A cached type with context information (e.g. parameter, field, property with nullability).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.Parent">
+            <summary>
+            Gets the parent type with context.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.ContextAttributes">
+            <summary>
+            Gets the type's associated attributes of the given context (inherited).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.OriginalNullability">
+            <summary>
+            Gets the original nullability information of this type in the given context (i.e. without unwrapping Nullable{T}).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.Attributes">
+            <summary>
+            Gets all contextual and type attributes (in this order).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.GenericArguments">
+            <summary>
+            Gets the generic type arguments of the type in the given context (empty when unwrapped from Nullable{T}).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.OriginalGenericArguments">
+            <summary>
+            Gets the original generic type arguments of the type in the given context.
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.ElementType">
+            <summary>
+            Gets the type's element type (i.e. array type).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.EnumerableItemType">
+            <summary>
+            Gets the type's element type (i.e. array type).
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.BaseType">
+            <summary>
+            Gets the type's base type
+            </summary>
+        </member>
+        <member name="P:Namotion.Reflection.ContextualType.Nullability">
+            <summary>
+            Gets the nullability information of this type in the given context by unwrapping Nullable{T} into account.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualType.GetContextAttribute``1">
+            <summary>
+            Gets an attribute of the given type which is defined on the context (property, field, parameter or contextual generic argument type).
+            </summary>
+            <typeparam name="T">The attribute type.</typeparam>
+            <returns>The attribute or null.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualType.GetContextAttributes``1">
+            <summary>
+            Gets the attributes of the given type which are defined on the context (property, field, parameter or contextual generic argument type).
+            </summary>
+            <typeparam name="T">The attribute type.</typeparam>
+            <returns>The attributes.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualType.GetAttribute``1">
+            <summary>
+            Gets an attribute of the given type which is defined on the context or on the type.
+            </summary>
+            <typeparam name="T">The attribute type.</typeparam>
+            <returns>The attribute or null.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualType.GetAttributes``1">
+            <summary>
+            Gets the attributes of the given type which are defined on the context or on the type.
+            </summary>
+            <typeparam name="T">The attribute type.</typeparam>
+            <returns>The attributes.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualType.GetProperty(System.String)">
+            <summary>
+            Gets a contextual property of the given contextual type (preserving the context).
+            </summary>
+            <param name="propertyName">The property name.</param>
+            <returns>The contextual property or null.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualType.GetField(System.String)">
+            <summary>
+            Gets a contextual field of the given contextual type (preserving the context).
+            </summary>
+            <param name="fieldName">The field name.</param>
+            <returns>The contextual field or null.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualType.ToString">
+            <inheritdocs />
+        </member>
+        <member name="M:Namotion.Reflection.ContextualType.GetCachedType(System.Type,System.Int32@)">
+            <summary>Gets the cached type for the given type and nullable flags index.</summary>
+            <param name="type">The type.</param>
+            <param name="nullableFlagsIndex">The flags.</param>
+            <returns>The cached type.</returns>
+        </member>
+        <member name="T:Namotion.Reflection.ContextualTypeExtensions">
+            <summary>
+            Type and member extension methods to extract contextual or cached types.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.GetContextualPropertiesAndFields(System.Type)">
+            <summary>
+            Gets an enumerable of <see cref="T:Namotion.Reflection.ContextualPropertyInfo"/> and <see cref="T:Namotion.Reflection.ContextualFieldInfo"/> for the given <see cref="T:System.Type"/> instance.
+            </summary>
+            <param name="type">The type.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.GetContextualParameters(System.Reflection.MethodBase)">
+            <summary>
+            Gets an array of <see cref="T:Namotion.Reflection.ContextualParameterInfo"/> for the given <see cref="T:System.Reflection.MethodBase"/> instance.
+            </summary>
+            <param name="method">The method.</param>
+            <returns>The runtime properties.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.GetContextualProperties(System.Type)">
+            <summary>
+            Gets an array of <see cref="T:Namotion.Reflection.ContextualPropertyInfo"/> for the given <see cref="T:System.Type"/> instance.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The runtime properties.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.GetContextualFields(System.Type)">
+            <summary>
+            Gets an array of <see cref="T:Namotion.Reflection.ContextualFieldInfo"/> for the given <see cref="T:System.Type"/> instance.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The runtime fields.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.ToContextualParameter(System.Reflection.ParameterInfo)">
+            <summary>
+            Gets a <see cref="T:Namotion.Reflection.ContextualParameterInfo"/> for the given <see cref="T:System.Reflection.ParameterInfo"/> instance.
+            </summary>
+            <param name="parameterInfo">The parameter info.</param>
+            <returns>The <see cref="T:Namotion.Reflection.ContextualParameterInfo"/>.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.ToContextualProperty(System.Reflection.PropertyInfo)">
+            <summary>
+            Gets a <see cref="T:Namotion.Reflection.ContextualPropertyInfo"/> for the given <see cref="T:System.Reflection.PropertyInfo"/> instance.
+            </summary>
+            <param name="propertyInfo">The property info.</param>
+            <returns>The <see cref="T:Namotion.Reflection.ContextualPropertyInfo"/>.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.ToContextualField(System.Reflection.FieldInfo)">
+            <summary>
+            Gets a <see cref="T:Namotion.Reflection.ContextualFieldInfo"/> for the given <see cref="T:System.Reflection.FieldInfo"/> instance.
+            </summary>
+            <param name="fieldInfo">The field info.</param>
+            <returns>The <see cref="T:Namotion.Reflection.ContextualFieldInfo"/>.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.ToContextualMember(System.Reflection.MemberInfo)">
+            <summary>
+            Gets a <see cref="T:Namotion.Reflection.ContextualMemberInfo"/> for the given <see cref="T:System.Reflection.MemberInfo"/> instance.
+            </summary>
+            <param name="memberInfo">The member info.</param>
+            <returns>The <see cref="T:Namotion.Reflection.ContextualMemberInfo"/>.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.ToContextualType(System.Type,System.Collections.Generic.IEnumerable{System.Attribute})">
+            <summary>
+            Gets an uncached <see cref="T:Namotion.Reflection.ContextualType"/> for the given <see cref="T:System.Type"/> instance and attributes.
+            </summary>
+            <param name="type">The type.</param>
+            <param name="attributes">The attributes.</param>
+            <returns>The <see cref="T:Namotion.Reflection.CachedType"/>.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.ToContextualType(System.Type)">
+            <summary>
+            Gets a <see cref="T:Namotion.Reflection.CachedType"/> for the given <see cref="T:System.Type"/> instance.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The <see cref="T:Namotion.Reflection.CachedType"/>.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ContextualTypeExtensions.ToCachedType(System.Type)">
+            <summary>
+            Gets a <see cref="T:Namotion.Reflection.CachedType"/> for the given <see cref="T:System.Type"/> instance.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The <see cref="T:Namotion.Reflection.CachedType"/>.</returns>
+        </member>
+        <member name="T:Namotion.Reflection.Nullability">
+            <summary>
+            Specifies the nullability in the given context.
+            </summary>
+        </member>
+        <member name="F:Namotion.Reflection.Nullability.Unknown">
+            <summary>
+            Nullability is unknown (NRT is not enabled).
+            </summary>
+        </member>
+        <member name="F:Namotion.Reflection.Nullability.NotNullable">
+            <summary>
+            Reference type is not nullable.
+            </summary>
+        </member>
+        <member name="F:Namotion.Reflection.Nullability.Nullable">
+            <summary>
+            Reference type can be null.
+            </summary>
+        </member>
+        <member name="T:Namotion.Reflection.EnumerableExtensions">
+            <summary>
+            IEnumerable extensions.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.EnumerableExtensions.GetAssignableToTypeName``1(System.Collections.Generic.IEnumerable{``0},System.String,Namotion.Reflection.TypeNameStyle)">
+            <summary>Tries to get the first object which is assignable to the given type name.</summary>
+            <param name="objects">The objects.</param>
+            <param name="typeName">Type of the attribute.</param>
+            <param name="typeNameStyle">The type name style.</param>
+            <returns>The objects which are assignable.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.EnumerableExtensions.FirstAssignableToTypeNameOrDefault``1(System.Collections.Generic.IEnumerable{``0},System.String,Namotion.Reflection.TypeNameStyle)">
+            <summary>Tries to get the first object which is assignable to the given type name.</summary>
+            <param name="objects">The objects.</param>
+            <param name="typeName">Type of the attribute.</param>
+            <param name="typeNameStyle">The type name style.</param>
+            <returns>May return null (not found).</returns>
+        </member>
+        <member name="M:Namotion.Reflection.EnumerableExtensions.GetCommonBaseType(System.Collections.Generic.IEnumerable{System.Type})">
+            <summary>Finds the first common base type of the given types.</summary>
+            <param name="types">The types.</param>
+            <returns>The common base type.</returns>
+        </member>
+        <member name="T:Namotion.Reflection.Infrastructure.DynamicApis">
+            <summary>Provides dynamic access to framework APIs.</summary>
+        </member>
+        <member name="P:Namotion.Reflection.Infrastructure.DynamicApis.SupportsFileApis">
+            <summary>Gets a value indicating whether file APIs are available.</summary>
+        </member>
+        <member name="P:Namotion.Reflection.Infrastructure.DynamicApis.SupportsPathApis">
+            <summary>Gets a value indicating whether path APIs are available.</summary>
+        </member>
+        <member name="P:Namotion.Reflection.Infrastructure.DynamicApis.SupportsDirectoryApis">
+            <summary>Gets a value indicating whether path APIs are available.</summary>
+        </member>
+        <member name="P:Namotion.Reflection.Infrastructure.DynamicApis.SupportsXPathApis">
+            <summary>Gets a value indicating whether XPath APIs are available.</summary>
+        </member>
+        <member name="M:Namotion.Reflection.Infrastructure.DynamicApis.DirectoryGetCurrentDirectory">
+            <summary>Gets the current working directory.</summary>
+            <returns>The directory path.</returns>
+            <exception cref="T:System.NotSupportedException">The System.IO.Directory API is not available on this platform.</exception>
+        </member>
+        <member name="M:Namotion.Reflection.Infrastructure.DynamicApis.FileExists(System.String)">
+            <summary>Checks whether a file exists.</summary>
+            <param name="filePath">The file path.</param>
+            <returns>true or false</returns>
+            <exception cref="T:System.NotSupportedException">The System.IO.File API is not available on this platform.</exception>
+        </member>
+        <member name="M:Namotion.Reflection.Infrastructure.DynamicApis.PathCombine(System.String,System.String)">
+            <summary>Combines two paths.</summary>
+            <param name="path1">The path1.</param>
+            <param name="path2">The path2.</param>
+            <returns>The combined path.</returns>
+            <exception cref="T:System.NotSupportedException">The System.IO.Path API is not available on this platform.</exception>
+        </member>
+        <member name="M:Namotion.Reflection.Infrastructure.DynamicApis.PathGetDirectoryName(System.String)">
+            <summary>Gets the directory path of a file path.</summary>
+            <param name="filePath">The file path.</param>
+            <returns>The directory name.</returns>
+            <exception cref="T:System.NotSupportedException">The System.IO.Path API is not available on this platform.</exception>
+        </member>
+        <member name="M:Namotion.Reflection.Infrastructure.DynamicApis.XPathEvaluate(System.Xml.Linq.XDocument,System.String)">
+            <summary>Evaluates the XPath for a given XML document.</summary>
+            <param name="document">The document.</param>
+            <param name="path">The path.</param>
+            <returns>The value.</returns>
+            <exception cref="T:System.NotSupportedException">The System.Xml.XPath.Extensions API is not available on this platform.</exception>
+        </member>
+        <member name="T:Namotion.Reflection.ObjectExtensions">
+            <summary>
+            Object extensions.
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.ObjectExtensions.HasProperty(System.Object,System.String)">
+            <summary>Determines whether the specified property name exists.</summary>
+            <param name="obj">The object.</param>
+            <param name="propertyName">Name of the property.</param>
+            <returns><c>true</c> if the property exists; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ObjectExtensions.TryGetPropertyValue``1(System.Object,System.String,``0)">
+            <summary>Determines whether the specified property name exists.</summary>
+            <param name="obj">The object.</param>
+            <param name="propertyName">Name of the property.</param>
+            <param name="defaultValue">The default value if the property does not exist.</param>
+            <returns>The property or the default value.</returns>
+        </member>
+        <member name="P:Namotion.Reflection.ObjectExtensions.DisableNullabilityValidation">
+            <summary>
+            Gets or sets a value indicating whether to disable nullability validation completely (global).
+            </summary>
+        </member>
+        <member name="M:Namotion.Reflection.ObjectExtensions.HasValidNullability(System.Object,System.Boolean)">
+            <summary>Checks whether the object has valid non nullable properties.</summary>
+            <param name="obj">The object.</param>
+            <param name="checkChildren">Specifies whether to also recursively check children.</param>
+            <returns>The result.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ObjectExtensions.EnsureValidNullability(System.Object,System.Boolean)">
+            <summary>Checks whether the object has valid non nullable properties.</summary>
+            <param name="obj">The object.</param>
+            <param name="checkChildren">Specifies whether to also recursively check children.</param>
+            <returns>The result.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.ObjectExtensions.ValidateNullability(System.Object,System.Boolean)">
+            <summary>Checks which non nullable properties are null (invalid).</summary>
+            <param name="obj">The object.</param>
+            <param name="checkChildren">Specifies whether to also recursively check children.</param>
+            <returns>The result.</returns>
+        </member>
+        <member name="T:Namotion.Reflection.TypeExtensions">
+            <summary>Provides extension methods for reflection.</summary>
+        </member>
+        <member name="M:Namotion.Reflection.TypeExtensions.IsAssignableToTypeName(Namotion.Reflection.CachedType,System.String,Namotion.Reflection.TypeNameStyle)">
+            <summary>Checks whether the given type is assignable to the given type name.</summary>
+            <param name="type">The type.</param>
+            <param name="typeName">Name of the type.</param>
+            <param name="typeNameStyle">The type name style.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Namotion.Reflection.TypeExtensions.IsAssignableToTypeName(System.Type,System.String,Namotion.Reflection.TypeNameStyle)">
+            <summary>Checks whether the given type is assignable to the given type name.</summary>
+            <param name="type">The type.</param>
+            <param name="typeName">Name of the type.</param>
+            <param name="typeNameStyle">The type name style.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Namotion.Reflection.TypeExtensions.InheritsFromTypeName(System.Type,System.String,Namotion.Reflection.TypeNameStyle)">
+            <summary>Checks whether the given type inherits from the given type name.</summary>
+            <param name="type">The type.</param>
+            <param name="typeName">Name of the type.</param>
+            <param name="typeNameStyle">The type name style.</param>
+            <returns>true if the type inherits from typeName.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.TypeExtensions.GetEnumerableItemType(System.Type)">
+            <summary>Gets the type of the array item.</summary>
+        </member>
+        <member name="M:Namotion.Reflection.TypeExtensions.GetGenericTypeArgumentsOfTypeOrBaseTypes(System.Type)">
+            <summary>Gets the generic type arguments of a type or its base type.</summary>
+            <param name="type">The type.</param>
+            <returns>The type arguments.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.TypeExtensions.GetDisplayName(System.Type)">
+            <summary>Gets a human readable type name (e.g. DictionaryOfStringAndObject).</summary>
+            <param name="type">The type.</param>
+            <returns>The type name.</returns>
+        </member>
+        <member name="T:Namotion.Reflection.TypeNameStyle">
+            <summary>The type name style.</summary>
+        </member>
+        <member name="F:Namotion.Reflection.TypeNameStyle.Name">
+            <summary>Only the name of the type.</summary>
+        </member>
+        <member name="F:Namotion.Reflection.TypeNameStyle.FullName">
+            <summary>The full name of the type including the namespace.</summary>
+        </member>
+        <member name="T:Namotion.Reflection.XmlDocs">
+            <summary>Provides extension methods for reading XML comments from reflected members.</summary>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocs.ClearCache">
+            <summary>
+            Clears the cache.
+            </summary>
+        </member>
+        <member name="T:Namotion.Reflection.XmlDocsExtensions">
+            <summary>Provides extension methods for reading XML comments from reflected members.</summary>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsSummary(Namotion.Reflection.CachedType)">
+            <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
+            <param name="type">The type.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsRemarks(Namotion.Reflection.CachedType)">
+            <summary>Returns the contents of the "remarks" XML documentation tag for the specified member.</summary>
+            <param name="type">The type.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsTag(Namotion.Reflection.CachedType,System.String)">
+            <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+            <param name="type">The type.</param>
+            <param name="tagName">Name of the tag.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsSummary(Namotion.Reflection.ContextualMemberInfo)">
+            <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
+            <param name="member">The reflected member.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsRemarks(Namotion.Reflection.ContextualMemberInfo)">
+            <summary>Returns the contents of the "remarks" XML documentation tag for the specified member.</summary>
+            <param name="member">The reflected member.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsTag(Namotion.Reflection.ContextualMemberInfo,System.String)">
+            <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+            <param name="member">The reflected member.</param>
+            <param name="tagName">Name of the tag.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocs(Namotion.Reflection.ContextualParameterInfo)">
+            <summary>Returns the contents of the "returns" or "param" XML documentation tag for the specified parameter.</summary>
+            <param name="parameter">The reflected parameter or return info.</param>
+            <returns>The contents of the "returns" or "param" tag.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsElement(Namotion.Reflection.ContextualMemberInfo)">
+            <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+            <param name="member">The reflected member.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsSummary(System.Type)">
+            <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
+            <param name="type">The type.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsRemarks(System.Type)">
+            <summary>Returns the contents of the "remarks" XML documentation tag for the specified member.</summary>
+            <param name="type">The type.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsTag(System.Type,System.String)">
+            <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+            <param name="type">The type.</param>
+            <param name="tagName">Name of the tag.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsSummary(System.Reflection.MemberInfo)">
+            <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
+            <param name="member">The reflected member.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsRemarks(System.Reflection.MemberInfo)">
+            <summary>Returns the contents of the "remarks" XML documentation tag for the specified member.</summary>
+            <param name="member">The reflected member.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsElement(System.Type,System.String)">
+            <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
+            <param name="type">The type.</param>
+            <param name="pathToXmlFile">The path to the XML documentation file.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsElement(System.Reflection.MemberInfo)">
+            <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+            <param name="member">The reflected member.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsElement(System.Reflection.MemberInfo,System.String)">
+            <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
+            <param name="member">The reflected member.</param>
+            <param name="pathToXmlFile">The path to the XML documentation file.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsTag(System.Reflection.MemberInfo,System.String)">
+            <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+            <param name="member">The reflected member.</param>
+            <param name="tagName">Name of the tag.</param>
+            <returns>The contents of the "summary" tag for the member.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocs(System.Reflection.ParameterInfo)">
+            <summary>Returns the contents of the "returns" or "param" XML documentation tag for the specified parameter.</summary>
+            <param name="parameter">The reflected parameter or return info.</param>
+            <returns>The contents of the "returns" or "param" tag.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetXmlDocsElement(System.Reflection.ParameterInfo,System.String)">
+            <summary>Returns the contents of the "returns" or "param" XML documentation tag for the specified parameter.</summary>
+            <param name="parameter">The reflected parameter or return info.</param>
+            <param name="pathToXmlFile">The path to the XML documentation file.</param>
+            <returns>The contents of the "returns" or "param" tag.</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.ToXmlDocsContent(System.Xml.Linq.XElement)">
+            <summary>Converts the given XML documentation <see cref="T:System.Xml.Linq.XElement"/> to text.</summary>
+            <param name="element">The XML element.</param>
+            <returns>The text</returns>
+        </member>
+        <member name="M:Namotion.Reflection.XmlDocsExtensions.GetMemberElementName(System.Object)">
+            <exception cref="T:System.ArgumentException">Unknown member type.</exception>
+        </member>
+    </members>
+</doc>
