@@ -47,9 +47,6 @@ import org.jfree.data.Range;
 public class ImageChart extends StackPane {
 
   private static Logger logger = Logger.getLogger(ImageChart.class.getName());
-//  private Double dataPointWidth;
-//  private Double dataPointHeight;
-//  private PaintScale paintScaleParameter;
 
   public ImageChart(@Nonnull ModularFeature f, AtomicDouble progress) {
 
