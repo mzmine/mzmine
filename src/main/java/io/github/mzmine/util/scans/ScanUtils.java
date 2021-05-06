@@ -18,6 +18,27 @@
 
 package io.github.mzmine.util.scans;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.sorting.ScanSortMode;
+import io.github.mzmine.util.scans.sorting.ScanSorter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -38,30 +59,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MergedMsMsSpectrum;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.exceptions.MissingMassListException;
-import io.github.mzmine.util.scans.sorting.ScanSortMode;
-import io.github.mzmine.util.scans.sorting.ScanSorter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Scan related utilities
@@ -105,11 +106,14 @@ public class ScanUtils {
     buf.append(" ");
     buf.append(scan.getPolarity().asSingleChar());
 
-    if (scan instanceof MergedMsMsSpectrum) {
+    if (scan instanceof MergedMassSpectrum) {
       buf.append(" merged ");
-      buf.append(((MergedMsMsSpectrum) scan).getSourceSpectra().size());
-      buf.append(" spectra, CE: ");
-      buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
+      buf.append(((MergedMassSpectrum) scan).getSourceSpectra().size());
+      buf.append(" spectra");
+      if(scan instanceof MergedMsMsSpectrum) {
+        buf.append(", CE: ");
+        buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
+      }
     }
 
     /*

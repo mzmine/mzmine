@@ -19,12 +19,17 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
@@ -33,6 +38,7 @@ import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
+import io.github.mzmine.modules.io.export_image_to_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.export_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -49,9 +55,12 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
+import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.Collection;
 import java.util.Collections;
@@ -179,9 +188,14 @@ public class FeatureTableContextMenu extends ContextMenu {
       window.show();
     }));
 
+    final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
+        () -> !selectedRows.isEmpty() && selectedRows.get(0).getBestFeature().getMap()
+            .containsKey(new ImageType()));
+    exportImageToCsv.setOnAction(e -> ImageToCsvExportModule.exportRows(selectedRows));
+
     exportMenu.getItems()
         .addAll(exportIsotopesItem, exportMSMSItem, exportToSirius, new SeparatorMenuItem(),
-            exportMS1Library, exportMSMSLibrary);
+            exportMS1Library, exportMSMSLibrary, new SeparatorMenuItem(), exportImageToCsv);
   }
 
   private void initSearchMenu() {
@@ -283,6 +297,27 @@ public class FeatureTableContextMenu extends ContextMenu {
         e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(),
             selectedFeature.getRepresentativeScan(), selectedFeature));
 
+    final MenuItem showBestMobilityScanItem = new ConditionalMenuItem("Best mobility scan",
+        () -> selectedFeature != null && selectedFeature.getRepresentativeScan() instanceof Frame
+            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+    showBestMobilityScanItem.setOnAction(e -> SpectraVisualizerModule.addNewSpectrumTab(
+        IonMobilityUtils.getBestMobilityScan(selectedFeature)));
+
+    final MenuItem extractSumSpectrumFromMobScans = new ConditionalMenuItem(
+        "Extract spectrum from mobility FWHM",
+        () -> selectedFeature != null && selectedFeature
+            .getFeatureData() instanceof IonMobilogramTimeSeries);
+    extractSumSpectrumFromMobScans.setOnAction(e -> {
+      Range<Float> fwhm = IonMobilityUtils.getMobilityFWHM(
+          ((IonMobilogramTimeSeries) selectedFeature.getFeatureData()).getSummedMobilogram());
+      if (fwhm != null) {
+        MergedMassSpectrum spectrum = SpectraMerging
+            .extractSummedMobilityScan(selectedFeature, new MZTolerance(0.01, 15), fwhm, null);
+        SpectraVisualizerModule
+            .addNewSpectrumTab(selectedFeature.getRawDataFile(), spectrum, selectedFeature);
+      }
+    });
+
     // TODO this should display selected features instead of rows. MultiMSMSWindow does not support that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
         () -> getNumberOfRowsWithFragmentScans(selectedRows) >= 1 && selectedFeature != null);
@@ -305,7 +340,6 @@ public class FeatureTableContextMenu extends ContextMenu {
       mirrorScanTab.show();
     });
 
-    // TODO this is still a Swing window :(
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS (still Swing)",
         () -> !selectedRows.isEmpty() && !selectedRows.get(0).getAllMS2Fragmentations().isEmpty());
     showAllMSMSItem.setOnAction(
@@ -330,7 +364,9 @@ public class FeatureTableContextMenu extends ContextMenu {
             show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
             showInMobilityMzVisualizerItem,
             new SeparatorMenuItem(),
-            showSpectrumItem, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
+            showSpectrumItem, showBestMobilityScanItem, extractSumSpectrumFromMobScans,
+            showMSMSItem, showMSMSMirrorItem,
+            showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
             new SeparatorMenuItem(), showPeakRowSummaryItem);
   }

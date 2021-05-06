@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel;
 
-public interface MergedMsMsSpectrum extends MergedMassSpectrum, Scan {
+public interface MergedMsMsSpectrum extends MergedMassSpectrum {
 
   float getCollisionEnergy();
 

@@ -14,7 +14,7 @@ description = "MZmine"
 // JDK 14+ is needed for jpackage
 sourceCompatibility = "16"
 targetCompatibility = "16"
-defaultTasks "jpackage"
+defaultTasks "test", "jpackage"
 
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")

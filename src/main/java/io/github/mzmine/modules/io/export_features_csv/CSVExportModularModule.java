@@ -61,5 +61,4 @@ public class CSVExportModularModule implements MZmineProcessingModule {
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
     return CSVExportModularParameters.class;
   }
-
 }

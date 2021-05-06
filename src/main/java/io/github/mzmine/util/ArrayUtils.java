@@ -18,6 +18,8 @@
 
 package io.github.mzmine.util;
 
+import java.util.Arrays;
+
 public class ArrayUtils {
 
   public static <T> int indexOf(T needle, T[] haystack) {
@@ -76,5 +78,11 @@ public class ArrayUtils {
     }
 
     return smallestDelta;
+  }
+
+  public static void fill2D(double[][] array, double value) {
+    for (double[] doubles : array) {
+      Arrays.fill(doubles, value);
+    }
   }
 }
