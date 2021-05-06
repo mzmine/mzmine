@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.IntToDoubleFunction;
-import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
@@ -54,20 +53,27 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   protected AbstractXYItemRenderer renderer;
   protected boolean useAlphaInPaintscale;
   protected Range<Double> zRange;
+  private final RunOption runOption;
 
   public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider) {
     this(dataProvider, true);
   }
 
   public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale) {
-    this(dataProvider, useAlphaInPaintscale, true);
+      @Nonnull final RunOption runOption) {
+    this(dataProvider, true, runOption);
   }
 
+  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
+      final boolean useAlphaInPaintscale) {
+    this(dataProvider, useAlphaInPaintscale, RunOption.NEW_THREAD);
+  }
 
   ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale, boolean autocompute) {
-    super(dataProvider, false);
+      final boolean useAlphaInPaintscale, @Nonnull final RunOption runOption) {
+    // do not run from super constructor! we need to do some other stuff first
+    super(dataProvider, RunOption.DO_NOT_RUN, false);
+    this.runOption = runOption;
 
     if (dataProvider instanceof PieXYZDataProvider) {
       throw new IllegalArgumentException(
@@ -78,9 +84,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     this.useAlphaInPaintscale = useAlphaInPaintscale;
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
-    if (autocompute) {
-      MZmineCore.getTaskController().addTask(this);
-    }
+    handleRunOption(runOption);
   }
 
   public boolean isUseAlphaInPaintscale() {
@@ -194,11 +198,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
       max = 1;
     }
     Range<Double> zValueRange = Range.closed(min, max);
-    /*var paintScale =
-        new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
-            defaultPaintScaleColorStyle, defaultPaintScaleBoundStyle, zValueRange, Color.WHITE);
-    PaintScaleFactory psf = new PaintScaleFactory();
-    paintScale = psf.createColorsForPaintScale(paintScale, true);*/
 
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette().toPaintScale(
         PaintScaleTransform.LINEAR, zValueRange);
@@ -256,16 +255,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     paintScale = (paintScale != null) ? paintScale
         : createDefaultPaintScale(zRange.lowerEndpoint(), zRange.upperEndpoint());
 
-    computed = true;
-    status.set(TaskStatus.FINISHED);
-
-    if (!(this instanceof FastColoredXYZDataset)) { // no need to notify then, dataset will be up to date
-      if (Platform.isFxApplicationThread()) {
-        fireDatasetChanged();
-      } else {
-        Platform.runLater(this::fireDatasetChanged);
-      }
-    }
+    onCalculationsFinished();
   }
 
   // Makes protected method public // TODO: possible alternatives?
@@ -274,4 +264,8 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     super.fireDatasetChanged();
   }
 
+  @Override
+  protected RunOption getRunOption() {
+    return runOption;
+  }
 }

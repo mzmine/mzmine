@@ -19,6 +19,7 @@
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
 import com.google.common.collect.Range;
+import com.google.errorprone.annotations.ForOverride;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
@@ -55,12 +56,13 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     SeriesKeyProvider, LabelTextProvider, ToolTipTextProvider, ColorPropertyProvider {
 
   private static Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
+  private final RunOption runOption;
+
   protected final XYValueProvider xyValueProvider;
   protected final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   protected final LabelTextProvider labelTextProvider;
   protected final ToolTipTextProvider toolTipTextProvider;
   protected final IntervalWidthProvider intervalWidthProvider;
-  protected final boolean autocompute;
 
   // dataset stuff
   private final int seriesCount = 1;
@@ -77,15 +79,20 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected Range<Double> domainRange;
   protected Range<Double> rangeRange;
 
+  protected boolean setToFinished;
+
   private ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
-      ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider, boolean autocompute) {
+      ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider,
+      @Nonnull final RunOption runOption, boolean setToFinished) {
 
     // Task stuff
     this.computed = false;
     this.valuesComputed = false;
     status = new SimpleObjectProperty<>(TaskStatus.WAITING);
     errorMessage = "";
+    this.runOption = runOption;
+    this.setToFinished = setToFinished;
 
     // dataset stuff
     this.xyValueProvider = xyValueProvider;
@@ -97,16 +104,12 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     } else {
       intervalWidthProvider = null;
     }
+
     this.fxColor = new SimpleObjectProperty<>(colorProvider.getFXColor());
-
     this.computedItemCount = 0;
-
     fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
 
-    this.autocompute = autocompute;
-    if (autocompute) {
-      MZmineCore.getTaskController().addTask(this);
-    }
+    handleRunOption(runOption);
   }
 
   /**
@@ -114,18 +117,50 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    * finished.
    * <p></p>
    * Note: Computation task has to be started by the respective extending class.
-   *
-   * @param datasetProvider
-   * @param autocompute
    */
-  protected ColoredXYDataset(PlotXYDataProvider datasetProvider, boolean autocompute) {
+  public ColoredXYDataset(PlotXYDataProvider datasetProvider,
+      @Nonnull final RunOption runOption) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider, autocompute);
+        datasetProvider, runOption, true);
   }
 
   public ColoredXYDataset(@Nonnull PlotXYDataProvider datasetProvider) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider, true);
+        datasetProvider, RunOption.NEW_THREAD, true);
+  }
+
+  /**
+   * Used in extending classes, to not set the status to finished in case additional calculations
+   * need to be done, depending in the data set type.
+   *
+   * @param setToFinished Whether or not to set the status to finished after the default {@link
+   *                      this#run()} method has been called.
+   */
+  protected ColoredXYDataset(PlotXYDataProvider datasetProvider,
+      @Nonnull final RunOption runOption, boolean setToFinished) {
+    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
+        datasetProvider, runOption, setToFinished);
+  }
+
+  /**
+   *
+   */
+  protected void handleRunOption(@Nonnull final RunOption runOption) {
+    switch (runOption) {
+      case THIS_THREAD -> {
+        if (Platform.isFxApplicationThread()) {
+          logger.severe(() -> "Calculation of data set values was started on the JavaFX thread."
+              + " Creating a new thread instead.\nProvider: " + xyValueProvider.getClass()
+              .getName());
+          MZmineCore.getTaskController().addTask(this);
+        } else {
+          run();
+        }
+      }
+      case NEW_THREAD -> MZmineCore.getTaskController().addTask(this);
+      case DO_NOT_RUN -> {
+      }
+    }
   }
 
   public java.awt.Color getAWTColor() {
@@ -260,7 +295,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    */
   @Override
   public void run() {
-
     status.set(TaskStatus.PROCESSING);
     xyValueProvider.computeValues(status);
     if (status.get() != TaskStatus.PROCESSING) {
@@ -288,17 +322,23 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
       isLocalMaximum[i] = SimpleChartUtility.isLocalMaximum(this, 0, i);
     }
 
-    domainRange = Range.closed(minDomain, maxDomain);
-    rangeRange = Range.closed(minRange, maxRange);
+    domainRange = computedItemCount > 0 ? Range.closed(minDomain, maxDomain) : Range.closed(0d, 1d);
+    rangeRange = computedItemCount > 0 ? Range.closed(minRange, maxRange) : Range.closed(0d, 1d);
 
+    if (setToFinished) {
+      onCalculationsFinished();
+    }
+  }
+
+  /**
+   * Sets the {@link Task#getStatus()} property to finished, fires a dataset changed event and sets
+   * {@link this#computed} to true.
+   */
+  protected void onCalculationsFinished() {
     computed = true;
     status.set(TaskStatus.FINISHED);
-    if (!(this instanceof FastColoredXYDataset)) {  // no need to notify then, dataset will be up to date
-      if (Platform.isFxApplicationThread()) {
-        fireDatasetChanged();
-      } else {
-        Platform.runLater(this::fireDatasetChanged);
-      }
+    if (getRunOption() != RunOption.THIS_THREAD) {  // no need to notify then, dataset will be up to date
+      MZmineCore.runLater(this::fireDatasetChanged);
     }
   }
 
@@ -343,7 +383,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   public void cancel() {
     status.set(TaskStatus.CANCELED);
   }
-
 
 
   @Override
@@ -409,5 +448,19 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    */
   public Range<Double> getRangeValueRange() {
     return rangeRange;
+  }
+
+  /**
+   * Returns the {@link RunOption} this data set was created with. Extending classes need to
+   * override this method in case they need to do additional assignments in the constructor and
+   * therefore pass {{@link RunOption#DO_NOT_RUN} in the constructor, as it is a protected variable
+   * in this class. Alternatively, the extending class can override {@link
+   * #onCalculationsFinished()}.
+   *
+   * @return The {@link RunOption} this data set was created with.
+   */
+  @ForOverride
+  protected RunOption getRunOption() {
+    return runOption;
   }
 }

@@ -32,7 +32,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYZValueProvider;
@@ -286,7 +285,7 @@ public class IMSMobilityMzPlot extends BorderPane {
 
   public void addFeatureToRightSide(ModularFeature feature) {
     if (!rawDataFiles.contains(feature.getRawDataFile())) {
-      ticChart.addDataset(new FastColoredXYDataset(
+      ticChart.addDataset(new ColoredXYDataset(
           new ScanBPCProvider(feature.getRawDataFile().getScanNumbers(1))));
       rawDataFiles.add(feature.getRawDataFile());
     }
