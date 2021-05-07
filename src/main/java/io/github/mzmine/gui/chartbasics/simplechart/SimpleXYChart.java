@@ -49,6 +49,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -176,9 +177,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   private void initLabelListeners() {
     // automatically update label visibility
     itemLabelsVisible.addListener((obs, old, newVal) -> {
-      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+      for (int i = 0; i < getXYPlot().getRendererCount(); i++) {
         XYItemRenderer renderer = getXYPlot().getRenderer(i);
-        if(renderer != null) {
+        if (renderer != null) {
           renderer.setDefaultItemLabelsVisible(newVal, false);
         }
       }
@@ -186,14 +187,14 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     });
 
     legendItemsVisible.addListener((obs, old, newVal) -> {
-      for(int i = 0; i < getXYPlot().getRendererCount(); i++) {
+      for (int i = 0; i < getXYPlot().getRendererCount(); i++) {
         XYItemRenderer renderer = getXYPlot().getRenderer(i);
-        if(renderer != null) {
+        if (renderer != null) {
           renderer.setDefaultSeriesVisibleInLegend(newVal, false);
         }
       }
       final LegendTitle legend = getChart().getLegend();
-      if(legend != null) {
+      if (legend != null) {
         legend.setVisible(newVal);
       }
       getChart().fireChartChanged();
@@ -203,7 +204,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
     assert Platform.isFxApplicationThread();
     // jfreechart renderers dont check if the value actually changed and notify either way
-    if(renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
+    if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
       renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
     }
     if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
@@ -234,7 +235,21 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     return addDataset(dataset, defaultRenderer.get());
   }
 
+  @Nullable
   public synchronized XYDataset removeDataSet(int index) {
+    return removeDataSet(index, true);
+  }
+
+  /**
+   *
+   * @param index The dataset index
+   * @param notify If listeners shall be notified.
+   * @return The dataset or null
+   *
+   * @see XYPlot#indexOf(XYDataset)
+   */
+  @Nullable
+  public synchronized XYDataset removeDataSet(int index, boolean notify) {
     assert Platform.isFxApplicationThread();
     XYDataset ds = plot.getDataset(index);
     if (ds instanceof Task) { // stop calculation in case it's still running
@@ -242,10 +257,12 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     }
     plot.setDataset(index, null);
     plot.setRenderer(index, null);
-    if(ds != null) {
+    if (ds != null) {
       ds.removeChangeListener(getXYPlot());
     }
-//    notifyDatasetChangeListeners();
+    if (notify && ds != null) {
+      notifyDatasetChangeListeners(new DatasetChangeEvent(this, ds));
+    }
     return ds;
   }
 
@@ -338,13 +355,13 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(format);
   }
 
+  public boolean isLegendItemsVisible() {
+    return legendItemsVisible.get();
+  }
+
   @Override
   public void setLegendItemsVisible(boolean visible) {
     legendItemsVisible.set(visible);
-  }
-
-  public boolean isLegendItemsVisible() {
-    return legendItemsVisible.get();
   }
 
   public BooleanProperty legendItemsVisibleProperty() {
@@ -466,11 +483,11 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     return itemLabelsVisible.get();
   }
 
-  public BooleanProperty itemLabelsVisibleProperty() {
-    return itemLabelsVisible;
-  }
-
   public void setItemLabelsVisible(boolean itemLabelsVisible) {
     this.itemLabelsVisible.set(itemLabelsVisible);
+  }
+
+  public BooleanProperty itemLabelsVisibleProperty() {
+    return itemLabelsVisible;
   }
 }

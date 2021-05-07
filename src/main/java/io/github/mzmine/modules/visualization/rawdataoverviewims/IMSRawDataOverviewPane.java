@@ -375,7 +375,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
     selectedMz.addListener(((observable, oldValue, newValue) -> {
       if (selectedMobilogramDatasetIndex != -1) {
-        mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex);
+        mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
       }
       Thread mobilogramCalc =
           new Thread(new BuildSelectedRanges(selectedMz.get(),
@@ -409,7 +409,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   public void setSelectedRangesToChart(ColoredXYDataset dataset, TICDataSet ticDataSet,
       Color ticDatasetColor) {
     if (selectedMobilogramDatasetIndex != -1) {
-      mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex);
+      mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
     }
     if (selectedChromatogramDatasetIndex != -1) {
       ticChart.removeDataSet(selectedChromatogramDatasetIndex);

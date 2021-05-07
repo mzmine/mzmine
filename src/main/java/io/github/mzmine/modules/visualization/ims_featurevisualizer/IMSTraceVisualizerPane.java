@@ -107,7 +107,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
 
   private void onRawFileChanged(RawDataFile oldValue, RawDataFile newFile) {
     if (oldValue != newFile) {
-      ticChart.removeDataSet(ticDatasetIndex);
+      ticChart.removeDataSet(ticDatasetIndex, false);
     }
     final TICDataSet dataSet = new TICDataSet(newFile,
         newFile.getScanNumbers(1), newFile.getDataMZRange(), null,
@@ -147,7 +147,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
   private void clearFeatureFromCharts() {
     traceChart.removeAllDatasets();
     mobilogramChart.removeAllDatasets();
-    ticChart.removeDataSet(ticFeatureDatasetIndex);
+    ticChart.removeDataSet(ticFeatureDatasetIndex, false);
   }
 
   private void updateAxisLabels() {
