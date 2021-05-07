@@ -75,6 +75,8 @@ import org.xml.sax.SAXException;
 public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelection> extends
     BorderPane {
 
+  private static final String REGION_FILE_EXTENSION = "*.mzmineregionxml";
+
   final GridPane selectionControls;
   final FlowPane importExportControls;
   final VBox bottomWrap;
@@ -188,7 +190,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     MZmineCore.runLater(() -> {
       final FileChooser chooser = new FileChooser();
       chooser.getExtensionFilters()
-          .add(new ExtensionFilter("MZmine regions file", "*.mzmineregion"));
+          .add(new ExtensionFilter("MZmine regions file", REGION_FILE_EXTENSION));
       final File file = chooser.showOpenDialog(MZmineCore.getDesktop().getMainWindow());
       if (file == null) {
         return;
@@ -226,7 +228,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     MZmineCore.runLater(() -> {
       final FileChooser chooser = new FileChooser();
       chooser.getExtensionFilters()
-          .add(new ExtensionFilter("MZmine regions file", "*.mzmineregion"));
+          .add(new ExtensionFilter("MZmine regions file", REGION_FILE_EXTENSION));
       final File file = chooser.showSaveDialog(MZmineCore.getDesktop().getMainWindow());
       if (file == null) {
         return;
