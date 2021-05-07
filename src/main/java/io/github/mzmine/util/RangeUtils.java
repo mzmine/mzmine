@@ -201,13 +201,13 @@ public class RangeUtils {
         && Double.isNaN(range.upperEndpoint().doubleValue());
   }
 
-  public static boolean isJFreeRangeConnectedToGoogleRange(org.jfree.data.Range jfreeRange,
-      Range<? extends Number> googleRange) {
-    return jfreeRange.contains(googleRange.lowerEndpoint().doubleValue()) || jfreeRange
-        .contains(googleRange.upperEndpoint().doubleValue());
+  public static boolean isJFreeRangeConnectedToGuavaRange(org.jfree.data.Range jfreeRange,
+      Range<? extends Number> guavaRange) {
+    return jfreeRange.contains(guavaRange.lowerEndpoint().doubleValue()) || jfreeRange
+        .contains(guavaRange.upperEndpoint().doubleValue());
   }
 
-  public static org.jfree.data.Range googleToJFree(Range<? extends Number> range) {
+  public static org.jfree.data.Range guavaToJFree(Range<? extends Number> range) {
     return new org.jfree.data.Range(range.lowerEndpoint().doubleValue(),
         range.upperEndpoint().doubleValue());
   }
