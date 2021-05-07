@@ -109,7 +109,7 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
     Weighting weighting = parameterSet.getParameter(MobilityScanMergerParameters.weightingType)
         .getValue();
 
-    if (mergingType == null || mzTolerance == null) {
+    if (mergingType == null || mzTolerance == null || frameComboBox.getValue() == null) {
       return;
     }
 

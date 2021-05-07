@@ -130,6 +130,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
       throw new IllegalStateException("Mobility scans can only be set to a frame once.");
     }
 
+    if(!originalMobilityScans.isEmpty() && originalMobilityScans.get(0).getMobilityScanNumber() != 0) {
+      throw new IllegalArgumentException("Mobility scan numbers for a frame must start with zero.");
+    }
+
     // determine offsets for each mobility scan
     final int[] offsets = new int[originalMobilityScans.size()];
 
@@ -195,9 +199,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public double getMobilityForMobilityScan(MobilityScan scan) {
-    // todo think about this again, i feel like this is a relict of scan numbers
-    // correct the index with an offset in case there is one.
-    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScanNumber();
+    int index = mobilitySubScans.indexOf(scan);
     if (index >= 0) {
       return mobilityBuffer.get(index);
     }

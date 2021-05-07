@@ -50,6 +50,12 @@ public class BuildingMobilityScan implements MobilityScan {
   final double[] mzValues;
   int basePeakIndex;
 
+  /**
+   *
+   * @param scanNumber The scan number beginning with 0
+   * @param mzs The m/z values
+   * @param intensities The intensity values.
+   */
   public BuildingMobilityScan(int scanNumber, double[] mzs, double[] intensities) {
     assert intensities.length == mzs.length;
 
