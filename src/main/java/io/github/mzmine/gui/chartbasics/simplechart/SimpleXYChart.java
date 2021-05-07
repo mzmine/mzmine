@@ -38,7 +38,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -202,7 +201,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
-    assert Platform.isFxApplicationThread();
     // jfreechart renderers dont check if the value actually changed and notify either way
     if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
       renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
@@ -231,7 +229,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    * @return the dataset index
    */
   public synchronized int addDataset(XYDataset dataset) {
-    assert Platform.isFxApplicationThread();
     return addDataset(dataset, defaultRenderer.get());
   }
 
@@ -250,7 +247,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    */
   @Nullable
   public synchronized XYDataset removeDataSet(int index, boolean notify) {
-    assert Platform.isFxApplicationThread();
     XYDataset ds = plot.getDataset(index);
     if (ds instanceof Task) { // stop calculation in case it's still running
       ((Task) ds).cancel();
@@ -271,7 +267,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    * @return Mapping of the dataset index and the provider values.
    */
   public Map<Integer, T> addDatasetProviders(Collection<T> datasetProviders) {
-    assert Platform.isFxApplicationThread();
     chart.setNotify(false);
     HashMap<Integer, T> map = new HashMap<>();
     for (T datasetProvider : datasetProviders) {
@@ -303,7 +298,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   public synchronized void removeAllDatasets() {
-    assert Platform.isFxApplicationThread();
     chart.setNotify(false);
     plot.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
@@ -326,7 +320,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
 
   @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
-    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
+    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<>();
 
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset dataset = plot.getDataset(i);
