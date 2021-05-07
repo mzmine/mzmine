@@ -72,7 +72,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
       final boolean useAlphaInPaintscale, @Nonnull final RunOption runOption) {
     // do not run from super constructor! we need to do some other stuff first
-    super(dataProvider, RunOption.DO_NOT_RUN, false);
+    super(dataProvider, RunOption.DO_NOT_RUN);
     this.runOption = runOption;
 
     if (dataProvider instanceof PieXYZDataProvider) {
@@ -126,10 +126,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   public PaintScale getPaintScale() {
     return paintScale;
   }
-
-//  public void setPaintScale(PaintScale paintScale) {
-//    this.paintScale = paintScale;
-//  }
 
   public Double getBoxWidth() {
     return boxWidth;

@@ -56,14 +56,12 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     SeriesKeyProvider, LabelTextProvider, ToolTipTextProvider, ColorPropertyProvider {
 
   private static Logger logger = Logger.getLogger(ColoredXYDataset.class.getName());
-  private final RunOption runOption;
-
   protected final XYValueProvider xyValueProvider;
   protected final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   protected final LabelTextProvider labelTextProvider;
   protected final ToolTipTextProvider toolTipTextProvider;
   protected final IntervalWidthProvider intervalWidthProvider;
-
+  private final RunOption runOption;
   // dataset stuff
   private final int seriesCount = 1;
   protected ObjectProperty<javafx.scene.paint.Color> fxColor;
@@ -79,12 +77,10 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected Range<Double> domainRange;
   protected Range<Double> rangeRange;
 
-  protected boolean setToFinished;
-
   private ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
       ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider,
-      @Nonnull final RunOption runOption, boolean setToFinished) {
+      @Nonnull final RunOption runOption) {
 
     // Task stuff
     this.computed = false;
@@ -92,7 +88,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     status = new SimpleObjectProperty<>(TaskStatus.WAITING);
     errorMessage = "";
     this.runOption = runOption;
-    this.setToFinished = setToFinished;
 
     // dataset stuff
     this.xyValueProvider = xyValueProvider;
@@ -121,25 +116,12 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   public ColoredXYDataset(PlotXYDataProvider datasetProvider,
       @Nonnull final RunOption runOption) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider, runOption, true);
+        datasetProvider, runOption);
   }
 
   public ColoredXYDataset(@Nonnull PlotXYDataProvider datasetProvider) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider, RunOption.NEW_THREAD, true);
-  }
-
-  /**
-   * Used in extending classes, to not set the status to finished in case additional calculations
-   * need to be done, depending in the data set type.
-   *
-   * @param setToFinished Whether or not to set the status to finished after the default {@link
-   *                      this#run()} method has been called.
-   */
-  protected ColoredXYDataset(PlotXYDataProvider datasetProvider,
-      @Nonnull final RunOption runOption, boolean setToFinished) {
-    this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider, runOption, setToFinished);
+        datasetProvider, RunOption.NEW_THREAD);
   }
 
   /**
@@ -325,9 +307,9 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     domainRange = computedItemCount > 0 ? Range.closed(minDomain, maxDomain) : Range.closed(0d, 1d);
     rangeRange = computedItemCount > 0 ? Range.closed(minRange, maxRange) : Range.closed(0d, 1d);
 
-    if (setToFinished) {
-      onCalculationsFinished();
-    }
+//    if (setToFinished) {
+    onCalculationsFinished();
+//    }
   }
 
   /**
@@ -337,7 +319,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected void onCalculationsFinished() {
     computed = true;
     status.set(TaskStatus.FINISHED);
-    if (getRunOption() != RunOption.THIS_THREAD) {  // no need to notify then, dataset will be up to date
+    if (getRunOption()
+        != RunOption.THIS_THREAD) {  // no need to notify then, dataset will be up to date
       MZmineCore.runLater(this::fireDatasetChanged);
     }
   }
