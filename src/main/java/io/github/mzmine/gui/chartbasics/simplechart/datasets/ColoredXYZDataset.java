@@ -47,13 +47,13 @@ import org.jfree.data.xy.XYZDataset;
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
   private final XYZValueProvider xyzValueProvider;
+  private final RunOption runOption;
   protected PaintScale paintScale;
   protected Double boxWidth;
   protected Double boxHeight;
   protected AbstractXYItemRenderer renderer;
   protected boolean useAlphaInPaintscale;
   protected Range<Double> zRange;
-  private final RunOption runOption;
 
   public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider) {
     this(dataProvider, true);
@@ -236,9 +236,9 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
       maxZ = Math.max(zValue, maxZ);
     }
 
-    domainRange = Range.closed(minDomain, maxDomain);
-    rangeRange = Range.closed(minRange, maxRange);
-    zRange = Range.closed(minZ, maxZ);
+    domainRange = computedItemCount > 0 ? Range.closed(minDomain, maxDomain) : Range.closed(0d, 1d);
+    rangeRange = computedItemCount > 0 ? Range.closed(minRange, maxRange) : Range.closed(0d, 1d);
+    zRange = computedItemCount > 0 ? Range.closed(minZ, maxZ) : Range.closed(0d, 1d);
 
     boxHeight = xyzValueProvider.getBoxHeight();
     boxWidth = xyzValueProvider.getBoxWidth();

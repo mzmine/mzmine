@@ -36,12 +36,11 @@ import org.jfree.data.xy.XYZDataset;
 public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZDataset {
 
   private final PieXYZDataProvider<T> pieDataProvider;
+  private final RunOption runOption;
   protected AbstractXYItemRenderer renderer;
   protected double[] summedZValues;
   protected T[] sliceIdentifiers;
   private Range<Double> zRange;
-
-  private final RunOption runOption;
 
   public ColoredXYZPieDataset(@Nonnull PieXYZDataProvider<T> dataProvider) {
     this(dataProvider, RunOption.NEW_THREAD);
@@ -147,14 +146,14 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
       minZ = Math.min(zValue, minZ);
       maxZ = Math.max(zValue, maxZ);
 
-      for(int j = 0; j < sliceIdentifiers.length; j++) {
+      for (int j = 0; j < sliceIdentifiers.length; j++) {
         summedZValues[i] += getZValue(j, i);
       }
     }
 
-    domainRange = Range.closed(minDomain, maxDomain);
-    rangeRange = Range.closed(minRange, maxRange);
-    zRange = Range.closed(minZ, maxZ);
+    domainRange = computedItemCount > 0 ? Range.closed(minDomain, maxDomain) : Range.closed(0d, 1d);
+    rangeRange = computedItemCount > 0 ? Range.closed(minRange, maxRange) : Range.closed(0d, 1d);
+    zRange = computedItemCount > 0 ? Range.closed(minZ, maxZ) : Range.closed(0d, 1d);
 
     computed = true;
     onCalculationsFinished();
