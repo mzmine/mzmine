@@ -25,8 +25,9 @@ import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMobilogramTimeSeriesToRtMobilityHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
@@ -130,16 +131,16 @@ public class IMSTraceVisualizerPane extends BorderPane {
     rawFileProperty.set(feature.getRawDataFile());
     updateAxisLabels();
 
-    final FastColoredXYZDataset ionTrace = new FastColoredXYZDataset(
-        new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(feature));
+    final ColoredXYZDataset ionTrace = new ColoredXYZDataset(
+        new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(feature), RunOption.THIS_THREAD);
     traceChart.setDataset(ionTrace);
 
-    final FastColoredXYDataset mobilogram = new FastColoredXYDataset(
-        new SummedMobilogramXYProvider(feature, true));
+    final ColoredXYDataset mobilogram = new ColoredXYDataset(
+        new SummedMobilogramXYProvider(feature, true), RunOption.THIS_THREAD);
     mobilogramChart.addDataset(mobilogram, mobilogramChart.getDefaultRenderer());
 
-    final FastColoredXYDataset dataSet = new FastColoredXYDataset(
-        new IonTimeSeriesToXYProvider(feature));
+    final ColoredXYDataset dataSet = new ColoredXYDataset(
+        new IonTimeSeriesToXYProvider(feature), RunOption.THIS_THREAD);
     ticFeatureDatasetIndex = ticChart.addDataset(dataSet);
   }
 

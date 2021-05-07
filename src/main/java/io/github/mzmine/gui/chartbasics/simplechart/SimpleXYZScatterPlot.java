@@ -326,6 +326,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       }
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
+      if(ds != null) {
+        ds.removeChangeListener(getXYPlot());
+      }
     }
     plot.setNotify(true);
     chart.setNotify(true);

@@ -242,6 +242,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     }
     plot.setDataset(index, null);
     plot.setRenderer(index, null);
+    if(ds != null) {
+      ds.removeChangeListener(getXYPlot());
+    }
 //    notifyDatasetChangeListeners();
     return ds;
   }
@@ -293,6 +296,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
       }
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
+      ds.removeChangeListener(getXYPlot());
     }
     plot.setNotify(true);
     chart.setNotify(true);
