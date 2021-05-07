@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -100,6 +101,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     this.centerFunction = centerFunction;
     this.msLevel = msLevel;
     this.scanDefinition = ScanUtils.scanToString(this, true);
+    addMassList(new ScanPointerMassList(this));
   }
 
   @Override
@@ -169,6 +171,9 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
 
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
+    if(massList == null) {
+      logger.info("blub");
+    }
     // we are not going into any details if this.massList equals massList
     // do not call listeners if the same object is passed multiple times
     if (this.massList == massList) {

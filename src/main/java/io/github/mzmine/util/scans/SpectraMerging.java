@@ -40,7 +40,6 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
-import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.IonMobilityUtils;
@@ -303,8 +302,6 @@ public class SpectraMerging {
         merged[1], precursorMz, info.getPrecursorCharge(), collisionEnergy, frame.getMSLevel(),
         mobilityScans, mergingType, cf);
 
-    MassList newMl = new SimpleMassList(storage, merged[0], merged[1]);
-    mergedSpectrum.addMassList(newMl);
     return mergedSpectrum;
   }
 
@@ -340,6 +337,7 @@ public class SpectraMerging {
           mzIntensities[0], mzIntensities[1],
           spectrum.getPrecursorMZ(), spectrum.getPrecursorCharge(), spectrum.getCollisionEnergy(),
           spectrum.getMSLevel(), sourceSpectra, mergingType, cf);
+//      mergedMsMsSpectrum.addMassList(new ScanPointerMassList(mergedMsMsSpectrum));
       mergedSpectra.add(mergedMsMsSpectrum);
     }
 
