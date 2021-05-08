@@ -13,20 +13,20 @@
 
 package io.github.mzmine.modules.io.import_mzml_msdk.msdk.data;
 
+import io.github.msdk.datamodel.Chromatogram;
+import io.github.msdk.datamodel.MsScan;
+import io.github.mzmine.modules.io.import_mzml_msdk.msdk.MzMLFileImportMethod;
+import io.github.mzmine.modules.io.import_mzml_msdk.msdk.util.TagTracker;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.io.IOUtils;
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.MsScan;
-import io.github.mzmine.modules.io.import_mzml_msdk.msdk.MzMLFileImportMethod;
-import io.github.mzmine.modules.io.import_mzml_msdk.msdk.util.TagTracker;
 import javolution.text.CharArray;
 import javolution.xml.internal.stream.XMLStreamReaderImpl;
 import javolution.xml.stream.XMLStreamReader;
+import org.apache.commons.io.IOUtils;
 
 /**
  * <p>
@@ -537,6 +537,15 @@ public class MzMLParser {
     // So, get the value of the index tag if the scanNumber is not present in the ID
     if (scanNumberFound) {
       Integer scanNumber = Integer.parseInt(matcher.group(1));
+      return Optional.ofNullable(scanNumber);
+    }
+
+    // agilent
+    final Pattern agilentPattern = Pattern.compile("scan[iI]d=([0-9]+)");
+    final Matcher agilentMatcher = agilentPattern.matcher(spectrumId);
+    boolean agilentScanNumberFound = agilentMatcher.find();
+    if (agilentScanNumberFound) {
+      Integer scanNumber = Integer.parseInt(agilentMatcher.group(1));
       return Optional.ofNullable(scanNumber);
     }
 
