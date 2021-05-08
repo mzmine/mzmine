@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.impl.masslist.MobilityScanMassList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -70,8 +69,6 @@ public interface MobilityScan extends MassSpectrum, Scan {
   @Nullable
   MassList getMassList();
 
-  void setMassList(final @Nonnull MassList massList);
-
   @Override
   default int compareTo(@Nonnull Scan s) {
     int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
@@ -117,15 +114,6 @@ public interface MobilityScan extends MassSpectrum, Scan {
   @Override
   default int getPrecursorCharge() {
     return getMsMsInfo() != null ? getMsMsInfo().getPrecursorCharge() : 0;
-  }
-
-  @Override
-  default void addMassList(@Nonnull MassList massList) {
-    if (!(massList instanceof MobilityScanMassList)) {
-      throw new IllegalArgumentException(
-          "Cannot mass lists of type " + massList.getClass().getName() + " to MobilityScan");
-    }
-    setMassList(massList);
   }
 
   @Override

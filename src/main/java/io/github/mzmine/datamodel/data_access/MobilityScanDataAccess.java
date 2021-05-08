@@ -128,7 +128,7 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   @Override
-  public void setMassList(@Nonnull MassList massList) {
+  public void addMassList(@Nonnull MassList massList) {
     throw new UnsupportedOperationException("Cannot set a mass list for a MobilityScanDataAccess.");
   }
 
