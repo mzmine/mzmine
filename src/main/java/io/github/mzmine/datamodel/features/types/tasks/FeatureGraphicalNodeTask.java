@@ -71,7 +71,6 @@ public class FeatureGraphicalNodeTask extends AbstractTask {
 
     } catch (NoSuchMethodException | IllegalAccessException | InstantiationException
         | InvocationTargetException e) {
-      e.printStackTrace();
       setStatus(TaskStatus.ERROR);
       logger.log(Level.SEVERE, e.getMessage(), e);
       return;

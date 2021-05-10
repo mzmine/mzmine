@@ -41,6 +41,7 @@ public class MoblityScanMergerTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final Weighting weighting;
   private final ParameterSet parameters;
+  private final double noiseLevel;
   private int totalFrames;
   private int processedFrames;
 
@@ -56,6 +57,7 @@ public class MoblityScanMergerTask extends AbstractTask {
     weighting = parameters.getParameter(MobilityScanMergerParameters.weightingType)
         .getValue();
     scanSelection = parameters.getParameter(MobilityScanMergerParameters.scanSelection).getValue();
+    noiseLevel = parameters.getParameter(MobilityScanMergerParameters.noiseLevel).getValue();
   }
 
 
@@ -74,7 +76,7 @@ public class MoblityScanMergerTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
 
-    CenterFunction cf = new CenterFunction(CenterMeasure.AVG, weighting);
+    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, weighting);
 
     Collection<Frame> frames = (Collection<Frame>) scanSelection
         .getMachtingScans(rawDataFile.getFrames());
@@ -82,8 +84,8 @@ public class MoblityScanMergerTask extends AbstractTask {
     for (Frame f : frames) {
       SimpleFrame frame = (SimpleFrame) f;
       double[][] merged = SpectraMerging
-          .calculatedMergedMzsAndIntensities(frame.getMobilityScans(), 0d, mzTolerance,
-              MergingType.SUMMED, cf);
+          .calculatedMergedMzsAndIntensities(frame.getMobilityScans(), mzTolerance,
+              MergingType.SUMMED, cf, noiseLevel);
 
       frame.setDataPoints(merged[0], merged[1]);
 

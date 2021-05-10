@@ -49,6 +49,10 @@ public class SimpleMobilityScan implements MobilityScan {
   private final int mobilityScanNumber;
   private final int basePeakIndex;
 
+  /**
+   *
+   * @param mobilityScanNumber The mobility scan number starting with 0.
+   */
   public SimpleMobilityScan(int mobilityScanNumber, SimpleFrame frame, int storageOffset,
       int numDataPoints, @Nullable Integer basePeakIndex) {
     this.frame = frame;
