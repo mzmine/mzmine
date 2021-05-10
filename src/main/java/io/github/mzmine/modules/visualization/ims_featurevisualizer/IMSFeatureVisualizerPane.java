@@ -159,7 +159,7 @@ public class IMSFeatureVisualizerPane extends SplitPane {
       return;
     }
     if(binWidth == 0d) {
-      binWidth = Double.MIN_VALUE;
+      binWidth = 0.00001;
     }
 
     final MobilogramDataAccess access = EfficientDataAccess
