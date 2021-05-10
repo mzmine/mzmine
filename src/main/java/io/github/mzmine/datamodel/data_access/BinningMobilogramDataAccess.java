@@ -71,7 +71,9 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   private final double[] tempIntensities;
   private final double[] mobilities;
   private final double[] upperBinLimits;
-  private final double binWidth;
+  private final int binWidth;
+
+  private final double approximateBinSize;
 
   public BinningMobilogramDataAccess(@Nonnull final IMSRawDataFile rawDataFile,
       final int binWidth) {
@@ -134,6 +136,18 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     mobilities = centerBins.stream().mapToDouble(Double::doubleValue).toArray();
     upperBinLimits = upperLimits.stream().mapToDouble(Double::doubleValue).toArray();
     intensities = new double[mobilities.length];
+
+    double previous = mobilities[0];
+    double deltas = 0;
+    for (int i = 1; i < mobilities.length; i++) {
+      deltas += mobilities[i] - previous;
+      previous = mobilities[i];
+    }
+
+    approximateBinSize = deltas / (mobilities.length - 2);
+    logger.finest(
+        () -> "Bin width set to " + binWidth + " scans. (approximately " + approximateBinSize + " "
+            + rawDataFile.getMobilityType().getUnit() + ")");
   }
 
   @Nullable
@@ -370,5 +384,13 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
   public double getBinWidth() {
     return (double) binWidth;
+  }
+
+  /**
+   *
+   * @return The approximate bin size in mobility units with respect to the raw data file.
+   */
+  public double getApproximateBinSize() {
+    return approximateBinSize;
   }
 }
