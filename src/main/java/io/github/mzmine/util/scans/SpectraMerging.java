@@ -42,7 +42,6 @@ import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -329,7 +328,7 @@ public class SpectraMerging {
     for (final Entry<Float, List<MergedMsMsSpectrum>> entry : grouped.entrySet()) {
       final MergedMsMsSpectrum spectrum = entry.getValue().get(0);
       final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(),
-          tolerance, mergingType, cf, 0d);
+          tolerance, mergingType, cf, null);
       final List<MassSpectrum> sourceSpectra = entry.getValue().stream()
           .flatMap(s -> s.getSourceSpectra().stream()).collect(Collectors.toList());
 
@@ -337,7 +336,6 @@ public class SpectraMerging {
           mzIntensities[0], mzIntensities[1],
           spectrum.getPrecursorMZ(), spectrum.getPrecursorCharge(), spectrum.getCollisionEnergy(),
           spectrum.getMSLevel(), sourceSpectra, mergingType, cf);
-//      mergedMsMsSpectrum.addMassList(new ScanPointerMassList(mergedMsMsSpectrum));
       mergedSpectra.add(mergedMsMsSpectrum);
     }
 
@@ -347,8 +345,6 @@ public class SpectraMerging {
   public static MergedMassSpectrum extractSummedMobilityScan(@Nonnull final ModularFeature f,
       @Nonnull final MZTolerance tolerance, @Nonnull final Range<Float> mobilityRange,
       @Nullable final MemoryMapStorage storage) {
-    final MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(f);
-
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
       return null;
     }
@@ -363,7 +359,7 @@ public class SpectraMerging {
         }).toList();
 
     final double merged[][] = calculatedMergedMzsAndIntensities(scans, tolerance,
-        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION, 0d);
+        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null);
 
     var scan = new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans, MergingType.SUMMED,
         DEFAULT_CENTER_FUNCTION);

@@ -38,8 +38,8 @@ import javax.annotation.Nullable;
 
 /**
  * Represents a spectrum based on multiple individual mass spectra. Compatible with the {@link Scan}
- * interface. {@link SimpleMergedMassSpectrum#getScanNumber()} will return -1 to represent
- * the artificial state of this spectrum.
+ * interface. {@link SimpleMergedMassSpectrum#getScanNumber()} will return -1 to represent the
+ * artificial state of this spectrum.
  */
 public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implements
     MergedMassSpectrum {
@@ -58,6 +58,9 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   protected MassList massList = null;
 
   /**
+   * Construncts a new SimpleMergedMassSpectrum. A {@link ScanPointerMassList} will be created by
+   * default.
+   *
    * @param storage         The storage to use. may be null.
    * @param mzValues        The merged mz values
    * @param intensityValues The merged intensities
@@ -171,9 +174,6 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
 
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
-    if(massList == null) {
-      logger.info("blub");
-    }
     // we are not going into any details if this.massList equals massList
     // do not call listeners if the same object is passed multiple times
     if (this.massList == massList) {
