@@ -24,7 +24,8 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
@@ -47,14 +48,11 @@ import org.jfree.data.Range;
 public class ImageChart extends StackPane {
 
   private static Logger logger = Logger.getLogger(ImageChart.class.getName());
-//  private Double dataPointWidth;
-//  private Double dataPointHeight;
-//  private PaintScale paintScaleParameter;
 
   public ImageChart(@Nonnull ModularFeature f, AtomicDouble progress) {
 
     FeatureImageProvider prov = new FeatureImageProvider(f);
-    FastColoredXYZDataset ds = new FastColoredXYZDataset(prov);
+    ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
     // checked in ImagingChart.class
 
     SimpleXYZScatterPlot<FeatureImageProvider> chart = new SimpleXYZScatterPlot<>();

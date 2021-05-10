@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,10 +28,10 @@ import javax.annotation.Nonnull;
 
 public class IMSMobilityMzPlotTab extends MZmineTab {
 
-  public IMSMobilityMzPlotTab(Collection<ModularFeature> features, boolean useMobilograms) {
+  public IMSMobilityMzPlotTab(Collection<ModularFeatureListRow> rows, boolean useMobilograms) {
     super("IMS mobility m/z plot", false, false);
     IMSMobilityMzPlot visualizer = new IMSMobilityMzPlot();
-    visualizer.setFeatures(features, useMobilograms, PlotType.MOBILITY);
+    visualizer.setFeatures(rows, PlotType.MOBILITY, useMobilograms);
     setContent(visualizer);
   }
 
@@ -55,16 +55,16 @@ public class IMSMobilityMzPlotTab extends MZmineTab {
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
+    // nothing
   }
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
+    // nothing
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
+    // nothing
   }
 }

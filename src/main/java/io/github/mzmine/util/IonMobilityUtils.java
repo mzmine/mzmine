@@ -32,11 +32,11 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -75,40 +75,25 @@ public class IonMobilityUtils {
     return ranges;
   }
 
-  public static List<ModularFeature> getFeaturesWithinRegion(Collection<ModularFeature> features,
-      List<Path2D> regions) {
-
-    List<ModularFeature> contained = new ArrayList<>();
-    for (ModularFeature feature : features) {
-      if (isFeatureWithinMzMobilityRegion(feature, regions)) {
-        contained.add(feature);
-      }
-    }
-    return contained;
-  }
-
-  public static boolean isFeatureWithinMzMobilityRegion(@Nonnull ModularFeature feature,
+  public static boolean isRowWithinMzMobilityRegion(@Nonnull ModularFeatureListRow row,
       @Nonnull final Collection<Path2D> regions) {
-    if (feature != null) {
-      Property<Float> mobility = feature.get(MobilityType.class);
+      Property<Float> mobility = row.get(MobilityType.class);
       if (mobility != null) {
-        Point2D point = new Point2D.Double(feature.getMZ(), mobility.getValue().doubleValue());
+        Point2D point = new Point2D.Double(row.getAverageMZ(), mobility.getValue().doubleValue());
         for (Path2D region : regions) {
           if (region.contains(point)) {
             return true;
           }
         }
       }
-    }
     return false;
   }
 
-  public static boolean isFeatureWithinMzCCSRegion(@Nonnull ModularFeature feature,
+  public static boolean isRowWithinMzCCSRegion(@Nonnull ModularFeatureListRow feature,
       @Nonnull final Collection<Path2D> regions) {
-    if (feature != null) {
-      Float ccs = feature.getCCS();
+      Float ccs = feature.getAverageCCS();
       if (ccs != null) {
-        Point2D point = new Point2D.Double(feature.getMZ() * feature.getCharge(),
+        Point2D point = new Point2D.Double(feature.getAverageMZ() * feature.getRowCharge(),
             ccs.doubleValue());
         for (Path2D region : regions) {
           if (region.contains(point)) {
@@ -116,7 +101,6 @@ public class IonMobilityUtils {
           }
         }
       }
-    }
     return false;
   }
 
@@ -124,11 +108,11 @@ public class IonMobilityUtils {
    * Builds a mobilogram for the given mz range in the frame. Should only be used for previews and
    * visualisations, less perfomant than a ims feature detector.
    *
-   * @param frame
-   * @param mzRange
-   * @param type
-   * @param storage
-   * @return
+   * @param frame The frame
+   * @param mzRange The mz/Range of the mobilogram
+   * @param type basepeak or tic (summed)
+   * @param storage The storage to use
+   * @return The built mobilogram.
    */
   public static IonMobilitySeries buildMobilogramForMzRange(@Nonnull final Frame frame,
       @Nonnull final Range<Double> mzRange, @Nonnull final MobilogramType type,

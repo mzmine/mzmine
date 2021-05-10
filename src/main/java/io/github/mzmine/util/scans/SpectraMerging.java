@@ -22,23 +22,26 @@ import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
-import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
-import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -48,15 +51,15 @@ import io.github.mzmine.util.maths.Weighting;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -80,47 +83,59 @@ public class SpectraMerging {
 
   private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Intensity,
       SortingDirection.Descending);
+  private static Logger logger = Logger.getLogger(SpectraMerging.class.getName());
 
   /**
-   * @param source           The source spectra.
-   * @param noiseLevel       An additional noise level.
-   * @param tolerance        The mz tolerance.  Merging of data points from the same spectrum is
-   *                         prevented by indexing the data points prior to sorting.
-   * @param mergingType      the method intensity values shall be calculated.
-   * @param mzCenterFunction Method to center the data point's m/z values.
-   * @return double[2][] array, [0][] being the mzs, [1][] being the intensities.
+   * Calculates merged intensities and mz values of all data points in the given spectrum. Ideally,
+   * {@link MassList}s should be used so noise is filtered out by the user.
+   *
+   * @param source           The {@link MassSpectrum} source
+   * @param tolerance        m/z tolerance to merge peaks.
+   * @param mergingType      The way to calculate intensities (avg, sum, max)
+   * @param mzCenterFunction A function to center m/z values after merging.
+   * @param <T>              Any type of {@link MassSpectrum}
+   * @param noiseLevel       A noise level to use. May be null or 0 if no noise level shall be
+   *                         used.
+   * @return double[2][] array, [0][] being the mzs, [1] being the intensities. Empty double[2][0]
+   * if the source collection is empty.
    */
   public static <T extends MassSpectrum> double[][] calculatedMergedMzsAndIntensities(
-      Collection<T> source, double noiseLevel, MZTolerance tolerance, MergingType mergingType,
-      CenterFunction mzCenterFunction) {
+      @Nonnull final Collection<T> source, @Nonnull final MZTolerance tolerance,
+      @Nonnull final MergingType mergingType, @Nonnull final CenterFunction mzCenterFunction,
+      @Nullable final Double noiseLevel) {
 
-    // extract all datapoints above the noise level
-    // todo: once we got rid of MassLists, we should update this to use the replacement and not use another noise level
-    List<IndexedDataPoint> dataPoints = new ArrayList<>();
+    if (source.isEmpty()) {
+      return new double[][]{new double[0], new double[0]};
+    }
+
+    final List<IndexedDataPoint> dataPoints = new ArrayList<>();
+    // extract all data points in the mass spectrum
+    final int numDp = source.stream().mapToInt(MassSpectrum::getNumberOfDataPoints).max()
+        .getAsInt();
+    final double[] rawMzs = new double[numDp];
+    final double[] rawIntensities = new double[numDp];
+
     int index = 0;
     for (T spectrum : source) {
-      double[] rawMzs = new double[spectrum.getNumberOfDataPoints()];
-      double[] rawIntensities = new double[spectrum.getNumberOfDataPoints()];
+      spectrum.getMzValues(rawMzs);
+      spectrum.getIntensityValues(rawIntensities);
 
-      double[][] data = DataPointUtils.getDatapointsAboveNoiseLevel(spectrum.getMzValues(rawMzs),
-          spectrum.getIntensityValues(rawIntensities), noiseLevel);
-
-      double[] mzs = data[0];
-      double[] intensities = data[1];
-
-      for (int i = 0; i < mzs.length; i++) {
-        IndexedDataPoint dp = new IndexedDataPoint(mzs[i], intensities[i], index);
-        dataPoints.add(dp);
+      for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+        if (noiseLevel == null || rawIntensities[i] > noiseLevel) {
+          final IndexedDataPoint dp = new IndexedDataPoint(rawMzs[i], rawIntensities[i], index);
+          dataPoints.add(dp);
+        }
       }
       index++;
     }
 
-    Collections.sort(dataPoints, sorter);
+    dataPoints.sort(sorter);
 
     // set is sorted by the index of the datapoint, so we can quickly check the presence of the same index
     RangeMap<Double, SortedSet<IndexedDataPoint>> dataPointRanges = TreeRangeMap.create();
 
     for (IndexedDataPoint dp : dataPoints) {
+      // todo hash map should be smarter, just put by index
       SortedSet<IndexedDataPoint> dplist = dataPointRanges.get(dp.getMZ());
       boolean containsIndex = false;
 
@@ -142,7 +157,8 @@ public class SpectraMerging {
             }
           }
         }
-        // if an entry contains that index, make a new entry
+        // if an entry contains that index, make a new entry (this way multiple data points from a
+        //  single scan will not be merged together)
         if (containsIndex) {
           dplist = new TreeSet<>(Comparator.comparingInt(IndexedDataPoint::getIndex));
           Range<Double> range = createNewNonOverlappingRange(dataPointRanges,
@@ -170,8 +186,8 @@ public class SpectraMerging {
       double newMz = mzCenterFunction.calcCenter(mzs, intensities);
       double newIntensity = switch (mergingType) {
         case SUMMED -> Arrays.stream(intensities).sum();
-        case MAXIMUM -> Arrays.stream(intensities).max().getAsDouble();
-        case AVERAGE -> Arrays.stream(intensities).average().getAsDouble();
+        case MAXIMUM -> Arrays.stream(intensities).max().orElse(0d);
+        case AVERAGE -> Arrays.stream(intensities).average().orElse(0d);
       };
 
       newMzs[counter] = newMz;
@@ -179,10 +195,7 @@ public class SpectraMerging {
       counter++;
     }
 
-    double[][] data = new double[2][];
-    data[0] = newMzs;
-    data[1] = newIntensities;
-    return data;
+    return new double[][]{newMzs, newIntensities};
   }
 
   /**
@@ -249,17 +262,17 @@ public class SpectraMerging {
    * @return A {@link MergedMsMsSpectrum}.
    */
   public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@Nonnull final ImsMsMsInfo info,
-      final double noiseLevel, @Nonnull final MZTolerance tolerance,
-      @Nonnull final MergingType mergingType, @Nullable final MemoryMapStorage storage) {
+      @Nonnull final MZTolerance tolerance, @Nonnull final MergingType mergingType,
+      @Nullable final MemoryMapStorage storage) {
 
     if (info == null) {
       return null;
     }
 
-    Range<Integer> spectraNumbers = info.getSpectrumNumberRange();
-    Frame frame = info.getFrameNumber();
-    float collisionEnergy = info.getCollisionEnergy();
-    double precursorMz = info.getLargestPeakMz();
+    final Range<Integer> spectraNumbers = info.getSpectrumNumberRange();
+    final Frame frame = info.getFrameNumber();
+    final float collisionEnergy = info.getCollisionEnergy();
+    final double precursorMz = info.getLargestPeakMz();
 
     List<MobilityScan> mobilityScans = frame.getMobilityScans().stream()
         .filter(ms -> spectraNumbers.contains(ms.getMobilityScanNumber())).collect(
@@ -269,26 +282,25 @@ public class SpectraMerging {
       return null;
     }
 
-    CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
+    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG,
+        CenterFunction.DEFAULT_MZ_WEIGHTING);
 
-    Optional<MassList> firstSet = mobilityScans.stream().map(MobilityScan::getMassList)
-        .filter(Objects::nonNull).findFirst();
+    final List<MassList> massLists = mobilityScans.stream().map(MobilityScan::getMassList)
+        .collect(Collectors.toList());
 
-    if (firstSet.isEmpty()) {
+    if (massLists.isEmpty()) {
+      logger.info(
+          "Cannot calculate a merged MS/MS spectrum, because MS2 Scans do not contain a MassList.");
       return null;
     }
 
-    MassList ml = firstSet.get();
-
-    double[][] merged = calculatedMergedMzsAndIntensities(mobilityScans, noiseLevel, tolerance,
-        mergingType, cf);
+    double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance,
+        mergingType, cf, null);
 
     MergedMsMsSpectrum mergedSpectrum = new SimpleMergedMsMsSpectrum(storage, merged[0],
         merged[1], precursorMz, info.getPrecursorCharge(), collisionEnergy, frame.getMSLevel(),
         mobilityScans, mergingType, cf);
 
-    MassList newMl = new SimpleMassList(storage, merged[0], merged[1]);
-    mergedSpectrum.addMassList(newMl);
     return mergedSpectrum;
   }
 
@@ -315,9 +327,8 @@ public class SpectraMerging {
 
     for (final Entry<Float, List<MergedMsMsSpectrum>> entry : grouped.entrySet()) {
       final MergedMsMsSpectrum spectrum = entry.getValue().get(0);
-      final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(), 0d,
-          tolerance,
-          mergingType, cf);
+      final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(),
+          tolerance, mergingType, cf, null);
       final List<MassSpectrum> sourceSpectra = entry.getValue().stream()
           .flatMap(s -> s.getSourceSpectra().stream()).collect(Collectors.toList());
 
@@ -334,8 +345,6 @@ public class SpectraMerging {
   public static MergedMassSpectrum extractSummedMobilityScan(@Nonnull final ModularFeature f,
       @Nonnull final MZTolerance tolerance, @Nonnull final Range<Float> mobilityRange,
       @Nullable final MemoryMapStorage storage) {
-    final MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(f);
-
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
       return null;
     }
@@ -349,14 +358,104 @@ public class SpectraMerging {
           }
         }).toList();
 
-    final double merged[][] = calculatedMergedMzsAndIntensities(scans, 10, tolerance,
-        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
+    final double merged[][] = calculatedMergedMzsAndIntensities(scans, tolerance,
+        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null);
 
     var scan = new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans, MergingType.SUMMED,
         DEFAULT_CENTER_FUNCTION);
     scan.addMassList(new ScanPointerMassList(scan));
 
     return scan;
+  }
+
+  public static Frame getMergedFrame(@Nonnull final Collection<Frame> frames,
+      @Nonnull final MZTolerance tolerance,
+      @Nullable final MemoryMapStorage storage, final int mobilityScanBin,
+      @Nonnull final AtomicDouble progress) {
+    if (frames.isEmpty()) {
+      throw new IllegalStateException("No frames in collection to be merged.");
+    }
+
+    final Frame aFrame = frames.stream().findAny().get();
+    final int msLevel = aFrame.getMSLevel();
+    final PolarityType polarityType = aFrame.getPolarity();
+    float lowestRt = Float.MAX_VALUE;
+    float highestRt = Float.MIN_VALUE;
+    Range<Double> scanMzRange = aFrame.getScanningMZRange();
+
+    // map all mobility scans that shall be merged together into the same list
+    final Map<Integer, List<MobilityScan>> scanMap = new HashMap<>();
+    for (final Frame frame : frames) {
+      for (final MobilityScan mobilityScan : frame.getMobilityScans()) {
+        final List<MobilityScan> mobilityScans = scanMap.computeIfAbsent(
+            mobilityScan.getMobilityScanNumber() / mobilityScanBin,
+            i -> new ArrayList<>());
+        mobilityScans.add(mobilityScan);
+      }
+
+      if (frame.getRetentionTime() < lowestRt) {
+        lowestRt = frame.getRetentionTime();
+      }
+      if (frame.getRetentionTime() > highestRt) {
+        highestRt = frame.getRetentionTime();
+      }
+      if (!scanMzRange.equals(frame.getScanningMZRange()) && !scanMzRange
+          .encloses(frame.getScanningMZRange())) {
+        scanMzRange = scanMzRange.span(frame.getScanningMZRange());
+      }
+
+      if (msLevel != frame.getMSLevel()) {
+        throw new AssertionError("Cannot merge frames of different MS levels");
+      }
+      if (polarityType != frame.getPolarity()) {
+        throw new AssertionError("Cannot merge frames of different polarities");
+      }
+    }
+
+    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG,
+        CenterFunction.DEFAULT_MZ_WEIGHTING);
+    final IMSRawDataFile file = (IMSRawDataFile) frames.stream().findAny().get().getDataFile();
+
+    final SimpleFrame frame = new SimpleFrame(file, -1, msLevel, (highestRt + lowestRt) / 2, 0d, 0,
+        null, null, MassSpectrumType.CENTROIDED, polarityType,
+        "Merged frame (" + frames.stream() + ")", scanMzRange, aFrame.getMobilityType(), null);
+
+    final AtomicInteger processed = new AtomicInteger(0);
+    final double totalFrames = scanMap.size();
+
+    // create a merged spectrum for each mobility scan bin
+    final List<BuildingMobilityScan> buildingMobilityScans = scanMap.entrySet().parallelStream()
+        .map(entry -> {
+          final List<MassList> massLists = entry.getValue().stream().map(MobilityScan::getMassList)
+              .collect(Collectors.toList());
+          if (massLists.size() != entry.getValue().size()) {
+            throw new IllegalArgumentException(
+                "Not all mobility scans contain a mass list. Cannot merge Frames.");
+          }
+          double[][] mzIntensities = calculatedMergedMzsAndIntensities(massLists, tolerance,
+              MergingType.SUMMED, cf, null);
+
+          processed.getAndIncrement();
+          progress.set(processed.get() / totalFrames);
+
+          return new BuildingMobilityScan(entry.getKey(), mzIntensities[0], mzIntensities[1]);
+        }).sorted(Comparator.comparingInt(BuildingMobilityScan::getMobilityScanNumber))
+        .collect(Collectors.toList());
+
+    final double[] mobilities = new double[scanMap.size()];
+    int i = 0;
+    for (Integer num : scanMap.keySet()) {
+      mobilities[i] = aFrame.getMobilityScan(Math.min(num * mobilityScanBin + (mobilityScanBin / 2),
+          aFrame.getNumberOfMobilityScans() - 1)).getMobility();
+      i++;
+    }
+
+    frame.setMobilityScans(buildingMobilityScans);
+    frame.setMobilities(mobilities);
+    double[][] mergedSpectrum = calculatedMergedMzsAndIntensities(buildingMobilityScans,
+        tolerance, MergingType.SUMMED, cf, null);
+    frame.setDataPoints(mergedSpectrum[0], mergedSpectrum[1]);
+    return frame;
   }
 
   public enum MergingType {

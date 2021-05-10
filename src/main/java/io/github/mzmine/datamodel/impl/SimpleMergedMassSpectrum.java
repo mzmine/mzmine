@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -37,8 +38,8 @@ import javax.annotation.Nullable;
 
 /**
  * Represents a spectrum based on multiple individual mass spectra. Compatible with the {@link Scan}
- * interface. {@link SimpleMergedMassSpectrum#getScanNumber()} will return -1 to represent
- * the artificial state of this spectrum.
+ * interface. {@link SimpleMergedMassSpectrum#getScanNumber()} will return -1 to represent the
+ * artificial state of this spectrum.
  */
 public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implements
     MergedMassSpectrum {
@@ -57,6 +58,9 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   protected MassList massList = null;
 
   /**
+   * Construncts a new SimpleMergedMassSpectrum. A {@link ScanPointerMassList} will be created by
+   * default.
+   *
    * @param storage         The storage to use. may be null.
    * @param mzValues        The merged mz values
    * @param intensityValues The merged intensities
@@ -100,6 +104,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     this.centerFunction = centerFunction;
     this.msLevel = msLevel;
     this.scanDefinition = ScanUtils.scanToString(this, true);
+    addMassList(new ScanPointerMassList(this));
   }
 
   @Override
