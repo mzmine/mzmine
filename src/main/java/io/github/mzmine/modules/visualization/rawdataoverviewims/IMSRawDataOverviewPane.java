@@ -205,14 +205,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     MZmineCore.getTaskController().addTask(new BuildMultipleMobilogramRanges(
         controlsPanel.getMobilogramRangesList(), Set.of(cachedFrame), rawDataFile, this,
         rangesBinningMobilogramDataAccess));
-    if (!RangeUtils.isJFreeRangeConnectedToGoogleRange(
+    if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
         heatmapChart.getXYPlot().getRangeAxis().getRange(),
         selectedFrame.get().getMobilityRange())) {
       heatmapChart.getXYPlot().getRangeAxis().setRange(
           selectedFrame.get().getMobilityRange().lowerEndpoint(),
           selectedFrame.get().getMobilityRange().upperEndpoint());
     }
-    if (!RangeUtils.isJFreeRangeConnectedToGoogleRange(
+    if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
         heatmapChart.getXYPlot().getDomainAxis().getRange(),
         selectedFrame.get().getDataPointMZRange())) {
       heatmapChart.getXYPlot().getDomainAxis().setRange(
@@ -375,7 +375,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
 
     selectedMz.addListener(((observable, oldValue, newValue) -> {
       if (selectedMobilogramDatasetIndex != -1) {
-        mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex);
+        mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
       }
       Thread mobilogramCalc =
           new Thread(new BuildSelectedRanges(selectedMz.get(),
@@ -409,7 +409,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   public void setSelectedRangesToChart(ColoredXYDataset dataset, TICDataSet ticDataSet,
       Color ticDatasetColor) {
     if (selectedMobilogramDatasetIndex != -1) {
-      mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex);
+      mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
     }
     if (selectedChromatogramDatasetIndex != -1) {
       ticChart.removeDataSet(selectedChromatogramDatasetIndex);
@@ -469,7 +469,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
         rawDataFile.getDataMZRange(), null);
     ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
     ticChart.setTitle("BPC - " + rawDataFile.getName(), "");
-    if (!RangeUtils.isJFreeRangeConnectedToGoogleRange(
+    if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
         ticChart.getXYPlot().getDomainAxis().getRange(), rawDataFile.getDataRTRange(1))) {
       ticChart.getXYPlot().getDomainAxis().setRange(rawDataFile.getDataRTRange().lowerEndpoint(),
           rawDataFile.getDataRTRange().upperEndpoint());

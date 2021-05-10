@@ -211,7 +211,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
       if (buildingFrame == null || Float.compare((scan.getRetentionTime() / 60f),
           buildingFrame.getRetentionTime()) != 0) {
-        mobilityScanNumberCounter = 0;
+        mobilityScanNumberCounter = 0; // mobility scan numbers start with 0!
         // waters uses different numbering for ms1 and ms2, so we need to reset if we start a new frame.
         lastScanId = null;
 
@@ -221,8 +221,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
           finishedFrame
               .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
           newImsFile.addScan(buildingFrame);
-
-          logger.finest(() -> finishedFrame.getFrameId() + " -> " + mobilityScans.size());
 
           mobilityScans.clear();
           mobilities.clear();

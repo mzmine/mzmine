@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
@@ -131,8 +131,8 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     }
 
     previewChart.setDomainAxisLabel(f.getMobilityUnit().getAxisLabel());
-    previewChart.addDataset(new FastColoredXYDataset(
-        new SummedMobilogramXYProvider(series.getSummedMobilogram(),
+    previewChart.addDataset(
+        new ColoredXYDataset(new SummedMobilogramXYProvider(series.getSummedMobilogram(),
             new SimpleObjectProperty<>(f.getRawDataFile().getColor()),
             FeatureUtils.featureToString(f))));
 
@@ -163,7 +163,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     SummedIntensityMobilitySeries fromSummed = summedMobilogramAccess
         .toSummedMobilogram(null);
 
-    previewChart.addDataset(new FastColoredXYDataset(
+    previewChart.addDataset(new ColoredXYDataset(
         new SummedMobilogramXYProvider(fromSummed,
             new SimpleObjectProperty<>(colorPalette.getPositiveColor()),
             "From preprocessed")), processedRenderer);
@@ -172,7 +172,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     SummedIntensityMobilitySeries fromMobilograms = summedMobilogramAccess
         .toSummedMobilogram(null);
 
-    previewChart.addDataset(new FastColoredXYDataset(
+    previewChart.addDataset(new ColoredXYDataset(
         new SummedMobilogramXYProvider(fromMobilograms,
             new SimpleObjectProperty<>(colorPalette.getPositiveColor()),
             "From raw")));

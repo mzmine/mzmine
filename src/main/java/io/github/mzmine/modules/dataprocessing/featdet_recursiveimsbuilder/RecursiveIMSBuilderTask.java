@@ -228,6 +228,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
       stepProcessed.getAndIncrement();
     }
 
+    flist.getAppliedMethods().addAll(file.getAppliedMethods());
     flist.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(RecursiveIMSBuilderModule.class, parameters));
     DataTypeUtils.addDefaultIonMobilityTypeColumns(flist);
