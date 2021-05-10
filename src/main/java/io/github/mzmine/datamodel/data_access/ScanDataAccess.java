@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -42,12 +43,11 @@ public class ScanDataAccess implements MassSpectrum {
 
   protected final RawDataFile dataFile;
   protected final ScanDataType type;
-  private final ScanSelection selection;
   protected final int totalScans;
-
   // current data
   protected final double[] mzs;
   protected final double[] intensities;
+  private final ScanSelection selection;
   protected int currentNumberOfDataPoints = -1;
 
   protected int scanIndex = -1;
@@ -156,9 +156,17 @@ public class ScanDataAccess implements MassSpectrum {
       scanIndex++;
       switch (type) {
         case RAW -> {
-          scan.getMzValues(mzs);
-          scan.getIntensityValues(intensities);
-          currentNumberOfDataPoints = scan.getNumberOfDataPoints();
+          try {
+            scan.getMzValues(mzs);
+            scan.getIntensityValues(intensities);
+            currentNumberOfDataPoints = scan.getNumberOfDataPoints();
+          } catch (NullPointerException e) {
+            // in case mass detection is performed on an IMS raw data file imported from mzml,
+            // no mz values have been set.
+            Arrays.fill(mzs, 0d);
+            Arrays.fill(intensities, 0d);
+            currentNumberOfDataPoints = 0;
+          }
         }
         case CENTROID -> {
           MassList masses = scan.getMassList();
