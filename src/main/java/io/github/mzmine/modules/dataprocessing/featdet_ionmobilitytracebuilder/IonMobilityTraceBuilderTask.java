@@ -77,9 +77,9 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final int minDataPointsRt;
   private final int minTotalSignals;
-  private final double timsBindWidth;
-  private final double twimsBindWidth;
-  private final double dtimsBindWidth;
+  private final int timsBindWidth;
+  private final int twimsBindWidth;
+  private final int dtimsBindWidth;
   private final ScanSelection scanSelection;
   private RangeSet<Double> rangeSet = TreeRangeSet.create();
   private HashMap<Range<Double>, IIonMobilityTrace> rangeToIonTraceMap = new HashMap<>();
@@ -614,11 +614,11 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     DataTypeUtils.addDefaultIonMobilityTypeColumns(featureList);
     featureList.setSelectedScans(rawDataFile, frames);
 
-    final double binWidth = switch (((IMSRawDataFile) rawDataFile).getMobilityType()) {
+    final int binWidth = switch (((IMSRawDataFile) rawDataFile).getMobilityType()) {
       case DRIFT_TUBE -> dtimsBindWidth;
       case TIMS -> timsBindWidth;
       case TRAVELING_WAVE -> twimsBindWidth;
-      default -> 0d;
+      default -> 1;
     };
 
     final BinningMobilogramDataAccess mobilogramBinner = EfficientDataAccess.of(

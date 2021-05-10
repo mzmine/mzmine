@@ -84,7 +84,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
   private final boolean enableRecursive = true;
   private final int numConsecutiveFrames;
   private final int numDataPoints;
-  private final double binWidth;
+  private final int binWidth;
   private AtomicInteger stepProcessed = new AtomicInteger(0);
   private int stepTotal = 0;
   private int currentStep = 0;
@@ -124,7 +124,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
               .getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
               .getEmbeddedParameter().getValue()
               : MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
-      default -> 0.0008;
+      default -> 1;
     };
 
     this.project = project;

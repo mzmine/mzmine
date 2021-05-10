@@ -74,11 +74,6 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   private final double binWidth;
 
   public BinningMobilogramDataAccess(@Nonnull final IMSRawDataFile rawDataFile,
-      final Double binWidth) {
-    this(rawDataFile, binWidth.intValue());
-  }
-
-  public BinningMobilogramDataAccess(@Nonnull final IMSRawDataFile rawDataFile,
       final int binWidth) {
     if (binWidth < 1) {
       throw new IllegalArgumentException("Illegal bin width (" + binWidth + ")");

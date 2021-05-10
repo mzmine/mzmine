@@ -105,7 +105,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private Frame cachedFrame;
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
-  private double binWidth;
+  private int binWidth;
   private Float rtWidth;
 
   private Color markerColor;
@@ -118,12 +118,12 @@ public class IMSRawDataOverviewPane extends BorderPane {
    * Creates a BorderPane layout.
    */
   public IMSRawDataOverviewPane() {
-    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f, 0.0008);
+    this(0, 0, new MZTolerance(0.008, 10), new ScanSelection(1), 2f, 1);
   }
 
   public IMSRawDataOverviewPane(final double frameNoiseLevel, final double mobilityScanNoiseLevel,
       final MZTolerance mzTolerance, final ScanSelection scanSelection, final Float rtWidth,
-      final Double binWidth) {
+      final Integer binWidth) {
     super();
     super.getStyleClass().add("region-match-chart-bg");
     getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -544,9 +544,9 @@ public class IMSRawDataOverviewPane extends BorderPane {
     this.rtWidth = rtWidth;
   }
 
-  public void setBinWidth(double binWidth) {
+  public void setBinWidth(int binWidth) {
     // check the bin width the pane was set to before, not the actual computed bin width.
-    if (Double.compare(binWidth, this.binWidth) != 0) {
+    if (binWidth != this.binWidth) {
       this.binWidth = binWidth;
       rangesBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
       selectedBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
