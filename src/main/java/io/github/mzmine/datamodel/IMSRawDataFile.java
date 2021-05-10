@@ -18,8 +18,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -41,14 +40,14 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return Set of all frames in this raw data file. List may be empty if no frames exist.
    */
   @Nonnull
-  Collection<? extends Frame> getFrames();
+  List<? extends Frame> getFrames();
 
   /**
    * @param msLevel The ms level
    * @return List of frames with the given msLevel. May be empty.
    */
   @Nonnull
-  Collection<? extends Frame> getFrames(int msLevel);
+  List<? extends Frame> getFrames(int msLevel);
 
   /**
    * @param msLevel
@@ -56,7 +55,7 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return List of frames with given ms mlevel in the specified rt window. May be empty.
    */
   @Nonnull
-  Collection<? extends Frame> getFrames(int msLevel, Range<Float> rtRange);
+  List<? extends Frame> getFrames(int msLevel, Range<Float> rtRange);
 
   /**
    * @return The number of frames in this raw data file. equivalent to
@@ -69,7 +68,7 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return The frame numbers in the specified ms level. Might be empty.
    */
   @Nonnull
-  Set<Scan> getFrameNumbers(int msLevel);
+  List<Scan> getFrameNumbers(int msLevel);
 
   /**
    * @param msLevel
@@ -77,7 +76,7 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return The frame numbers in the specified ms level and rt range. Might be empty.
    */
   @Nonnull
-  Set<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  List<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange);
 
   /**
    * @return The mobility range of this raw data file. Might be empty.

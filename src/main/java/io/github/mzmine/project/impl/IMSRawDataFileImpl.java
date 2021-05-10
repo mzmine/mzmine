@@ -26,14 +26,12 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
@@ -51,9 +49,9 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   private static Logger logger = Logger.getLogger(IMSRawDataFileImpl.class.getName());
 
   private final List<Frame> frames = FXCollections.observableArrayList();
-  private final Hashtable<Integer, Set<Scan>> frameNumbersCache;
+  private final Hashtable<Integer, List<Scan>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
-  private final Hashtable<Integer, Collection<? extends Frame>> frameMsLevelCache;
+  private final Hashtable<Integer, List<Frame>> frameMsLevelCache;
 
   /**
    * Mobility <-> sub spectrum number is the same for a segment but might change between segments!
@@ -124,15 +122,15 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   @Nonnull
   @Override
-  public Collection<Frame> getFrames() {
+  public List<Frame> getFrames() {
     return frames;
   }
 
   @Nonnull
   @Override
-  public Collection<? extends Frame> getFrames(int msLevel) {
+  public List<Frame> getFrames(int msLevel) {
     return frameMsLevelCache.computeIfAbsent(msLevel, level -> getFrames().stream()
-        .filter(frame -> frame.getMSLevel() == msLevel).collect(Collectors.toSet()));
+        .filter(frame -> frame.getMSLevel() == msLevel).toList());
   }
 
   @Nullable
@@ -145,14 +143,14 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Nonnull
   public List<Frame> getFrames(int msLevel, Range<Float> rtRange) {
     return getFrames(msLevel).stream().filter(frame -> rtRange.contains(frame.getRetentionTime()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Nonnull
   @Override
-  public Set<Scan> getFrameNumbers(int msLevel) {
+  public List<Scan> getFrameNumbers(int msLevel) {
     return frameNumbersCache.computeIfAbsent(msLevel, (key) -> {
-      Set<Scan> frameNums = new HashSet<>();
+      List<Scan> frameNums = new ArrayList<>();
       synchronized (frames) {
         for (Scan e : frames) {
           if (e.getMSLevel() == msLevel) {
@@ -171,11 +169,11 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   @Nonnull
   @Override
-  public Set<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
+  public List<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
     // since {@link getFrameNumbers(int)} is prefiltered, this shouldn't lead to NPE
     return getFrameNumbers(msLevel).stream()
         .filter(frameNum -> rtRange.contains(frameNum.getRetentionTime()))
-        .collect(Collectors.toSet());
+        .toList();
   }
 
   @Nonnull
@@ -292,7 +290,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   }*/
 
   /**
-   * @param frameNumber The frame number.
+   * @param frameId The frame number.
    * @return Map of mobility scan number <-> mobility or null for invalid frame numbers.
    */
   @Nullable

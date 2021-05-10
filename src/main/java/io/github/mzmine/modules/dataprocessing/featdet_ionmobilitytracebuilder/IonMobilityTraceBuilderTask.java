@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -112,19 +113,19 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
             .getValue() ? advancedParam
             .getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : AdvancedImsTraceBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
+            : MobilogramBinningParameters.DEFAULT_TIMS_BIN_WIDTH;
     dtimsBindWidth =
         advancedParam.getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
             .getValue() ? advancedParam
             .getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : AdvancedImsTraceBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
+            : MobilogramBinningParameters.DEFAULT_DTIMS_BIN_WIDTH;
     twimsBindWidth =
         advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
             .getValue() ? advancedParam
             .getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : AdvancedImsTraceBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
+            : MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
 
     this.parameters = parameters;
     setStatus(TaskStatus.WAITING);

@@ -136,7 +136,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
             new SimpleObjectProperty<>(f.getRawDataFile().getColor()),
             FeatureUtils.featureToString(f))));
 
-    final Double binWidth = switch (((IMSRawDataFile) f.getRawDataFile()).getMobilityType()) {
+    final Integer binWidth = switch (((IMSRawDataFile) f.getRawDataFile()).getMobilityType()) {
       case TIMS -> parameterSet
           .getParameter(MobilogramBinningParameters.timsBinningWidth).getValue();
       case TRAVELING_WAVE -> parameterSet
@@ -147,7 +147,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
           "Summing of the mobility type in raw data file " + f.getRawDataFile().getName()
               + " is unsupported.");
     };
-    if (binWidth == null || binWidth.isNaN() || Double.compare(binWidth, 0) == 0) {
+    if (binWidth == null || binWidth == 0) {
       return;
     }
 

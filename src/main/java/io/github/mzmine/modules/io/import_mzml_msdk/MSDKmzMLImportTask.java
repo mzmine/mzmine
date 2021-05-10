@@ -221,6 +221,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
           finishedFrame
               .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
           newImsFile.addScan(buildingFrame);
+
+          logger.finest(() -> finishedFrame.getFrameId() + " -> " + mobilityScans.size());
+
           mobilityScans.clear();
           mobilities.clear();
           if (!buildingImsMsMsInfos.isEmpty()) {

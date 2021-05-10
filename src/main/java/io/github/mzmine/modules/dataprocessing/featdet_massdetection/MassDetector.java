@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -27,7 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
  *
  */
 public interface MassDetector extends MZmineModule {
-  public static final double[][] EMPTY_DATA = new double[0][0];
+  public static final double[][] EMPTY_DATA = new double[2][0];
 
   /**
    * Returns mass and intensity values detected in given spectrum

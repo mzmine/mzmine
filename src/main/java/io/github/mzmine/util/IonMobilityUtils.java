@@ -38,7 +38,7 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -66,11 +66,18 @@ public class IonMobilityUtils {
     return minDelta;
   }
 
-  public static Map<Range<Double>, Frame> getUniqueMobilityRanges(
+  /**
+   *
+   * @param file The raw data file
+   * @return A map of frame -> mobility range, sorted with ascending frame id.
+   */
+  public static Map<Frame, Range<Double>> getUniqueMobilityRanges(
       @Nonnull final IMSRawDataFile file) {
-    Map<Range<Double>, Frame> ranges = new HashMap<>();
+    Map<Frame, Range<Double>> ranges = new LinkedHashMap<>();
     for (Frame frame : file.getFrames()) {
-      ranges.putIfAbsent(frame.getMobilityRange(), frame);
+      if(!ranges.containsValue(frame.getMobilityRange())) {
+        ranges.put(frame, frame.getMobilityRange());
+      }
     }
     return ranges;
   }
