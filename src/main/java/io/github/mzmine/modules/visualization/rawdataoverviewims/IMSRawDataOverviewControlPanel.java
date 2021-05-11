@@ -35,6 +35,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -144,6 +145,9 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     add(lblBinWidth, 0, 5);
     add(binWidthComponent, 1, 5);
 
+    final CheckBox cbUseBinningRenderer = new CheckBox("Bin values in frame heatmap");
+    add(cbUseBinningRenderer, 0,6, 2, 1);
+
     DoubleRangeComponent mobilogramRangeComp = new DoubleRangeComponent(mzFormat);
     mobilogramRangesList = new ListView<>(
         FXCollections.observableArrayList());
@@ -155,10 +159,17 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     addMzRange.setOnAction(e -> {
       Range<Double> range = mobilogramRangeComp.getValue();
       if (range == null) {
-        return;
+        try {
+          double mz = Double.parseDouble(mobilogramRangeComp.getMinTxtField().getText());
+          range = mzTolerance.getToleranceRange(mz);
+        } catch (NumberFormatException ex) {
+          return;
+        }
       }
       mobilogramRangesList.getItems().add(range);
     });
+    mobilogramRangeComp.getMinTxtField().setOnAction(e -> addMzRange.fire());
+    mobilogramRangeComp.getMaxTxtField().setOnAction(e -> addMzRange.fire());
 
     Button removeMzRange = new Button("Remove range");
     removeMzRange.setOnAction(e -> mobilogramRangesList.getItems()
@@ -205,6 +216,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
         pane.updateTicPlot();
         pane.onSelectedFrameChanged();
+        pane.setUseBinningRenderer(cbUseBinningRenderer.isSelected());
       } catch (NullPointerException | NumberFormatException ex) {
         ex.printStackTrace();
       }

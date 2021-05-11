@@ -18,8 +18,10 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
@@ -29,6 +31,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
@@ -52,10 +55,17 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   private final List<Double> rangeValues;
   private final List<Double> zValues;
   private final List<MobilityScan> mobilityScanAtValueIndex;
-
+  private final PaintScaleTransform transform;
   private double finishedPercentage;
+  private PaintScale paintScale;
+  private double boxHeight;
 
-  public FrameHeatmapProvider(Frame frame) {
+  public FrameHeatmapProvider(@Nonnull final Frame frame) {
+    this(frame, null);
+  }
+
+  public FrameHeatmapProvider(@Nonnull final Frame frame,
+      @Nullable final PaintScaleTransform transform) {
     this.frame = frame;
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -68,6 +78,9 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
     zValues = new ArrayList<>();
     mobilityScanAtValueIndex = new ArrayList<>();
     finishedPercentage = 0d;
+
+    this.transform = transform != null ? transform : PaintScaleTransform.LINEAR;
+    boxHeight = 1;
   }
 
   @Override
@@ -88,7 +101,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   @Nullable
   @Override
   public PaintScale getPaintScale() {
-    return null;
+    return paintScale;
   }
 
   @Override
@@ -104,18 +117,35 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    double numScans = frame.getNumberOfMobilityScans();
-    int finishedScans = 0;
+    int numScans = frame.getNumberOfMobilityScans();
+    double finishedScans = 0;
+
+    double minZ = Double.POSITIVE_INFINITY;
+    double maxZ = Double.NEGATIVE_INFINITY;
+
     for (MobilityScan mobilityScan : frame.getSortedMobilityScans()) {
       for (int i = 0; i < mobilityScan.getNumberOfDataPoints(); i++) {
         rangeValues.add(mobilityScan.getMobility());
         domainValues.add(mobilityScan.getMzValue(i));
-        zValues.add(mobilityScan.getIntensityValue(i));
+
+        double z = mobilityScan.getIntensityValue(i);
+        zValues.add(z);
+        minZ = Math.min(z, minZ);
+        maxZ = Math.max(z, maxZ);
+
         mobilityScanAtValueIndex.add(mobilityScan);
       }
       finishedScans++;
       finishedPercentage = finishedScans / numScans;
     }
+
+    boxHeight = Math.abs(
+        frame.getMobilityScan(numScans / 2).getMobility() - frame.getMobilityScan(numScans / 2 - 1)
+            .getMobility());
+
+    this.paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
+        .toPaintScale(transform,
+            Range.closed(minZ, maxZ));
   }
 
   public MobilityScan getMobilityScanAtValueIndex(int index) {
@@ -150,7 +180,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   @Nullable
   @Override
   public Double getBoxHeight() {
-    return null;
+    return boxHeight;
   }
 
   @Nullable

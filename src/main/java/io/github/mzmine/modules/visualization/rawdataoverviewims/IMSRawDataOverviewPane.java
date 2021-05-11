@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
@@ -39,6 +40,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.Frame
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.FrameSummedMobilogramProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.FrameSummedSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleMobilityScanProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredBinningRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
@@ -113,6 +115,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private int selectedMobilogramDatasetIndex;
   private int selectedChromatogramDatasetIndex;
   private Set<Integer> mzRangeTicDatasetIndices;
+  private boolean useBinningRenderer;
 
   /**
    * Creates a BorderPane layout.
@@ -195,7 +198,8 @@ public class IMSRawDataOverviewPane extends BorderPane {
     mzRangeTicDatasetIndices.clear();
     cachedFrame = new CachedFrame((SimpleFrame) selectedFrame.get(), frameNoiseLevel,
         mobilityScanNoiseLevel);//selectedFrame.get();//
-    heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
+    heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame, PaintScaleTransform.LINEAR));
+    setUseBinningRenderer(useBinningRenderer);
     mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame));
     summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
     if (selectedMobilityScan.get() != null) {
@@ -551,5 +555,17 @@ public class IMSRawDataOverviewPane extends BorderPane {
       rangesBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
       selectedBinningMobilogramDataAccess = EfficientDataAccess.of(this.rawDataFile, binWidth);
     }
+  }
+
+  public void setUseBinningRenderer(boolean use) {
+    this.useBinningRenderer = use;
+    MZmineCore.runLater(() -> {
+      if (useBinningRenderer) {
+        heatmapChart.getXYPlot().setRenderer(0, new ColoredBinningRenderer(
+            (ColoredXYZDataset) heatmapChart.getXYPlot().getDataset(0)));
+      } else {
+        heatmapChart.getXYPlot().setRenderer(0, heatmapChart.getDefaultRenderer());
+      }
+    });
   }
 }
