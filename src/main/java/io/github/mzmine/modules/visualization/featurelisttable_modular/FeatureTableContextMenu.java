@@ -189,10 +189,10 @@ public class FeatureTableContextMenu extends ContextMenu {
     }));
 
     final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
-        () -> !selectedRows.isEmpty() && selectedRows.get(0).getBestFeature().getMap()
-            .containsKey(new ImageType()));
-    exportImageToCsv.setOnAction(e -> ImageToCsvExportModule.exportRows(selectedRows));
+        () -> !selectedRows.isEmpty() && selectedRows.get(0).hasFeatureType(ImageType.class));
+    exportImageToCsv.setOnAction(e -> ImageToCsvExportModule.showExportDialog(selectedRows));
 
+    // export menu
     exportMenu.getItems()
         .addAll(exportIsotopesItem, exportMSMSItem, exportToSirius, new SeparatorMenuItem(),
             exportMS1Library, exportMSMSLibrary, new SeparatorMenuItem(), exportImageToCsv);
@@ -242,7 +242,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showXICSetupItem = new ConditionalMenuItem("XIC (dialog)",
         () -> !selectedRows.isEmpty());
     showXICSetupItem.setOnAction(e -> ChromatogramVisualizerModule
-        .setUpVisualiserFromFeatures(selectedRows, selectedFeature != null ? selectedFeature.getRawDataFile() : null));
+        .setUpVisualiserFromFeatures(selectedRows,
+            selectedFeature != null ? selectedFeature.getRawDataFile() : null));
 
     final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
         () -> !selectedRows.isEmpty() && selectedFeature != null && selectedFeature
@@ -283,10 +284,11 @@ public class FeatureTableContextMenu extends ContextMenu {
       boolean useMobilograms = true;
       if (selectedFeatures.size() > 1000) {
         useMobilograms = MZmineCore.getDesktop()
-            .displayConfirmation("You selected " + selectedFeatures.size()
-                    + " to visualize. This might take a long time or crash MZmine.\nWould you like to "
-                    + "visualize points instead of mobilograms for features?", ButtonType.YES,
-                ButtonType.NO) == ButtonType.NO;
+                             .displayConfirmation("You selected " + selectedFeatures.size()
+                                                  + " to visualize. This might take a long time or crash MZmine.\nWould you like to "
+                                                  + "visualize points instead of mobilograms for features?",
+                                 ButtonType.YES,
+                                 ButtonType.NO) == ButtonType.NO;
       }
       IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedRows, useMobilograms);
     });
@@ -299,7 +301,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showBestMobilityScanItem = new ConditionalMenuItem("Best mobility scan",
         () -> selectedFeature != null && selectedFeature.getRepresentativeScan() instanceof Frame
-            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
     showBestMobilityScanItem.setOnAction(e -> SpectraVisualizerModule.addNewSpectrumTab(
         IonMobilityUtils.getBestMobilityScan(selectedFeature)));
 
@@ -415,8 +417,8 @@ public class FeatureTableContextMenu extends ContextMenu {
 
   private boolean rowHasSpectralDBMatchResults(ModularFeatureListRow row) {
     return row.getPeakIdentities().stream()
-        .filter(pi -> pi instanceof SpectralDBFeatureIdentity)
-        .map(pi -> ((SpectralDBFeatureIdentity) pi)).count() > 0;
+               .filter(pi -> pi instanceof SpectralDBFeatureIdentity)
+               .map(pi -> ((SpectralDBFeatureIdentity) pi)).count() > 0;
   }
 
   @Nonnull
