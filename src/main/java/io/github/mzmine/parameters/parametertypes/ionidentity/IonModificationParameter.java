@@ -155,10 +155,10 @@ public class IonModificationParameter
         // create adduct as combination of all childs
         IonModification adduct = null;
         if (adducts.size() == 1) {
-          adduct = new IonModification(adducts.get(0));
+          adduct = adducts.get(0);
         } else
           adduct =
-              new CombinedIonModification(adducts.toArray(new IonModification[adducts.size()]));
+              CombinedIonModification.create(adducts);
 
 
         // A new choice?
@@ -211,7 +211,7 @@ public class IonModificationParameter
       List<IonModification> selections) {
     parentElement.setAttribute(SELECTED_ATTRIBUTE, Boolean.toString(selections.contains(type)));
     // all adducts
-    for (IonModification item : type.getAdducts()) {
+    for (IonModification item : type.getModifications()) {
       final Element element = parent.createElement(ADDUCTS_ITEM_TAG);
       element.setAttribute(NAME_ATTRIBUTE, item.getName());
       element.setAttribute(MASS_ATTRIBUTE, Double.toString(item.getMass()));

@@ -23,13 +23,11 @@ import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSDataPointIde
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 /**
- * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public class MSMSIonIdentity extends AbstractMSMSDataPointIdentity {
 
-  protected IonType type;
+  protected final IonType type;
 
   public MSMSIonIdentity(MZTolerance mzTolerance, DataPoint dp, IonType b) {
     super(mzTolerance, dp);
@@ -41,6 +39,11 @@ public class MSMSIonIdentity extends AbstractMSMSDataPointIdentity {
     return type.toString(false);
   }
 
+  /**
+   * The ion type behind this annotation
+   *
+   * @return an ion type
+   */
   public IonType getType() {
     return type;
   }

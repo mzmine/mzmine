@@ -24,10 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One MSMS signal identified by several x-mers (M , 2M, 3M ...)
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
+ * One MS/MS signal identified by several x-mers (M , 2M, 3M ...)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class MSMSMultimerIdentity extends MSMSIonIdentity {
 
@@ -43,8 +42,9 @@ public class MSMSMultimerIdentity extends MSMSIonIdentity {
   }
 
   public void addLink(MSMSMultimerIdentity l) {
-    if (links == null)
+    if (links == null) {
       links = new ArrayList<>();
+    }
     links.add(l);
   }
 

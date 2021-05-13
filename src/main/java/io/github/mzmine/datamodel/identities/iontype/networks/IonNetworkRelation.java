@@ -37,13 +37,12 @@ public class IonNetworkRelation extends IonNetworkRelationInterf {
 
   public IonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed, boolean isModified,
       List<IonModification> mods) {
-    this(a, link, isCondensed, isModified,
-        new CombinedIonModification(mods.toArray(new IonModification[0])));
+    this(a, link, isCondensed, isModified, CombinedIonModification.create(mods));
   }
 
   public IonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed, boolean isModified,
       IonModification[] mods) {
-    this(a, link, isCondensed, isModified, new CombinedIonModification(mods));
+    this(a, link, isCondensed, isModified, CombinedIonModification.create(mods));
   }
 
   public IonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed, boolean isModified,

@@ -22,10 +22,9 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.ms2.MSMSIdentityList;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity;
 import io.github.mzmine.datamodel.identities.ms2.MSMSMultimerIdentity;
-import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
+import io.github.mzmine.datamodel.identities.ms2.interf.MsMsIdentity;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class MSMSLogic {
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static MSMSIdentityList checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
+  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
       MZTolerance mzTolerance, double minHeight) {
     return checkMultiMolCluster(scan, precursorMZ, adduct, adduct.getMolecules(),
         mzTolerance, minHeight);
@@ -64,7 +63,7 @@ public class MSMSLogic {
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static MSMSIdentityList checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
+  public static List<MsMsIdentity> checkMultiMolCluster(Scan scan, double precursorMZ, IonType adduct,
       int maxM, MZTolerance mzTolerance, double minHeight) {
     MassList masses = scan.getMassList();
     if (masses == null) {
@@ -79,8 +78,8 @@ public class MSMSLogic {
     }
 
     // result best with the highest number of identities
-    MSMSIdentityList ident = null;
-    MSMSIdentityList best = null;
+    List<MsMsIdentity> ident = null;
+    List<MsMsIdentity> best = null;
 
     // datapoints of masslist
     DataPoint[] dps = masses.getDataPoints();
@@ -93,7 +92,7 @@ public class MSMSLogic {
 
     // check each adduct againt all other
     for (int i = 1; i < list.size(); i++) {
-      ident = new MSMSIdentityList();
+      ident = new ArrayList<>();
       IonType b = list.get(i);
       double massb = b.getMass(precursorMZ);
       for (int k = 0; k < i; k++) {
@@ -109,7 +108,7 @@ public class MSMSLogic {
           // find out if there are already some identities
           MSMSMultimerIdentity ia = null;
           MSMSMultimerIdentity ib = null;
-          for (AbstractMSMSIdentity o : ident) {
+          for (MsMsIdentity o : ident) {
             MSMSMultimerIdentity old = (MSMSMultimerIdentity) o;
             if (old.getType().equals(a)) {
               ia = old;
@@ -151,7 +150,7 @@ public class MSMSLogic {
    * @param mzTolerance
    * @return List of identities. The first is always the one for the precursor
    */
-  public static MSMSIdentityList checkNeutralLoss(DataPoint[] dps, IonType adduct,
+  public static List<MsMsIdentity> checkNeutralLoss(DataPoint[] dps, IonType adduct,
       MZTolerance mzTolerance, double minHeight) {
     if (dps == null || dps.length == 0) {
       return null;
@@ -161,7 +160,7 @@ public class MSMSLogic {
     double dmz = adduct.getMassDifference();
 
     // result best with the highest number of identities
-    MSMSIdentityList ident = new MSMSIdentityList();
+    List<MsMsIdentity> ident = new ArrayList<>();
 
     // check all data points
     for (DataPoint dp : dps) {

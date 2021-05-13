@@ -18,29 +18,34 @@
 
 package io.github.mzmine.datamodel.identities;
 
+import io.github.mzmine.util.FormulaUtils;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import io.github.mzmine.util.FormulaUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class NeutralMolecule {
 
-  protected @Nullable IMolecularFormula cdkFormula;
-  protected @Nullable String molFormula;
-  protected @Nonnull String name;
-  protected double mass;
+  @Nonnull
+  protected String name;
+  @Nullable
+  protected final IMolecularFormula cdkFormula;
+  @Nullable
+  protected final String molFormula;
+  protected final double mass;
 
-  public NeutralMolecule(String name, double mass) {
-    this(name, "", mass);
+  public NeutralMolecule(@Nonnull String name, double mass) {
+    this(name, null, mass);
   }
 
-  public NeutralMolecule(String name, String molFormula, double mass) {
-    super();
+  public NeutralMolecule(@Nonnull String name, @Nullable String molFormula, double mass) {
     this.name = name;
     this.molFormula = molFormula;
-    cdkFormula = FormulaUtils.createMajorIsotopeMolFormula(molFormula);
+    if (molFormula != null && molFormula.length() > 0) {
+      cdkFormula = FormulaUtils.createMajorIsotopeMolFormula(molFormula);
+    } else {
+      cdkFormula = null;
+    }
     this.mass = mass;
   }
 
@@ -52,19 +57,30 @@ public class NeutralMolecule {
     return Math.abs(mass);
   }
 
+  /**
+   * the raw name
+   *
+   */
+  @Nonnull
   public String getName() {
     return name;
   }
 
+  /**
+   * The parsed name (default + or - the name depending on the mass difference)
+   *
+   */
   public String parseName() {
     String sign = this.getMass() < 0 ? "-" : "+";
     return sign + getName();
   }
 
+  @Nullable
   public String getMolFormula() {
     return molFormula;
   }
 
+  @Nullable
   public IMolecularFormula getCDKFormula() {
     return cdkFormula;
   }
@@ -77,19 +93,16 @@ public class NeutralMolecule {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (!obj.getClass().equals(getClass()))
+    }
+    if (!obj.getClass().equals(getClass())) {
       return false;
-    if (!(obj instanceof NeutralMolecule))
-      return false;
+    }
     NeutralMolecule other = (NeutralMolecule) obj;
-    if (!name.equals(other.name))
-      return false;
-    if (!Objects.equals(mass, other.getMass()))
-      return false;
-    return true;
+    return Objects.equals(name, other.name) && Objects.equals(mass, other.getMass());
   }
 }

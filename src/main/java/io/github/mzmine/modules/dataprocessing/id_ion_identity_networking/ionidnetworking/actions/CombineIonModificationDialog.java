@@ -98,11 +98,13 @@ public class CombineIonModificationDialog extends Stage {
   }
 
   private void createCombined() {
-    IonModification nt = new CombinedIonModification(combine.getItems());
-    newTypes.add(nt);
-    // add to adducts
-    ObservableList<IonModification> addModel = adducts.getItems();
-    addModel.add(nt);
+    if(combine.getItems().size()>1) {
+      IonModification nt = CombinedIonModification.create(combine.getItems());
+      newTypes.add(nt);
+      // add to adducts
+      ObservableList<IonModification> addModel = adducts.getItems();
+      addModel.add(nt);
+    }
   }
 
   public List<IonModification> getNewTypes() {

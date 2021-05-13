@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class IonNetworkLibrary {
 
@@ -41,8 +42,6 @@ public class IonNetworkLibrary {
 
   /**
    * Set mztolerance later
-   *
-   * @param parameterSet
    */
   public IonNetworkLibrary(IonLibraryParameterSet parameterSet) {
     this(parameterSet, null);
@@ -50,8 +49,6 @@ public class IonNetworkLibrary {
 
   /**
    * For simple setup
-   *
-   * @param parameterSet
    */
   public IonNetworkLibrary(IonLibraryParameterSet parameterSet, MZTolerance mzTolerance) {
     this.mzTolerance = mzTolerance;
@@ -123,13 +120,11 @@ public class IonNetworkLibrary {
   }
 
   /**
-   * Does find all possible adducts
+   * Does find all possible adducts between row1 and row2
    *
-   * @param row1
-   * @param row2
-   * @param z1   -1 or 0 if not set (charge state always positive)
-   * @param z2   -1 or 0 if not set (charge state always positive)
-   * @return
+   * @param z1 -1 or 0 if not set (charge state always positive)
+   * @param z2 -1 or 0 if not set (charge state always positive)
+   * @return returns list of adducts for [row1, row2]
    */
   public @Nonnull
   List<IonIdentity[]> findAdducts(final FeatureList featureList, final FeatureListRow row1,
@@ -168,7 +163,8 @@ public class IonNetworkLibrary {
             } else {
               // Add adduct identity and notify GUI.
               // only if not already present
-              list.add(IonIdentity.addAdductIdentityToRow(mzTolerance, row1, adduct, row2, adduct2));
+              list.add(
+                  IonIdentity.addAdductIdentityToRow(mzTolerance, row1, adduct, row2, adduct2));
             }
           }
         }
@@ -180,15 +176,16 @@ public class IonNetworkLibrary {
 
 
   /**
-   * Searches for an IonType for row in network
+   * Searches for an IonType for row that matches in network
    *
-   * @param row
-   * @param net for neutral mass
-   * @return
+   * @param row row to check against neutral mass of ionNet
+   * @param ionNet for neutral mass
+   * @return IonIdentity or null if already present in network or if no match available
    */
-  public IonIdentity findAdducts(FeatureListRow row, IonNetwork net) {
+  @Nullable
+  public IonIdentity findAdducts(FeatureListRow row, IonNetwork ionNet) {
     // already contained
-    if (net.containsKey(row)) {
+    if (ionNet.containsKey(row)) {
       return null;
     }
 
@@ -198,13 +195,13 @@ public class IonNetworkLibrary {
     for (IonType adduct : allAdducts) {
       if (!adduct.isUndefinedAdduct()) {
         if (z == 0 || adduct.getAbsCharge() == z) {
-          double neutralMass = net.getNeutralMass();
+          double neutralMass = ionNet.getNeutralMass();
           double mz = row.getAverageMZ();
           double rowMass = adduct.getMass(mz);
           if (mzTolerance.checkWithinTolerance(neutralMass, rowMass)) {
             // add identity
             IonIdentity a = new IonIdentity(adduct);
-            net.put(row, a);
+            ionNet.put(row, a);
             row.addIonIdentity(a, false);
             return a;
           }
@@ -219,8 +216,6 @@ public class IonNetworkLibrary {
   /**
    * Do not allow adduct overlap: Only if both are of type undefined ?
    *
-   * @param a
-   * @param b
    * @return
    */
   private boolean checkSameAdducts(IonType a, IonType b) {
@@ -237,8 +232,6 @@ public class IonNetworkLibrary {
    * [yM+X]+ and [yM+X-H]+ are only different by -H. if any adduct part or modification equals,
    * return false. Charge is different
    *
-   * @param a
-   * @param b
    * @return only true if charge is different or no modification or adduct sub part equals
    */
   private boolean checkMultiChargeDifference(IonType a, IonType b) {
@@ -249,8 +242,6 @@ public class IonNetworkLibrary {
   /**
    * MOL != MOL or MOL==1
    *
-   * @param a
-   * @param b
    * @return
    */
   private boolean checkMolCount(IonType a, IonType b) {
@@ -363,16 +354,8 @@ public class IonNetworkLibrary {
    */
   private boolean filter(IonType ion, IonModification mod) {
     IonModification add = ion.getAdduct();
-    IonModification modification = ion.getAdduct();
     // specific filters
-    boolean bad = (add.contains(IonModification.NH4) && mod.contains(IonModification.NH3))
-                  // maximum modifications for adducts filter
-                  || (add.hasModificationLimit()
-                      && ion.getModCount() + mod.getAdductsCount() > add.getModificationLimit())
-                  // max co modification for modifications
-                  || (modification != null && modification.hasModificationLimit()
-                      && ion.getModCount() + mod.getAdductsCount() > modification
-        .getModificationLimit());
+    boolean bad = (add.contains(IonModification.NH4) && mod.contains(IonModification.NH3));
 
     return !bad;
   }

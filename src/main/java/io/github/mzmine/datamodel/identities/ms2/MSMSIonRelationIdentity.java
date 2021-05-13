@@ -20,33 +20,52 @@ package io.github.mzmine.datamodel.identities.ms2;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import javax.annotation.Nonnull;
 
 /**
- * 
+ * A relationshiop between two data points in an MS/MS spectrum
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class MSMSIonRelationIdentity extends MSMSIonIdentity {
 
-  private DataPoint parentDP;
-  protected double parentMZ;
-  protected Relation relation = Relation.NEUTRAL_LOSS;
+  @Nonnull
+  protected final DataPoint parentDP;
+  @Nonnull
+  protected final Relation relation;
 
   public enum Relation {
-    NEUTRAL_LOSS;
+    NEUTRAL_LOSS
   }
 
-
+  /**
+   * Create a new ion relationship in an MS/MS spectrum (between two data points dp -> parent)
+   *
+   * @param mzTolerance tolerance used to find this annotation
+   * @param dp          data point that relates to parent by type
+   * @param type        the type of relationship
+   * @param parentMZ    the parent m/z value
+   */
   public MSMSIonRelationIdentity(MZTolerance mzTolerance, DataPoint dp, IonType type,
-                                 double parent) {
-    super(mzTolerance, dp, type);
-    this.parentMZ = parent;
+      double parentMZ) {
+    this(mzTolerance, dp, type, new SimpleDataPoint(parentMZ, 0));
   }
 
+  /**
+   * Create a new ion relationship in an MS/MS spectrum (between two data points dp -> parent)
+   *
+   * @param mzTolerance tolerance used to find this annotation
+   * @param dp          data point that relates to parent by type
+   * @param type        the type of relationship
+   * @param parent      the parent data point
+   */
   public MSMSIonRelationIdentity(MZTolerance mzTolerance, DataPoint dp, IonType type,
-      DataPoint parent) {
+      @Nonnull DataPoint parent) {
     super(mzTolerance, dp, type);
     this.parentDP = parent;
+    this.relation = Relation.NEUTRAL_LOSS;
   }
 
   @Override
@@ -58,20 +77,26 @@ public class MSMSIonRelationIdentity extends MSMSIonIdentity {
     return super.getName();
   }
 
+  @Nonnull
   public Relation getRelation() {
     return relation;
   }
 
   /**
-   * MZ difference
-   * 
-   * @return
+   * m/z difference between parent and m/z
+   *
+   * @return parentMZ - getMZ()
    */
-  public double getMZDiff() {
+  public double getMzDelta() {
     return getParentMZ() - this.getMZ();
   }
 
+  /**
+   * The parent m/z
+   *
+   * @return mass to charge ratio
+   */
   public double getParentMZ() {
-    return parentDP == null ? parentMZ : parentDP.getMZ();
+    return parentDP.getMZ();
   }
 }

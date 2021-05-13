@@ -18,17 +18,15 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.ms2.MSMSIdentityList;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity.Relation;
 import io.github.mzmine.datamodel.identities.ms2.MSMSMultimerIdentity;
-import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
+import io.github.mzmine.datamodel.identities.ms2.interf.MsMsIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -53,7 +51,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
   /**
    * List of MSMS identities. e.g., multimers/monomers that were found in MS/MS data
    */
-  private MSMSIdentityList msmsIdent;
+  private List<MsMsIdentity> msmsIdent;
 
   // possible formulas for this neutral mass
   @Nonnull
@@ -256,18 +254,24 @@ public class IonIdentity implements Comparable<IonIdentity> {
     return getPartnerRows().stream().anyMatch(r -> r == row);
   }
 
-  public void setMSMSIdentities(MSMSIdentityList msmsIdent) {
-    this.msmsIdent = msmsIdent;
+  public void addAllMsMsIdentities(List<MsMsIdentity> msmsIdent) {
+    if (this.msmsIdent == null) {
+      msmsIdent = new ArrayList<>();
+    }
+    this.msmsIdent.addAll(msmsIdent);
   }
 
-  public void addMSMSIdentity(AbstractMSMSIdentity ident) {
+  public void addMsMsIdentity(MsMsIdentity ident) {
     if (this.msmsIdent == null) {
-      msmsIdent = new MSMSIdentityList();
+      msmsIdent = new ArrayList<>();
     }
     msmsIdent.add(ident);
   }
 
-  public MSMSIdentityList getMSMSIdentities() {
+  public void setMSMSIdentities(List<MsMsIdentity> msmsIdent) {
+    this.msmsIdent = msmsIdent;
+  }
+  public List<MsMsIdentity> getMSMSIdentities() {
     return msmsIdent;
   }
 

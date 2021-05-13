@@ -20,6 +20,11 @@ package io.github.mzmine.datamodel.identities.ms2.interf;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
+/**
+ * Identity to tag ion identities and MS/MS signals based on an MZTolerance
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
 public abstract class AbstractMSMSDataPointIdentity extends AbstractMSMSIdentity {
 
   protected DataPoint dp;
@@ -28,11 +33,6 @@ public abstract class AbstractMSMSDataPointIdentity extends AbstractMSMSIdentity
     super(mzTolerance);
     this.dp = dp;
   }
-
-  public AbstractMSMSDataPointIdentity(DataPoint dp) {
-    this(null, dp);
-  }
-
 
   public DataPoint getDp() {
     return dp;

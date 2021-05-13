@@ -32,9 +32,8 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.ms2.MSMSIdentityList;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity;
-import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
+import io.github.mzmine.datamodel.identities.ms2.interf.MsMsIdentity;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.MSMSLogic;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -90,7 +89,7 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "MSMS-check refinement of annotations " + featureList.getName() + " ";
+    return "MSMS-check IIN multimers and in-source fragments in " + featureList.getName() + " ";
   }
 
   @Override
@@ -109,8 +108,9 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
       MZTolerance mzTolerance, double minHeight, boolean checkMultimers, boolean checkNeutralLosses,
       NeutralLossCheck neutralLossCheck) {
     // do parallel or not
-    pkl.stream(parallel).forEach(row -> doCheck(pkl, row, mzTolerance, minHeight, checkMultimers, checkNeutralLosses,
-        neutralLossCheck));
+    pkl.stream(parallel).forEach(
+        row -> doCheck(pkl, row, mzTolerance, minHeight, checkMultimers, checkNeutralLosses,
+            neutralLossCheck));
   }
 
   public static void doCheck(ModularFeatureList pkl, FeatureListRow row,
@@ -235,16 +235,16 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
     if (loss != null) {
       MSMSIonRelationIdentity relation =
           new MSMSIonRelationIdentity(mzTolerance, loss, mod, precursorMZ);
-      identity.addMSMSIdentity(relation);
+      identity.addMsMsIdentity(relation);
       result = true;
     }
 
     if (neutralLossCheck.equals(NeutralLossCheck.ANY_SIGNAL)) {
-      MSMSIdentityList msmsIdent = MSMSLogic.checkNeutralLoss(dps, mod, mzTolerance, minHeight);
+      List<MsMsIdentity> msmsIdent = MSMSLogic.checkNeutralLoss(dps, mod, mzTolerance, minHeight);
 
       // found?
-      for (AbstractMSMSIdentity id : msmsIdent) {
-        identity.addMSMSIdentity(id);
+      for (MsMsIdentity id : msmsIdent) {
+        identity.addMsMsIdentity(id);
         result = true;
       }
     }
@@ -261,11 +261,11 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
    */
   public static void checkMultimers(FeatureListRow row, List<IonIdentity> ident,
       MZTolerance mzTolerance, double minHeight) {
-    for (int i = 0; i < ident.size(); i++) {
-      IonIdentity adduct = ident.get(i);
-      for (Feature f : row.getFeatures()) {
-        Scan msmsScan = f.getMostIntenseFragmentScan();
-        if (msmsScan != null) {
+    for (Feature f : row.getFeatures()) {
+      Scan msmsScan = f.getMostIntenseFragmentScan();
+      if (msmsScan != null) {
+        for (int i = 0; i < ident.size(); i++) {
+          IonIdentity adduct = ident.get(i);
           boolean isMultimer = checkMultimers(row, adduct, msmsScan, ident, mzTolerance,
               minHeight, f.getMZ());
           if (isMultimer) {
@@ -282,13 +282,15 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
     Feature f = row.getFeature(msmsScan.getDataFile());
     // only for M>1
     if (adduct.getIonType().getMolecules() > 1) {
-      MSMSIdentityList msmsIdent = MSMSLogic.checkMultiMolCluster(msmsScan, precursorMZ,
+      List<MsMsIdentity> msmsIdent = MSMSLogic.checkMultiMolCluster(msmsScan, precursorMZ,
           adduct.getIonType(), mzTolerance, minHeight);
 
       // found?
       if (msmsIdent != null && msmsIdent.size() > 0) {
         // add all
-        msmsIdent.forEach(adduct::addMSMSIdentity);
+        for (MsMsIdentity msms : msmsIdent) {
+          adduct.addMsMsIdentity(msms);
+        }
         return true;
       }
     }

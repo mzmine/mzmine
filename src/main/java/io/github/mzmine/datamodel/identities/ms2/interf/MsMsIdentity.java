@@ -15,11 +15,27 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.identities.ms2;
+package io.github.mzmine.datamodel.identities.ms2.interf;
 
-import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
-import java.util.ArrayList;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
-public class MSMSIdentityList extends ArrayList<AbstractMSMSIdentity> {
-  private static final long serialVersionUID = 1L;
+/**
+ * Identity to tag ion identities and MS/MS signals based on an MZTolerance
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public interface MsMsIdentity {
+
+  /**
+   * The name of this identity
+   *
+   * @return name
+   */
+  String getName();
+
+  /**
+   * @return the mz tolerance that was used to find identity
+   */
+  MZTolerance getMzTolerance();
+
 }

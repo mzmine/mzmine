@@ -31,10 +31,10 @@ import javax.annotation.Nonnull;
 
 public class IonNetworkMSMSCheckModule implements MZmineProcessingModule {
 
-  private static final String NAME = "Check all ion identities by MS/MS ";
+  private static final String NAME = "Check all ion identities by MS/MS";
 
   private static final String DESCRIPTION =
-      "Checks ion identities (in-source fragments) and multimers) by MS/MS";
+      "Checks ion identities (in-source fragments and multimers) by MS/MS";
 
   @Override
   public @Nonnull
