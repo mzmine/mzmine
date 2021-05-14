@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.ScanList;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -61,11 +62,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.util.maths.CenterMeasure;
 import java.io.File;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -84,7 +86,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 @DisplayName("Test Feature Finding")
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
-@Disabled
+//@Disabled
 public class FeatureFindingTest {
 
   private static final Logger logger = Logger.getLogger(FeatureFindingTest.class.getName());
@@ -562,6 +564,25 @@ public class FeatureFindingTest {
     assertTrue(processed1.stream()
             .anyMatch(row -> row.getFeatures().stream().filter(Objects::nonNull).count() == 2),
         "No row found with 2 features");
+  }
+
+  @Test
+  @Order(7)
+  @DisplayName("ScanList test")
+  void testScanList() {
+    final FeatureListRow row = lastFlistA.getRow(0);
+    final List<Scan> scanNumbers = row.getBestFeature().getScanNumbers();
+
+    final ScanList<Scan> scanList = new ScanList<>(scanNumbers, null);
+    Assertions.assertThrows(UnsupportedOperationException.class, () -> scanList.add(null));
+    Assertions.assertEquals(scanNumbers.size(), scanList.size());
+
+    for(int i = 0; i < scanNumbers.size(); i++) {
+      Assertions.assertEquals(scanNumbers.get(i), scanList.get(i));
+    }
+
+    final List<Scan> loaded = scanList.load();
+    Assertions.assertEquals(scanNumbers, loaded);
   }
 
   @AfterAll
