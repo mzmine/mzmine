@@ -194,7 +194,7 @@ public class ImageToCsvExportTask extends AbstractTask {
    */
   private void handleMissingSignals(ImagingRawDataFile raw, double[][] dataMatrix,
       double minimumIntensity) {
-    if (handleMissingSpectra.equals(HandleMissingValues.LEAVE_EMPTY)) {
+    if (handleMissingSignals.equals(HandleMissingValues.LEAVE_EMPTY)) {
       return;
     }
     for (Scan scan : raw.getScans()) {
