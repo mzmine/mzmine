@@ -671,11 +671,13 @@ public class ChartLogics {
   }
 
   public static Range keepRangeWithinAutoBounds(ValueAxis axis, Range range) {
+    // was not good for all charts - so better remove this function for now and think of a better way
+    return range;
     // keep within auto range bounds
-     Range auto = getAutoRange(axis);
-     if(auto==null)
-       return range;
-    return new Range(Math.max(auto.getLowerBound(), range.getLowerBound()), Math.min(auto.getUpperBound(), range.getUpperBound()));
+//     Range auto = getAutoRange(axis);
+//     if(auto==null)
+//       return range;
+//    return new Range(Math.max(auto.getLowerBound(), range.getLowerBound()), Math.min(auto.getUpperBound(), range.getUpperBound()));
   }
 
   /**
