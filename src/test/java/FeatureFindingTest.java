@@ -68,6 +68,7 @@ import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -86,7 +87,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 @DisplayName("Test Feature Finding")
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
-//@Disabled
+@Disabled
 public class FeatureFindingTest {
 
   private static final Logger logger = Logger.getLogger(FeatureFindingTest.class.getName());
