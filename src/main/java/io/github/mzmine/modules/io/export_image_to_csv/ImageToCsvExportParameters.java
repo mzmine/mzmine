@@ -52,10 +52,18 @@ public class ImageToCsvExportParameters extends SimpleParameterSet {
    * specific x,y coordinate) and missing signals in available scans.
    */
   public enum HandleMissingValues {
-    // leave empty in csv means ,,
+    /**
+     * leave empty in csv means ,,
+      */
     LEAVE_EMPTY,
-    // replace by zero or by lowest value in image
-    REPLACE_BY_ZERO, REPLACE_BY_LOWEST_VALUE;
+    /**
+     * replace by zero
+     */
+    REPLACE_BY_ZERO,
+    /**
+     * replace by lowest value in image
+     */
+    REPLACE_BY_LOWEST_VALUE;
 
     @Override
     public String toString() {
