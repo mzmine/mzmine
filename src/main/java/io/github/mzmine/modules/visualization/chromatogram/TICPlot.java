@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.chromatogram;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.chartbasics.ChartLogics;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -46,6 +47,7 @@ import javax.annotation.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
@@ -59,6 +61,7 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.RangeType;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 
@@ -142,6 +145,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     // Initialize the chart by default time series chart from factory.
     chart = getChart();
     chart.getXYPlot().getRangeAxis().setLabel(yAxisLabel);
+
+    // only allow positive values for the axes
+    ChartLogics.setAxesTypesPositive(chart);
+
     // setChart(chart);
 
     // Title.

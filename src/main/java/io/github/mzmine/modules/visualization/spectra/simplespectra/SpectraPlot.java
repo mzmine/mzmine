@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.gui.chartbasics.ChartLogics;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
@@ -33,6 +34,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -165,6 +167,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // set the Y axis (intensity) properties
     NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
     yAxis.setNumberFormatOverride(intensityFormat);
+
+    // only allow positive values for the axes
+    ChartLogics.setAxesTypesPositive(chart);
 
     // set focusable state to receive key events
     // setFocusable(true);
