@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.SpectralLibraryMatchType;
@@ -76,10 +77,10 @@ import javax.annotation.Nullable;
  * Map of all feature related data.
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *         <p>
- *         TODO: I think the RawFileType should also be in the map and not just accessible via the
- *         key set of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list
- *         creation in the chromatogram builder ~SteffenHeu
+ * <p>
+ * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
+ * of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list creation in the
+ * chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
@@ -279,7 +280,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-          + "row. Create feature with the correct feature list as an argument.");
+                                         + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -376,7 +377,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public boolean hasFeature(RawDataFile rawData) {
     return features.containsKey(rawData)
-        && features.get(rawData).getFeatureStatus() != FeatureStatus.UNKNOWN;
+           && features.get(rawData).getFeatureStatus() != FeatureStatus.UNKNOWN;
   }
 
   @Override
@@ -427,6 +428,28 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
           "Cannot set non-modular feature list to modular feature list row.");
     }
     this.flist = (ModularFeatureList) flist;
+  }
+
+  /**
+   * Checks if typeClass was added as a FeatureType - does not check nested types in a {@link
+   * ModularType}
+   *
+   * @param typeClass class of a DataType
+   * @return true if feature type is available
+   */
+  public boolean hasFeatureType(Class typeClass) {
+    return getFeatureList().hasFeatureType(typeClass);
+  }
+
+  /**
+   * Checks if typeClass was added as a row type - does not check nested types in a {@link
+   * ModularType}
+   *
+   * @param typeClass class of a DataType
+   * @return true if row type is available
+   */
+  public boolean hasRowType(Class typeClass) {
+    return getFeatureList().hasRowType(typeClass);
   }
 
   @Override

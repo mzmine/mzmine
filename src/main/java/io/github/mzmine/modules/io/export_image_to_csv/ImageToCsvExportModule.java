@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 
 public class ImageToCsvExportModule implements MZmineModule {
 
-  public static void exportRows(Collection<ModularFeatureListRow> rows) {
+  public static void showExportDialog(Collection<ModularFeatureListRow> rows) {
 
     final List<ModularFeature> features = rows.stream()
         .flatMap(ModularFeatureListRow::streamFeatures)
