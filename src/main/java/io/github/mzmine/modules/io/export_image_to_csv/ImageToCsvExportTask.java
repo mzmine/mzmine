@@ -25,7 +25,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import io.github.mzmine.modules.io.export_image_to_csv.ImageToCsvExportParameters.HandleMissingValues;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -62,6 +62,9 @@ public class ImageToCsvExportTask extends AbstractTask {
 
   private final File dir;
   private final Collection<ModularFeature> features;
+  private final HandleMissingValues handleMissingSpectra;
+  private final HandleMissingValues handleMissingSignals;
+
   private int processed;
 
   public ImageToCsvExportTask(ParameterSet param,
@@ -69,6 +72,11 @@ public class ImageToCsvExportTask extends AbstractTask {
     super(null);
     this.dir = param.getParameter(ImageToCsvExportParameters.dir).getValue();
     this.sep = param.getParameter(ImageToCsvExportParameters.delimiter).getValue().trim();
+    handleMissingSpectra = param
+        .getParameter(ImageToCsvExportParameters.handleMissingSpectra)
+        .getValue();
+    handleMissingSignals = param
+        .getParameter(ImageToCsvExportParameters.handleMissingSignals).getValue();
     this.features = features;
 
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -76,6 +84,19 @@ public class ImageToCsvExportTask extends AbstractTask {
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
+  }
+
+  public static String getImageParamString(ImagingRawDataFile file) {
+    StringBuilder b = new StringBuilder();
+    b.append((int) file.getImagingParam().getLateralWidth());
+    b.append("um(");
+    b.append(file.getImagingParam().getMaxNumberOfPixelX());
+    b.append("px) x ");
+    b.append((int) file.getImagingParam().getLateralHeight());
+    b.append("um(");
+    b.append(file.getImagingParam().getMaxNumberOfPixelY());
+    b.append("px)");
+    return b.toString();
   }
 
   @Override
@@ -98,49 +119,121 @@ public class ImageToCsvExportTask extends AbstractTask {
         .filter(file -> file instanceof ImagingRawDataFile).map(file -> (ImagingRawDataFile) file)
         .toList();
 
-    // create a buffer with maximum dimensions
-    final int absMaxX = distinctFiles.stream()
-        .mapToInt(file -> file.getImagingParam().getMaxNumberOfPixelX()).max().orElse(0) + 1;
-    final int absMaxY = distinctFiles.stream()
-        .mapToInt(file -> file.getImagingParam().getMaxNumberOfPixelY()).max().orElse(0) + 1;
+    // export all features for a specific raw file in the maximum dimension of this file
+    for (ImagingRawDataFile raw : distinctFiles) {
+      final int absMaxX = raw.getImagingParam().getMaxNumberOfPixelX() + 1;
+      final int absMaxY = raw.getImagingParam().getMaxNumberOfPixelY() + 1;
 
-    // invert x and y so we can easily loop while saving
-    final double[][] dataMatrix = new double[absMaxY][absMaxX];
+      // invert x and y so we can easily loop while saving
+      final double[][] dataMatrix = new double[absMaxY][absMaxX];
 
-    for (ModularFeature f : features) {
-      if (isCanceled()) {
-        return;
+      for (ModularFeature f : features) {
+        if (isCanceled()) {
+          return;
+        }
+
+        // only features for this raw data file to have the same dimensions per file
+        if (!raw.equals(f.getRawDataFile())) {
+          continue;
+        }
+
+        // track missing data points with Double.NaN value
+        ArrayUtils.fill2D(dataMatrix, Double.NaN);
+
+        final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
+        final IonTimeSeries<? extends ImagingScan> data;
+        try {
+          data = (IonTimeSeries<? extends ImagingScan>) featureData;
+        } catch (ClassCastException e) {
+          logger
+              .info("Cannot cast feature data to IonTimeSeries<? extends ImagingScan> for feature "
+                    + FeatureUtils.featureToString(f));
+          continue;
+        }
+
+        double minimumIntensity = Double.MAX_VALUE;
+        // insert all values
+        for (int i = 0; i < data.getNumberOfValues(); i++) {
+          ImagingScan scan = data.getSpectrum(i);
+          double intensity = data.getIntensity(i);
+          // x and y inverted!
+          int y = scan.getCoordinates().getY();
+          int x = scan.getCoordinates().getX();
+          dataMatrix[y][x] = intensity;
+
+          if (minimumIntensity > intensity) {
+            minimumIntensity = intensity;
+          }
+        }
+        if (Double.compare(minimumIntensity, Double.MAX_VALUE) == 0) {
+          minimumIntensity = 0;
+        }
+        // insert missing values for existing spectra
+        handleMissingSignals(raw, dataMatrix, minimumIntensity);
+
+        // handle missing spectra: Double.NaN, 0, or minimum intensity
+        handleMissingSpectra(dataMatrix, minimumIntensity);
+
+        if (!writeImageToCsv(dataMatrix, f, dir)) {
+          return;
+        }
+        processed++;
       }
-
-      ArrayUtils.fill2D(dataMatrix, 0d);
-
-      final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
-      final IonTimeSeries<? extends ImagingScan> data;
-      try {
-        data = (IonTimeSeries<? extends ImagingScan>) featureData;
-      } catch (ClassCastException e) {
-        logger.info("Cannot cast feature data to IonTimeSeries<? extends ImagingScan> for feature "
-            + FeatureUtils.featureToString(f));
-        continue;
-      }
-
-      final ImagingRawDataFile rawDataFile = (ImagingRawDataFile) f.getRawDataFile();
-      final ImagingParameters imagingParam = rawDataFile.getImagingParam();
-
-      for (int i = 0; i < data.getNumberOfValues(); i++) {
-        ImagingScan scan = data.getSpectrum(i);
-        // x and y inverted!
-        dataMatrix[scan.getCoordinates().getY()][scan.getCoordinates().getX()] = data
-            .getIntensity(i);
-      }
-
-      if (!writeImageToCsv(dataMatrix, f, dir)) {
-        return;
-      }
-      processed++;
     }
-
     setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * Handle missing values (Double.NaN) for existing spectra.
+   *
+   * @param raw              the data file
+   * @param dataMatrix       [y][x] data matrix. Missing values marked by Double.NaN
+   * @param minimumIntensity the minimum signal intensity that is used if handleMissingSignals is
+   *                         {@link HandleMissingValues#REPLACE_BY_LOWEST_VALUE}
+   */
+  private void handleMissingSignals(ImagingRawDataFile raw, double[][] dataMatrix,
+      double minimumIntensity) {
+    if (handleMissingSpectra.equals(HandleMissingValues.LEAVE_EMPTY)) {
+      return;
+    }
+    for (Scan scan : raw.getScans()) {
+      if (scan instanceof ImagingScan imagingScan) {
+        int y = imagingScan.getCoordinates().getY();
+        int x = imagingScan.getCoordinates().getX();
+        if (Double.isNaN(dataMatrix[y][x])) {
+          dataMatrix[y][x] = replaceMissingValue(handleMissingSignals, minimumIntensity);
+        }
+      }
+    }
+  }
+
+  /**
+   * Handle missing spectra (Double.NaN) due to irregular imaging shapes or filtering.
+   *
+   * @param dataMatrix       [y][x] data matrix. Missing values marked by Double.NaN
+   * @param minimumIntensity the minimum signal intensity that is used if handleMissingSignals is
+   *                         {@link HandleMissingValues#REPLACE_BY_LOWEST_VALUE}
+   */
+  private void handleMissingSpectra(double[][] dataMatrix,
+      double minimumIntensity) {
+    if (handleMissingSpectra.equals(HandleMissingValues.LEAVE_EMPTY)) {
+      return;
+    }
+    for (int y = 0; y < dataMatrix.length; y++) {
+      for (int x = 0; x < dataMatrix[y].length; x++) {
+        if (Double.isNaN(dataMatrix[y][x])) {
+          dataMatrix[y][x] = replaceMissingValue(handleMissingSpectra, minimumIntensity);
+        }
+      }
+    }
+  }
+
+  private double replaceMissingValue(HandleMissingValues handle, double minimumIntensity) {
+    return switch (handle) {
+      case LEAVE_EMPTY -> Double.NaN;
+      case REPLACE_BY_ZERO -> 0d;
+      case REPLACE_BY_LOWEST_VALUE -> minimumIntensity;
+    };
   }
 
   private boolean writeImageToCsv(double[][] dataMatrix, ModularFeature f, File directory) {
@@ -150,7 +243,11 @@ public class ImageToCsvExportTask extends AbstractTask {
       throw new IllegalArgumentException(directory.getAbsolutePath() + " is not a directory.");
     }
     final File flDir = new File(directory.getAbsolutePath() + File.separator + cleanFlName);
-    flDir.mkdirs();
+    if (!flDir.mkdirs()) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Could not create directories for " + flDir.getAbsolutePath());
+      return false;
+    }
 
     String newFilename =
         f.getRawDataFile().getName() + "_mz-" + mzFormat.format(f.getMZ());
@@ -169,15 +266,18 @@ public class ImageToCsvExportTask extends AbstractTask {
       for (int y = 0; y < dataMatrix.length; y++) {
         StringBuilder b = new StringBuilder();
         for (int x = 0; x < dataMatrix[y].length; x++) {
-          if (Double.compare(dataMatrix[y][x], 0d) != 0) {
-            b.append(dataMatrix[y][x]);
+          double value = dataMatrix[y][x];
+          if (!Double.isNaN(value)) {
+            b.append(value);
           }
-          if(x < dataMatrix[y].length-1) {
+          if (x < dataMatrix[y].length - 1) {
             b.append(sep);
           }
         }
         writer.append(b.toString());
-        writer.newLine();
+        if (y < dataMatrix.length - 1) {
+          writer.newLine();
+        }
       }
 
     } catch (IOException e) {
@@ -186,19 +286,5 @@ public class ImageToCsvExportTask extends AbstractTask {
       return false;
     }
     return true;
-  }
-
-
-  public static String getImageParamString(ImagingRawDataFile file) {
-    StringBuilder b = new StringBuilder();
-    b.append((int) file.getImagingParam().getLateralWidth());
-    b.append("um(");
-    b.append(file.getImagingParam().getMaxNumberOfPixelX());
-    b.append("px) x ");
-    b.append((int) file.getImagingParam().getLateralHeight());
-    b.append("um(");
-    b.append(file.getImagingParam().getMaxNumberOfPixelY());
-    b.append("px)");
-    return b.toString();
   }
 }
