@@ -671,13 +671,16 @@ public class ChartLogics {
   }
 
   public static Range keepRangeWithinAutoBounds(ValueAxis axis, Range range) {
-    // was not good for all charts - so better remove this function for now and think of a better way
-    return range;
-    // keep within auto range bounds
-//     Range auto = getAutoRange(axis);
-//     if(auto==null)
-//       return range;
-//    return new Range(Math.max(auto.getLowerBound(), range.getLowerBound()), Math.min(auto.getUpperBound(), range.getUpperBound()));
+     // keep within auto range bounds
+     Range auto = getAutoRange(axis);
+     // return range if auto range contains negative values
+     if(auto==null || auto.getLowerBound()<0)
+       return range;
+     // for positive range - always set hard minimum to 0
+    // TODO introduce option on the chart level to opt out of this behavior
+    // for charts that want to include the negative range, even if no datapoints are available
+    // e.g., vulcanoplot, fold-change, ...
+    return new Range(Math.max(0, range.getLowerBound()), range.getUpperBound());
   }
 
   /**
@@ -765,7 +768,7 @@ public class ChartLogics {
           }
         } else {
           upper = upper + axis.getUpperMargin() * range;
-          lower = lower - axis.getLowerMargin() * range;
+//          lower = lower - axis.getLowerMargin() * range;
         }
       }
       return new Range(lower, upper);
