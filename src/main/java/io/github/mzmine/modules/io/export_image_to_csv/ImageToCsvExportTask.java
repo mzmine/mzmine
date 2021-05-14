@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -243,8 +244,11 @@ public class ImageToCsvExportTask extends AbstractTask {
       throw new IllegalArgumentException(directory.getAbsolutePath() + " is not a directory.");
     }
     final File flDir = new File(directory.getAbsolutePath() + File.separator + cleanFlName);
-    if (!flDir.mkdirs()) {
+    try {
+      Files.createDirectories(flDir.toPath());
+    } catch (IOException e) {
       setStatus(TaskStatus.ERROR);
+      logger.log(Level.WARNING, e.getMessage(), e);
       setErrorMessage("Could not create directories for " + flDir.getAbsolutePath());
       return false;
     }
