@@ -88,7 +88,7 @@ public class IsotopePatternUtils {
       // now check the ppm difference and compare the mass differences
       double ppm = getPpmDiff(p.getMZ(), dp.getMZ() + isoMzDiff);
       if (bestppm == null) {
-        bestppm = new Double(ppm);
+        bestppm = ppm;
         bestdp = p;
       } else if (bestppm != null && Math.abs(ppm) < Math.abs(bestppm.doubleValue())) {
         bestppm = ppm;

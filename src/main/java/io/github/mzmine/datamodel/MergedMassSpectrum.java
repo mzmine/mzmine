@@ -22,7 +22,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.util.List;
 
-public interface MergedMassSpectrum extends MassSpectrum {
+public interface MergedMassSpectrum extends Scan {
 
   /**
    * @return A list of spectra used to create this merged spectrum
@@ -38,4 +38,14 @@ public interface MergedMassSpectrum extends MassSpectrum {
    * @return The center function used to create this merged spectrum.
    */
   CenterFunction getCenterFunction();
+
+
+  /**
+   *
+   * @return -1 to represent the artificial state of this spectrum.
+   */
+  @Override
+  default int getScanNumber() {
+    return -1;
+  }
 }

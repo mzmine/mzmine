@@ -26,6 +26,8 @@ package io.github.mzmine.util;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.util.maths.ArithmeticUtils;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -60,6 +62,25 @@ public class RangeUtils {
     double low = Double.parseDouble(m.group(1));
     double high = Double.parseDouble(m.group(2));
     return Range.closed(low, high);
+  }
+
+  /**
+   * @param number        A double value
+   * @param decimalPlaces the number of decimal places to round the range to.
+   * @return A range starting at the given number with the given precision up to the next decimal.
+   * E.g.: 5.3 -> [5.3 -> 5.4), 5.324 -> [5.324 -> 5.325); 5 -> [5, 6)
+   */
+  public static Range<Double> getRangeToCeilDecimal(String str) throws NumberFormatException {
+    String filterStr = str.trim();
+    final int decimalIndex = filterStr.indexOf(".");
+    final int decimalPlaces = decimalIndex != -1 ? filterStr.length() - decimalIndex - 1 : 0;
+    final double parsed = Double.parseDouble(filterStr);
+    final double num = parsed + Math.pow(10, (decimalPlaces + 1) * -1);
+    final double lower = new BigDecimal(num).setScale(decimalPlaces, RoundingMode.DOWN)
+        .doubleValue();
+    final double upper = new BigDecimal(num).setScale(decimalPlaces, RoundingMode.UP)
+        .doubleValue();
+    return Range.closedOpen(lower, upper);
   }
 
   /**
@@ -180,9 +201,14 @@ public class RangeUtils {
         && Double.isNaN(range.upperEndpoint().doubleValue());
   }
 
-  public static boolean isJFreeRangeConnectedToGoogleRange(org.jfree.data.Range jfreeRange,
-      Range<? extends Number> googleRange) {
-    return jfreeRange.contains(googleRange.lowerEndpoint().doubleValue()) || jfreeRange
-        .contains(googleRange.upperEndpoint().doubleValue());
+  public static boolean isJFreeRangeConnectedToGuavaRange(org.jfree.data.Range jfreeRange,
+      Range<? extends Number> guavaRange) {
+    return jfreeRange.contains(guavaRange.lowerEndpoint().doubleValue()) || jfreeRange
+        .contains(guavaRange.upperEndpoint().doubleValue());
+  }
+
+  public static org.jfree.data.Range guavaToJFree(Range<? extends Number> range) {
+    return new org.jfree.data.Range(range.lowerEndpoint().doubleValue(),
+        range.upperEndpoint().doubleValue());
   }
 }

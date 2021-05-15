@@ -210,7 +210,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
       if (buildingFrame == null || Float.compare((scan.getRetentionTime() / 60f),
           buildingFrame.getRetentionTime()) != 0) {
-        mobilityScanNumberCounter = 0;
+        mobilityScanNumberCounter = 0; // mobility scan numbers start with 0!
 
         if (buildingFrame != null) { // finish the frame
           final SimpleFrame finishedFrame = buildingFrame;

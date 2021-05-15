@@ -23,23 +23,32 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class IonMobilityUtils {
+
+  private static Logger logger = Logger.getLogger(IonMobilityUtils.class.getName());
 
   public static double getSmallestMobilityDelta(Frame frame) {
     double minDelta = Double.MAX_VALUE;
@@ -66,40 +75,25 @@ public class IonMobilityUtils {
     return ranges;
   }
 
-  public static List<ModularFeature> getFeaturesWithinRegion(Collection<ModularFeature> features,
-      List<Path2D> regions) {
-
-    List<ModularFeature> contained = new ArrayList<>();
-    for (ModularFeature feature : features) {
-      if (isFeatureWithinMzMobilityRegion(feature, regions)) {
-        contained.add(feature);
-      }
-    }
-    return contained;
-  }
-
-  public static boolean isFeatureWithinMzMobilityRegion(@Nonnull ModularFeature feature,
+  public static boolean isRowWithinMzMobilityRegion(@Nonnull ModularFeatureListRow row,
       @Nonnull final Collection<Path2D> regions) {
-    if (feature != null) {
-      Property<Float> mobility = feature.get(MobilityType.class);
+      Property<Float> mobility = row.get(MobilityType.class);
       if (mobility != null) {
-        Point2D point = new Point2D.Double(feature.getMZ(), mobility.getValue().doubleValue());
+        Point2D point = new Point2D.Double(row.getAverageMZ(), mobility.getValue().doubleValue());
         for (Path2D region : regions) {
           if (region.contains(point)) {
             return true;
           }
         }
       }
-    }
     return false;
   }
 
-  public static boolean isFeatureWithinMzCCSRegion(@Nonnull ModularFeature feature,
+  public static boolean isRowWithinMzCCSRegion(@Nonnull ModularFeatureListRow feature,
       @Nonnull final Collection<Path2D> regions) {
-    if (feature != null) {
-      Float ccs = feature.getCCS();
+      Float ccs = feature.getAverageCCS();
       if (ccs != null) {
-        Point2D point = new Point2D.Double(feature.getMZ() * feature.getCharge(),
+        Point2D point = new Point2D.Double(feature.getAverageMZ() * feature.getRowCharge(),
             ccs.doubleValue());
         for (Path2D region : regions) {
           if (region.contains(point)) {
@@ -107,7 +101,6 @@ public class IonMobilityUtils {
           }
         }
       }
-    }
     return false;
   }
 
@@ -115,11 +108,11 @@ public class IonMobilityUtils {
    * Builds a mobilogram for the given mz range in the frame. Should only be used for previews and
    * visualisations, less perfomant than a ims feature detector.
    *
-   * @param frame
-   * @param mzRange
-   * @param type
-   * @param storage
-   * @return
+   * @param frame The frame
+   * @param mzRange The mz/Range of the mobilogram
+   * @param type basepeak or tic (summed)
+   * @param storage The storage to use
+   * @return The built mobilogram.
    */
   public static IonMobilitySeries buildMobilogramForMzRange(@Nonnull final Frame frame,
       @Nonnull final Range<Double> mzRange, @Nonnull final MobilogramType type,
@@ -150,7 +143,7 @@ public class IonMobilityUtils {
       if (type == MobilogramType.BASE_PEAK) {
         DataPoint bp = ScanUtils
             .findBasePeak(mzsBuffer, intensitiesBuffer, mzRange, scan.getNumberOfDataPoints());
-        if(bp != null) {
+        if (bp != null) {
           mzs[i] = bp.getMZ();
           intensities[i] = bp.getIntensity();
         }
@@ -164,7 +157,90 @@ public class IonMobilityUtils {
     return new SimpleIonMobilitySeries(storage, mzs, intensities, mobilityScans);
   }
 
+  /**
+   * Extracts the mobility scan with the highest intensity this feature was detected in.
+   *
+   * @param f The feature.
+   * @return The mobility scan. Null if this feature does not possess a mobility dimension.
+   */
+  @Nullable
+  public static MobilityScan getBestMobilityScan(@Nonnull final ModularFeature f) {
+    Scan bestScan = f.getRepresentativeScan();
+    if (!(bestScan instanceof Frame bestFrame)) {
+      return null;
+    }
+
+    final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
+    if (!(featureData instanceof IonMobilogramTimeSeries trace)) {
+      return null;
+    }
+
+    final IonMobilitySeries bestMobilogram = trace.getMobilogram(bestFrame);
+    if (bestMobilogram == null) {
+      return null;
+    }
+
+    MobilityScan bestMobilityScan = null;
+    double maxIntensity = 0d;
+    for (int i = 0; i < bestMobilogram.getNumberOfValues(); i++) {
+      if (bestMobilogram.getIntensity(i) > maxIntensity) {
+        maxIntensity = bestMobilogram.getIntensity(i);
+        bestMobilityScan = bestMobilogram.getSpectrum(i);
+      }
+    }
+    return bestMobilityScan;
+  }
+
+  /**
+   * @param series The series. Sorted by ascending mobility. Note that raw {@link IonMobilitySeries}
+   *               from {@link io.github.mzmine.datamodel.MobilityType#TIMS} measurements can be
+   *               sorted by descending mobility. {@link io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries}
+   *               are guaranteed to be sorted by ascending mobility.
+   * @return The FWHM range or null.
+   */
+  public static <T extends IntensitySeries & MobilitySeries> Range<Float> getMobilityFWHM(
+      T series) {
+    final int mostIntenseIndex = FeatureDataUtils.getMostIntenseIndex(series);
+    if (mostIntenseIndex == -1) {
+      return null;
+    }
+
+    final double maxIntensity = series.getIntensity(mostIntenseIndex);
+    final double halfIntensity = maxIntensity / 2;
+
+    int before = 0;
+    int after = series.getNumberOfValues() - 1;
+
+    for (int i = 0; i < mostIntenseIndex; i++) {
+      if (series.getIntensity(i) > halfIntensity) {
+        before = Math.max(0, i - 1);
+        break;
+      }
+    }
+
+    for (int i = mostIntenseIndex; i < series.getNumberOfValues(); i++) {
+      if (series.getIntensity(i) < halfIntensity) {
+        after = i;
+        break;
+      }
+    }
+
+    final double startMobility = MathUtils
+        .twoPointGetXForY(series.getMobility(before), series.getIntensity(before),
+            series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
+            series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)), halfIntensity);
+
+    final double endMobility = MathUtils
+        .twoPointGetXForY(series.getMobility(Math.max(after - 1, 0)),
+            series.getIntensity(Math.max(after - 1, 0)),
+            series.getMobility(after), series.getIntensity(after), halfIntensity);
+
+//    logger.finest(() -> "Determined FWHM from " + startMobility + " to " + endMobility);
+    return Range.closed((float) startMobility, (float) endMobility);
+  }
+
   public enum MobilogramType {
     BASE_PEAK, TIC
   }
+
 }

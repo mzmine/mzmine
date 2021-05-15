@@ -260,17 +260,19 @@ public class FeatureConvertors {
     FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 
     // Quality parameters
-    float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    if (!Float.isNaN(fwhm)) {
-      modularFeature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    if (!Float.isNaN(tf)) {
-      modularFeature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    if (!Float.isNaN(af)) {
-      modularFeature.set(AsymmetryFactorType.class, af);
+    if(imTimeSeries.getNumberOfValues() >= 3) {
+      float fwhm = QualityParameters.calculateFWHM(modularFeature);
+      if (!Float.isNaN(fwhm)) {
+        modularFeature.set(FwhmType.class, fwhm);
+      }
+      float tf = QualityParameters.calculateTailingFactor(modularFeature);
+      if (!Float.isNaN(tf)) {
+        modularFeature.set(TailingFactorType.class, tf);
+      }
+      float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
+      if (!Float.isNaN(af)) {
+        modularFeature.set(AsymmetryFactorType.class, af);
+      }
     }
 
     return modularFeature;

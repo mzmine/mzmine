@@ -18,13 +18,6 @@
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.io.projectload.UserParameterOpenHandler;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -36,6 +29,13 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.io.projectload.UserParameterOpenHandler;
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 
 public class UserParameterOpenHandler_3_0 extends DefaultHandler
     implements UserParameterOpenHandler {
@@ -67,6 +67,7 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
   /**
    * Load the user parameters
    */
+  @Override
   public void readUserParameters(InputStream inputStream)
       throws IOException, ParserConfigurationException, SAXException {
 
@@ -83,20 +84,22 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
   /**
    * @return the progress of these functions loading the feature list from the zip file.
    */
+  @Override
   public double getProgress() {
     if (totalParams == 0)
       return 0;
     return (double) parsedParams / totalParams;
   }
 
+  @Override
   public void cancel() {
     canceled = true;
   }
 
   /**
-   * @see DefaultHandler#startElement(String, String,
-   *      String, Attributes)
+   * @see DefaultHandler#startElement(String, String, String, Attributes)
    */
+  @Override
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
@@ -104,21 +107,16 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
       throw new SAXException("Parsing canceled");
 
     // <PARAMETERS>
-    if (qName.equals(
-        UserParameterElementName_3_0.PARAMETERS.getElementName())) {
-      String count = attrs.getValue(
-          UserParameterElementName_3_0.COUNT.getElementName());
+    if (qName.equals(UserParameterElementName_3_0.PARAMETERS.getElementName())) {
+      String count = attrs.getValue(UserParameterElementName_3_0.COUNT.getElementName());
       totalParams = Integer.parseInt(count);
     }
 
     // <PARAMETER>
-    if (qName.equals(
-        UserParameterElementName_3_0.PARAMETER.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0.PARAMETER.getElementName())) {
 
-      String name = attrs.getValue(
-          UserParameterElementName_3_0.NAME.getElementName());
-      String type = attrs.getValue(
-          UserParameterElementName_3_0.TYPE.getElementName());
+      String name = attrs.getValue(UserParameterElementName_3_0.NAME.getElementName());
+      String type = attrs.getValue(UserParameterElementName_3_0.TYPE.getElementName());
 
       if (type.equals(DoubleParameter.class.getSimpleName())) {
         currentParameter = new DoubleParameter(name, null);
@@ -138,18 +136,16 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
     }
 
     // <VALUE>
-    if (qName.equals(
-        UserParameterElementName_3_0.VALUE.getElementName())) {
-      currentDataFileID = attrs.getValue(
-          UserParameterElementName_3_0.DATA_FILE.getElementName());
+    if (qName.equals(UserParameterElementName_3_0.VALUE.getElementName())) {
+      currentDataFileID = attrs.getValue(UserParameterElementName_3_0.DATA_FILE.getElementName());
     }
 
   }
 
   /**
-   * @see DefaultHandler#endElement(String, String,
-   *      String)
+   * @see DefaultHandler#endElement(String, String, String)
    */
+  @Override
   @SuppressWarnings("unchecked")
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
@@ -157,28 +153,25 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
       throw new SAXException("Parsing canceled");
 
     // <OPTION>
-    if (qName.equals(
-        UserParameterElementName_3_0.OPTION.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0.OPTION.getElementName())) {
       String optionValue = getTextOfElement();
       currentOptions.add(optionValue);
     }
 
     // <VALUE>
-    if (qName.equals(
-        UserParameterElementName_3_0.VALUE.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0.VALUE.getElementName())) {
       RawDataFile currentDataFile = dataFilesIDMap.get(currentDataFileID);
       String valueString = getTextOfElement();
       Object value;
       if (currentParameter instanceof DoubleParameter) {
-        value = new Double(valueString);
+        value = Double.valueOf(valueString);
       } else
         value = valueString;
       currentValues.put(currentDataFile, value);
     }
 
     // <PARAMETER>
-    if (qName.equals(
-        UserParameterElementName_3_0.PARAMETER.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0.PARAMETER.getElementName())) {
       if (currentParameter instanceof ComboParameter) {
         String newChoices[] = currentOptions.toArray(new String[0]);
         ((ComboParameter<String>) currentParameter).setChoices(newChoices);
@@ -198,7 +191,7 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
 
   /**
    * Return a string without tab an EOF characters
-   * 
+   *
    * @return String element text
    */
   private String getTextOfElement() {
@@ -211,9 +204,10 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
 
   /**
    * characters()
-   * 
+   *
    * @see org.xml.sax.ContentHandler#characters(char[], int, int)
    */
+  @Override
   public void characters(char buf[], int offset, int len) throws SAXException {
     charBuffer = charBuffer.append(buf, offset, len);
   }

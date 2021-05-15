@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
@@ -50,7 +50,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -142,17 +141,16 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
     // add preview depending on which dimension is selected.
     if (dimension == ResolvingDimension.RETENTION_TIME) {
-      Platform.runLater(() -> {
-        previewChart.addDataset(new FastColoredXYDataset(new IonTimeSeriesToXYProvider(newValue)));
+      MZmineCore.runLater(() -> {
+        previewChart.addDataset(new ColoredXYDataset(new IonTimeSeriesToXYProvider(newValue)));
         previewChart.setDomainAxisLabel(uf.format("Retention time", "min"));
         previewChart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
       });
-
     } else if (dimension == ResolvingDimension.MOBILITY && newValue
         .getFeatureData() instanceof IonMobilogramTimeSeries) {
       IonMobilogramTimeSeries data = (IonMobilogramTimeSeries) newValue.getFeatureData();
-      Platform.runLater(() -> {
-        previewChart.addDataset(new FastColoredXYDataset(
+      MZmineCore.runLater(() -> {
+        previewChart.addDataset(new ColoredXYDataset(
             new SummedMobilogramXYProvider(data.getSummedMobilogram(),
                 new SimpleObjectProperty<>(newValue.getRawDataFile().getColor()), "")));
         IMSRawDataFile file = (IMSRawDataFile) newValue.getRawDataFile();
@@ -191,16 +189,14 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
         for (IonTimeSeries<? extends Scan> series : resolved) {
           if (dimension == ResolvingDimension.RETENTION_TIME) {
-            FastColoredXYDataset ds = new FastColoredXYDataset(
-                new IonTimeSeriesToXYProvider(series, "",
-                    new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
-            Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+            ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, "",
+                new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
+            MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
           } else {
-            FastColoredXYDataset ds = new FastColoredXYDataset(
-                new SummedMobilogramXYProvider(
-                    ((IonMobilogramTimeSeries) series).getSummedMobilogram(),
-                    new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
-            Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+            ColoredXYDataset ds = new ColoredXYDataset(new SummedMobilogramXYProvider(
+                ((IonMobilogramTimeSeries) series).getSummedMobilogram(),
+                new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
+            MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
           }
         }
       }
@@ -210,9 +206,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
         return;
       }
       for (ResolvedPeak rp : resolved) {
-        FastColoredXYDataset ds = new FastColoredXYDataset(rp);
+        ColoredXYDataset ds = new ColoredXYDataset(rp);
         ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
-        Platform.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+        MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
       }
     }
   }
