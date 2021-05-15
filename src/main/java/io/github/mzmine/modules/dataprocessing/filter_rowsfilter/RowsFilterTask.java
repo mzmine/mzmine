@@ -18,6 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -30,6 +37,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.LipidAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.LipidAnnotationType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -37,12 +47,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nullable;
 
 /**
  * Filters out feature list rows.
@@ -137,7 +141,8 @@ public class RowsFilterTask extends AbstractTask {
     // Create new feature list.
 
     final ModularFeatureList newFeatureList = new ModularFeatureList(
-        featureList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
+        featureList.getName() + ' '
+            + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
         getMemoryMapStorage(), featureList.getRawDataFiles());
 
     // Copy previous applied methods.
@@ -147,9 +152,8 @@ public class RowsFilterTask extends AbstractTask {
     }
 
     // Add task description to featureList.
-    newFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class,
-            parameters));
+    newFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
+        getTaskDescription(), RowsFilterModule.class, parameters));
 
     // Get parameters.
     final boolean onlyIdentified =
@@ -199,7 +203,8 @@ public class RowsFilterTask extends AbstractTask {
     int intMinCount = minCount.intValue();
 
     // Filter rows.
-    final ModularFeatureListRow[] rows = featureList.getRows().toArray(ModularFeatureListRow[]::new);
+    final ModularFeatureListRow[] rows =
+        featureList.getRows().toArray(ModularFeatureListRow[]::new);
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
 
@@ -218,8 +223,23 @@ public class RowsFilterTask extends AbstractTask {
       // Check identities.
       if (onlyIdentified) {
 
-        if (row.getPreferredFeatureIdentity() == null)
+        boolean noIdentity = (row.getPreferredFeatureIdentity() == null);
+        boolean rowHasLipidAnnotatioType = (row.get(LipidAnnotationType.class) != null);
+        boolean hasMatchedLipid = false;
+
+        if (rowHasLipidAnnotatioType && row.get(LipidAnnotationType.class)
+            .get(LipidAnnotationSummaryType.class).getValue() != null) {
+          List<MatchedLipid> matchedLipid =
+              row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).getValue();
+          if (!matchedLipid.isEmpty()) {
+            hasMatchedLipid = true;
+          }
+        }
+
+        if (noIdentity && !hasMatchedLipid) {
           filterRowCriteriaFailed = true;
+        }
+
       }
 
       // Check average m/z.
@@ -234,8 +254,8 @@ public class RowsFilterTask extends AbstractTask {
       // Check average RT.
       if (filterByRtRange) {
 
-        final Range<Float> rtRange = RangeUtils.toFloatRange(parameters.getParameter(RowsFilterParameters.RT_RANGE)
-            .getEmbeddedParameter().getValue());
+        final Range<Float> rtRange = RangeUtils.toFloatRange(parameters
+            .getParameter(RowsFilterParameters.RT_RANGE).getEmbeddedParameter().getValue());
 
         if (!rtRange.contains(row.getAverageRT()))
           filterRowCriteriaFailed = true;
@@ -251,15 +271,28 @@ public class RowsFilterTask extends AbstractTask {
           final String searchText = parameters.getParameter(RowsFilterParameters.IDENTITY_TEXT)
               .getEmbeddedParameter().getValue().toLowerCase().trim();
           int numFailedIdentities = 0;
+          StringBuilder sb = new StringBuilder();
           FeatureIdentity[] identities = row.getPeakIdentities().toArray(new FeatureIdentity[0]);
           for (int index = 0; !isCanceled() && index < identities.length; index++) {
             String rowText = identities[index].getName().toLowerCase().trim();
-            if (!rowText.contains(searchText))
-              numFailedIdentities += 1;
-          }
-          if (numFailedIdentities == identities.length)
-            filterRowCriteriaFailed = true;
+            sb.setLength(0);
 
+            // check for lipid annotation
+            if (row.get(LipidAnnotationType.class) != null && row.get(LipidAnnotationType.class)
+                .get(LipidAnnotationSummaryType.class).getValue() != null) {
+              List<MatchedLipid> matchedLipids = row.get(LipidAnnotationType.class)
+                  .get(LipidAnnotationSummaryType.class).getValue();
+              for (MatchedLipid matchedLipid : matchedLipids) {
+                sb.append(matchedLipid.getLipidAnnotation().getAnnotation());
+              }
+            }
+            if (!rowText.contains(searchText) && !sb.toString().contains(searchText)) {
+              numFailedIdentities += 1;
+            }
+          }
+          if (numFailedIdentities == identities.length) {
+            filterRowCriteriaFailed = true;
+          }
         }
       }
 
@@ -317,8 +350,8 @@ public class RowsFilterTask extends AbstractTask {
       // Filter by FWHM range
       if (filterByFWHM) {
 
-        final Range<Float> FWHMRange =
-            RangeUtils.toFloatRange(parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue());
+        final Range<Float> FWHMRange = RangeUtils.toFloatRange(
+            parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue());
         // If any of the features fail the FWHM criteria,
         Float FWHM_value = row.getBestFeature().getFWHM();
 

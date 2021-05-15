@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.LipidAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.LipidAnnotationType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
@@ -314,9 +313,9 @@ public class FeatureTableContextMenu extends ContextMenu {
     showAllMSMSItem.setOnAction(
         e -> MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRows.get(0)));
 
-    final MenuItem showMatchedLipidItem = new ConditionalMenuItem("Matched Lipid signals",
-        () -> !selectedRows.isEmpty() && selectedRows.get(0).get(LipidAnnotationType.class)
-            .get(LipidAnnotationSummaryType.class).getValue() != null);
+    final MenuItem showMatchedLipidItem =
+        new ConditionalMenuItem("Matched Lipid signals", () -> !selectedRows.isEmpty()
+            && selectedRows.get(0).get(LipidAnnotationType.class) != null);
     showMatchedLipidItem.setOnAction(e -> {
       MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
           "Matched Lipid Signals", new LipidSpectrumChart(selectedRows.get(0), null));

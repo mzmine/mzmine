@@ -131,4 +131,13 @@ public class LipidAnnotationMsMsTestSpectra {
     return PC_18_0_20_4MPlusH;
   }
 
+  private LipidAnnotationMsMsTestResource PI_38_4MPlusNH4 =
+      new LipidAnnotationMsMsTestResource(new double[] {627.535}, //
+          IonizationType.AMMONIUM, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 38, 4));
+
+  public LipidAnnotationMsMsTestResource getPI_38_4MPlusNH4() {
+    return PI_38_4MPlusNH4;
+  }
+
 }

@@ -37,7 +37,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 /**
- * Parameter setup dialog for lipid search module
+ * Parameter setup dialog for lipid annotation module
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */

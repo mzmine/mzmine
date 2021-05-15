@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -30,18 +31,17 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYDotRenderer;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
+import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYDataset;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
@@ -185,12 +185,12 @@ public class LipidDatabaseTableController {
         // Always invoke super constructor.
         super.updateItem(item, empty);
         if (getIndex() >= 0) {
-          if (tableData.get(getIndex()).getInfo().toString().contains("Possible interference")) {
-            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(possibleInterFX));
-          } else if (tableData.get(getIndex()).getInfo().contains("Interference")) {
-            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(interFX));
+          if (tableData.get(getIndex()).getInfo().contains("interference")) {
+            this.setStyle("-fx-background-color:" + ColorsFX.toHexString(interFX));
+          } else if (tableData.get(getIndex()).getInfo().contains("possible interference")) {
+            this.setStyle("-fx-background-color:" + ColorsFX.toHexString(possibleInterFX));
           } else {
-            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(noInterFX));
+            this.setStyle("-fx-background-color:" + ColorsFX.toHexString(noInterFX));
           }
         }
       }
@@ -208,9 +208,9 @@ public class LipidDatabaseTableController {
 
     // legend
     statusLabel.setStyle("-fx-font-weight: bold");
-    noInterLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(noInterFX));
-    possibleInterLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(possibleInterFX));
-    interLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(interFX));
+    noInterLabel.setStyle("-fx-background-color:" + ColorsFX.toHexString(noInterFX));
+    possibleInterLabel.setStyle("-fx-background-color:" + ColorsFX.toHexString(possibleInterFX));
+    interLabel.setStyle("-fx-background-color:" + ColorsFX.toHexString(interFX));
   }
 
   private void addLipidsToTable(ILipidClass[] selectedLipids, int id) {
@@ -237,7 +237,7 @@ public class LipidDatabaseTableController {
               Arrays.asList(selectedLipids[i].getFragmentationRules());
           StringBuilder fragmentationRuleSB = new StringBuilder();
           fragmentationRules.stream().forEach(rule -> {
-            fragmentationRuleSB.append(rule.toString());
+            fragmentationRuleSB.append(rule.toString() + "\n");
           });
           StringBuilder exactMassSB = new StringBuilder();
           Set<IonizationType> ionizationTypes = fragmentationRules.stream()
@@ -301,7 +301,7 @@ public class LipidDatabaseTableController {
             }
           }
           if (!sb.isEmpty()) {
-            tableData.get(j).setInfo(sb.toString());
+            tableData.get(j).setInfo(tableData.get(j).getInfo() + "\n" + sb.toString());
           }
         }
       }
@@ -309,7 +309,8 @@ public class LipidDatabaseTableController {
   }
 
   private boolean isSamePolarity(String key, String key2) {
-    return ((key.contains("+") && key2.contains("+")) || (key.contains("-") && key2.contains("-")));
+    return ((key.contains("]+") && key2.contains("]+"))
+        || (key.contains("]-") && key2.contains("]-")));
   }
 
   /**
@@ -318,10 +319,9 @@ public class LipidDatabaseTableController {
    */
   private JFreeChart create2DKendrickMassDatabasePlot(String base) {
 
-    XYSeriesCollection datasetCollection = new XYSeriesCollection();
-    XYSeries noInterferenceSeries = new XYSeries("No interference");
-    XYSeries possibleInterferenceSeries = new XYSeries("Possible interference");
-    XYSeries interferenceSeries = new XYSeries("Isomeric interference");
+    List<DataPointXYZ> noInterferenceDps = new ArrayList<>();
+    List<DataPointXYZ> possibleInterferenceDps = new ArrayList<>();
+    List<DataPointXYZ> interferenceDps = new ArrayList<>();
 
     // add data to all series
     double yValue = 0;
@@ -350,28 +350,46 @@ public class LipidDatabaseTableController {
 
         // add xy values to series based on interference status
         if (tableData.get(i).getInfo().contains(entry.getKey() + " possible interference")) {
-          possibleInterferenceSeries.add(xValue, yValue);
+          possibleInterferenceDps
+              .add(new DataPointXYZ(xValue, yValue, mzTolerance.getMzToleranceForMass(xValue) * 2));
         } else if (tableData.get(i).getInfo().contains(entry.getKey() + " interference")) {
-          interferenceSeries.add(xValue, yValue);
+          interferenceDps
+              .add(new DataPointXYZ(xValue, yValue, mzTolerance.getMzToleranceForMass(xValue) * 2));
         } else {
-          noInterferenceSeries.add(xValue, yValue);
+          noInterferenceDps
+              .add(new DataPointXYZ(xValue, yValue, mzTolerance.getMzToleranceForMass(xValue) * 2));
         }
       }
 
     }
 
-    datasetCollection.addSeries(noInterferenceSeries);
-    datasetCollection.addSeries(possibleInterferenceSeries);
-    datasetCollection.addSeries(interferenceSeries);
     // create chart
     JFreeChart chart = ChartFactory.createScatterPlot("Database plot KMD base " + base, "m/z",
-        "KMD (" + base + ")", datasetCollection, PlotOrientation.VERTICAL, true, true, false);
+        "KMD (" + base + ")", null, PlotOrientation.VERTICAL, false, true, false);
+    KendrickMassPlotXYDataset noInterferenceDataset = new KendrickMassPlotXYDataset(
+        noInterferenceDps.stream().mapToDouble(DataPointXYZ::getX).toArray(),
+        noInterferenceDps.stream().mapToDouble(DataPointXYZ::getY).toArray(),
+        noInterferenceDps.stream().mapToDouble(DataPointXYZ::getZ).toArray(), "No Interference",
+        noInterSwing);
+    KendrickMassPlotXYDataset possibleInterferenceDataset = new KendrickMassPlotXYDataset(
+        possibleInterferenceDps.stream().mapToDouble(DataPointXYZ::getX).toArray(),
+        possibleInterferenceDps.stream().mapToDouble(DataPointXYZ::getY).toArray(),
+        possibleInterferenceDps.stream().mapToDouble(DataPointXYZ::getZ).toArray(),
+        "Possible Interference", possibleInterSwing);
+    KendrickMassPlotXYDataset interferenceDataset = new KendrickMassPlotXYDataset(
+        interferenceDps.stream().mapToDouble(DataPointXYZ::getX).toArray(),
+        interferenceDps.stream().mapToDouble(DataPointXYZ::getY).toArray(),
+        interferenceDps.stream().mapToDouble(DataPointXYZ::getZ).toArray(), "Interference",
+        interSwing);
+    chart.getXYPlot().setDataset(0, noInterferenceDataset);
+    chart.getXYPlot().setDataset(1, possibleInterferenceDataset);
+    chart.getXYPlot().setDataset(2, interferenceDataset);
 
-    chart.setBackgroundPaint(null);
-    chart.getLegend().setBackgroundPaint(null);
+    chart.setBackgroundPaint(
+        MZmineCore.getConfiguration().getDefaultChartTheme().getChartBackgroundPaint());
+
     // create plot
     XYPlot plot = (XYPlot) chart.getPlot();
-    plot.setBackgroundPaint(java.awt.Color.BLACK);
     plot.setRangeGridlinesVisible(false);
     plot.setDomainGridlinesVisible(false);
 
@@ -380,12 +398,7 @@ public class LipidDatabaseTableController {
     range.setRange(0, 1);
 
     // set renderer
-    XYDotRenderer renderer = new XYDotRenderer();
-    renderer.setSeriesPaint(0, noInterSwing);
-    renderer.setSeriesPaint(1, possibleInterSwing);
-    renderer.setSeriesPaint(2, interSwing);
-    renderer.setDotHeight(3);
-    renderer.setDotWidth(3);
+    XYCirclePixelSizeRenderer renderer = new XYCirclePixelSizeRenderer();
     plot.setRenderer(renderer);
 
     return chart;
@@ -403,6 +416,44 @@ public class LipidDatabaseTableController {
       }
     }
     return ionSpecificMzValues;
+  }
+
+  class DataPointXYZ {
+
+    private double x;
+    private double y;
+    private double z;
+
+    public DataPointXYZ(double x, double y, double z) {
+      super();
+      this.x = x;
+      this.y = y;
+      this.z = z;
+    }
+
+    public double getX() {
+      return x;
+    }
+
+    public void setX(double x) {
+      this.x = x;
+    }
+
+    public double getY() {
+      return y;
+    }
+
+    public void setY(double y) {
+      this.y = y;
+    }
+
+    public double getZ() {
+      return z;
+    }
+
+    public void setZ(double z) {
+      this.z = z;
+    }
   }
 
 }

@@ -150,7 +150,7 @@ public class LipidSearchTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    logger.info("Starting lipid search in " + featureList);
+    logger.info("Starting lipid annotation in " + featureList);
 
     List<FeatureListRow> rows = featureList.getRows();
     featureList.addRowType(new LipidAnnotationType());
@@ -160,7 +160,7 @@ public class LipidSearchTask extends AbstractTask {
     // build lipid species database
     Set<ILipidAnnotation> lipidDatabase = buildLipidDatabase();
 
-    // start lipid search
+    // start lipid annotation
     rows.parallelStream().forEach(row -> {
       for (ILipidAnnotation lipidAnnotation : lipidDatabase) {
         findPossibleLipid(lipidAnnotation, row);

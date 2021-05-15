@@ -35,9 +35,8 @@ import io.github.mzmine.util.ExitCode;
  */
 public class LipidSearchModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Lipid search";
-  private static final String MODULE_DESCRIPTION =
-      "This method searches and annotates peaks whose m/z value matches a predicted mass of selected lipids.";
+  private static final String MODULE_NAME = "Lipid Annotation";
+  private static final String MODULE_DESCRIPTION = "This method annotates features as lipids.";
 
   @Override
   public @Nonnull String getName() {

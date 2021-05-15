@@ -576,7 +576,9 @@ public enum LipidClasses implements ILipidClass {
   DIALKYLGLYCEROLS("Dialkylglycerols", "DG", LipidCategories.GLYCEROLIPIDS,
       LipidMainClasses.DIRADYLGLYCEROLS, "C3H8O3",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN},
-      new LipidFragmentationRule[] {}), //
+      new LipidFragmentationRule[] {
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM), //
+      }), //
   ALKYLACYLGLYCEROLS("Alkylacylglycerols", "DG", LipidCategories.GLYCEROLIPIDS,
       LipidMainClasses.DIRADYLGLYCEROLS, "C3H8O3",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ACYL_CHAIN},
@@ -605,14 +607,20 @@ public enum LipidClasses implements ILipidClass {
               LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, //
               "NH3")}), //
   ALKYLDIACYLGLYCEROLS("Alkyldiacylglycerols", "TG", LipidCategories.GLYCEROLIPIDS,
-      LipidMainClasses.TRIRADYLGLYCEROLS, "C3H8O3", new LipidChainType[] {LipidChainType.ACYL_CHAIN,
-          LipidChainType.ALKYL_CHAIN, LipidChainType.ACYL_CHAIN},
-      new LipidFragmentationRule[] { //
+      LipidMainClasses.TRIRADYLGLYCEROLS, "C3H8O3",
+      new LipidChainType[] {LipidChainType.ACYL_CHAIN, LipidChainType.ALKYL_CHAIN,
+          LipidChainType.ACYL_CHAIN},
+      new LipidFragmentationRule[] {//
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM), //
       }), //
   DIALKYLMONOACYLGLYCEROLS("Dialkylmonoacylglycerols", "TG", LipidCategories.GLYCEROLIPIDS,
-      LipidMainClasses.TRIRADYLGLYCEROLS, "C3H8O3", new LipidChainType[] {
-          LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN, LipidChainType.ACYL_CHAIN},
+      LipidMainClasses.TRIRADYLGLYCEROLS, "C3H8O3",
+      new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN,
+          LipidChainType.ACYL_CHAIN},
       new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM), //
       }), //
   DIACYLGLYCEROLTRIMETHYLHOMOSERIN("Diacylglyceroltrimethylhomoserin", "DGTS",
       LipidCategories.GLYCEROLIPIDS, LipidMainClasses.OTHERGLYCEROLIPIDS, "C10H21O5N",
@@ -703,6 +711,8 @@ public enum LipidClasses implements ILipidClass {
   SULFOQUINOVOSYLMONOACYLGLYCEROLS("Sulfoquinovosylmonoacylglycerols", "SQMG",
       LipidCategories.GLYCEROLIPIDS, LipidMainClasses.GLYCOSYLMONOACYLGLYCEROLS, "C9H18O10S",
       new LipidChainType[] {LipidChainType.ACYL_CHAIN}, new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN), //
       }), //
 
   // Glycerophospholipids
@@ -719,11 +729,29 @@ public enum LipidClasses implements ILipidClass {
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
               LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL, //
               LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, //
-              "H2O")}), //
+              "H2O"), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C3H9N"), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C5H14NO4P"), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C2H5O4PNa+"), //
+
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.FORMATE,
+              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.ACETATE,
+              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL),//
+      }), //
   DIALKYLGLYCEROPHOSPHOCHOLINES("Dialkylglycerophosphocholines", "PC",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C8H20O6PN",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN},
       new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN), //
       }), //
   ALKYLACYLGLYCEROPHOSPHOCHOLINES("Alkylacylglycerophosphocholines", "PC",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C8H20O6PN",
@@ -771,6 +799,7 @@ public enum LipidClasses implements ILipidClass {
   MONOALKYLGLYCEROPHOSPHOCHOLINES("Monoalkylglycerophosphocholines", "LPC",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C8H20O6PN",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN}, new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN), //
       }), //
   DIACYLGLYCEROPHOSPHOETHANOLAMINES("Diacylglycerophosphoethanolamines", "PE",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
@@ -800,6 +829,9 @@ public enum LipidClasses implements ILipidClass {
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
       "C5H14O6PN", new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN},
       new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN), //
       }), //
   ALKYLACYLGLYCEROPHOSPHOETHANOLAMINES("Alkylacylglycerophosphoethanolamines", "PE",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
@@ -835,6 +867,9 @@ public enum LipidClasses implements ILipidClass {
   MONOALKYLGLYCEROPHOSPHOETHANOLAMINES("Monoalkylglycerophosphoethanolamines", "LPE",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
       "C5H14O6PN", new LipidChainType[] {LipidChainType.ALKYL_CHAIN}, new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN), //
       }), //
   DIACYLGLYCEROPHOSPHOSERINES("Diacylglycerophosphoserines", "PS",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C6H14O8NP",
@@ -876,6 +911,7 @@ public enum LipidClasses implements ILipidClass {
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C6H14O8NP",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN},
       new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN), //
       }), //
   ALKYLACYLGLYCEROPHOSPHOSERINES("Alkylacylglycerophosphoserines", "PS",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C6H14O8NP",
@@ -893,10 +929,12 @@ public enum LipidClasses implements ILipidClass {
   MONOACYLGLYCEROPHOSPHOSERINES("Monoacylglycerophosphoserines", "LPS",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C6H14O8NP",
       new LipidChainType[] {LipidChainType.ACYL_CHAIN}, new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN), //
       }), //
   MONOALKYLGLYCEROPHOSPHOSERINES("Monoalkylglycerophosphoserines", "LPS",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C6H14O8NP",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN}, new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN), //
       }), //
   DIACYLGLYCEROPHOSPHOGLYCEROLS("Diacylglycerophosphoglycerols", "PG",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOGLYCEROLS, "C6H15O8P",
@@ -905,6 +943,9 @@ public enum LipidClasses implements ILipidClass {
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
               "C3H12O6PN"), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.ACYLCHAIN_PLUS_FORMULA_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H5O"), //
 
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
@@ -931,6 +972,7 @@ public enum LipidClasses implements ILipidClass {
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOGLYCEROLS, "C6H15O8P",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN},
       new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN), //
       }), //
   ALKYLACYLGLYCEROPHOSPHOGLYCEROLS("Alkylacylglycerophosphoglycerols", "PG",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOGLYCEROLS, "C6H15O8P",
@@ -973,13 +1015,49 @@ public enum LipidClasses implements ILipidClass {
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
               "C3H6O5P-")}), //
+  MONOACYLGLYCEROPHOSPHOMONORADYLGLYCEROLS("Monoacylglycerophosphomonoradylglycerols", "BMP",
+      LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOGLYCEROLS, "C6H15O8P",
+      new LipidChainType[] {LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN},
+      new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C3H12O6PN"), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.ACYLCHAIN_PLUS_FORMULA_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H5O"), //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H5"), //
+
+
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C6H14O8P-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C3H6O5P-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "H2PO4-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "PO3-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "H2O"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)}), //
   DIACYLGLYCEROPHOSPHOINOSITOLS("Diacylglycerophosphoinositols", "PI",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLS, "C9H19PO11",
       new LipidChainType[] {LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN},
       new LipidFragmentationRule[] { //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
-              "C6H17O9PN"), //
+              "C6H16O9PN"), //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
               "C6H13O9PNa"), //
@@ -1000,6 +1078,7 @@ public enum LipidClasses implements ILipidClass {
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLS, "C9H19PO11",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN},
       new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN)//
       }), //
   ALKYLACYLGLYCEROPHOSPHOINOSITOLS("Alkylacylglycerophosphoinositols", "PI",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLS, "C9H19PO11",
@@ -1071,6 +1150,12 @@ public enum LipidClasses implements ILipidClass {
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
               "C3H6O5P-"), //
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "H2PO4-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "PO3-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
               LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
               LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
       }), //
@@ -1078,11 +1163,13 @@ public enum LipidClasses implements ILipidClass {
       LipidMainClasses.GLYCEROPHOSPHATES, "C3H9O6P",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN},
       new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN)//
       }), //
   ALKYLACYLGLYCEROPHOSPHATES("Alkylacylglycerophosphates", "PA",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHATES, "C3H9O6P",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ACYL_CHAIN},
       new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN)//
       }), //
   MONOACYLGLYCEROPHOSPHATES("Monoacylglycerophosphates", "LPA",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHATES, "C3H9O6P",
@@ -1090,13 +1177,14 @@ public enum LipidClasses implements ILipidClass {
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
               "C3H6O5P-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "PO3-") //
       }), //
   MONOALKYLGLYCEROPHOSPHATES("Monoalkylglycerophosphates", "LPA",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHATES, "C3H9O6P",
       new LipidChainType[] {LipidChainType.ALKYL_CHAIN}, new LipidFragmentationRule[] { //
-          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
-              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
-              "C3H6O5P-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN)//
       }), //
   DIACYLGLYCEROPHOSPHOGLYCEROPHOSPHODIRADYLGLYCEROLS(
       "Diacylglycerophosphoglycerophosphodiradylglycerols", "CL",

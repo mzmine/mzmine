@@ -72,15 +72,15 @@ public class ImageChart extends StackPane {
     chart.getXYPlot().setDomainAxisLocation(AxisLocation.TOP_OR_RIGHT);
     axis.setRange(new Range(0, imagingFile.getImagingParam().getLateralWidth()));
 
-    setPrefHeight(200);
-    setPrefWidth(200);
+    setPrefHeight(GraphicalColumType.LARGE_GRAPHICAL_CELL_HEIGHT);
+    setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
     chart.getXYPlot().getRangeAxis().setAutoRange(true);
     chart.getXYPlot().getDomainAxis().setAutoRange(true);
     BufferedImage img =
         chart.getChart().createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
-            GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+            GraphicalColumType.LARGE_GRAPHICAL_CELL_HEIGHT);
 
     ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
     view.setOnMouseClicked(e -> MZmineCore.runLater(() -> {

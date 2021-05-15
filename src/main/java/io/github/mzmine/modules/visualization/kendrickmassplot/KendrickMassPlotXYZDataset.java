@@ -29,7 +29,7 @@ import io.github.mzmine.util.FormulaUtils;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
+public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   private static final long serialVersionUID = 1L;
 
@@ -39,10 +39,21 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
   private String customYAxisKMBase;
   private String customXAxisKMBase;
   private String customZAxisKMBase;
+  private String bubbleSizeLabel;
   private double[] xValues;
   private double[] yValues;
   private double[] zValues;
+  private double[] bubbleSizeValues;
   private ParameterSet parameters;
+
+  public KendrickMassPlotXYZDataset(double[] xValues, double[] yValues, double[] zValues,
+      double[] bubbleSizeValues) {
+    super();
+    this.xValues = xValues;
+    this.yValues = yValues;
+    this.zValues = zValues;
+    this.bubbleSizeValues = bubbleSizeValues;
+  }
 
   public KendrickMassPlotXYZDataset(ParameterSet parameters) {
 
@@ -74,6 +85,9 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     } else {
       this.zAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.zAxisValues).getValue();
     }
+
+    this.bubbleSizeLabel =
+        parameters.getParameter(KendrickMassPlotParameters.bubbleSize).getValue();
 
     // Calc xValues
     xValues = new double[selectedRows.length];
@@ -135,6 +149,28 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
           zValues[i] = selectedRows[i].getBestFeature().getMZ();
         }
       }
+
+    // Calc bubble size
+    bubbleSizeValues = new double[selectedRows.length];
+    for (int i = 0; i < selectedRows.length; i++) {
+      if (bubbleSizeLabel.equals("Retention time")) {
+        bubbleSizeValues[i] = selectedRows[i].getAverageRT();
+      } else if (bubbleSizeLabel.equals("Intensity")) {
+        bubbleSizeValues[i] = selectedRows[i].getAverageHeight();
+      } else if (bubbleSizeLabel.equals("Area")) {
+        bubbleSizeValues[i] = selectedRows[i].getAverageArea();
+      } else if (bubbleSizeLabel.equals("Tailing factor")) {
+        bubbleSizeValues[i] = selectedRows[i].getBestFeature().getTailingFactor();
+      } else if (bubbleSizeLabel.equals("Asymmetry factor")) {
+        bubbleSizeValues[i] = selectedRows[i].getBestFeature().getAsymmetryFactor();
+      } else if (bubbleSizeLabel.equals("FWHM")) {
+        bubbleSizeValues[i] = selectedRows[i].getBestFeature().getFWHM();
+      } else if (bubbleSizeLabel.equals("m/z")) {
+        bubbleSizeValues[i] = selectedRows[i].getBestFeature().getMZ();
+      } else {
+        bubbleSizeValues[i] = 5;
+      }
+    }
   }
 
   public ParameterSet getParameters() {
@@ -165,6 +201,10 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     return zValues[item];
   }
 
+  public double getBubbleSize(int series, int item) {
+    return bubbleSizeValues[item];
+  }
+
   public void setxValues(double[] values) {
     xValues = values;
   }
@@ -175,6 +215,10 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   public void setzValues(double[] values) {
     zValues = values;
+  }
+
+  public double[] getBubbleSizeValues() {
+    return bubbleSizeValues;
   }
 
   @Override

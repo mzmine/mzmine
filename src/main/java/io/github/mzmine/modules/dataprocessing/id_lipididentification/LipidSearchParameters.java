@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.util.ExitCode;
 
 /**
- * Parameters for lipid search module
+ * Parameters for lipid annotation module
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */

@@ -102,6 +102,12 @@ public class LipidAnnotationTest {
     checkLipidAnnotation(testSpectrum);
   }
 
+  @Test
+  public void msMsRuleTestPI_38_4MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPI_38_4MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
   private void checkLipidAnnotation(LipidAnnotationMsMsTestResource testSpectrum) {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
     ILipidAnnotation lipidAnnotation = testSpectrum.getTestLipid();
