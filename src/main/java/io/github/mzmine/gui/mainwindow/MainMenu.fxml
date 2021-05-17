@@ -94,11 +94,11 @@
         userData="io.github.mzmine.modules.io.import_mzxml.MzXMLImportModule"/>
       <MenuItem onAction="#runModule" text="mzData"
         userData="io.github.mzmine.modules.io.import_mzdata.MzDataImportModule"/>
-      <MenuItem onAction="#runModule" text="Thermo RAW"
-        userData="io.github.mzmine.modules.io.import_thermo_raw.ThermoRawImportModule"/>
 
       <SeparatorMenuItem/>
 
+      <MenuItem onAction="#runModule" text="Thermo RAW"
+        userData="io.github.mzmine.modules.io.import_thermo_raw.ThermoRawImportModule"/>
       <MenuItem onAction="#runModule" text="Waters RAW"
         userData="io.github.mzmine.modules.io.import_waters_raw.WatersRawImportModule"/>
       <MenuItem onAction="#runModule" text="Bruker TDF"
