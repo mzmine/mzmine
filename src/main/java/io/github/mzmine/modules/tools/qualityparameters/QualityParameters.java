@@ -305,6 +305,10 @@ public class QualityParameters {
     double currentDiff;
     float currentRT;
 
+    if (intensities.length < 2) {
+      return new double[] { featureRT };
+    }
+
     // Find the data points closet to input intensity on both side of the
     // peak apex
 //    DataPoint lastDP = dps[0];
