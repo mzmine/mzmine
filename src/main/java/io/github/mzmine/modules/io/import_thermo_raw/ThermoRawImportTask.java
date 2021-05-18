@@ -84,7 +84,11 @@ public class ThermoRawImportTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
+    if (msdkTask == null || msdkTask.getFinishedPercentage() == null) {
+      return 0.0;
+    } else {
+      return msdkTask.getFinishedPercentage().doubleValue();
+    }
   }
 
   /**
@@ -122,6 +126,8 @@ public class ThermoRawImportTask extends AbstractTask {
       final String cmdLine[] = new String[]{ //
           thermoRawFileParserCommand, // program to run
           "-s", // output mzML to stdout
+          "-p", // no peak picking
+          "-f=1", // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
           "-i", // input RAW file name coming next
           fileToOpen.getPath() // input RAW file name
       };
