@@ -214,10 +214,10 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
       InputStream is = null;
 
       if (mzMLFile != null) {
-        logger.info("Began parsing file: " + mzMLFile.getAbsolutePath());
+        logger.finest("Began parsing file: " + mzMLFile.getAbsolutePath());
         is = FileMemoryMapper.mapToMemory(mzMLFile);
       } else if (inputStream != null) {
-        logger.info("Began parsing file from stream");
+        logger.finest("Began parsing file from stream");
         is = inputStream;
       } else {
         throw new MSDKException("Invalid input");
@@ -265,7 +265,7 @@ public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
           xmlStreamReader.close();
         }
       }
-      logger.info("Parsing Complete");
+      logger.finest("Parsing Complete");
     } catch (IOException | XMLStreamException e) {
       throw (new MSDKException(e));
     }
