@@ -130,6 +130,7 @@ public class QualityParameters {
     // FWHM
     double[] rtValues =
         peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile, rtRange);
+    if (rtValues.length < 2) return Float.NaN;
     double fwhm = rtValues[1] - rtValues[0];
     if (fwhm <= 0 || Double.isInfinite(fwhm)) {
       return Float.NaN;
