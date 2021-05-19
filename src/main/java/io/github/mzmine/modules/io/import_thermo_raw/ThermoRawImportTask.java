@@ -127,6 +127,7 @@ public class ThermoRawImportTask extends AbstractTask {
           thermoRawFileParserCommand, // program to run
           "-s", // output mzML to stdout
           "-p", // no peak picking
+          "-z", // no zlib compression (higher speed)
           "-f=1", // no index, https://github.com/compomics/ThermoRawFileParser/issues/118
           "-i", // input RAW file name coming next
           fileToOpen.getPath() // input RAW file name
