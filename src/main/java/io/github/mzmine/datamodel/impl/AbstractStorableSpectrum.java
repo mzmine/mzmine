@@ -96,6 +96,9 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
   @Override
   public double[] getMzValues(@Nonnull double[] dst) {
+    if (mzValues == null) {
+      return new double[0];
+    }
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
@@ -105,6 +108,10 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
   @Override
   public double[] getIntensityValues(@Nonnull double[] dst) {
+    if (intensityValues == null) {
+      return new double[0];
+    }
+
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
