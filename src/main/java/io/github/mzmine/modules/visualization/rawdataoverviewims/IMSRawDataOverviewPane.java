@@ -208,16 +208,22 @@ public class IMSRawDataOverviewPane extends BorderPane {
     if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
         heatmapChart.getXYPlot().getRangeAxis().getRange(),
         selectedFrame.get().getMobilityRange())) {
-      heatmapChart.getXYPlot().getRangeAxis().setRange(
-          selectedFrame.get().getMobilityRange().lowerEndpoint(),
-          selectedFrame.get().getMobilityRange().upperEndpoint());
+      Range<Double> mobilityRange = selectedFrame.get().getMobilityRange();
+      if (mobilityRange != null) {
+        heatmapChart.getXYPlot().getRangeAxis().setRange(
+            mobilityRange.lowerEndpoint(),
+            mobilityRange.upperEndpoint());
+      }
     }
     if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
         heatmapChart.getXYPlot().getDomainAxis().getRange(),
         selectedFrame.get().getDataPointMZRange())) {
-      heatmapChart.getXYPlot().getDomainAxis().setRange(
-          selectedFrame.get().getDataPointMZRange().lowerEndpoint(),
-          selectedFrame.get().getDataPointMZRange().upperEndpoint());
+      Range<Double> mzRange = selectedFrame.get().getDataPointMZRange();
+      if (mzRange != null) {
+        heatmapChart.getXYPlot().getDomainAxis().setRange(
+            mzRange.lowerEndpoint(),
+            mzRange.upperEndpoint());
+      }
     }
     updateValueMarkers();
 

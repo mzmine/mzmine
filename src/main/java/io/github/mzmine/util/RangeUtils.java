@@ -203,6 +203,9 @@ public class RangeUtils {
 
   public static boolean isJFreeRangeConnectedToGuavaRange(org.jfree.data.Range jfreeRange,
       Range<? extends Number> guavaRange) {
+    if (jfreeRange == null || guavaRange == null) {
+      return false;
+    }
     return jfreeRange.contains(guavaRange.lowerEndpoint().doubleValue()) || jfreeRange
         .contains(guavaRange.upperEndpoint().doubleValue());
   }
