@@ -212,7 +212,7 @@ public class GroupMS2Task extends AbstractTask {
     ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();
     for (ImsMsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging
-          .getMergedMsMsSpectrumForPASEF(info, 1E1, mergeTol, MergingType.SUMMED,
+          .getMergedMsMsSpectrumForPASEF(info, mergeTol, MergingType.SUMMED,
               ((ModularFeatureList) list).getMemoryMapStorage());
       if (spectrum != null) {
         msmsSpectra.add(spectrum);

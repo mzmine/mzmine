@@ -161,7 +161,6 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
     this.annotation.putAll(annotation);
   }
 
-
   /**
    * Add annotations for m/z values
    *
@@ -170,6 +169,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   public void addMzAnnotation(Map<Double, String> annotation) {
     this.mzAnnotationMap.putAll(annotation);
   }
+
 
   public String getAnnotation(int item) {
     String ann = mzAnnotationMap.get(getXValue(0, item));

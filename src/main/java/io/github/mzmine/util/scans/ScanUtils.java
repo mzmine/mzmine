@@ -18,28 +18,6 @@
 
 package io.github.mzmine.util.scans;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.text.Format;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -49,6 +27,7 @@ import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -78,14 +57,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Scan related utilities
@@ -143,11 +120,14 @@ public class ScanUtils {
     buf.append(" ");
     buf.append(scan.getPolarity().asSingleChar());
 
-    if (scan instanceof MergedMsMsSpectrum) {
+    if (scan instanceof MergedMassSpectrum) {
       buf.append(" merged ");
-      buf.append(((MergedMsMsSpectrum) scan).getSourceSpectra().size());
-      buf.append(" spectra, CE: ");
-      buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
+      buf.append(((MergedMassSpectrum) scan).getSourceSpectra().size());
+      buf.append(" spectra");
+      if (scan instanceof MergedMsMsSpectrum) {
+        buf.append(", CE: ");
+        buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
+      }
     }
 
     /*

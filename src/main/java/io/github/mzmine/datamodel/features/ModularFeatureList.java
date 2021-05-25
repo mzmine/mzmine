@@ -8,6 +8,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DateFormat;
@@ -194,6 +195,29 @@ public class ModularFeatureList implements FeatureList {
    */
   public ObservableMap<Class<? extends DataType>, DataType> getRowTypes() {
     return rowTypes;
+  }
+
+
+  /**
+   * Checks if typeClass was added as a FeatureType - does not check nested types in a {@link
+   * ModularType}
+   *
+   * @param typeClass class of a DataType
+   * @return true if feature type is available
+   */
+  public boolean hasFeatureType(Class typeClass) {
+    return getFeatureTypes().containsKey(typeClass);
+  }
+
+  /**
+   * Checks if typeClass was added as a row type - does not check nested types in a {@link
+   * ModularType}
+   *
+   * @param typeClass class of a DataType
+   * @return true if row type is available
+   */
+  public boolean hasRowType(Class typeClass) {
+    return getRowTypes().containsKey(typeClass);
   }
 
   /**

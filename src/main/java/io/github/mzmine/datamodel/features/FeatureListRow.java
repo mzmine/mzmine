@@ -97,6 +97,8 @@ public interface FeatureListRow {
    */
   float getAverageMobility();
 
+  Float getAverageCCS();
+
   /**
    * Returns average height for features on this row
    */

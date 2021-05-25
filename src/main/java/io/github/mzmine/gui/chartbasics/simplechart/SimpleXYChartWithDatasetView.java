@@ -34,7 +34,7 @@ public class SimpleXYChartWithDatasetView<T extends PlotXYDataProvider> extends 
     setOrientation(Orientation.VERTICAL);
     this.chart = chart;
     datasetPane = new DatasetControlPane<>(chart);
-    chart.addDatasetsChangedListener(datasetPane::onDatasetChanged);
+    chart.addDatasetChangeListener(datasetPane::datasetChanged);
     this.getChildren().add(chart);
     this.getChildren().add(datasetPane);
     setDividerPositions(0.7);

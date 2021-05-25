@@ -14,7 +14,7 @@ description = "MZmine"
 // JDK 14+ is needed for jpackage
 sourceCompatibility = "16"
 targetCompatibility = "16"
-defaultTasks "jpackage"
+defaultTasks "test", "jpackage"
 
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
@@ -48,7 +48,7 @@ repositories {
 
 ext {
     msdkVersion = "0.0.27"
-    cdkVersion = "2.3"
+    cdkVersion = "2.5"
     jmztabVersion = "3.0.9"
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
@@ -72,7 +72,7 @@ dependencies {
     implementation "com.github.graphstream:gs-algo:2.0"
     implementation "org.jfree:jfreechart:1.5.3"
     implementation "org.jfree:org.jfree.chart.fx:2.0.1"
-    implementation "org.jfree:org.jfree.fxgraphics2d:2.1"
+    implementation "org.jfree:org.jfree.fxgraphics2d:2.1.1"
     implementation "org.jfree:org.jfree.svg:4.1"
     implementation "org.jfree:org.jfree.pdf:2.0"
     implementation "com.google.guava:guava:$guavaVersion"

@@ -60,12 +60,13 @@ public interface FeatureList {
   /**
    * @return Short descriptive name for the feature list
    */
+  @Nonnull
   public String getName();
 
   /**
    * Change the name of this feature list
    */
-  public void setName(String name);
+  public void setName(@Nonnull String name);
 
   /**
    * Returns number of raw data files participating in the feature list

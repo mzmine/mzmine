@@ -37,10 +37,12 @@ import io.github.mzmine.datamodel.features.types.IdentityType;
 import io.github.mzmine.datamodel.features.types.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.IonIdentityModularType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.SpectralLibraryMatchType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -338,6 +340,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
+  public Float getAverageCCS() {
+    Property<Float> v = get(CCSType.class);
+    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+  }
+
+  @Override
   public double getAverageHeight() {
     Property<Float> v = get(HeightType.class);
     return v == null || v.getValue() == null ? Float.NaN : v.getValue();
@@ -454,6 +462,28 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       flist.addRowType(new IonIdentityModularType());
     }
     get(IonIdentityModularType.class).set(IonIdentityListType.class, ions);
+  }
+
+  /**
+   * Checks if typeClass was added as a FeatureType - does not check nested types in a {@link
+   * ModularType}
+   *
+   * @param typeClass class of a DataType
+   * @return true if feature type is available
+   */
+  public boolean hasFeatureType(Class typeClass) {
+    return getFeatureList().hasFeatureType(typeClass);
+  }
+
+  /**
+   * Checks if typeClass was added as a row type - does not check nested types in a {@link
+   * ModularType}
+   *
+   * @param typeClass class of a DataType
+   * @return true if row type is available
+   */
+  public boolean hasRowType(Class typeClass) {
+    return getFeatureList().hasRowType(typeClass);
   }
 
   @Override
@@ -585,7 +615,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Nullable
   @Override
   public ModularFeature getBestFeature() {
-    return streamFeatures().filter(f -> !f.get(DetectionType.class).equals(FeatureStatus.UNKNOWN))
+    return streamFeatures().filter(f -> f.get(DetectionType.class).get() != FeatureStatus.UNKNOWN)
         .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
         .orElse(null);
   }

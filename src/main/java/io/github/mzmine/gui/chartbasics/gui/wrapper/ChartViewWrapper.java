@@ -178,8 +178,6 @@ public class ChartViewWrapper {
   /**
    * Subplot or main plot at point
    * 
-   * @param chart
-   * @param info
    * @param mouseX
    * @param mouseY
    * @return
@@ -192,7 +190,6 @@ public class ChartViewWrapper {
   /**
    * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
    * 
-   * @param chart
    * @param mx mouse coordinates
    * @param my mouse coordinates
    * @return

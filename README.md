@@ -21,7 +21,7 @@ Please read our brief [tutorial](http://mzmine.github.io/development.html) on ho
 
 ### Java version
 
-MZmine development requires Java Development Kit (JDK) version 14 or newer (http://jdk.java.net).
+MZmine development requires Java Development Kit (JDK) version 16 or newer (http://jdk.java.net).
 
 ### Building
 

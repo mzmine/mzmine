@@ -25,6 +25,11 @@ public class Coordinates {
   private int y;
   private int z;
 
+  /**
+   * @param x The x index position relative to the minimum x index position.
+   * @param y The y index position relative to the minimum y index position.
+   * @param z The z index position relative to the minimum z index position.
+   */
   public Coordinates(int x, int y, int z) {
     super();
     this.x = x;
@@ -32,6 +37,9 @@ public class Coordinates {
     this.z = z;
   }
 
+  /**
+   * @return The x index position relative to the minimum x index position.
+   */
   public int getX() {
     return x;
   }
@@ -41,26 +49,36 @@ public class Coordinates {
     this.x = x;
   }
 
-
+  /**
+   * @return The y index position relative to the minimum y index position.
+   */
   public int getY() {
     return y;
   }
 
 
+  /**
+   * @param y The y index position relative to the minimum y index position.
+   */
   public void setY(int y) {
     this.y = y;
   }
 
 
+  /**
+   * @return The z index position relative to the minimum z index position.
+   */
   public int getZ() {
     return z;
   }
 
 
+  /**
+   * @param z The z index position relative to the minimum z index position.
+   */
   public void setZ(int z) {
     this.z = z;
   }
-
 
   @Override
   public String toString() {
@@ -79,19 +97,25 @@ public class Coordinates {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     Coordinates other = (Coordinates) obj;
-    if (x != other.x)
+    if (x != other.x) {
       return false;
-    if (y != other.y)
+    }
+    if (y != other.y) {
       return false;
-    if (z != other.z)
+    }
+    if (z != other.z) {
       return false;
+    }
     return true;
   }
 

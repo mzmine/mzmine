@@ -329,4 +329,20 @@ public class MathUtils {
     }
     return avg;
   }
+
+  /**
+   * @param y The y value to calc x for.
+   * @return X value for given points and y value based on linear interpolation.
+   */
+  public static double twoPointGetXForY(double x1, double y1, double x2, double y2, double y) {
+    return (y - y1) * ((x2 - x1) / (y2 - y1)) + x1;
+  }
+
+  /**
+   * @param x The y value to calc x for.
+   * @return Y value for given points and X value based on linear interpolation.
+   */
+  public static double twoPointGetYForX(double x1, double y1, double x2, double y2, double x) {
+    return (x - x1) * ((y2 - y1) / (x2 - x1)) + y1;
+  }
 }
