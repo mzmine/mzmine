@@ -65,15 +65,17 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new ModuleComboParameter<MassDetector>("Mass detector",
           "Algorithm to use for mass detection and its parameters.", massDetectors);
 
-  public static final DoubleParameter minIsotopeAbundance
-      = new DoubleParameter("Minimum isotope abundance", "Minimum isotope abundance"
-      + "given as the value from [0, 1] interval.", MZmineCore.getConfiguration().getMZFormat(), 0d);
+  public static final DoubleParameter isotopeAbundanceLowBound
+      = new DoubleParameter("Isotope abundance strict lower bound", "Isotope"
+      + "abundance strict lower bound given as the value from [0, 1] interval. For example, a value"
+      + "of 0 means that only isotopes with natural abundance strictly higher than 0 will be considered.",
+      MZmineCore.getConfiguration().getMZFormat(), 0d);
 
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter();
 
   public static final OptionalModuleParameter detectIsotopes = new OptionalModuleParameter(
       "Detect isotopes", "Include peaks corresponding to isotope masses distribution of specified elements.",
-      new SimpleParameterSet(new Parameter[]{minIsotopeAbundance, isotopeMzTolerance}));
+      new SimpleParameterSet(new Parameter[]{isotopeAbundanceLowBound, isotopeMzTolerance}));
 
   public static final FileNameParameter outFilename =
       new FileNameParameter("Output netCDF filename (optional)",

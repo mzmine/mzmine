@@ -97,8 +97,8 @@ public class MassDetectionTask extends AbstractTask {
 
     if (isotopesParameters.getValue()) {
 
-      double minAbundance = isotopesParameters.getEmbeddedParameters()
-          .getParameter(MassDetectionParameters.minIsotopeAbundance).getValue();
+      double abundanceLowBound = isotopesParameters.getEmbeddedParameters()
+          .getParameter(MassDetectionParameters.isotopeAbundanceLowBound).getValue();
 
       // TODO: remove
       List<String> elements = Arrays.asList("C", "H", "Br", "N", "O", "S");
@@ -115,9 +115,9 @@ public class MassDetectionTask extends AbstractTask {
       // Compute pairwise mass differences within isotopes of each element
       for (String element : elements) {
 
-        // Filter not abundant isotopes out (minAbundance == 0 by default)
+        // Filter not abundant isotopes out (abundanceLowBound == 0 by default)
         List<IIsotope> abundantIsotopes = Arrays.stream(isotopes.getIsotopes(element))
-            .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > minAbundance)
+            .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > abundanceLowBound)
             .toList();
 
         // Compute pairwise mass differences
