@@ -112,7 +112,7 @@ public class MassDetectionTask extends AbstractTask {
       }
       assert isotopes != null;
 
-      // Calculate mass differences between major isotope and other isotopes for all elements
+      // Compute pairwise mass differences within isotopes of each element
       for (String element : elements) {
 
         // Filter not abundant isotopes out (minAbundance == 0 by default)
@@ -120,9 +120,12 @@ public class MassDetectionTask extends AbstractTask {
             .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > minAbundance)
             .toList();
 
-        double majorIsotopeMass = abundantIsotopes.get(0).getExactMass();
-        for (int i = 1; i < abundantIsotopes.size(); i++) {
-          this.isotopeMassDiffs.add(abundantIsotopes.get(i).getExactMass() - majorIsotopeMass);
+        // Compute pairwise mass differences
+        for (int i = 0; i < abundantIsotopes.size(); i++) {
+          for (int j = i + 1; j < abundantIsotopes.size(); j++) {
+            this.isotopeMassDiffs.add(abundantIsotopes.get(j).getExactMass()
+                - abundantIsotopes.get(i).getExactMass());
+          }
         }
       }
     }
