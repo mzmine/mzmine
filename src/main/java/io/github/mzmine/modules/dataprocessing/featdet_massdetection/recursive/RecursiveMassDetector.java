@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive;
 
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
 import javax.annotation.Nonnull;
@@ -60,6 +62,14 @@ public class RecursiveMassDetector implements MassDetector {
       intensities[i] = detected[i].getIntensity();
     }
     return new double[][]{mzs, intensities};
+  }
+
+  @Override
+  public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters,
+      List<Double> isotopeMassDiffs,
+      MZTolerance isotopeMzTol) {
+    // TODO
+    return new double[0][];
   }
 
   /**
