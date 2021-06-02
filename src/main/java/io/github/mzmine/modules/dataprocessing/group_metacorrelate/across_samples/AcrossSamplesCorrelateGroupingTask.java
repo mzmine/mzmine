@@ -26,12 +26,13 @@ import io.github.mzmine.datamodel.data_access.PreloadedFeatureDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.RowGroupList;
+import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
-import io.github.mzmine.datamodel.features.correlation.R2RCorrMap;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
@@ -40,6 +41,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -55,10 +57,6 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
   // Logger.
   private static final Logger LOG = Logger
       .getLogger(AcrossSamplesCorrelateGroupingTask.class.getName());
-
-  private AtomicDouble stageProgress = new AtomicDouble(0);
-  private int totalRows;
-
   protected ParameterSet parameters;
   protected MZmineProject project;
   // GENERAL
@@ -66,12 +64,10 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
   protected RTTolerance rtTolerance;
   protected boolean autoSuffix;
   protected String suffix;
-
   // GROUP and MIN SAMPLES FILTER
   protected String groupingParameter;
   // min adduct height and feature height for minFFilter
   protected double minHeight;
-
   // FEATURE SHAPE CORRELATION
   // correlation r to identify negative correlation
   protected boolean groupByFShapeCorr;
@@ -82,14 +78,14 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
   protected double noiseLevelCorr;
   protected int minCorrelatedDataPoints;
   protected int minCorrDPOnFeatureEdge;
-
   // MAX INTENSITY PROFILE CORRELATION ACROSS SAMPLES
   protected SimilarityMeasure heightSimMeasure;
   protected boolean useHeightCorrFilter;
   protected double minHeightCorr;
   protected int minDPHeightCorr;
-
-  private RowGroupList groups;
+  private AtomicDouble stageProgress = new AtomicDouble(0);
+  private int totalRows;
+  private List<RowGroup> groups;
   // group param
   private UserParameter<?, ?> groupParam;
 
@@ -180,7 +176,7 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
     }
   }
 
-  public RowGroupList getGroups() {
+  public List<RowGroup> getGroups() {
     return groups;
   }
 
@@ -224,14 +220,14 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
       // create correlation map
       // do R2R comparison correlation
       // might also do annotation if selected
-      R2RCorrMap corrMap = featureList.getCorrelationMap();
+      R2RMap<RowsRelationship> corrMap = featureList.getMs1CorrelationMap();
       doR2RComparison(featureList, groups, corrMap);
       if (isCanceled()) {
         return;
       }
 
       LOG.info("Corr: Starting to group by correlation");
-      groups = corrMap.createCorrGroups(featureList, stageProgress);
+      groups = CorrelationGroupingUtils.createCorrGroups(featureList);
 
       if (isCanceled()) {
         return;
@@ -244,7 +240,6 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
         groups.stream().map(g -> (CorrelationRowGroup) g)
             .forEach(g -> g.recalcGroupCorrelation(corrMap));
         featureList.setGroups(groups);
-        groups.setGroupsToAllRows();
 
         if (isCanceled()) {
           return;
@@ -275,7 +270,7 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
    * @return
    */
   private void doR2RComparison(ModularFeatureList featureList,
-      RowGroupList groups, R2RCorrMap map) {
+      List<RowGroup> groups, R2RMap<RowsRelationship> map) {
 
     // sort all rows into two groups
     List<FeatureListRow> rowsMethodA = new ArrayList<>();

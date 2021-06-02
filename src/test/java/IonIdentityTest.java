@@ -25,7 +25,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
-import io.github.mzmine.datamodel.features.RowGroupList;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.IonIdentityModularType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -40,6 +39,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -93,13 +93,12 @@ public class IonIdentityTest {
     flist.addRow(rowProtonated);
     flist.addRow(rowSodiated);
 
-    RowGroupList groups = new RowGroupList();
+    List<RowGroup> groups = new ArrayList<>();
     RowGroup group = new RowGroup(List.of(raw), 0);
     groups.add(group);
     group.add(rowProtonated);
     group.add(rowSodiated);
     flist.setGroups(groups);
-    groups.setGroupsToAllRows();
 
     // add ions to rows
     IonIdentity.addAdductIdentityToRow(new MZTolerance(1, 10), rowProtonated,

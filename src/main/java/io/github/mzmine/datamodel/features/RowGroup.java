@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,18 +28,24 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
+/**
+ * Group of row. Rows can be grouped by different criteria: Retention time, feature shape (intensity
+ * profile), and intensity across samples. See {@link CorrelateGroupingModule}. IMPORTANT: Not all
+ * FeatureListRows in this group are actually correlated. The actual structure is a network of
+ * relationships where each row has at least one connection.
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
 public class RowGroup implements Comparable<RowGroup> {
 
+  // raw files used for Feature list creation
+  protected final List<RawDataFile> raw;
+  // running index of groups
+  protected int groupID = 0;
+  protected List<FeatureListRow> rows;
   // visualization
   private int lastViewedRow = 0;
   private int lastViewedRawFile = 0;
-
-  // running index of groups
-  protected int groupID = 0;
-
-  protected List<FeatureListRow> rows;
-  // raw files used for Feature list creation
-  protected final List<RawDataFile> raw;
   // center RT values for each sample
   private float[] rtSum;
   private int[] rtValues;
@@ -72,13 +79,13 @@ public class RowGroup implements Comparable<RowGroup> {
   }
 
   public synchronized void addAll(FeatureListRow... rows) {
-    for(FeatureListRow row : rows) {
+    for (FeatureListRow row : rows) {
       add(row);
     }
   }
 
   public synchronized void addAll(Collection<FeatureListRow> rows) {
-    for(FeatureListRow row : rows) {
+    for (FeatureListRow row : rows) {
       add(row);
     }
   }
@@ -196,20 +203,16 @@ public class RowGroup implements Comparable<RowGroup> {
     return lastViewedRow;
   }
 
-  public FeatureListRow getLastViewedRow() {
-    return get(lastViewedRow);
-  }
-
   public void setLastViewedRowI(int lastViewedRow) {
     this.lastViewedRow = lastViewedRow;
   }
 
-  public int getLastViewedRawFileI() {
-    return lastViewedRawFile;
+  public FeatureListRow getLastViewedRow() {
+    return get(lastViewedRow);
   }
 
-  public RawDataFile getLastViewedRawFile() {
-    return raw.get(lastViewedRawFile);
+  public int getLastViewedRawFileI() {
+    return lastViewedRawFile;
   }
 
   public void setLastViewedRawFileI(int lastViewedRawFile) {
@@ -219,6 +222,10 @@ public class RowGroup implements Comparable<RowGroup> {
       lastViewedRawFile = raw.size() - 1;
     }
     this.lastViewedRawFile = lastViewedRawFile;
+  }
+
+  public RawDataFile getLastViewedRawFile() {
+    return raw.get(lastViewedRawFile);
   }
 
   /**

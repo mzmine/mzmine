@@ -25,7 +25,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
-import io.github.mzmine.datamodel.features.RowGroupList;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
@@ -39,6 +38,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,21 +52,15 @@ public class AddIonNetworkingTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(AddIonNetworkingTask.class.getName());
-
-  private AtomicDouble stageProgress = new AtomicDouble(0);
   private final ModularFeatureList featureList;
-
-  private IonNetworkLibrary library;
-
   private final ParameterSet parameters;
   private final MZmineProject project;
-
   private final double minHeight;
-
   private final boolean performAnnotationRefinement;
   private final IonNetworkRefinementParameters refineParam;
-
   private final MZTolerance mzTolerance;
+  private AtomicDouble stageProgress = new AtomicDouble(0);
+  private IonNetworkLibrary library;
 
   /**
    * Create the task.
@@ -123,7 +117,7 @@ public class AddIonNetworkingTask extends AbstractTask {
   private void annotateGroups(IonNetworkLibrary library) {
     LOG.info("Starting adduct detection on groups of peaklist " + featureList.getName());
     // get groups
-    RowGroupList groups = featureList.getGroups();
+    List<RowGroup> groups = featureList.getGroups();
 
     if (groups == null || groups.isEmpty()) {
       throw new MSDKRuntimeException(

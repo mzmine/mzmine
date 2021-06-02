@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
-import io.github.mzmine.datamodel.features.RowGroupList;
 import io.github.mzmine.datamodel.features.correlation.MS2SimilarityProviderGroup;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RMS2Similarity;
@@ -38,44 +37,49 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.rowfilter.RowFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
-import javafx.collections.ObservableList;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.collections.ObservableList;
+import org.apache.commons.lang3.StringUtils;
 
 public class ExportCorrAnnotationTask extends AbstractTask {
+
   // Logger.
   private static final Logger LOG = Logger.getLogger(ExportCorrAnnotationTask.class.getName());
 
   public enum EDGES {
-    ID1, ID2, EdgeType, Score, Annotation;
+    ID1, ID2, EdgeType, Score, Annotation
   }
 
-  private Double progress = 0d;
+  private final Double progress = 0d;
 
   private boolean exportAnnotationEdges = true, exportCorrelationEdges = false;
   private boolean exportIinRelationships = false;
   private boolean exportMS2SimilarityEdges = false;
   private boolean exportMS2DiffSimilarityEdges = false;
-  private double minR;
+  private final double minR;
   private final ModularFeatureList[] featureLists;
-  private File filename;
+  private final File filename;
 
-  private RowFilter filter;
+  private final RowFilter filter;
   private boolean mergeLists = false;
 
   /**
@@ -83,7 +87,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
    *
    * @param parameterSet the parameters.
    */
-  public ExportCorrAnnotationTask(final ParameterSet parameterSet, final ModularFeatureList[] featureLists) {
+  public ExportCorrAnnotationTask(final ParameterSet parameterSet,
+      final ModularFeatureList[] featureLists) {
     super(null);
     this.featureLists = featureLists;
 
@@ -105,7 +110,6 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
   /**
    * Create the task.
-   *
    */
   public ExportCorrAnnotationTask(ModularFeatureList[] featureLists, File filename, double minR,
       RowFilter filter, boolean exportAnnotationEdges, boolean exportCorrelationEdges,
@@ -128,10 +132,11 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    if (featureLists != null && featureLists.length > 0)
+    if (featureLists != null && featureLists.length > 0) {
       return "Export adducts and correlation networks " + featureLists[0].getName() + " ";
-    else
+    } else {
       return "";
+    }
   }
 
   @Override
@@ -150,8 +155,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       setErrorMessage(t.getMessage());
     }
 
-    if (getStatus() == TaskStatus.PROCESSING)
+    if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
+    }
   }
 
 
@@ -159,39 +165,47 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     for (FeatureList featureList : featureLists) {
       LOG.info("Starting export of adduct and correlation networks" + featureList.getName());
       // export edges of annotations
-      if (exportAnnotationEdges)
-        exportAnnotationEdges(featureList, filename, filter.equals(RowFilter.ONLY_WITH_MS2), progress,
+      if (exportAnnotationEdges) {
+        exportAnnotationEdges(featureList, filename, filter.equals(RowFilter.ONLY_WITH_MS2),
+            progress,
             this);
+      }
 
       // relationships between ion identity networks (+O) ...
-      if (exportIinRelationships)
-        exportIINRelationships(featureList, filename, filter.equals(RowFilter.ONLY_WITH_MS2), progress,
+      if (exportIinRelationships) {
+        exportIINRelationships(featureList, filename, filter.equals(RowFilter.ONLY_WITH_MS2),
+            progress,
             this);
+      }
 
       // export MS2Similarity edges
-      if (exportMS2DiffSimilarityEdges)
+      if (exportMS2DiffSimilarityEdges) {
         exportMS2DiffSimilarityEdges(featureList, filename, filter, progress, this);
-      if (exportMS2SimilarityEdges)
+      }
+      if (exportMS2SimilarityEdges) {
         exportMS2SimilarityEdges(featureList, filename, filter, progress, this);
+      }
 
       // export edges of corr
-      if (exportCorrelationEdges)
+      if (exportCorrelationEdges) {
         exportCorrelationEdges(featureList, filename, progress, this, minR, filter);
+      }
     }
   }
 
   private void exportMergedLists() {
     LOG.info("Starting export of adduct and correlation networks (merged) for n(peaklists)="
-        + featureLists.length);
+             + featureLists.length);
     // export edges of annotations
-    if (exportAnnotationEdges)
+    if (exportAnnotationEdges) {
       exportAnnotationEdgesMerged(featureLists, filename, filter.equals(RowFilter.ONLY_WITH_MS2),
           progress, this);
+    }
   }
 
   /**
    * Merged peak lists
-   * 
+   *
    * @param featureLists
    * @param filename
    * @param limitToMSMS
@@ -207,8 +221,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     int lastID = 0;
     for (FeatureList pkl : featureLists) {
       for (FeatureListRow r : pkl.getRows()) {
-        if (!filter.filter(r))
+        if (!filter.filter(r)) {
           continue;
+        }
         renumbered.put(getRowMapKey(r), lastID);
         lastID++;
       }
@@ -226,13 +241,14 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
       for (FeatureList pkl : featureLists) {
         ObservableList<FeatureListRow> rows = pkl.getRows();
-        Collections.sort(rows, new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
-
+        Collections
+            .sort(rows, new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
 
         // for all rows
         for (FeatureListRow r : rows) {
-          if (!filter.filter(r))
+          if (!filter.filter(r)) {
             continue;
+          }
 
           if (task != null && task.isCanceled()) {
             return false;
@@ -248,23 +264,23 @@ public class ExportCorrAnnotationTask extends AbstractTask {
               // add all connection for ids>rowID
               links.entrySet().stream().filter(Objects::nonNull)
                   .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
-                    FeatureListRow link = e.getKey();
-                    if (!limitToMSMS || link.getBestFragmentation() != null) {
-                      IonIdentity id = e.getValue();
-                      double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
+                FeatureListRow link = e.getKey();
+                if (!limitToMSMS || link.getBestFragmentation() != null) {
+                  IonIdentity id = e.getValue();
+                  double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
 
-                      // convert ids for merging
-                      Integer id1 = renumbered.get(getRowMapKey(r));
-                      Integer id2 = renumbered.get(getRowMapKey(e.getKey()));
+                  // convert ids for merging
+                  Integer id1 = renumbered.get(getRowMapKey(r));
+                  Integer id2 = renumbered.get(getRowMapKey(e.getKey()));
 
-                      // the data
-                      exportEdge(ann, "MS1 annotation", id1, id2,
-                          corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
-                          id.getAdduct() + " " + adduct.getAdduct() + " dm/z="
-                              + mzForm.format(dmz));
-                      added.incrementAndGet();
-                    }
-                  });
+                  // the data
+                  exportEdge(ann, "MS1 annotation", id1, id2,
+                      corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
+                      id.getAdduct() + " " + adduct.getAdduct() + " dm/z="
+                      + mzForm.format(dmz));
+                  added.incrementAndGet();
+                }
+              });
             });
           }
         }
@@ -277,8 +293,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       if (added.get() > 0) {
         writeToFile(ann.toString(), filename, "_edges_msannotation", ".csv");
         return true;
-      } else
+      } else {
         return false;
+      }
     } catch (Exception e) {
       throw new MSDKRuntimeException(e);
     }
@@ -298,7 +315,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     NumberFormat corrForm = new DecimalFormat("0.000");
     try {
       List<FeatureListRow> rows = pkl.getRows();
-      Collections.sort(rows, new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+      Collections
+          .sort(rows, new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
       StringBuilder ann = new StringBuilder();
 
       // add header
@@ -309,8 +327,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       // for all rows
       for (FeatureListRow r : rows) {
 
-        if (limitToMSMS && r.getBestFragmentation() == null)
+        if (limitToMSMS && r.getBestFragmentation() == null) {
           continue;
+        }
 
         if (task != null && task.isCanceled()) {
           return false;
@@ -326,17 +345,17 @@ public class ExportCorrAnnotationTask extends AbstractTask {
             // add all connection for ids>rowID
             links.entrySet().stream().filter(Objects::nonNull)
                 .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
-                  FeatureListRow link = e.getKey();
-                  if (!limitToMSMS || link.getBestFragmentation() != null) {
-                    IonIdentity id = e.getValue();
-                    double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
-                    // the data
-                    exportEdge(ann, "MS1 annotation", rowID, e.getKey().getID(),
-                        corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
-                        id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
-                    added.incrementAndGet();
-                  }
-                });
+              FeatureListRow link = e.getKey();
+              if (!limitToMSMS || link.getBestFragmentation() != null) {
+                IonIdentity id = e.getValue();
+                double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
+                // the data
+                exportEdge(ann, "MS1 annotation", rowID, e.getKey().getID(),
+                    corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
+                    id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
+                added.incrementAndGet();
+              }
+            });
           });
         }
       }
@@ -348,8 +367,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       if (added.get() > 0) {
         writeToFile(ann.toString(), filename, "_edges_msannotation", ".csv");
         return true;
-      } else
+      } else {
         return false;
+      }
     } catch (Exception e) {
       throw new MSDKRuntimeException(e);
     }
@@ -380,8 +400,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
             if (rel.getValue().isLowestIDNetwork(n)) {
               // relationship can be between multiple nets
               for (IonNetwork net2 : rel.getValue().getAllNetworks()) {
-                if (net2.equals(n))
+                if (net2.equals(n)) {
                   continue;
+                }
 
                 // find best two nodes
                 FeatureListRow[] rows = getBestRelatedRows(n, net2, limitToMSMS);
@@ -407,14 +428,16 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       if (added.get() > 0) {
         writeToFile(ann.toString(), filename, "_edges_iin_relations", ".csv");
         return true;
-      } else
+      } else {
         return false;
+      }
     } catch (Exception e) {
       throw new MSDKRuntimeException(e);
     }
   }
 
-  private static FeatureListRow[] getBestRelatedRows(IonNetwork a, IonNetwork b, boolean limitToMSMS) {
+  private static FeatureListRow[] getBestRelatedRows(IonNetwork a, IonNetwork b,
+      boolean limitToMSMS) {
     FeatureListRow[] rows = new FeatureListRow[2];
     double sumIntensity = 0;
     for (Map.Entry<FeatureListRow, IonIdentity> entryA : a.entrySet()) {
@@ -448,7 +471,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   public static boolean exportMS2SimilarityEdges(FeatureList pkl, File filename, RowFilter filter,
       Double progress, AbstractTask task) {
     try {
-      RowGroupList groups = pkl.getGroups();
+      List<RowGroup> groups = pkl.getGroups();
       if (groups != null && !groups.isEmpty()) {
         LOG.info("Export MS2 similarities edge file");
         NumberFormat corrForm = new DecimalFormat("0.000");
@@ -468,8 +491,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
           if (g instanceof MS2SimilarityProviderGroup) {
             R2RMap<R2RMS2Similarity> map = ((MS2SimilarityProviderGroup) g).getMS2SimilarityMap();
             for (R2RMS2Similarity r2r : map.values()) {
-              if (r2r.getDiffAvgCosine() == 0 && r2r.getDiffMaxOverlap() == 0)
+              if (r2r.getDiffAvgCosine() == 0 && r2r.getDiffMaxOverlap() == 0) {
                 continue;
+              }
               FeatureListRow a = r2r.getA();
               FeatureListRow b = r2r.getB();
               // no self-loops
@@ -492,8 +516,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
         if (added.get() > 0) {
           writeToFile(ann.toString(), filename, "_edges_ms2similarity", ".csv");
           return true;
-        } else
+        } else {
           return false;
+        }
       }
     } catch (Exception e) {
       throw new MSDKRuntimeException(e);
@@ -501,10 +526,11 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     return false;
   }
 
-  public static boolean exportMS2DiffSimilarityEdges(FeatureList pkl, File filename, RowFilter filter,
+  public static boolean exportMS2DiffSimilarityEdges(FeatureList pkl, File filename,
+      RowFilter filter,
       Double progress, AbstractTask task) {
     try {
-      RowGroupList groups = pkl.getGroups();
+      List<RowGroup> groups = pkl.getGroups();
       if (groups != null && !groups.isEmpty()) {
         LOG.info("Export MS2 diff similarities edge file");
         NumberFormat corrForm = new DecimalFormat("0.000");
@@ -524,8 +550,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
           if (g instanceof MS2SimilarityProviderGroup) {
             R2RMap<R2RMS2Similarity> map = ((MS2SimilarityProviderGroup) g).getMS2SimilarityMap();
             for (R2RMS2Similarity r2r : map.values()) {
-              if (r2r.getSpectralAvgCosine() == 0 && r2r.getSpectralMaxOverlap() == 0)
+              if (r2r.getSpectralAvgCosine() == 0 && r2r.getSpectralMaxOverlap() == 0) {
                 continue;
+              }
               FeatureListRow a = r2r.getA();
               FeatureListRow b = r2r.getB();
               // no self-loops
@@ -549,8 +576,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
         if (added.get() > 0) {
           writeToFile(ann.toString(), filename, "_edges_ms2diffsimilarity", ".csv");
           return true;
-        } else
+        } else {
           return false;
+        }
       }
     } catch (Exception e) {
       throw new MSDKRuntimeException(e);
@@ -570,7 +598,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
       AtomicInteger added = new AtomicInteger(0);
       // for all rows
-      R2RCorrelationData.streamFrom(pkl).filter(r2r -> r2r.getAvgShapeR() >= minCorr)
+      CorrelationGroupingUtils.streamFrom(pkl).filter(r2r -> r2r.getAvgShapeR() >= minCorr)
           .forEach(r2r -> {
             FeatureListRow a = r2r.getRowA();
             FeatureListRow b = r2r.getRowB();
@@ -596,8 +624,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       if (added.get() > 0) {
         writeToFile(ann.toString(), filename, "_edges_ms1correlation", ".csv");
         return true;
-      } else
+      } else {
         return false;
+      }
     } catch (Exception e) {
       throw new MSDKRuntimeException(e);
     }
@@ -608,7 +637,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     File realFile = FileAndPathUtil.eraseFormat(filename);
     realFile = FileAndPathUtil.getRealFilePath(filename.getParentFile(),
         realFile.getName() + suffix, format);
-    writer.write(data, realFile);
+    TxtWriter.write(data, realFile);
     LOG.info("File created: " + realFile);
   }
 
@@ -639,8 +668,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     }
     // replace null
     for (int j = 0; j < data.length; j++) {
-      if (data[j] == null)
+      if (data[j] == null) {
         data[j] = "";
+      }
     }
     // add data
     ann.append(StringUtils.join(data, ','));

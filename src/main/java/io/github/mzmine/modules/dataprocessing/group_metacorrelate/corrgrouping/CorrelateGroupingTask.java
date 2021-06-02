@@ -26,12 +26,13 @@ import io.github.mzmine.datamodel.data_access.PreloadedFeatureDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.RowGroupList;
+import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
-import io.github.mzmine.datamodel.features.correlation.R2RCorrMap;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
@@ -42,6 +43,7 @@ import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameter
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -54,12 +56,9 @@ import java.util.stream.IntStream;
 
 public class CorrelateGroupingTask extends AbstractTask {
 
-  // Logger.
-  private static final Logger LOG = Logger.getLogger(CorrelateGroupingTask.class.getName());
+  private static final Logger logger = Logger.getLogger(CorrelateGroupingTask.class.getName());
 
-  private AtomicDouble stageProgress = new AtomicDouble(0);
-  private int totalRows;
-
+  private final AtomicDouble stageProgress = new AtomicDouble(0);
   protected ParameterSet parameters;
   protected MZmineProject project;
   // GENERAL
@@ -67,7 +66,6 @@ public class CorrelateGroupingTask extends AbstractTask {
   protected RTTolerance rtTolerance;
   protected boolean autoSuffix;
   protected String suffix;
-
   // GROUP and MIN SAMPLES FILTER
   protected boolean useGroups;
   protected String groupingParameter;
@@ -77,7 +75,6 @@ public class CorrelateGroupingTask extends AbstractTask {
   protected MinimumFeatureFilter minFFilter;
   // min adduct height and feature height for minFFilter
   protected double minHeight;
-
   // FEATURE SHAPE CORRELATION
   // correlation r to identify negative correlation
   protected boolean groupByFShapeCorr;
@@ -88,17 +85,15 @@ public class CorrelateGroupingTask extends AbstractTask {
   protected double noiseLevelCorr;
   protected int minCorrelatedDataPoints;
   protected int minCorrDPOnFeatureEdge;
-
   // MAX INTENSITY PROFILE CORRELATION ACROSS SAMPLES
   protected SimilarityMeasure heightSimMeasure;
   protected boolean useHeightCorrFilter;
   protected double minHeightCorr;
   protected int minDPHeightCorr;
-
   // output
   protected ModularFeatureList groupedPKL;
-
-  private RowGroupList groups;
+  private int totalRows;
+  private List<RowGroup> groups;
 
 
   /**
@@ -183,11 +178,7 @@ public class CorrelateGroupingTask extends AbstractTask {
     }
   }
 
-  public ModularFeatureList getGroupedPKL() {
-    return groupedPKL;
-  }
-
-  public RowGroupList getGroups() {
+  public List<RowGroup> getGroups() {
     return groups;
   }
 
@@ -204,7 +195,8 @@ public class CorrelateGroupingTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    LOG.info("Starting metaCorrelation search in " + featureList.getName() + " peaklists");
+    logger.log(Level.INFO, "Starting metaCorrelation search in feature list {0}",
+        featureList.getName());
     try {
       if (isCanceled()) {
         return;
@@ -217,14 +209,16 @@ public class CorrelateGroupingTask extends AbstractTask {
       // create correlation map
       // do R2R comparison correlation
       // might also do annotation if selected
-      R2RCorrMap corrMap = new R2RCorrMap(rtTolerance, minFFilter);
+      R2RMap<R2RCorrelationData> corrMap = new R2RMap<>();
       doR2RComparison(groupedPKL, corrMap);
       if (isCanceled()) {
         return;
       }
+      // set correlation map
+      groupedPKL.addRowsRelationships(corrMap, Type.MS1_CORRELATION);
 
-      LOG.info("Corr: Starting to group by correlation");
-      groups = corrMap.createCorrGroups(groupedPKL, stageProgress);
+      logger.fine("Corr: Starting to group by correlation");
+      groups = CorrelationGroupingUtils.createCorrGroups(groupedPKL);
 
       if (isCanceled()) {
         return;
@@ -233,12 +227,10 @@ public class CorrelateGroupingTask extends AbstractTask {
       // filter by avg correlation in group
       // delete single connections between sub networks
       if (groups != null) {
-        groupedPKL.setCorrelationMap(corrMap);
         // set groups to pkl
         groups.stream().map(g -> (CorrelationRowGroup) g)
             .forEach(g -> g.recalcGroupCorrelation(corrMap));
         groupedPKL.setGroups(groups);
-        groups.setGroupsToAllRows();
 
         if (isCanceled()) {
           return;
@@ -253,12 +245,11 @@ public class CorrelateGroupingTask extends AbstractTask {
 
         // Done.
         setStatus(TaskStatus.FINISHED);
-        LOG.info("Finished correlation grouping in " + featureList);
+        logger.log(Level.INFO, "Finished correlation grouping in feature list {0}",
+            featureList.getName());
       }
-    } catch (
-
-        Exception t) {
-      LOG.log(Level.SEVERE, "Correlation error", t);
+    } catch (Exception t) {
+      logger.log(Level.SEVERE, "Correlation error", t);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
       throw new MSDKRuntimeException(t);
@@ -270,8 +261,8 @@ public class CorrelateGroupingTask extends AbstractTask {
    *
    * @return
    */
-  private void doR2RComparison(ModularFeatureList featureList, R2RCorrMap map) {
-    LOG.info("Corr: Creating row2row correlation map");
+  private void doR2RComparison(ModularFeatureList featureList, R2RMap<R2RCorrelationData> map) {
+    logger.fine("Corr: Creating row2row correlation map");
     List<FeatureListRow> rows = featureList.getRows();
     totalRows = rows.size();
     final List<RawDataFile> raws = featureList.getRawDataFiles();
@@ -325,7 +316,7 @@ public class CorrelateGroupingTask extends AbstractTask {
           }
           stageProgress.addAndGet(1d / totalRows);
         } catch (Exception e) {
-          LOG.log(Level.SEVERE, "Error in parallel R2Rcomparison", e);
+          logger.log(Level.SEVERE, "Error in parallel R2Rcomparison", e);
           throw new MSDKRuntimeException(e);
         }
       }
@@ -343,9 +334,9 @@ public class CorrelateGroupingTask extends AbstractTask {
       }
     }
 
-    LOG.info(MessageFormat.format(
-        "Corr: {2} row-2-row correlations done with {0} R2R correlations based on {1} F2F correlations", nR2Rcorr,
-        nF2F, map.size()));
+    logger.info(MessageFormat.format(
+        "Corr: {2} row-2-row correlations done with {0} R2R correlations based on {1} F2F correlations",
+        nR2Rcorr, nF2F, map.size()));
   }
 
   /**

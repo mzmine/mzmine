@@ -18,44 +18,24 @@
 
 package io.github.mzmine.datamodel.features;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.List;
 import java.util.stream.Stream;
-
-import io.github.mzmine.datamodel.features.correlation.R2RMS2Similarity;
-import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
 import javax.annotation.Nullable;
 
 /**
  * Interface for feature list
  */
 public interface FeatureList {
-
-  /**
-   * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge conflicts.
-   */
-  public interface FeatureListAppliedMethod {
-
-    @Nonnull
-    public String getDescription();
-
-    /**
-     * This {@link FeatureListAppliedMethod} stores a clone of the original parameter set.
-     *
-     * @return A clone of the parameter set stored in this object, so the stored values cannot be
-     * edited.
-     */
-    @Nonnull
-    public ParameterSet getParameters();
-
-    public MZmineModule getModule();
-  }
 
   /**
    * @return Short descriptive name for the feature list
@@ -125,7 +105,7 @@ public interface FeatureList {
    * @return
    */
   default Stream<FeatureListRow> stream(boolean parallel) {
-    return parallel? parallelStream() : stream();
+    return parallel ? parallelStream() : stream();
   }
 
   /**
@@ -148,8 +128,9 @@ public interface FeatureList {
    * @return
    */
   default Stream<Feature> streamFeatures(boolean parallel) {
-    return parallel? parallelStreamFeatures() : streamFeatures();
+    return parallel ? parallelStreamFeatures() : streamFeatures();
   }
+
   /**
    * Stream of all features across all samples
    *
@@ -163,7 +144,6 @@ public interface FeatureList {
    * @return
    */
   public Stream<Feature> parallelStreamFeatures();
-
 
   /**
    * The selected scans to build this feature/chromatogram
@@ -303,35 +283,79 @@ public interface FeatureList {
 
   /**
    * List of RowGroups group features based on different methods
+   *
+   * @return
    */
-  void setGroups(RowGroupList groups);
+  List<RowGroup> getGroups();
 
   /**
    * List of RowGroups group features based on different methods
-   * @return
    */
-  RowGroupList getGroups();
-
+  void setGroups(List<RowGroup> groups);
 
   /**
    * Add row-to-row relationships
    *
-   * @param a
-   * @param b
-   * @param similarity
+   * @param a            rows in any order
+   * @param b            rows in any order
+   * @param relationship the relationship between a and b
    */
-  void addR2RSimilarity(FeatureListRow a, FeatureListRow b, R2RMS2Similarity similarity);
+  void addRowsRelationship(FeatureListRow a, FeatureListRow b, RowsRelationship relationship);
 
   /**
-   * Add row-to-row relationships
+   * Add row-to-row relationships to a specific master list for {@link Type}.
    *
-   * @param map
+   * @param map          a map of relationships
+   * @param relationship the relationship type between the pairs of rows
    */
-  void addR2RSimilarity(R2RMap<R2RMS2Similarity> map);
+  void addRowsRelationships(R2RMap<? extends RowsRelationship> map, Type relationship);
 
   /**
-   * A map with all row-to-row relationships
+   * Short cut to get the MS1 correlation map of grouped features
+   *
+   * @return the map for {@link Type#MS1_CORRELATION}
+   */
+  default R2RMap<RowsRelationship> getMs1CorrelationMap() {
+    return getRowMap(Type.MS1_CORRELATION);
+  }
+
+  /**
+   * Short cut to get the MS2 spectral similarity map of grouped features
+   *
+   * @return the map for {@link Type#MS2_SIMILARITY}
+   */
+  default R2RMap<RowsRelationship> getMs2SimilarityMap() {
+    return getRowMap(Type.MS2_SIMILARITY);
+  }
+
+  /**
+   * A mutable map of row-to-row relationships. See {@link #addRowsRelationships(R2RMap, Type)} to
+   * add.
+   *
+   * @param relationship the relationship between two rows
    * @return
    */
-  R2RMap<R2RMS2Similarity> getR2RSimilarityMap();
+  @Nullable
+  R2RMap<RowsRelationship> getRowMap(Type relationship);
+
+  /**
+   * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
+   * conflicts.
+   */
+  public interface FeatureListAppliedMethod {
+
+    @Nonnull
+    public String getDescription();
+
+    /**
+     * This {@link FeatureListAppliedMethod} stores a clone of the original parameter set.
+     *
+     * @return A clone of the parameter set stored in this object, so the stored values cannot be
+     * edited.
+     */
+    @Nonnull
+    public ParameterSet getParameters();
+
+    public MZmineModule getModule();
+  }
 }

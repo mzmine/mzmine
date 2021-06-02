@@ -36,6 +36,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
@@ -57,6 +60,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
@@ -1363,6 +1367,22 @@ public class ScanUtils {
     return pointsWithinRange;
   }
 
+  /**
+   * Most abundant n signals
+   *
+   * @param scan
+   * @param n
+   * @return
+   */
+  public static DataPoint[] getMostAbundantSignals(DataPoint[] scan, int n) {
+    if (scan.length <= n) {
+      return scan;
+    } else {
+      Arrays.sort(scan,
+          new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+      return Arrays.copyOf(scan, n);
+    }
+  }
 
   /**
    * Binning modes
@@ -1370,6 +1390,7 @@ public class ScanUtils {
   public static enum BinningType {
     SUM, MAX, MIN, AVG
   }
+
 
   /**
    * Integer conversion methods.
@@ -1387,24 +1408,6 @@ public class ScanUtils {
     @Override
     public String toString() {
       return this.intMode;
-    }
-  }
-
-
-  /**
-   * Most abundant n signals
-   *
-   * @param scan
-   * @param n
-   * @return
-   */
-  public static DataPoint[] getMostAbundantSignals(DataPoint[] scan, int n) {
-    if (scan.length <= n) {
-      return scan;
-    } else {
-      Arrays.sort(scan,
-          new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
-      return Arrays.copyOf(scan, n);
     }
   }
 }

@@ -23,15 +23,5 @@ import java.util.Comparator;
 
 public class RowGroupList extends ArrayList<RowGroup> {
 
-  public void setGroupsToAllRows() {
-    this.forEach(RowGroup::setGroupToAllRows);
-  }
-
-  /**
-   * Sort by average retention time
-   */
-  public void sortByRT() {
-    this.sort(Comparator.comparingDouble(RowGroup::getCenterRT));
-  }
 
 }

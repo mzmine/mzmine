@@ -1,15 +1,16 @@
 package io.github.mzmine.datamodel.features;
 
-import io.github.mzmine.datamodel.features.correlation.R2RCorrMap;
-import io.github.mzmine.datamodel.features.correlation.R2RMS2Similarity;
-import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -22,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
@@ -33,31 +35,26 @@ import javax.annotation.Nullable;
 
 public class ModularFeatureList implements FeatureList {
 
+  public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
   /**
    * The storage of this feature list. May be null if data points of features shall be stored in
    * ram.
    */
   @Nullable
   private final MemoryMapStorage memoryMapStorage;
-
+  // bindings for values
+  private final List<RowBinding> rowBindings = new ArrayList<>();
+  // unmodifiable list
+  private final ObservableList<RawDataFile> dataFiles;
+  private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
   private ObservableMap<Class<? extends DataType>, DataType> rowTypes =
       FXCollections.observableMap(new LinkedHashMap<>());
-
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
   private ObservableMap<Class<? extends DataType>, DataType> featureTypes =
       FXCollections.observableMap(new LinkedHashMap<>());
-
-  // bindings for values
-  private final List<RowBinding> rowBindings = new ArrayList<>();
-
-  public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-
-  // unmodifiable list
-  private final ObservableList<RawDataFile> dataFiles;
-  private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
   private ObservableList<FeatureListRow> featureListRows;
   private String name;
   private ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
@@ -66,9 +63,10 @@ public class ModularFeatureList implements FeatureList {
   private Range<Float> rtRange;
 
   // grouping
-  private R2RMap<R2RMS2Similarity> ms2SimilarityMap;
-  private RowGroupList groups;
-  private R2RCorrMap correlationMap;
+  private List<RowGroup> groups;
+
+  // a map that stores row-2-row relationship maps for MS1, MS2, and other relationships
+  private Map<RowsRelationship.Type, R2RMap<RowsRelationship>> r2rMaps = new ConcurrentHashMap<>();
 
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
@@ -94,6 +92,11 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public String getName() {
     return name;
+  }
+
+  @Override
+  public void setName(String name) {
+    this.name = name;
   }
 
   @Override
@@ -196,7 +199,6 @@ public class ModularFeatureList implements FeatureList {
   public ObservableMap<Class<? extends DataType>, DataType> getRowTypes() {
     return rowTypes;
   }
-
 
   /**
    * Checks if typeClass was added as a FeatureType - does not check nested types in a {@link
@@ -339,7 +341,6 @@ public class ModularFeatureList implements FeatureList {
     // ranges
   }
 
-
   /**
    * Returns all features overlapping with a retention time range
    *
@@ -473,11 +474,6 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  @Override
   public void addDescriptionOfAppliedTask(FeatureListAppliedMethod appliedMethod) {
     descriptionOfAppliedTasks.add(appliedMethod);
   }
@@ -532,36 +528,36 @@ public class ModularFeatureList implements FeatureList {
     return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
   }
 
-
-
   @Override
-  public void setGroups(RowGroupList groups) {
-    this.groups = groups;
-  }
-
-  @Override
-  public RowGroupList getGroups() {
+  public List<RowGroup> getGroups() {
     return groups;
   }
 
   @Override
-  public void addR2RSimilarity(FeatureListRow a, FeatureListRow b, R2RMS2Similarity similarity) {
-    if (ms2SimilarityMap == null)
-      ms2SimilarityMap = new R2RMap<>();
-    ms2SimilarityMap.add(a, b, similarity);
+  public void setGroups(List<RowGroup> groups) {
+    this.groups = groups;
+    CorrelationGroupingUtils.setGroupsToAllRows(groups);
   }
 
   @Override
-  public void addR2RSimilarity(R2RMap<R2RMS2Similarity> map) {
-    if (ms2SimilarityMap == null)
-      this.ms2SimilarityMap = map;
-    else
-      this.ms2SimilarityMap.putAll(map);
+  public R2RMap<RowsRelationship> getRowMap(Type relationship) {
+    return r2rMaps.get(relationship);
   }
 
   @Override
-  public R2RMap<R2RMS2Similarity> getR2RSimilarityMap() {
-    return ms2SimilarityMap;
+  public void addRowsRelationships(R2RMap<? extends RowsRelationship> map,
+      Type relationship) {
+    R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship, key -> new R2RMap<>());
+    rowMap.putAll(map);
+  }
+
+
+  @Override
+  public void addRowsRelationship(FeatureListRow a, FeatureListRow b,
+      RowsRelationship relationship) {
+    R2RMap<RowsRelationship> rowMap = r2rMaps
+        .computeIfAbsent(relationship.getType(), key -> new R2RMap<>());
+    rowMap.add(a, b, relationship);
   }
 
   /**
@@ -589,8 +585,9 @@ public class ModularFeatureList implements FeatureList {
     // key is original row and value is copied row
     Map<FeatureListRow, ModularFeatureListRow> mapCopied = new HashMap<>();
     // copy all rows and features
-    for(FeatureListRow row : this.getRows()) {
-      ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, (ModularFeatureListRow) row, true);
+    for (FeatureListRow row : this.getRows()) {
+      ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, (ModularFeatureListRow) row,
+          true);
       flist.addRow(copyRow);
       mapCopied.put(row, copyRow);
     }
@@ -613,11 +610,4 @@ public class ModularFeatureList implements FeatureList {
     return memoryMapStorage;
   }
 
-  public void setCorrelationMap(R2RCorrMap correlationMap) {
-    this.correlationMap = correlationMap;
-  }
-
-  public R2RCorrMap getCorrelationMap() {
-    return correlationMap;
-  }
 }

@@ -23,11 +23,9 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
-import io.github.mzmine.datamodel.features.RowGroupList;
 import io.github.mzmine.datamodel.features.types.IonIdentityModularType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementTask;
@@ -37,8 +35,6 @@ import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -48,14 +44,11 @@ public class IonNetworkingTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(IonNetworkingTask.class.getName());
-
-  private AtomicDouble stageProgress = new AtomicDouble(0);
   private final ModularFeatureList featureList;
-
-  private IonNetworkLibrary library;
-
   private final ParameterSet parameters;
   private final MZmineProject project;
+  private AtomicDouble stageProgress = new AtomicDouble(0);
+  private IonNetworkLibrary library;
   private boolean neverStop = false;
 
   private double minHeight;
@@ -136,7 +129,7 @@ public class IonNetworkingTask extends AbstractTask {
 
   private void annotateGroups(IonNetworkLibrary library) {
     // get groups
-    RowGroupList groups = featureList.getGroups();
+    List<RowGroup> groups = featureList.getGroups();
 
     if (groups == null || groups.isEmpty()) {
       throw new MSDKRuntimeException(

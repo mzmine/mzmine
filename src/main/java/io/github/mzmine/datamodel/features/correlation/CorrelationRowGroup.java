@@ -1,11 +1,13 @@
 package io.github.mzmine.datamodel.features.correlation;
 
+import io.github.mzmine.datamodel.features.RowGroup;
 import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.List;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import javax.annotation.Nonnull;
 import org.jfree.chart.ChartColor;
 
 public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
@@ -25,7 +27,7 @@ public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
    * 
    * @param corrMap
    */
-  public void recalcGroupCorrelation(R2RCorrMap corrMap) {
+  public void recalcGroupCorrelation(R2RMap<R2RCorrelationData> corrMap) {
     // init
     corr = new R2GroupCorrelationData[this.size()];
 
