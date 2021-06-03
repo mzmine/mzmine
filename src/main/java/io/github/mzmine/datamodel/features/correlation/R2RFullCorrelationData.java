@@ -86,7 +86,13 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
     avgShapeCosineSim = avgShapeCosineSim / c;
 
     // create new total corr
-    corrTotal = CorrelationData.create(corrFeatureShape.values());
+    double[][] data = (double[][]) corrFeatureShape.values().stream().map(CorrelationData::getData)
+        .<double[]>mapMulti((dat, consumer) -> {
+          for (double[] dp : dat) {
+            consumer.accept(dp);
+          }
+        }).toArray();
+    corrTotal = new FullCorrelationData(data);
   }
 
   public CorrelationData getCorrFeatureShape(RawDataFile raw) {
@@ -198,7 +204,8 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
   }
 
   public boolean hasHeightCorr() {
-    return heightCorr != null && heightCorr.getReg() != null && heightCorr.getReg().getN() > 0;
+    return heightCorr != null && heightCorr.getRegression() != null
+           && heightCorr.getRegression().getN() > 0;
   }
 
   @Override

@@ -32,13 +32,17 @@ import java.util.Map;
  */
 public class PreloadedFeatureDataAccess {
 
-  private final ModularFeatureList featureList;
+  private final FeatureListRow[] rows;
 
   protected Map<Feature, double[]> intensityMap = new HashMap();
   protected Map<Feature, double[]> mzMap = new HashMap();
 
   public PreloadedFeatureDataAccess(ModularFeatureList featureList) {
-    this.featureList = featureList;
+    this(featureList.getRows().toArray(new FeatureListRow[0]));
+  }
+
+  public PreloadedFeatureDataAccess(FeatureListRow[] rows) {
+    this.rows = rows;
   }
 
   /**
@@ -69,7 +73,7 @@ public class PreloadedFeatureDataAccess {
    * Load all intensity values
    */
   public void loadIntensityValues() {
-    for (FeatureListRow row : featureList.getRows()) {
+    for (FeatureListRow row : rows) {
       for (Feature feature : row.getFeatures()) {
         if (feature != null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
           intensityMap.put(feature, feature.getFeatureData()
@@ -83,7 +87,7 @@ public class PreloadedFeatureDataAccess {
    * Load all mz values
    */
   public void loadMzValues() {
-    for (FeatureListRow row : featureList.getRows()) {
+    for (FeatureListRow row : rows) {
       for (Feature feature : row.getFeatures()) {
         if (feature != null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
           mzMap.put(feature, feature.getFeatureData()

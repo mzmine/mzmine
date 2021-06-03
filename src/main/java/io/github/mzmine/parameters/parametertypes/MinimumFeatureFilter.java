@@ -17,20 +17,12 @@ import javax.annotation.Nullable;
 
 public class MinimumFeatureFilter {
 
-  public enum OverlapResult {
-    TRUE, // all requirements met
-    AntiOverlap, // Features in at least one sample were not overlapping with X% of intensity
-    OutOfRTRange, // Features in at least one sample were out of RT range
-    BelowMinSamples; // not enough overlapping samples
-  }
-
   /**
    * Minimum percentage of samples (in group if useGroup) that have to contain a feature
    */
   private final AbsoluteNRelativeInt minFInSamples;
   private final AbsoluteNRelativeInt minFInGroups;
   private final double minFeatureHeight;
-
   // sample group size
   private UserParameter<?, ?> sgroupPara;
   private HashMap<String, Integer> sgroupSize;
@@ -40,9 +32,7 @@ public class MinimumFeatureFilter {
   private double minIPercOverlap;
   // do not accept that feature in one raw file is out of rtRange or minIPercOverlap
   private boolean strictRules = false;
-
   private boolean excludeEstimatedFeatures = false;
-
 
   public MinimumFeatureFilter(AbsoluteNRelativeInt minFInSamples, AbsoluteNRelativeInt minFInGroups,
       double minFeatureHeight, double minIPercOverlap, boolean excludeEstimatedFeatures) {
@@ -52,6 +42,7 @@ public class MinimumFeatureFilter {
     this.minIPercOverlap = minIPercOverlap;
     this.excludeEstimatedFeatures = excludeEstimatedFeatures;
   }
+
 
   /**
    * Directly sets up the groups and group sizes
@@ -70,7 +61,6 @@ public class MinimumFeatureFilter {
     this.project = project;
     setSampleGroups(project, raw, groupParam);
   }
-
 
   public void setGroupFilterEnabled(boolean state) {
     filterGroups = state;
@@ -111,7 +101,7 @@ public class MinimumFeatureFilter {
 
     // is present in X % samples of a sample set?
     // count sample in groups (no feature in a sample group->no occurrence in map)
-    HashMap<String, MutableInt> counter = new HashMap<String, MutableInt>();
+    HashMap<String, MutableInt> counter = new HashMap<>();
     for (RawDataFile file : raw) {
       Feature f = row.getFeature(file);
       if (checkFeatureQuality(f)) {
@@ -145,21 +135,6 @@ public class MinimumFeatureFilter {
   private boolean filterEstimated(Feature f) {
     return f != null
            && (!excludeEstimatedFeatures || !f.getFeatureStatus().equals(FeatureStatus.ESTIMATED));
-  }
-
-  /**
-   * Check for overlapping features in two rows (features in the same RawDataFile with
-   * height>minHeight)
-   *
-   * @param raw
-   * @param row
-   * @param row2
-   * @return
-   */
-  public OverlapResult filterMinFeaturesOverlap(@Nullable PreloadedFeatureDataAccess data,
-      final List<RawDataFile> raw, FeatureListRow row,
-      FeatureListRow row2) {
-    return filterMinFeaturesOverlap(data, raw, row, row2, null);
   }
 
   /**
@@ -212,7 +187,7 @@ public class MinimumFeatureFilter {
 
     // is present in X % samples of a sample set?
     // count sample in groups (no feature in a sample group->no occurrence in map)
-    HashMap<String, MutableInt> counter = new HashMap<String, MutableInt>();
+    HashMap<String, MutableInt> counter = new HashMap<>();
     for (RawDataFile file : raw) {
       Feature a = row.getFeature(file);
       Feature b = row2.getFeature(file);
@@ -252,14 +227,8 @@ public class MinimumFeatureFilter {
     return OverlapResult.BelowMinSamples;
   }
 
-
   private boolean checkRTTol(RTTolerance rtTolerance, Feature a, Feature b) {
     return (rtTolerance == null || rtTolerance.checkWithinTolerance(a.getRT(), b.getRT()));
-  }
-
-  private boolean checkHeight(Feature a, Feature b) {
-    return a != null && a.getHeight() >= minFeatureHeight && b != null
-           && b.getHeight() >= minFeatureHeight;
   }
 
   /**
@@ -429,24 +398,6 @@ public class MinimumFeatureFilter {
     return String.valueOf(project.getParameterValue(sgroupPara, file));
   }
 
-  class MutableInt {
-
-    int total;
-    int value = 1; // note that we start at 1 since we're counting
-
-    MutableInt(int total) {
-      this.total = total;
-    }
-
-    public void increment() {
-      ++value;
-    }
-
-    public int get() {
-      return value;
-    }
-  }
-
   /**
    * Size map
    *
@@ -463,6 +414,31 @@ public class MinimumFeatureFilter {
    */
   public UserParameter<?, ?> getGroupParam() {
     return sgroupPara;
+  }
+
+  public enum OverlapResult {
+    TRUE, // all requirements met
+    AntiOverlap, // Features in at least one sample were not overlapping with X% of intensity
+    OutOfRTRange, // Features in at least one sample were out of RT range
+    BelowMinSamples; // not enough overlapping samples
+  }
+
+  class MutableInt {
+
+    int total;
+    int value = 1; // note that we start at 1 since we're counting
+
+    MutableInt(int total) {
+      this.total = total;
+    }
+
+    public void increment() {
+      ++value;
+    }
+
+    public int get() {
+      return value;
+    }
   }
 
 

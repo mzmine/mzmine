@@ -23,7 +23,6 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.PreloadedFeatureDataAccess;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
@@ -263,60 +262,60 @@ public class CorrelateGroupingTask extends AbstractTask {
    */
   private void doR2RComparison(ModularFeatureList featureList, R2RMap<R2RCorrelationData> map) {
     logger.fine("Corr: Creating row2row correlation map");
-    List<FeatureListRow> rows = featureList.getRows();
-    totalRows = rows.size();
     final List<RawDataFile> raws = featureList.getRawDataFiles();
+    // filter list by minimum number of features in all samples or at least one group
+    // sort by avgRT (should actually be sorted already)
+    final FeatureListRow[] rows = featureList.getRows().stream()
+        .filter(row -> minFFilter.filterMinFeatures(raws, row))
+        .sorted(new FeatureListRowSorter(SortingProperty.RT, SortingDirection.Ascending))
+        .toArray(FeatureListRow[]::new);
 
-    // sort by avgRT (should actually be already sorted)
-    rows.sort(new FeatureListRowSorter(SortingProperty.RT, SortingDirection.Ascending));
+    totalRows = rows.length;
 
-    PreloadedFeatureDataAccess data = new PreloadedFeatureDataAccess(featureList);
+    PreloadedFeatureDataAccess data = new PreloadedFeatureDataAccess(rows);
     data.loadIntensityValues();
 
     // for all rows - do in parallel
-    IntStream.range(0, rows.size() - 1).parallel().forEach(i -> {
+    IntStream.range(0, totalRows - 1).parallel().forEach(i -> {
       if (!isCanceled()) {
         try {
-          FeatureListRow row = rows.get(i);
-          // has a minimum number/% of features in all samples / in at least one groups
-          if (minFFilter.filterMinFeatures(raws, row)) {
-            // compare to the rest of rows
-            for (int x = i + 1; x < totalRows; x++) {
-              if (isCanceled()) {
-                break;
-              }
+          FeatureListRow row = rows[i];
+          // compare to the rest of rows
+          for (int x = i + 1; x < totalRows; x++) {
+            if (isCanceled()) {
+              break;
+            }
 
-              FeatureListRow row2 = rows.get(x);
+            FeatureListRow row2 = rows[x];
 
-              // has a minimum number/% of overlapping features in all samples / in at least one
-              // groups
-              OverlapResult overlap =
-                  minFFilter.filterMinFeaturesOverlap(data, raws, row, row2, rtTolerance);
-              if (overlap.equals(OverlapResult.TRUE)) {
-                // correlate if in rt range
-                R2RFullCorrelationData corr =
-                    FeatureCorrelationUtil.corrR2R(data, raws, row, row2, groupByFShapeCorr,
-                        minCorrelatedDataPoints, minCorrDPOnFeatureEdge, minDPHeightCorr, minHeight,
-                        noiseLevelCorr, useHeightCorrFilter, heightSimMeasure, minHeightCorr);
+            // has a minimum number/% of overlapping features in all samples / in at least one
+            // groups
+            OverlapResult overlap =
+                minFFilter.filterMinFeaturesOverlap(data, raws, row, row2, rtTolerance);
+            if (overlap.equals(OverlapResult.TRUE)) {
+              // correlate if in rt range
+              R2RFullCorrelationData corr =
+                  FeatureCorrelationUtil.corrR2R(data, raws, row, row2, groupByFShapeCorr,
+                      minCorrelatedDataPoints, minCorrDPOnFeatureEdge, minDPHeightCorr, minHeight,
+                      noiseLevelCorr, useHeightCorrFilter, heightSimMeasure, minHeightCorr);
 
-                // corr is even present if only grouping by retention time
-                // corr is only null if heightCorrelation was not met
-                if (corr != null && //
-                    (!groupByFShapeCorr || FeatureCorrelationUtil.checkFShapeCorr(groupedPKL,
-                        minFFilter, corr, useTotalShapeCorrFilter, minTotalShapeCorrR,
-                        minShapeCorrR,
-                        shapeSimMeasure))) {
-                  // add to map
-                  // can be because of any combination of
-                  // retention time, shape correlation, non-negative height correlation
-                  map.add(row, row2, corr);
-                }
+              // corr is even present if only grouping by retention time
+              // corr is only null if heightCorrelation was not met
+              if (corr != null && //
+                  (!groupByFShapeCorr || FeatureCorrelationUtil.checkFShapeCorr(groupedPKL,
+                      minFFilter, corr, useTotalShapeCorrFilter, minTotalShapeCorrR,
+                      minShapeCorrR,
+                      shapeSimMeasure))) {
+                // add to map
+                // can be because of any combination of
+                // retention time, shape correlation, non-negative height correlation
+                map.add(row, row2, corr);
               }
             }
           }
           stageProgress.addAndGet(1d / totalRows);
         } catch (Exception e) {
-          logger.log(Level.SEVERE, "Error in parallel R2Rcomparison", e);
+          logger.log(Level.SEVERE, "Error in parallel R2Rcomparison: " + e.getMessage(), e);
           throw new MSDKRuntimeException(e);
         }
       }
@@ -337,28 +336,6 @@ public class CorrelateGroupingTask extends AbstractTask {
     logger.info(MessageFormat.format(
         "Corr: {2} row-2-row correlations done with {0} R2R correlations based on {1} F2F correlations",
         nR2Rcorr, nF2F, map.size()));
-  }
-
-  /**
-   * direct exclusion for high level filtering check rt of all peaks of all raw files
-   *
-   * @param row
-   * @param row2
-   * @param minHeight minimum feature height to check for RT
-   * @return true only if there was at least one RawDataFile with features in both rows with
-   * height>minHeight and within rtTolerance
-   */
-  public boolean checkRTRange(RawDataFile[] raw, FeatureListRow row, FeatureListRow row2,
-      double minHeight, RTTolerance rtTolerance) {
-    for (int r = 0; r < raw.length; r++) {
-      Feature f = row.getFeature(raw[r]);
-      Feature f2 = row2.getFeature(raw[r]);
-      if (f != null && f2 != null && f.getHeight() >= minHeight && f2.getHeight() >= minHeight
-          && rtTolerance.checkWithinTolerance(f.getRT(), f2.getRT())) {
-        return true;
-      }
-    }
-    return false;
   }
 
 }

@@ -456,14 +456,14 @@ public class FeatureCorrelationUtil {
 
     double significantSlope = 0;
     try {
-      significantSlope = corr.getReg().getSignificance();
+      significantSlope = corr.getRegression().getSignificance();
     } catch (MathException e) {
       LOG.log(Level.SEVERE, "slope significance cannot be calculated", e);
     }
     // if slope is negative
     // slope significance is low (alpha is high)
     // similarity is low
-    return (corr.getReg().getSlope() <= 0
+    return (corr.getRegression().getSlope() <= 0
             || (!Double.isNaN(significantSlope) && significantSlope > maxSlopeSignificance)
             || corr.getSimilarity(heightSimilarity) < minSimilarity);
   }

@@ -36,6 +36,13 @@ public interface RowsRelationship {
   double getScore();
 
   /**
+   * A formatted string of the score
+   *
+   * @return formatted score string
+   */
+  String getScoreFormatted();
+
+  /**
    * Relationship type
    *
    * @return the type of this relationship
@@ -65,6 +72,7 @@ public interface RowsRelationship {
    */
   FeatureListRow getRowB();
 
+
   public enum Type {
     /**
      * MS1 similarity can be same retention time, feature shape correlation, intensity across
@@ -76,6 +84,14 @@ public interface RowsRelationship {
      */
     MS2_SIMILARITY,
     ;
+
+    @Override
+    public String toString() {
+      return switch(this) {
+        case MS1_CORRELATION -> "MS1 feature correlation";
+        case MS2_SIMILARITY -> "MS2 similarity";
+      };
+    }
   }
 
 }

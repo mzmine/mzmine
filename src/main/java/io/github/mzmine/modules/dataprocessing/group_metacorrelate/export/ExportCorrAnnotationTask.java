@@ -23,11 +23,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.RowGroup;
-import io.github.mzmine.datamodel.features.correlation.MS2SimilarityProviderGroup;
-import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
-import io.github.mzmine.datamodel.features.correlation.R2RMS2Similarity;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
@@ -37,7 +35,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.rowfilter.RowFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -45,8 +42,9 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
 import java.io.File;
 import java.text.DecimalFormat;
-import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -58,29 +56,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
 public class ExportCorrAnnotationTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(ExportCorrAnnotationTask.class.getName());
-
-  public enum EDGES {
-    ID1, ID2, EdgeType, Score, Annotation
-  }
-
   private final Double progress = 0d;
-
-  private boolean exportAnnotationEdges = true, exportCorrelationEdges = false;
-  private boolean exportIinRelationships = false;
-  private boolean exportMS2SimilarityEdges = false;
-  private boolean exportMS2DiffSimilarityEdges = false;
-  private final double minR;
   private final ModularFeatureList[] featureLists;
   private final File filename;
-
   private final RowFilter filter;
+  private final Type[] exportTypes;
+  private final boolean allInOneFile;
+  private boolean exportAnnotationEdges = true;
+  private boolean exportIinRelationships = false;
   private boolean mergeLists = false;
+
+  private List<File> exportedFiles = new ArrayList<>();
 
   /**
    * Create the task.
@@ -93,36 +87,262 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     this.featureLists = featureLists;
 
     // tolerances
-    filename = parameterSet.getParameter(ExportCorrAnnotationParameters.FILENAME).getValue();
-    minR = parameterSet.getParameter(ExportCorrAnnotationParameters.MIN_R).getValue();
+    filename = parameterSet.getParameter(ExportCorrAnnotationParameters.filename).getValue();
     exportAnnotationEdges =
-        parameterSet.getParameter(ExportCorrAnnotationParameters.EX_ANNOT).getValue();
+        parameterSet.getParameter(ExportCorrAnnotationParameters.exportIIN).getValue();
     exportIinRelationships =
-        parameterSet.getParameter(ExportCorrAnnotationParameters.EX_IIN_RELATIONSHIP).getValue();
-    exportCorrelationEdges =
-        parameterSet.getParameter(ExportCorrAnnotationParameters.EX_CORR).getValue();
-    exportMS2DiffSimilarityEdges =
-        parameterSet.getParameter(ExportCorrAnnotationParameters.EX_MS2_DIFF_SIMILARITY).getValue();
-    exportMS2SimilarityEdges =
-        parameterSet.getParameter(ExportCorrAnnotationParameters.EX_MS2_SIMILARITY).getValue();
-    filter = parameterSet.getParameter(ExportCorrAnnotationParameters.FILTER).getValue();
+        parameterSet.getParameter(ExportCorrAnnotationParameters.exportIINRelationship).getValue();
+    filter = parameterSet.getParameter(ExportCorrAnnotationParameters.filter).getValue();
+    exportTypes = parameterSet.getParameter(ExportCorrAnnotationParameters.exportTypes).getValue();
+    allInOneFile = parameterSet.getParameter(ExportCorrAnnotationParameters.allInOneFile)
+        .getValue();
+  }
+
+  public boolean exportAnnotationEdges(FeatureList featureList, File filename, Double progress,
+      AbstractTask task) {
+    LOG.info("Export annotation edge file");
+    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+    NumberFormat corrForm = new DecimalFormat("0.000");
+    try {
+      List<FeatureListRow> rows = featureList.getRows();
+      Collections
+          .sort(rows, new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+      StringBuilder ann = createHeader();
+
+      AtomicInteger added = new AtomicInteger(0);
+      // for all rows
+      for (FeatureListRow r : rows) {
+        if (filter.filter(r)) {
+          continue;
+        }
+
+        if (task != null && task.isCanceled()) {
+          return false;
+        }
+        // row1
+        int rowID = r.getID();
+
+        //
+        if (r.hasIonIdentity()) {
+          r.getIonIdentities().forEach(adduct -> {
+            ConcurrentHashMap<FeatureListRow, IonIdentity> links = adduct.getPartner();
+
+            // add all connection for ids>rowID to avoid duplicates
+            links.entrySet().stream().filter(Objects::nonNull)
+                .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
+              FeatureListRow link = e.getKey();
+              if (filter.filter(link)) {
+                IonIdentity id = e.getValue();
+                double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
+                // the data
+                exportEdge(ann, "MS1 annotation", rowID, e.getKey().getID(),
+                    corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
+                    id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
+                added.incrementAndGet();
+              }
+            });
+          });
+        }
+      }
+
+      LOG.log(Level.INFO, "Annotation edges exported {0}", added.get());
+
+      // export ann edges
+      // Filename
+      if (added.get() > 0) {
+        writeToFile(ann.toString(), filename, "_edges_msannotation");
+        return true;
+      } else {
+        return false;
+      }
+    } catch (Exception e) {
+      throw new MSDKRuntimeException(e);
+    }
+  }
+
+  public boolean exportIINRelationships(FeatureList pkl, File filename, Double progress,
+      AbstractTask task) {
+    LOG.fine("Export IIN relationships edge file");
+    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+    NumberFormat corrForm = new DecimalFormat("0.000");
+
+    try {
+      StringBuilder ann = createHeader();
+
+      AtomicInteger added = new AtomicInteger(0);
+
+      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(pkl, true);
+      for (IonNetwork n : nets) {
+        Map<IonNetwork, IonNetworkRelationInterf> relations = n.getRelations();
+        if (relations != null && !relations.isEmpty()) {
+          for (Map.Entry<IonNetwork, IonNetworkRelationInterf> rel : relations.entrySet()) {
+            // export all relations where n.id is smaller than the related network
+            if (rel.getValue().isLowestIDNetwork(n)) {
+              // relationship can be between multiple nets
+              for (IonNetwork net2 : rel.getValue().getAllNetworks()) {
+                if (net2.equals(n)) {
+                  continue;
+                }
+
+                // find best two nodes
+                FeatureListRow[] rows = getBestRelatedRows(n, net2);
+                // export lowest mz -> highest mz
+                if (rows[0].getAverageMZ() > rows[1].getAverageMZ()) {
+                  exportEdge(ann, "IIN M relationship", rows[1].getID(), rows[0].getID(), "0", //
+                      rel.getValue().getName(net2));
+                } else {
+                  exportEdge(ann, "IIN M relationship", rows[0].getID(), rows[1].getID(), "0", //
+                      rel.getValue().getName(n));
+                }
+
+                added.incrementAndGet();
+              }
+            }
+          }
+        }
+      }
+      LOG.info("IIN relationship edges exported " + added.get() + "");
+
+      // export ann edges
+      // Filename
+      if (added.get() > 0) {
+        writeToFile(ann.toString(), filename, "_edges_iin_relations");
+        return true;
+      } else {
+        return false;
+      }
+    } catch (Exception e) {
+      throw new MSDKRuntimeException(e);
+    }
   }
 
   /**
-   * Create the task.
+   * Filters rows by row filter (MS/MS, IIN, ...) and finds the pair with the highest intensity sum
+   * to represent the relationship between the two {@link IonNetwork}
+   *
+   * @param netA network a
+   * @param netB network netB
+   * @return an array[2] of the representative rows for netA and netB or null if there was no
+   * relationship or no pair of rows matching the filter
    */
-  public ExportCorrAnnotationTask(ModularFeatureList[] featureLists, File filename, double minR,
-      RowFilter filter, boolean exportAnnotationEdges, boolean exportCorrelationEdges,
-      boolean exportIinRelationships, boolean mergeLists) {
-    super(null);
-    this.featureLists = featureLists;
-    this.filename = filename;
-    this.minR = minR;
-    this.filter = filter;
-    this.exportAnnotationEdges = exportAnnotationEdges;
-    this.exportCorrelationEdges = exportCorrelationEdges;
-    this.exportIinRelationships = exportIinRelationships;
-    this.mergeLists = mergeLists;
+  @Nullable
+  private FeatureListRow[] getBestRelatedRows(IonNetwork netA, IonNetwork netB) {
+    FeatureListRow[] rows = new FeatureListRow[2];
+    double sumIntensity = 0;
+    for (Map.Entry<FeatureListRow, IonIdentity> entryA : netA.entrySet()) {
+      FeatureListRow rowA = entryA.getKey();
+      if (filter.filter(rowA)) {
+        IonIdentity iinA = entryA.getValue();
+        for (Map.Entry<FeatureListRow, IonIdentity> entryB : netB.entrySet()) {
+          FeatureListRow rowB = entryB.getKey();
+          if (filter.filter(rowB)) {
+            IonIdentity iinB = entryB.getValue();
+            if (iinA.getAdduct().equals(iinB.getAdduct())) {
+              // find pair with the highest sum intensity (that match the row filter)
+              double sum = rowA.getAverageHeight() + rowB.getAverageHeight();
+              if (sum >= sumIntensity) {
+                sumIntensity = sum;
+                rows[0] = rowA;
+                rows[1] = rowB;
+              }
+            }
+          }
+        }
+      }
+    }
+    if (rows[0] == null) {
+      return null;
+    } else {
+      return rows;
+    }
+  }
+
+  /**
+   * Exports fields in the correct order
+   *
+   * @param builder    creates the whole data string
+   * @param type       edge type
+   * @param id1        id of row a
+   * @param id2        id of row b
+   * @param score      edge score
+   * @param annotation edge annotation
+   */
+  private void exportEdge(StringBuilder builder, String type, int id1, int id2, String score,
+      String annotation) {
+    // the data
+    Object[] data = new Object[EDGES.values().length];
+
+    // add all data
+    for (int d = 0; d < EDGES.values().length; d++) {
+      switch (EDGES.values()[d]) {
+        case ID1 -> data[d] = String.valueOf(id1);
+        case ID2 -> data[d] = String.valueOf(id2);
+        case EdgeType -> data[d] = type;
+        case Annotation -> data[d] = annotation;
+        case Score -> data[d] = score;
+      }
+    }
+    // replace null
+    for (int j = 0; j < data.length; j++) {
+      if (data[j] == null) {
+        data[j] = "";
+      }
+    }
+    // add data
+    builder.append(StringUtils.join(data, ','));
+    builder.append("\n");
+  }
+
+  /**
+   * Create the standard header
+   *
+   * @return adds the header and new line to a new String Builder
+   */
+  @Nonnull
+  private StringBuilder createHeader() {
+    StringBuilder ann = new StringBuilder();
+    // only write header if not all in one file
+    if (!allInOneFile) {
+      writeHeader(ann);
+    }
+    return ann;
+  }
+
+  private void writeHeader(StringBuilder ann) {
+    ann.append(StringUtils.join(EDGES.values(), ','));
+    ann.append("\n");
+  }
+
+  /**
+   * Write to a file. Checks allInOneFile to combine all into one file.
+   *
+   * @param data     the data to be exported
+   * @param filename the filename
+   * @param suffix   the suffix that is added to the filename (only used if no allInOneFile is
+   *                 false)
+   */
+  private void writeToFile(String data, File filename, String suffix) {
+    File realFile = FileAndPathUtil.eraseFormat(filename);
+    String name = allInOneFile ? realFile.getName() : realFile.getName() + suffix;
+    realFile = FileAndPathUtil
+        .getRealFilePath(filename.getParentFile(), realFile.getName() + suffix, ".csv");
+
+    if (allInOneFile) {
+      realFile = FileAndPathUtil
+          .getRealFilePath(filename.getParentFile(), realFile.getName(), ".csv");
+      boolean append = exportedFiles.size() > 0;
+      TxtWriter.write(data, realFile, append);
+      LOG.log(Level.INFO, "File {1}: {0}", new Object[]{realFile.getAbsolutePath(), append? "created" : "appended"});
+    } else {
+      realFile = FileAndPathUtil
+          .getRealFilePath(filename.getParentFile(), realFile.getName() + suffix, ".csv");
+      TxtWriter.write(data, realFile);
+      LOG.log(Level.INFO, "File created: {0}", realFile.getAbsolutePath());
+    }
+
+    if (!exportedFiles.contains(realFile)) {
+      exportedFiles.add(realFile);
+    }
   }
 
   @Override
@@ -153,6 +373,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       LOG.log(Level.SEVERE, "Export of correlation and MS annotation results error", t);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
+      return;
     }
 
     if (getStatus() == TaskStatus.PROCESSING) {
@@ -160,37 +381,49 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     }
   }
 
-
   private void exportLists() {
     for (FeatureList featureList : featureLists) {
-      LOG.info("Starting export of adduct and correlation networks" + featureList.getName());
+      LOG.log(Level.FINE, "Starting export of adduct and correlation networks {0}",
+          featureList.getName());
+
+      // exports all row-2-row relationship maps
+      var rowMaps = featureList.getRowMaps();
+      for (var entry : rowMaps.entrySet()) {
+        Type type = entry.getKey();
+        R2RMap<RowsRelationship> map = entry.getValue();
+        exportMap(type, map.values());
+      }
+
       // export edges of annotations
       if (exportAnnotationEdges) {
-        exportAnnotationEdges(featureList, filename, filter.equals(RowFilter.ONLY_WITH_MS2),
-            progress,
-            this);
+        exportAnnotationEdges(featureList, filename, progress, this);
       }
 
       // relationships between ion identity networks (+O) ...
       if (exportIinRelationships) {
-        exportIINRelationships(featureList, filename, filter.equals(RowFilter.ONLY_WITH_MS2),
-            progress,
-            this);
-      }
-
-      // export MS2Similarity edges
-      if (exportMS2DiffSimilarityEdges) {
-        exportMS2DiffSimilarityEdges(featureList, filename, filter, progress, this);
-      }
-      if (exportMS2SimilarityEdges) {
-        exportMS2SimilarityEdges(featureList, filename, filter, progress, this);
-      }
-
-      // export edges of corr
-      if (exportCorrelationEdges) {
-        exportCorrelationEdges(featureList, filename, progress, this, minR, filter);
+        exportIINRelationships(featureList, filename, progress, this);
       }
     }
+  }
+
+  /**
+   * Export all relationships to one csv file
+   *
+   * @param type          type.toString is used as a file suffix
+   * @param relationships list of relationships to export to one file
+   */
+  private void exportMap(Type type, Collection<RowsRelationship> relationships) {
+    // creates the standard header
+    StringBuilder ann = createHeader();
+    for (RowsRelationship rel : relationships) {
+      // only export if both rows match
+      if (filter.filter(rel.getRowA()) && filter.filter(rel.getRowB())) {
+        exportEdge(ann, rel.getType().toString(), rel.getRowA().getID(), rel.getRowB().getID(),
+            rel.getScoreFormatted(), rel.getAnnotation());
+      }
+    }
+    String suffix = "_" + type.toString().toLowerCase().replaceAll(" ", "_");
+    writeToFile(ann.toString(), filename, suffix);
   }
 
   private void exportMergedLists() {
@@ -232,10 +465,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat corrForm = new DecimalFormat("0.000");
     try {
-      StringBuilder ann = new StringBuilder();
-      // add header
-      ann.append(StringUtils.join(EDGES.values(), ','));
-      ann.append("\n");
+      StringBuilder ann = createHeader();
 
       AtomicInteger added = new AtomicInteger(0);
 
@@ -291,7 +521,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       // export ann edges
       // Filename
       if (added.get() > 0) {
-        writeToFile(ann.toString(), filename, "_edges_msannotation", ".csv");
+        writeToFile(ann.toString(), filename, "_edges_msannotation");
         return true;
       } else {
         return false;
@@ -300,7 +530,6 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       throw new MSDKRuntimeException(e);
     }
   }
-
 
   private String getRowMapKey(FeatureListRow r) {
     String rawnames = r.getRawDataFiles().stream().map(RawDataFile::getName)
@@ -308,373 +537,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     return rawnames + r.getID();
   }
 
-  public static boolean exportAnnotationEdges(FeatureList pkl, File filename, boolean limitToMSMS,
-      Double progress, AbstractTask task) {
-    LOG.info("Export annotation edge file");
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat corrForm = new DecimalFormat("0.000");
-    try {
-      List<FeatureListRow> rows = pkl.getRows();
-      Collections
-          .sort(rows, new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
-      StringBuilder ann = new StringBuilder();
-
-      // add header
-      ann.append(StringUtils.join(EDGES.values(), ','));
-      ann.append("\n");
-
-      AtomicInteger added = new AtomicInteger(0);
-      // for all rows
-      for (FeatureListRow r : rows) {
-
-        if (limitToMSMS && r.getBestFragmentation() == null) {
-          continue;
-        }
-
-        if (task != null && task.isCanceled()) {
-          return false;
-        }
-        // row1
-        int rowID = r.getID();
-
-        //
-        if (r.hasIonIdentity()) {
-          r.getIonIdentities().forEach(adduct -> {
-            ConcurrentHashMap<FeatureListRow, IonIdentity> links = adduct.getPartner();
-
-            // add all connection for ids>rowID
-            links.entrySet().stream().filter(Objects::nonNull)
-                .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
-              FeatureListRow link = e.getKey();
-              if (!limitToMSMS || link.getBestFragmentation() != null) {
-                IonIdentity id = e.getValue();
-                double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
-                // the data
-                exportEdge(ann, "MS1 annotation", rowID, e.getKey().getID(),
-                    corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
-                    id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
-                added.incrementAndGet();
-              }
-            });
-          });
-        }
-      }
-
-      LOG.info("Annotation edges exported " + added.get() + "");
-
-      // export ann edges
-      // Filename
-      if (added.get() > 0) {
-        writeToFile(ann.toString(), filename, "_edges_msannotation", ".csv");
-        return true;
-      } else {
-        return false;
-      }
-    } catch (Exception e) {
-      throw new MSDKRuntimeException(e);
-    }
-  }
-
-
-  public static boolean exportIINRelationships(FeatureList pkl, File filename, boolean limitToMSMS,
-      Double progress, AbstractTask task) {
-    LOG.info("Export IIN relationships edge file");
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat corrForm = new DecimalFormat("0.000");
-
-    try {
-      StringBuilder ann = new StringBuilder();
-
-      // add header
-      ann.append(StringUtils.join(EDGES.values(), ','));
-      ann.append("\n");
-
-      AtomicInteger added = new AtomicInteger(0);
-
-      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(pkl, true);
-      for (IonNetwork n : nets) {
-        Map<IonNetwork, IonNetworkRelationInterf> relations = n.getRelations();
-        if (relations != null && !relations.isEmpty()) {
-          for (Map.Entry<IonNetwork, IonNetworkRelationInterf> rel : relations.entrySet()) {
-            // export all relations where n.id is smaller than the related network
-            if (rel.getValue().isLowestIDNetwork(n)) {
-              // relationship can be between multiple nets
-              for (IonNetwork net2 : rel.getValue().getAllNetworks()) {
-                if (net2.equals(n)) {
-                  continue;
-                }
-
-                // find best two nodes
-                FeatureListRow[] rows = getBestRelatedRows(n, net2, limitToMSMS);
-                // export lowest mz -> highest mz
-                if (rows[0].getAverageMZ() > rows[1].getAverageMZ()) {
-                  exportEdge(ann, "IIN M relationship", rows[1].getID(), rows[0].getID(), "0", //
-                      rel.getValue().getName(net2));
-                } else {
-                  exportEdge(ann, "IIN M relationship", rows[0].getID(), rows[1].getID(), "0", //
-                      rel.getValue().getName(n));
-                }
-
-                added.incrementAndGet();
-              }
-            }
-          }
-        }
-      }
-      LOG.info("IIN relationship edges exported " + added.get() + "");
-
-      // export ann edges
-      // Filename
-      if (added.get() > 0) {
-        writeToFile(ann.toString(), filename, "_edges_iin_relations", ".csv");
-        return true;
-      } else {
-        return false;
-      }
-    } catch (Exception e) {
-      throw new MSDKRuntimeException(e);
-    }
-  }
-
-  private static FeatureListRow[] getBestRelatedRows(IonNetwork a, IonNetwork b,
-      boolean limitToMSMS) {
-    FeatureListRow[] rows = new FeatureListRow[2];
-    double sumIntensity = 0;
-    for (Map.Entry<FeatureListRow, IonIdentity> entryA : a.entrySet()) {
-      if (!limitToMSMS || entryA.getKey().getBestFragmentation() != null) {
-        IonIdentity iinA = entryA.getValue();
-        for (Map.Entry<FeatureListRow, IonIdentity> entryB : b.entrySet()) {
-          if (!limitToMSMS || entryB.getKey().getBestFragmentation() != null) {
-            IonIdentity iinB = entryB.getValue();
-            if (iinA.getAdduct().equals(iinB.getAdduct())) {
-              double sum = entryA.getKey().getAverageHeight() + entryB.getKey().getAverageHeight();
-              if (sum >= sumIntensity) {
-                sumIntensity = sum;
-                rows[0] = entryA.getKey();
-                rows[1] = entryB.getKey();
-              }
-            }
-          }
-        }
-      }
-    }
-    if (rows[0] == null) {
-      try {
-        rows[0] = a.keySet().iterator().next();
-        rows[1] = b.keySet().iterator().next();
-      } catch (Exception ex) {
-      }
-    }
-    return rows;
-  }
-
-  public static boolean exportMS2SimilarityEdges(FeatureList pkl, File filename, RowFilter filter,
-      Double progress, AbstractTask task) {
-    try {
-      List<RowGroup> groups = pkl.getGroups();
-      if (groups != null && !groups.isEmpty()) {
-        LOG.info("Export MS2 similarities edge file");
-        NumberFormat corrForm = new DecimalFormat("0.000");
-        NumberFormat overlapForm = new DecimalFormat("0.0");
-
-        StringBuilder ann = new StringBuilder();
-        // add header
-        ann.append(StringUtils.join(EDGES.values(), ','));
-        ann.append("\n");
-        AtomicInteger added = new AtomicInteger(0);
-
-        for (RowGroup g : groups) {
-          if (task != null && task.isCanceled()) {
-            return false;
-          }
-
-          if (g instanceof MS2SimilarityProviderGroup) {
-            R2RMap<R2RMS2Similarity> map = ((MS2SimilarityProviderGroup) g).getMS2SimilarityMap();
-            for (R2RMS2Similarity r2r : map.values()) {
-              if (r2r.getDiffAvgCosine() == 0 && r2r.getDiffMaxOverlap() == 0) {
-                continue;
-              }
-              FeatureListRow a = r2r.getA();
-              FeatureListRow b = r2r.getB();
-              // no self-loops
-              if (a.getID() != b.getID() && filter.filter(a) && filter.filter(b)) {
-                // the data
-                exportEdge(ann, "MS2 sim", a.getID(), b.getID(),
-                    corrForm.format(r2r.getDiffAvgCosine()), //
-                    MessageFormat.format("cos={0} ({1})", corrForm.format(r2r.getDiffAvgCosine()),
-                        overlapForm.format(r2r.getDiffMaxOverlap())));
-                added.incrementAndGet();
-              }
-            }
-          }
-        }
-
-        LOG.info("MS2 similarity edges exported " + added.get() + "");
-
-        // export ann edges
-        // Filename
-        if (added.get() > 0) {
-          writeToFile(ann.toString(), filename, "_edges_ms2similarity", ".csv");
-          return true;
-        } else {
-          return false;
-        }
-      }
-    } catch (Exception e) {
-      throw new MSDKRuntimeException(e);
-    }
-    return false;
-  }
-
-  public static boolean exportMS2DiffSimilarityEdges(FeatureList pkl, File filename,
-      RowFilter filter,
-      Double progress, AbstractTask task) {
-    try {
-      List<RowGroup> groups = pkl.getGroups();
-      if (groups != null && !groups.isEmpty()) {
-        LOG.info("Export MS2 diff similarities edge file");
-        NumberFormat corrForm = new DecimalFormat("0.000");
-        NumberFormat overlapForm = new DecimalFormat("0.0");
-
-        StringBuilder ann = new StringBuilder();
-        // add header
-        ann.append(StringUtils.join(EDGES.values(), ','));
-        ann.append("\n");
-        AtomicInteger added = new AtomicInteger(0);
-
-        for (RowGroup g : groups) {
-          if (task != null && task.isCanceled()) {
-            return false;
-          }
-
-          if (g instanceof MS2SimilarityProviderGroup) {
-            R2RMap<R2RMS2Similarity> map = ((MS2SimilarityProviderGroup) g).getMS2SimilarityMap();
-            for (R2RMS2Similarity r2r : map.values()) {
-              if (r2r.getSpectralAvgCosine() == 0 && r2r.getSpectralMaxOverlap() == 0) {
-                continue;
-              }
-              FeatureListRow a = r2r.getA();
-              FeatureListRow b = r2r.getB();
-              // no self-loops
-              if (a.getID() != b.getID() && filter.filter(a) && filter.filter(b)) {
-                // the data
-                exportEdge(ann, "MS2 diff sim", a.getID(), b.getID(),
-                    corrForm.format(r2r.getSpectralAvgCosine()), //
-                    MessageFormat.format("diff cos={0} ({1})",
-                        corrForm.format(r2r.getSpectralAvgCosine()),
-                        overlapForm.format(r2r.getSpectralMaxOverlap())));
-                added.incrementAndGet();
-              }
-            }
-          }
-        }
-
-        LOG.info("MS2 diff similarity edges exported " + added.get() + "");
-
-        // export ann edges
-        // Filename
-        if (added.get() > 0) {
-          writeToFile(ann.toString(), filename, "_edges_ms2diffsimilarity", ".csv");
-          return true;
-        } else {
-          return false;
-        }
-      }
-    } catch (Exception e) {
-      throw new MSDKRuntimeException(e);
-    }
-    return false;
-  }
-
-  public static boolean exportCorrelationEdges(FeatureList pkl, File filename, Double progress,
-      AbstractTask task, double minCorr, RowFilter filter) {
-
-    NumberFormat corrForm = new DecimalFormat("0.000");
-    try {
-      StringBuilder ann = new StringBuilder();
-      // add header
-      ann.append(StringUtils.join(EDGES.values(), ','));
-      ann.append("\n");
-
-      AtomicInteger added = new AtomicInteger(0);
-      // for all rows
-      CorrelationGroupingUtils.streamFrom(pkl).filter(r2r -> r2r.getAvgShapeR() >= minCorr)
-          .forEach(r2r -> {
-            FeatureListRow a = r2r.getRowA();
-            FeatureListRow b = r2r.getRowB();
-            //
-            boolean export = true;
-            if (!filter.equals(RowFilter.ALL)) {
-              // only export rows with MSMS
-              export = filter.filter(a) && filter.filter(b);
-            }
-
-            //
-            if (export) {
-              exportEdge(ann, "MS1 shape correlation", a.getID(), b.getID(),
-                  corrForm.format(r2r.getAvgShapeR()), "r=" + corrForm.format(r2r.getAvgShapeR()));
-              added.incrementAndGet();
-            }
-          });
-
-      LOG.info("Correlation edges exported " + added.get() + "");
-
-      // export ann edges
-      // Filename
-      if (added.get() > 0) {
-        writeToFile(ann.toString(), filename, "_edges_ms1correlation", ".csv");
-        return true;
-      } else {
-        return false;
-      }
-    } catch (Exception e) {
-      throw new MSDKRuntimeException(e);
-    }
-  }
-
-  private static void writeToFile(String data, File filename, String suffix, String format) {
-    TxtWriter writer = new TxtWriter();
-    File realFile = FileAndPathUtil.eraseFormat(filename);
-    realFile = FileAndPathUtil.getRealFilePath(filename.getParentFile(),
-        realFile.getName() + suffix, format);
-    TxtWriter.write(data, realFile);
-    LOG.info("File created: " + realFile);
-  }
-
-  private static void exportEdge(StringBuilder ann, String type, int id1, int id2, String score,
-      String annotation) {
-    // the data
-    Object[] data = new Object[EDGES.values().length];
-
-    // add all data
-    for (int d = 0; d < EDGES.values().length; d++) {
-      switch (EDGES.values()[d]) {
-        case ID1:
-          data[d] = id1 + "";
-          break;
-        case ID2:
-          data[d] = id2 + "";
-          break;
-        case EdgeType:
-          data[d] = type;
-          break;
-        case Annotation:
-          data[d] = annotation;
-          break;
-        case Score:
-          data[d] = score;
-          break;
-      }
-    }
-    // replace null
-    for (int j = 0; j < data.length; j++) {
-      if (data[j] == null) {
-        data[j] = "";
-      }
-    }
-    // add data
-    ann.append(StringUtils.join(data, ','));
-    ann.append("\n");
+  public enum EDGES {
+    ID1, ID2, EdgeType, Score, Annotation
   }
 
 }

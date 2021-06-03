@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
@@ -336,7 +337,17 @@ public interface FeatureList {
    * @return
    */
   @Nullable
-  R2RMap<RowsRelationship> getRowMap(Type relationship);
+  default R2RMap<RowsRelationship> getRowMap(Type relationship) {
+    return getRowMaps().get(relationship);
+  }
+
+  /**
+   * An immutable map to store different relationships
+   *
+   * @return a map that stores different relationship maps
+   */
+  @Nonnull
+  Map<Type, R2RMap<RowsRelationship>> getRowMaps();
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge

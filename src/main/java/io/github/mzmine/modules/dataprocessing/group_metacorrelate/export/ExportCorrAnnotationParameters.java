@@ -18,11 +18,13 @@
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.export;
 
 
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.rowfilter.RowFilter;
@@ -32,34 +34,33 @@ public class ExportCorrAnnotationParameters extends SimpleParameterSet {
 
   // NOT INCLUDED in sub
   // General parameters
-  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final FileNameParameter FILENAME =
+  public static final FileNameParameter filename =
       new FileNameParameter("Filename", "File name", "csv", FileSelectionType.SAVE);
-  public static final BooleanParameter EX_ANNOT =
-      new BooleanParameter("Export ion identity networking (IIN) edges", "", true);
-  public static final BooleanParameter EX_CORR =
-      new BooleanParameter("Export correlation edges", "", false);
-  public static final BooleanParameter EX_IIN_RELATIONSHIP =
-      new BooleanParameter("Export IIN relationship edges", "", false);
-  public static final BooleanParameter EX_MS2_SIMILARITY =
-      new BooleanParameter("Export MS2 similarity edges", "", false);
-  public static final BooleanParameter EX_MS2_DIFF_SIMILARITY =
-      new BooleanParameter("Export MS2 neutral loss similarity edges", "", false);
+  public static final BooleanParameter exportIIN =
+      new BooleanParameter("Export IIN edges", "Export all edges of Ion Identity Networks (IIN)", true);
+  public static final BooleanParameter exportIINRelationship =
+      new BooleanParameter("Export IIN relationship edges", "Export relationships between Ion Identity Networks (IIN)", false);
 
 
+  public static final MultiChoiceParameter<RowsRelationship.Type> exportTypes = new MultiChoiceParameter<>(
+      "Export row relationships", "Export all relationships of different rows to files", Type
+      .values(), Type.values(), 1);
 
-  public static final PercentParameter MIN_R =
-      new PercentParameter("Min correlation (r)", "Minimum Pearson correlation", 0.9);
+  public static final BooleanParameter allInOneFile =
+      new BooleanParameter("Combine to one file",
+          "Either combine to one file or export one file per relationship type", false);
 
-  public static final ComboParameter<RowFilter> FILTER = new ComboParameter<>(
+
+  public static final ComboParameter<RowFilter> filter = new ComboParameter<>(
       "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
       RowFilter.values(), RowFilter.ONLY_WITH_MS2_OR_ANNOTATION);
 
   // Constructor
   public ExportCorrAnnotationParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, EX_ANNOT, EX_CORR, EX_IIN_RELATIONSHIP,
-        EX_MS2_SIMILARITY, EX_MS2_DIFF_SIMILARITY, FILTER, MIN_R});
+    super(new Parameter[]{featureLists, filename, exportTypes, allInOneFile,
+        exportIIN, exportIINRelationship, filter});
   }
 
 }

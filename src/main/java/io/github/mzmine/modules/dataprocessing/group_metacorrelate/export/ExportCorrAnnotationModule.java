@@ -62,7 +62,7 @@ public class ExportCorrAnnotationModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
                             @Nonnull final Collection<Task> tasks) {
     tasks.add(new ExportCorrAnnotationTask(parameters,
-        parameters.getParameter(ExportCorrAnnotationParameters.PEAK_LISTS).getValue()
+        parameters.getParameter(ExportCorrAnnotationParameters.featureLists).getValue()
             .getMatchingFeatureLists()));
     return ExitCode.OK;
   }

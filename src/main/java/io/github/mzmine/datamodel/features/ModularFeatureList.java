@@ -539,9 +539,9 @@ public class ModularFeatureList implements FeatureList {
     CorrelationGroupingUtils.setGroupsToAllRows(groups);
   }
 
-  @Override
-  public R2RMap<RowsRelationship> getRowMap(Type relationship) {
-    return r2rMaps.get(relationship);
+  @Nonnull
+  public Map<Type, R2RMap<RowsRelationship>> getRowMaps() {
+    return r2rMaps;
   }
 
   @Override
@@ -550,7 +550,6 @@ public class ModularFeatureList implements FeatureList {
     R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship, key -> new R2RMap<>());
     rowMap.putAll(map);
   }
-
 
   @Override
   public void addRowsRelationship(FeatureListRow a, FeatureListRow b,
