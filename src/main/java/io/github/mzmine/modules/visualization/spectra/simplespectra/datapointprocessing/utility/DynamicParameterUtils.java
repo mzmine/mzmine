@@ -68,7 +68,7 @@ public class DynamicParameterUtils {
    * 
    * @param dp The data point to build a parameter for.
    * @param def The default set of parameters.
-   * @return The built ElementsParameter
+   * @return The built ElementsCompositionRangeParameter
    */
   public static MolecularFormulaRange buildFormulaRangeOnIsotopePatternResults(
       ProcessedDataPoint dp, MolecularFormulaRange def) {

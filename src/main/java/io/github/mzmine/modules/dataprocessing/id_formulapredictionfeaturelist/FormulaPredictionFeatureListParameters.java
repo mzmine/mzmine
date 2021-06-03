@@ -27,7 +27,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -52,8 +52,8 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
       new IntegerParameter("Max best formulas per feature",
           "Enter the number of the maximum number of added formulas per feature");
 
-  public static final ElementsParameter elements =
-      new ElementsParameter("Elements", "Elements and ranges");
+  public static final ElementsCompositionRangeParameter elements =
+      new ElementsCompositionRangeParameter("Elements", "Elements and ranges");
 
   public static final OptionalModuleParameter elementalRatios =
       new OptionalModuleParameter("Element count heuristics",

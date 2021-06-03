@@ -29,7 +29,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import javafx.scene.paint.Color;
@@ -49,8 +49,8 @@ public class DPPSumFormulaPredictionParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final ElementsParameter elements =
-      new ElementsParameter("Elements", "Elements and ranges");
+  public static final ElementsCompositionRangeParameter elements =
+      new ElementsCompositionRangeParameter("Elements", "Elements and ranges");
 
   public static final OptionalModuleParameter<ElementalHeuristicParameters> elementalRatios =
       new OptionalModuleParameter<ElementalHeuristicParameters>("Element count heuristics",
