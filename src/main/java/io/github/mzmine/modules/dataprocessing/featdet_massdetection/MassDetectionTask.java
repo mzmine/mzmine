@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import org.openscience.cdk.Element;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IIsotope;
 import ucar.ma2.ArrayDouble;
@@ -92,7 +93,6 @@ public class MassDetectionTask extends AbstractTask {
 
     this.parameters = parameters;
 
-    // TODO: add parameter for elements selection
     // TODO: add charge parameter
 
     if (isotopesParameters.getValue()) {
@@ -100,8 +100,8 @@ public class MassDetectionTask extends AbstractTask {
       double abundanceLowBound = isotopesParameters.getEmbeddedParameters()
           .getParameter(MassDetectionParameters.isotopeAbundanceLowBound).getValue();
 
-      // TODO: remove
-      List<String> elements = Arrays.asList("C", "H", "Br", "N", "O", "S");
+      List<Element> elements = isotopesParameters.getEmbeddedParameters()
+          .getParameter(MassDetectionParameters.elements).getValue();
 
       // Get the instance of Isotopes class
       Isotopes isotopes = null;
@@ -113,10 +113,10 @@ public class MassDetectionTask extends AbstractTask {
       assert isotopes != null;
 
       // Compute pairwise mass differences within isotopes of each element
-      for (String element : elements) {
+      for (Element element : elements) {
 
         // Filter not abundant isotopes out (abundanceLowBound == 0 by default)
-        List<IIsotope> abundantIsotopes = Arrays.stream(isotopes.getIsotopes(element))
+        List<IIsotope> abundantIsotopes = Arrays.stream(isotopes.getIsotopes(element.getSymbol()))
             .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > abundanceLowBound)
             .toList();
 

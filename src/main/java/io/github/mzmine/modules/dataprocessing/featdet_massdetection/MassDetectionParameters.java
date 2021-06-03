@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
 import javax.annotation.Nonnull;
+import org.openscience.cdk.Element;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
@@ -65,17 +67,22 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new ModuleComboParameter<MassDetector>("Mass detector",
           "Algorithm to use for mass detection and its parameters.", massDetectors);
 
-  public static final DoubleParameter isotopeAbundanceLowBound
-      = new DoubleParameter("Isotope abundance strict lower bound", "Isotope"
-      + "abundance strict lower bound given as the value from [0, 1] interval. For example, a value"
-      + "of 0 means that only isotopes with natural abundance strictly higher than 0 will be considered.",
-      MZmineCore.getConfiguration().getMZFormat(), 0d);
+  public static final ElementsParameter elements = new ElementsParameter(
+      "Elements", "Chemical elements which isotopes will be considered", true,
+      Arrays.asList(new Element("H"), new Element("C"), new Element("N"),
+          new Element("O"), new Element("P"), new Element("S")));
 
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter();
 
+  public static final DoubleParameter isotopeAbundanceLowBound
+      = new DoubleParameter("Isotope abundance strict lower bound", "Isotope "
+      + "abundance strict lower bound given as the value from [0, 1] interval. For example, a value "
+      + "of 0 means that only isotopes with natural abundance strictly higher than 0 will be considered.",
+      MZmineCore.getConfiguration().getMZFormat(), 0d);
+
   public static final OptionalModuleParameter detectIsotopes = new OptionalModuleParameter(
       "Detect isotopes", "Include peaks corresponding to isotope masses distribution of specified elements.",
-      new SimpleParameterSet(new Parameter[]{isotopeAbundanceLowBound, isotopeMzTolerance}));
+      new SimpleParameterSet(new Parameter[]{elements, isotopeMzTolerance, isotopeAbundanceLowBound}));
 
   public static final FileNameParameter outFilename =
       new FileNameParameter("Output netCDF filename (optional)",
