@@ -1,16 +1,31 @@
-package io.github.mzmine.datamodel.features.correlation;
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
-import io.github.mzmine.datamodel.features.RowGroup;
-import java.awt.Paint;
-import java.util.ArrayList;
-import java.util.List;
+package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import javax.annotation.Nonnull;
+import java.awt.Paint;
+import java.util.ArrayList;
+import java.util.List;
 import org.jfree.chart.ChartColor;
 
 public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
+
   // colors
   public static final Paint[] colors = ChartColor.createDefaultPaintArray();
   // correlation data of all rows to this group
@@ -24,7 +39,7 @@ public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
 
   /**
    * Recalculates all stats for this group
-   * 
+   *
    * @param corrMap
    */
   public void recalcGroupCorrelation(R2RMap<R2RCorrelationData> corrMap) {
@@ -39,8 +54,9 @@ public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
         if (i != k) {
           R2RCorrelationData r2r = corrMap.get(testRow, this.get(k));
           // TODO this should always be a full - otherwise do not group!
-          if (r2r instanceof R2RFullCorrelationData)
+          if (r2r instanceof R2RFullCorrelationData) {
             rowCorr.add((R2RFullCorrelationData) r2r);
+          }
         }
       }
       // create group corr object
@@ -50,7 +66,7 @@ public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
 
   /**
    * correlation of each row to the group
-   * 
+   *
    * @return
    */
   public R2GroupCorrelationData[] getCorr() {
@@ -59,7 +75,7 @@ public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
 
   /**
    * correlation of a row to the group
-   * 
+   *
    * @return
    */
   public R2GroupCorrelationData getCorr(int row) {
@@ -67,11 +83,13 @@ public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
   }
 
   public R2GroupCorrelationData getCorr(FeatureListRow row) {
-    if (row == null)
+    if (row == null) {
       return null;
+    }
     int index = indexOf(row);
-    if (index != -1)
+    if (index != -1) {
       return getCorr(index);
+    }
     return null;
   }
 
@@ -87,11 +105,13 @@ public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
 
   @Override
   public boolean isCorrelated(int i, int k) {
-    if (corr == null || i >= corr.length || k >= corr.length)
+    if (corr == null || i >= corr.length || k >= corr.length) {
       return false;
+    }
     // is correlated if corr is available between i and k
-    else
+    else {
       return corr[i].getCorrelationToRow(get(k)) != null;
+    }
   }
 
 }

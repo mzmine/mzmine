@@ -73,7 +73,7 @@ public interface RowsRelationship {
   FeatureListRow getRowB();
 
 
-  public enum Type {
+  enum Type {
     /**
      * MS1 similarity can be same retention time, feature shape correlation, intensity across
      * samples
@@ -87,7 +87,7 @@ public interface RowsRelationship {
 
     @Override
     public String toString() {
-      return switch(this) {
+      return switch (this) {
         case MS1_CORRELATION -> "MS1 feature correlation";
         case MS2_SIMILARITY -> "MS2 similarity";
       };

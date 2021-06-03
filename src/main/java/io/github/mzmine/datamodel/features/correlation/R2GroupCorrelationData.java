@@ -1,23 +1,40 @@
-package io.github.mzmine.datamodel.features.correlation;
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
+package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * correlation of one row to a group
- * 
+ *
  * @author RibRob
  */
 public class R2GroupCorrelationData {
-  private FeatureListRow row;
+
+  private final FeatureListRow row;
   // row index is xRow in corr data
   private List<R2RFullCorrelationData> corr;
-  private double maxHeight;
+  private final double maxHeight;
   // averages are calculated by dividing by the row count
   private double minHeightR, avgHeightR, maxHeightR;
   private double minShapeR, avgShapeR, maxShapeR, avgDPCount;
@@ -38,13 +55,13 @@ public class R2GroupCorrelationData {
   }
 
   /**
-   * 
    * @param FeatureList
    * @return
    */
   public static Stream<R2GroupCorrelationData> streamFrom(FeatureList FeatureList) {
-    if (FeatureList.getGroups() == null)
+    if (FeatureList.getGroups() == null) {
       return Stream.empty();
+    }
     return FeatureList.getGroups().stream().filter(g -> g instanceof CorrelationRowGroup)
         .map(g -> ((CorrelationRowGroup) g).getCorr()).flatMap(Arrays::stream);
 
@@ -80,10 +97,12 @@ public class R2GroupCorrelationData {
         avgCosineHeightCorr += r2r.getCosineHeightCorr();
         double iProfileR = r2r.getHeightCorr().getR();
         avgHeightR += iProfileR;
-        if (iProfileR < minHeightR)
+        if (iProfileR < minHeightR) {
           minHeightR = iProfileR;
-        if (iProfileR > maxHeightR)
+        }
+        if (iProfileR > maxHeightR) {
           maxHeightR = iProfileR;
+        }
       }
 
       // Feature shape correlation
@@ -93,10 +112,12 @@ public class R2GroupCorrelationData {
         avgShapeR += r2r.getAvgShapeR();
         avgShapeCosineSim += r2r.getAvgShapeCosineSim();
         avgDPCount += r2r.getAvgDPcount();
-        if (r2r.getMinShapeR() < minShapeR)
+        if (r2r.getMinShapeR() < minShapeR) {
           minShapeR = r2r.getMinShapeR();
-        if (r2r.getMaxShapeR() > maxShapeR)
+        }
+        if (r2r.getMaxShapeR() > maxShapeR) {
           maxShapeR = r2r.getMaxShapeR();
+        }
       }
     }
     avgTotalFeatureShapeR = avgTotalFeatureShapeR / cFeatureShape;
@@ -110,7 +131,7 @@ public class R2GroupCorrelationData {
 
   /**
    * The similarity or NaN if data is null or empty
-   * 
+   *
    * @param type
    * @return
    */
@@ -129,7 +150,7 @@ public class R2GroupCorrelationData {
 
   /**
    * The similarity or NaN if data is null or empty
-   * 
+   *
    * @param type
    * @return
    */
@@ -148,7 +169,7 @@ public class R2GroupCorrelationData {
 
   /**
    * The similarity or NaN if data is null or empty
-   * 
+   *
    * @param type
    * @return
    */
@@ -211,7 +232,7 @@ public class R2GroupCorrelationData {
 
   /**
    * Height correlation across samples
-   * 
+   *
    * @return
    */
   public double getAvgCosineHeightCorr() {
@@ -224,16 +245,17 @@ public class R2GroupCorrelationData {
   }
 
   /**
-   * 
    * @return the correlation data of this row to row[rowI]
    * @throws Exception
    */
   public R2RFullCorrelationData getCorrelationToRow(FeatureListRow row) {
-    if (row != row)
+    if (row != row) {
       return null;
+    }
     for (R2RFullCorrelationData c : corr) {
-      if (c.getRowA() == row || c.getRowB() == row)
+      if (c.getRowA() == row || c.getRowB() == row) {
         return c;
+      }
     }
     return null;
   }
