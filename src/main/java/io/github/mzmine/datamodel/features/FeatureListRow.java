@@ -48,6 +48,11 @@ public interface FeatureListRow {
   public int getID();
 
   /**
+   * reset the rowID
+   */
+  public void setID(int id);
+
+  /**
    * Returns number of features assigned to this row
    */
   public int getNumberOfFeatures();
@@ -88,9 +93,19 @@ public interface FeatureListRow {
   public double getAverageMZ();
 
   /**
+   * Sets average mz for this row
+   */
+  public void setAverageMZ(double averageMZ);
+
+  /**
    * Returns average RT for features on this row
    */
   public float getAverageRT();
+
+  /**
+   * Sets average rt for this row
+   */
+  public void setAverageRT(float averageRT);
 
   /**
    * Returns average mobility for features on this row
@@ -123,16 +138,6 @@ public interface FeatureListRow {
    * Sets comment for this row
    */
   public void setComment(String comment);
-
-  /**
-   * Sets average mz for this row
-   */
-  public void setAverageMZ(double averageMZ);
-
-  /**
-   * Sets average rt for this row
-   */
-  public void setAverageRT(float averageRT);
 
   /**
    * Add a new identity candidate (result of identification method)
@@ -171,6 +176,14 @@ public interface FeatureListRow {
   public void setPreferredFeatureIdentity(FeatureIdentity identity);
 
   /**
+   * Returns FeatureInformation
+   *
+   * @return
+   */
+
+  public FeatureInformation getFeatureInformation();
+
+  /**
    * Adds a new FeatureInformation object.
    * <p>
    * FeatureInformation is used to keep extra information about features in the form of a map
@@ -180,14 +193,6 @@ public interface FeatureListRow {
    */
 
   public void setFeatureInformation(FeatureInformation featureInformation);
-
-  /**
-   * Returns FeatureInformation
-   *
-   * @return
-   */
-
-  public FeatureInformation getFeatureInformation();
 
   /**
    * Returns maximum raw data point intensity among all features in this row
@@ -218,11 +223,6 @@ public interface FeatureListRow {
    */
   public IsotopePattern getBestIsotopePattern();
 
-  /**
-   * reset the rowID
-   */
-  public void setID(int id);
-
   @Nullable
   FeatureList getFeatureList();
 
@@ -235,16 +235,16 @@ public interface FeatureListRow {
   /**
    * Correlated features grouped
    *
-   * @param group
+   * @return
    */
-  public void setGroup(RowGroup group);
+  public RowGroup getGroup();
 
   /**
    * Correlated features grouped
    *
-   * @return
+   * @param group
    */
-  public RowGroup getGroup();
+  public void setGroup(RowGroup group);
 
   /**
    * The list of ion identities
@@ -318,20 +318,20 @@ public interface FeatureListRow {
   }
 
   /**
-   * Has at least one ion identity
-   */
-  default boolean hasIonIdentity() {
-    List<IonIdentity> ionIdentities = getIonIdentities();
-    return ionIdentities != null && !ionIdentities.isEmpty();
-  }
-
-  /**
    * Set the best ion identity (the first element of the list)
    *
    * @param ion the preferred ion
    */
   default void setBestIonIdentity(@Nonnull IonIdentity ion) {
     addIonIdentity(ion, true);
+  }
+
+  /**
+   * Has at least one ion identity
+   */
+  default boolean hasIonIdentity() {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+    return ionIdentities != null && !ionIdentities.isEmpty();
   }
 
   /**
@@ -357,7 +357,17 @@ public interface FeatureListRow {
     return g == null ? -1 : g.groupID;
   }
 
+  List<ResultFormula> getFormulas();
+
   void setFormulas(List<ResultFormula> formulas);
 
-  List<ResultFormula> getFormulas();
+  /**
+   * Checks if MS2 fragmentation data is available
+   *
+   * @return true if this row has at least 1 MS2 spectrum
+   */
+  default boolean hasMs2Fragmentation() {
+    // should be faster. Best fragmentation loops through all spectra to find best
+    return getAllMS2Fragmentations() != null && !getAllMS2Fragmentations().isEmpty();
+  }
 }

@@ -68,29 +68,17 @@ public class MS2SimilarityModule implements MZmineProcessingModule {
     Mode mode = parameters.getParameter(MS2SimilarityParameters.MODE).getValue();
     ModularFeatureList[] featureLists = parameters.getParameter(MS2SimilarityParameters.PEAK_LISTS).getValue()
         .getMatchingFeatureLists();
-    boolean started = false;
     for (ModularFeatureList pkl : featureLists) {
       switch (mode) {
-        case GROUPS:
-          // run on all group lists
-          if (pkl.getGroups() != null && !pkl.getGroups().isEmpty()) {
-            tasks.add(new MS2SimilarityTask(parameters, pkl, pkl.getGroups()));
-            started = true;
-          }
-          break;
-        case ION_NETWORKS:
+        case ION_NETWORKS -> {
           IonNetwork[] nets = IonNetworkLogic.getAllNetworks(pkl, true);
           tasks.add(new MS2SimilarityTask(parameters, pkl, nets));
-          started = true;
-          break;
-        case ALL_ROWS:
+        }
+        case ALL_ROWS -> {
           tasks.add(new MS2SimilarityTask(parameters, pkl, pkl.getRows()));
-          started = true;
-          break;
+        }
       }
     }
-    if (!started)
-      throw new MSDKRuntimeException("No groups available in selected peakLists");
     return ExitCode.OK;
   }
 }

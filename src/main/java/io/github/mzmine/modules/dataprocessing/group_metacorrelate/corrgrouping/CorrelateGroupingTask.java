@@ -214,7 +214,7 @@ public class CorrelateGroupingTask extends AbstractTask {
         return;
       }
       // set correlation map
-      groupedPKL.addRowsRelationships(corrMap, Type.MS1_CORRELATION);
+      groupedPKL.addRowsRelationships(corrMap, Type.MS1_FEATURE_CORR);
 
       logger.fine("Corr: Starting to group by correlation");
       groups = CorrelationGroupingUtils.createCorrGroups(groupedPKL);

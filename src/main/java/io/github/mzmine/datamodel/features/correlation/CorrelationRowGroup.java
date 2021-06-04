@@ -19,19 +19,18 @@ package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.RowGroup;
 import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.List;
 import org.jfree.chart.ChartColor;
 
-public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
+public class CorrelationRowGroup extends RowGroup {
 
   // colors
   public static final Paint[] colors = ChartColor.createDefaultPaintArray();
   // correlation data of all rows to this group
   private R2GroupCorrelationData[] corr;
-  // MS/MS similarity map
-  private R2RMap<R2RMS2Similarity> ms2SimilarityMap;
 
   public CorrelationRowGroup(final List<RawDataFile> raw, int groupID) {
     super(raw, groupID);
@@ -48,14 +47,13 @@ public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
 
     // test all rows against all other rows
     for (int i = 0; i < this.size(); i++) {
-      List<R2RFullCorrelationData> rowCorr = new ArrayList<>();
+      List<R2RCorrelationData> rowCorr = new ArrayList<>();
       FeatureListRow testRow = this.get(i);
       for (int k = 0; k < this.size(); k++) {
         if (i != k) {
           R2RCorrelationData r2r = corrMap.get(testRow, this.get(k));
-          // TODO this should always be a full - otherwise do not group!
-          if (r2r instanceof R2RFullCorrelationData) {
-            rowCorr.add((R2RFullCorrelationData) r2r);
+          if (r2r != null) {
+            rowCorr.add(r2r);
           }
         }
       }
@@ -91,16 +89,6 @@ public class CorrelationRowGroup extends MS2SimilarityProviderGroup {
       return getCorr(index);
     }
     return null;
-  }
-
-  @Override
-  public R2RMap<R2RMS2Similarity> getMS2SimilarityMap() {
-    return ms2SimilarityMap;
-  }
-
-  @Override
-  public void setMS2SimilarityMap(R2RMap<R2RMS2Similarity> map) {
-    this.ms2SimilarityMap = map;
   }
 
   @Override

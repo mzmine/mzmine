@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.CorrelationData;
+import io.github.mzmine.datamodel.features.correlation.FullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationAcrossSamplesData;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
@@ -68,7 +69,8 @@ public class FeatureCorrelationUtil {
     }
 
     // deletes correlations if criteria is not met
-    corr.validate(minTotalShapeCorrR, useTotalShapeCorrFilter, minShapeCorrR, shapeSimMeasure);
+    corr.validateFeatureCorrelation(minTotalShapeCorrR, useTotalShapeCorrFilter, minShapeCorrR,
+        shapeSimMeasure);
     // check for correlation in min samples
     if (corr.hasFeatureShapeCorrelation()) {
       checkMinFCorrelation(featureList, minFFilter, corr);
@@ -235,10 +237,9 @@ public class FeatureCorrelationUtil {
    * @return feature shape correlation or null if not possible not enough data points for a
    * correlation
    */
-  public static CorrelationData corrFeatureShape(
-      PreloadedFeatureDataAccess data, Feature f1,
-      Feature f2, boolean sameRawFile,
-      int minCorrelatedDataPoints, int minCorrDPOnFeatureEdge, double noiseLevelShapeCorr) {
+  public static CorrelationData corrFeatureShape(PreloadedFeatureDataAccess data, Feature f1,
+      Feature f2, boolean sameRawFile, int minCorrelatedDataPoints, int minCorrDPOnFeatureEdge,
+      double noiseLevelShapeCorr) {
     // f1 should be the higher feature
     if (f1.getHeight() < f2.getHeight()) {
       Feature tmp = f1;
@@ -321,7 +322,7 @@ public class FeatureCorrelationUtil {
       int right = corrData.size() - 1 - left;
       // return pearson r
       if (corrData.size() >= minCorrelatedDataPoints && right >= minCorrDPOnFeatureEdge) {
-        return CorrelationData.create(corrData);
+        return new FullCorrelationData(corrData);
       }
     } else {
       // TODO if different raw file search for same rt
@@ -435,7 +436,7 @@ public class FeatureCorrelationUtil {
     if (data.size() < 2) {
       return null;
     } else {
-      return CorrelationData.create(data);
+      return new FullCorrelationData(data);
     }
   }
 
@@ -456,14 +457,17 @@ public class FeatureCorrelationUtil {
 
     double significantSlope = 0;
     try {
-      significantSlope = corr.getRegression().getSignificance();
+      significantSlope = corr.getRegressionSignificance();
+      if(Double.isNaN(significantSlope)) {
+        return false;
+      }
     } catch (MathException e) {
       LOG.log(Level.SEVERE, "slope significance cannot be calculated", e);
     }
     // if slope is negative
     // slope significance is low (alpha is high)
     // similarity is low
-    return (corr.getRegression().getSlope() <= 0
+    return (corr.getSlope() <= 0
             || (!Double.isNaN(significantSlope) && significantSlope > maxSlopeSignificance)
             || corr.getSimilarity(heightSimilarity) < minSimilarity);
   }

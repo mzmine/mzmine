@@ -36,7 +36,7 @@ import io.github.mzmine.util.ExitCode;
 public class MS2SimilarityParameters extends SimpleParameterSet {
 
   public enum Mode {
-    ALL_ROWS, GROUPS, ION_NETWORKS;
+    ALL_ROWS, ION_NETWORKS;
 
     @Override
     public String toString() {

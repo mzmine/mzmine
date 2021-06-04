@@ -19,6 +19,7 @@ package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import javax.annotation.Nullable;
+import org.apache.commons.math.MathException;
 
 /**
  * correlation of two feature shapes
@@ -85,4 +86,16 @@ public interface CorrelationData {
     return getDPCount() > 0;
   }
 
+  /**
+   * Slope of regression
+   *
+   * @return slope
+   */
+  double getSlope();
+
+  /**
+   *
+   * @return
+   */
+  double getRegressionSignificance() throws MathException;
 }

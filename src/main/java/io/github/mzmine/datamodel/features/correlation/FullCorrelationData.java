@@ -21,6 +21,7 @@ import io.github.mzmine.util.maths.similarity.Similarity;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.apache.commons.math.MathException;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 /**
@@ -111,4 +112,13 @@ public class FullCorrelationData implements CorrelationData {
     return data;
   }
 
+  @Override
+  public double getSlope() {
+    return getRegression().getSlope();
+  }
+
+  @Override
+  public double getRegressionSignificance() throws MathException {
+    return getRegression().getSignificance();
+  }
 }

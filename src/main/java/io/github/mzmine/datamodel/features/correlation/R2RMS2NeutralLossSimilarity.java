@@ -20,17 +20,19 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 
-public class R2RMS2Similarity {
+/**
+ * MS2 similarity computed in MZmine.
+ */
+public class R2RMS2NeutralLossSimilarity implements RowsRelationship {
 
   private final FeatureListRow a;
   private final FeatureListRow b;
   //
   private final List<MS2Similarity> massDiffSim = new ArrayList<>();
-  private final List<MS2Similarity> spectralSim = new ArrayList<>();
-  private MS2Similarity gnpsSim = null;
 
-  public R2RMS2Similarity(FeatureListRow a, FeatureListRow b) {
+  public R2RMS2NeutralLossSimilarity(FeatureListRow a, FeatureListRow b) {
     super();
     this.a = a;
     this.b = b;
@@ -40,37 +42,12 @@ public class R2RMS2Similarity {
     massDiffSim.add(sim);
   }
 
-  public void addSpectralSim(MS2Similarity sim) {
-    spectralSim.add(sim);
-  }
-
-  public void addGNPSSim(MS2Similarity sim) {
-    gnpsSim = sim;
-  }
-
-
   public int size() {
-    return Math.max(gnpsSim != null ? 1 : 0, Math.max(massDiffSim.size(), spectralSim.size()));
+    return massDiffSim.size();
   }
 
   public List<MS2Similarity> getMassDiffSim() {
     return massDiffSim;
-  }
-
-  public List<MS2Similarity> getSpectralSim() {
-    return spectralSim;
-  }
-
-  public MS2Similarity getGNPSSim() {
-    return gnpsSim;
-  }
-
-  public FeatureListRow getA() {
-    return a;
-  }
-
-  public FeatureListRow getB() {
-    return b;
   }
 
   public int getDiffMaxOverlap() {
@@ -94,49 +71,6 @@ public class R2RMS2Similarity {
     return massDiffSim.stream().mapToInt(MS2Similarity::getOverlap).average().getAsDouble();
   }
 
-  public int getSpectralMaxOverlap() {
-    if (spectralSim.isEmpty()) {
-      return 0;
-    }
-    return spectralSim.stream().mapToInt(MS2Similarity::getOverlap).max().getAsInt();
-  }
-
-  public int getSpectralMinOverlap() {
-    if (spectralSim.isEmpty()) {
-      return 0;
-    }
-    return spectralSim.stream().mapToInt(MS2Similarity::getOverlap).min().getAsInt();
-  }
-
-  public double getSpectralAvgOverlap() {
-    if (spectralSim.isEmpty()) {
-      return 0;
-    }
-    return spectralSim.stream().mapToInt(MS2Similarity::getOverlap).average().getAsDouble();
-  }
-
-  // COSINE
-  public double getSpectralAvgCosine() {
-    if (spectralSim.isEmpty()) {
-      return 0;
-    }
-    return spectralSim.stream().mapToDouble(MS2Similarity::getCosine).average().getAsDouble();
-  }
-
-  public double getSpectralMaxCosine() {
-    if (spectralSim.isEmpty()) {
-      return 0;
-    }
-    return spectralSim.stream().mapToDouble(MS2Similarity::getCosine).max().getAsDouble();
-  }
-
-  public double getSpectralMinCosine() {
-    if (spectralSim.isEmpty()) {
-      return 0;
-    }
-    return spectralSim.stream().mapToDouble(MS2Similarity::getCosine).min().getAsDouble();
-  }
-
   public double getDiffAvgCosine() {
     if (massDiffSim.isEmpty()) {
       return 0;
@@ -158,4 +92,30 @@ public class R2RMS2Similarity {
     return massDiffSim.stream().mapToDouble(MS2Similarity::getCosine).min().getAsDouble();
   }
 
+  @Override
+  public double getScore() {
+    return getDiffMaxCosine();
+  }
+
+  @Nonnull
+  @Override
+  public Type getType() {
+    return Type.MS2_NEUTRAL_LOSS_SIM;
+  }
+
+  @Nonnull
+  @Override
+  public String getAnnotation() {
+    return "cos="+getScoreFormatted();
+  }
+
+  @Override
+  public FeatureListRow getRowA() {
+    return a;
+  }
+
+  @Override
+  public FeatureListRow getRowB() {
+    return b;
+  }
 }

@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
-import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import java.util.ArrayList;
@@ -84,7 +83,7 @@ public class CorrelationGroupingUtils {
         RowsRelationship r2r = e.getValue();
         FeatureListRow rowA = r2r.getRowA();
         FeatureListRow rowB = r2r.getRowB();
-        if (r2r instanceof R2RFullCorrelationData data) {
+        if (r2r instanceof R2RCorrelationData data) {
           // already added?
           CorrelationRowGroup group = used.get(rowA);
           CorrelationRowGroup group2 = used.get(rowB);
@@ -133,7 +132,7 @@ public class CorrelationGroupingUtils {
 
 
   /**
-   * Stream all R2RFullCorrelationData found in PKLRowGroups (is distinct)
+   * Stream all R2RCorrelationData found in PKLRowGroups (is distinct)
    *
    * @param FeatureList
    * @return
@@ -149,7 +148,7 @@ public class CorrelationGroupingUtils {
                 .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 
-  public static Stream<R2RFullCorrelationData> streamFrom(FeatureListRow[] rows) {
+  public static Stream<R2RCorrelationData> streamFrom(FeatureListRow[] rows) {
     return Arrays.stream(rows).map(FeatureListRow::getGroup).filter(Objects::nonNull)
         .filter(g -> g instanceof CorrelationRowGroup).distinct()
         .map(g -> ((CorrelationRowGroup) g).getCorr())

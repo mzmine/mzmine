@@ -122,12 +122,9 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
    * @param type
    * @return
    */
+  @Override
   public double getHeightSimilarity(SimilarityMeasure type) {
-    if (getHeightCorr() == null) {
-      return Double.NaN;
-    } else {
-      return getHeightCorr().getSimilarity(type);
-    }
+    return hasHeightCorr() ? getHeightCorr().getSimilarity(type) : Double.NaN;
   }
 
   /**
@@ -136,12 +133,19 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
    * @param type
    * @return
    */
+  @Override
   public double getTotalSimilarity(SimilarityMeasure type) {
-    if (getTotalCorr() == null) {
-      return Double.NaN;
-    } else {
-      return getTotalCorr().getSimilarity(type);
-    }
+    return hasTotalCorr() ? getTotalCorr().getSimilarity(type) : Double.NaN;
+  }
+
+  @Override
+  public double getTotalR() {
+    return hasTotalCorr() ? getTotalCorr().getR() : Double.NaN;
+  }
+
+  @Override
+  protected boolean hasTotalCorr() {
+    return getTotalCorr() != null;
   }
 
   /**
@@ -150,8 +154,9 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
    * @param type
    * @return
    */
+  @Override
   public double getAvgFeatureShapeSimilarity(SimilarityMeasure type) {
-    if (corrFeatureShape == null) {
+    if (corrFeatureShape == null || corrFeatureShape.isEmpty()) {
       return Double.NaN;
     } else {
       double mean = 0;
@@ -174,10 +179,12 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
     return corrTotal;
   }
 
+  @Override
   public double getMinShapeR() {
     return minShapeR;
   }
 
+  @Override
   public double getMaxShapeR() {
     return maxShapeR;
   }
@@ -189,13 +196,11 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
    * @return
    */
   public double getSimilarity(SimilarityMeasure measure) {
-    switch (measure) {
-      case COSINE_SIM:
-        return getAvgShapeCosineSim();
-      case PEARSON:
-        return getAvgShapeR();
-    }
-    return 0;
+    return switch (measure) {
+      case COSINE_SIM -> getAvgShapeCosineSim();
+      case PEARSON -> getAvgShapeR();
+      default -> 0;
+    };
   }
 
   @Override
@@ -208,21 +213,18 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
     return avgShapeCosineSim;
   }
 
-  public double getAvgDPcount() {
-    return avgDPCount;
-  }
-
   public CorrelationData getHeightCorr() {
     return heightCorr;
   }
 
-  public void setCorrIProfileR(CorrelationData corrIProfile) {
-    this.heightCorr = corrIProfile;
-  }
-
+  /**
+   * Has feature height correlation
+   *
+   * @return true if feature height correlation is available
+   */
+  @Override
   public boolean hasHeightCorr() {
-    return heightCorr != null && heightCorr.getRegression() != null
-           && heightCorr.getRegression().getN() > 0;
+    return heightCorr != null && heightCorr.isValid();
   }
 
   @Override
@@ -230,11 +232,17 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
     return (corrFeatureShape != null && !corrFeatureShape.isEmpty());
   }
 
+  @Override
+  public double getAvgDPcount() {
+    return avgDPCount;
+  }
+
   /**
    * Either has Imax correlation or feature shape correlation
    *
    * @return
    */
+  @Override
   public boolean isValid() {
     return hasFeatureShapeCorrelation() || hasHeightCorr();
   }
@@ -243,21 +251,27 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
    * Validate this correlation data. If criteria is not met for ImaxCorrelation or
    * featureShapeCorrelation - the specific correlation is deleted
    */
-  public void validate(double minTotalCorr, boolean useTotalCorr, double minShapePearsonR,
+  public void validateFeatureCorrelation(double minTotalCorr, boolean useTotalCorr,
+      double minSimilarityScore,
       SimilarityMeasure shapeSimMeasure) {
-    if (hasFeatureShapeCorrelation() && ((avgShapeR < getSimilarity(shapeSimMeasure))
-                                         || (useTotalCorr
-                                             && getTotalCorr().getSimilarity(shapeSimMeasure)
-                                                < minTotalCorr))) {
+    if (hasFeatureShapeCorrelation()
+        && ((getSimilarity(shapeSimMeasure) < minSimilarityScore)
+            || (useTotalCorr && getTotalCorr().getSimilarity(shapeSimMeasure) < minTotalCorr))) {
       // delete Feature shape corr
       setCorrFeatureShape(null);
     }
   }
 
+
+  @Override
   public double getCosineHeightCorr() {
     return hasHeightCorr() ? heightCorr.getCosineSimilarity() : 0;
   }
 
+  @Override
+  public double getHeightCorrR() {
+    return hasHeightCorr() ? heightCorr.getR() : 0;
+  }
 
   /**
    * @return List of negativ markers (non-null)
@@ -283,13 +297,4 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
     negativMarkers.add(nm);
   }
 
-  @Override
-  public double getScore() {
-    return getAvgShapeR();
-  }
-
-  @Override
-  public String getAnnotation() {
-    return annotation;
-  }
 }

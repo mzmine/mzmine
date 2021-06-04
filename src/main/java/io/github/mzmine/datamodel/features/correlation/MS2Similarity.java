@@ -23,7 +23,6 @@ public class MS2Similarity {
   private final int overlap;
 
   public MS2Similarity(double cosine, int overlap) {
-    super();
     this.cosine = cosine;
     this.overlap = overlap;
   }

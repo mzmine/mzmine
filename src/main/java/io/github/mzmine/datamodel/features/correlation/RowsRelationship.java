@@ -18,6 +18,11 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
+import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
+import io.github.mzmine.util.CorrelationGroupingUtils;
 import javax.annotation.Nonnull;
 
 /**
@@ -40,7 +45,11 @@ public interface RowsRelationship {
    *
    * @return formatted score string
    */
-  String getScoreFormatted();
+  default String getScoreFormatted() {
+    double score = getScore();
+    return Double.isNaN(score) ? "NaN"
+        : MZmineCore.getConfiguration().getScoreFormat().format(score);
+  }
 
   /**
    * Relationship type
@@ -73,23 +82,35 @@ public interface RowsRelationship {
   FeatureListRow getRowB();
 
 
+  /**
+   * All types of relationships
+   */
   enum Type {
     /**
      * MS1 similarity can be same retention time, feature shape correlation, intensity across
-     * samples
+     * samples. see {@link CorrelateGroupingTask} and {@link CorrelationGroupingUtils}
      */
-    MS1_CORRELATION,
+    MS1_FEATURE_CORR,
     /**
-     * MS2 spectral similarity
+     * MS2 spectral similarity, see {@link MS2SimilarityTask}
      */
-    MS2_SIMILARITY,
-    ;
+    MS2_COSINE_SIM,
+    /**
+     * MS2 similarity of neutral losses see {@link MS2SimilarityTask}
+     */
+    MS2_NEUTRAL_LOSS_SIM,
+    /**
+     * GNPS modified cosine similarity, see {@link GNPSResultsImportTask}
+     */
+    MS2_GNPS_COSINE_SIM;
 
     @Override
     public String toString() {
       return switch (this) {
-        case MS1_CORRELATION -> "MS1 feature correlation";
-        case MS2_SIMILARITY -> "MS2 similarity";
+        case MS1_FEATURE_CORR -> "MS1 feature correlation";
+        case MS2_COSINE_SIM -> "MS2 cosine similarity";
+        case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine similarity";
+        case MS2_GNPS_COSINE_SIM -> "MS2 modified cosine similarity (GNPS)";
       };
     }
   }

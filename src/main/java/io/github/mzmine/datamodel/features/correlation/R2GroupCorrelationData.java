@@ -33,7 +33,7 @@ public class R2GroupCorrelationData {
 
   private final FeatureListRow row;
   // row index is xRow in corr data
-  private List<R2RFullCorrelationData> corr;
+  private List<R2RCorrelationData> corr;
   private final double maxHeight;
   // averages are calculated by dividing by the row count
   private double minHeightR, avgHeightR, maxHeightR;
@@ -46,7 +46,7 @@ public class R2GroupCorrelationData {
   // total Feature shape r
   private double avgTotalFeatureShapeR;
 
-  public R2GroupCorrelationData(FeatureListRow row, List<R2RFullCorrelationData> corr,
+  public R2GroupCorrelationData(FeatureListRow row, List<R2RCorrelationData> corr,
       double maxHeight) {
     super();
     this.row = row;
@@ -68,7 +68,7 @@ public class R2GroupCorrelationData {
   }
 
 
-  public void setCorr(List<R2RFullCorrelationData> corr) {
+  public void setCorr(List<R2RCorrelationData> corr) {
     this.corr = corr;
     recalcCorr();
   }
@@ -91,11 +91,11 @@ public class R2GroupCorrelationData {
     int cImax = 0;
     int cFeatureShape = 0;
 
-    for (R2RFullCorrelationData r2r : corr) {
+    for (R2RCorrelationData r2r : corr) {
       if (r2r.hasHeightCorr()) {
         cImax++;
         avgCosineHeightCorr += r2r.getCosineHeightCorr();
-        double iProfileR = r2r.getHeightCorr().getR();
+        double iProfileR = r2r.getHeightCorrR();
         avgHeightR += iProfileR;
         if (iProfileR < minHeightR) {
           minHeightR = iProfileR;
@@ -108,7 +108,7 @@ public class R2GroupCorrelationData {
       // Feature shape correlation
       if (r2r.hasFeatureShapeCorrelation()) {
         cFeatureShape++;
-        avgTotalFeatureShapeR += r2r.getTotalCorr().getR();
+        avgTotalFeatureShapeR += r2r.getTotalR();
         avgShapeR += r2r.getAvgShapeR();
         avgShapeCosineSim += r2r.getAvgShapeCosineSim();
         avgDPCount += r2r.getAvgDPcount();
@@ -138,7 +138,7 @@ public class R2GroupCorrelationData {
   public double getAvgHeightSimilarity(SimilarityMeasure type) {
     double mean = 0;
     int n = 0;
-    for (R2RFullCorrelationData r2r : corr) {
+    for (R2RCorrelationData r2r : corr) {
       double v = r2r.getHeightSimilarity(type);
       if (!Double.isNaN(v)) {
         mean += v;
@@ -157,7 +157,7 @@ public class R2GroupCorrelationData {
   public double getAvgTotalSimilarity(SimilarityMeasure type) {
     double mean = 0;
     int n = 0;
-    for (R2RFullCorrelationData r2r : corr) {
+    for (R2RCorrelationData r2r : corr) {
       double v = r2r.getTotalSimilarity(type);
       if (!Double.isNaN(v)) {
         mean += v;
@@ -176,7 +176,7 @@ public class R2GroupCorrelationData {
   public double getAvgFeatureShapeSimilarity(SimilarityMeasure type) {
     double mean = 0;
     int n = 0;
-    for (R2RFullCorrelationData r2r : corr) {
+    for (R2RCorrelationData r2r : corr) {
       double v = r2r.getAvgFeatureShapeSimilarity(type);
       if (!Double.isNaN(v)) {
         mean += v;
@@ -194,7 +194,7 @@ public class R2GroupCorrelationData {
     return maxHeight;
   }
 
-  public List<R2RFullCorrelationData> getCorr() {
+  public List<R2RCorrelationData> getCorr() {
     return corr;
   }
 
@@ -248,11 +248,11 @@ public class R2GroupCorrelationData {
    * @return the correlation data of this row to row[rowI]
    * @throws Exception
    */
-  public R2RFullCorrelationData getCorrelationToRow(FeatureListRow row) {
+  public R2RCorrelationData getCorrelationToRow(FeatureListRow row) {
     if (row != row) {
       return null;
     }
-    for (R2RFullCorrelationData c : corr) {
+    for (R2RCorrelationData c : corr) {
       if (c.getRowA() == row || c.getRowB() == row) {
         return c;
       }

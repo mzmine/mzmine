@@ -32,7 +32,7 @@ public abstract class MS2SimilarityProviderGroup extends RowGroup {
    *
    * @return
    */
-  public abstract R2RMap<R2RMS2Similarity> getMS2SimilarityMap();
+  public abstract R2RMap<R2RMS2CosineSimilarity> getMS2SimilarityMap();
 
   /**
    * Similarity map for row-2-row MS2 comparison
@@ -40,5 +40,5 @@ public abstract class MS2SimilarityProviderGroup extends RowGroup {
    * @param map
    * @return
    */
-  public abstract void setMS2SimilarityMap(R2RMap<R2RMS2Similarity> map);
+  public abstract void setMS2SimilarityMap(R2RMap<R2RMS2CosineSimilarity> map);
 }

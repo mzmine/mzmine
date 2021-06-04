@@ -18,6 +18,7 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.util.maths.similarity.Similarity;
+import org.apache.commons.math.MathException;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 /**
@@ -31,11 +32,21 @@ public class SimpleCorrelationData implements CorrelationData {
   private final int numDP;
   private final double pearsonR;
   private final double cosineSim;
+  private final double regressionSignificance;
+  private final double slope;
 
   public SimpleCorrelationData(double[][] data) {
     SimpleRegression reg = new SimpleRegression();
     reg.addData(data);
     pearsonR = reg.getR();
+    slope = reg.getSlope();
+    double significance;
+    try {
+      significance = reg.getSignificance();
+    } catch (MathException e) {
+      significance = Double.NaN;
+    }
+    regressionSignificance = significance;
     numDP = data.length;
     cosineSim = Similarity.COSINE.calc(data);
   }
@@ -60,4 +71,13 @@ public class SimpleCorrelationData implements CorrelationData {
     return cosineSim;
   }
 
+  @Override
+  public double getSlope() {
+    return slope;
+  }
+
+  @Override
+  public double getRegressionSignificance() throws MathException {
+    return regressionSignificance;
+  }
 }

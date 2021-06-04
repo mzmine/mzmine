@@ -314,19 +314,19 @@ public interface FeatureList {
   /**
    * Short cut to get the MS1 correlation map of grouped features
    *
-   * @return the map for {@link Type#MS1_CORRELATION}
+   * @return the map for {@link Type#MS1_FEATURE_CORR}
    */
   default R2RMap<RowsRelationship> getMs1CorrelationMap() {
-    return getRowMap(Type.MS1_CORRELATION);
+    return getRowMap(Type.MS1_FEATURE_CORR);
   }
 
   /**
    * Short cut to get the MS2 spectral similarity map of grouped features
    *
-   * @return the map for {@link Type#MS2_SIMILARITY}
+   * @return the map for {@link Type#MS2_COSINE_SIM}
    */
   default R2RMap<RowsRelationship> getMs2SimilarityMap() {
-    return getRowMap(Type.MS2_SIMILARITY);
+    return getRowMap(Type.MS2_COSINE_SIM);
   }
 
   /**
