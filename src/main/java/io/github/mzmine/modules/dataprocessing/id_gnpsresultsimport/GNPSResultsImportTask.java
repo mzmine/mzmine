@@ -22,12 +22,16 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.correlation.R2RMS2CosineSimilarityGNPS;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.GNPSSpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.GNPSSpectralLibraryMatchType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowIdCache;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,6 +46,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.stream.file.FileSource;
 import org.graphstream.stream.file.FileSourceGraphML;
@@ -59,11 +64,13 @@ public class GNPSResultsImportTask extends AbstractTask {
   private final File file;
   private final AtomicDouble progress = new AtomicDouble(0);
   private final ParameterSet parameters;
+  private final FeatureListRowIdCache rowIdCache;
 
   public GNPSResultsImportTask(ParameterSet parameters, ModularFeatureList featureList) {
     super(null); // no new data stored -> null
     this.parameters = parameters;
     this.featureList = featureList;
+    this.rowIdCache = new FeatureListRowIdCache(featureList);
     file = parameters.getParameter(GNPSResultsImportParameters.FILE).getValue();
   }
 
@@ -92,6 +99,9 @@ public class GNPSResultsImportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Importing GNPS results for " + featureList.getName());
 
+    // initialize row cache to reduce index of calls
+    rowIdCache.preCacheRowIds();
+
     // remove zero ids from edges to prevent exception
     removeZeroIDFromEdge(file);
 
@@ -100,6 +110,9 @@ public class GNPSResultsImportTask extends AbstractTask {
       // import library matches from nodes
       featureList.addRowType(new GNPSSpectralLibraryMatchType());
       importLibraryMatches(graph);
+
+      // import all edges between two feature list rows
+      importNetworkEdges(graph);
 
       // Add task description to peakList
       featureList.addDescriptionOfAppliedTask(
@@ -110,6 +123,7 @@ public class GNPSResultsImportTask extends AbstractTask {
       logger.info("Finished import of GNPS results for " + featureList.getName());
     }
   }
+
 
   /**
    * All edges have id=0 - this causes an exception. Replace all zero ids and save the file
@@ -147,7 +161,7 @@ public class GNPSResultsImportTask extends AbstractTask {
       int id = Integer.parseInt(node.getId());
       // has library match?
       String compoundName = (String) node.getAttribute(ATT.COMPOUND_NAME.getKey());
-      FeatureListRow rowtemp = featureList.findRowByID(id);
+      FeatureListRow rowtemp = getRow(node);
       if (rowtemp instanceof ModularFeatureListRow row) {
         if (compoundName != null && !compoundName.isEmpty()) {
           libraryMatches.getAndIncrement();
@@ -174,10 +188,55 @@ public class GNPSResultsImportTask extends AbstractTask {
       logger.info(missingRows.get()
                   + " rows (features) that were present in the GNPS results were not found in the peakList. Check if you selected the correct feature list, did some filtering or applied renumbering (IDs have to match).");
     }
-
     logger.info(libraryMatches.get() + " rows found with library matches");
   }
 
+  /**
+   * Import all edges between two feature list rows and add them to the feature list relationship
+   * map
+   *
+   * @param graph the FBMN or IIMN network from GNPS
+   */
+  private void importNetworkEdges(Graph graph) {
+    final R2RMap<R2RMS2CosineSimilarityGNPS> gnpsEdges = new R2RMap<>();
+    graph.edges().forEach(edge -> {
+      Node nodeA = edge.getNode0();
+      Node nodeB = edge.getNode1();
+      FeatureListRow rowA = getRow(nodeA);
+      FeatureListRow rowB = getRow(nodeB);
+      if (rowA != null && rowB != null) {
+        double cosineScore = edge.getAttribute(EdgeAtt.EDGE_SCORE.getKey(), Double.class);
+        String annotation = edge.getAttribute(EdgeAtt.EDGE_ANNOTATION.getKey(), String.class);
+        String edgeType = edge.getAttribute(EdgeAtt.EDGE_TYPE.getKey(), String.class);
+        gnpsEdges.add(rowA, rowB,
+            new R2RMS2CosineSimilarityGNPS(rowA, rowB, cosineScore, annotation, edgeType));
+
+        // TODO add all other edge attributes
+      }
+    });
+    // add all edges to feature list
+    featureList.addRowsRelationships(gnpsEdges, Type.MS2_GNPS_COSINE_SIM);
+  }
+
+  /**
+   * Caches the row.getID() to row for nodes
+   *
+   * @param node a node in an FBMN / IIMN network representing a feature list row (aligned by
+   *             getID)
+   * @return the row or null if a row with this ID is missing
+   */
+  private FeatureListRow getRow(Node node) {
+    int id = Integer.parseInt(node.getId());
+    return rowIdCache.get(id);
+  }
+
+  /**
+   * Import the network data where nodes are {@link FeatureListRow}s
+   *
+   * @param graph the loaded FBMN or IIMN network
+   * @param file  the graphml file
+   * @return true if success, false otherwise
+   */
   private boolean importGraphData(Graph graph, File file) {
     boolean result = true;
     FileSource fs = null;

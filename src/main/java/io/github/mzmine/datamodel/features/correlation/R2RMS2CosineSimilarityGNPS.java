@@ -29,44 +29,34 @@ public class R2RMS2CosineSimilarityGNPS implements RowsRelationship {
   private final FeatureListRow b;
   //
   private final double cosine;
-  private final int overlap;
+  private final String annotation;
+  private final String edgeType;
 
   /**
    * Modified cosine similarity imported from GNPS
    *
-   * @param a       the two rows
-   * @param b       the two rows
-   * @param gnpsSim the similarity between the two rows
+   * @param a      the two rows
+   * @param b      the two rows
+   * @param cosine cosine similarity
    */
-  public R2RMS2CosineSimilarityGNPS(FeatureListRow a, FeatureListRow b, MS2Similarity gnpsSim) {
-    this(a, b, gnpsSim.getCosine(), gnpsSim.getOverlap());
-  }
-
-  /**
-   * Modified cosine similarity imported from GNPS
-   *
-   * @param a       the two rows
-   * @param b       the two rows
-   * @param cosine  cosine similarity
-   * @param overlap number of overlapping signals
-   */
-  public R2RMS2CosineSimilarityGNPS(FeatureListRow a, FeatureListRow b, double cosine, int overlap) {
-    super();
+  public R2RMS2CosineSimilarityGNPS(FeatureListRow a, FeatureListRow b, double cosine,
+      String annotation, String edgeType) {
     this.a = a;
     this.b = b;
     this.cosine = cosine;
-    this.overlap = overlap;
+    this.annotation = annotation;
+    this.edgeType = edgeType;
+  }
+
+  /**
+   * The edge type string used by GNPS
+   */
+  public String getGNPSEdgeType() {
+    return edgeType;
   }
 
   public double getCosineSimilarity() {
     return cosine;
-  }
-
-  /**
-   * @return number of overlapping signals
-   */
-  public int getOverlap() {
-    return overlap;
   }
 
   @Override
@@ -83,7 +73,8 @@ public class R2RMS2CosineSimilarityGNPS implements RowsRelationship {
   @Nonnull
   @Override
   public String getAnnotation() {
-    return "cos=" + getScoreFormatted();
+    return annotation == null || annotation.strip().isEmpty() ? "cos=" + getScoreFormatted()
+        : annotation;
   }
 
   @Override
