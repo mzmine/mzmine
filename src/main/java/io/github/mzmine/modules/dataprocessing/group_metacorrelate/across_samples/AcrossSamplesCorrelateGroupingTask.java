@@ -220,7 +220,7 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
       // create correlation map
       // do R2R comparison correlation
       // might also do annotation if selected
-      R2RMap<RowsRelationship> corrMap = featureList.getMs1CorrelationMap();
+      R2RMap<R2RCorrelationData> corrMap = featureList.getMs1CorrelationMap();
       doR2RComparison(featureList, groups, corrMap);
       if (isCanceled()) {
         return;
@@ -267,7 +267,6 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
   /**
    * Correlation and adduct network creation
    *
-   * @return
    */
   private void doR2RComparison(ModularFeatureList featureList,
       List<RowGroup> groups, R2RMap<RowsRelationship> map) {
@@ -343,7 +342,7 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
     // number of f2f correlations
     int nR2Rcorr = 0;
     int nF2F = 0;
-    for (R2RCorrelationData r2r : map.values()) {
+    for (RowsRelationship r2r : map.values()) {
       if (r2r instanceof R2RFullCorrelationData corrData) {
         if (corrData.hasFeatureShapeCorrelation()) {
           nR2Rcorr++;
@@ -360,17 +359,15 @@ public class AcrossSamplesCorrelateGroupingTask extends AbstractTask {
   /**
    * direct exclusion for high level filtering check rt of all peaks of all raw files
    *
-   * @param row
-   * @param row2
    * @param minHeight minimum feature height to check for RT
    * @return true only if there was at least one RawDataFile with features in both rows with
    * height>minHeight and within rtTolerance
    */
   public boolean checkRTRange(RawDataFile[] raw, FeatureListRow row, FeatureListRow row2,
       double minHeight, RTTolerance rtTolerance) {
-    for (int r = 0; r < raw.length; r++) {
-      Feature f = row.getFeature(raw[r]);
-      Feature f2 = row2.getFeature(raw[r]);
+    for (RawDataFile rawFile : raw) {
+      Feature f = row.getFeature(rawFile);
+      Feature f2 = row2.getFeature(rawFile);
       if (f != null && f2 != null && f.getHeight() >= minHeight && f2.getHeight() >= minHeight
           && rtTolerance.checkWithinTolerance(f.getRT(), f2.getRT())) {
         return true;
