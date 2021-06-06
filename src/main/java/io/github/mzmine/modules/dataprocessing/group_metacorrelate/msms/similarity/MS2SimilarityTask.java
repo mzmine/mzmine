@@ -26,11 +26,11 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.correlation.MS2Similarity;
 import io.github.mzmine.datamodel.features.correlation.R2RMS2CosineSimilarity;
 import io.github.mzmine.datamodel.features.correlation.R2RMS2NeutralLossSimilarity;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -76,12 +76,9 @@ public class MS2SimilarityTask extends AbstractTask {
   private IonNetwork[] nets;
 
 
-  /**
-   * @param parameterSet
-   */
   public MS2SimilarityTask(final ParameterSet parameterSet,
       @Nullable ModularFeatureList featureList) {
-    super(featureList.getMemoryMapStorage());
+    super(null);
     this.featureList = featureList;
     mzTolerance = parameterSet.getParameter(MS2SimilarityParameters.MZ_TOLERANCE).getValue();
     minHeight = parameterSet.getParameter(MS2SimilarityParameters.MIN_HEIGHT).getValue();
@@ -137,13 +134,12 @@ public class MS2SimilarityTask extends AbstractTask {
    *
    * @param mapSimilarity  map for all MS2 cosine similarity edges
    * @param mapNeutralLoss map for all neutral loss MS2 edges
-   * @param rows
-   * @param mzTolerance
-   * @param minHeight
-   * @param minDP
-   * @param minMatch
-   * @param maxDPForDiff
-   * @return
+   * @param rows           match rows
+   * @param mzTolerance    tolerance to match signals
+   * @param minHeight      minimum height to generate the list of neutral losses
+   * @param minDP          minimum number of data points
+   * @param minMatch       minimum number of matched data points
+   * @param maxDPForDiff   maximum number of data points to generate the neutral loss list
    */
   public static void checkRows(AbstractTask task,
       AtomicDouble stageProgress,
@@ -188,8 +184,7 @@ public class MS2SimilarityTask extends AbstractTask {
    * @return true if the row matches all criteria
    */
   private static boolean filterRow(FeatureListRow row, boolean onlyBestMS2Scan, int minDP) {
-    if (!row.hasMs2Fragmentation()) // no fragmentation
-    {
+    if (!row.hasMs2Fragmentation()) {
       return false;
     } else if (onlyBestMS2Scan) {
       return row.getBestFragmentation().getMassList().getNumberOfDataPoints() < minDP;
@@ -245,14 +240,15 @@ public class MS2SimilarityTask extends AbstractTask {
             DataPoint[] massDiffB =
                 ScanMZDiffConverter.getAllMZDiff(dpb, mzTolerance, maxDPForDiff);
             // alignment and sim of neutral losses
-            MS2Similarity massDiffSim =
+            SpectralSimilarity massDiffSim =
                 createMS2Sim(mzTolerance, massDiffA, massDiffB, minMatch, DIFF_OVERLAP);
 
             // align and check spectra
-            MS2Similarity spectralSim = createMS2Sim(mzTolerance, dpa, dpb, minMatch, SIZE_OVERLAP);
+            SpectralSimilarity spectralSim = createMS2Sim(mzTolerance, dpa, dpb, minMatch,
+                SIZE_OVERLAP);
 
             if (massDiffSim != null) {
-              neutralLossSim.addMassDiffSim(massDiffSim);
+              neutralLossSim.addSpectralSim(massDiffSim);
             }
             if (spectralSim != null) {
               cosineSim.addSpectralSim(spectralSim);
@@ -271,17 +267,17 @@ public class MS2SimilarityTask extends AbstractTask {
             DataPoint[] dpb = getMassList(fb);
             if (dpb != null && dpb.length >= minDP) {
               // align and check spectra
-              MS2Similarity spectralSim =
+              SpectralSimilarity spectralSim =
                   createMS2Sim(mzTolerance, dpa, dpb, minMatch, SIZE_OVERLAP);
 
               // alignment and sim of neutral losses
               DataPoint[] massDiffB =
                   ScanMZDiffConverter.getAllMZDiff(dpb, mzTolerance, maxDPForDiff);
-              MS2Similarity massDiffSim =
+              SpectralSimilarity massDiffSim =
                   createMS2Sim(mzTolerance, massDiffA, massDiffB, minMatch, DIFF_OVERLAP);
 
               if (massDiffSim != null) {
-                neutralLossSim.addMassDiffSim(massDiffSim);
+                neutralLossSim.addSpectralSim(massDiffSim);
               }
               if (spectralSim != null) {
                 cosineSim.addSpectralSim(spectralSim);
@@ -300,14 +296,12 @@ public class MS2SimilarityTask extends AbstractTask {
   }
 
   /**
-   * @param mzTol
-   * @param a
-   * @param b
    * @param minMatch        minimum overlapping signals in the two mass lists a and b
    * @param overlapFunction different functions to determin the size of overlap
-   * @return
+   * @return the spectral similarity if number of overlapping signals >= minimum, else null
    */
-  private static MS2Similarity createMS2Sim(MZTolerance mzTol, DataPoint[] a, DataPoint[] b,
+  @Nullable
+  private static SpectralSimilarity createMS2Sim(MZTolerance mzTol, DataPoint[] a, DataPoint[] b,
       double minMatch, Function<List<DataPoint[]>, Integer> overlapFunction) {
     // align
     List<DataPoint[]> aligned = ScanAlignment.align(mzTol, b, a);
@@ -319,7 +313,7 @@ public class MS2SimilarityTask extends AbstractTask {
       // cosine
       double[][] diffArray = ScanAlignment.toIntensityArray(aligned);
       double diffCosine = Similarity.COSINE.calc(diffArray);
-      return new MS2Similarity(diffCosine, overlap);
+      return new SpectralSimilarity(diffCosine, overlap);
     }
     return null;
   }
@@ -366,14 +360,19 @@ public class MS2SimilarityTask extends AbstractTask {
   }
 
   /**
-   * Resulting map
+   * Resulting map of row-2-row MS2 spectral cosine similarities
    *
-   * @return
+   * @return cosine similarity map
    */
   public R2RMap<R2RMS2CosineSimilarity> getMapCosineSim() {
     return mapCosineSim;
   }
 
+  /**
+   * Resulting map of row-2-row MS2 neutral loss similarities
+   *
+   * @return neutral loss similarity map
+   */
   public R2RMap<R2RMS2NeutralLossSimilarity> getMapNeutralLoss() {
     return mapNeutralLoss;
   }

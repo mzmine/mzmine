@@ -23,11 +23,8 @@ import javax.annotation.Nonnull;
 /**
  * Modified cosine similarity between two rows imported from GNPS results
  */
-public class R2RMS2CosineSimilarityGNPS implements RowsRelationship {
+public class R2RMS2CosineSimilarityGNPS extends AbstractRowsRelationship {
 
-  private final FeatureListRow a;
-  private final FeatureListRow b;
-  //
   private final double cosine;
   private final String annotation;
   private final String edgeType;
@@ -41,8 +38,7 @@ public class R2RMS2CosineSimilarityGNPS implements RowsRelationship {
    */
   public R2RMS2CosineSimilarityGNPS(FeatureListRow a, FeatureListRow b, double cosine,
       String annotation, String edgeType) {
-    this.a = a;
-    this.b = b;
+    super(a, b);
     this.cosine = cosine;
     this.annotation = annotation;
     this.edgeType = edgeType;
@@ -77,13 +73,4 @@ public class R2RMS2CosineSimilarityGNPS implements RowsRelationship {
         : annotation;
   }
 
-  @Override
-  public FeatureListRow getRowA() {
-    return a;
-  }
-
-  @Override
-  public FeatureListRow getRowB() {
-    return b;
-  }
 }

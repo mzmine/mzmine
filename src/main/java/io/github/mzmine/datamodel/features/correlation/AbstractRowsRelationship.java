@@ -18,21 +18,36 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import javax.annotation.Nonnull;
+import java.text.MessageFormat;
 
 /**
- * MS2 similarity computed in MZmine.
+ * A relationship that stores both rows
  */
-public class R2RMS2CosineSimilarity extends R2RSpectralSimilarityList {
+public abstract class AbstractRowsRelationship implements RowsRelationship {
 
-  public R2RMS2CosineSimilarity(FeatureListRow a, FeatureListRow b) {
-    super(a, b);
+  private final FeatureListRow a;
+  private final FeatureListRow b;
+
+  public AbstractRowsRelationship(FeatureListRow a, FeatureListRow b) {
+    super();
+    this.a = a;
+    this.b = b;
   }
 
-  @Nonnull
   @Override
-  public Type getType() {
-    return Type.MS2_COSINE_SIM;
+  public FeatureListRow getRowA() {
+    return a;
   }
 
+  @Override
+  public FeatureListRow getRowB() {
+    return b;
+  }
+
+  @Override
+  public String toString() {
+    return MessageFormat
+        .format("{0}'{'rowA={1}, rowB={2}, Score={3}'}'", this.getClass().getName(), a.getID(),
+            b.getID(), getScoreFormatted());
+  }
 }
