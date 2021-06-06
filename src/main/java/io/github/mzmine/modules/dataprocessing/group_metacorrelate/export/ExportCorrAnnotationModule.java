@@ -29,9 +29,9 @@ import java.util.Collection;
 
 public class ExportCorrAnnotationModule implements MZmineProcessingModule {
 
-  private static final String NAME = "Export correlation annotation networks";
+  private static final String NAME = "Export feature networks to csv";
 
-  private static final String DESCRIPTION = "Export resutls from correlation/MS annotation";
+  private static final String DESCRIPTION = "Export resutls from correlation/MS annotation as networks to csv";
 
   @Override
   public @Nonnull
@@ -41,7 +41,6 @@ public class ExportCorrAnnotationModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull String getDescription() {
-
     return DESCRIPTION;
   }
 
