@@ -20,11 +20,8 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.annotation.Nonnull;
 
 /**
  * row to row correlation (2 rows) Intensity profile and Feature shape correlation
@@ -37,10 +34,6 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
   private CorrelationData corrTotal;
   // correlation to all Features
   private CorrelationData heightCorr;
-
-  // ANTI CORRELATION MARKERS
-  // to be used to exclude rows from beeing grouped
-  private List<AntiCorrelationMarker> negativMarkers;
 
   /**
    * Feature shape correlation in RawDataFiles
@@ -271,30 +264,6 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
   @Override
   public double getHeightCorrR() {
     return hasHeightCorr() ? heightCorr.getR() : 0;
-  }
-
-  /**
-   * @return List of negativ markers (non-null)
-   */
-  @Nonnull
-  public List<AntiCorrelationMarker> getNegativMarkers() {
-    return negativMarkers == null ? new ArrayList<>() : negativMarkers;
-  }
-
-  public int getNegativMarkerCount() {
-    return negativMarkers == null ? 0 : negativMarkers.size();
-  }
-
-  /**
-   * Negativ marker for this correlation (exclude from further grouping)
-   *
-   * @param nm
-   */
-  public void addNegativMarker(AntiCorrelationMarker nm) {
-    if (negativMarkers == null) {
-      negativMarkers = new ArrayList<>();
-    }
-    negativMarkers.add(nm);
   }
 
 }

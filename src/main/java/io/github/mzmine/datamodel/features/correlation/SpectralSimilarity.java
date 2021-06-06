@@ -17,32 +17,13 @@
 
 package io.github.mzmine.datamodel.features.correlation;
 
-public class MS2Similarity {
-
-  private final double cosine;
-  private final int overlap;
-
-  public MS2Similarity(double cosine, int overlap) {
-    this.cosine = cosine;
-    this.overlap = overlap;
-  }
-
-  /**
-   * Number of overlapping (matching) signals
-   *
-   * @return
-   */
-  public int getOverlap() {
-    return overlap;
-  }
-
-  /**
-   * Cosine similarity
-   *
-   * @return
-   */
-  public double getCosine() {
-    return cosine;
-  }
+/**
+ * Used by multiple classes to represent the number of overlapping signals and the spectral cosine
+ * similarity
+ *
+ * @param cosine  the cosine similarity
+ * @param overlap number of overlapping signals
+ */
+public record SpectralSimilarity(double cosine, int overlap) {
 
 }
