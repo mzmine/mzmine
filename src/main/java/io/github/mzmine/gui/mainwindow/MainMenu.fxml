@@ -276,9 +276,6 @@
       <MenuItem text="metaCorrelate (corrGroup)"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
-      <MenuItem text="metaCorrelate (across samples)"
-        onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.across_samples.AcrossSamplesCorrelateGroupingModule"/>
       <MenuItem text="Ion identity networking"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>

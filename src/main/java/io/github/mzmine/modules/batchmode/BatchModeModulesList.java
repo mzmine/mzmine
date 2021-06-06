@@ -65,7 +65,6 @@ import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothin
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.across_samples.AcrossSamplesCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchModule;
@@ -250,7 +249,6 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
        */
       CorrelateGroupingModule.class,
-      AcrossSamplesCorrelateGroupingModule.class,
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ION_IDENTITY_NETWORKS}

@@ -26,8 +26,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.CorrelationData;
 import io.github.mzmine.datamodel.features.correlation.FullCorrelationData;
-import io.github.mzmine.datamodel.features.correlation.R2RCorrelationAcrossSamplesData;
-import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
 import io.github.mzmine.util.maths.similarity.Similarity;
@@ -101,37 +99,6 @@ public class FeatureCorrelationUtil {
     }
   }
 
-
-  /**
-   * Feature height correlation (used as a filter), feature shape correlation used to group
-   *
-   * @param data    option to preload data or keep data in memory for large scale row 2 row
-   *                correlation (null will access data directly from features)
-   * @param testRow
-   * @param row
-   * @return R2R correlation, returns null if it was filtered by height correlation. Check for
-   * validity on result
-   */
-  public static R2RCorrelationData corrR2RAcrossSamples(
-      PreloadedFeatureDataAccess data,
-      FeatureListRow testRow,
-      FeatureListRow row, int minCorrelatedDataPoints,
-      int minCorrDPOnFeatureEdge, double noiseLevelShapeCorr) {
-
-    // compare best features
-    Feature featureA = testRow.getBestFeature();
-    Feature FeatureB = row.getBestFeature();
-
-    // feature shape correlation
-    CorrelationData correlationData = corrFeatureShape(data, featureA, FeatureB, false,
-        minCorrelatedDataPoints, minCorrDPOnFeatureEdge, noiseLevelShapeCorr);
-
-    // enough data points
-    if (correlationData != null && correlationData.getDPCount() >= minCorrelatedDataPoints) {
-      return new R2RCorrelationAcrossSamplesData(testRow, row, correlationData);
-    }
-    return null;
-  }
 
   /**
    * Feature height correlation (used as a filter), feature shape correlation used to group
