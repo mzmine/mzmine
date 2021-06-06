@@ -26,13 +26,13 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class NeutralMolecule {
 
-  @Nonnull
-  protected String name;
   @Nullable
   protected final IMolecularFormula cdkFormula;
   @Nullable
   protected final String molFormula;
   protected final double mass;
+  @Nonnull
+  protected String name;
 
   public NeutralMolecule(@Nonnull String name, double mass) {
     this(name, null, mass);
@@ -59,7 +59,6 @@ public class NeutralMolecule {
 
   /**
    * the raw name
-   *
    */
   @Nonnull
   public String getName() {
@@ -68,7 +67,6 @@ public class NeutralMolecule {
 
   /**
    * The parsed name (default + or - the name depending on the mass difference)
-   *
    */
   public String parseName() {
     String sign = this.getMass() < 0 ? "-" : "+";

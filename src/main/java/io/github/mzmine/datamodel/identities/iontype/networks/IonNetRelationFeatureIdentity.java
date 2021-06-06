@@ -21,7 +21,8 @@ import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 
 public class IonNetRelationFeatureIdentity extends SimpleFeatureIdentity {
-  private IonNetwork net;
+
+  private final IonNetwork net;
 
   public IonNetRelationFeatureIdentity(IonNetwork net, String name) {
     super(name);

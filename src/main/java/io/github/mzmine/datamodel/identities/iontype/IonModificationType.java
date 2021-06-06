@@ -25,11 +25,6 @@ import java.util.List;
 public enum IonModificationType {
   ADDUCT, UNDEFINED_ADDUCT, NEUTRAL_LOSS, CLUSTER, ISOTOPE, UNKNOWN, MIXED;
 
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
-  }
-
   /**
    * The common type or MIXED
    *
@@ -66,5 +61,10 @@ public enum IonModificationType {
       }
     }
     return t;
+  }
+
+  @Override
+  public String toString() {
+    return super.toString().replaceAll("_", " ");
   }
 }

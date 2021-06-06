@@ -17,13 +17,11 @@
 
 package io.github.mzmine.datamodel.identities.iontype;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetRelationFeatureIdentity;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelationInterf;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +39,8 @@ import javax.annotation.Nonnull;
 public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     implements Comparable<IonNetwork> {
 
-  private static final long serialVersionUID = 1L;
-
+  // possible formulas for this neutral mass
+  private final ObservableList<ResultFormula> molFormulas = FXCollections.observableArrayList();
   // MZtolerance on MS1 to generate this network
   private MZTolerance mzTolerance;
   // network id
@@ -55,17 +53,12 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   private double avgRT;
   // summed height
   private double heightSum = 0;
-
   // can be used to stream all networks only once
   // lowest row id
   private int lowestID = -1;
-
   // relationship to other IonNetworks (neutral molecules)
   // marks as modification of:
   private Map<IonNetwork, IonNetworkRelationInterf> relations;
-
-  // possible formulas for this neutral mass
-  private final ObservableList<ResultFormula> molFormulas = FXCollections.observableArrayList();
 
   public IonNetwork(MZTolerance mzTolerance, int id) {
     super();
@@ -95,6 +88,11 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     return id;
   }
 
+  public void setID(int i) {
+    id = i;
+    setNetworkToAllRows();
+  }
+
   @Nonnull
   public ObservableList<ResultFormula> getMolFormulas() {
     return molFormulas;
@@ -120,7 +118,6 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   /**
    * Remove a relation to another ion network. This relation could be a modification
-   *
    */
   public void removeRelation(IonNetwork net) {
     if (relations == null) {
@@ -154,6 +151,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   public void clearMolFormulas() {
     molFormulas.clear();
   }
+
   /**
    * The first formula should be the best
    *
@@ -163,6 +161,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     this.molFormulas.removeAll(molFormulas);
     this.molFormulas.addAll(molFormulas);
   }
+
   /**
    * The first formula should be the best
    *
@@ -189,10 +188,6 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     }
   }
 
-  public void setBestMolFormula(ResultFormula formula) {
-    addMolFormula(formula, true);
-  }
-
   public void removeMolFormula(ResultFormula formula) {
     if (molFormulas != null && !molFormulas.isEmpty()) {
       molFormulas.remove(formula);
@@ -208,9 +203,12 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     return molFormulas == null || molFormulas.isEmpty() ? null : molFormulas.get(0);
   }
 
+  public void setBestMolFormula(ResultFormula formula) {
+    addMolFormula(formula, true);
+  }
+
   /**
    * Neutral mass of center molecule which is described by all members of this network
-   *
    */
   public double getNeutralMass() {
     return neutralMass == null ? calcNeutralMass() : neutralMass;
@@ -305,7 +303,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
       avgRT += e.getKey().getAverageRT();
       // sum of heighest peaks heights
       double height = e.getKey().getMaxDataPointIntensity();
-      heightSum += Double.isNaN(height)? 1 : height;
+      heightSum += Double.isNaN(height) ? 1 : height;
     }
     avgRT = avgRT / size();
     neutralMass = mass / size();
@@ -465,11 +463,6 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
 
   public MZTolerance getMZTolerance() {
     return mzTolerance;
-  }
-
-  public void setID(int i) {
-    id = i;
-    setNetworkToAllRows();
   }
 
   public void recalcConnections() {

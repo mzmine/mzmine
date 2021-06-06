@@ -38,25 +38,21 @@ import javax.annotation.Nonnull;
 
 public class IonIdentity implements Comparable<IonIdentity> {
 
-  private NumberFormat netIDForm = new DecimalFormat("#000");
-
-  private IonType ionType;
-  // identifier like [M+H]+
-  private String adduct;
+  private static final NumberFormat netIDForm = new DecimalFormat("#000");
   // partner rowIDs
   private final ConcurrentHashMap<FeatureListRow, IonIdentity> partner = new ConcurrentHashMap<>();
+  // possible formulas for this neutral mass
+  @Nonnull
+  private final ObservableList<ResultFormula> molFormulas;
+  private final IonType ionType;
+  // identifier like [M+H]+
+  private final String adduct;
   // network id (number)
   private IonNetwork network;
-
   /**
    * List of MSMS identities. e.g., multimers/monomers that were found in MS/MS data
    */
   private List<MsMsIdentity> msmsIdent;
-
-  // possible formulas for this neutral mass
-  @Nonnull
-  private final ObservableList<ResultFormula> molFormulas;
-
   // mark as beeing deleted
   private boolean isDeleted;
 
@@ -79,7 +75,8 @@ public class IonIdentity implements Comparable<IonIdentity> {
    * @param row1 row to add the identity to
    * @param row2 identified by this row
    */
-  public static IonIdentity[] addAdductIdentityToRow(MZTolerance mzTolerance, FeatureListRow row1, IonType row1ID,
+  public static IonIdentity[] addAdductIdentityToRow(MZTolerance mzTolerance, FeatureListRow row1,
+      IonType row1ID,
       FeatureListRow row2, IonType row2ID) {
     // already added?
     IonIdentity a = getAdductEqualIdentity(row1, row1ID);
@@ -182,11 +179,11 @@ public class IonIdentity implements Comparable<IonIdentity> {
 
   public String getIDString() {
     StringBuilder b = new StringBuilder();
-     if (getNetID() != -1) {
-     b.append("Net");
-     b.append(getNetIDString());
-     b.append(" ");
-     }
+    if (getNetID() != -1) {
+      b.append("Net");
+      b.append(getNetIDString());
+      b.append(" ");
+    }
     b.append(adduct);
 
     // xmer and multimer
@@ -227,13 +224,6 @@ public class IonIdentity implements Comparable<IonIdentity> {
 
   /**
    * Network number
-   */
-  public void setNetwork(IonNetwork net) {
-    network = net;
-  }
-
-  /**
-   * Network number
    *
    * @return -1 if not part of a network
    */
@@ -245,10 +235,8 @@ public class IonIdentity implements Comparable<IonIdentity> {
     return netIDForm.format(getNetID());
   }
 
-
   /**
    * Checks whether partner ids contain a certain id
-   *
    */
   public boolean hasPartnerRow(FeatureListRow row) {
     return getPartnerRows().stream().anyMatch(r -> r == row);
@@ -268,11 +256,12 @@ public class IonIdentity implements Comparable<IonIdentity> {
     msmsIdent.add(ident);
   }
 
-  public void setMSMSIdentities(List<MsMsIdentity> msmsIdent) {
-    this.msmsIdent = msmsIdent;
-  }
   public List<MsMsIdentity> getMSMSIdentities() {
     return msmsIdent;
+  }
+
+  public void setMSMSIdentities(List<MsMsIdentity> msmsIdent) {
+    this.msmsIdent = msmsIdent;
   }
 
   /**
@@ -303,6 +292,13 @@ public class IonIdentity implements Comparable<IonIdentity> {
   }
 
   /**
+   * Network number
+   */
+  public void setNetwork(IonNetwork net) {
+    network = net;
+  }
+
+  /**
    * deletes from network
    */
   public void delete(FeatureListRow row) {
@@ -318,13 +314,12 @@ public class IonIdentity implements Comparable<IonIdentity> {
     partner.entrySet().stream().forEach(e -> e.getValue().delete(e.getKey()));
   }
 
+  public boolean isDeleted() {
+    return isDeleted;
+  }
 
   public void setDeleted(boolean state) {
     isDeleted = state;
-  }
-
-  public boolean isDeleted() {
-    return isDeleted;
   }
 
   /**
@@ -347,6 +342,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
   public void clearMolFormulas() {
     molFormulas.clear();
   }
+
   /**
    * The first formula should be the best
    *
@@ -356,6 +352,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
     this.molFormulas.removeAll(molFormulas);
     this.molFormulas.addAll(molFormulas);
   }
+
   /**
    * The first formula should be the best
    *

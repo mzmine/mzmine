@@ -273,32 +273,23 @@
 
 
     <Menu text="Feature grouping">
-      <MenuItem text="metaCorrelate (corrGroup)"
-        onAction="#runModule"
+      <MenuItem text="metaCorrelate (corrGroup)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
-      <MenuItem text="Ion identity networking"
-        onAction="#runModule"
+      <MenuItem text="MS/MS similarity" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule"/>
+      <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
-      <MenuItem text="Add more ion identities"
-        onAction="#runModule"
+      <MenuItem text="Add more ion identities" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
-      <MenuItem text="Refine ion identities"
-        onAction="#runModule"
+      <MenuItem text="Refine ion identities" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule"/>
-      <MenuItem text="Formula prediction on ion identities"
-        onAction="#runModule"
+      <MenuItem text="Formula prediction on ion identities" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule"/>
-      <MenuItem text="Average formulas"
-        onAction="#runModule"
+      <MenuItem text="Average formulas" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.createavgformulas.CreateAvgNetworkFormulasModule"/>
-      <MenuItem text="Check MS/MS ion identities"
-        onAction="#runModule"
+      <MenuItem text="Check MS/MS ion identities" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule"/>
-      <MenuItem text="MS/MS similarity"
-        onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule"/>
-      <MenuItem text="Clear ion identities"
-        onAction="#runModule"
+      <MenuItem text="Clear ion identities" onAction="#runModule"
       userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
     </Menu>
 

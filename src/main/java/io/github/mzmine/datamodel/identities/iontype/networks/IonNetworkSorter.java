@@ -18,22 +18,20 @@
 package io.github.mzmine.datamodel.identities.iontype.networks;
 
 
-import io.github.msdk.util.DataPointSorter;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-
 import java.util.Comparator;
 
 /**
  * Sort ion identity networks
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class IonNetworkSorter implements Comparator<IonNetwork> {
-  private SortingProperty property;
-  private SortingDirection direction;
+
+  private final SortingProperty property;
+  private final SortingDirection direction;
 
   public IonNetworkSorter(SortingProperty property, SortingDirection direction) {
     this.property = property;
@@ -45,10 +43,11 @@ public class IonNetworkSorter implements Comparator<IonNetwork> {
     Double va = getValue(a);
     Double vb = getValue(b);
 
-    if (direction == SortingDirection.Ascending)
+    if (direction == SortingDirection.Ascending) {
       return va.compareTo(vb);
-    else
+    } else {
       return vb.compareTo(va);
+    }
   }
 
   private Double getValue(IonNetwork net) {

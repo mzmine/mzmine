@@ -32,8 +32,8 @@ import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
- * The IonType defines the adduct, ion source modifications (e.g., -H2O / +ACN), molecules factor
- * for multimiers (e.g, [2M+H]+), and the charge
+ * The IonType defines the adduct, neutral in source modifications (e.g., -H2O / +ACN), molecules
+ * multiplier for multimiers (e.g, [2M+H]+), and the charge
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */

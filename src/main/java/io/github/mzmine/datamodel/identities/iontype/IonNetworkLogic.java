@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.ArrayList;
@@ -75,11 +74,11 @@ public class IonNetworkLogic {
     if (result != 0) {
       return result;
     }
-      // if a has less nM molecules in cluster
-      result = Integer.compare(b.getIonType().getMolecules(), a.getIonType().getMolecules());
-      if (result != 0) {
-        return result;
-      }
+    // if a has less nM molecules in cluster
+    result = Integer.compare(b.getIonType().getMolecules(), a.getIonType().getMolecules());
+    if (result != 0) {
+      return result;
+    }
 
     int bLinks = getLinksTo(b, g);
     int aLinks = getLinksTo(a, g);
@@ -92,7 +91,7 @@ public class IonNetworkLogic {
   }
 
   /**
-   * @param g   can be null. can be used to limit the number of links
+   * @param g can be null. can be used to limit the number of links
    * @return number of links to an ion identity
    */
   public static int getLinksTo(IonIdentity ion, RowGroup g) {
@@ -601,6 +600,7 @@ public class IonNetworkLogic {
 
   /**
    * Renumber all networks in a feature list in ascending order of the retention time (0-based)
+   *
    * @param featureList
    */
   public static void renumberNetworks(ModularFeatureList featureList) {

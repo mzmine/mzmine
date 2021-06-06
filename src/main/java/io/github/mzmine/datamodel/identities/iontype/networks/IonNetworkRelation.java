@@ -21,17 +21,16 @@ package io.github.mzmine.datamodel.identities.iontype.networks;
 import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-
 import java.util.List;
 
 public class IonNetworkRelation extends IonNetworkRelationInterf {
 
   // the linked network
-  private IonNetwork a;
+  private final IonNetwork a;
   private IonNetwork b;
   // marker if one network is condensed of the other
-  private boolean isCondensed;
-  private boolean isModified;
+  private final boolean isCondensed;
+  private final boolean isModified;
   private IonModification modA;
   private IonModification modB;
 
@@ -109,8 +108,9 @@ public class IonNetworkRelation extends IonNetworkRelationInterf {
     } else {
       name += "M(" + b.getID() + ")";
     }
-    if (modA != null)
+    if (modA != null) {
       name += modA.parseName();
+    }
     return name;
   }
 
@@ -121,22 +121,24 @@ public class IonNetworkRelation extends IonNetworkRelationInterf {
     } else {
       name += "M(" + a.getID() + ")";
     }
-    if (modB != null)
+    if (modB != null) {
       name += modB.parseName();
+    }
     return name;
   }
 
   @Override
   public String getDescription() {
     String desc = "";
-    if (isCondensed)
+    if (isCondensed) {
       desc = "condensation (2X-->XX+H2O) ";
+    }
     desc += modB.parseName();
     return desc;
   }
 
   @Override
   public IonNetwork[] getAllNetworks() {
-    return new IonNetwork[] {a, b};
+    return new IonNetwork[]{a, b};
   }
 }

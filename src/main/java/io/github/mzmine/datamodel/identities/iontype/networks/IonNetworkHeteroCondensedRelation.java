@@ -22,9 +22,9 @@ import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 public class IonNetworkHeteroCondensedRelation extends IonNetworkRelationInterf {
 
   // the linked network
-  private IonNetwork a;
-  private IonNetwork b;
-  private IonNetwork condensed;
+  private final IonNetwork a;
+  private final IonNetwork b;
+  private final IonNetwork condensed;
 
   public IonNetworkHeteroCondensedRelation(IonNetwork a, IonNetwork b, IonNetwork condensed) {
     // condensed has to have highest mass
@@ -56,7 +56,7 @@ public class IonNetworkHeteroCondensedRelation extends IonNetworkRelationInterf 
 
   @Override
   public IonNetwork[] getAllNetworks() {
-    return new IonNetwork[] {a, b, condensed};
+    return new IonNetwork[]{a, b, condensed};
   }
 
   @Override

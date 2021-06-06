@@ -135,11 +135,10 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       {H2O, H2O_2, H2O_3, H2O_4, H2O_5, NH3, O, CO, CO2, C2H4, HFA, HAc, MEOH, ACN, ISOPROP};
   // isotopes
   public static final IonModification[] DEFAULT_VALUES_ISOTOPES = {C13};
-
-  // charge
-  protected String parsedName;
   protected final IonModificationType type;
   protected final int charge;
+  // charge
+  protected String parsedName;
 
   /**
    * new raw adduct
@@ -181,6 +180,38 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     this.type = type;
   }
 
+  /**
+   * Get the default adducts.
+   *
+   * @return the list of default adducts.
+   */
+  public static IonModification[] getDefaultValuesPos() {
+    return Arrays.copyOf(DEFAULT_VALUES_POSITIVE, DEFAULT_VALUES_POSITIVE.length);
+  }
+
+  public static IonModification[] getDefaultValuesNeg() {
+    return Arrays.copyOf(DEFAULT_VALUES_NEGATIVE, DEFAULT_VALUES_NEGATIVE.length);
+  }
+
+  public static IonModification[] getDefaultModifications() {
+    return Arrays.copyOf(DEFAULT_VALUES_MODIFICATIONS, DEFAULT_VALUES_MODIFICATIONS.length);
+  }
+
+  public static IonModification[] getDefaultIsotopes() {
+    return Arrays.copyOf(DEFAULT_VALUES_MODIFICATIONS, DEFAULT_VALUES_ISOTOPES.length);
+  }
+
+  /**
+   * Undefined adduct for charge
+   *
+   * @param charge
+   * @return
+   */
+  public static IonModification getUndefinedforCharge(int charge) {
+    double mass = IonModification.M_PLUS.getMass() * charge;
+    return new IonModification(IonModificationType.UNDEFINED_ADDUCT, "?", mass, charge);
+  }
+
   @Override
   public String parseName() {
     String sign = this.getMass() < 0 ? "-" : "+";
@@ -208,7 +239,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   public String getParsedName() {
     return parsedName;
   }
-
 
   public int getCharge() {
     return charge;
@@ -328,7 +358,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     return ((mz * this.getAbsCharge()) - this.getMass());
   }
 
-
   /**
    * neutral mass of M to mz of yM+X]charge
    * <p>
@@ -339,7 +368,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   public double getMZ(double neutralmass) {
     return (neutralmass + getMass()) / getAbsCharge();
   }
-
 
   @Override
   public int hashCode() {
@@ -372,10 +400,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       return false;
     }
 
-    if (!Objects.equals(mass, other.getMass())) {
-      return false;
-    }
-    return true;
+    return Objects.equals(mass, other.getMass());
   }
 
   /**
@@ -387,7 +412,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     return new IonModification(getType(), name, molFormula, -mass, charge);
   }
 
-
   /**
    * @return true if no adduct is a duplicate
    */
@@ -395,39 +419,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     IonModification[] a = getModifications();
     IonModification[] b = adduct.getModifications();
     return Arrays.stream(a).noneMatch(adda -> Arrays.stream(b).anyMatch(addb -> adda.equals(addb)));
-  }
-
-
-  /**
-   * Get the default adducts.
-   *
-   * @return the list of default adducts.
-   */
-  public static IonModification[] getDefaultValuesPos() {
-    return Arrays.copyOf(DEFAULT_VALUES_POSITIVE, DEFAULT_VALUES_POSITIVE.length);
-  }
-
-  public static IonModification[] getDefaultValuesNeg() {
-    return Arrays.copyOf(DEFAULT_VALUES_NEGATIVE, DEFAULT_VALUES_NEGATIVE.length);
-  }
-
-  public static IonModification[] getDefaultModifications() {
-    return Arrays.copyOf(DEFAULT_VALUES_MODIFICATIONS, DEFAULT_VALUES_MODIFICATIONS.length);
-  }
-
-  public static IonModification[] getDefaultIsotopes() {
-    return Arrays.copyOf(DEFAULT_VALUES_MODIFICATIONS, DEFAULT_VALUES_ISOTOPES.length);
-  }
-
-  /**
-   * Undefined adduct for charge
-   *
-   * @param charge
-   * @return
-   */
-  public static IonModification getUndefinedforCharge(int charge) {
-    double mass = IonModification.M_PLUS.getMass() * charge;
-    return new IonModification(IonModificationType.UNDEFINED_ADDUCT, "?", mass, charge);
   }
 
   /**

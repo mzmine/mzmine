@@ -21,31 +21,33 @@ package io.github.mzmine.datamodel.identities.iontype.networks;
 import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-
 import java.util.List;
 
 public class SimpleIonNetworkRelation {
 
   // the linked network
-  private IonNetwork a;
+  private final IonNetwork a;
   private IonNetwork b;
   // marker if one network is condensed of the other
-  private boolean isCondensed;
-  private boolean isModified;
+  private final boolean isCondensed;
+  private final boolean isModified;
   private IonModification modA;
   private IonModification modB;
 
-  public SimpleIonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed, boolean isModified,
+  public SimpleIonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed,
+      boolean isModified,
       List<IonModification> mods) {
     this(a, link, isCondensed, isModified, CombinedIonModification.create(mods));
   }
 
-  public SimpleIonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed, boolean isModified,
+  public SimpleIonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed,
+      boolean isModified,
       IonModification[] mods) {
     this(a, link, isCondensed, isModified, CombinedIonModification.create(mods));
   }
 
-  public SimpleIonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed, boolean isModified,
+  public SimpleIonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed,
+      boolean isModified,
       IonModification mod) {
     this.a = a;
     this.b = link;
@@ -93,8 +95,9 @@ public class SimpleIonNetworkRelation {
   }
 
   public String getName(IonNetwork ionNetwork) {
-    if (ionNetwork.getID() == 8)
+    if (ionNetwork.getID() == 8) {
       System.out.println("test");
+    }
 
     if (ionNetwork.getID() == a.getID()) {
       return parseNameA();
@@ -111,8 +114,9 @@ public class SimpleIonNetworkRelation {
     } else {
       name += "M(" + b.getID() + ")";
     }
-    if (modA != null)
+    if (modA != null) {
       name += modA.parseName();
+    }
     return name;
   }
 
@@ -123,8 +127,9 @@ public class SimpleIonNetworkRelation {
     } else {
       name += "M(" + a.getID() + ")";
     }
-    if (modB != null)
+    if (modB != null) {
       name += modB.parseName();
+    }
     return name;
   }
 }

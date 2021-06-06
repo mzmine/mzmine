@@ -36,10 +36,6 @@ public class MSMSIonRelationIdentity extends MSMSIonIdentity {
   @Nonnull
   protected final Relation relation;
 
-  public enum Relation {
-    NEUTRAL_LOSS
-  }
-
   /**
    * Create a new ion relationship in an MS/MS spectrum (between two data points dp -> parent)
    *
@@ -98,5 +94,9 @@ public class MSMSIonRelationIdentity extends MSMSIonIdentity {
    */
   public double getParentMZ() {
     return parentDP.getMZ();
+  }
+
+  public enum Relation {
+    NEUTRAL_LOSS
   }
 }
