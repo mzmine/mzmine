@@ -152,7 +152,7 @@ public class MS2SimilarityTask extends AbstractTask {
         .filter(row -> filterRow(row, onlyBestMS2Scan, minDP)).toArray(FeatureListRow[]::new);
     int numRows = filteredRows.length;
 
-    LOG.log(Level.INFO, "Checking MS2 similarity on {0} rows", numRows);
+    LOG.log(Level.INFO, () -> MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
 
     IntStream.range(0, numRows - 1).parallel().forEach(i -> {
       if (task == null || !task.isCanceled()) {
@@ -187,7 +187,7 @@ public class MS2SimilarityTask extends AbstractTask {
     if (!row.hasMs2Fragmentation()) {
       return false;
     } else if (onlyBestMS2Scan) {
-      return row.getBestFragmentation().getMassList().getNumberOfDataPoints() < minDP;
+      return row.getBestFragmentation().getMassList().getNumberOfDataPoints() >= minDP;
     } else {
       for (Feature feature : row.getFeatures()) {
         Scan ms2 = feature.getMostIntenseFragmentScan();

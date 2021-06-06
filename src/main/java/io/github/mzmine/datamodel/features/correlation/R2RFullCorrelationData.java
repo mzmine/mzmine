@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -96,12 +97,8 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
     avgShapeCosineSim = avgShapeCosineSim / c;
 
     // create new total corr
-    double[][] data = (double[][]) corrFeatureShape.values().stream().map(CorrelationData::getData)
-        .<double[]>mapMulti((dat, consumer) -> {
-          for (double[] dp : dat) {
-            consumer.accept(dp);
-          }
-        }).toArray();
+    double[][] data = corrFeatureShape.values().stream().map(CorrelationData::getData)
+        .flatMap(Arrays::stream).toArray(double[][]::new);
     corrTotal = new FullCorrelationData(data);
   }
 

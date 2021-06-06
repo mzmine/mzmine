@@ -32,7 +32,7 @@ import org.apache.commons.math.stat.regression.SimpleRegression;
 public class FullCorrelationData implements CorrelationData {
 
   // data points
-  // [data point intensity][feature a, b]
+  // [data point number intensity][feature a, b]
   private final double[][] data;
   private final SimpleRegression reg;
 
