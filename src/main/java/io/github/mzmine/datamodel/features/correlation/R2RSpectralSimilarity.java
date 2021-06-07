@@ -51,7 +51,7 @@ public class R2RSpectralSimilarity extends AbstractRowsRelationship {
   @Nonnull
   @Override
   public Type getType() {
-    return Type.MS2_COSINE_SIM;
+    return type;
   }
 
   @Nonnull
