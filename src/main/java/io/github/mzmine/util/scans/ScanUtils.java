@@ -144,9 +144,12 @@ public class ScanUtils {
 
   @Deprecated
   public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
-    DataPoint result[] = new DataPoint[spectrum.getNumberOfDataPoints()];
-    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
-      result[i] = new SimpleDataPoint(spectrum.getMzValue(i), spectrum.getIntensityValue(i));
+    int size = spectrum.getNumberOfDataPoints();
+    DataPoint result[] = new DataPoint[size];
+    double[] mz = spectrum.getMzValues(new double[size]);
+    double[] intensity = spectrum.getIntensityValues(new double[size]);
+    for (int i = 0; i < size; i++) {
+      result[i] = new SimpleDataPoint(mz[i], intensity[i]);
     }
     return result;
   }

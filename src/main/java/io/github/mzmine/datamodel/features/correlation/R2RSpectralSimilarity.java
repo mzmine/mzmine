@@ -21,18 +21,43 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import javax.annotation.Nonnull;
 
 /**
- * MS2 similarity computed in MZmine.
+ * Cosine similarity between two rows (the best MS2 spectra)
  */
-public class R2RMS2CosineSimilarity extends R2RSpectralSimilarityList {
+public class R2RSpectralSimilarity extends AbstractRowsRelationship {
 
-  public R2RMS2CosineSimilarity(FeatureListRow a, FeatureListRow b) {
+  private final Type type;
+  private final SpectralSimilarity similarity;
+
+  /**
+   * Modified cosine similarity imported from GNPS
+   *
+   * @param a          the two rows
+   * @param b          the two rows
+   * @param type       the similarity type
+   * @param similarity cosine similarity
+   */
+  public R2RSpectralSimilarity(FeatureListRow a, FeatureListRow b, Type type,
+      SpectralSimilarity similarity) {
     super(a, b);
+    this.type = type;
+    this.similarity = similarity;
+  }
+
+  @Override
+  public double getScore() {
+    return similarity.cosine();
   }
 
   @Nonnull
   @Override
   public Type getType() {
     return Type.MS2_COSINE_SIM;
+  }
+
+  @Nonnull
+  @Override
+  public String getAnnotation() {
+    return "cos=" + getScoreFormatted();
   }
 
 }

@@ -17,20 +17,15 @@
 
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityParameters.Mode;
-import java.util.Collection;
-import javax.annotation.Nonnull;
-import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 public class MS2SimilarityModule implements MZmineProcessingModule {
 
@@ -40,12 +35,14 @@ public class MS2SimilarityModule implements MZmineProcessingModule {
       "Checks MS2 similarity of all rows within the groups or on all networks and between networks";
 
   @Override
-  public @Nonnull String getName() {
+  public @Nonnull
+  String getName() {
     return NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @Nonnull
+  String getDescription() {
     return DESCRIPTION;
   }
 
@@ -56,28 +53,21 @@ public class MS2SimilarityModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @Nonnull
+  Class<? extends ParameterSet> getParameterSetClass() {
     return MS2SimilarityParameters.class;
   }
 
   @Override
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
-                            @Nonnull final Collection<Task> tasks) {
+      @Nonnull final Collection<Task> tasks) {
 
-    Mode mode = parameters.getParameter(MS2SimilarityParameters.MODE).getValue();
-    ModularFeatureList[] featureLists = parameters.getParameter(MS2SimilarityParameters.PEAK_LISTS).getValue()
+    ModularFeatureList[] featureLists = parameters.getParameter(MS2SimilarityParameters.PEAK_LISTS)
+        .getValue()
         .getMatchingFeatureLists();
     for (ModularFeatureList pkl : featureLists) {
-      switch (mode) {
-        case ION_NETWORKS -> {
-          IonNetwork[] nets = IonNetworkLogic.getAllNetworks(pkl, true);
-          tasks.add(new MS2SimilarityTask(parameters, pkl, nets));
-        }
-        case ALL_ROWS -> {
-          tasks.add(new MS2SimilarityTask(parameters, pkl, pkl.getRows()));
-        }
-      }
+      tasks.add(new MS2SimilarityTask(parameters, pkl, pkl.getRows()));
     }
     return ExitCode.OK;
   }

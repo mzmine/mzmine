@@ -25,12 +25,19 @@ import javax.annotation.Nonnull;
 /**
  * Spectral similarity computed in MZmine.
  */
-public abstract class R2RSpectralSimilarityList extends AbstractRowsRelationship {
+public class R2RSpectralSimilarityList extends AbstractRowsRelationship {
 
+  private final Type type;
   private final List<SpectralSimilarity> spectralSim = new ArrayList<>();
 
-  public R2RSpectralSimilarityList(FeatureListRow a, FeatureListRow b) {
+  /**
+   * @param a    row a
+   * @param b    row b
+   * @param type the similarity type
+   */
+  public R2RSpectralSimilarityList(FeatureListRow a, FeatureListRow b, Type type) {
     super(a, b);
+    this.type = type;
   }
 
   public synchronized void addSpectralSim(SpectralSimilarity sim) {
@@ -80,4 +87,9 @@ public abstract class R2RSpectralSimilarityList extends AbstractRowsRelationship
     return "cos=" + getScoreFormatted();
   }
 
+  @Nonnull
+  @Override
+  public Type getType() {
+    return type;
+  }
 }
