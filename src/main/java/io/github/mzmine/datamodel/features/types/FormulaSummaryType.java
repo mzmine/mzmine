@@ -24,6 +24,9 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 
+/**
+ * A list of molecular formulas
+ */
 public class FormulaSummaryType extends ListDataType<ResultFormula>
     implements AnnotationType, EditableColumnType {
 

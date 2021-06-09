@@ -26,7 +26,7 @@ import java.util.Map;
 
 /**
  * This data access object loads data lazily and stores already loaded intensity/mz values in memory
- * for latter data accession
+ * for later data accession.
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */

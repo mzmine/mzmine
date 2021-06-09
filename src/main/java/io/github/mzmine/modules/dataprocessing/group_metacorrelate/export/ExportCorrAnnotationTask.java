@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelationInterf;
+import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.rowfilter.RowFilter;
@@ -173,9 +173,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
       IonNetwork[] nets = IonNetworkLogic.getAllNetworks(pkl, true);
       for (IonNetwork n : nets) {
-        Map<IonNetwork, IonNetworkRelationInterf> relations = n.getRelations();
+        Map<IonNetwork, IonNetworkRelation> relations = n.getRelations();
         if (relations != null && !relations.isEmpty()) {
-          for (Map.Entry<IonNetwork, IonNetworkRelationInterf> rel : relations.entrySet()) {
+          for (Map.Entry<IonNetwork, IonNetworkRelation> rel : relations.entrySet()) {
             // export all relations where n.id is smaller than the related network
             if (rel.getValue().isLowestIDNetwork(n)) {
               // relationship can be between multiple nets

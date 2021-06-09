@@ -38,6 +38,10 @@ import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * A modular annotation type displaying all subtypes for the first element in a list of {@link
+ * IonIdentity} stored in {@link IonIdentityListType}
+ */
 public class IonIdentityModularType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
@@ -60,7 +64,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
   @Nonnull
   @Override
   public String getHeaderString() {
-    return "Ion identities";
+    return "Ion identity";
   }
 
   @Override
@@ -117,15 +121,15 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
         data.set(NeutralMassType.class, ion.getNetwork().getNeutralMass());
         data.set(IonNetworkIDType.class, ion.getNetwork().getID());
         data.set(SizeType.class, ion.getNetwork().size());
-      }
-      else {
-          data.set(FormulaConsensusSummaryType.class, null);
-          data.set(NeutralMassType.class, null);
-          data.set(IonNetworkIDType.class, null);
-          data.set(SizeType.class, null);
+      } else {
+        data.set(FormulaConsensusSummaryType.class, null);
+        data.set(NeutralMassType.class, null);
+        data.set(IonNetworkIDType.class, null);
+        data.set(SizeType.class, null);
       }
       data.set(PartnerIdsType.class, ion.getPartnerRowsString(";"));
-      data.set(MsMsMultimerVerifiedType.class, ion.getMSMSMultimerCount() > 0? ion.getMSMSMultimerCount() : null);
+      data.set(MsMsMultimerVerifiedType.class,
+          ion.getMSMSMultimerCount() > 0 ? ion.getMSMSMultimerCount() : null);
 
       // set all formulas and update the shown "best" formula
       data.set(FormulaSummaryType.class, ion.getMolFormulas());

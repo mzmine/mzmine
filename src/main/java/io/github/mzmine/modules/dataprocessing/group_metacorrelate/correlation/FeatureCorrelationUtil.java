@@ -293,7 +293,10 @@ public class FeatureCorrelationUtil {
       }
     } else {
       // TODO if different raw file search for same rt
+      throw new UnsupportedOperationException(
+          "We currently do not support feature shape correlation in two different raw data files");
       // impute rt/I values if between 2 data points
+      /*
       int indexLeftA = 0;
       int indexLeftB = 0;
 
@@ -315,7 +318,7 @@ public class FeatureCorrelationUtil {
 //        if()
         break;
       }
-
+*/
     }
     return null;
   }
@@ -425,7 +428,7 @@ public class FeatureCorrelationUtil {
     double significantSlope = 0;
     try {
       significantSlope = corr.getRegressionSignificance();
-      if(Double.isNaN(significantSlope)) {
+      if (Double.isNaN(significantSlope)) {
         return false;
       }
     } catch (MathException e) {

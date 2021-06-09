@@ -20,8 +20,13 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import javax.annotation.Nonnull;
 
+/**
+ * All partner FeatureListRows that were correlated, matched, or connected by a specific module.
+ * Used in {@link IonNetwork} to relate ion identities of the same molecule
+ */
 public class PartnerIdsType extends StringType implements AnnotationType {
 
   @Nonnull

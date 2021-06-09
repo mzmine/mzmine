@@ -26,7 +26,7 @@ import java.util.Comparator;
 /**
  * Sort ion identity networks
  *
- * @author Robin Schmid (robinschmid@uni-muenster.de)
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class IonNetworkSorter implements Comparator<IonNetwork> {
 

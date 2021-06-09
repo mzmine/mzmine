@@ -21,13 +21,11 @@ package io.github.mzmine.parameters.parametertypes;
 
 import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.CSVPrinter;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ObjectGenerator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.StringMapParser;
-import java_cup.parser;
+import java.util.function.Supplier;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -68,7 +66,6 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
 
   private final List<T> defaultChoices;
 
-  private ObjectGenerator<T> addChoiceParam;
   private StringMapParser<T> parser;
 
 
@@ -76,9 +73,8 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
    * Create the component.
    *
    * @param choices the adduct choices.
-   * @param addChoiceParam usually a ParameterSet as ObjectGenerator to add new choices
    */
-  public MultiChoiceComponent(List<T> choices, List<T> defaultChoices, ObjectGenerator<T> addChoiceParam,
+  public MultiChoiceComponent(List<T> choices, List<T> defaultChoices, Supplier<T> addChoiceParam,
                               StringMapParser<T> parser) {
     this(choices, defaultChoices, addChoiceParam, parser, true, true, true, true);
   }
@@ -88,10 +84,9 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
    * @param choices the adduct choices.
    * @param addChoiceParam usually a ParameterSet as ObjectGenerator to add new choices
    */
-  public MultiChoiceComponent(List<T> choices, List<T> defaultChoices, ObjectGenerator<T> addChoiceParam, StringMapParser<T> parser,
+  public MultiChoiceComponent(List<T> choices, List<T> defaultChoices, Supplier<T> addChoiceParam, StringMapParser<T> parser,
                               boolean btnAdd, boolean btnImport, boolean btnExport, boolean btnDefault) {
     this.defaultChoices = defaultChoices;
-    this.addChoiceParam = addChoiceParam;
     this.parser = parser;
 
     setChoices(choices);
@@ -121,7 +116,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
         final ParameterSet parameters = ((ParameterSet)addChoiceParam);
         if (parameters.showSetupDialog(true) == ExitCode.OK) {
           // Add to list of choices (if not already present).
-          T choice = addChoiceParam.createObject();
+          T choice = addChoiceParam.get();
           final Collection<T> currentChoices = adductsView.getItems();
           if (!currentChoices.contains(choice)) {
             currentChoices.add(choice);
@@ -130,7 +125,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
       }
       else {
         try {
-          T choice = addChoiceParam.createObject();
+          T choice = addChoiceParam.get();
           final Collection<T> currentChoices = adductsView.getItems();
           if (!currentChoices.contains(choice)) {
             currentChoices.add(choice);

@@ -25,37 +25,39 @@
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ObjectGenerator;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Params to add custom adducts.
- *
  */
-public class AddAdductParameters extends SimpleParameterSet implements ObjectGenerator<AdductType> {
+public class AddAdductParameters extends SimpleParameterSet implements Supplier<AdductType> {
 
   // Adduct name.
   public static final StringParameter NAME =
       new StringParameter("Name", "A name to identify the new adduct");
-
   // Adduct mass difference.
   public static final DoubleParameter MASS_DIFFERENCE = new DoubleParameter("Mass difference",
       "Mass difference for the new adduct", MZmineCore.getConfiguration().getMZFormat());
+  private static final Logger logger = Logger.getLogger(AddAdductParameters.class.getName());
 
   public AddAdductParameters() {
-    super(new Parameter[] {NAME, MASS_DIFFERENCE});
+    super(new Parameter[]{NAME, MASS_DIFFERENCE});
   }
 
-  public AdductType createObject() {
+  @Override
+  public AdductType get() {
     try {
       return new AdductType(getParameter(AddAdductParameters.NAME).getValue(),
-              getParameter(AddAdductParameters.MASS_DIFFERENCE).getValue());
+          getParameter(AddAdductParameters.MASS_DIFFERENCE).getValue());
     } catch (Exception ex) {
+      logger.log(Level.WARNING, ex.getMessage(), ex);
       return null;
     }
   }
-
 }

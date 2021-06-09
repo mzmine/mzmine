@@ -25,13 +25,16 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import javax.annotation.Nonnull;
 
+/**
+ * A list of {@link IonIdentity}. The first is generally the active element.
+ */
 public class IonIdentityListType extends ListDataType<IonIdentity>
     implements AnnotationType, EditableColumnType {
 
   @Nonnull
   @Override
   public String getHeaderString() {
-    return "Ion adduct";
+    return "Ion identity";
   }
 
 }

@@ -19,7 +19,10 @@ package io.github.mzmine.datamodel.identities.iontype.networks;
 
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 
-public class IonNetworkHeteroCondensedRelation extends IonNetworkRelationInterf {
+/**
+ * A relationship of two molecules a+b --> c - H2O represented by 3 IonNetworks
+ */
+public class IonNetworkHeteroCondensedRelation implements IonNetworkRelation {
 
   // the linked network
   private final IonNetwork a;

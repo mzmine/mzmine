@@ -36,6 +36,7 @@ import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.Viewer.ThreadingModel;
 
 public class TestNetworks {
+  // TODO delete as soon as visualizer is integrated
   public static void main(String args[]) {
     // System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
     System.setProperty("org.graphstream.ui", "javafx");

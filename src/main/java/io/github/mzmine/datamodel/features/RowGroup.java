@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -58,10 +59,8 @@ public class RowGroup implements Comparable<RowGroup> {
     this.groupID = groupID;
     this.min = new float[raw.size()];
     this.max = new float[raw.size()];
-    for (int i = 0; i < min.length; i++) {
-      min[i] = Float.POSITIVE_INFINITY;
-      max[i] = Float.NEGATIVE_INFINITY;
-    }
+    Arrays.fill(min, Float.POSITIVE_INFINITY);
+    Arrays.fill(max, Float.NEGATIVE_INFINITY);
     this.rtSum = new float[raw.size()];
     this.rtValues = new int[raw.size()];
   }

@@ -20,15 +20,11 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
-import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.List;
-import org.jfree.chart.ChartColor;
 
 public class CorrelationRowGroup extends RowGroup {
 
-  // colors
-  public static final Paint[] colors = ChartColor.createDefaultPaintArray();
   // correlation data of all rows to this group
   private R2GroupCorrelationData[] corr;
 

@@ -33,6 +33,7 @@ import org.graphstream.ui.javafx.FxGraphRenderer;
  */
 public class TestNetworkFX extends Application {
 
+  // TODO delete as soon as visualizer is integrated
   public static void main(String[] args) {
     Application.launch(TestNetworkFX.class, args);
   }

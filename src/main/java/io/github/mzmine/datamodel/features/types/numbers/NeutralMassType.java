@@ -23,6 +23,9 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+/**
+ * The neutral mass of a feature or annotation.
+ */
 public class NeutralMassType extends DoubleType {
 
   public NeutralMassType() {

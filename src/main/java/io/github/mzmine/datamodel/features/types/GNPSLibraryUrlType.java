@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Link to a GNPS library entry
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class GNPSLibraryUrlType extends UrlType {

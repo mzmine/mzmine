@@ -571,7 +571,9 @@ public class ModularFeatureList implements FeatureList {
 
 
   /**
-   * create copy of all feature list rows and features. Use a different list of raw data files
+   * create copy of all feature list rows and features. Use a different list of raw data files. The
+   * new list of raw data files might be used by alignment modules to create a copy of a base
+   * feature list and then add all the other feature lists to it.
    *
    * @param title     the new title
    * @param dataFiles the new list of raw data files

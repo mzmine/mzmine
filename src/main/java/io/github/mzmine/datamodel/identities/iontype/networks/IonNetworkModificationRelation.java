@@ -23,58 +23,41 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import java.util.List;
 
-public class SimpleIonNetworkRelation {
+/**
+ * Relationship between two IonNetworks
+ */
+public class IonNetworkModificationRelation implements IonNetworkRelation {
 
   // the linked network
   private final IonNetwork a;
-  private IonNetwork b;
-  // marker if one network is condensed of the other
-  private final boolean isCondensed;
-  private final boolean isModified;
-  private IonModification modA;
-  private IonModification modB;
+  private final IonNetwork b;
+  private final IonModification modA;
+  private final IonModification modB;
 
-  public SimpleIonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed,
-      boolean isModified,
-      List<IonModification> mods) {
-    this(a, link, isCondensed, isModified, CombinedIonModification.create(mods));
+  public IonNetworkModificationRelation(IonNetwork a, IonNetwork link, List<IonModification> mods) {
+    this(a, link, CombinedIonModification.create(mods));
   }
 
-  public SimpleIonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed,
-      boolean isModified,
-      IonModification[] mods) {
-    this(a, link, isCondensed, isModified, CombinedIonModification.create(mods));
+  public IonNetworkModificationRelation(IonNetwork a, IonNetwork link, IonModification[] mods) {
+    this(a, link, CombinedIonModification.create(mods));
   }
 
-  public SimpleIonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed,
-      boolean isModified,
-      IonModification mod) {
-    this.a = a;
-    this.b = link;
+  public IonNetworkModificationRelation(IonNetwork a, IonNetwork link, IonModification mod) {
     // a is smaller neutral mass
-    if (a.getNeutralMass() > b.getNeutralMass()) {
-      IonNetwork tmp = a;
-      a = b;
-      b = tmp;
+    if (a.getNeutralMass() < link.getNeutralMass()) {
+      this.a = a;
+      this.b = link;
+    } else {
+      this.b = a;
+      this.a = link;
     }
 
-    this.isCondensed = isCondensed;
-    this.isModified = isModified;
-
-    this.modA = mod;
-    this.modB = mod.createOpposite();
-
-    if (isCondensed) {
-      // a is M(netID)
-      modA = null;
-      // b is 2Mcondensed(netID)
-      modB = mod;
+    if (mod.getMass() <= 0) {
+      this.modA = mod;
+      this.modB = mod.createOpposite();
     } else {
-      if (modA.getMass() > 0) {
-        IonModification tmp = modA;
-        modA = modB;
-        modB = tmp;
-      }
+      this.modB = mod;
+      this.modA = mod.createOpposite();
     }
   }
 
@@ -82,23 +65,12 @@ public class SimpleIonNetworkRelation {
     return modA;
   }
 
-  public boolean isCondensed() {
-    return isCondensed;
-  }
-
-  public boolean isModified() {
-    return isModified;
-  }
-
   public IonNetwork getLink() {
     return b;
   }
 
+  @Override
   public String getName(IonNetwork ionNetwork) {
-    if (ionNetwork.getID() == 8) {
-      System.out.println("test");
-    }
-
     if (ionNetwork.getID() == a.getID()) {
       return parseNameA();
     } else if (ionNetwork.getID() == b.getID()) {
@@ -109,11 +81,7 @@ public class SimpleIonNetworkRelation {
 
   private String parseNameA() {
     String name = "";
-    if (isCondensed) {
-      name += "M(" + b.getID() + "_condensed)";
-    } else {
       name += "M(" + b.getID() + ")";
-    }
     if (modA != null) {
       name += modA.parseName();
     }
@@ -122,14 +90,22 @@ public class SimpleIonNetworkRelation {
 
   private String parseNameB() {
     String name = "";
-    if (isCondensed) {
-      name += "2Mcondensed(" + a.getID() + ")";
-    } else {
       name += "M(" + a.getID() + ")";
-    }
     if (modB != null) {
       name += modB.parseName();
     }
     return name;
+  }
+
+  @Override
+  public String getDescription() {
+    String desc = "";
+    desc += modB.parseName();
+    return desc;
+  }
+
+  @Override
+  public IonNetwork[] getAllNetworks() {
+    return new IonNetwork[]{a, b};
   }
 }

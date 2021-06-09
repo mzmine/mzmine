@@ -34,6 +34,10 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 
+/**
+ * A collection of annotation types related to a list of molecular formulas stored in the {@link
+ * FormulaSummaryType}. Includes scores, neutral mass, etc.
+ */
 public class FormulaAnnotationType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
@@ -41,40 +45,6 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
       .of(new FormulaSummaryType(), new FormulaMassType(), new RdbeType(),
           new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
           new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
-
-  @Nonnull
-  @Override
-  public List<DataType> getSubDataTypes() {
-    return subTypes;
-  }
-
-  @Nonnull
-  @Override
-  public String getHeaderString() {
-    return "Formula";
-  }
-
-  @Override
-  public ModularTypeProperty createProperty() {
-    ModularTypeProperty property = super.createProperty();
-
-    // add bindings: If first element in summary column changes - update all other columns based on this object
-    Objects.requireNonNull(property.get(FormulaSummaryType.class))
-        .addListener((ListChangeListener<ResultFormula>) change -> {
-          ObservableList<? extends ResultFormula> summaryProperty = change.getList();
-          boolean firstElementChanged = false;
-          while (change.next()) {
-            firstElementChanged = firstElementChanged || change.getFrom() == 0;
-          }
-          if (firstElementChanged) {
-            // first list elements has changed - set all other fields
-            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0),
-                true);
-          }
-        });
-
-    return property;
-  }
 
   /**
    * On change of the first list element, change all the other sub types.
@@ -108,6 +78,40 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
       data.set(MzAbsoluteDifferenceType.class,
           (formula.getSearchedNeutralMass() - formula.getExactMass()));
     }
+  }
+
+  @Nonnull
+  @Override
+  public List<DataType> getSubDataTypes() {
+    return subTypes;
+  }
+
+  @Nonnull
+  @Override
+  public String getHeaderString() {
+    return "Formula";
+  }
+
+  @Override
+  public ModularTypeProperty createProperty() {
+    ModularTypeProperty property = super.createProperty();
+
+    // add bindings: If first element in summary column changes - update all other columns based on this object
+    Objects.requireNonNull(property.get(FormulaSummaryType.class))
+        .addListener((ListChangeListener<ResultFormula>) change -> {
+          ObservableList<? extends ResultFormula> summaryProperty = change.getList();
+          boolean firstElementChanged = false;
+          while (change.next()) {
+            firstElementChanged = firstElementChanged || change.getFrom() == 0;
+          }
+          if (firstElementChanged) {
+            // first list elements has changed - set all other fields
+            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0),
+                true);
+          }
+        });
+
+    return property;
   }
 
 }

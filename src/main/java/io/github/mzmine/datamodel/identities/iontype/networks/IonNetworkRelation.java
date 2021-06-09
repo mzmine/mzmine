@@ -18,127 +18,50 @@
 package io.github.mzmine.datamodel.identities.iontype.networks;
 
 
-import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import java.util.List;
+import java.util.Arrays;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public class IonNetworkRelation extends IonNetworkRelationInterf {
+/**
+ * Relationships between {@link IonNetwork}s
+ */
+public interface IonNetworkRelation {
 
-  // the linked network
-  private final IonNetwork a;
-  private IonNetwork b;
-  // marker if one network is condensed of the other
-  private final boolean isCondensed;
-  private final boolean isModified;
-  private IonModification modA;
-  private IonModification modB;
+  /**
+   * Name of the relationship to the argument network
+   *
+   * @param net the related network
+   * @return relationship name to net, or null if there is no relationship
+   */
+  @Nullable
+  String getName(IonNetwork net);
 
-  public IonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed, boolean isModified,
-      List<IonModification> mods) {
-    this(a, link, isCondensed, isModified, CombinedIonModification.create(mods));
-  }
+  /**
+   * A general relationship description
+   *
+   * @return description
+   */
+  @Nonnull
+  String getDescription();
 
-  public IonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed, boolean isModified,
-      IonModification[] mods) {
-    this(a, link, isCondensed, isModified, CombinedIonModification.create(mods));
-  }
+  /**
+   * All IonNetworks in this relationship. A relationship might be between two IonNetworks ({@link
+   * IonNetworkModificationRelation}) or between multiple (e.g., {@link IonNetworkHeteroCondensedRelation})
+   *
+   * @return an array of related networks
+   */
+  @Nonnull
+  IonNetwork[] getAllNetworks();
 
-  public IonNetworkRelation(IonNetwork a, IonNetwork link, boolean isCondensed, boolean isModified,
-      IonModification mod) {
-    this.a = a;
-    this.b = link;
-    // a is smaller neutral mass
-    if (a.getNeutralMass() > b.getNeutralMass()) {
-      IonNetwork tmp = a;
-      a = b;
-      b = tmp;
-    }
-
-    this.isCondensed = isCondensed;
-    this.isModified = isModified;
-
-    this.modA = mod;
-    this.modB = mod.createOpposite();
-
-    if (isCondensed) {
-      // a is M(netID)
-      modA = null;
-      // b is 2Mcondensed(netID)
-      modB = mod;
-    } else {
-      if (modA.getMass() > 0) {
-        IonModification tmp = modA;
-        modA = modB;
-        modB = tmp;
-      }
-    }
-  }
-
-  public IonModification getMods() {
-    return modA;
-  }
-
-  public boolean isCondensed() {
-    return isCondensed;
-  }
-
-  public boolean isModified() {
-    return isModified;
-  }
-
-  public IonNetwork getLink() {
-    return b;
-  }
-
-  @Override
-  public String getName(IonNetwork ionNetwork) {
-    if (ionNetwork.getID() == a.getID()) {
-      return parseNameA();
-    } else if (ionNetwork.getID() == b.getID()) {
-      return parseNameB();
-    }
-    return "";
-  }
-
-  private String parseNameA() {
-    String name = "";
-    if (isCondensed) {
-      name += "M(" + b.getID() + "_condensed)";
-    } else {
-      name += "M(" + b.getID() + ")";
-    }
-    if (modA != null) {
-      name += modA.parseName();
-    }
-    return name;
-  }
-
-  private String parseNameB() {
-    String name = "";
-    if (isCondensed) {
-      name += "2Mcondensed(" + a.getID() + ")";
-    } else {
-      name += "M(" + a.getID() + ")";
-    }
-    if (modB != null) {
-      name += modB.parseName();
-    }
-    return name;
-  }
-
-  @Override
-  public String getDescription() {
-    String desc = "";
-    if (isCondensed) {
-      desc = "condensation (2X-->XX+H2O) ";
-    }
-    desc += modB.parseName();
-    return desc;
-  }
-
-  @Override
-  public IonNetwork[] getAllNetworks() {
-    return new IonNetwork[]{a, b};
+  /**
+   * A method to check if net is the network with the lowest ID. Useful to only apply methods once,
+   * e.g., exporting the relationship to text
+   *
+   * @param net the tested network (should be one of {@link #getAllNetworks()}
+   * @return true if getID() is the lowest
+   */
+  default boolean isLowestIDNetwork(IonNetwork net) {
+    return Arrays.stream(getAllNetworks()).noneMatch(n -> n.getID() < net.getID());
   }
 }

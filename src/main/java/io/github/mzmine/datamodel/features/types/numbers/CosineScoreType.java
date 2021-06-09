@@ -19,8 +19,12 @@
 package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
+import io.github.mzmine.util.maths.similarity.Similarity;
 import javax.annotation.Nonnull;
 
+/**
+ * The cosine similarity can be calculated in {@link Similarity#COSINE}
+ */
 public class CosineScoreType extends ScoreType {
 
   @Nonnull

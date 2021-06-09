@@ -22,13 +22,13 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relat
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkCondensedRelation;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkHeteroCondensedRelation;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
+import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkModificationRelation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -37,17 +37,17 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Find relationships between {@link IonNetwork}s
+ */
 public class IonNetRelationsTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(IonNetRelationsTask.class.getName());
-
-  private AtomicDouble stageProgress = new AtomicDouble(0);
   private final ModularFeatureList featureList;
-
   private final ParameterSet parameters;
   private final MZmineProject project;
-
+  private AtomicDouble stageProgress = new AtomicDouble(0);
   private IonModification[] mods;
   private MZTolerance mzTol;
   private boolean searchCondensed;
@@ -75,75 +75,6 @@ public class IonNetRelationsTask extends AbstractTask {
         parameterSet.getParameter(IonNetRelationsParameters.SEARCH_CONDENSED_HETERO_MOL).getValue();
   }
 
-  @Override
-  public double getFinishedPercentage() {
-    return getStatus().equals(TaskStatus.FINISHED) ? 1 : stageProgress.get();
-  }
-
-  @Override
-  public String getTaskDescription() {
-    return "Identification of relationships between ion identity networks in " + featureList
-        .getName()
-           + " ";
-  }
-
-  @Override
-  public void run() {
-    try {
-      setStatus(TaskStatus.PROCESSING);
-      LOG.info("Starting to search for relations (modifications) between ion identity networks ");
-
-      // get all ion identity networks
-      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(featureList, true);
-
-      // filter out ? networks with unknown adducttypes
-      nets = Arrays.stream(nets).filter(net -> !net.isUndefined()).toArray(IonNetwork[]::new);
-
-      if (nets.length == 0) {
-        setErrorMessage("No ion identity networks found. Run ion networking");
-        setStatus(TaskStatus.ERROR);
-        return;
-      }
-
-      // clear all
-      Arrays.stream(nets).forEach(IonNetwork::clearRelation);
-
-      // check for modifications
-      int counter = checkForModifications(mzTol, mods, nets);
-      LOG.info("Found " + counter + " modifications");
-
-      // check for condensed formulas
-      // mass*2 - H2O and - modifications
-      if (searchCondensed) {
-        int counter2 = checkForCondensedModifications(mzTol, mods, nets);
-        LOG.info("Found " + counter2 + " condensed molecules");
-      }
-
-      if (searchHeteroCondensed) {
-        int counter2 = checkForHeteroCondensed(mzTol, mods, nets);
-        LOG.info("Found " + counter2
-                 + " condensed molecules (hetero - two different neutral molecules)");
-      }
-
-      // show all as identity
-      showAllIdentities(nets);
-
-      setStatus(TaskStatus.FINISHED);
-    } catch (Exception t) {
-      LOG.log(Level.SEVERE, "Adduct search error", t);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(t.getMessage());
-      throw new MSDKRuntimeException(t);
-    }
-  }
-
-  private void showAllIdentities(IonNetwork[] nets) {
-    for (IonNetwork net : nets) {
-      // TODO add? show?
-//      net.addRelationsIdentityToRows();
-    }
-  }
-
   public static int checkForModifications(MZTolerance mzTol, IonModification[] mods,
       IonNetwork[] nets) {
     int counter = 0;
@@ -169,7 +100,7 @@ public class IonNetRelationsTask extends AbstractTask {
     IonModification mod =
         checkForModifications(mzTol, mods, a.getNeutralMass(), b.getNeutralMass());
     if (mod != null) {
-      IonNetworkRelation rel = new IonNetworkRelation(a, b, false, true, mod);
+      IonNetworkModificationRelation rel = new IonNetworkModificationRelation(a, b, mod);
       a.addRelation(b, rel);
       b.addRelation(a, rel);
       return true;
@@ -232,7 +163,7 @@ public class IonNetRelationsTask extends AbstractTask {
     IonModification[] mod =
         checkForCondensedModifications(mzTol, mods, a.getNeutralMass(), b.getNeutralMass());
     if (mod != null) {
-      IonNetworkRelation rel = new IonNetworkRelation(a, b, true, true, mod);
+      IonNetworkCondensedRelation rel = new IonNetworkCondensedRelation(a, b, mod);
       a.addRelation(b, rel);
       b.addRelation(a, rel);
       return true;
@@ -355,5 +286,74 @@ public class IonNetRelationsTask extends AbstractTask {
     }
 
     return null;
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return getStatus().equals(TaskStatus.FINISHED) ? 1 : stageProgress.get();
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return "Identification of relationships between ion identity networks in " + featureList
+        .getName()
+           + " ";
+  }
+
+  @Override
+  public void run() {
+    try {
+      setStatus(TaskStatus.PROCESSING);
+      LOG.info("Starting to search for relations (modifications) between ion identity networks ");
+
+      // get all ion identity networks
+      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(featureList, true);
+
+      // filter out ? networks with unknown adducttypes
+      nets = Arrays.stream(nets).filter(net -> !net.isUndefined()).toArray(IonNetwork[]::new);
+
+      if (nets.length == 0) {
+        setErrorMessage("No ion identity networks found. Run ion networking");
+        setStatus(TaskStatus.ERROR);
+        return;
+      }
+
+      // clear all
+      Arrays.stream(nets).forEach(IonNetwork::clearRelation);
+
+      // check for modifications
+      int counter = checkForModifications(mzTol, mods, nets);
+      LOG.info("Found " + counter + " modifications");
+
+      // check for condensed formulas
+      // mass*2 - H2O and - modifications
+      if (searchCondensed) {
+        int counter2 = checkForCondensedModifications(mzTol, mods, nets);
+        LOG.info("Found " + counter2 + " condensed molecules");
+      }
+
+      if (searchHeteroCondensed) {
+        int counter2 = checkForHeteroCondensed(mzTol, mods, nets);
+        LOG.info("Found " + counter2
+                 + " condensed molecules (hetero - two different neutral molecules)");
+      }
+
+      // show all as identity
+      showAllIdentities(nets);
+
+      setStatus(TaskStatus.FINISHED);
+    } catch (Exception t) {
+      LOG.log(Level.SEVERE, "Adduct search error", t);
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage(t.getMessage());
+      throw new MSDKRuntimeException(t);
+    }
+  }
+
+  private void showAllIdentities(IonNetwork[] nets) {
+    for (IonNetwork net : nets) {
+      // TODO add? show?
+//      net.addRelationsIdentityToRows();
+    }
   }
 }

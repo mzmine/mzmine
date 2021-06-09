@@ -18,8 +18,7 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetRelationFeatureIdentity;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelationInterf;
+import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.HashMap;
@@ -58,7 +57,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   private int lowestID = -1;
   // relationship to other IonNetworks (neutral molecules)
   // marks as modification of:
-  private Map<IonNetwork, IonNetworkRelationInterf> relations;
+  private Map<IonNetwork, IonNetworkRelation> relations;
 
   public IonNetwork(MZTolerance mzTolerance, int id) {
     super();
@@ -98,7 +97,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     return molFormulas;
   }
 
-  public Map<IonNetwork, IonNetworkRelationInterf> getRelations() {
+  public Map<IonNetwork, IonNetworkRelation> getRelations() {
     return relations;
   }
 
@@ -108,12 +107,11 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
    * @param net
    * @param rel
    */
-  public void addRelation(IonNetwork net, IonNetworkRelationInterf rel) {
+  public void addRelation(IonNetwork net, IonNetworkRelation rel) {
     if (relations == null) {
       relations = new HashMap<>();
     }
     relations.put(net, rel);
-    createRelationIdentity();
   }
 
   /**
@@ -124,7 +122,6 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
       return;
     }
     relations.remove(net);
-    createRelationIdentity();
   }
 
   /**
@@ -132,20 +129,19 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
    */
   public void clearRelation() {
     relations = null;
-    createRelationIdentity();
   }
 
   /**
    * Create relations identity
    */
-  private IonNetRelationFeatureIdentity createRelationIdentity() {
+  public String concatRelationshipsToString() {
     String name = "";
     if (relations != null) {
       name = relations.values().stream().filter(Objects::nonNull).map(rel -> rel.getName(this))
           .collect(Collectors.joining(", "));
     }
 
-    return new IonNetRelationFeatureIdentity(this, name);
+    return name;
   }
 
   public void clearMolFormulas() {

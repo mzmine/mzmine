@@ -22,7 +22,10 @@ import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity.Relation;
 import io.github.mzmine.datamodel.identities.ms2.MSMSMultimerIdentity;
 import io.github.mzmine.datamodel.identities.ms2.interf.MsMsIdentity;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule;
+import io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -36,6 +39,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 
+/**
+ * IonIdentities are connected to {@link IonNetwork}s and represent different ion species (M+H,
+ * M+Na, 2M+H, ...) for the same molecule. Typically {@link CorrelateGroupingTask} is performed
+ * before identifying ion identities. They can be used to predict molecular formulas in {@link
+ * FormulaPredictionIonNetworkModule} and they are part of the Ion Idententity Molecular Networking
+ * workflow on https://gnps.ucsd.edu/, which is accessible through {@link
+ * GnpsFbmnExportAndSubmitModule}.
+ */
 public class IonIdentity implements Comparable<IonIdentity> {
 
   private static final NumberFormat netIDForm = new DecimalFormat("#000");
