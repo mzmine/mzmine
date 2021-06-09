@@ -25,7 +25,11 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.*;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
@@ -60,7 +64,8 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
    * Filter by minimum height
    */
   public static final DoubleParameter NOISE_LEVEL =
-      new DoubleParameter("Noise level", "Noise level of MS1, used by feature shape correlation",
+      new DoubleParameter("Intensity correlation threshold",
+          "This intensity threshold is used to filter data points before feature shape correlation",
           MZmineCore.getConfiguration().getIntensityFormat(), 1E4);
 
   /**
@@ -88,7 +93,7 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
 
   // Constructor
   public CorrelateGroupingParameters() {
-    super(new Parameter[] {PEAK_LISTS, RT_TOLERANCE,
+    super(new Parameter[]{PEAK_LISTS, RT_TOLERANCE,
         // Group and minimum samples filter
         GROUPSPARAMETER,
         // feature filter
@@ -102,11 +107,11 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
   }
 
   public CorrelateGroupingParameters(RTTolerance rtTol, boolean useGroups, String gParam,
-                                     double minHeight, double noiseLevel, boolean autoSuffix, String suffix,
-                                     MinimumFeaturesFilterParameters minFFilter, boolean useFShapeCorr, boolean useImaxCorr,
-                                     FeatureShapeCorrelationParameters fShapeParam,
-                                     InterSampleHeightCorrParameters heightCorrParam) {
-    super(new Parameter[] {RT_TOLERANCE,
+      double minHeight, double noiseLevel, boolean autoSuffix, String suffix,
+      MinimumFeaturesFilterParameters minFFilter, boolean useFShapeCorr, boolean useImaxCorr,
+      FeatureShapeCorrelationParameters fShapeParam,
+      InterSampleHeightCorrParameters heightCorrParam) {
+    super(new Parameter[]{RT_TOLERANCE,
         // Group and minimum samples filter
         GROUPSPARAMETER,
         // feature filter
@@ -150,12 +155,14 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
     }
     getParameter(CorrelateGroupingParameters.GROUPSPARAMETER).getEmbeddedParameter()
         .setChoices(choices);
-    if (choices.length > 1)
+    if (choices.length > 1) {
       getParameter(CorrelateGroupingParameters.GROUPSPARAMETER).getEmbeddedParameter()
           .setValue(choices[1]);
+    }
 
-    if ((parameters == null) || (parameters.length == 0))
+    if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
+    }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
