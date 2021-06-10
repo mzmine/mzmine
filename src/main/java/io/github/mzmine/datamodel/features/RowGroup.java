@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Group of row. Rows can be grouped by different criteria: Retention time, feature shape (intensity
@@ -42,27 +44,27 @@ public class RowGroup implements Comparable<RowGroup> {
   // raw files used for Feature list creation
   protected final List<RawDataFile> raw;
   // running index of groups
-  protected int groupID = 0;
+  protected int groupID;
   protected List<FeatureListRow> rows;
   // visualization
-  private int lastViewedRow = 0;
-  private int lastViewedRawFile = 0;
+  private int lastViewedRowIndex = 0;
+  private int lastViewedRawFileIndex = 0;
   // center RT values for each sample
   private float[] rtSum;
-  private int[] rtValues;
-  private float[] min, max;
+  private int[] numberOfFeatures;
+  private float[] rtMin, rtMax;
 
   public RowGroup(final List<RawDataFile> raw, int groupID) {
     super();
     rows = new ArrayList<>();
     this.raw = raw;
     this.groupID = groupID;
-    this.min = new float[raw.size()];
-    this.max = new float[raw.size()];
-    Arrays.fill(min, Float.POSITIVE_INFINITY);
-    Arrays.fill(max, Float.NEGATIVE_INFINITY);
+    this.rtMin = new float[raw.size()];
+    this.rtMax = new float[raw.size()];
+    Arrays.fill(rtMin, Float.POSITIVE_INFINITY);
+    Arrays.fill(rtMax, Float.NEGATIVE_INFINITY);
     this.rtSum = new float[raw.size()];
-    this.rtValues = new int[raw.size()];
+    this.numberOfFeatures = new int[raw.size()];
   }
 
   public void setGroupToAllRows() {
@@ -95,15 +97,15 @@ public class RowGroup implements Comparable<RowGroup> {
   public synchronized boolean add(FeatureListRow e) {
     for (int i = 0; i < rtSum.length; i++) {
       Feature f = e.getFeature(raw.get(i));
-      if (f != null) {
+      if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
         rtSum[i] = (rtSum[i] + f.getRT());
-        rtValues[i]++;
+        numberOfFeatures[i]++;
         // min max
-        if (f.getRT() < min[i]) {
-          min[i] = f.getRT();
+        if (f.getRT() < rtMin[i]) {
+          rtMin[i] = f.getRT();
         }
-        if (f.getRT() > max[i]) {
-          max[i] = f.getRT();
+        if (f.getRT() > rtMax[i]) {
+          rtMax[i] = f.getRT();
         }
       }
     }
@@ -111,14 +113,29 @@ public class RowGroup implements Comparable<RowGroup> {
     return rows.add(e);
   }
 
+  /**
+   * Number of rows in this group
+   *
+   * @return number of rows
+   */
   public int size() {
     return rows.size();
   }
 
+  /**
+   * Stream all rows
+   *
+   * @return rows stream
+   */
   public Stream<FeatureListRow> stream() {
     return rows.stream();
   }
 
+  /**
+   * List of all raw data files
+   *
+   * @return raw list
+   */
   public List<RawDataFile> getRaw() {
     return raw;
   }
@@ -126,8 +143,8 @@ public class RowGroup implements Comparable<RowGroup> {
   /**
    * checks for the same ID
    *
-   * @param row
-   * @return
+   * @param row the tested row
+   * @return true if this row is part of the group
    */
   public boolean contains(FeatureListRow row) {
     for (FeatureListRow r : rows) {
@@ -143,27 +160,27 @@ public class RowGroup implements Comparable<RowGroup> {
   /**
    * Center retention time in raw file[i]
    *
-   * @param rawi
-   * @return
+   * @param rawIndex index of the raw data file in this group
+   * @return the center retention time
    */
-  public float getCenterRT(int rawi) {
-    if (rtValues[rawi] == 0) {
+  public float getCenterRT(int rawIndex) {
+    if (numberOfFeatures[rawIndex] == 0) {
       return -1;
     }
-    return rtSum[rawi] / rtValues[rawi];
+    return rtSum[rawIndex] / numberOfFeatures[rawIndex];
   }
 
   /**
    * center retention time of this group
    *
-   * @return
+   * @return center retention time across all rows
    */
   public double getCenterRT() {
     double center = 0;
     int counter = 0;
     for (int i = 0; i < rtSum.length; i++) {
-      if (rtValues[i] > 0) {
-        center += rtSum[i] / rtValues[i];
+      if (numberOfFeatures[i] > 0) {
+        center += rtSum[i] / numberOfFeatures[i];
         counter++;
       }
     }
@@ -173,24 +190,39 @@ public class RowGroup implements Comparable<RowGroup> {
   /**
    * checks if a feature is in range either between min and max or in range of avg+-tolerance
    *
-   * @return
+   * @param rawIndex index of the raw data file in this group
+   * @return true if feature is within rt tolerance
    */
-  public boolean isInRange(int rawi, Feature f, RTTolerance tol) {
-    return hasFeature(rawi) && ((f.getRT() >= min[rawi] && f.getRT() <= max[rawi])
-                                || (tol.checkWithinTolerance(getCenterRT(rawi), f.getRT())));
+  public boolean isInRtRange(int rawIndex, Feature f, RTTolerance tol) {
+    return hasFeature(rawIndex) && ((f.getRT() >= rtMin[rawIndex] && f.getRT() <= rtMax[rawIndex])
+                                    || (tol
+        .checkWithinTolerance(getCenterRT(rawIndex), f.getRT())));
   }
 
   /**
    * checks if this group has a feature in rawfile[i]
+   *
+   * @param rawIndex index of the raw data file in this group
+   * @return true if this group has a feature
    */
-  public boolean hasFeature(int rawi) {
-    return rtValues[rawi] > 0;
+  public boolean hasFeature(int rawIndex) {
+    return numberOfFeatures[rawIndex] > 0;
   }
 
+  /**
+   * The group identifier
+   *
+   * @return the group identifier
+   */
   public int getGroupID() {
     return groupID;
   }
 
+  /**
+   * Set the group ID
+   *
+   * @param groupID new ID
+   */
   public void setGroupID(int groupID) {
     this.groupID = groupID;
   }
@@ -198,33 +230,58 @@ public class RowGroup implements Comparable<RowGroup> {
   // ###########################################
   // for visuals
 
-  public int getLastViewedRowI() {
-    return lastViewedRow;
+  /**
+   * The last viewed row index (for visualization) (index in this group)
+   *
+   * @return the row index in this group
+   */
+  public int getLastViewedRowIndex() {
+    return lastViewedRowIndex;
   }
 
-  public void setLastViewedRowI(int lastViewedRow) {
-    this.lastViewedRow = lastViewedRow;
+  /**
+   * Set the last viewed row index for visualization (index in this group)
+   *
+   * @param lastViewedRowIndex the new index
+   */
+  public void setLastViewedRowIndex(int lastViewedRowIndex) {
+    this.lastViewedRowIndex = lastViewedRowIndex;
   }
 
+  /**
+   * Last viewed row
+   *
+   * @return row or null
+   */
+  @Nullable
   public FeatureListRow getLastViewedRow() {
-    return get(lastViewedRow);
+    return get(lastViewedRowIndex);
   }
 
-  public int getLastViewedRawFileI() {
-    return lastViewedRawFile;
+
+  public int getLastViewedRawFileIndex() {
+    return lastViewedRawFileIndex;
   }
 
-  public void setLastViewedRawFileI(int lastViewedRawFile) {
-    if (lastViewedRawFile < 0) {
-      lastViewedRawFile = 0;
-    } else if (lastViewedRawFile >= raw.size()) {
-      lastViewedRawFile = raw.size() - 1;
+  /**
+   * Set the last viewed raw data file index (in this group)
+   *
+   * @param lastViewedRawFileIndex index of the raw data file in this group
+   */
+  public void setLastViewedRawFileIndex(int lastViewedRawFileIndex) {
+    if (lastViewedRawFileIndex < 0) {
+      lastViewedRawFileIndex = 0;
+    } else if (lastViewedRawFileIndex >= raw.size()) {
+      lastViewedRawFileIndex = raw.size() - 1;
     }
-    this.lastViewedRawFile = lastViewedRawFile;
+    this.lastViewedRawFileIndex = lastViewedRawFileIndex;
   }
 
+  /**
+   * @return The last viewed raw data file or the first
+   */
   public RawDataFile getLastViewedRawFile() {
-    return raw.get(lastViewedRawFile);
+    return raw.get(lastViewedRawFileIndex);
   }
 
   /**
@@ -233,22 +290,19 @@ public class RowGroup implements Comparable<RowGroup> {
    *
    * @param i index in group
    * @param k index in group
-   * @return
+   * @return true if the rows i and k are correlated
    */
   public boolean isCorrelated(int i, int k) {
-    if (i == -1 || k == -1) {
-      return false;
-    }
-    return true;
+    return i != -1 && k != -1 && i < size() && k < size();
   }
 
   /**
    * Not all rows in this group need to be really correlated. Override in specialized RowGroup
    * classes
    *
-   * @param a
-   * @param b
-   * @return
+   * @param a row a
+   * @param b row b
+   * @return true if row a and b are correlated
    */
   public boolean isCorrelated(FeatureListRow a, FeatureListRow b) {
     int ia = indexOf(a);
@@ -259,6 +313,13 @@ public class RowGroup implements Comparable<RowGroup> {
     return isCorrelated(ia, ib);
   }
 
+  /**
+   * Index of row in this group
+   *
+   * @param row the tested row
+   * @return the index of the first occurrence of the specified element in this list, or -1 if this
+   * list does not contain the element
+   */
   public int indexOf(FeatureListRow row) {
     return rows.indexOf(row);
   }
