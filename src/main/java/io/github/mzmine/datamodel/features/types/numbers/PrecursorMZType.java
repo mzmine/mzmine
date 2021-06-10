@@ -25,7 +25,8 @@ import java.text.NumberFormat;
 import javax.annotation.Nonnull;
 
 /**
- * The m/z of the selected precursor ion, e.g., in spectral library matching
+ * The m/z of a precursor ion, e.g., in the one loaded from a spectral library entry during library
+ * matching
  */
 public class PrecursorMZType extends DoubleType {
 
