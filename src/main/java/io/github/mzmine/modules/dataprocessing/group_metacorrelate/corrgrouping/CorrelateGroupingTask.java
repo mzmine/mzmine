@@ -22,7 +22,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data_access.PreloadedFeatureDataAccess;
+import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
@@ -258,7 +258,6 @@ public class CorrelateGroupingTask extends AbstractTask {
   /**
    * Correlation and adduct network creation
    *
-   * @return
    */
   private void doR2RComparison(ModularFeatureList featureList, R2RMap<R2RCorrelationData> map) {
     logger.fine("Corr: Creating row2row correlation map");
@@ -272,8 +271,8 @@ public class CorrelateGroupingTask extends AbstractTask {
 
     totalRows = rows.length;
 
-    PreloadedFeatureDataAccess data = new PreloadedFeatureDataAccess(rows);
-    data.loadIntensityValues();
+    // preload all intensity values
+    CachedFeatureDataAccess data = new CachedFeatureDataAccess(rows, false, true);
 
     // for all rows - do in parallel
     IntStream.range(0, totalRows - 1).parallel().forEach(i -> {

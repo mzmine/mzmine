@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data_access.PreloadedFeatureDataAccess;
+import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -113,7 +113,7 @@ public class FeatureCorrelationUtil {
    * validity on result
    */
   public static R2RFullCorrelationData corrR2R(
-      PreloadedFeatureDataAccess data,
+      CachedFeatureDataAccess data,
       List<RawDataFile> raws, FeatureListRow testRow,
       FeatureListRow row, boolean doFShapeCorr, int minCorrelatedDataPoints,
       int minCorrDPOnFeatureEdge, int minDPFHeightCorr, double minHeight,
@@ -150,9 +150,8 @@ public class FeatureCorrelationUtil {
       featureCorrMap = null;
     }
 
-    R2RFullCorrelationData corr = new R2RFullCorrelationData(testRow, row, heightCorr,
+    return new R2RFullCorrelationData(testRow, row, heightCorr,
         featureCorrMap);
-    return corr;
   }
 
   /**
@@ -163,10 +162,9 @@ public class FeatureCorrelationUtil {
    * @param row
    * @param g
    * @return Map of feature shape correlation data (can be empty NON null)
-   * @throws Exception
    */
   public static Map<RawDataFile, CorrelationData> corrR2RFeatureShapes(
-      PreloadedFeatureDataAccess data,
+      CachedFeatureDataAccess data,
       final List<RawDataFile> raws,
       FeatureListRow row, FeatureListRow g, int minCorrelatedDataPoints, int minCorrDPOnFeatureEdge,
       double noiseLevelShapeCorr) {
@@ -204,7 +202,7 @@ public class FeatureCorrelationUtil {
    * @return feature shape correlation or null if not possible not enough data points for a
    * correlation
    */
-  public static CorrelationData corrFeatureShape(PreloadedFeatureDataAccess data, Feature f1,
+  public static CorrelationData corrFeatureShape(CachedFeatureDataAccess data, Feature f1,
       Feature f2, boolean sameRawFile, int minCorrelatedDataPoints, int minCorrDPOnFeatureEdge,
       double noiseLevelShapeCorr) {
     // f1 should be the higher feature
@@ -358,9 +356,9 @@ public class FeatureCorrelationUtil {
     double ratio = 0;
     SimpleRegression reg = new SimpleRegression();
     // go through all raw files
-    for (int r = 0; r < raw.size(); r++) {
-      Feature f1 = row.getFeature(raw.get(r));
-      Feature f2 = g.getFeature(raw.get(r));
+    for (RawDataFile rawDataFile : raw) {
+      Feature f1 = row.getFeature(rawDataFile);
+      Feature f2 = g.getFeature(rawDataFile);
       if (f1 != null && f2 != null) {
         // I profile correlation
         double a = f1.getHeight();
@@ -376,9 +374,9 @@ public class FeatureCorrelationUtil {
     ratio = ratio / data.size();
     if (ratio != 0) {
       // estimate missing values as noise level if > minHeight
-      for (int r = 0; r < raw.size(); r++) {
-        Feature f1 = row.getFeature(raw.get(r));
-        Feature f2 = g.getFeature(raw.get(r));
+      for (RawDataFile rawDataFile : raw) {
+        Feature f1 = row.getFeature(rawDataFile);
+        Feature f2 = g.getFeature(rawDataFile);
 
         boolean amissing = (f1 == null || f1.getHeight() < minHeight);
         boolean bmissing = (f2 == null || f2.getHeight() < minHeight);

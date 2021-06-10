@@ -4,7 +4,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data_access.PreloadedFeatureDataAccess;
+import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.UserParameter;
@@ -148,7 +148,7 @@ public class MinimumFeatureFilter {
    * @param rtTolerance
    * @return
    */
-  public OverlapResult filterMinFeaturesOverlap(@Nullable PreloadedFeatureDataAccess data,
+  public OverlapResult filterMinFeaturesOverlap(@Nullable CachedFeatureDataAccess data,
       final List<RawDataFile> raw, FeatureListRow row,
       FeatureListRow row2, RTTolerance rtTolerance) {
     OverlapResult result = OverlapResult.TRUE;
@@ -243,7 +243,7 @@ public class MinimumFeatureFilter {
    * @return
    */
   public boolean checkIntensityOverlap(
-      PreloadedFeatureDataAccess data, Feature a, Feature b,
+      CachedFeatureDataAccess data, Feature a, Feature b,
       double minIPercOverlap,
       double minHeight) {
     if (minIPercOverlap < 0.00001) {
