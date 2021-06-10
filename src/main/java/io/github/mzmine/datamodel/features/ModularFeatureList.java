@@ -10,6 +10,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DateFormat;
@@ -26,6 +27,8 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -56,11 +59,12 @@ public class ModularFeatureList implements FeatureList {
   private ObservableMap<Class<? extends DataType>, DataType> featureTypes =
       FXCollections.observableMap(new LinkedHashMap<>());
   private ObservableList<FeatureListRow> featureListRows;
-  private String name;
   private ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
   private String dateCreated;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
+  @Nonnull
+  private final StringProperty nameProperty;
 
   // grouping
   private List<RowGroup> groups;
@@ -76,7 +80,7 @@ public class ModularFeatureList implements FeatureList {
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @Nonnull List<RawDataFile> dataFiles) {
-    this.name = name;
+    this.nameProperty = new SimpleStringProperty(name);
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
@@ -90,18 +94,24 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
+  @Nonnull
+  public String getNameProperty() {
+    return nameProperty.get();
+  }
+
+  @Override
   public String getName() {
-    return name;
+    return nameProperty.get();
   }
 
   @Override
   public void setName(String name) {
-    this.name = name;
+    MZmineCore.runLater(() -> this.nameProperty.set(name));
   }
 
   @Override
   public String toString() {
-    return name;
+    return getName();
   }
 
   /**

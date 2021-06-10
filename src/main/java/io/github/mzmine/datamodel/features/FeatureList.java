@@ -38,6 +38,9 @@ import javax.annotation.Nullable;
  */
 public interface FeatureList {
 
+  @Nonnull
+  String getNameProperty();
+
   /**
    * @return Short descriptive name for the feature list
    */
