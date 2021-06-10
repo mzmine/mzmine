@@ -99,13 +99,13 @@ public abstract class R2RCorrelationData implements RowsRelationship {
    *
    * @return total similarity of features
    */
-  public abstract double getTotalR();
+  public abstract double getTotalPearsonR();
 
   /**
    * Has "total" correlation of all data points in all features as one correlation
    * @return true if total correlation available
    */
-  protected abstract boolean hasTotalCorr();
+  protected abstract boolean hasTotalCorrelation();
 
   /**
    * Average feature shape similarity
@@ -174,12 +174,12 @@ public abstract class R2RCorrelationData implements RowsRelationship {
    *
    * @return feature height cosine score
    */
-  public abstract double getCosineHeightCorr();
+  public abstract double getHeightCosineSimilarity();
 
   /**
    * Pearson correlation score of the feature height correlation
    *
    * @return feature height Pearson correlation
    */
-  public abstract double getHeightCorrR();
+  public abstract double getHeightPearsonR();
 }

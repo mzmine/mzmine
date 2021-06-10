@@ -93,7 +93,7 @@ public class FullCorrelationData implements CorrelationData {
    * @return Pearson correlation r
    */
   @Override
-  public double getR() {
+  public double getPearsonR() {
     return reg == null ? 0 : reg.getR();
   }
 

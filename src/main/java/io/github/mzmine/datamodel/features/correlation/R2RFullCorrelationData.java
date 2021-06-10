@@ -81,14 +81,14 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
 
     for (Entry<RawDataFile, CorrelationData> e : corrFeatureShape.entrySet()) {
       CorrelationData corr = e.getValue();
-      avgShapeR += corr.getR();
+      avgShapeR += corr.getPearsonR();
       avgShapeCosineSim += corr.getCosineSimilarity();
       avgDPCount += corr.getDPCount();
-      if (corr.getR() < minShapeR) {
-        minShapeR = corr.getR();
+      if (corr.getPearsonR() < minShapeR) {
+        minShapeR = corr.getPearsonR();
       }
-      if (corr.getR() > maxShapeR) {
-        maxShapeR = corr.getR();
+      if (corr.getPearsonR() > maxShapeR) {
+        maxShapeR = corr.getPearsonR();
       }
     }
 
@@ -125,16 +125,16 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
    */
   @Override
   public double getTotalSimilarity(SimilarityMeasure type) {
-    return hasTotalCorr() ? getTotalCorr().getSimilarity(type) : Double.NaN;
+    return hasTotalCorrelation() ? getTotalCorr().getSimilarity(type) : Double.NaN;
   }
 
   @Override
-  public double getTotalR() {
-    return hasTotalCorr() ? getTotalCorr().getR() : Double.NaN;
+  public double getTotalPearsonR() {
+    return hasTotalCorrelation() ? getTotalCorr().getPearsonR() : Double.NaN;
   }
 
   @Override
-  protected boolean hasTotalCorr() {
+  protected boolean hasTotalCorrelation() {
     return getTotalCorr() != null;
   }
 
@@ -254,13 +254,13 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
 
 
   @Override
-  public double getCosineHeightCorr() {
+  public double getHeightCosineSimilarity() {
     return hasHeightCorr() ? heightCorr.getCosineSimilarity() : 0;
   }
 
   @Override
-  public double getHeightCorrR() {
-    return hasHeightCorr() ? heightCorr.getR() : 0;
+  public double getHeightPearsonR() {
+    return hasHeightCorr() ? heightCorr.getPearsonR() : 0;
   }
 
 }

@@ -38,7 +38,7 @@ public interface CorrelationData {
    *
    * @return Pearson correlation r
    */
-  double getR();
+  double getPearsonR();
 
   /**
    * Cosine similarity (dot-product) from 1 as identical to 0 as completely different
@@ -57,7 +57,7 @@ public interface CorrelationData {
   default double getSimilarity(SimilarityMeasure type) {
     return switch (type) {
       case COSINE_SIM -> getCosineSimilarity();
-      case PEARSON -> getR();
+      case PEARSON -> getPearsonR();
       default -> {
         double[][] data = getData();
         if (data != null || data.length == 0 || data[0].length == 0) {

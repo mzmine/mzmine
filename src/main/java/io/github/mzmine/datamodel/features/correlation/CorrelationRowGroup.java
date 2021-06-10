@@ -63,7 +63,7 @@ public class CorrelationRowGroup extends RowGroup {
    *
    * @return
    */
-  public R2GroupCorrelationData[] getCorr() {
+  public R2GroupCorrelationData[] getCorrelation() {
     return corr;
   }
 
@@ -72,17 +72,17 @@ public class CorrelationRowGroup extends RowGroup {
    *
    * @return
    */
-  public R2GroupCorrelationData getCorr(int row) {
+  public R2GroupCorrelationData getCorrelation(int row) {
     return corr[row];
   }
 
-  public R2GroupCorrelationData getCorr(FeatureListRow row) {
+  public R2GroupCorrelationData getCorrelation(FeatureListRow row) {
     if (row == null) {
       return null;
     }
     int index = indexOf(row);
     if (index != -1) {
-      return getCorr(index);
+      return getCorrelation(index);
     }
     return null;
   }

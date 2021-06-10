@@ -142,19 +142,19 @@ public class CorrelationGroupingUtils {
       return Stream.empty();
     }
     return FeatureList.getGroups().stream().filter(g -> g instanceof CorrelationRowGroup)
-        .map(g -> ((CorrelationRowGroup) g).getCorr()).flatMap(Arrays::stream) // R2GCorr
-        .flatMap(r2g -> r2g.getCorr() == null ? null
-            : r2g.getCorr().stream() //
+        .map(g -> ((CorrelationRowGroup) g).getCorrelation()).flatMap(Arrays::stream) // R2GCorr
+        .flatMap(r2g -> r2g.getCorrelation() == null ? null
+            : r2g.getCorrelation().stream() //
                 .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 
   public static Stream<R2RCorrelationData> streamFrom(FeatureListRow[] rows) {
     return Arrays.stream(rows).map(FeatureListRow::getGroup).filter(Objects::nonNull)
         .filter(g -> g instanceof CorrelationRowGroup).distinct()
-        .map(g -> ((CorrelationRowGroup) g).getCorr())
+        .map(g -> ((CorrelationRowGroup) g).getCorrelation())
         .flatMap(Arrays::stream) // R2GCorr
-        .flatMap(r2g -> r2g.getCorr() == null ? null
-            : r2g.getCorr().stream() //
+        .flatMap(r2g -> r2g.getCorrelation() == null ? null
+            : r2g.getCorrelation().stream() //
                 .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 }

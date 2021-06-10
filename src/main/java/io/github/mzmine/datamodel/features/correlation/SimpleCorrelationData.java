@@ -57,7 +57,7 @@ public class SimpleCorrelationData implements CorrelationData {
   }
 
   @Override
-  public double getR() {
+  public double getPearsonR() {
     return pearsonR;
   }
 

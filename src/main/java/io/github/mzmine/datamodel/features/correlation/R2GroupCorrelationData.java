@@ -50,7 +50,7 @@ public class R2GroupCorrelationData {
       double maxHeight) {
     super();
     this.row = row;
-    setCorr(corr);
+    setCorrelation(corr);
     this.maxHeight = maxHeight;
   }
 
@@ -63,20 +63,20 @@ public class R2GroupCorrelationData {
       return Stream.empty();
     }
     return FeatureList.getGroups().stream().filter(g -> g instanceof CorrelationRowGroup)
-        .map(g -> ((CorrelationRowGroup) g).getCorr()).flatMap(Arrays::stream);
+        .map(g -> ((CorrelationRowGroup) g).getCorrelation()).flatMap(Arrays::stream);
 
   }
 
 
-  public void setCorr(List<R2RCorrelationData> corr) {
+  public void setCorrelation(List<R2RCorrelationData> corr) {
     this.corr = corr;
-    recalcCorr();
+    recalcCorrelation();
   }
 
   /**
    * Recalc correlation
    */
-  public void recalcCorr() {
+  public void recalcCorrelation() {
     // min max
     minHeightR = 1;
     maxHeightR = -1;
@@ -94,8 +94,8 @@ public class R2GroupCorrelationData {
     for (R2RCorrelationData r2r : corr) {
       if (r2r.hasHeightCorr()) {
         cImax++;
-        avgCosineHeightCorr += r2r.getCosineHeightCorr();
-        double iProfileR = r2r.getHeightCorrR();
+        avgCosineHeightCorr += r2r.getHeightCosineSimilarity();
+        double iProfileR = r2r.getHeightPearsonR();
         avgHeightR += iProfileR;
         if (iProfileR < minHeightR) {
           minHeightR = iProfileR;
@@ -108,7 +108,7 @@ public class R2GroupCorrelationData {
       // Feature shape correlation
       if (r2r.hasFeatureShapeCorrelation()) {
         cFeatureShape++;
-        avgTotalFeatureShapeR += r2r.getTotalR();
+        avgTotalFeatureShapeR += r2r.getTotalPearsonR();
         avgShapeR += r2r.getAvgShapeR();
         avgShapeCosineSim += r2r.getAvgShapeCosineSim();
         avgDPCount += r2r.getAvgDPcount();
@@ -151,8 +151,8 @@ public class R2GroupCorrelationData {
   /**
    * The similarity or NaN if data is null or empty
    *
-   * @param type
-   * @return
+   * @param type the similarity type
+   * @return the score or Double.NaN
    */
   public double getAvgTotalSimilarity(SimilarityMeasure type) {
     double mean = 0;
@@ -170,8 +170,8 @@ public class R2GroupCorrelationData {
   /**
    * The similarity or NaN if data is null or empty
    *
-   * @param type
-   * @return
+   * @param type the similarity type
+   * @return the score or Double.NaN
    */
   public double getAvgFeatureShapeSimilarity(SimilarityMeasure type) {
     double mean = 0;
@@ -186,7 +186,7 @@ public class R2GroupCorrelationData {
     return n > 0 ? mean / n : Double.NaN;
   }
 
-  public double getAvgShapeCosineSim() {
+  public double getAvgShapeCosineSimilarity() {
     return avgShapeCosineSim;
   }
 
@@ -194,19 +194,19 @@ public class R2GroupCorrelationData {
     return maxHeight;
   }
 
-  public List<R2RCorrelationData> getCorr() {
+  public List<R2RCorrelationData> getCorrelation() {
     return corr;
   }
 
-  public double getMinIProfileR() {
+  public double getMinHeightR() {
     return minHeightR;
   }
 
-  public double getAvgIProfileR() {
+  public double getAvgHeightR() {
     return avgHeightR;
   }
 
-  public double getMaxIProfileR() {
+  public double getMaxHeightR() {
     return maxHeightR;
   }
 
@@ -235,7 +235,7 @@ public class R2GroupCorrelationData {
    *
    * @return
    */
-  public double getAvgCosineHeightCorr() {
+  public double getAvgHeightCosineSimilarity() {
     return avgCosineHeightCorr;
   }
 
