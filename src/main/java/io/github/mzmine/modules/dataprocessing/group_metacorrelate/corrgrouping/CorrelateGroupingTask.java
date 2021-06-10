@@ -203,7 +203,7 @@ public class CorrelateGroupingTask extends AbstractTask {
 
       // create new feature list for grouping
       groupedPKL = featureList
-          .createCopy(featureList.getName() + " " + suffix, getMemoryMapStorage());
+          .createCopy(featureList.getName() + " " + suffix, getMemoryMapStorage(), false);
 
       // create correlation map
       // do R2R comparison correlation
@@ -257,7 +257,6 @@ public class CorrelateGroupingTask extends AbstractTask {
 
   /**
    * Correlation and adduct network creation
-   *
    */
   private void doR2RComparison(ModularFeatureList featureList, R2RMap<R2RCorrelationData> map) {
     logger.fine("Corr: Creating row2row correlation map");

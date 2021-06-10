@@ -38,8 +38,9 @@ import javax.annotation.Nullable;
 
 public class MergeAlignerTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(MergeAlignerTask.class.getName());
+
   private final MZmineProject project;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   private ModularFeatureList[] featureLists;
   private ModularFeatureList alignedFeatureList;
 
@@ -48,10 +49,6 @@ public class MergeAlignerTask extends AbstractTask {
 
   private String featureListName;
   private ParameterSet parameters;
-
-  // ID counter for the new peaklist
-  private int newRowID = 1;
-
 
   public MergeAlignerTask(MZmineProject project, ParameterSet parameters,
       @Nullable MemoryMapStorage storage) {
@@ -103,15 +100,12 @@ public class MergeAlignerTask extends AbstractTask {
     List<RawDataFile> allDataFiles = Stream.of(featureLists)
         .flatMap(flist -> flist.getRawDataFiles().stream()).distinct().collect(Collectors.toList());
 
-    // create copy of first feature list as base
+    // create copy of first feature list as base and renumber IDs
     alignedFeatureList = featureLists[0]
-        .createCopy(featureListName, getMemoryMapStorage(), allDataFiles);
+        .createCopy(featureListName, getMemoryMapStorage(), allDataFiles, true);
 
-    // renumber all rows
-    for(FeatureListRow row : alignedFeatureList.getRows()) {
-      row.setID(newRowID);
-      newRowID++;
-    }
+    // next row will have this id
+    int newRowID = alignedFeatureList.getNumberOfRows() + 1;
 
     // Iterate source feature lists
     // Next feature list
@@ -120,7 +114,8 @@ public class MergeAlignerTask extends AbstractTask {
 
       // copy all types
       featureList.getRowTypes().values().forEach(type -> alignedFeatureList.addRowType(type));
-      featureList.getFeatureTypes().values().forEach(type -> alignedFeatureList.addFeatureType(type));
+      featureList.getFeatureTypes().values()
+          .forEach(type -> alignedFeatureList.addFeatureType(type));
 
       // selected scans during chromatogram creation needs to be the same list for the same data file
       for (RawDataFile file : featureList.getRawDataFiles()) {
@@ -143,9 +138,8 @@ public class MergeAlignerTask extends AbstractTask {
           return;
         }
         if (row instanceof ModularFeatureListRow mrow) {
-          ModularFeatureListRow targetRow = new ModularFeatureListRow(alignedFeatureList, mrow,
-              true);
-          targetRow.setID(newRowID);
+          ModularFeatureListRow targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID,
+              mrow, true);
           newRowID++;
           alignedFeatureList.addRow(targetRow);
           processedRows++;

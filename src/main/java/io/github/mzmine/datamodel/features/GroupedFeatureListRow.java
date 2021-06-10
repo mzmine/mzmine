@@ -215,11 +215,6 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
     return mainRow.getBestIsotopePattern();
   }
 
-  @Override
-  public void setID(int id) {
-    mainRow.setID(id);
-  }
-
   @Nullable
   @Override
   public FeatureList getFeatureList() {

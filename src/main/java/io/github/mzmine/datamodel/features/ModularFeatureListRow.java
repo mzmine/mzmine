@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
-import io.github.mzmine.datamodel.features.types.FormulaSummaryType;
 import io.github.mzmine.datamodel.features.types.FormulaAnnotationType;
+import io.github.mzmine.datamodel.features.types.FormulaSummaryType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
 import io.github.mzmine.datamodel.features.types.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.IonIdentityModularType;
@@ -92,27 +92,27 @@ import javax.annotation.Nullable;
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
-  @Nonnull
-  private ModularFeatureList flist;
   /**
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
    * this map see {@link #addFeature}
    */
   private final ObservableMap<DataType, Property<?>> map =
       FXCollections.observableMap(new HashMap<>());
-
   private final Map<RawDataFile, ModularFeature> features;
-
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
+  @Nonnull
+  private ModularFeatureList flist;
 
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist) {
-    this(flist, null, false);
-  }
-
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, ModularFeatureListRow row,
-      boolean copyFeatures) {
+  /**
+   * Creates an empty row
+   *
+   * @param flist the feature list
+   * @param id    the row id
+   */
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id) {
     this.flist = flist;
+
     // add type property columns to maps
     flist.getRowTypes().values().forEach(type -> {
       this.setProperty(type, type.createProperty());
@@ -132,12 +132,6 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
           }
         });
 
-    // copy all but features
-    if (row != null) {
-      row.stream().filter(e -> !(e.getKey() instanceof FeaturesType))
-          .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
-    }
-
     // features
     List<RawDataFile> raws = flist.getRawDataFiles();
     if (!raws.isEmpty()) {
@@ -153,51 +147,58 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       features = Collections.emptyMap();
     }
 
+    // set ID
+    this.set(IDType.class, id);
+  }
+
+  /**
+   * Constructor for row with only one feature.
+   *
+   * @param flist   the feature list
+   * @param id      the row id
+   * @param feature a feature to add to the row
+   */
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, Feature feature) {
+    this(flist, id);
+    addFeature(feature.getRawDataFile(), feature);
+  }
+
+  /**
+   * Create a row based on another row. Uses the old row ID
+   *
+   * @param flist        the new feature list
+   * @param row          a row to copy (uses the row.getID() as the new ID)
+   * @param copyFeatures true also copy features, false leave features empty
+   */
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, ModularFeatureListRow row,
+      boolean copyFeatures) {
+    this(flist, row.getID(), row, copyFeatures);
+  }
+
+  /**
+   * Create a row based on another row
+   *
+   * @param flist        the new feature list
+   * @param id           the row id
+   * @param row          a row to copy
+   * @param copyFeatures true also copy features, false leave features empty
+   */
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, ModularFeatureListRow row,
+      boolean copyFeatures) {
+    this(flist, id);
+
+    // copy all but features
+    if (row != null) {
+      row.stream().filter(e -> !(e.getKey() instanceof FeaturesType))
+          .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
+    }
+
     if (copyFeatures) {
       // Copy the features.
       for (final Entry<RawDataFile, ModularFeature> feature : row.getFilesFeatures().entrySet()) {
         this.addFeature(feature.getKey(), new ModularFeature(flist, feature.getValue()));
       }
     }
-  }
-
-  /**
-   * Constructor for row with only one raw data file.
-   *
-   * @param flist
-   * @param id
-   * @param raw
-   * @param p
-   */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
-      Feature p) {
-    this(flist);
-    set(IDType.class, (id));
-    addFeature(raw, p);
-  }
-
-  /**
-   * Constructor for row with only one feature.
-   *
-   * @param flist
-   * @param id
-   * @param feature
-   */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, Feature feature) {
-    this(flist);
-    set(IDType.class, (id));
-    addFeature(feature.getRawDataFile(), feature);
-  }
-
-  /**
-   * Constructor for row with a specific id.
-   *
-   * @param flist Feature list
-   * @param id    ID
-   */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id) {
-    this(flist);
-    set(IDType.class, (id));
   }
 
   @Override
@@ -328,9 +329,19 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
+  public void setAverageMZ(double averageMZ) {
+    // binding
+  }
+
+  @Override
   public float getAverageRT() {
     Property<Float> v = get(RTType.class);
     return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+  }
+
+  @Override
+  public void setAverageRT(float averageRT) {
+    // binding
   }
 
   @Override
@@ -371,7 +382,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public boolean hasFeature(RawDataFile rawData) {
     ModularFeature feature = features.get(rawData);
-    return feature !=null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN);
+    return feature != null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN);
   }
 
   @Override
@@ -405,11 +416,6 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return f != null && f.getFeatureStatus().equals(FeatureStatus.UNKNOWN) ? null : f;
   }
 
-  @Override
-  public void setID(int id) {
-    set(IDType.class, id);
-  }
-
   @Nullable
   @Override
   public ModularFeatureList getFeatureList() {
@@ -426,13 +432,13 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void setGroup(RowGroup group) {
-    set(FeatureGroupType.class, group);
+  public RowGroup getGroup() {
+    return get(FeatureGroupType.class).getValue();
   }
 
   @Override
-  public RowGroup getGroup() {
-    return get(FeatureGroupType.class).getValue();
+  public void setGroup(RowGroup group) {
+    set(FeatureGroupType.class, group);
   }
 
   /**
@@ -497,10 +503,6 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
   }
 
-  public ModularTypeProperty getManualAnnotation() {
-    return get(ManualAnnotationType.class);
-  }
-
   @Override
   public void setComment(String comment) {
     ModularTypeProperty manual = getManualAnnotation();
@@ -513,14 +515,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     manual.set(CommentType.class, comment);
   }
 
-  @Override
-  public void setAverageMZ(double averageMZ) {
-    // binding
-  }
-
-  @Override
-  public void setAverageRT(float averageRT) {
-    // binding
+  public ModularTypeProperty getManualAnnotation() {
+    return get(ManualAnnotationType.class);
   }
 
   @Override
@@ -595,14 +591,14 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void setFeatureInformation(FeatureInformation featureInformation) {
-    set(FeatureInformationType.class, featureInformation);
-  }
-
-  @Override
   public FeatureInformation getFeatureInformation() {
     ObjectProperty<SimpleFeatureInformation> v = get(FeatureInformationType.class);
     return v == null ? null : v.getValue();
+  }
+
+  @Override
+  public void setFeatureInformation(FeatureInformation featureInformation) {
+    set(FeatureInformationType.class, featureInformation);
   }
 
   @Override
@@ -677,17 +673,16 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return null;
   }
 
+  public List<ResultFormula> getFormulas() {
+    ModularTypeProperty formulaType = get(FormulaAnnotationType.class);
+    return formulaType == null ? null : formulaType.get(FormulaSummaryType.class).getValue();
+  }
 
   public void setFormulas(List<ResultFormula> formulas) {
-    if(get(FormulaAnnotationType.class)==null) {
+    if (get(FormulaAnnotationType.class) == null) {
       flist.addRowType(new FormulaAnnotationType());
     }
     get(FormulaAnnotationType.class).set(FormulaSummaryType.class, formulas);
-  }
-
-  public List<ResultFormula> getFormulas() {
-    ModularTypeProperty formulaType = get(FormulaAnnotationType.class);
-    return formulaType==null? null : formulaType.get(FormulaSummaryType.class).getValue();
   }
 
 }

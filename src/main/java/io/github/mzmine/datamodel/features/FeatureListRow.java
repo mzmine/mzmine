@@ -48,11 +48,6 @@ public interface FeatureListRow {
   public int getID();
 
   /**
-   * reset the rowID
-   */
-  public void setID(int id);
-
-  /**
    * Returns number of features assigned to this row
    */
   public int getNumberOfFeatures();

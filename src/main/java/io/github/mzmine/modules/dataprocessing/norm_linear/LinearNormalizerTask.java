@@ -215,7 +215,7 @@ class LinearNormalizerTask extends AbstractTask {
 
           if (normalizedRow == null) {
 
-            normalizedRow = new ModularFeatureListRow((ModularFeatureList) originalFeatureListRow.getFeatureList(),
+            normalizedRow = new ModularFeatureListRow(originalFeatureListRow.getFeatureList(),
                     originalFeatureListRow, false);
 
             rowMap.put(originalFeatureListRow, normalizedRow);

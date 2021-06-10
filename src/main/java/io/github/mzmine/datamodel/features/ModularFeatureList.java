@@ -562,11 +562,13 @@ public class ModularFeatureList implements FeatureList {
   /**
    * create copy of all feature list rows and features
    *
-   * @param title the new title
-   * @return
+   * @param title       the new title
+   * @param renumberIDs true: renumber row IDs or false: use original IDs
+   * @return a copy of the orginal feature list
    */
-  public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage) {
-    return createCopy(title, storage, getRawDataFiles());
+  public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
+      boolean renumberIDs) {
+    return createCopy(title, storage, getRawDataFiles(), renumberIDs);
   }
 
 
@@ -575,19 +577,23 @@ public class ModularFeatureList implements FeatureList {
    * new list of raw data files might be used by alignment modules to create a copy of a base
    * feature list and then add all the other feature lists to it.
    *
-   * @param title     the new title
-   * @param dataFiles the new list of raw data files
-   * @return
+   * @param title       the new title
+   * @param dataFiles   the new list of raw data files
+   * @param renumberIDs true: renumber row IDs or false: use original IDs
+   * @return a copy of the orginal feature list
    */
   public ModularFeatureList createCopy(String title, @Nullable MemoryMapStorage storage,
-      List<RawDataFile> dataFiles) {
+      List<RawDataFile> dataFiles, boolean renumberIDs) {
     ModularFeatureList flist = new ModularFeatureList(title, storage, dataFiles);
 
     // key is original row and value is copied row
     Map<FeatureListRow, ModularFeatureListRow> mapCopied = new HashMap<>();
     // copy all rows and features
+    int id = 0;
     for (FeatureListRow row : this.getRows()) {
-      ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, (ModularFeatureListRow) row,
+      id = renumberIDs ? id + 1 : row.getID();
+      ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, id,
+          (ModularFeatureListRow) row,
           true);
       flist.addRow(copyRow);
       mapCopied.put(row, copyRow);

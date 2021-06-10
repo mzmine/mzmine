@@ -94,7 +94,7 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
     pointsLists.forEach(list -> regions.add(getShape(list)));
 
     ModularFeatureList newFeatureList = originalFeatureList
-        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage());
+        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(), false);
 
     final double numberOfRows = newFeatureList.getNumberOfRows();
     int processedFeatures = 0;
