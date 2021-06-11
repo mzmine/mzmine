@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -56,10 +57,10 @@ public class FormulaPredictionFeatureListModule implements MZmineProcessingModul
   @Override
   public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    FeatureList featureLists[] = parameters.getParameter(FormulaPredictionFeatureListParameters.FEATURE_LISTS)
+    ModularFeatureList featureLists[] = parameters.getParameter(FormulaPredictionFeatureListParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
 
-    for (FeatureList featureList : featureLists) {
+    for (ModularFeatureList featureList : featureLists) {
       Task newTask = new FormulaPredictionFeatureListTask(featureList, parameters);
       tasks.add(newTask);
     }

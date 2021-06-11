@@ -334,7 +334,7 @@ public class ImageBuilderTask extends AbstractTask {
       image.setFeatureList(featureList);
       ModularFeature modular = FeatureConvertors.ImageToModularFeature(image, rawDataFile);
       ModularFeatureListRow newRow =
-          new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
+          new ModularFeatureListRow(featureList, featureId, modular);
       featureList.addRow(newRow);
       featureId++;
     }

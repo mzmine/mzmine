@@ -98,7 +98,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 
     // Initialize new alignment result for the normalized result
     normalizedFeatureList = originalFeatureList.createCopy(originalFeatureList + " " + suffix,
-        getMemoryMapStorage());
+        getMemoryMapStorage(), false);
 
     // Copy raw data files from original alignment result to new alignment
     // result

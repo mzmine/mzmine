@@ -30,6 +30,9 @@ import java.text.NumberFormat;
 import java.util.List;
 import javax.annotation.Nonnull;
 
+/**
+ * Retention time type
+ */
 public class RTType extends FloatType implements ExpandableType {
 
   public RTType() {

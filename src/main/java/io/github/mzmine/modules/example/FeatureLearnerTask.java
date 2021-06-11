@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 
 class FeatureLearnerTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(FeatureLearnerTask.class.getName());
 
   private final MZmineProject project;
   private ModularFeatureList featureList;

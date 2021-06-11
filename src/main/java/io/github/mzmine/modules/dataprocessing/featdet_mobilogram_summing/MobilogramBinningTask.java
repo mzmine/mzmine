@@ -91,7 +91,7 @@ public class MobilogramBinningTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     final ModularFeatureList flist = createNewFlist ? originalFeatureList
-        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage())
+        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(), false)
         : originalFeatureList;
 
     totalFeatures = flist.streamFeatures().count();

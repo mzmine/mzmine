@@ -74,7 +74,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     logger.info("Running multithreaded gap filler on " + peakList);
 
     // Create new results feature list
-    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage());
+    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage(), false);
     progress = 0.5;
 
     // split raw data files into groups for each thread (task)

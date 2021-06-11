@@ -19,10 +19,9 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import javafx.collections.ObservableMap;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 
 public class ManualAnnotationType extends ModularType implements AnnotationType {
 
@@ -31,11 +30,13 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
           new CompoundNameType(), new IonAdductType(),
           new FormulaType(), new SmilesStructureType());
 
+  @Nonnull
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
+  @Nonnull
   @Override
   public String getHeaderString() {
     return "Manual annotation";

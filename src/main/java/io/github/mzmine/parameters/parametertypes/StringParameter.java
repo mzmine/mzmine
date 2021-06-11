@@ -25,10 +25,10 @@ import javafx.scene.control.TextField;
 
 public class StringParameter implements UserParameter<String, TextField> {
 
-  private String name, description, value;
-  private int inputsize = 20;
-  private boolean valueRequired = true;
-  private final boolean sensitive;
+  protected String name, description, value;
+  protected int inputsize = 20;
+  protected boolean valueRequired = true;
+  protected final boolean sensitive;
 
   public StringParameter(String name, String description) {
     this(name, description, null);
@@ -63,17 +63,11 @@ public class StringParameter implements UserParameter<String, TextField> {
     this.sensitive = isSensitive;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;

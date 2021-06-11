@@ -174,7 +174,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
       if (mainRow != null) {
         // copy first row
-        ModularFeatureListRow firstRow = new ModularFeatureListRow(newPeakList, mainRow, true);
+        ModularFeatureListRow firstRow = new ModularFeatureListRow(newPeakList, mainRow.getID(), mainRow, true);
 
         for (int secondRowIndex = firstRowIndex + 1; !isCanceled()
             && secondRowIndex < rowCount; secondRowIndex++) {

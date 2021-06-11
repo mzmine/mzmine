@@ -80,11 +80,11 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final double twimsBindWidth;
   private final double dtimsBindWidth;
   private final ScanSelection scanSelection;
+  private final ParameterSet parameters;
   private RangeSet<Double> rangeSet = TreeRangeSet.create();
   private HashMap<Range<Double>, IIonMobilityTrace> rangeToIonTraceMap = new HashMap<>();
   private double progress = 0.0;
   private String taskDescription = "";
-  private final ParameterSet parameters;
   private int allowedMissingFrames = DEFAULT_ALLOWED_MISSING_FRAMES;
   private int allowedMissingMobilityScans = DEFAULT_ALLOWED_MISSING_MOBILITY_SCANS;
 
@@ -185,7 +185,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(
               "Scan #" + scan.getMobilityScanNumber()
-                  + " does not have a mass list. Run mass detection ");
+              + " does not have a mass list. Run mass detection ");
         } else {
           MassList ml = scan.getMassList();
           mzBuffer = ml.getMzValues(mzBuffer);
@@ -629,7 +629,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       ModularFeature modular = FeatureConvertors
           .IonMobilityIonTraceToModularFeature(ionTrace, rawDataFile, mobilogramBinner);
       ModularFeatureListRow newRow =
-          new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
+          new ModularFeatureListRow(featureList, featureId, modular);
 //      newRow.set(MobilityType.class, ionTrace.getMobility());
       featureList.addRow(newRow);
       featureId++;

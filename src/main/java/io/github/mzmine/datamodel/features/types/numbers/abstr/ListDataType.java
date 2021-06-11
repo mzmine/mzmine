@@ -23,7 +23,6 @@ import java.util.List;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import javafx.beans.property.ListProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
@@ -34,7 +33,7 @@ public abstract class ListDataType<T> extends DataType<ListProperty<T>> {
 
   @Override
   public ListProperty<T> createProperty() {
-    return new SimpleListProperty<T>(FXCollections.observableList(new ArrayList<T>()));
+    return new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
   }
 
   @Nonnull

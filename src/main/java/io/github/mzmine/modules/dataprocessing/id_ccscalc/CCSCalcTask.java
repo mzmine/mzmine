@@ -93,7 +93,7 @@ public class CCSCalcTask extends AbstractTask {
     for (ModularFeatureList featureList : featureLists) {
       if (createNewFeatureList) {
         workingFeatureList = featureList.createCopy(featureList.getName() + " CCS",
-            getMemoryMapStorage());
+            getMemoryMapStorage(), false);
       } else {
         workingFeatureList = featureList;
       }

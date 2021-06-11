@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -33,6 +33,9 @@ import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.Property;
 import javax.annotation.Nonnull;
 
+/**
+ * This type describes the negative or positive charge of an ion (feature)
+ */
 public class ChargeType extends IntegerType {
 
   @Override
@@ -61,11 +64,12 @@ public class ChargeType extends IntegerType {
             if (p.getValue() != null) {
               Integer charge = p.getValue();
               Integer n = count.get(charge);
-              count.put(charge, n==null? 1 : n+1);
+              count.put(charge, n == null ? 1 : n + 1);
             }
           }
-          return count.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue)).map(Map.Entry::getKey)
-                  .orElse(0);
+          return count.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue))
+              .map(Map.Entry::getKey)
+              .orElse(0);
         }, prop);
     }
     return super.createBinding(bind, row);

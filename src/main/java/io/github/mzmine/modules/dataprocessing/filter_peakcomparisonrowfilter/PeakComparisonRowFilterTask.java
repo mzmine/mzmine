@@ -249,7 +249,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
       // Good row?
       if (allCriteriaMatched)
-        newPeakList.addRow(new ModularFeatureListRow(newPeakList, row, true));
+        newPeakList.addRow(new ModularFeatureListRow(newPeakList, row.getID(), row, true));
 
     }
 

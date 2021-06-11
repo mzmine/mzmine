@@ -86,7 +86,7 @@ class PeakFinderTask extends AbstractTask {
     processedScans = new AtomicInteger();
 
     // Create new feature list
-    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage());
+    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage(), false);
 
     if (rtCorrection) {
       totalScans *= 2;
