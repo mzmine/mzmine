@@ -189,8 +189,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       // MS
       case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile, advancedParam);
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile, advancedParam);
+      case BRUKER_TDF -> new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile,
+          advancedParam);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV, IMZML, BRUKER_TDF, MZML_IMS -> createWrappedAdvancedTask(
+      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV, IMZML, MZML_IMS -> createWrappedAdvancedTask(
           fileType, project, file, newMZmineFile, advancedParam);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };

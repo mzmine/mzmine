@@ -188,7 +188,7 @@ public class CachedMobilityScan implements MobilityScan {
   }
 
   @Override
-  public void setMassList(@Nonnull MassList massList) {
+  public void addMassList(@Nonnull MassList massList) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }

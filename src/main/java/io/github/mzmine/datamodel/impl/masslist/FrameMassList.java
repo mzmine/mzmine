@@ -148,7 +148,7 @@ public class FrameMassList extends SimpleMassList {
 
     for (int i = 0, mobilityScansSize = mobilityScans.size(); i < mobilityScansSize; i++) {
       MobilityScan mobilityScan = mobilityScans.get(i);
-      mobilityScan.setMassList(new MobilityScanMassList(offsets[i],
+      mobilityScan.addMassList(new MobilityScanMassList(offsets[i],
           mobilityScanPeaks.get(i)[0].length, basePeakIndices[i], this));
 
       if (mobilityScanPeaks.get(i)[0].length > maxMobilityScanDatapoints) {

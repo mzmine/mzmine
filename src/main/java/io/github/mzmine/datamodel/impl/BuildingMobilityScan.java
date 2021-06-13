@@ -53,6 +53,15 @@ public class BuildingMobilityScan implements MobilityScan {
   /**
    *
    * @param scanNumber The scan number beginning with 0
+   * @param mzIntensities The m/z values [0][n] and intensity values [1][n]
+   */
+  public BuildingMobilityScan(int scanNumber, double[][] mzIntensities) {
+    this(scanNumber, mzIntensities[0], mzIntensities[1]);
+  }
+
+  /**
+   *
+   * @param scanNumber The scan number beginning with 0
    * @param mzs The m/z values
    * @param intensities The intensity values.
    */
@@ -220,7 +229,7 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   @Override
-  public void setMassList(@Nonnull MassList massList) {
+  public void addMassList(@Nonnull MassList massList) {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
