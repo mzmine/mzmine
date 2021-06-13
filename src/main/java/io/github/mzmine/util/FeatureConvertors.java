@@ -346,6 +346,8 @@ public class FeatureConvertors {
     modularFeature.set(AsymmetryFactorType.class, -1f);
     // }
 
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
+
     return modularFeature;
   }
 
