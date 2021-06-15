@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
@@ -79,7 +79,7 @@ public class SameRangePeak{
   /**
    * This peak is always a result of manual feature detection, therefore MANUAL
    */
-  public @Nonnull FeatureStatus getFeatureStatus() {
+  public @NotNull FeatureStatus getFeatureStatus() {
     return FeatureStatus.ESTIMATED;
   }
 
@@ -114,7 +114,7 @@ public class SameRangePeak{
   /**
    * This method returns numbers of scans that contain this peak
    */
-  public @Nonnull Scan[] getScanNumbers() {
+  public @NotNull Scan[] getScanNumbers() {
     return mzPeakMap.keySet().toArray(Scan[]::new);
   }
 
@@ -125,19 +125,19 @@ public class SameRangePeak{
     return mzPeakMap.get(scan);
   }
 
-  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
+  public @NotNull Range<Float> getRawDataPointsIntensityRange() {
     return intensityRange;
   }
 
-  public @Nonnull Range<Double> getRawDataPointsMZRange() {
+  public @NotNull Range<Double> getRawDataPointsMZRange() {
     return mzRange;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsRTRange() {
+  public @NotNull Range<Float> getRawDataPointsRTRange() {
     return rtRange;
   }
 
-  public @Nonnull RawDataFile getRawDataFile() {
+  public @NotNull RawDataFile getRawDataFile() {
     return dataFile;
   }
 
@@ -269,7 +269,7 @@ public class SameRangePeak{
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 

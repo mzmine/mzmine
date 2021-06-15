@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * True if the corresponding {@link IonIdentity} is a multimer (e.g., 2M) and has specific fragment
@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
  */
 public class MsMsMultimerVerifiedType extends BooleanType implements AnnotationType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "MS/MS multimer";

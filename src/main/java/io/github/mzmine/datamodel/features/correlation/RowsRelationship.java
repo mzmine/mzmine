@@ -23,7 +23,7 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
 import io.github.mzmine.util.CorrelationGroupingUtils;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Relationship between two rows - describes the edge in a network where the nodes are {@link
@@ -56,7 +56,7 @@ public interface RowsRelationship {
    *
    * @return the type of this relationship
    */
-  @Nonnull
+  @NotNull
   Type getType();
 
   /**
@@ -64,7 +64,7 @@ public interface RowsRelationship {
    *
    * @return a string representation of this ralationship
    */
-  @Nonnull
+  @NotNull
   String getAnnotation();
 
   /**

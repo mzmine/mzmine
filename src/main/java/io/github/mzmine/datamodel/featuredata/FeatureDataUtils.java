@@ -35,8 +35,8 @@ import io.github.mzmine.util.maths.Weighting;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to uniformly calculate feature describing values by the series stored in {@link
@@ -209,8 +209,8 @@ public class FeatureDataUtils {
    * @param cm     The center measure ({{@link CenterMeasure#AVG} default}
    * @return The m/z value
    */
-  public static double calculateMz(@Nonnull final IonSeries series,
-      @Nonnull final CenterMeasure cm) {
+  public static double calculateMz(@NotNull final IonSeries series,
+      @NotNull final CenterMeasure cm) {
     CenterFunction cf = new CenterFunction(cm, Weighting.LINEAR);
     double[][] data = DataPointUtils
         .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
@@ -222,7 +222,7 @@ public class FeatureDataUtils {
    *
    * @param feature The feature.
    */
-  public static void recalculateIonSeriesDependingTypes(@Nonnull final ModularFeature feature) {
+  public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature) {
     recalculateIonSeriesDependingTypes(feature, CenterMeasure.AVG);
   }
 
@@ -230,8 +230,8 @@ public class FeatureDataUtils {
    * @param feature The feature
    * @param cm      Center measure for m/z calculation. Defualt = {@link CenterMeasure#AVG}
    */
-  public static void recalculateIonSeriesDependingTypes(@Nonnull final ModularFeature feature,
-      @Nonnull final CenterMeasure cm) {
+  public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature,
+      @NotNull final CenterMeasure cm) {
     final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
     final Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
     final Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
@@ -281,7 +281,7 @@ public class FeatureDataUtils {
     }
   }
 
-  public static double getSmallestMzDelta(@Nonnull final MzSeries series) {
+  public static double getSmallestMzDelta(@NotNull final MzSeries series) {
     double smallestDelta = Double.POSITIVE_INFINITY;
 
     if (series instanceof IonMobilogramTimeSeries ims) {

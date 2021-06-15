@@ -18,7 +18,7 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Modified cosine similarity between two rows imported from GNPS results
@@ -60,13 +60,13 @@ public class R2RMS2CosineSimilarityGNPS extends AbstractRowsRelationship {
     return getCosineSimilarity();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Type getType() {
     return Type.MS2_GNPS_COSINE_SIM;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getAnnotation() {
     return annotation == null || annotation.strip().isEmpty() ? "cos=" + getScoreFormatted()

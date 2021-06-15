@@ -55,7 +55,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 
 public class ModularADAPChromatogramBuilderTask extends AbstractTask {

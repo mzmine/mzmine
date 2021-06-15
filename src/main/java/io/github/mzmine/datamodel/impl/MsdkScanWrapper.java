@@ -29,8 +29,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.import_mzml_msdk.ConversionUtils;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -55,12 +55,12 @@ public class MsdkScanWrapper implements Scan {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     return scan.getMzValues(dst);
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     throw new UnsupportedOperationException(
         "Unsupported operation. MSDK scan uses float array and the conversion in this method is not efficient.");
   }
@@ -114,14 +114,14 @@ public class MsdkScanWrapper implements Scan {
         "Unsupported operation. MSDK scan is not supposed to be used here.");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException(
         "Unsupported operation. MSDK scan is not supposed to be used here.");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     throw new UnsupportedOperationException(
@@ -133,7 +133,7 @@ public class MsdkScanWrapper implements Scan {
     return scan.getScanNumber();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getScanDefinition() {
     return scan.getScanDefinition();
@@ -149,7 +149,7 @@ public class MsdkScanWrapper implements Scan {
     return scan.getRetentionTime();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getScanningMZRange() {
     return scan.getScanningRange();
@@ -166,7 +166,7 @@ public class MsdkScanWrapper implements Scan {
         .orElse(-1);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public PolarityType getPolarity() {
     return ConversionUtils.msdkToMZminePolarityType(scan.getPolarity());
@@ -180,7 +180,7 @@ public class MsdkScanWrapper implements Scan {
   }
 
   @Override
-  public void addMassList(@Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
 
   }
 }

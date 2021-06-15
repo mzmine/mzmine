@@ -45,7 +45,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Rectangle;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class IMSRawDataOverviewControlPanel extends GridPane {
 

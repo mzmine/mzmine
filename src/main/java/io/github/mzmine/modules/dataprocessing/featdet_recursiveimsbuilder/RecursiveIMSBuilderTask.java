@@ -65,8 +65,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
 public class RecursiveIMSBuilderTask extends AbstractTask {
@@ -90,8 +90,8 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
   private int currentStep = 0;
 
   public RecursiveIMSBuilderTask(@Nullable MemoryMapStorage storage,
-      @Nonnull final IMSRawDataFile file,
-      @Nonnull final ParameterSet parameters, MZmineProject project) {
+      @NotNull final IMSRawDataFile file,
+      @NotNull final ParameterSet parameters, MZmineProject project) {
     super(storage);
 
     this.file = file;
@@ -428,7 +428,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     return sortedMobilograms;
   }
 
-  @Nonnull
+  @NotNull
   private Set<TempMobilogram> calcMobilograms(Collection<RetentionTimeMobilityDataPoint> dps,
       final MZTolerance tolerance) {
     final RangeMap<Double, TempMobilogram> map = TreeRangeMap.create();

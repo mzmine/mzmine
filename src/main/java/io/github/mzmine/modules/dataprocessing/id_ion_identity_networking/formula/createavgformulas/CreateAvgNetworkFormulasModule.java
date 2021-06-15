@@ -27,7 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 public class CreateAvgNetworkFormulasModule implements MZmineProcessingModule {
@@ -37,31 +37,31 @@ public class CreateAvgNetworkFormulasModule implements MZmineProcessingModule {
       "Creates a list of average molecular formulas from all formula lists of all ions in this network (e.g., M+H and M+Na)";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.ION_IDENTITY_NETWORKS;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return CreateAvgNetworkFormulasParameters.class;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  public @Nonnull
-  ExitCode runModule(@Nonnull MZmineProject project,
-                     @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  public @NotNull
+  ExitCode runModule(@NotNull MZmineProject project,
+                     @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
     ModularFeatureList featureLists[] = parameters.getParameter(CreateAvgNetworkFormulasParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
 

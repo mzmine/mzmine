@@ -31,7 +31,7 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import java.util.Arrays;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class FeatureResolverModule implements MZmineProcessingModule {
 
@@ -40,14 +40,14 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
       "This module separates each detected chromatogram into individual peaks.";
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURE_RESOLVING;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
-      @Nonnull final Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
+      @NotNull final Collection<Task> tasks) {
     // one memory map storage per module call to reduce number of files and connect related feature lists
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 

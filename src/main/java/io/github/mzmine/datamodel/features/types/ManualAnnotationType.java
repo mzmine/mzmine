@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class ManualAnnotationType extends ModularType implements AnnotationType {
 
@@ -30,13 +30,13 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
           new CompoundNameType(), new IonAdductType(),
           new FormulaType(), new SmilesStructureType());
 
-  @Nonnull
+  @NotNull
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Manual annotation";

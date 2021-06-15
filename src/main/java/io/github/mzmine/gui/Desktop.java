@@ -31,7 +31,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This interface represents the application GUI
@@ -121,12 +121,12 @@ public interface Desktop extends MZmineModule {
    */
   public FeatureList[] getSelectedPeakLists();
 
-  @Nonnull
+  @NotNull
   public ExitCode exitMZmine();
 
   public TableView<WrappedTask> getTasksView();
 
-  public void openWebPage(@Nonnull URL url);
+  public void openWebPage(@NotNull URL url);
 
   /**
    * Adds a tab to the main window. Does not have to be called in a {@link
@@ -145,13 +145,13 @@ public interface Desktop extends MZmineModule {
   /**
    * @return A list of all currently opened tabs in all windows.
    */
-  @Nonnull
+  @NotNull
   public List<MZmineTab> getAllTabs();
 
   /**
    * @return A list of tabs in the main window.
    */
-  @Nonnull
+  @NotNull
   public List<MZmineTab> getTabsInMainWindow();
 
 }

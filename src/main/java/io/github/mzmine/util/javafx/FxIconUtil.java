@@ -26,14 +26,14 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FxIconUtil {
 
   private static final Logger logger = Logger.getLogger(FxIconUtil.class.getName());
 
-  @Nonnull
-  public static Image loadImageFromResources(final @Nonnull String resourcePath) {
+  @NotNull
+  public static Image loadImageFromResources(final @NotNull String resourcePath) {
     final InputStream iconResource =
         FxIconUtil.class.getClassLoader().getResourceAsStream(resourcePath);
     if (iconResource == null) {

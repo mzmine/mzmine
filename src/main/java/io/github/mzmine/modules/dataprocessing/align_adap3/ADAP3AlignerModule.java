@@ -18,7 +18,7 @@
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -39,30 +39,30 @@ public class ADAP3AlignerModule implements MZmineProcessingModule {
           + "in order to find the best alignment";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.ALIGNMENT;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ADAP3AlignerParameters.class;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     Task newTask = new ADAP3AlignerTask(project, parameters, MemoryMapStorage.forFeatureList());
     tasks.add(newTask);
     return ExitCode.OK;

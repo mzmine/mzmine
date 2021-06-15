@@ -79,7 +79,7 @@ dependencies {
     implementation "org.apache.commons:commons-math:2.2"
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation "org.ostermiller:utils:1.07.00"
-    implementation "com.google.code.findbugs:jsr305:3.0.2"
+    implementation "org.jetbrains:annotations:21.0.1"
     implementation "nz.ac.waikato.cms.weka:weka-stable:3.8.3"
     implementation "net.sourceforge.jmol:jmol:14.29.27"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"

@@ -34,8 +34,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ResolvingUtil {
 
@@ -53,9 +53,9 @@ public class ResolvingUtil {
    *                          ResolvingDimension#MOBILITY}.
    * @return
    */
-  public static List<IonTimeSeries<? extends Scan>> resolve(@Nonnull final XYResolver resolver,
-      @Nonnull final IonTimeSeries<? extends Scan> data, @Nullable final MemoryMapStorage storage,
-      @Nonnull final ResolvingDimension dimension,
+  public static List<IonTimeSeries<? extends Scan>> resolve(@NotNull final XYResolver resolver,
+      @NotNull final IonTimeSeries<? extends Scan> data, @Nullable final MemoryMapStorage storage,
+      @NotNull final ResolvingDimension dimension,
       List<? extends Scan> selectedScans,
       @Nullable BinningMobilogramDataAccess mobilogramBinning) {
 
@@ -136,8 +136,8 @@ public class ResolvingUtil {
    * @return 2d array of the requested dimension. [0][n] will represent the domain dimension, [1][n]
    * will represent the range dimension.
    */
-  public static double[][] extractData(@Nonnull IonTimeSeries<? extends Scan> data,
-      @Nonnull ResolvingDimension dimension) {
+  public static double[][] extractData(@NotNull IonTimeSeries<? extends Scan> data,
+      @NotNull ResolvingDimension dimension) {
     double[] xdata;
     double[] ydata;
     if (dimension == ResolvingDimension.RETENTION_TIME) {
@@ -180,8 +180,8 @@ public class ResolvingUtil {
    * @param selectedScans
    * @return
    */
-  public static int getTotalNumberOfScansInDimension(@Nonnull IonTimeSeries<? extends Scan> data,
-      @Nonnull ResolvingDimension dimension, List<? extends Scan> selectedScans) {
+  public static int getTotalNumberOfScansInDimension(@NotNull IonTimeSeries<? extends Scan> data,
+      @NotNull ResolvingDimension dimension, List<? extends Scan> selectedScans) {
     if (dimension == ResolvingDimension.RETENTION_TIME) {
       return selectedScans.size();
     } else {

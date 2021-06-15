@@ -28,7 +28,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An annotation network full of ions that point to the same neutral molecule (neutral mass)
@@ -92,7 +92,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
     setNetworkToAllRows();
   }
 
-  @Nonnull
+  @NotNull
   public ObservableList<ResultFormula> getMolFormulas() {
     return molFormulas;
   }

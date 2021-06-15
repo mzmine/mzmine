@@ -33,8 +33,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.IntToDoubleFunction;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.data.xy.XYZDataset;
@@ -58,22 +58,22 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   protected boolean useAlphaInPaintscale;
   protected Range<Double> zRange;
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider) {
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider) {
     this(dataProvider, true);
   }
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      @Nonnull final RunOption runOption) {
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
+      @NotNull final RunOption runOption) {
     this(dataProvider, true, runOption);
   }
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
       final boolean useAlphaInPaintscale) {
     this(dataProvider, useAlphaInPaintscale, RunOption.NEW_THREAD);
   }
 
-  ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale, @Nonnull final RunOption runOption) {
+  ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
+      final boolean useAlphaInPaintscale, @NotNull final RunOption runOption) {
     // do not run from super constructor! we need to do some other stuff first
     super(dataProvider, RunOption.DO_NOT_RUN);
 

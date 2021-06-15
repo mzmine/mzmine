@@ -19,7 +19,7 @@
 package io.github.mzmine.util.maths;
 
 import io.github.mzmine.util.MathUtils;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class CenterFunction {
   public static final Weighting DEFAULT_MZ_WEIGHTING = Weighting.LINEAR;

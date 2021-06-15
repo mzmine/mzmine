@@ -29,8 +29,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FrameMassList extends SimpleMassList {
 
@@ -41,9 +41,9 @@ public class FrameMassList extends SimpleMassList {
 
   protected int maxMobilityScanDatapoints = -1;
 
-  public FrameMassList(@Nonnull MemoryMapStorage storage,
-      @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues) {
+  public FrameMassList(@NotNull MemoryMapStorage storage,
+      @NotNull double[] mzValues,
+      @NotNull double[] intensityValues) {
     super(storage, mzValues, intensityValues);
   }
 
@@ -100,10 +100,10 @@ public class FrameMassList extends SimpleMassList {
    * @param massDetectorParameters
    */
   public void generateAndAddMobilityScanMassLists(
-      @Nonnull List<MobilityScan> mobilityScans,
+      @NotNull List<MobilityScan> mobilityScans,
       @Nullable MemoryMapStorage storage,
-      @Nonnull MassDetector massDetector,
-      @Nonnull ParameterSet massDetectorParameters) {
+      @NotNull MassDetector massDetector,
+      @NotNull ParameterSet massDetectorParameters) {
 
     // mobility scan -> [0][] = mzs, [1][] = intensities
     final List<double[][]> mobilityScanPeaks = new ArrayList<>();

@@ -35,8 +35,8 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormul
 import java.util.List;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A modular annotation type displaying all subtypes for the first element in a list of {@link
@@ -61,7 +61,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
     return subTypes;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Ion identity";
@@ -107,7 +107,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
    * @param data data property
    * @param ion  the new preferred ion (first element)
    */
-  private void setCurrentElement(@Nonnull ModularTypeProperty data, @Nullable IonIdentity ion) {
+  private void setCurrentElement(@NotNull ModularTypeProperty data, @Nullable IonIdentity ion) {
     if (ion == null) {
       for (DataType type : this.getSubDataTypes()) {
         if (!(type instanceof IonIdentityListType)) {
@@ -140,7 +140,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
   /**
    *
    */
-  private void setCurrentFormula(@Nonnull ModularTypeProperty data,
+  private void setCurrentFormula(@NotNull ModularTypeProperty data,
       @Nullable ResultFormula formula) {
     // do not override all field if formula is none
     FormulaAnnotationType.setCurrentElement(data, formula, false);

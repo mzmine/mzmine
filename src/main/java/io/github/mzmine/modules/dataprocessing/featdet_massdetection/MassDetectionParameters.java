@@ -43,7 +43,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
@@ -151,7 +151,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

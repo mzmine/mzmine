@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javafx.scene.control.TreeItem;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class TreeViewUtils {
 

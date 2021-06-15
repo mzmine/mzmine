@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * IonIdentities are connected to {@link IonNetwork}s and represent different ion species (M+H,
@@ -53,7 +53,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
   // partner rowIDs
   private final ConcurrentHashMap<FeatureListRow, IonIdentity> partner = new ConcurrentHashMap<>();
   // possible formulas for this neutral mass
-  @Nonnull
+  @NotNull
   private final ObservableList<ResultFormula> molFormulas;
   private final IonType ionType;
   // identifier like [M+H]+
@@ -345,7 +345,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
     return network.size() + (getMSMSMultimerCount() > 0 ? 1 : 0) + (getMSMSModVerify() > 0 ? 1 : 0);
   }
 
-  @Nonnull
+  @NotNull
   public List<ResultFormula> getMolFormulas() {
     return molFormulas;
   }
@@ -441,7 +441,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
   }
 
   @Override
-  public int compareTo(@Nonnull IonIdentity ion) {
+  public int compareTo(@NotNull IonIdentity ion) {
     return toString().compareTo(ion.toString());
   }
 }

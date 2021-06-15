@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -137,7 +137,7 @@ public class RawDataFileUtils {
    *
    * Assumes that fileNames doesn't contain null entries.
    */
-  public static @Nullable String askToRemoveCommonPrefix(@Nonnull File fileNames[]) {
+  public static @Nullable String askToRemoveCommonPrefix(@NotNull File fileNames[]) {
 
     // If we're running in batch mode or not on the JavaFX thread, give up
     if ((MZmineCore.getDesktop().getMainWindow() == null) || (!Platform.isFxApplicationThread()))
@@ -204,7 +204,7 @@ public class RawDataFileUtils {
 
   }
 
-  public static @Nonnull Range<Float> findTotalRTRange(RawDataFile dataFiles[], int msLevel) {
+  public static @NotNull Range<Float> findTotalRTRange(RawDataFile dataFiles[], int msLevel) {
     Range<Float> rtRange = null;
     for (RawDataFile file : dataFiles) {
       Range<Float> dfRange = file.getDataRTRange(msLevel);
@@ -220,7 +220,7 @@ public class RawDataFileUtils {
     return rtRange;
   }
 
-  public static @Nonnull Range<Double> findTotalMZRange(RawDataFile dataFiles[], int msLevel) {
+  public static @NotNull Range<Double> findTotalMZRange(RawDataFile dataFiles[], int msLevel) {
     Range<Double> mzRange = null;
     for (RawDataFile file : dataFiles) {
       Range<Double> dfRange = file.getDataMZRange(msLevel);

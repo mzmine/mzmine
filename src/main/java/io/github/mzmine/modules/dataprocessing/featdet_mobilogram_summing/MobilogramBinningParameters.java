@@ -28,7 +28,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Steffen https://github.com/SteffenHeu
@@ -79,7 +79,7 @@ public class MobilogramBinningParameters extends SimpleParameterSet {
         summingSource, createNewFeatureList, suffix});
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;

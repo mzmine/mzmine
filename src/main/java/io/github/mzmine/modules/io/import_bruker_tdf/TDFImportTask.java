@@ -58,8 +58,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -377,7 +377,7 @@ public class TDFImportTask extends AbstractTask {
    * @param frames        the frames to load mobility spectra for
    */
   private void appendScansFromTimsSegment(final long handle,
-      @Nonnull final TDFFrameTable tdfFrameTable, Set<SimpleFrame> frames) {
+      @NotNull final TDFFrameTable tdfFrameTable, Set<SimpleFrame> frames) {
 
     loadedFrames = 0;
     final long numFrames = tdfFrameTable.lastFrameId();
@@ -407,10 +407,10 @@ public class TDFImportTask extends AbstractTask {
 
   }
 
-  /*private void appendScansFromMaldiTimsSegment(@Nonnull final IMSRawDataFile rawDataFile,
+  /*private void appendScansFromMaldiTimsSegment(@NotNull final IMSRawDataFile rawDataFile,
       final long handle, final long firstFrameId, final long lastFrameId,
-      @Nonnull final TDFFrameTable tdfFrameTable, @Nonnull final TDFMetaDataTable tdfMetaDataTable,
-      @Nonnull final TDFMaldiFrameInfoTable tdfMaldiTable) {
+      @NotNull final TDFFrameTable tdfFrameTable, @NotNull final TDFMetaDataTable tdfMetaDataTable,
+      @NotNull final TDFMaldiFrameInfoTable tdfMaldiTable) {
 
     final long numFrames = tdfFrameTable.lastFrameId();
 

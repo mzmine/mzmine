@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The m/z of a precursor ion, e.g., in the one loaded from a spectral library entry during library
@@ -44,7 +44,7 @@ public class PrecursorMZType extends DoubleType {
     }
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Precursor m/z";

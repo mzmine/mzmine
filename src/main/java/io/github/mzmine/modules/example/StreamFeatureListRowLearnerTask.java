@@ -38,7 +38,7 @@ import io.github.mzmine.util.SortingProperty;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 class StreamFeatureListRowLearnerTask extends AbstractTask {
 

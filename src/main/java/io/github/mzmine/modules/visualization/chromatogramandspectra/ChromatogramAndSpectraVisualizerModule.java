@@ -20,8 +20,8 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class serves as a dummy module to store the parameters for the {@link
@@ -33,7 +33,7 @@ public class ChromatogramAndSpectraVisualizerModule implements MZmineModule {
 
   private static final String MODULE_NAME = "ChromatogramAndSpectraVisualizer";
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return MODULE_NAME;

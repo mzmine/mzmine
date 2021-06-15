@@ -26,8 +26,8 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -50,8 +50,8 @@ public class IonMobilogramTimeSeriesFactory {
    * @see IonMobilogramTimeSeries#copyAndReplace(MemoryMapStorage, double[], double[])
    */
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
-      @Nonnull final List<IonMobilitySeries> mobilograms,
-      @Nonnull final BinningMobilogramDataAccess mobilogramBinning) {
+      @NotNull final List<IonMobilitySeries> mobilograms,
+      @NotNull final BinningMobilogramDataAccess mobilogramBinning) {
 
     double[][] summedAndWeighted = sumIntensitiesWeightMzs(mobilograms);
 
@@ -63,10 +63,10 @@ public class IonMobilogramTimeSeriesFactory {
   }
 
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
-      @Nonnull final double[] rtMzs,
-      @Nonnull final double[] rtIntensities,
-      @Nonnull final List<IonMobilitySeries> mobilograms,
-      @Nonnull final BinningMobilogramDataAccess mobilogramBinning) {
+      @NotNull final double[] rtMzs,
+      @NotNull final double[] rtIntensities,
+      @NotNull final List<IonMobilitySeries> mobilograms,
+      @NotNull final BinningMobilogramDataAccess mobilogramBinning) {
 
     mobilogramBinning.setMobilogram(mobilograms);
 
@@ -75,21 +75,21 @@ public class IonMobilogramTimeSeriesFactory {
   }
 
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
-      @Nonnull final double[] rtMzs,
-      @Nonnull final double[] rtIntensities,
-      @Nonnull final List<IonMobilitySeries> mobilograms,
-      @Nonnull final double[] mobilogramMobilities,
-      @Nonnull final double[] mobilogramIntensities) {
+      @NotNull final double[] rtMzs,
+      @NotNull final double[] rtIntensities,
+      @NotNull final List<IonMobilitySeries> mobilograms,
+      @NotNull final double[] mobilogramMobilities,
+      @NotNull final double[] mobilogramIntensities) {
 
     return of(storage, rtMzs, rtIntensities, mobilograms,
         new SummedIntensityMobilitySeries(storage, mobilogramMobilities, mobilogramIntensities));
   }
 
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
-      @Nonnull final double[] rtMzs,
-      @Nonnull final double[] rtIntensities,
-      @Nonnull final List<IonMobilitySeries> mobilograms,
-      @Nonnull final SummedIntensityMobilitySeries summedMobilogram) {
+      @NotNull final double[] rtMzs,
+      @NotNull final double[] rtIntensities,
+      @NotNull final List<IonMobilitySeries> mobilograms,
+      @NotNull final SummedIntensityMobilitySeries summedMobilogram) {
 
     final List<Frame> frames = new ArrayList<>(mobilograms.size());
     for (IonMobilitySeries ims : mobilograms) {
@@ -101,11 +101,11 @@ public class IonMobilogramTimeSeriesFactory {
   }
 
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
-      @Nonnull final double[] rtMzs,
-      @Nonnull final double[] rtIntensities,
-      @Nonnull final List<IonMobilitySeries> mobilograms,
-      @Nonnull final List<Frame> frames,
-      @Nonnull final SummedIntensityMobilitySeries summedMobilogram) {
+      @NotNull final double[] rtMzs,
+      @NotNull final double[] rtIntensities,
+      @NotNull final List<IonMobilitySeries> mobilograms,
+      @NotNull final List<Frame> frames,
+      @NotNull final SummedIntensityMobilitySeries summedMobilogram) {
 
     return new SimpleIonMobilogramTimeSeries(storage, rtMzs, rtIntensities, mobilograms, frames,
         summedMobilogram);

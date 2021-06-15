@@ -49,8 +49,8 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MS2SimilarityTask extends AbstractTask {
 
@@ -290,7 +290,7 @@ public class MS2SimilarityTask extends AbstractTask {
    * @return the filtered data for a row or null if minimum criteria not met
    */
   @Nullable
-  private FilteredRowData getDataAndFilter(@Nonnull FeatureListRow row, int minDP, double minHeight)
+  private FilteredRowData getDataAndFilter(@NotNull FeatureListRow row, int minDP, double minHeight)
       throws MissingMassListException {
     if (!row.hasMs2Fragmentation()) {
       return null;
@@ -322,8 +322,8 @@ public class MS2SimilarityTask extends AbstractTask {
    * @param minHeight minimum height of signals
    * @return true if the row matches all criteria, false otherwise
    */
-  private boolean prepareAllMS2(@Nonnull Map<Feature, DataPoint[]> mapFeatureData,
-      @Nonnull FeatureListRow row, int minDP, double minHeight)
+  private boolean prepareAllMS2(@NotNull Map<Feature, DataPoint[]> mapFeatureData,
+      @NotNull FeatureListRow row, int minDP, double minHeight)
       throws MissingMassListException {
     if (!row.hasMs2Fragmentation()) {
       return false;

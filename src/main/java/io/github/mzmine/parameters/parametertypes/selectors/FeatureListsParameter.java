@@ -21,7 +21,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -34,7 +34,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   private String name = "Feature lists";
   private int minCount, maxCount;
 
-  private @Nonnull
+  private @NotNull
   FeatureListsSelection value = new FeatureListsSelection();
 
   public FeatureListsParameter() {
@@ -62,7 +62,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   }
 
   @Override
-  public void setValue(@Nonnull FeatureListsSelection newValue) {
+  public void setValue(@NotNull FeatureListsSelection newValue) {
     this.value = newValue;
   }
 

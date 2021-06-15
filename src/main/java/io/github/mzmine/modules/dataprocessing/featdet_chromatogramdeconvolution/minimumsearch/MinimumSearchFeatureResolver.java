@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This peak recognition method searches for local minima in the chromatogram. If a local minimum is
@@ -74,7 +74,7 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return "Local minimum search";
   }
@@ -88,7 +88,7 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return MinimumSearchFeatureResolverParameters.class;
   }

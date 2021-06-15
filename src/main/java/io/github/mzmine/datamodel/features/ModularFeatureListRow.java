@@ -77,8 +77,8 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Map of all feature related data.
@@ -101,7 +101,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   private final Map<RawDataFile, ModularFeature> features;
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
-  @Nonnull
+  @NotNull
   private ModularFeatureList flist;
 
   /**
@@ -110,7 +110,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param flist the feature list
    * @param id    the row id
    */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id) {
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
     this.flist = flist;
 
     // add type property columns to maps
@@ -158,7 +158,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param id      the row id
    * @param feature a feature to add to the row
    */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, Feature feature) {
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, Feature feature) {
     this(flist, id);
     addFeature(feature.getRawDataFile(), feature);
   }
@@ -170,7 +170,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param row          a row to copy (uses the row.getID() as the new ID)
    * @param copyFeatures true also copy features, false leave features empty
    */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, ModularFeatureListRow row,
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, ModularFeatureListRow row,
       boolean copyFeatures) {
     this(flist, row.getID(), row, copyFeatures);
   }
@@ -183,7 +183,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param row          a row to copy
    * @param copyFeatures true also copy features, false leave features empty
    */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, ModularFeatureListRow row,
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, ModularFeatureListRow row,
       boolean copyFeatures) {
     this(flist, id);
 
@@ -423,7 +423,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void setFeatureList(@Nonnull FeatureList flist) {
+  public void setFeatureList(@NotNull FeatureList flist) {
     if (!(flist instanceof ModularFeatureList)) {
       throw new IllegalArgumentException(
           "Cannot set non-modular feature list to modular feature list row.");
@@ -640,7 +640,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return bestScan;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public ObservableList<Scan> getAllMS2Fragmentations() {
     ObservableList<Scan> allMS2ScansList = FXCollections.observableArrayList();

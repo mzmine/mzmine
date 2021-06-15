@@ -58,8 +58,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * MZmine main class
@@ -221,7 +221,7 @@ public final class MZmineCore {
   }
 
 
-  @Nonnull
+  @NotNull
   public static TaskController getTaskController() {
     return taskController;
   }
@@ -239,13 +239,13 @@ public final class MZmineCore {
     MZmineCore.desktop = desktop;
   }
 
-  @Nonnull
+  @NotNull
   public static ProjectManager getProjectManager() {
     assert projectManager != null;
     return projectManager;
   }
 
-  @Nonnull
+  @NotNull
   public static MZmineConfiguration getConfiguration() {
     assert configuration != null;
     return configuration;
@@ -301,7 +301,7 @@ public final class MZmineCore {
     return new ImagingRawDataFileImpl(name, storage);
   }
 
-  @Nonnull
+  @NotNull
   public static String getMZmineVersion() {
     try {
       ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
@@ -330,8 +330,8 @@ public final class MZmineCore {
    * @return a list of created tasks that were added to the controller
    */
   public static List<Task> runMZmineModule(
-      @Nonnull Class<? extends MZmineRunnableModule> moduleClass,
-      @Nonnull ParameterSet parameters) {
+      @NotNull Class<? extends MZmineRunnableModule> moduleClass,
+      @NotNull ParameterSet parameters) {
 
     MZmineRunnableModule module = getModuleInstance(moduleClass);
 

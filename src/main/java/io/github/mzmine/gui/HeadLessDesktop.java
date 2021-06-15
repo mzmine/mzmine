@@ -37,7 +37,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 
 public class HeadLessDesktop implements Desktop {
@@ -92,17 +92,17 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return SimpleParameterSet.class;
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull ExitCode exitMZmine() {
+  public @NotNull ExitCode exitMZmine() {
     System.exit(0);
     return ExitCode.OK;
   }
@@ -128,12 +128,12 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<MZmineTab> getAllTabs() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<MZmineTab> getTabsInMainWindow() {
     return Collections.emptyList();

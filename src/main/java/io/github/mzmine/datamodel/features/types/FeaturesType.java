@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.SimpleMapProperty;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This FeaturesType contains features for each RawDataFile. Sub columns for samples and charts are
@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
 public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeature>>
     implements NoTextColumn {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Features";

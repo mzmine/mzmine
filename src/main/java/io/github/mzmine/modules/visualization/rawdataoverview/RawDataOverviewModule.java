@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -38,12 +38,12 @@ public class RawDataOverviewModule implements MZmineRunnableModule {
   private static final String MODULE_DESCRIPTION = "Raw data overview";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 

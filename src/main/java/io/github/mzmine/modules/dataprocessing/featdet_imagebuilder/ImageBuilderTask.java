@@ -52,7 +52,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)

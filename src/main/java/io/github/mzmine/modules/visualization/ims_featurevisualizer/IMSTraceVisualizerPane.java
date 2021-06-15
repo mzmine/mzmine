@@ -45,7 +45,7 @@ import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.shape.Rectangle;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.ui.RectangleEdge;
 

@@ -13,7 +13,7 @@
 
 package io.github.mzmine.modules.io.import_mzml_msdk.msdk.data;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>MzMLBinaryDataInfo class.</p>
@@ -24,7 +24,7 @@ public class MzMLBinaryDataInfo {
   private final int encodedLength;
   private final int arrayLength;
   private long position;
-  private @Nonnull
+  private @NotNull
   MzMLCompressionType compressionType;
   private MzMLBitLength bitLength;
   private MzMLArrayType arrayType;

@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class MergeAlignerTask extends AbstractTask {
 

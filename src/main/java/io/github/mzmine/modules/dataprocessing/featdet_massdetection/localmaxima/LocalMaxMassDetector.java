@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxim
 
 import gnu.trove.list.array.TDoubleArrayList;
 import java.util.ArrayList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -88,12 +88,12 @@ public class LocalMaxMassDetector implements MassDetector {
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Local maxima";
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return LocalMaxMassDetectorParameters.class;
   }
 

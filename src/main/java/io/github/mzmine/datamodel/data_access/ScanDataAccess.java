@@ -30,8 +30,8 @@ import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The intended use of this memory access is to loop over all scans and access data points via
@@ -281,13 +281,13 @@ public class ScanDataAccess implements MassSpectrum {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }
@@ -298,7 +298,7 @@ public class ScanDataAccess implements MassSpectrum {
         "The intended use of this class is to loop over all scans and data points");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException(

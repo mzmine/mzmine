@@ -26,7 +26,7 @@ import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Map.Entry;
 import java.util.Vector;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
@@ -163,7 +163,7 @@ public class Chromatogram{
     return allMS2FragmentScanNumbers;
   }
 
-  public @Nonnull FeatureStatus getFeatureStatus() {
+  public @NotNull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
@@ -171,15 +171,15 @@ public class Chromatogram{
     return rt;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
+  public @NotNull Range<Float> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull Range<Double> getRawDataPointsMZRange() {
+  public @NotNull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsRTRange() {
+  public @NotNull Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
@@ -187,11 +187,11 @@ public class Chromatogram{
     return representativeScan;
   }
 
-  public @Nonnull Scan[] getScanNumbers() {
+  public @NotNull Scan[] getScanNumbers() {
     return scanNumbers;
   }
 
-  public @Nonnull RawDataFile getRawDataFile() {
+  public @NotNull RawDataFile getRawDataFile() {
     return dataFile;
   }
 
@@ -199,7 +199,7 @@ public class Chromatogram{
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 

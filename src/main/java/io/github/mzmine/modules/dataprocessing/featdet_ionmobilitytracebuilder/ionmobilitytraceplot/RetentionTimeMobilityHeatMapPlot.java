@@ -29,7 +29,7 @@ import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Arrays;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;

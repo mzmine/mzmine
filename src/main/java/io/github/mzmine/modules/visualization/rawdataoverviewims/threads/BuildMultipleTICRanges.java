@@ -32,7 +32,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class BuildMultipleTICRanges extends AbstractTask {
 
@@ -42,9 +42,9 @@ public class BuildMultipleTICRanges extends AbstractTask {
   private final ScanSelection scanSelection;
   private double finishedPercentage;
 
-  public BuildMultipleTICRanges(@Nonnull List<Range<Double>> mzRanges, @Nonnull IMSRawDataFile file,
-      @Nonnull ScanSelection scanSelection,
-      @Nonnull IMSRawDataOverviewPane pane) {
+  public BuildMultipleTICRanges(@NotNull List<Range<Double>> mzRanges, @NotNull IMSRawDataFile file,
+      @NotNull ScanSelection scanSelection,
+      @NotNull IMSRawDataOverviewPane pane) {
     super(null); // no new data stored -> null
     finishedPercentage = 0d;
     this.mzRanges = mzRanges;

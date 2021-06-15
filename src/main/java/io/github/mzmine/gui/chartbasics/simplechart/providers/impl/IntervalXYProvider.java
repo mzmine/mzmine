@@ -24,8 +24,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IntervalXYProvider implements PlotXYDataProvider, IntervalWidthProvider {
 
@@ -45,13 +45,13 @@ public class IntervalXYProvider implements PlotXYDataProvider, IntervalWidthProv
     this.intervalWidth = intervalWidth;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return awtColor;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return FxColorUtil.awtColorToFX(awtColor);
@@ -68,7 +68,7 @@ public class IntervalXYProvider implements PlotXYDataProvider, IntervalWidthProv
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;

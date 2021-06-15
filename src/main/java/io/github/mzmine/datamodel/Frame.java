@@ -21,8 +21,8 @@ import com.google.common.collect.Range;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A frame is a collection of mobility resolved spectra at one point in time.
@@ -40,7 +40,7 @@ public interface Frame extends Scan {
 
   int getNumberOfMobilityScans();
 
-  @Nonnull
+  @NotNull
   MobilityType getMobilityType();
 
   /**
@@ -49,7 +49,7 @@ public interface Frame extends Scan {
    */
 //  Set<Integer> getMobilityScanNumbers();
 
-  @Nonnull
+  @NotNull
   Range<Double> getMobilityRange();
 
   /**
@@ -59,10 +59,10 @@ public interface Frame extends Scan {
   @Nullable
   MobilityScan getMobilityScan(int num);
 
-  @Nonnull
+  @NotNull
   List<MobilityScan> getMobilityScans();
 
-  @Nonnull
+  @NotNull
   List<MobilityScan> getSortedMobilityScans();
 
   /**
@@ -83,7 +83,7 @@ public interface Frame extends Scan {
    * @return Set of ImsMsMsInfos for this frame. Empty set if this is not an MS/MS frame or no
    *         precursors were fragmented or assigned.
    */
-  @Nonnull
+  @NotNull
   Set<ImsMsMsInfo> getImsMsMsInfos();
 
   /**

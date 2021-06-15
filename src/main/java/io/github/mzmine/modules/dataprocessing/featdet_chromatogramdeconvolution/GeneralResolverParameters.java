@@ -31,7 +31,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.maths.CenterMeasure;
 import javafx.collections.FXCollections;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class GeneralResolverParameters extends SimpleParameterSet {
 

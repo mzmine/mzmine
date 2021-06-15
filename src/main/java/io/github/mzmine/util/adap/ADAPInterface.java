@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -76,9 +76,9 @@ public class ADAPInterface {
         null);
   }
 
-  @Nonnull
-  public static ModularFeature peakToFeature(@Nonnull ModularFeatureList featureList,
-      @Nonnull RawDataFile file, @Nonnull BetterPeak peak) {
+  @NotNull
+  public static ModularFeature peakToFeature(@NotNull ModularFeatureList featureList,
+      @NotNull RawDataFile file, @NotNull BetterPeak peak) {
 
     Chromatogram chromatogram = peak.chromatogram;
 
@@ -117,9 +117,9 @@ public class ADAPInterface {
         Range.closed(0.f, (float) peak.getIntensity()));
   }
 
-  @Nonnull
-  public static Feature peakToFeature(@Nonnull ModularFeatureList featureList,
-      @Nonnull RawDataFile file, @Nonnull Peak peak) {
+  @NotNull
+  public static Feature peakToFeature(@NotNull ModularFeatureList featureList,
+      @NotNull RawDataFile file, @NotNull Peak peak) {
 
     NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
 

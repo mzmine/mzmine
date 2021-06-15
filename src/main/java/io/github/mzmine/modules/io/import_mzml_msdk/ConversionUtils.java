@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class ConversionUtils {
 
@@ -168,7 +168,7 @@ public class ConversionUtils {
    * @param currentScanNumber
    */
   public static void extractImsMsMsInfo(final MzMLMsScan scan,
-      @Nonnull List<BuildingImsMsMsInfo> buildingInfos, final int currentFrameNumber,
+      @NotNull List<BuildingImsMsMsInfo> buildingInfos, final int currentFrameNumber,
       final int currentScanNumber) {
     Double lowerWindow = null;
     Double upperWindow = null;

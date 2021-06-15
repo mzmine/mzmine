@@ -21,7 +21,7 @@ import io.github.msdk.datamodel.RawDataFile;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>
@@ -31,19 +31,19 @@ import javax.annotation.Nonnull;
  */
 public class MzMLRawDataFile implements RawDataFile {
 
-  private static final @Nonnull FileType fileType = FileType.MZML;
+  private static final @NotNull FileType fileType = FileType.MZML;
 
   private final File sourceFile;
 
-  private final @Nonnull List<String> msFunctions;
-  private final @Nonnull List<MsScan> msScans;
-  private final @Nonnull List<Chromatogram> chromatograms;
+  private final @NotNull List<String> msFunctions;
+  private final @NotNull List<MsScan> msScans;
+  private final @NotNull List<Chromatogram> chromatograms;
 
-  private @Nonnull String defaultInstrumentConfiguration;
-  private @Nonnull String defaultDataProcessingScan;
-  private @Nonnull String defaultDataProcessingChromatogram;
+  private @NotNull String defaultInstrumentConfiguration;
+  private @NotNull String defaultDataProcessingScan;
+  private @NotNull String defaultDataProcessingChromatogram;
 
-  private @Nonnull String name;
+  private @NotNull String name;
 
   /**
    * <p>
@@ -70,7 +70,7 @@ public class MzMLRawDataFile implements RawDataFile {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public String getName() {
     return name;
   }
@@ -83,7 +83,7 @@ public class MzMLRawDataFile implements RawDataFile {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public FileType getRawDataFileType() {
     return fileType;
   }
@@ -91,7 +91,7 @@ public class MzMLRawDataFile implements RawDataFile {
   /** {@inheritDoc} */
   @SuppressWarnings("null")
   @Override
-  @Nonnull
+  @NotNull
   public List<String> getMsFunctions() {
     return ImmutableList.copyOf(msFunctions);
   }
@@ -99,7 +99,7 @@ public class MzMLRawDataFile implements RawDataFile {
   /** {@inheritDoc} */
   @SuppressWarnings("null")
   @Override
-  @Nonnull
+  @NotNull
   public List<MsScan> getScans() {
     return ImmutableList.copyOf(msScans);
   }
@@ -107,7 +107,7 @@ public class MzMLRawDataFile implements RawDataFile {
   /** {@inheritDoc} */
   @SuppressWarnings("null")
   @Override
-  @Nonnull
+  @NotNull
   public List<Chromatogram> getChromatograms() {
     return ImmutableList.copyOf(chromatograms);
   }

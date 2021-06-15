@@ -20,8 +20,8 @@ package io.github.mzmine.datamodel.identities.iontype.networks;
 
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import java.util.Arrays;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Relationships between {@link IonNetwork}s
@@ -42,7 +42,7 @@ public interface IonNetworkRelation {
    *
    * @return description
    */
-  @Nonnull
+  @NotNull
   String getDescription();
 
   /**
@@ -51,7 +51,7 @@ public interface IonNetworkRelation {
    *
    * @return an array of related networks
    */
-  @Nonnull
+  @NotNull
   IonNetwork[] getAllNetworks();
 
   /**

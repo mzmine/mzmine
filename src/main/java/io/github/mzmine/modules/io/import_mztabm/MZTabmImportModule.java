@@ -26,8 +26,8 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 import io.github.mzmine.util.MemoryMapStorage;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 
@@ -37,16 +37,16 @@ public class MZTabmImportModule implements MZmineProcessingModule {
   private static final String MODULE_DESCRIPTION =
       "This method imports a feature list from a mzTab-m file.";
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     File inputFiles[] = parameters.getParameter(MzTabmImportParameters.file).getValue();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (File inputFile : inputFiles) {
@@ -56,13 +56,13 @@ public class MZTabmImportModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTIMPORT;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return MODULE_NAME;

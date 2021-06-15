@@ -29,8 +29,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to store LC-MS data.
@@ -51,8 +51,8 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
    * @param intensityValues
    * @param scans
    */
-  public SimpleIonTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues, @Nonnull List<Scan> scans) {
+  public SimpleIonTimeSeries(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, @NotNull List<Scan> scans) {
     if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
     }
@@ -65,7 +65,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   @Override
   public SimpleIonTimeSeries subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<Scan> subset) {
+      @NotNull List<Scan> subset) {
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
 
@@ -128,8 +128,8 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   @Override
   public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull double[] newMzValues,
-      @Nonnull double[] newIntensityValues) {
+      @NotNull double[] newMzValues,
+      @NotNull double[] newIntensityValues) {
 
     return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, this.scans);
   }

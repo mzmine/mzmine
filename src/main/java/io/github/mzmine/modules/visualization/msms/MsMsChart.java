@@ -32,7 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.util.SortOrder;
 
 public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {

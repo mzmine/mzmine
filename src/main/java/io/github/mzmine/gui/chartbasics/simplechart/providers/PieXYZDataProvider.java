@@ -2,8 +2,8 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import java.awt.Color;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 public interface PieXYZDataProvider<T> extends PlotXYZDataProvider {
@@ -32,7 +32,7 @@ public interface PieXYZDataProvider<T> extends PlotXYZDataProvider {
    * @param series The index of the given slice.
    * @return The color.
    */
-  @Nonnull
+  @NotNull
   Color getSliceColor(int series);
 
   double getPieDiameter(int index);

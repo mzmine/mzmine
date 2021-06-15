@@ -20,7 +20,7 @@ package io.github.mzmine.modules.io.export_sql;
 
 import java.util.Collection;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

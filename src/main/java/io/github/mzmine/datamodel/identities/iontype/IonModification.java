@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IonModification extends NeutralMolecule implements Comparable<IonModification>,
     StringMapParser<IonModification> {
@@ -310,7 +310,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
    * @return array of modifications ({@link IonModification} has one; {@link
    * CombinedIonModification} has n)
    */
-  @Nonnull
+  @NotNull
   public IonModification[] getModifications() {
     return new IonModification[]{this};
   }

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -39,11 +39,11 @@ public class SumFormulaSpectraSearchModule implements MZmineModule {
       "This module annotates signals in selected mass spectra";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
@@ -63,7 +63,7 @@ public class SumFormulaSpectraSearchModule implements MZmineModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return SpectraIdentificationSumFormulaParameters.class;
   }
 }

@@ -23,7 +23,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Simple FeatureIdentity implementation;
@@ -92,7 +92,7 @@ public class SimpleFeatureIdentity implements FeatureIdentity {
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
 
     return properties.get(PROPERTY_NAME);
   }
@@ -103,7 +103,7 @@ public class SimpleFeatureIdentity implements FeatureIdentity {
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
 
     final StringBuilder description = new StringBuilder();
     for (final Entry<String, String> entry : properties.entrySet()) {
@@ -120,13 +120,13 @@ public class SimpleFeatureIdentity implements FeatureIdentity {
   }
 
   @Override
-  public @Nonnull Map<String, String> getAllProperties() {
+  public @NotNull Map<String, String> getAllProperties() {
 
     return new Hashtable<String, String>(properties);
   }
 
   @Override
-  // Removed @Nonnull in front because the function may return null
+  // Removed @NotNull in front because the function may return null
   public String getPropertyValue(final String property) {
     return properties.get(property);
   }
@@ -149,7 +149,7 @@ public class SimpleFeatureIdentity implements FeatureIdentity {
    */
   @SuppressWarnings("unchecked")
   @Override
-  public synchronized @Nonnull Object clone() {
+  public synchronized @NotNull Object clone() {
     return new SimpleFeatureIdentity((Hashtable<String, String>) properties.clone());
   }
 }

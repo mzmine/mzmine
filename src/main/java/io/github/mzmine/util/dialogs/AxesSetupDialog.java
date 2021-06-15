@@ -20,7 +20,7 @@ package io.github.mzmine.util.dialogs;
 
 import java.util.logging.Logger;
 import javafx.stage.Window;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.ValueAxis;
@@ -72,7 +72,7 @@ public class AxesSetupDialog extends Stage {
   /**
    * Constructor
    */
-  public AxesSetupDialog(@Nonnull Window parent, @Nonnull XYPlot plot) {
+  public AxesSetupDialog(@NotNull Window parent, @NotNull XYPlot plot) {
 
     assert parent != null;
     assert plot != null;
